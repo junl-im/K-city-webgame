@@ -2,14 +2,20 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#101827" />
-    <meta name="description" content="K-시티 이너월드: 모바일 카드형 도시 방범 RPG" />
-    <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b1022" />
     <title>K-시티 이너월드</title>
+    <link rel="icon" href="./assets/icon.svg" />
+    <link rel="stylesheet" href="./src/styles.css" />
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
+    <noscript>이 게임은 JavaScript가 필요합니다.</noscript>
+    <div id="app">
+      <div class="boot">
+        <div class="boot-logo">K-CITY</div>
+        <p>이너월드 로딩 중...</p>
+      </div>
+    </div>
+    <script type="module" src="./src/main.js"></script>
   </body>
 </html>
