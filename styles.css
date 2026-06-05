@@ -980,3 +980,450 @@ button {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* 2.5D visual pass */
+.intro-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  color: #f7f0df;
+  background:
+    linear-gradient(180deg, rgba(13, 18, 19, 0.3), rgba(13, 18, 19, 0.94)),
+    url("IMG/KayKit_DungeonRemastered_1.1_FREE/Assets/textures/dungeon_texture.png"),
+    #111819;
+  background-size: cover, 900px 900px, auto;
+}
+
+.intro-screen.is-hidden {
+  display: none;
+}
+
+.intro-canvas,
+.intro-shade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.intro-shade {
+  background:
+    linear-gradient(90deg, rgba(8, 12, 13, 0.88), rgba(8, 12, 13, 0.34) 50%, rgba(8, 12, 13, 0.82)),
+    linear-gradient(0deg, rgba(8, 12, 13, 0.9), transparent 42%, rgba(8, 12, 13, 0.72));
+  pointer-events: none;
+}
+
+.intro-copy {
+  position: relative;
+  z-index: 2;
+  width: min(780px, calc(100vw - 36px));
+  padding: 44px 0;
+  text-align: center;
+}
+
+.intro-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 14px;
+  border: 1px solid rgba(231, 190, 113, 0.45);
+  border-radius: 999px;
+  color: #e7be71;
+  background: rgba(23, 31, 31, 0.78);
+  font-weight: 900;
+}
+
+.intro-copy h1 {
+  margin: 16px 0 12px;
+  font-size: clamp(48px, 8vw, 104px);
+  line-height: 0.95;
+  letter-spacing: 0;
+  text-shadow: 0 8px 0 rgba(0, 0, 0, 0.28), 0 22px 48px rgba(0, 0, 0, 0.58);
+}
+
+.intro-copy p {
+  width: min(560px, 100%);
+  margin: 0 auto 26px;
+  color: rgba(247, 240, 223, 0.82);
+  font-size: 18px;
+  line-height: 1.65;
+  font-weight: 700;
+}
+
+.intro-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.intro-primary,
+.intro-secondary {
+  min-height: 52px;
+  border-radius: var(--radius);
+  padding: 0 24px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #111819;
+  background: #e7be71;
+  font-weight: 900;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.36);
+}
+
+.intro-secondary {
+  color: #f7f0df;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.intro-status {
+  position: absolute;
+  left: 24px;
+  bottom: 22px;
+  z-index: 2;
+  min-width: 220px;
+  padding: 14px 16px;
+  border: 1px solid rgba(231, 190, 113, 0.32);
+  border-radius: var(--radius);
+  background: rgba(14, 20, 21, 0.76);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
+}
+
+.intro-status span,
+.intro-status b {
+  display: block;
+}
+
+.intro-status span {
+  color: rgba(247, 240, 223, 0.72);
+  font-size: 12px;
+}
+
+.intro-status b {
+  margin-top: 4px;
+  color: #e7be71;
+}
+
+body {
+  color: #f3ead6;
+  background:
+    linear-gradient(90deg, rgba(231, 190, 113, 0.04) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(231, 190, 113, 0.03) 1px, transparent 1px),
+    #111819;
+  background-size: 42px 42px;
+}
+
+.topbar {
+  border-bottom-color: rgba(231, 190, 113, 0.15);
+  background: rgba(15, 22, 23, 0.94);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+}
+
+.brand strong,
+.resource b,
+.nav-button.is-active,
+.panel-title h2,
+.section-head h1,
+.battle-header h1,
+.worker-card strong,
+.item-card strong,
+.mission-card strong,
+.rank-row strong {
+  color: #f6edda;
+}
+
+.brand small,
+.eyebrow,
+.resource small,
+.worker-meta,
+.item-meta,
+.rank-meta {
+  color: rgba(246, 237, 218, 0.62);
+}
+
+.brand-mark {
+  color: #111819;
+  background: #e7be71;
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18), 0 10px 24px rgba(231, 190, 113, 0.22);
+}
+
+.resource {
+  border-color: rgba(231, 190, 113, 0.16);
+  background: linear-gradient(180deg, rgba(33, 45, 45, 0.94), rgba(20, 29, 30, 0.94));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.primary-button {
+  color: #111819;
+  background: #e7be71;
+  box-shadow: 0 12px 26px rgba(231, 190, 113, 0.22);
+}
+
+.ghost-button,
+.google-button,
+.icon-button {
+  color: #f6edda;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(231, 190, 113, 0.18);
+}
+
+.game-layout {
+  background:
+    radial-gradient(ellipse at top, rgba(63, 89, 85, 0.24), transparent 48%),
+    #111819;
+}
+
+.side-nav {
+  background: rgba(12, 18, 19, 0.92);
+  border-right-color: rgba(231, 190, 113, 0.13);
+}
+
+.nav-button {
+  color: rgba(246, 237, 218, 0.56);
+}
+
+.nav-button.is-active {
+  border-color: rgba(231, 190, 113, 0.35);
+  background: linear-gradient(180deg, rgba(45, 62, 60, 0.95), rgba(25, 35, 36, 0.95));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 28px rgba(0, 0, 0, 0.24);
+}
+
+.main-stage {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+}
+
+.town-wrap {
+  min-height: 720px;
+  border-color: rgba(231, 190, 113, 0.22);
+  background:
+    linear-gradient(180deg, rgba(22, 31, 32, 0.52), rgba(9, 13, 14, 0.2)),
+    #121b1c;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.35);
+}
+
+.town-wrap::before,
+.town-wrap::after,
+.district {
+  display: none;
+}
+
+.building {
+  z-index: 5;
+  width: 132px;
+  min-height: 64px;
+  padding: 8px 10px;
+  border: 1px solid rgba(231, 190, 113, 0.28);
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--radius);
+  color: #f6edda;
+  background: linear-gradient(180deg, rgba(27, 38, 39, 0.9), rgba(13, 20, 21, 0.86));
+  backdrop-filter: blur(7px);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.38);
+}
+
+.building::before {
+  inset: auto auto -10px 50%;
+  width: 42px;
+  height: 18px;
+  transform: translateX(-50%) rotate(45deg) skew(-12deg, -12deg);
+  border-radius: 3px;
+  background: rgba(231, 190, 113, 0.2);
+  box-shadow: 0 0 20px rgba(231, 190, 113, 0.22);
+}
+
+.building:hover {
+  transform: translateY(-4px);
+  border-color: rgba(231, 190, 113, 0.62);
+}
+
+.building-icon {
+  width: 30px;
+  height: 30px;
+  color: #111819;
+  background: #e7be71;
+}
+
+.building strong {
+  color: #f6edda;
+  font-size: 14px;
+}
+
+.building small {
+  color: #e7be71;
+}
+
+.building-hall { left: 13%; top: 13%; border-top-color: #79b66e; }
+.building-police { right: 14%; top: 19%; border-top-color: #64a8d6; }
+.building-training { left: 42%; top: 18%; border-top-color: #b993e8; }
+.building-lab { left: 50%; bottom: 37%; border-top-color: #92a96e; }
+.building-job { left: 18%; bottom: 25%; border-top-color: #d86e55; }
+.building-storage { right: 18%; bottom: 22%; border-top-color: #5cc0ad; }
+.building-power { left: 43%; bottom: 12%; border-top-color: #e7be71; }
+
+.info-panel,
+.battle-zone,
+#huntView > aside,
+.section-head,
+.auth-card,
+.zone-card,
+.worker-card,
+.item-card,
+.mission-card,
+.rank-row {
+  border-color: rgba(231, 190, 113, 0.17);
+  background: linear-gradient(180deg, rgba(28, 39, 40, 0.94), rgba(16, 24, 25, 0.94));
+  box-shadow: 0 22px 58px rgba(0, 0, 0, 0.28);
+}
+
+.info-panel p,
+.zone-card span,
+.item-card span,
+.mission-card span {
+  color: rgba(246, 237, 218, 0.72);
+}
+
+.stat-tile,
+.battle-stats span,
+.party-slot {
+  border-color: rgba(231, 190, 113, 0.14);
+  background: rgba(255, 255, 255, 0.055);
+  color: #f6edda;
+}
+
+.pill,
+.cost-chip,
+.reward-chip,
+.grade-pill {
+  color: #f6edda;
+  background: rgba(231, 190, 113, 0.13);
+}
+
+.cost-chip.is-missing {
+  color: #ffb2a8;
+  background: rgba(185, 55, 55, 0.24);
+}
+
+#huntView {
+  grid-template-columns: minmax(600px, 1fr) minmax(300px, 380px);
+}
+
+.battle-zone {
+  grid-template-rows: auto minmax(470px, 1fr) auto;
+  background:
+    linear-gradient(180deg, rgba(27, 37, 38, 0.96), rgba(10, 14, 15, 0.98)),
+    url("IMG/KayKit_DungeonRemastered_1.1_FREE/Assets/textures/dungeon_texture.png");
+  background-size: auto, 1100px 1100px;
+}
+
+.battle-canvas {
+  min-height: 500px;
+  border: 1px solid rgba(231, 190, 113, 0.18);
+  background: #101516;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 -80px 120px rgba(0, 0, 0, 0.28);
+}
+
+.battle-status {
+  color: rgba(246, 237, 218, 0.72);
+}
+
+.zone-card {
+  color: #f6edda;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.zone-card.is-selected {
+  border-color: rgba(231, 190, 113, 0.62);
+  box-shadow: 0 0 0 2px rgba(231, 190, 113, 0.12), 0 14px 34px rgba(0, 0, 0, 0.24);
+}
+
+.log-panel {
+  border-color: rgba(231, 190, 113, 0.18);
+  background: #0b1011;
+  color: #e9dfc9;
+}
+
+.mini-button {
+  color: #f6edda;
+  border-color: rgba(231, 190, 113, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mini-button.is-active {
+  color: #111819;
+  background: #e7be71;
+}
+
+.bar {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.bar span,
+.mission-progress span {
+  background: linear-gradient(90deg, #79b66e, #e7be71);
+}
+
+.mission-progress {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 1180px) {
+  #huntView {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .intro-copy {
+    padding: 28px 0;
+  }
+
+  .intro-copy h1 {
+    font-size: 48px;
+  }
+
+  .intro-copy p {
+    font-size: 15px;
+  }
+
+  .intro-primary,
+  .intro-secondary {
+    width: min(280px, 100%);
+  }
+
+  .intro-status {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .side-nav {
+    background: rgba(12, 18, 19, 0.96);
+  }
+
+  .town-wrap {
+    min-height: 760px;
+  }
+
+  .building {
+    width: 112px;
+    min-height: 62px;
+  }
+
+  .building-hall { left: 20px; top: 62px; }
+  .building-police { right: 20px; top: 108px; }
+  .building-training { left: calc(50% - 56px); top: 220px; }
+  .building-lab { left: calc(50% - 56px); top: 356px; }
+  .building-job { left: 20px; bottom: 178px; }
+  .building-storage { right: 20px; bottom: 148px; }
+  .building-power { left: calc(50% - 56px); bottom: 34px; }
+
+  .battle-zone {
+    grid-template-rows: auto minmax(380px, 1fr) auto;
+  }
+
+  .battle-canvas {
+    min-height: 390px;
+  }
+}
