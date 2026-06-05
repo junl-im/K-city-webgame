@@ -1,0 +1,21 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "pvpRooms",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leaderboards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "score", "order": "DESCENDING" },
+        { "fieldPath": "level", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
