@@ -1,0 +1,19 @@
+{
+  "name": "k-city-innerworld",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "deploy:firebase": "npm run build && firebase deploy",
+    "lint:check": "node scripts/check-project.mjs"
+  },
+  "dependencies": {
+    "@vitejs/plugin-basic-ssl": "latest",
+    "vite": "latest",
+    "firebase": "latest"
+  },
+  "devDependencies": {}
+}
