@@ -4,42 +4,26 @@ service cloud.firestore {
     function signedIn() {
       return request.auth != null;
     }
-
     function isOwner(uid) {
       return signedIn() && request.auth.uid == uid;
     }
 
-    match /profiles/{uid} {
-      allow read: if signedIn();
-      allow create, update: if isOwner(uid)
-        && request.resource.data.keys().hasOnly([
-          'version', 'account', 'profile', 'buildings', 'ownedCards', 'team', 'inventory', 'missions', 'battleLog', 'pvp', 'flags', 'updatedAt'
-        ]);
-      allow delete: if isOwner(uid);
+    match /users/{uid} {
+      allow read, write: if isOwner(uid);
     }
 
-    match /leaderboards/{uid} {
+    match /rankings/{uid} {
       allow read: if true;
       allow create, update: if isOwner(uid)
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.score is number
-        && request.resource.data.level is number;
+        && request.resource.data.uid == request.auth.uid;
       allow delete: if false;
     }
 
-    match /pvpRooms/{roomId} {
+    match /pvpMatches/{matchId} {
       allow read: if signedIn();
       allow create: if signedIn()
-        && request.resource.data.hostUid == request.auth.uid
-        && request.resource.data.status == 'waiting';
-      allow update: if signedIn()
-        && (
-          resource.data.hostUid == request.auth.uid
-          || request.resource.data.challengerUid == request.auth.uid
-          || resource.data.challengerUid == request.auth.uid
-        )
-        && request.resource.data.status in ['waiting', 'resolved', 'cancelled'];
-      allow delete: if false;
+        && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
     }
   }
 }
