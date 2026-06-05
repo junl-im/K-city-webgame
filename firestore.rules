@@ -1,33 +1,45 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() {
       return request.auth != null;
     }
 
-    function isOwner(userId) {
-      return signedIn() && request.auth.uid == userId;
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
     }
 
-    match /players/{userId} {
-      allow read, create, update, delete: if isOwner(userId);
-    }
-
-    match /leaderboard/{userId} {
+    match /profiles/{uid} {
       allow read: if signedIn();
-      allow create, update: if isOwner(userId)
-        && request.resource.data.uid == request.auth.uid
+      allow create, update: if isOwner(uid)
         && request.resource.data.keys().hasOnly([
-          'uid',
-          'nickname',
-          'townLevel',
-          'power',
-          'crimeSuppressed',
-          'score',
-          'updatedAt'
+          'version', 'account', 'profile', 'buildings', 'ownedCards', 'team', 'inventory', 'missions', 'battleLog', 'pvp', 'flags', 'updatedAt'
         ]);
-      allow delete: if isOwner(userId);
+      allow delete: if isOwner(uid);
+    }
+
+    match /leaderboards/{uid} {
+      allow read: if true;
+      allow create, update: if isOwner(uid)
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.score is number
+        && request.resource.data.level is number;
+      allow delete: if false;
+    }
+
+    match /pvpRooms/{roomId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.hostUid == request.auth.uid
+        && request.resource.data.status == 'waiting';
+      allow update: if signedIn()
+        && (
+          resource.data.hostUid == request.auth.uid
+          || request.resource.data.challengerUid == request.auth.uid
+          || resource.data.challengerUid == request.auth.uid
+        )
+        && request.resource.data.status in ['waiting', 'resolved', 'cancelled'];
+      allow delete: if false;
     }
   }
 }
