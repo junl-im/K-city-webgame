@@ -10,6 +10,24 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <section id="introScreen" class="intro-screen" aria-label="게임 인트로">
+    <canvas id="introCanvas" class="intro-canvas" aria-hidden="true"></canvas>
+    <div class="intro-shade"></div>
+    <div class="intro-copy">
+      <span class="intro-kicker">2.5D 도시 방범 RPG</span>
+      <h1>K-시티 방범대</h1>
+      <p>무너진 도시의 주민센터를 재건하고, 인재를 모아 밤거리의 사건을 제압하세요.</p>
+      <div class="intro-actions">
+        <button id="enterGameBtn" class="intro-primary" type="button">게임 시작</button>
+        <button id="skipIntroBtn" class="intro-secondary" type="button">바로 입장</button>
+      </div>
+    </div>
+    <div class="intro-status">
+      <span>주민센터 비상대책반</span>
+      <b>긴급 출동 대기</b>
+    </div>
+  </section>
+
   <div id="app" class="game-shell">
     <header class="topbar">
       <div class="brand">
