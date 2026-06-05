@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "deploy:firebase": "npm run build && firebase deploy",
-    "lint:check": "node scripts/check-project.mjs"
+    "lint:check": "node scripts/check-project.mjs",
+    "build:github": "vite build --base=/K-city-webgame/",
+    "preview:github": "npm run build:github && vite preview --host 0.0.0.0"
   },
   "dependencies": {
     "@vitejs/plugin-basic-ssl": "latest",
