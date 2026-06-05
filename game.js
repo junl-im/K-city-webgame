@@ -1,5 +1,6 @@
 const FIREBASE_VERSION = "12.14.0";
 const STORAGE_KEY = "k-city-webgame-save-v1";
+const INTRO_KEY = "k-city-intro-seen-v1";
 const SAVE_DEBOUNCE_MS = 4200;
 const MAX_PARTY_SIZE = 5;
 
@@ -83,6 +84,27 @@ const BUILDINGS = {
     effects: level => [`드랍 보너스 +${level * 4}%`, `자동 생산 +${level * 3}%`]
   }
 };
+
+const TOWN_SCENE = [
+  { id: "townHall", gx: 1.2, gy: 1.4, w: 2.2, d: 1.9, h: 2.25, wall: "#6f8f78", roof: "#315f47", trim: "#e7be71" },
+  { id: "training", gx: 4.0, gy: 1.2, w: 1.7, d: 1.8, h: 1.8, wall: "#71688e", roof: "#4c3f6f", trim: "#d3b5ff" },
+  { id: "police", gx: 6.2, gy: 2.0, w: 1.9, d: 1.9, h: 2.05, wall: "#5e85a0", roof: "#2f6c9f", trim: "#f0f6ff" },
+  { id: "jobCenter", gx: 1.5, gy: 5.6, w: 1.8, d: 1.7, h: 1.55, wall: "#ad6d5b", roof: "#bf503a", trim: "#ffd2b4" },
+  { id: "lab", gx: 4.3, gy: 4.4, w: 1.8, d: 1.7, h: 1.95, wall: "#748061", roof: "#566946", trim: "#c8df98" },
+  { id: "storage", gx: 6.6, gy: 5.4, w: 1.8, d: 1.7, h: 1.55, wall: "#4f8d86", roof: "#2d7d78", trim: "#9be7dc" },
+  { id: "powerPlant", gx: 4.1, gy: 7.1, w: 2.0, d: 1.6, h: 1.8, wall: "#9e7b45", roof: "#d89432", trim: "#ffe09a" }
+];
+
+const TOWN_PROPS = [
+  { type: "tree", gx: 0.7, gy: 3.7, size: 1.05 },
+  { type: "tree", gx: 2.5, gy: 0.6, size: 0.8 },
+  { type: "tree", gx: 7.7, gy: 3.8, size: 0.9 },
+  { type: "barrel", gx: 3.3, gy: 6.4, size: 0.75 },
+  { type: "barrel", gx: 7.9, gy: 6.9, size: 0.7 },
+  { type: "lamp", gx: 2.9, gy: 3.0, size: 0.75 },
+  { type: "lamp", gx: 5.8, gy: 3.8, size: 0.75 },
+  { type: "car", gx: 5.9, gy: 1.2, size: 0.8 }
+];
 
 const WORKER_POOL = [
   {
@@ -303,6 +325,7 @@ let selectedView = "town";
 let selectedBuilding = state.selectedBuilding || "townHall";
 let selectedZoneId = state.selectedZoneId || "alley";
 let activeBattle = null;
+let introVisible = false;
 let saveTimer = null;
 let passiveTimer = null;
 let leaderRows = [];
@@ -313,6 +336,7 @@ document.addEventListener("DOMContentLoaded", init);
 function init() {
   state = hydrateState(state);
   applyOfflineProgress();
+  setupIntro();
   bindEvents();
   render();
   setupCanvases();
@@ -324,7 +348,25 @@ function init() {
   });
 }
 
+function setupIntro() {
+  const intro = document.getElementById("introScreen");
+  if (!intro) return;
+  introVisible = localStorage.getItem(INTRO_KEY) !== "1";
+  intro.classList.toggle("is-hidden", !introVisible);
+}
+
+function closeIntro() {
+  const intro = document.getElementById("introScreen");
+  if (!intro) return;
+  introVisible = false;
+  localStorage.setItem(INTRO_KEY, "1");
+  intro.classList.add("is-hidden");
+}
+
 function bindEvents() {
+  document.getElementById("enterGameBtn")?.addEventListener("click", closeIntro);
+  document.getElementById("skipIntroBtn")?.addEventListener("click", closeIntro);
+
   document.querySelectorAll("[data-view]").forEach(button => {
     button.addEventListener("click", () => setView(button.dataset.view));
   });
@@ -637,7 +679,13 @@ function startHunt(zoneId) {
     power,
     startedAt: performance.now(),
     duration,
-    impacts: []
+    hitSeed: Math.random() * 1000,
+    impacts: Array.from({ length: 14 }, (_, index) => ({
+      at: 0.08 + index * 0.064,
+      lane: index % Math.max(1, team.length),
+      damage: randomInt(Math.max(8, Math.floor(zone.difficulty * 0.18)), Math.max(18, Math.floor(zone.difficulty * 0.42))),
+      heavy: index % 5 === 3
+    }))
   };
   document.getElementById("battleStatus").textContent = `${zone.threat} 제압 중`;
   document.getElementById("startHuntBtn").disabled = true;
@@ -1121,6 +1169,7 @@ function renderStatBar(label, value, max) {
 
 function setupCanvases() {
   const draw = timestamp => {
+    drawIntro(timestamp);
     drawTown(timestamp);
     drawBattle(timestamp);
     window.requestAnimationFrame(draw);
@@ -1142,123 +1191,528 @@ function fitCanvas(canvas) {
   return { ctx, width: rect.width, height: rect.height };
 }
 
+function drawIntro(timestamp) {
+  if (!introVisible) return;
+  const canvas = document.getElementById("introCanvas");
+  if (!canvas) return;
+  const { ctx, width, height } = fitCanvas(canvas);
+  ctx.clearRect(0, 0, width, height);
+
+  const sky = ctx.createLinearGradient(0, 0, 0, height);
+  sky.addColorStop(0, "#172426");
+  sky.addColorStop(0.55, "#111819");
+  sky.addColorStop(1, "#080c0d");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, width, height);
+
+  const scale = clamp(width / 1100, 0.65, 1.08);
+  const tileW = 86 * scale;
+  const tileH = 42 * scale;
+  const origin = { x: width * 0.58, y: height * 0.18 };
+
+  ctx.save();
+  ctx.globalAlpha = 0.9;
+  drawIsoDistrict(ctx, origin, tileW, tileH, 10, 9, timestamp, true);
+  [...TOWN_SCENE]
+    .sort((a, b) => (a.gx + a.gy) - (b.gx + b.gy))
+    .forEach(scene => drawIsoBuilding(ctx, scene, origin, tileW, tileH, scale, timestamp));
+  TOWN_PROPS.forEach(prop => drawTownProp(ctx, prop, origin, tileW, tileH, scale, timestamp));
+  ctx.restore();
+
+  for (let i = 0; i < 18; i += 1) {
+    const x = (i * 137 + timestamp * 0.018) % (width + 120) - 60;
+    const y = 54 + (i * 79) % Math.max(140, height * 0.45);
+    ctx.fillStyle = i % 3 === 0 ? "rgba(231,190,113,0.8)" : "rgba(255,255,255,0.44)";
+    ctx.fillRect(x, y, 2, 2);
+  }
+}
+
 function drawTown(timestamp) {
   const canvas = document.getElementById("townCanvas");
   if (!canvas) return;
   const { ctx, width, height } = fitCanvas(canvas);
   ctx.clearRect(0, 0, width, height);
 
-  for (let i = 0; i < 26; i += 1) {
-    const x = (i * 83 + timestamp * 0.012) % (width + 120) - 60;
-    const y = 70 + (i * 47) % Math.max(120, height - 130);
-    ctx.fillStyle = i % 3 === 0 ? "rgba(47, 108, 159, 0.16)" : "rgba(47, 125, 88, 0.13)";
-    ctx.fillRect(x, y, 28, 12);
+  const bg = ctx.createLinearGradient(0, 0, 0, height);
+  bg.addColorStop(0, "#1b2b2d");
+  bg.addColorStop(0.68, "#111819");
+  bg.addColorStop(1, "#0b1011");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, width, height);
+
+  const scale = clamp(width / 920, 0.64, 1.08);
+  const tileW = 82 * scale;
+  const tileH = 40 * scale;
+  const origin = { x: width * 0.5, y: height * 0.1 };
+
+  drawIsoDistrict(ctx, origin, tileW, tileH, 9, 9, timestamp, false);
+
+  const sortedBuildings = [...TOWN_SCENE].sort((a, b) => (a.gx + a.gy) - (b.gx + b.gy));
+  sortedBuildings.forEach(scene => drawIsoBuilding(ctx, scene, origin, tileW, tileH, scale, timestamp));
+
+  TOWN_PROPS
+    .sort((a, b) => (a.gx + a.gy) - (b.gx + b.gy))
+    .forEach(prop => drawTownProp(ctx, prop, origin, tileW, tileH, scale, timestamp));
+
+  drawTownCitizens(ctx, origin, tileW, tileH, scale, timestamp);
+}
+
+function drawIsoDistrict(ctx, origin, tileW, tileH, cols, rows, timestamp, introMode) {
+  for (let y = 0; y < rows; y += 1) {
+    for (let x = 0; x < cols; x += 1) {
+      const point = isoPoint(x, y, origin, tileW, tileH);
+      const isRoad = x === 4 || y === 4 || (x > 4 && y === 2) || (x === 2 && y > 4);
+      const isWater = !introMode && x < 2 && y > 6;
+      const flicker = Math.sin(timestamp / 1200 + x * 0.9 + y) * 0.04;
+      const fill = isWater
+        ? `rgba(58, 105, 119, ${0.55 + flicker})`
+        : isRoad
+          ? `rgba(72, 76, 70, ${0.82 + flicker})`
+          : introMode
+            ? `rgba(49, 67, 60, ${0.78 + flicker})`
+            : `rgba(64, 89, 72, ${0.76 + flicker})`;
+      drawIsoDiamond(ctx, point.x, point.y, tileW, tileH, fill, "rgba(231,190,113,0.1)");
+
+      if (isRoad) {
+        ctx.strokeStyle = "rgba(231,190,113,0.11)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(point.x - tileW * 0.22, point.y);
+        ctx.lineTo(point.x + tileW * 0.22, point.y);
+        ctx.stroke();
+      }
+    }
   }
 
-  ctx.strokeStyle = "rgba(255,255,255,0.34)";
-  ctx.lineWidth = 3;
-  ctx.setLineDash([12, 18]);
+  const gate = isoPoint(4, 8.9, origin, tileW, tileH);
+  ctx.fillStyle = "rgba(10, 14, 15, 0.42)";
   ctx.beginPath();
-  ctx.moveTo(-40, height * 0.53);
-  ctx.lineTo(width + 40, height * 0.34);
+  ctx.ellipse(gate.x, gate.y + tileH * 0.45, tileW * 2.2, tileH * 0.6, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawIsoBuilding(ctx, scene, origin, tileW, tileH, scale, timestamp) {
+  const p0 = isoPoint(scene.gx, scene.gy, origin, tileW, tileH);
+  const p1 = isoPoint(scene.gx + scene.w, scene.gy, origin, tileW, tileH);
+  const p2 = isoPoint(scene.gx + scene.w, scene.gy + scene.d, origin, tileW, tileH);
+  const p3 = isoPoint(scene.gx, scene.gy + scene.d, origin, tileW, tileH);
+  const height = scene.h * 33 * scale;
+  const q0 = { x: p0.x, y: p0.y - height };
+  const q1 = { x: p1.x, y: p1.y - height };
+  const q2 = { x: p2.x, y: p2.y - height };
+  const q3 = { x: p3.x, y: p3.y - height };
+  const level = state.buildings[scene.id] || 1;
+  const selected = selectedBuilding === scene.id;
+
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.42)";
+  ctx.shadowBlur = 26;
+  ctx.shadowOffsetY = 18 * scale;
+  drawPoly(ctx, [p0, p1, p2, p3], "rgba(0,0,0,0.28)");
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+
+  drawPoly(ctx, [p1, p2, q2, q1], shadeColor(scene.wall, -24));
+  drawPoly(ctx, [p2, p3, q3, q2], shadeColor(scene.wall, -36));
+  drawPoly(ctx, [p3, p0, q0, q3], shadeColor(scene.wall, -16));
+  drawPoly(ctx, [q0, q1, q2, q3], scene.roof);
+
+  ctx.strokeStyle = selected ? "rgba(231,190,113,0.95)" : "rgba(255,255,255,0.16)";
+  ctx.lineWidth = selected ? 3 : 1;
+  drawPath(ctx, [q0, q1, q2, q3], true);
   ctx.stroke();
+
+  const pulse = selected ? 0.55 + Math.sin(timestamp / 260) * 0.24 : 0.16;
+  ctx.strokeStyle = `rgba(231,190,113,${pulse})`;
+  ctx.lineWidth = selected ? 4 : 2;
+  drawPath(ctx, [p0, p1, p2, p3], true);
+  ctx.stroke();
+
+  drawBuildingWindows(ctx, [q1, q2, p2, p1], level, scene.trim, scale);
+  drawBuildingWindows(ctx, [q2, q3, p3, p2], Math.max(1, level - 1), scene.trim, scale);
+
+  const sign = isoPoint(scene.gx + scene.w * 0.5, scene.gy + scene.d * 0.5, origin, tileW, tileH);
+  ctx.fillStyle = "rgba(8,12,13,0.62)";
   ctx.beginPath();
-  ctx.moveTo(width * 0.52, -50);
-  ctx.lineTo(width * 0.43, height + 50);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  ctx.ellipse(sign.x, sign.y + 9 * scale, 27 * scale, 9 * scale, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawBuildingWindows(ctx, face, count, color, scale) {
+  const [a, b, c, d] = face;
+  for (let i = 0; i < Math.min(4, count + 1); i += 1) {
+    const t = (i + 1) / (Math.min(4, count + 1) + 1);
+    const top = lerpPoint(a, b, t);
+    const bottom = lerpPoint(d, c, t);
+    const mid = lerpPoint(top, bottom, 0.42);
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.78;
+    ctx.fillRect(mid.x - 3 * scale, mid.y - 9 * scale, 6 * scale, 8 * scale);
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawTownProp(ctx, prop, origin, tileW, tileH, scale, timestamp) {
+  const p = isoPoint(prop.gx, prop.gy, origin, tileW, tileH);
+  const s = prop.size * scale;
+  ctx.save();
+  ctx.fillStyle = "rgba(0,0,0,0.28)";
+  ctx.beginPath();
+  ctx.ellipse(p.x, p.y + 8 * s, 18 * s, 8 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (prop.type === "tree") {
+    ctx.fillStyle = "#5b3c2a";
+    ctx.fillRect(p.x - 3 * s, p.y - 24 * s, 6 * s, 28 * s);
+    ctx.fillStyle = "#3f7550";
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y - 58 * s);
+    ctx.lineTo(p.x - 24 * s, p.y - 14 * s);
+    ctx.lineTo(p.x + 24 * s, p.y - 14 * s);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  if (prop.type === "barrel") {
+    ctx.fillStyle = "#8a543c";
+    ctx.fillRect(p.x - 12 * s, p.y - 22 * s, 24 * s, 26 * s);
+    ctx.fillStyle = "#c58b5e";
+    ctx.fillRect(p.x - 12 * s, p.y - 14 * s, 24 * s, 4 * s);
+  }
+
+  if (prop.type === "lamp") {
+    const glow = 0.35 + Math.sin(timestamp / 300) * 0.08;
+    ctx.fillStyle = "#293030";
+    ctx.fillRect(p.x - 2 * s, p.y - 42 * s, 4 * s, 44 * s);
+    ctx.fillStyle = `rgba(231,190,113,${0.72 + glow})`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y - 46 * s, 7 * s, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  if (prop.type === "car") {
+    ctx.fillStyle = "#26313a";
+    drawRoundRect(ctx, p.x - 24 * s, p.y - 22 * s, 48 * s, 20 * s, 4 * s);
+    ctx.fill();
+    ctx.fillStyle = "#64a8d6";
+    ctx.fillRect(p.x - 10 * s, p.y - 18 * s, 18 * s, 5 * s);
+  }
+  ctx.restore();
+}
+
+function drawTownCitizens(ctx, origin, tileW, tileH, scale, timestamp) {
+  const routes = [
+    { a: [2.1, 4.4], b: [4.1, 4.4], color: "#e7be71" },
+    { a: [4.5, 2.4], b: [4.5, 6.4], color: "#8ed1bf" },
+    { a: [6.8, 4.2], b: [4.8, 4.2], color: "#d86e55" }
+  ];
+  routes.forEach((route, index) => {
+    const t = (Math.sin(timestamp / (1350 + index * 170) + index) + 1) / 2;
+    const gx = route.a[0] + (route.b[0] - route.a[0]) * t;
+    const gy = route.a[1] + (route.b[1] - route.a[1]) * t;
+    const p = isoPoint(gx, gy, origin, tileW, tileH);
+    drawTinyPerson(ctx, p.x, p.y, route.color, scale);
+  });
 }
 
 function drawBattle(timestamp) {
   const canvas = document.getElementById("battleCanvas");
   if (!canvas) return;
   const { ctx, width, height } = fitCanvas(canvas);
+  const progress = activeBattle ? clamp((timestamp - activeBattle.startedAt) / activeBattle.duration, 0, 1) : 0;
+  const hitPulse = activeBattle ? Math.max(0, Math.sin((timestamp - activeBattle.startedAt) / 95)) : 0;
+  const shake = activeBattle && hitPulse > 0.86 ? (hitPulse - 0.86) * 20 : 0;
+
   ctx.clearRect(0, 0, width, height);
+  ctx.save();
+  ctx.translate(Math.sin(timestamp / 31) * shake, Math.cos(timestamp / 29) * shake);
 
-  const grd = ctx.createLinearGradient(0, 0, width, height);
-  grd.addColorStop(0, "#26313a");
-  grd.addColorStop(0.55, "#1f272d");
-  grd.addColorStop(1, "#3b2e28");
-  ctx.fillStyle = grd;
-  ctx.fillRect(0, 0, width, height);
+  const bg = ctx.createLinearGradient(0, 0, 0, height);
+  bg.addColorStop(0, "#222c2d");
+  bg.addColorStop(0.45, "#13191a");
+  bg.addColorStop(1, "#070a0b");
+  ctx.fillStyle = bg;
+  ctx.fillRect(-30, -30, width + 60, height + 60);
 
-  ctx.strokeStyle = "rgba(255,255,255,0.08)";
-  ctx.lineWidth = 1;
-  for (let x = 0; x < width; x += 38) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x - 80, height);
-    ctx.stroke();
-  }
+  drawBattleArena(ctx, width, height, timestamp);
 
   const party = getPartyWorkers();
-  const enemies = activeBattle ? 4 : 3;
-  const progress = activeBattle ? clamp((timestamp - activeBattle.startedAt) / activeBattle.duration, 0, 1) : 0;
+  const enemyCount = activeBattle ? 4 : 3;
+  const lanes = Math.max(enemyCount, party.length, 3);
+
+  for (let index = 0; index < enemyCount; index += 1) {
+    const lane = (index + 1) / (lanes + 1);
+    const y = height * (0.22 + lane * 0.58);
+    const baseX = width * (0.72 - progress * 0.08);
+    const stagger = Math.sin(timestamp / 180 + index) * 5;
+    const recoil = activeBattle ? Math.max(0, Math.sin((timestamp - activeBattle.startedAt) / 120 + index)) * 8 : 0;
+    drawCombatant(ctx, {
+      x: baseX + stagger + recoil,
+      y,
+      scale: clamp(width / 900, 0.72, 1.08),
+      color: "#b84d3c",
+      trim: "#f0b08a",
+      label: activeBattle?.zone?.threat.slice(0, 1) || "범",
+      facing: -1,
+      hp: activeBattle ? clamp(1 - progress * 0.82 + index * 0.04, 0.08, 1) : 1,
+      attacking: false
+    });
+  }
 
   party.forEach((worker, index) => {
     const lane = (index + 1) / (party.length + 1);
-    const pulse = Math.sin(timestamp / 160 + index) * 5;
-    const x = width * (0.18 + progress * 0.18) + pulse;
-    const y = height * lane;
-    drawUnit(ctx, x, y, 18, getGradeColor(worker.grade), worker.role.slice(0, 1));
-    if (activeBattle) drawProjectile(ctx, x + 22, y, width * 0.72, height * lane, timestamp, index);
+    const y = height * (0.23 + lane * 0.56);
+    const phase = activeBattle ? ((timestamp - activeBattle.startedAt) / 520 + index * 0.18) % 1 : 0;
+    const lunge = activeBattle && phase < 0.25 ? Math.sin(phase / 0.25 * Math.PI) * 38 : 0;
+    drawCombatant(ctx, {
+      x: width * (0.22 + progress * 0.08) + lunge,
+      y,
+      scale: clamp(width / 900, 0.72, 1.08),
+      color: getGradeColor(worker.grade),
+      trim: "#e7be71",
+      label: worker.role.slice(0, 1),
+      facing: 1,
+      hp: 0.78 + Math.sin(timestamp / 900 + index) * 0.04,
+      attacking: activeBattle && phase < 0.32
+    });
   });
 
-  for (let index = 0; index < enemies; index += 1) {
-    const lane = (index + 1) / (enemies + 1);
-    const shake = activeBattle ? Math.sin(timestamp / 90 + index) * 4 : 0;
-    const x = width * (0.76 - progress * 0.12) + shake;
-    const y = height * lane;
-    drawUnit(ctx, x, y, 20, "#bf503a", activeBattle?.zone?.threat.slice(0, 1) || "범");
-  }
-
   if (activeBattle) {
-    ctx.fillStyle = "rgba(255,255,255,0.92)";
-    ctx.font = "800 15px sans-serif";
-    ctx.fillText(`${activeBattle.zone.name} ${Math.round(progress * 100)}%`, 22, 30);
-    ctx.fillStyle = "rgba(216,148,50,0.95)";
-    ctx.fillRect(22, 42, (width - 44) * progress, 8);
-    ctx.strokeStyle = "rgba(255,255,255,0.25)";
-    ctx.strokeRect(22, 42, width - 44, 8);
-  } else {
-    ctx.fillStyle = "rgba(255,255,255,0.72)";
-    ctx.font = "800 16px sans-serif";
-    ctx.fillText("작전 대기", 22, 30);
+    drawBattleImpacts(ctx, activeBattle, width, height, timestamp, progress);
   }
-}
 
-function drawUnit(ctx, x, y, radius, color, label) {
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.32)";
-  ctx.shadowBlur = 16;
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(x, y, radius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = "#fff";
-  ctx.font = "900 13px sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(label, x, y + 1);
+  drawBattleHud(ctx, width, height, progress);
   ctx.restore();
 }
 
-function drawProjectile(ctx, sx, sy, tx, ty, timestamp, index) {
-  const t = ((timestamp / 650 + index * 0.22) % 1);
-  const x = sx + (tx - sx) * t;
-  const y = sy + (ty - sy) * t + Math.sin(t * Math.PI) * -22;
-  ctx.fillStyle = "rgba(238, 216, 124, 0.9)";
+function drawBattleArena(ctx, width, height, timestamp) {
+  const scale = clamp(width / 900, 0.72, 1.08);
+  const tileW = 84 * scale;
+  const tileH = 40 * scale;
+  const origin = { x: width * 0.5, y: height * 0.18 };
+  for (let y = 0; y < 7; y += 1) {
+    for (let x = 0; x < 9; x += 1) {
+      const p = isoPoint(x, y, origin, tileW, tileH);
+      const edge = x === 0 || y === 0 || x === 8 || y === 6;
+      const shade = edge ? "rgba(85, 94, 89, 0.68)" : "rgba(71, 76, 68, 0.78)";
+      drawIsoDiamond(ctx, p.x, p.y, tileW, tileH, shade, "rgba(231,190,113,0.1)");
+    }
+  }
+
+  const light = ctx.createRadialGradient(width * 0.5, height * 0.45, 20, width * 0.5, height * 0.45, width * 0.55);
+  light.addColorStop(0, "rgba(231,190,113,0.18)");
+  light.addColorStop(1, "rgba(231,190,113,0)");
+  ctx.fillStyle = light;
+  ctx.fillRect(0, 0, width, height);
+
+  for (let i = 0; i < 6; i += 1) {
+    const x = 60 + ((timestamp * 0.018 + i * 177) % Math.max(180, width - 120));
+    const y = height * 0.12 + (i % 3) * 42;
+    ctx.fillStyle = "rgba(231,190,113,0.42)";
+    ctx.fillRect(x, y, 2, 18);
+  }
+}
+
+function drawCombatant(ctx, unit) {
+  const s = unit.scale;
+  ctx.save();
+  ctx.translate(unit.x, unit.y);
+  ctx.scale(unit.facing, 1);
+  ctx.fillStyle = "rgba(0,0,0,0.35)";
   ctx.beginPath();
-  ctx.arc(x, y, 4, 0, Math.PI * 2);
+  ctx.ellipse(0, 16 * s, 30 * s, 10 * s, 0, 0, Math.PI * 2);
   ctx.fill();
-  if (t > 0.92) {
-    ctx.strokeStyle = "rgba(255, 236, 140, 0.55)";
-    ctx.lineWidth = 3;
+
+  if (unit.attacking) {
+    ctx.strokeStyle = "rgba(231,190,113,0.72)";
+    ctx.lineWidth = 5 * s;
     ctx.beginPath();
-    ctx.arc(tx, ty, 18 * (t - 0.9) * 10, 0, Math.PI * 2);
+    ctx.arc(18 * s, -10 * s, 40 * s, -0.8, 0.75);
     ctx.stroke();
   }
+
+  ctx.fillStyle = shadeColor(unit.color, -18);
+  drawRoundRect(ctx, -14 * s, -24 * s, 28 * s, 38 * s, 8 * s);
+  ctx.fill();
+  ctx.fillStyle = unit.color;
+  drawRoundRect(ctx, -12 * s, -30 * s, 24 * s, 32 * s, 8 * s);
+  ctx.fill();
+  ctx.fillStyle = "#e8c3a2";
+  ctx.beginPath();
+  ctx.arc(0, -42 * s, 15 * s, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = shadeColor(unit.color, 22);
+  ctx.beginPath();
+  ctx.arc(0, -50 * s, 16 * s, Math.PI, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = unit.trim;
+  ctx.lineWidth = 4 * s;
+  ctx.beginPath();
+  ctx.moveTo(12 * s, -12 * s);
+  ctx.lineTo(38 * s, -31 * s);
+  ctx.stroke();
+
+  ctx.fillStyle = "#101516";
+  ctx.fillRect(-24 * s, -69 * s, 48 * s, 6 * s);
+  ctx.fillStyle = unit.hp > 0.35 ? "#79b66e" : "#d86e55";
+  ctx.fillRect(-23 * s, -68 * s, 46 * s * clamp(unit.hp, 0, 1), 4 * s);
+
+  ctx.fillStyle = "#f7f0df";
+  ctx.font = `900 ${13 * s}px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(unit.label, 0, -23 * s);
+  ctx.restore();
+}
+
+function drawBattleImpacts(ctx, battle, width, height, timestamp, progress) {
+  const elapsed = timestamp - battle.startedAt;
+  const scale = clamp(width / 900, 0.72, 1.08);
+  battle.impacts.forEach((impact, index) => {
+    const local = progress - impact.at;
+    if (local < 0 || local > 0.12) return;
+    const alpha = 1 - local / 0.12;
+    const x = width * (0.66 + Math.sin(index * 1.7) * 0.06);
+    const y = height * (0.28 + (impact.lane + 1) / 7 * 0.48);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = impact.heavy ? "#f7f0df" : "#e7be71";
+    ctx.lineWidth = impact.heavy ? 7 * scale : 4 * scale;
+    ctx.beginPath();
+    ctx.moveTo(x - 28 * scale, y - 22 * scale);
+    ctx.lineTo(x + 24 * scale, y + 18 * scale);
+    ctx.moveTo(x + 10 * scale, y - 26 * scale);
+    ctx.lineTo(x - 20 * scale, y + 24 * scale);
+    ctx.stroke();
+
+    ctx.fillStyle = impact.heavy ? "#fff2b6" : "#e7be71";
+    ctx.font = `900 ${impact.heavy ? 24 * scale : 18 * scale}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillText(String(impact.damage), x + 36 * scale, y - 32 * scale - local * 240 * scale);
+
+    const ring = 18 * scale + local * 140 * scale;
+    ctx.strokeStyle = `rgba(231,190,113,${alpha * 0.5})`;
+    ctx.lineWidth = 2 * scale;
+    ctx.beginPath();
+    ctx.ellipse(x, y + 12 * scale, ring, ring * 0.36, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  });
+
+  if (elapsed % 900 < 110) {
+    ctx.save();
+    ctx.globalAlpha = 0.16;
+    ctx.fillStyle = "#f7f0df";
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+  }
+}
+
+function drawBattleHud(ctx, width, height, progress) {
+  const title = activeBattle ? `${activeBattle.zone.name} ${Math.round(progress * 100)}%` : "작전 대기";
+  ctx.fillStyle = "rgba(8,12,13,0.72)";
+  drawRoundRect(ctx, 18, 16, Math.min(420, width - 36), 54, 8);
+  ctx.fill();
+  ctx.fillStyle = "#f7f0df";
+  ctx.font = "900 16px sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText(title, 34, 38);
+  ctx.fillStyle = "rgba(255,255,255,0.14)";
+  ctx.fillRect(34, 50, Math.min(330, width - 86), 8);
+  ctx.fillStyle = "#e7be71";
+  ctx.fillRect(34, 50, Math.min(330, width - 86) * progress, 8);
+
+  ctx.fillStyle = "rgba(8,12,13,0.58)";
+  drawRoundRect(ctx, width - Math.min(260, width * 0.45) - 18, 16, Math.min(260, width * 0.45), 54, 8);
+  ctx.fill();
+  ctx.fillStyle = "#e7be71";
+  ctx.font = "900 13px sans-serif";
+  ctx.textAlign = "right";
+  ctx.fillText(`팀 전투력 ${formatNumber(getTeamPower())}`, width - 34, 38);
+  ctx.fillStyle = "rgba(246,237,218,0.72)";
+  ctx.fillText(`치안 ${Math.round(state.resources.security || 0)}%`, width - 34, 57);
+}
+
+function isoPoint(gx, gy, origin, tileW, tileH) {
+  return {
+    x: origin.x + (gx - gy) * tileW * 0.5,
+    y: origin.y + (gx + gy) * tileH * 0.5
+  };
+}
+
+function drawIsoDiamond(ctx, x, y, tileW, tileH, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x, y - tileH * 0.5);
+  ctx.lineTo(x + tileW * 0.5, y);
+  ctx.lineTo(x, y + tileH * 0.5);
+  ctx.lineTo(x - tileW * 0.5, y);
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  if (stroke) {
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+}
+
+function drawPoly(ctx, points, fill) {
+  drawPath(ctx, points, true);
+  ctx.fillStyle = fill;
+  ctx.fill();
+}
+
+function drawPath(ctx, points, close) {
+  ctx.beginPath();
+  points.forEach((point, index) => {
+    if (index === 0) ctx.moveTo(point.x, point.y);
+    else ctx.lineTo(point.x, point.y);
+  });
+  if (close) ctx.closePath();
+}
+
+function lerpPoint(a, b, t) {
+  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+}
+
+function drawTinyPerson(ctx, x, y, color, scale) {
+  const s = scale * 0.82;
+  ctx.fillStyle = "rgba(0,0,0,0.28)";
+  ctx.beginPath();
+  ctx.ellipse(x, y + 5 * s, 10 * s, 4 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = color;
+  ctx.fillRect(x - 4 * s, y - 18 * s, 8 * s, 18 * s);
+  ctx.fillStyle = "#e8c3a2";
+  ctx.beginPath();
+  ctx.arc(x, y - 22 * s, 5 * s, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawRoundRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width * 0.5, height * 0.5);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function shadeColor(hex, amount) {
+  const normalized = hex.replace("#", "");
+  const num = parseInt(normalized, 16);
+  const r = clamp((num >> 16) + amount, 0, 255);
+  const g = clamp(((num >> 8) & 0x00ff) + amount, 0, 255);
+  const b = clamp((num & 0x0000ff) + amount, 0, 255);
+  return `rgb(${r}, ${g}, ${b})`;
 }
 
 function getUpgradeCost(buildingId) {
