@@ -1,2 +1,8 @@
 import { defineConfig } from 'vite';
-export default defineConfig({ server: { port: 5173 } });
+
+export default defineConfig({
+  base: '/K-city-webgame/',   // ← 이 부분이 중요합니다!
+  server: {
+    port: 5173
+  }
+});
