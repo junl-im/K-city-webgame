@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: '/K-city-webgame/'
-});
+base: '/K-city-webgame/'
+})
