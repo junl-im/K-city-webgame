@@ -1,0 +1,1 @@
+GitHub Pages fix applied. Run npm install && npm run build. Deploy dist folder.
