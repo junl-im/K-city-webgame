@@ -7,7 +7,7 @@ import { formatGold, formatNumber, formatSoul, roll, uid } from './game/math';
 import type { CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, ItemDefinition, PlayerSave, SheetTab, Snapshot, Stats } from './types';
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
-type TownContentId = 'story' | 'cards' | 'inventory' | 'skills' | 'shop' | 'boss' | 'quests' | 'settings' | 'account';
+type TownContentId = 'hunt' | 'story' | 'cards' | 'inventory' | 'skills' | 'shop' | 'boss' | 'quests' | 'settings' | 'account';
 
 const saveService = new SaveService();
 let game: SolGame | null = null;
@@ -22,7 +22,7 @@ let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
 let activeSheetTab: SheetTab = 'cards';
-let activeTownContent: TownContentId = 'story';
+let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
 let townContentOpen = false;
 type WakeLockHandle = { release: () => Promise<void>; addEventListener?: (type: 'release', listener: () => void) => void };
@@ -98,6 +98,8 @@ const townContentBody = must('#townContentBody');
 const closeTownContent = must<HTMLButtonElement>('#closeTownContent');
 const titleAudioBtn = must<HTMLButtonElement>('#titleAudioBtn');
 const townAudioBtn = must<HTMLButtonElement>('#townAudioBtn');
+const townMoreBtn = must<HTMLButtonElement>('#townMoreBtn');
+const townMoreMenu = must<HTMLElement>('#townMoreMenu');
 
 boot().catch((error) => {
   console.error(error);
@@ -433,7 +435,7 @@ function bindLoginFlow() {
   });
 
   townAccountBtn.addEventListener('click', () => openTownContent('account'));
-  townAudioBtn.addEventListener('click', () => { audioService.toggleBgm(); updateAudioButtons(); renderTownContent(); });
+  townAudioBtn.addEventListener('click', () => { audioService.toggleBgm(); updateAudioButtons(); if (townContentOpen) renderTownContent(); });
   townStoryActionBtn.addEventListener('click', async () => {
     await handleStoryAction();
   });
@@ -461,7 +463,26 @@ function bindLoginFlow() {
   });
 
   document.querySelectorAll<HTMLButtonElement>('[data-town-content]').forEach((button) => {
-    button.addEventListener('click', () => openTownContent((button.dataset.townContent || 'cards') as TownContentId));
+    button.addEventListener('click', () => {
+      closeTownMoreMenu();
+      openTownContent((button.dataset.townContent || 'cards') as TownContentId);
+    });
+  });
+
+  townMoreBtn.addEventListener('click', () => {
+    const open = townMoreMenu.classList.toggle('hidden');
+    const visible = !open;
+    townMoreMenu.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    townMoreBtn.setAttribute('aria-expanded', visible ? 'true' : 'false');
+    townMoreBtn.classList.toggle('active', visible);
+  });
+
+  townMoreMenu.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    const button = target.closest<HTMLButtonElement>('[data-town-more-content]');
+    if (!button) return;
+    closeTownMoreMenu();
+    openTownContent((button.dataset.townMoreContent || 'story') as TownContentId);
   });
 
   closeTownContent.addEventListener('click', closeTownContentPanel);
@@ -615,6 +636,7 @@ async function enterTown(save: PlayerSave, label = '마을로 이동 중') {
     document.body.classList.remove('field-active');
     document.body.classList.add('town-active');
     audioService.setScene('town');
+    closeTownMoreMenu();
     renderTown(pendingSave);
   });
 }
@@ -635,6 +657,7 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest') {
       titleScreen.classList.add('hidden');
       loginScreen.classList.add('hidden');
       closeTownContentPanel();
+      closeTownMoreMenu();
       document.body.classList.remove('town-active');
       document.body.classList.add('field-active');
       setFieldZoneHud(zoneId);
@@ -949,6 +972,7 @@ function bindBackButtonGuard() {
 function openSheet(tab: SheetTab) {
   activeSheetTab = tab;
   sheetOpen = true;
+  document.body.classList.add('sheet-open');
   sheet.classList.add('open');
   sheet.setAttribute('aria-hidden', 'false');
   document.querySelectorAll('[data-sheet-tab]').forEach((item) => {
@@ -959,6 +983,7 @@ function openSheet(tab: SheetTab) {
 
 function closeCurrentSheet() {
   sheetOpen = false;
+  document.body.classList.remove('sheet-open');
   sheet.classList.remove('open');
   sheet.setAttribute('aria-hidden', 'true');
 }
@@ -1279,11 +1304,36 @@ function isZoneUnlocked(save: PlayerSave, zoneId: string) {
   return Boolean((zone.unlockQuestId && claimed.has(zone.unlockQuestId)) || (zone.unlockLevel && save.level >= zone.unlockLevel));
 }
 
+function closeTownMoreMenu() {
+  townMoreMenu.classList.add('hidden');
+  townMoreMenu.setAttribute('aria-hidden', 'true');
+  townMoreBtn.setAttribute('aria-expanded', 'false');
+  townMoreBtn.classList.remove('active');
+}
+
+function syncTownMenuState() {
+  const visible = townContentOpen ? activeTownContent : '';
+  document.querySelectorAll<HTMLElement>('[data-town-content]').forEach((button) => {
+    button.classList.toggle('active', button.dataset.townContent === visible);
+  });
+  document.querySelectorAll<HTMLElement>('[data-town-more-content]').forEach((button) => {
+    button.classList.toggle('active', button.dataset.townMoreContent === visible);
+  });
+  const coreMenus: TownContentId[] = ['hunt', 'inventory', 'skills', 'cards'];
+  townMoreBtn.classList.toggle('active', Boolean(visible) && !coreMenus.includes(visible as TownContentId));
+}
+
+
 function openTownContent(content: TownContentId) {
+  if (townContentOpen && activeTownContent === content) {
+    closeTownContentPanel();
+    return;
+  }
   activeTownContent = content;
   townContentOpen = true;
   townContentPanel.classList.remove('hidden');
   townContentPanel.setAttribute('aria-hidden', 'false');
+  syncTownMenuState();
   renderTownContent();
 }
 
@@ -1291,11 +1341,13 @@ function closeTownContentPanel() {
   townContentOpen = false;
   townContentPanel.classList.add('hidden');
   townContentPanel.setAttribute('aria-hidden', 'true');
+  syncTownMenuState();
 }
 
 function renderTownContent() {
   if (!pendingSave) return;
   const titles: Record<TownContentId, [string, string]> = {
+    hunt: ['FIELD GATE', '사냥터 선택'],
     story: ['MAIN STORY', '스토리 퀘스트'],
     cards: ['SOUL CODEX', '카드 도감'],
     inventory: ['BAG', '장비 가방'],
@@ -1308,6 +1360,7 @@ function renderTownContent() {
   };
   townContentEyebrow.textContent = titles[activeTownContent][0];
   townContentTitle.textContent = titles[activeTownContent][1];
+  if (activeTownContent === 'hunt') townContentBody.innerHTML = renderTownHunt(pendingSave);
   if (activeTownContent === 'story') townContentBody.innerHTML = renderTownStory(pendingSave);
   if (activeTownContent === 'cards') townContentBody.innerHTML = renderTownCards(pendingSave);
   if (activeTownContent === 'inventory') townContentBody.innerHTML = renderTownInventory(pendingSave);
@@ -1475,6 +1528,30 @@ function updateZoneLocks(save: PlayerSave) {
     button.classList.toggle('locked', !unlocked);
     button.title = unlocked ? `${zone?.title || '사냥터'} 입장` : `${zone?.unlockLevel ? `Lv.${zone.unlockLevel}` : '스토리'} 이후 해금`;
   });
+}
+
+function renderTownHunt(save: PlayerSave) {
+  const rows = zones
+    .map((zone, index) => {
+      const unlocked = isZoneUnlocked(save, zone.id);
+      const lockedText = unlocked ? '입장 가능' : '잠김';
+      const monsterText = zone.monsterIds
+        .map((monsterId) => monsters.find((monster) => monster.id === monsterId)?.name || monsterId)
+        .slice(0, 3)
+        .join(' · ');
+      return `
+        <button class="zone-card drawer-zone-card ${unlocked ? '' : 'locked'}" data-town-zone-enter="${zone.id}" ${unlocked ? '' : 'disabled'}>
+          <em>${String(index + 1).padStart(2, '0')}</em>
+          <b>${escapeHtml(zone.title)}</b>
+          <span>권장 Lv.${zone.recommendedLevel} · ${escapeHtml(monsterText)} · ${lockedText}</span>
+        </button>
+      `;
+    })
+    .join('');
+  return `
+    <div class="town-content-note">필드 게이트에서 사냥터를 선택하세요. 해금 조건을 만족하면 바로 입장할 수 있습니다.</div>
+    <div class="zone-list zone-list-v2 drawer-zone-list">${rows}</div>
+  `;
 }
 
 function renderTownStory(save: PlayerSave) {

@@ -1,6 +1,6 @@
 {
   "name": "Soul Online Runtime Asset Pack",
-  "version": "0.21.0",
+  "version": "0.22.0",
   "description": "Drop-in runtime asset pack. Replace files in this folder without changing code.",
   "characters": {
     "frameSize": [
