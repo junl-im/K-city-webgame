@@ -40,13 +40,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-body:not(.world-active) .hud-top,
-body:not(.world-active) .resource-strip,
-body:not(.world-active) .target-card,
-body:not(.world-active) .combat-log,
-body:not(.world-active) .joystick,
-body:not(.world-active) .action-dock,
-body:not(.world-active) .sheet {
+body:not(.field-active) .hud-top,
+body:not(.field-active) .resource-strip,
+body:not(.field-active) .target-card,
+body:not(.field-active) .combat-log,
+body:not(.field-active) .joystick,
+body:not(.field-active) .action-dock,
+body:not(.field-active) .sheet {
   opacity: 0;
   pointer-events: none;
 }
@@ -92,6 +92,7 @@ button:disabled {
 .joystick,
 .sheet,
 .create-modal,
+.scene-transition,
 .toast {
   position: fixed;
   z-index: 10;
@@ -300,12 +301,362 @@ button:disabled {
   margin: 0;
 }
 
+
+.town-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 42;
+  overflow: hidden auto;
+  padding: max(16px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  background:
+    radial-gradient(circle at 72% 16%, rgba(98, 198, 200, 0.18), transparent 32%),
+    radial-gradient(circle at 22% 20%, rgba(226, 185, 95, 0.22), transparent 30%),
+    linear-gradient(180deg, #141a1b 0%, #151913 52%, #0c0f0b 100%);
+}
+
+.town-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.town-backdrop,
+.town-sky,
+.town-diorama {
+  position: absolute;
+  inset: 0;
+}
+
+.town-backdrop {
+  overflow: hidden;
+}
+
+.town-sky {
+  background:
+    linear-gradient(180deg, rgba(115, 207, 222, 0.12), transparent 38%),
+    repeating-linear-gradient(90deg, transparent 0 38px, rgba(255, 255, 255, 0.025) 38px 39px);
+}
+
+.town-diorama {
+  left: 50%;
+  top: 46%;
+  width: min(1180px, 138vw);
+  height: min(700px, 86vh);
+  transform: translate(-50%, -44%);
+  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.42));
+}
+
+.town-plaza {
+  position: absolute;
+  left: 50%;
+  bottom: 10%;
+  width: 58%;
+  height: 26%;
+  border: 1px solid rgba(226, 185, 95, 0.18);
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at center, rgba(226, 185, 95, 0.22), rgba(42, 51, 41, 0.42) 48%, rgba(8, 10, 8, 0.12) 72%),
+    repeating-linear-gradient(130deg, rgba(255, 255, 255, 0.04) 0 8px, transparent 8px 18px);
+  transform: translateX(-50%) rotateX(62deg);
+}
+
+.town-building {
+  position: absolute;
+  display: block;
+  border: 1px solid rgba(245, 241, 232, 0.18);
+  border-radius: 12px 12px 8px 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 34%),
+    linear-gradient(180deg, #6d5436, #32281c 58%, #17120d);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 28px 36px rgba(0, 0, 0, 0.34);
+  transform: skewY(-9deg) rotate(-1deg);
+}
+
+.town-building::before {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: -32%;
+  height: 38%;
+  border-radius: 12px 12px 4px 4px;
+  background: linear-gradient(135deg, #d7a14c, #644526 64%, #302316);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.town-building::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 22%;
+  height: 42%;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(180deg, rgba(98, 198, 200, 0.44), rgba(4, 8, 9, 0.84));
+  transform: translateX(-50%);
+  box-shadow: 0 0 18px rgba(98, 198, 200, 0.24);
+}
+
+.town-building.gate {
+  left: 38%;
+  top: 30%;
+  width: 24%;
+  height: 30%;
+  background: linear-gradient(180deg, #8a693d, #3a2b1d 58%, #19120c);
+}
+
+.town-building.hall {
+  left: 15%;
+  top: 36%;
+  width: 22%;
+  height: 23%;
+}
+
+.town-building.forge {
+  right: 15%;
+  top: 40%;
+  width: 21%;
+  height: 21%;
+  background: linear-gradient(180deg, #7b4b36, #33221c 60%, #14100d);
+}
+
+.town-building.shrine {
+  left: 28%;
+  top: 58%;
+  width: 15%;
+  height: 18%;
+  background: linear-gradient(180deg, #5f7d79, #263534 62%, #101716);
+}
+
+.town-building.shop {
+  right: 28%;
+  top: 60%;
+  width: 15%;
+  height: 17%;
+}
+
+.town-hud,
+.town-layout {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 1060px);
+  margin: 0 auto;
+}
+
+.town-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: clamp(24px, 10vh, 110px);
+}
+
+.town-hero-card,
+.town-currencies,
+.town-panel {
+  border: 1px solid rgba(245, 241, 232, 0.16);
+  background: rgba(14, 16, 13, 0.68);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(18px);
+}
+
+.town-hero-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: min(100%, 360px);
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.town-portrait {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border: 1px solid rgba(226, 185, 95, 0.45);
+  border-radius: 12px;
+  background: radial-gradient(circle at 35% 25%, #f5d78a, #7a5531 48%, #1b1710);
+  color: #17120c;
+  font-size: 30px;
+  font-weight: 950;
+}
+
+.town-hero-card span,
+.town-eyebrow {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.town-hero-card h2,
+.town-hero-card p,
+.town-panel h1,
+.town-panel h2,
+.town-panel p {
+  margin: 0;
+}
+
+.town-hero-card h2 {
+  margin-top: 3px;
+  font-size: 24px;
+}
+
+.town-hero-card p,
+.zone-card span,
+.content-card span,
+.town-panel p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.town-currencies {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.town-currencies span {
+  min-width: 92px;
+  padding: 8px 10px;
+  border: 1px solid rgba(226, 185, 95, 0.18);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  color: #efe5c6;
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.town-layout {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.town-panel {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
+}
+
+.town-panel-main {
+  min-height: 190px;
+  align-content: end;
+  background:
+    linear-gradient(180deg, rgba(14, 16, 13, 0.16), rgba(14, 16, 13, 0.84)),
+    url("./assets/cards/card-crystal-bear.jpg") center 44% / cover;
+}
+
+.town-panel h1 {
+  font-size: clamp(30px, 5vw, 54px);
+  line-height: 1;
+}
+
+.town-panel h2 {
+  font-size: 22px;
+}
+
+.town-quick-actions,
+.zone-list,
+.town-content-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.town-quick-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.town-quick-actions button,
+.zone-card,
+.content-card {
+  border: 1px solid rgba(245, 241, 232, 0.14);
+  border-radius: 10px;
+  background: rgba(245, 241, 232, 0.075);
+  color: var(--ink);
+  font-weight: 950;
+}
+
+.town-quick-actions button {
+  min-height: 42px;
+}
+
+.zone-card,
+.content-card {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  text-align: left;
+}
+
+.zone-card.active,
+.zone-card:hover,
+.content-card:hover {
+  border-color: rgba(226, 185, 95, 0.58);
+  background: rgba(226, 185, 95, 0.13);
+}
+
+.town-content-grid {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.scene-transition {
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at center, rgba(226, 185, 95, 0.08), transparent 36%),
+    rgba(5, 7, 6, 0.88);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+.scene-transition.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.scene-transition div {
+  display: grid;
+  gap: 8px;
+  min-width: min(78vw, 340px);
+  padding: 22px;
+  border: 1px solid rgba(226, 185, 95, 0.24);
+  border-radius: 16px;
+  background: rgba(18, 20, 17, 0.92);
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.56);
+}
+
+.scene-transition span {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+}
+
+.scene-transition strong {
+  font-size: 20px;
+}
+
 .hud-top {
   top: max(10px, env(safe-area-inset-top));
   left: 10px;
   right: 10px;
   display: grid;
-  grid-template-columns: 50px minmax(0, 1fr) 44px;
+  grid-template-columns: 50px minmax(0, 1fr) 44px 44px;
   align-items: center;
   gap: 8px;
   max-width: 680px;
@@ -836,6 +1187,36 @@ button:disabled {
   font-weight: 800;
 }
 
+
+@media (max-width: 760px) {
+  .town-hud,
+  .town-layout {
+    width: 100%;
+  }
+
+  .town-hud {
+    display: grid;
+    margin-bottom: 28vh;
+  }
+
+  .town-currencies {
+    justify-content: stretch;
+  }
+
+  .town-currencies span {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .town-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .town-content-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 520px) {
   .action-dock {
     grid-template-columns: repeat(2, 58px);
@@ -858,7 +1239,7 @@ button:disabled {
 
 @media (max-width: 360px) {
   .hud-top {
-    grid-template-columns: 44px minmax(0, 1fr) 40px;
+    grid-template-columns: 44px minmax(0, 1fr) 40px 40px;
   }
 
   .portrait,

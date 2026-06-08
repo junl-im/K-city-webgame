@@ -5,7 +5,7 @@ import { SolGame } from './game/SolGame';
 import { formatNumber } from './game/math';
 import type { CharacterClassId, PlayerSave, SheetTab, Snapshot } from './types';
 
-type FlowStep = 'login' | 'server' | 'character' | 'world';
+type FlowStep = 'login' | 'server' | 'character' | 'town';
 
 const saveService = new SaveService();
 let game: SolGame | null = null;
@@ -24,7 +24,7 @@ const googleLoginBtn = must<HTMLButtonElement>('#googleLoginBtn');
 const localLoginBtn = must<HTMLButtonElement>('#localLoginBtn');
 const serverNextBtn = must<HTMLButtonElement>('#serverNextBtn');
 const characterNextBtn = must<HTMLButtonElement>('#characterNextBtn');
-const enterWorldBtn = must<HTMLButtonElement>('#enterWorldBtn');
+const enterTownBtn = must<HTMLButtonElement>('#enterTownBtn');
 const nameInput = must<HTMLInputElement>('#nameInput');
 const characterSummary = must('#characterSummary');
 const worldServerText = must('#worldServerText');
@@ -43,6 +43,19 @@ const sheetBody = must('#sheetBody');
 const sheetTitle = must('#sheetTitle');
 const sheetEyebrow = must('#sheetEyebrow');
 const toastEl = must('#toast');
+const townScreen = must('#townScreen');
+const townHeroGlyph = must('#townHeroGlyph');
+const townHeroName = must('#townHeroName');
+const townHeroMeta = must('#townHeroMeta');
+const townGoldText = must('#townGoldText');
+const townGemText = must('#townGemText');
+const townPowerText = must('#townPowerText');
+const townFullscreenBtn = must<HTMLButtonElement>('#townFullscreenBtn');
+const townSaveBtn = must<HTMLButtonElement>('#townSaveBtn');
+const townAccountBtn = must<HTMLButtonElement>('#townAccountBtn');
+const returnTownBtn = must<HTMLButtonElement>('#returnTownBtn');
+const sceneTransition = must('#sceneTransition');
+const sceneTransitionLabel = must('#sceneTransitionLabel');
 
 boot().catch((error) => {
   console.error(error);
@@ -68,6 +81,15 @@ async function boot() {
   renderCharacterSummary();
   updateWorldSummary();
   goStep('login');
+  registerServiceWorker();
+}
+
+
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((error) => console.warn('[PWA] service worker skipped', error));
+  });
 }
 
 async function tryLoadCloud() {
@@ -91,7 +113,7 @@ function bindLoginFlow() {
       if (step === 'login') goStep(step);
       if (step === 'server') goStep(step);
       if (step === 'character') goStep(step);
-      if (step === 'world' && pendingSave) goStep(step);
+      if (step === 'town' && pendingSave) goStep(step);
     });
   });
 
@@ -158,16 +180,56 @@ function bindLoginFlow() {
     saveService.saveLocal(prepared);
     renderCharacterSummary();
     updateWorldSummary();
-    goStep('world');
+    goStep('town');
   });
 
-  enterWorldBtn.addEventListener('click', async () => {
+  enterTownBtn.addEventListener('click', async () => {
+    void ensureFullscreen();
     if (!pendingSave) pendingSave = saveService.createSave(nameInput.value, selectedClass);
+    pendingSave = saveService.validateSave(pendingSave);
     saveService.saveLocal(pendingSave);
-    await startWithSave(pendingSave);
-    if (saveService.isOnline()) {
-      await game?.saveNow();
-    }
+    await enterTown(pendingSave, '루미나 마을로 이동 중');
+    if (saveService.isOnline()) await saveService.saveCloud(pendingSave, latest?.power || 0);
+  });
+
+  townFullscreenBtn.addEventListener('click', () => {
+    void ensureFullscreen(true);
+  });
+
+  townSaveBtn.addEventListener('click', async () => {
+    if (!pendingSave) return;
+    saveService.saveLocal(pendingSave);
+    if (saveService.isOnline()) await saveService.saveCloud(pendingSave, latest?.power || 0);
+    showToast('마을 저장 완료');
+  });
+
+  townAccountBtn.addEventListener('click', () => {
+    showTownContent('계정', '계정 연결과 클라우드 저장은 사냥터 진입 후 우측 메뉴에서 사용할 수 있습니다. 다음 패치에서 마을 계정 패널로 분리할 예정입니다.');
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-zone-id]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      void ensureFullscreen();
+      document.querySelectorAll('[data-zone-id]').forEach((item) => item.classList.remove('active'));
+      button.classList.add('active');
+      const zoneId = button.dataset.zoneId || 'slime-forest';
+      if (!pendingSave) pendingSave = saveService.createSave(nameInput.value, selectedClass);
+      await startField(pendingSave, zoneId);
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-town-content]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const content = button.dataset.townContent || 'cards';
+      const titles: Record<string, [string, string]> = {
+        cards: ['카드 도감', '카드 장착/합성은 현재 사냥터 HUD의 카드 메뉴에서 사용 가능합니다. 다음 단계에서 마을 전용 카드 관리 화면으로 분리합니다.'],
+        inventory: ['장비 가방', '획득 장비와 재료를 보여주는 마을 창고 화면을 붙일 예정입니다. 현재는 사냥터 HUD의 가방 메뉴를 사용하세요.'],
+        shop: ['상점', '소모품, 강화 재료, 스킨 판매 기능을 연결할 자리입니다.'],
+        boss: ['월드 보스', '보스 시간표, 입장권, 기여도 보상 UI를 연결할 자리입니다.']
+      };
+      const [title, message] = titles[content] || titles.cards;
+      showTownContent(title, message);
+    });
   });
 }
 
@@ -200,16 +262,59 @@ function goStep(step: FlowStep) {
   updateWorldSummary();
 }
 
-async function startWithSave(save: PlayerSave) {
-  document.body.classList.add('world-active');
-  loginScreen.classList.add('hidden');
-  game = new SolGame(saveService.validateSave(save), saveService);
-  await game.mount(root);
-  game.onSnapshot((snapshot) => {
-    latest = snapshot;
-    renderHud(snapshot);
-    if (sheetOpen) renderSheet();
+async function enterTown(save: PlayerSave, label = '마을로 이동 중') {
+  await withSceneTransition(label, async () => {
+    if (game) {
+      const fieldSave = game.getSave();
+      saveService.saveLocal(fieldSave);
+      game.destroy();
+      game = null;
+      pendingSave = fieldSave;
+    } else {
+      pendingSave = saveService.validateSave(save);
+    }
+
+    closeCurrentSheet();
+    root.replaceChildren();
+    loginScreen.classList.add('hidden');
+    townScreen.classList.remove('hidden');
+    townScreen.setAttribute('aria-hidden', 'false');
+    document.body.classList.remove('field-active');
+    document.body.classList.add('town-active');
+    renderTown(pendingSave);
   });
+}
+
+async function startField(save: PlayerSave, zoneId = 'slime-forest') {
+  const zoneName = zoneTitle(zoneId);
+  await withSceneTransition(`${zoneName} 입장 중`, async () => {
+    const prepared = saveService.validateSave(save);
+    pendingSave = prepared;
+    saveService.saveLocal(prepared);
+    townScreen.classList.add('hidden');
+    townScreen.setAttribute('aria-hidden', 'true');
+    loginScreen.classList.add('hidden');
+    document.body.classList.remove('town-active');
+    document.body.classList.add('field-active');
+
+    if (game) game.destroy();
+    game = new SolGame(prepared, saveService, { zoneName });
+    await game.mount(root);
+    game.onSnapshot((snapshot) => {
+      latest = snapshot;
+      pendingSave = snapshot.save;
+      renderHud(snapshot);
+      if (sheetOpen) renderSheet();
+    });
+  });
+}
+
+async function returnToTown() {
+  if (!game) return;
+  const save = game.getSave();
+  await game.saveNow();
+  await enterTown(save, '마을로 복귀 중');
+  showToast('루미나 마을로 복귀했습니다.');
 }
 
 function bindActions() {
@@ -222,6 +327,9 @@ function bindActions() {
   cardsBtn.addEventListener('click', () => openSheet('cards'));
   inventoryBtn.addEventListener('click', () => openSheet('inventory'));
   openMenu.addEventListener('click', () => openSheet('account'));
+  returnTownBtn.addEventListener('click', () => {
+    void returnToTown();
+  });
 }
 
 function bindJoystick() {
@@ -507,6 +615,63 @@ function updateWorldSummary() {
   worldCharacterText.textContent = nameInput.value.trim() || pendingSave?.name || '솔마스터';
   worldClassText.textContent = `${klass.name} · ${klass.roleText}`;
 }
+function renderTown(save: PlayerSave | null) {
+  if (!save) return;
+  const klass = classes[save.classId];
+  townHeroGlyph.textContent = klass.glyph;
+  townHeroName.textContent = save.name;
+  townHeroMeta.textContent = `Lv.${save.level} · ${klass.name} · ${klass.roleText}`;
+  townGoldText.textContent = `${formatNumber(save.gold)}G`;
+  townGemText.textContent = `${formatNumber(save.gems)}소울`;
+  townPowerText.textContent = latest ? `전투력 ${formatNumber(latest.power)}` : '전투력 정비 중';
+}
+
+function zoneTitle(zoneId: string) {
+  const names: Record<string, string> = {
+    'slime-forest': '초록 숲 입구',
+    'goblin-road': '고블린 길목',
+    'crystal-raid': '수정 레이드 터'
+  };
+  return names[zoneId] || '사냥터';
+}
+
+function showTownContent(title: string, message: string) {
+  showToast(`${title}: ${message}`);
+}
+
+async function ensureFullscreen(forceToast = false) {
+  const doc = document as Document & {
+    webkitFullscreenElement?: Element | null;
+    webkitExitFullscreen?: () => Promise<void>;
+  };
+  const rootEl = document.documentElement as HTMLElement & {
+    webkitRequestFullscreen?: () => Promise<void>;
+  };
+
+  if (document.fullscreenElement || doc.webkitFullscreenElement) return;
+  try {
+    if (document.fullscreenEnabled && rootEl.requestFullscreen) await rootEl.requestFullscreen();
+    else if (rootEl.webkitRequestFullscreen) await rootEl.webkitRequestFullscreen();
+    else if (forceToast) showToast('이 브라우저는 자동 전체화면을 지원하지 않습니다. 홈 화면에 설치하면 주소창 없는 실행이 가능합니다.');
+  } catch (error) {
+    if (forceToast) showToast('브라우저 정책상 버튼 터치 후에만 전체화면 전환이 가능합니다.');
+    console.warn('[Fullscreen]', error);
+  }
+}
+
+async function withSceneTransition(label: string, action: () => Promise<void> | void) {
+  sceneTransitionLabel.textContent = label;
+  sceneTransition.classList.add('show');
+  await delay(140);
+  await action();
+  await delay(220);
+  sceneTransition.classList.remove('show');
+}
+
+function delay(ms: number) {
+  return new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+}
+
 
 function showToast(message: string) {
   toastEl.textContent = message;

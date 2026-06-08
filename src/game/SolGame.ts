@@ -41,6 +41,10 @@ type MobView = {
 
 type TextureKey = keyof typeof textureUrls;
 
+type SolGameOptions = {
+  zoneName?: string;
+};
+
 const tileTextureKey: Record<TileId, TextureKey> = {
   grass: 'tileGrass',
   stone: 'tileStone',
@@ -72,11 +76,12 @@ export class SolGame {
   private time = 0;
   private lastMoving = false;
   private listeners = new Set<(snapshot: Snapshot) => void>();
-  private log: string[] = ['마을 포탈 앞에서 접속했습니다.'];
+  private log: string[] = ['마을에서 사냥터로 이동했습니다.'];
 
   constructor(
     private save: PlayerSave,
-    private saveService: SaveService
+    private saveService: SaveService,
+    private options: SolGameOptions = {}
   ) {}
 
   async mount(root: HTMLElement) {
@@ -104,7 +109,7 @@ export class SolGame {
       this.update(dt);
     });
 
-    this.pushLog(`${classes[this.save.classId].name} ${this.save.name} 입장`);
+    this.pushLog(`${classes[this.save.classId].name} ${this.save.name} · ${this.options.zoneName || '필드'} 입장`);
     this.emit();
   }
 
@@ -165,6 +170,20 @@ export class SolGame {
   getSave() {
     return this.save;
   }
+  destroy() {
+    if (this.cloudTimer) window.clearTimeout(this.cloudTimer);
+    this.listeners.clear();
+    const canvas = this.app?.canvas;
+    this.app?.ticker.stop();
+    this.app?.destroy();
+    canvas?.remove();
+    this.app = null;
+    this.mobs = [];
+    this.mobViews.clear();
+    this.target = null;
+    this.moveTarget = null;
+  }
+
 
   replaceSave(save: PlayerSave) {
     this.save = this.saveService.validateSave(save);
