@@ -57,22 +57,31 @@ type SolGameOptions = {
 };
 
 const zoneMonsterIds: Record<string, MonsterId[]> = {
-  'slime-forest': ['slime', 'slime', 'slime', 'slime', 'slime', 'slime', 'wolf', 'wolf', 'wolf', 'wolf'],
-  'crystal-moss': ['slime', 'slime', 'slime', 'wolf', 'wolf', 'wolf', 'wolf', 'wolf', 'wolf', 'wolf'],
-  'goblin-road': ['wolf', 'wolf', 'wolf', 'goblin', 'goblin', 'goblin', 'goblin', 'goblin', 'goblin', 'crystalBear'],
-  'black-cave': ['goblin', 'goblin', 'goblin', 'goblin', 'goblin', 'crystalBear', 'crystalBear', 'crystalBear', 'crystalBear'],
-  'crystal-raid': ['goblin', 'goblin', 'goblin', 'crystalBear', 'crystalBear', 'crystalBear', 'dragon'],
-  'moonlit-grove': ['wolf', 'wolf', 'wolf', 'wolf', 'goblin', 'goblin', 'goblin', 'goblin', 'crystalBear', 'crystalBear'],
-  'soul-ruins': ['goblin', 'goblin', 'goblin', 'goblin', 'goblin', 'goblin', 'crystalBear', 'crystalBear', 'crystalBear', 'crystalBear'],
-  'dragon-nest': ['crystalBear', 'crystalBear', 'crystalBear', 'crystalBear', 'crystalBear', 'dragon', 'dragon']
+  'slime-forest': ['slime', 'slime', 'slime', 'slime', 'wolf', 'wolf', 'shadowImp', 'shadowImp', 'slime', 'wolf', 'shadowImp', 'slime'],
+  'crystal-moss': ['wolf', 'wolf', 'wolf', 'shadowImp', 'shadowImp', 'mossGolem', 'mossGolem', 'slime', 'wolf', 'shadowImp', 'mossGolem', 'wolf'],
+  'goblin-road': ['goblin', 'goblin', 'goblin', 'wraith', 'wraith', 'wolf', 'shadowImp', 'goblin', 'wraith', 'goblin', 'graveKnight', 'goblin'],
+  'black-cave': ['crystalBear', 'crystalBear', 'mossGolem', 'mossGolem', 'graveKnight', 'graveKnight', 'wraith', 'crystalBear', 'mossGolem', 'graveKnight'],
+  'ember-ridge': ['fireDrake', 'fireDrake', 'wraith', 'graveKnight', 'fireDrake', 'stormHarpy', 'fireDrake', 'wraith', 'graveKnight'],
+  'moonlit-grove': ['stormHarpy', 'stormHarpy', 'wolf', 'wolf', 'goblin', 'goblin', 'mossGolem', 'stormHarpy', 'wolf', 'goblin', 'mossGolem'],
+  'soul-ruins': ['wraith', 'wraith', 'graveKnight', 'graveKnight', 'crystalBear', 'goblin', 'wraith', 'graveKnight', 'crystalBear', 'wraith'],
+  'storm-citadel': ['stormHarpy', 'stormHarpy', 'stormHarpy', 'fireDrake', 'fireDrake', 'graveKnight', 'stormHarpy', 'fireDrake', 'graveKnight'],
+  'dragon-nest': ['fireDrake', 'fireDrake', 'crystalBear', 'crystalBear', 'graveKnight', 'dragon', 'fireDrake', 'dragon'],
+  'crystal-raid': ['fieldBoss', 'graveKnight', 'fireDrake', 'dragon', 'fieldBoss', 'graveKnight', 'fireDrake']
 };
 
 const mobHomeRadius: Partial<Record<MonsterId, number>> = {
-  slime: 2.0,
-  wolf: 2.35,
-  goblin: 2.5,
-  crystalBear: 2.8,
-  dragon: 3.4
+  slime: 2.2,
+  wolf: 2.55,
+  goblin: 2.7,
+  shadowImp: 2.8,
+  mossGolem: 2.35,
+  wraith: 2.8,
+  crystalBear: 3.0,
+  fireDrake: 3.15,
+  stormHarpy: 3.2,
+  graveKnight: 2.9,
+  fieldBoss: 4.2,
+  dragon: 3.8
 };
 
 const tileTextureKey: Record<TileId, TextureKey> = {
@@ -86,15 +95,22 @@ const tileTextureKey: Record<TileId, TextureKey> = {
   portal: 'tilePortal'
 };
 
-const FIELD_ZOOM = 0.76;
-const PLAYER_VISUAL_SCALE = 0.285;
+const FIELD_ZOOM = 0.78;
+const PLAYER_VISUAL_SCALE = 0.315;
 const PLAYER_SHADOW_SCALE = 0.72;
 const MOB_VISUAL_SCALE: Record<MonsterId, number> = {
-  slime: 0.245,
-  wolf: 0.235,
-  goblin: 0.225,
-  crystalBear: 0.285,
-  dragon: 0.38
+  slime: 0.27,
+  wolf: 0.26,
+  goblin: 0.255,
+  shadowImp: 0.25,
+  mossGolem: 0.31,
+  wraith: 0.255,
+  crystalBear: 0.315,
+  fireDrake: 0.34,
+  stormHarpy: 0.285,
+  graveKnight: 0.285,
+  fieldBoss: 0.39,
+  dragon: 0.42
 };
 
 
@@ -200,11 +216,21 @@ export class SolGame {
     if (this.target) this.tryPlayerAttack(this.target, true);
   }
 
+
+  private hasLearnedSkill(skillId: string) {
+    return Array.isArray(this.save.learnedSkillIds) && this.save.learnedSkillIds.includes(skillId);
+  }
+
   useSkill(slotIndex: number) {
     const skill = skills.filter((entry) => entry.classId === this.save.classId)[slotIndex];
     if (!skill) return;
+    if (!this.hasLearnedSkill(skill.id)) {
+      this.pushLog(`${skill.name} 미습득 · 스킬서 또는 퀘스트로 배워야 합니다.`);
+      this.emit();
+      return;
+    }
     if (this.save.level < skill.unlockLevel) {
-      this.pushLog(`Lv.${skill.unlockLevel}에 해금되는 스킬입니다.`);
+      this.pushLog(`Lv.${skill.unlockLevel}에 사용 가능한 스킬입니다.`);
       this.emit();
       return;
     }
@@ -304,8 +330,8 @@ export class SolGame {
     const entry = this.save.inventory.find((item) => item.uid === itemUid);
     if (!entry) return;
     const def = items.find((item) => item.id === entry.itemId);
-    if (!def || def.type === 'material') {
-      this.pushLog('재료 아이템은 강화할 수 없습니다.');
+    if (!def || def.type === 'material' || def.type === 'skillbook') {
+      this.pushLog('해당 아이템은 강화할 수 없습니다.');
       this.emit();
       return;
     }
@@ -327,8 +353,14 @@ export class SolGame {
       this.emit();
       return;
     }
+    if (cost.stone && this.materialCount('enhance-stone') < cost.stone) {
+      this.pushLog(`강화석 부족 · 필요 ${cost.stone}개`);
+      this.emit();
+      return;
+    }
     this.save.gold -= cost.gold;
     if (cost.shard) this.consumeMaterial('soul-shard', cost.shard);
+    if (cost.stone) this.consumeMaterial('enhance-stone', cost.stone);
     const success = roll(cost.successRate);
     if (success) {
       this.save.enhancements[itemUid] = current + 1;
@@ -364,11 +396,44 @@ export class SolGame {
     this.emit();
   }
 
+
+  private classSkillId(token: string) {
+    const classSkills = skills.filter((skill) => skill.classId === this.save.classId);
+    if (token === 'class-basic') return classSkills[0]?.id || '';
+    if (token === 'class-second') return classSkills[1]?.id || '';
+    if (token === 'class-third') return classSkills[2]?.id || '';
+    return token;
+  }
+
+  private learnSkillBook(token: string) {
+    const id = this.classSkillId(token);
+    const skill = skills.find((entry) => entry.id === id && entry.classId === this.save.classId);
+    if (!skill) return false;
+    this.save.learnedSkillIds ||= [];
+    if (this.save.learnedSkillIds.includes(id)) return false;
+    this.save.learnedSkillIds.push(id);
+    return true;
+  }
+
   equipItem(itemUid: string) {
     const entry = this.save.inventory.find((item) => item.uid === itemUid);
     if (!entry) return;
     const def = items.find((item) => item.id === entry.itemId);
-    if (!def || def.type === 'material') {
+    if (!def) return;
+    if (def.type === 'skillbook') {
+      if (this.learnSkillBook(def.skillId || '')) {
+        entry.count -= 1;
+        if (entry.count <= 0) this.save.inventory = this.save.inventory.filter((item) => item.uid !== entry.uid);
+        audioService.play('reward');
+        this.pushLog(`${def.name} 사용 · 스킬 습득`);
+        this.markDirty();
+      } else {
+        this.pushLog('이미 배웠거나 현재 직업에 맞지 않는 스킬서입니다.');
+        this.emit();
+      }
+      return;
+    }
+    if (def.type === 'material') {
       this.pushLog('재료 아이템은 장착할 수 없습니다.');
       this.emit();
       return;
@@ -1169,7 +1234,7 @@ export class SolGame {
     const stats = this.calculateStats();
     const classSkills = skills.filter((entry) => entry.classId === this.save.classId);
     const hpRatio = this.save.hp / Math.max(1, stats.hp);
-    const healingSlot = classSkills.findIndex((skill) => skill.kind === 'heal' && this.save.level >= skill.unlockLevel && (this.skillCooldowns[skill.id] || 0) <= 0 && this.save.mp >= skill.mpCost);
+    const healingSlot = classSkills.findIndex((skill) => skill.kind === 'heal' && this.hasLearnedSkill(skill.id) && this.save.level >= skill.unlockLevel && (this.skillCooldowns[skill.id] || 0) <= 0 && this.save.mp >= skill.mpCost);
     if (hpRatio < 0.62 && healingSlot >= 0) {
       this.useSkill(healingSlot);
       this.autoSkillThinkTimer = 0.75;
@@ -1180,7 +1245,7 @@ export class SolGame {
     if (!this.target) return;
     const sorted = classSkills
       .map((skill, slot) => ({ skill, slot }))
-      .filter(({ skill }) => skill.kind !== 'heal' && this.save.level >= skill.unlockLevel && (this.skillCooldowns[skill.id] || 0) <= 0 && this.save.mp >= skill.mpCost)
+      .filter(({ skill }) => skill.kind !== 'heal' && this.hasLearnedSkill(skill.id) && this.save.level >= skill.unlockLevel && (this.skillCooldowns[skill.id] || 0) <= 0 && this.save.mp >= skill.mpCost)
       .sort((a, b) => b.skill.radius - a.skill.radius || b.skill.damageMultiplier - a.skill.damageMultiplier);
 
     for (const { skill, slot } of sorted) {
@@ -1560,17 +1625,19 @@ export class SolGame {
 
   private maxAggroCount() {
     const zoneId = this.options.zoneId || 'slime-forest';
-    if (zoneId === 'crystal-raid' || zoneId === 'dragon-nest') return 4;
-    if (zoneId === 'black-cave' || zoneId === 'moonlit-grove' || zoneId === 'soul-ruins') return 3;
+    if (zoneId === 'crystal-raid' || zoneId === 'dragon-nest' || zoneId === 'storm-citadel') return 5;
+    if (zoneId === 'black-cave' || zoneId === 'moonlit-grove' || zoneId === 'soul-ruins' || zoneId === 'ember-ridge') return 4;
+    if (zoneId === 'goblin-road' || zoneId === 'crystal-moss') return 3;
     return 2;
   }
 
   private mobAggroRange(mob: WorldMob) {
-    if (mob.def.id === 'dragon') return 3.15;
-    if (mob.def.id === 'crystalBear') return 2.75;
-    if (mob.def.id === 'goblin') return 3.0;
-    if (mob.def.id === 'wolf') return 2.75;
-    return 2.15;
+    if (mob.def.id === 'dragon' || mob.def.id === 'fieldBoss') return 3.65;
+    if (mob.def.id === 'crystalBear' || mob.def.id === 'graveKnight' || mob.def.id === 'fireDrake') return 3.2;
+    if (mob.def.id === 'goblin' || mob.def.id === 'wraith' || mob.def.id === 'stormHarpy') return 3.15;
+    if (mob.def.id === 'wolf' || mob.def.id === 'shadowImp') return 2.95;
+    if (mob.def.id === 'mossGolem') return 2.65;
+    return 2.35;
   }
 
   private callNearbyMobs(source: WorldMob, radius = 2.35) {
@@ -1643,7 +1710,7 @@ export class SolGame {
       mob.state = 'alert';
       mob.stateTimer = Math.min(mob.alertDelay, 0.18);
     }
-    this.callNearbyMobs(mob, mob.def.id === 'slime' ? 2.0 : 2.65);
+    this.callNearbyMobs(mob, mob.def.id === 'slime' ? 2.35 : 3.25);
     const result = this.resolveDamage(stats, mob.def.stats, this.save.level - mob.def.level);
     audioService.play('attack');
     this.animatePlayerAttack(mob, result);
@@ -1742,11 +1809,15 @@ export class SolGame {
     if (!this.save.daily || this.save.daily.dateKey !== today) {
       this.save.daily = {
         dateKey: today,
-        kills: { slime: 0, wolf: 0, goblin: 0, crystalBear: 0, dragon: 0 },
+        kills: this.emptyKillRecord(),
         claimedQuestIds: []
       };
     }
     this.save.daily.kills[monsterId] = (this.save.daily.kills[monsterId] || 0) + 1;
+  }
+
+  private emptyKillRecord(): Record<MonsterId, number> {
+    return { slime: 0, wolf: 0, goblin: 0, crystalBear: 0, dragon: 0, shadowImp: 0, mossGolem: 0, wraith: 0, fireDrake: 0, stormHarpy: 0, graveKnight: 0, fieldBoss: 0 };
   }
 
   private todayKey() {
@@ -1896,10 +1967,10 @@ export class SolGame {
     for (const entry of this.save.inventory) {
       if (!equippedItemIds.has(entry.uid)) continue;
       const def = items.find((item) => item.id === entry.itemId);
-      if (!def || def.type === 'material') continue;
+      if (!def || def.type === 'material' || def.type === 'skillbook') continue;
       const enhanceLevel = this.save.enhancements?.[entry.uid] || 0;
-      this.applyBonus(stats, def.bonus, 1 + enhanceLevel * 0.14);
-      if (enhanceLevel > 0) this.applyBonus(stats, { atk: enhanceLevel * 0.8, def: enhanceLevel * 0.55, hp: enhanceLevel * 3 }, 1);
+      this.applyBonus(stats, def.bonus, 1 + enhanceLevel * 0.10);
+      if (enhanceLevel > 0) this.applyBonus(stats, { atk: enhanceLevel * 1.4, def: enhanceLevel * 0.95, hp: enhanceLevel * 7 }, 1);
     }
 
     for (const entry of this.save.souls.filter((soul) => soul.unlocked)) {
@@ -1955,7 +2026,7 @@ export class SolGame {
         id: skill.id,
         name: skill.name,
         hotkey: skill.hotkey,
-        unlocked: this.save.level >= skill.unlockLevel,
+        unlocked: this.save.level >= skill.unlockLevel && this.hasLearnedSkill(skill.id),
         cooldownSec: skill.cooldownSec,
         cooldownRemaining: Number((this.skillCooldowns[skill.id] || 0).toFixed(1)),
         mpCost: skill.mpCost
@@ -2234,6 +2305,14 @@ export class SolGame {
     burst.addChild(ring);
 
     if (skillId.includes('warrior')) {
+      if (skillId.includes('guard')) {
+        for (let i = 0; i < 4; i += 1) {
+          const bolt = new Graphics()
+            .moveTo(-22 + i * 14, -86).lineTo(-30 + i * 18, -46).lineTo(-18 + i * 12, -48).lineTo(-28 + i * 18, -8)
+            .stroke({ color: i % 2 ? 0xffffff : 0x8fdfff, alpha: 0.82, width: 4 });
+          burst.addChild(bolt);
+        }
+      }
       for (let i = 0; i < 3; i += 1) {
         const arc = new Graphics()
           .moveTo(-38, -8 + i * 8)
@@ -2251,9 +2330,21 @@ export class SolGame {
         shard.position.set(Math.cos(shard.rotation) * (22 + radius * 12), Math.sin(shard.rotation) * (10 + radius * 5));
         burst.addChild(shard);
       }
+      if (skillId.includes('orb')) {
+        const fire = new Graphics()
+          .circle(0, -82, 14).fill({ color: 0xff7a2d, alpha: 0.85 })
+          .circle(0, -82, 7).fill({ color: 0xfff0a8, alpha: 0.9 })
+          .moveTo(0, -72).lineTo(-16, -24).lineTo(8, -18).closePath().fill({ color: 0xffb347, alpha: 0.45 });
+        burst.addChild(fire);
+      }
       if (skillId.includes('rain')) {
-        for (let i = 0; i < 5; i += 1) {
-          const beam = new Graphics().moveTo(-24 + i * 12, -74).lineTo(-38 + i * 15, -12).stroke({ color: i % 2 ? 0xffffff : color, alpha: 0.56, width: 3 });
+        for (let i = 0; i < 7; i += 1) {
+          const xoff = -36 + i * 12;
+          const beam = new Graphics()
+            .moveTo(xoff, -90).lineTo(xoff - 12 + (i % 3) * 8, -16)
+            .stroke({ color: i % 2 ? 0xffffff : 0x8fdfff, alpha: 0.74, width: 4 })
+            .moveTo(xoff - 6, -48).lineTo(xoff + 10, -58).lineTo(xoff + 2, -38)
+            .stroke({ color: 0xffffff, alpha: 0.52, width: 2 });
           burst.addChild(beam);
         }
       }

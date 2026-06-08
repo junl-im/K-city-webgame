@@ -1,11 +1,11 @@
 export type CharacterClassId = 'warrior' | 'taoist' | 'cleric';
 export type CharacterGender = 'male' | 'female';
-export type MonsterId = 'slime' | 'wolf' | 'goblin' | 'crystalBear' | 'dragon';
+export type MonsterId = 'slime' | 'wolf' | 'goblin' | 'crystalBear' | 'dragon' | 'shadowImp' | 'mossGolem' | 'wraith' | 'fireDrake' | 'stormHarpy' | 'graveKnight' | 'fieldBoss';
 export type TileId = 'grass' | 'dirt' | 'moss' | 'stone' | 'crystal' | 'water' | 'cliff' | 'portal';
-export type CardRarity = 'N' | 'R' | 'SR' | 'SSR';
+export type CardRarity = 'N' | 'R' | 'SR' | 'SSR' | 'UR';
 export type SheetTab = 'cards' | 'inventory' | 'skills' | 'souls' | 'account';
-export type DailyQuestGoalType = 'kill' | 'level';
-export type StoryQuestGoalType = 'talk' | 'kill' | 'level';
+export type DailyQuestGoalType = 'kill' | 'level' | 'collect';
+export type StoryQuestGoalType = 'talk' | 'kill' | 'level' | 'collect';
 export type EquipmentSlot = 'weapon' | 'armor' | 'relic';
 export type MobAiState = 'idle' | 'alert' | 'chase' | 'attackWindup' | 'attack' | 'return';
 
@@ -41,7 +41,9 @@ export interface CardDefinition {
   art: string;
   effectText: string;
   bonus: Partial<Stats>;
+  skillId?: string;
 }
+
 
 export interface CardSetDefinition {
   id: string;
@@ -67,7 +69,7 @@ export interface DailyQuestDefinition {
   goalType: DailyQuestGoalType;
   monsterId?: MonsterId;
   target: number;
-  reward: { gold?: number; gems?: number; itemId?: string; itemCount?: number };
+  reward: { gold?: number; gems?: number; itemId?: string; itemCount?: number; skillId?: string };
 }
 
 export interface ZoneDefinition {
@@ -111,16 +113,17 @@ export interface StoryQuestDefinition {
   monsterId?: MonsterId;
   target: number;
   unlockZoneId?: string;
-  reward: { gold?: number; gems?: number; itemId?: string; itemCount?: number; exp?: number };
+  reward: { gold?: number; gems?: number; itemId?: string; itemCount?: number; exp?: number; skillId?: string };
 }
 
 export interface ItemDefinition {
   id: string;
   name: string;
-  type: 'weapon' | 'armor' | 'relic' | 'material';
+  type: 'weapon' | 'armor' | 'relic' | 'material' | 'skillbook';
   rarity: CardRarity;
   effectText: string;
   bonus: Partial<Stats>;
+  skillId?: string;
 }
 
 export interface DropEntry {
@@ -199,6 +202,8 @@ export interface PlayerSave {
   daily: DailyProgress;
   story: StoryProgress;
   autoHunt: boolean;
+  learnedSkillIds: string[];
+  sleepMode: boolean;
   createdAt: number;
   updatedAt: number;
 }

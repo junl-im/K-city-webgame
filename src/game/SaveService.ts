@@ -219,13 +219,7 @@ export class SaveService {
       mp: base.baseStats.mp,
       x: 8.0,
       y: 8.2,
-      kills: {
-        slime: 0,
-        wolf: 0,
-        goblin: 0,
-        crystalBear: 0,
-        dragon: 0
-      },
+      kills: this.emptyKillRecord(),
       cards: [
         { uid: uid('card'), cardId: classId === 'taoist' ? 'card-rune-taoist' : 'card-soul-knight', level: 1, copies: 1, equipped: true },
         { uid: uid('card'), cardId: 'card-slime', level: 1, copies: 1, equipped: true }
@@ -243,6 +237,8 @@ export class SaveService {
       daily: this.createDailyProgress(),
       story: this.createStoryProgress(),
       autoHunt: false,
+      learnedSkillIds: [],
+      sleepMode: false,
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
@@ -270,7 +266,14 @@ export class SaveService {
       wolf: kills.wolf || 0,
       goblin: kills.goblin || 0,
       crystalBear: kills.crystalBear || 0,
-      dragon: kills.dragon || 0
+      dragon: kills.dragon || 0,
+      shadowImp: kills.shadowImp || 0,
+      mossGolem: kills.mossGolem || 0,
+      wraith: kills.wraith || 0,
+      fireDrake: kills.fireDrake || 0,
+      stormHarpy: kills.stormHarpy || 0,
+      graveKnight: kills.graveKnight || 0,
+      fieldBoss: kills.fieldBoss || 0
     };
     save.cards = Array.isArray(save.cards) ? save.cards : [];
     save.inventory = Array.isArray(save.inventory) ? save.inventory : [];
@@ -282,6 +285,8 @@ export class SaveService {
     });
     save.daily = this.normalizeDailyProgress(save.daily);
     save.story = this.normalizeStoryProgress(save.story);
+    save.learnedSkillIds = this.normalizeLearnedSkills(save.learnedSkillIds, save.classId);
+    save.sleepMode = Boolean(save.sleepMode);
     while (save.exp >= expToNext(save.level)) {
       save.exp -= expToNext(save.level);
       save.level += 1;
@@ -358,6 +363,8 @@ export class SaveService {
       enhancements: this.normalizeEnhancements(raw),
       daily: this.normalizeDailyProgress(raw.daily),
       story: this.normalizeStoryProgress(raw.story),
+      learnedSkillIds: this.normalizeLearnedSkills(raw.learnedSkillIds, classId),
+      sleepMode: Boolean(raw.sleepMode),
       souls: souls.map((soul) => {
         const old = raw.souls?.find((entry) => entry.soulId === soul.id);
         return old || { soulId: soul.id, unlocked: false, progress: raw.kills?.[soul.monsterId as MonsterId] || 0 };
@@ -431,8 +438,23 @@ export class SaveService {
       wolf: 0,
       goblin: 0,
       crystalBear: 0,
-      dragon: 0
+      dragon: 0,
+      shadowImp: 0,
+      mossGolem: 0,
+      wraith: 0,
+      fireDrake: 0,
+      stormHarpy: 0,
+      graveKnight: 0,
+      fieldBoss: 0
     };
+  }
+
+
+  private normalizeLearnedSkills(raw: unknown, classId: CharacterClassId): string[] {
+    const valid = new Set(['warrior-basic', 'warrior-guard', 'warrior-cleave', 'taoist-basic', 'taoist-orb', 'taoist-rain', 'cleric-basic', 'cleric-shield', 'cleric-nova']);
+    const classPrefix = classId === 'warrior' ? 'warrior' : classId === 'taoist' ? 'taoist' : 'cleric';
+    const list = Array.isArray(raw) ? raw : [];
+    return Array.from(new Set(list.filter((id): id is string => typeof id === 'string' && valid.has(id) && id.startsWith(classPrefix))));
   }
 
   private todayKey() {
@@ -449,7 +471,7 @@ export class SaveService {
     const next: Record<string, number> = {};
     for (const [uidValue, level] of Object.entries(raw)) {
       if (!validUids.has(uidValue)) continue;
-      next[uidValue] = Math.max(0, Math.min(10, Math.floor(Number(level) || 0)));
+      next[uidValue] = Math.max(0, Math.min(20, Math.floor(Number(level) || 0)));
     }
     return next;
   }

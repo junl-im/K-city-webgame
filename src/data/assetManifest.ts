@@ -81,10 +81,21 @@ export const sfxTrackUrls = {
 export const cardArtUrls = {
   warrior: new URL('../assets/cards/card-warrior.jpg', import.meta.url).href,
   taoist: new URL('../assets/cards/card-taoist.jpg', import.meta.url).href,
-  crystalBear: new URL('../assets/cards/card-crystal-bear.jpg', import.meta.url).href,
-  crystalFox: new URL('../assets/cards/card-crystal-fox.jpg', import.meta.url).href,
+  crystalBear: new URL('../assets/cards/card-bear-new.jpg', import.meta.url).href,
+  crystalFox: new URL('../assets/cards/card-wolf-new.jpg', import.meta.url).href,
   equipmentPack: new URL('../assets/cards/equipment-pack.jpg', import.meta.url).href,
-  uiIcons: new URL('../assets/cards/ui-icons.jpg', import.meta.url).href
+  uiIcons: new URL('../assets/cards/ui-icons.jpg', import.meta.url).href,
+  slime: new URL('../assets/cards/card-slime-new.jpg', import.meta.url).href,
+  wolf: new URL('../assets/cards/card-wolf-new.jpg', import.meta.url).href,
+  goblin: new URL('../assets/cards/card-goblin-new.jpg', import.meta.url).href,
+  imp: new URL('../assets/cards/card-imp.jpg', import.meta.url).href,
+  golem: new URL('../assets/cards/card-golem.jpg', import.meta.url).href,
+  wraith: new URL('../assets/cards/card-wraith.jpg', import.meta.url).href,
+  fireDrake: new URL('../assets/cards/card-firedrake.jpg', import.meta.url).href,
+  harpy: new URL('../assets/cards/card-harpy.jpg', import.meta.url).href,
+  graveKnight: new URL('../assets/cards/card-knight.jpg', import.meta.url).href,
+  fieldBoss: new URL('../assets/cards/card-fieldboss.jpg', import.meta.url).href,
+  dragon: new URL('../assets/cards/card-dragon-new.jpg', import.meta.url).href
 } as const;
 
 export const highQualityAssetSlots = {

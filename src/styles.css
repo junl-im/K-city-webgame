@@ -3979,3 +3979,277 @@ body.field-auto-active .skill-btn:not(:disabled):not(.cooling) {
     bottom: calc(202px + env(safe-area-inset-bottom)) !important;
   }
 }
+
+/* 0.21 Combat / Content / UI Expansion Pass */
+.title-screen::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 32%, rgba(226, 185, 95, 0.12), transparent 28%),
+    linear-gradient(180deg, rgba(8, 12, 18, 0.1), rgba(0, 0, 0, 0.58));
+}
+
+.title-stage {
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.52), inset 0 0 0 1px rgba(226, 185, 95, 0.16) !important;
+}
+
+.title-copy h1 {
+  letter-spacing: -0.06em;
+  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.72), 0 0 30px rgba(226, 185, 95, 0.26);
+}
+
+.town-topbar {
+  gap: 8px !important;
+}
+
+.town-currencies span {
+  min-height: 32px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px !important;
+  color: #fff4cc !important;
+  border-color: rgba(226, 185, 95, 0.34) !important;
+  background: linear-gradient(180deg, rgba(52, 42, 20, 0.76), rgba(9, 12, 10, 0.86)) !important;
+}
+
+.town-hero-card h2 {
+  font-size: clamp(22px, 6vw, 34px) !important;
+}
+
+.town-hero-card p {
+  color: rgba(255, 246, 220, 0.86) !important;
+  font-weight: 800 !important;
+}
+
+.story-snapshot {
+  max-height: 148px !important;
+}
+
+.zone-list-v2 {
+  gap: 9px !important;
+}
+
+.zone-card {
+  min-height: 76px !important;
+  background:
+    linear-gradient(90deg, rgba(226, 185, 95, 0.13), transparent 42%),
+    radial-gradient(circle at 88% 22%, rgba(114, 231, 255, 0.12), transparent 35%),
+    rgba(16, 20, 18, 0.86) !important;
+  box-shadow: inset 0 0 0 1px rgba(226, 185, 95, 0.08), 0 10px 26px rgba(0, 0, 0, 0.24) !important;
+}
+
+.zone-card b {
+  font-size: 15px !important;
+}
+
+.zone-card em {
+  background: linear-gradient(180deg, #493d20, #17150e) !important;
+}
+
+.bar.exp {
+  height: 8px !important;
+  border-radius: 999px !important;
+}
+
+.hud-top .bar.exp {
+  position: fixed !important;
+  left: max(10px, env(safe-area-inset-left)) !important;
+  right: max(10px, env(safe-area-inset-right)) !important;
+  top: calc(max(8px, env(safe-area-inset-top)) + 70px) !important;
+  height: 5px !important;
+  z-index: 21 !important;
+  opacity: 0.92;
+}
+
+.hud-top .bar.exp em {
+  display: none !important;
+}
+
+.skill-btn:not(:disabled):not(.cooling) {
+  box-shadow: 0 0 0 1px rgba(226, 185, 95, 0.38), 0 0 24px rgba(226, 185, 95, 0.18) !important;
+}
+
+.skill-btn.locked {
+  filter: grayscale(0.7);
+  opacity: 0.62;
+}
+
+.action-dock {
+  grid-template-columns: repeat(5, minmax(48px, 58px)) !important;
+  grid-auto-flow: column !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+  background: rgba(6, 8, 8, 0.52);
+  padding: 6px;
+  border-radius: 18px;
+  backdrop-filter: blur(12px);
+}
+
+.dock-btn {
+  width: 54px !important;
+  height: 54px !important;
+}
+
+.dock-btn.active,
+#sleepModeBtn.active {
+  color: #10120f !important;
+  background: linear-gradient(180deg, #fff0a6, #c99531) !important;
+  border-color: rgba(255, 244, 184, 0.86) !important;
+  box-shadow: 0 0 0 2px rgba(226, 185, 95, 0.28), 0 0 28px rgba(226, 185, 95, 0.45) !important;
+}
+
+.skill-dock {
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  bottom: calc(78px + env(safe-area-inset-bottom)) !important;
+  grid-template-columns: repeat(3, minmax(72px, 92px)) !important;
+}
+
+.skill-btn {
+  width: 86px !important;
+  height: 56px !important;
+}
+
+.combat-log-toggle {
+  bottom: calc(148px + env(safe-area-inset-bottom)) !important;
+}
+
+.combat-log {
+  bottom: calc(174px + env(safe-area-inset-bottom)) !important;
+}
+
+.slot-grid.card-slot-grid {
+  grid-template-columns: repeat(4, minmax(64px, 1fr)) !important;
+}
+
+.slot-grid.inventory-slot-grid {
+  grid-template-columns: repeat(7, minmax(42px, 1fr)) !important;
+}
+
+.slot-grid.inventory-slot-grid .slot-cell {
+  min-height: 112px !important;
+  padding: 6px !important;
+}
+
+.slot-grid.inventory-slot-grid .slot-cell p {
+  display: none !important;
+}
+
+.slot-grid.inventory-slot-grid .slot-cell b {
+  font-size: 10px !important;
+}
+
+.slot-grid.inventory-slot-grid .slot-actions {
+  gap: 4px !important;
+}
+
+.slot-grid.inventory-slot-grid .slot-actions button,
+.slot-grid.inventory-slot-grid .slot-cell > button {
+  min-height: 26px !important;
+  font-size: 10px !important;
+  padding: 4px !important;
+}
+
+.soul-list {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.soul-row {
+  min-height: 118px !important;
+}
+
+.sleep-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  display: none;
+  place-items: center;
+  padding: 24px;
+  color: #fff7db;
+  background: radial-gradient(circle at 50% 40%, rgba(226, 185, 95, 0.16), transparent 30%), rgba(2, 4, 5, 0.86);
+  backdrop-filter: blur(10px);
+}
+
+.sleep-overlay > div {
+  width: min(360px, 92vw);
+  padding: 28px 22px;
+  text-align: center;
+  border: 1px solid rgba(226, 185, 95, 0.38);
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(28, 24, 14, 0.84), rgba(8, 10, 9, 0.94));
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
+}
+
+.sleep-overlay b {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 28px;
+}
+
+.sleep-overlay span {
+  color: rgba(255, 246, 220, 0.78);
+  font-weight: 700;
+}
+
+body.sleep-mode-active .sleep-overlay {
+  display: grid;
+}
+
+body.sleep-mode-active .hud-top,
+body.sleep-mode-active .resource-strip,
+body.sleep-mode-active .target-card,
+body.sleep-mode-active .field-minimap,
+body.sleep-mode-active .skill-dock,
+body.sleep-mode-active .action-dock,
+body.sleep-mode-active .joystick,
+body.sleep-mode-active .combat-log,
+body.sleep-mode-active .combat-log-toggle {
+  opacity: 0.08 !important;
+  pointer-events: none !important;
+}
+
+@media (max-width: 520px) {
+  .action-dock {
+    grid-template-columns: repeat(5, 50px) !important;
+    gap: 5px !important;
+  }
+  .dock-btn {
+    width: 50px !important;
+    height: 50px !important;
+  }
+  .dock-btn b {
+    font-size: 9px !important;
+  }
+  .skill-dock {
+    bottom: calc(70px + env(safe-area-inset-bottom)) !important;
+    grid-template-columns: repeat(3, 74px) !important;
+  }
+  .skill-btn {
+    width: 74px !important;
+    height: 52px !important;
+  }
+  .skill-btn b {
+    font-size: 9px !important;
+  }
+  .slot-grid.card-slot-grid {
+    grid-template-columns: repeat(4, minmax(58px, 1fr)) !important;
+  }
+  .slot-grid.inventory-slot-grid {
+    grid-template-columns: repeat(7, minmax(34px, 1fr)) !important;
+  }
+  .slot-grid.inventory-slot-grid .slot-cell {
+    min-height: 92px !important;
+  }
+  .town-currencies {
+    grid-template-columns: repeat(3, 1fr) !important;
+    width: 100% !important;
+  }
+}

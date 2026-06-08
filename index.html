@@ -23,16 +23,16 @@
         </div>
         <div class="title-stage">
           <div class="title-copy">
-            <span class="title-kicker">ALPHA 0.20 · SFX & COMBAT FEEL</span>
+            <span class="title-kicker">SOUL ONLINE · LUMINA CHRONICLE</span>
             <h1>소울 온라인</h1>
-            <p>꺼져가는 루미나의 등불을 지키고, 타락한 영혼을 정화하는 2.5D 웹 RPG · 마을 하단 메뉴, 강화 확률, 미니맵, 자동전투 UX와 효과음 패스를 적용한 모바일 2.5D 웹 RPG.</p>
+            <p>루미나의 등불 아래에서 성장하고, 장비를 강화하고, 스킬과 카드를 수집해 심연의 필드보스를 토벌하는 모바일 2.5D 웹 RPG.</p>
           </div>
           <div class="title-hero" aria-hidden="true">
             <span class="title-soul-ring"></span>
             <span class="title-character"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn">게임 시작</button>
-          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.20.0</span></div>
+          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.21.0</span></div>
           <small>전체화면은 브라우저 정책상 버튼 입력 후 시도됩니다.</small>
         </div>
       </section>
@@ -197,39 +197,17 @@
               <h2>사냥터 선택</h2>
             </div>
             <div class="zone-list zone-list-v2">
-              <button class="zone-card active" data-zone-id="slime-forest">
-                <em>01</em><b>초록 숲 입구</b>
-                <span>Lv.1 · 슬라임/늑대 · 입문 사냥터</span>
-              </button>
-              <button class="zone-card" data-zone-id="crystal-moss">
-                <em>02</em><b>수정 이끼길</b>
-                <span>Lv.3 · 수정 늑대 · 이동 카드 파밍</span>
-              </button>
-              <button class="zone-card" data-zone-id="goblin-road">
-                <em>03</em><b>고블린 길목</b>
-                <span>Lv.5 · 고블린 · 장비 드랍</span>
-              </button>
-              <button class="zone-card" data-zone-id="black-cave">
-                <em>04</em><b>흑수정 동굴</b>
-                <span>Lv.7 · 흑수정 곰 · 위험 지역</span>
-              </button>
-              <button class="zone-card" data-zone-id="crystal-raid">
-                <em>05</em><b>수정 레이드 터</b>
-                <span>Lv.8+ · 보스 테스트 · 고위험</span>
-              </button>
-              <button class="zone-card" data-zone-id="moonlit-grove">
-                <em>06</em><b>달빛 고목숲</b>
-                <span>Lv.10 · 늑대/고블린 무리 · 자동스킬 사냥</span>
-              </button>
-              <button class="zone-card" data-zone-id="soul-ruins">
-                <em>07</em><b>영혼 폐허지대</b>
-                <span>Lv.12 · 고블린/흑수정 곰 · 강화 재료</span>
-              </button>
-              <button class="zone-card" data-zone-id="dragon-nest">
-                <em>08</em><b>용의 그림자 둥지</b>
-                <span>Lv.14 · 고위험 · 보스 전초</span>
-              </button>
-            </div>
+              <button class="zone-card active" data-zone-id="slime-forest"><em>01</em><b>루미나 숲 초입</b><span>Lv.1 · 젤리/늑대/임프 · 입문 사냥터</span></button>
+              <button class="zone-card" data-zone-id="crystal-moss"><em>02</em><b>청수정 이끼길</b><span>Lv.3 · 늑대/임프/골렘 · +3 권장</span></button>
+              <button class="zone-card" data-zone-id="goblin-road"><em>03</em><b>붉은 깃발 폐허로</b><span>Lv.5 · 폐허 검병/망령 · 장비 드랍</span></button>
+              <button class="zone-card" data-zone-id="black-cave"><em>04</em><b>흑요석 동굴</b><span>Lv.7 · 가디언/골렘 · +5 권장</span></button>
+              <button class="zone-card" data-zone-id="ember-ridge"><em>05</em><b>불씨 능선</b><span>Lv.9 · 화염 드레이크 · 낙하 공격</span></button>
+              <button class="zone-card" data-zone-id="moonlit-grove"><em>06</em><b>달빛 고목숲</b><span>Lv.10 · 하피/늑대 무리 · 자동스킬</span></button>
+              <button class="zone-card" data-zone-id="soul-ruins"><em>07</em><b>망각의 성소 폐허</b><span>Lv.12 · 망령/묘지 기사 · 강화 재료</span></button>
+              <button class="zone-card" data-zone-id="storm-citadel"><em>08</em><b>폭풍 감시초소</b><span>Lv.14 · 폭풍 하피 · 고속 전투</span></button>
+              <button class="zone-card" data-zone-id="dragon-nest"><em>09</em><b>용그림자 둥지</b><span>Lv.16 · 드레이크/심연룡 · 고위험</span></button>
+              <button class="zone-card" data-zone-id="crystal-raid"><em>10</em><b>심연 수정 레이드터</b><span>Lv.18 · 필드보스/심연룡 · 레이드</span></button>
+            </div></div>
           </section>
 
           <section class="town-action-panel">
@@ -328,6 +306,7 @@
         <button id="attackBtn" class="dock-btn primary"><span>⚔</span><b>공격</b></button>
         <button id="cardsBtn" class="dock-btn"><span>◆</span><b>카드</b></button>
         <button id="inventoryBtn" class="dock-btn"><span>▤</span><b>가방</b></button>
+        <button id="sleepModeBtn" class="dock-btn"><span>☾</span><b>절전</b></button>
       </nav>
 
       <section class="sheet" id="sheet" aria-hidden="true">
@@ -348,6 +327,7 @@
         <div id="sheetBody" class="sheet-body"></div>
       </section>
 
+      <div class="sleep-overlay" id="sleepOverlay"><div><b>절전 모드</b><span>자동사냥은 유지됩니다. 화면을 터치하면 해제됩니다.</span></div></div>
       <div class="toast" id="toast"></div>
     </div>
 

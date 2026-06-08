@@ -61,6 +61,8 @@ const autoHuntBtn = must<HTMLButtonElement>('#autoHuntBtn');
 const attackBtn = must<HTMLButtonElement>('#attackBtn');
 const cardsBtn = must<HTMLButtonElement>('#cardsBtn');
 const inventoryBtn = must<HTMLButtonElement>('#inventoryBtn');
+const sleepModeBtn = must<HTMLButtonElement>('#sleepModeBtn');
+const sleepOverlay = must<HTMLElement>('#sleepOverlay');
 const skillDockButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-skill-slot]'));
 const openMenu = must<HTMLButtonElement>('#openMenu');
 const sheet = must('#sheet');
@@ -207,9 +209,9 @@ function renderAudioSettingsPanel(mode: 'town' | 'field') {
   return `
     <div class="audio-settings-panel ${mode}">
       <article class="audio-hero-card">
-        <span class="town-eyebrow">REAL AUDIO 0.20</span>
+        <span class="town-eyebrow">SOUND MIXER</span>
         <h3>루미나 사운드 믹서</h3>
-        <p>public/assets/soulpack/audio 안의 실제 OGG 루프를 우선 재생합니다. 파일이 없거나 재생이 막히면 Web Audio fallback으로 전환됩니다.</p>
+        <p>타이틀, 마을, 필드, 보스전 분위기에 맞춰 배경음과 효과음을 조절합니다.</p>
         <div class="pill-row">
           <span class="pill">${unlocked ? '오디오 준비됨' : '버튼 입력 후 준비'}</span>
           <span class="pill">BGM ${settings.bgm ? 'ON' : 'OFF'}</span>
@@ -387,7 +389,11 @@ function bindLoginFlow() {
       showToast('캐릭터는 최대 4개까지 생성할 수 있습니다.');
       return;
     }
-    const name = nameInput.value.trim().slice(0, 12) || suggestedCharacterName();
+    const name = sanitizeCharacterName(nameInput.value);
+    if (!name) {
+      showToast('사용할 수 없는 닉네임입니다. 욕설/운영자/마스터/GM 명칭은 사용할 수 없습니다.');
+      return;
+    }
     const prepared = saveService.createSave(name, selectedClass, selectedGender);
     pendingSave = prepared;
     saveService.saveLocal(prepared);
@@ -574,6 +580,16 @@ function getSelectedCharacter() {
   return characterRoster.find((save) => save.saveId === selectedCharacterId) || null;
 }
 
+
+function sanitizeCharacterName(raw: string) {
+  const name = raw.trim().replace(/\s+/g, '').slice(0, 12);
+  if (name.length < 2) return '';
+  const blocked = ['운영자', '관리자', '마스터', 'GM', 'gm', 'admin', 'Admin', 'master', '씨발', '시발', '병신', '개새', '좆', '보지', '자지'];
+  if (blocked.some((word) => name.includes(word))) return '';
+  if (!/^[가-힣a-zA-Z0-9_]+$/.test(name)) return '';
+  return name;
+}
+
 function suggestedCharacterName() {
   return `솔마스터${characterRoster.length + 1}`.slice(0, 12);
 }
@@ -662,6 +678,23 @@ async function returnToTown() {
   showToast('루미나 마을로 복귀했습니다.');
 }
 
+
+function toggleSleepMode(force?: boolean) {
+  if (!latest) return;
+  const next = typeof force === 'boolean' ? force : !latest.save.sleepMode;
+  latest.save.sleepMode = next;
+  if (pendingSave) pendingSave.sleepMode = next;
+  if (game) game.getSave().sleepMode = next;
+  document.body.classList.toggle('sleep-mode-active', next);
+  sleepModeBtn.classList.toggle('active', next);
+  if (next) {
+    void requestWakeLock();
+    showToast('절전 모드 · 자동사냥 유지');
+  } else {
+    showToast('절전 모드 해제');
+  }
+}
+
 function bindActions() {
   autoHuntBtn.addEventListener('click', () => {
     if (!game || !latest) return;
@@ -679,6 +712,8 @@ function bindActions() {
   }
   cardsBtn.addEventListener('click', () => openSheet('cards'));
   inventoryBtn.addEventListener('click', () => openSheet('inventory'));
+  sleepModeBtn.addEventListener('click', () => toggleSleepMode());
+  sleepOverlay.addEventListener('click', () => toggleSleepMode(false));
   openMenu.addEventListener('click', () => openSheet('account'));
   returnTownBtn.addEventListener('click', () => {
     void returnToTown();
@@ -843,6 +878,8 @@ function renderHud(snapshot: Snapshot) {
   updateFieldMiniMap(snapshot);
 
   autoHuntBtn.classList.toggle('active', snapshot.save.autoHunt);
+  sleepModeBtn.classList.toggle('active', Boolean(snapshot.save.sleepMode));
+  document.body.classList.toggle('sleep-mode-active', Boolean(snapshot.save.sleepMode));
   document.body.classList.toggle('field-auto-active', snapshot.save.autoHunt);
   autoHuntBtn.innerHTML = snapshot.save.autoHunt ? '<span>●</span><b>자동 ON</b>' : '<span>⟳</span><b>자동 OFF</b>';
   renderSkillDock(snapshot);
@@ -852,8 +889,8 @@ function renderHud(snapshot: Snapshot) {
     text('#targetMeta', `Lv.${snapshot.target.def.level} HP ${Math.ceil(snapshot.target.hp)}/${snapshot.target.def.stats.hp}`);
     styleWidth('#targetHp', `${Math.round(snapshot.targetHpPercent * 100)}%`);
   } else {
-    text('#targetName', '마을');
-    text('#targetMeta', snapshot.save.autoHunt ? '자동사냥 탐색 중' : '정비 중');
+    text('#targetName', '필드 탐색');
+    text('#targetMeta', snapshot.save.autoHunt ? '자동사냥 탐색 중' : '수동 조작 중');
     styleWidth('#targetHp', '0%');
   }
 
@@ -956,10 +993,10 @@ function renderCards(snapshot: Snapshot) {
 
   return `
     <div class="slot-toolbar">
-      <span>카드 슬롯 3x3 · 장착 ${snapshot.save.cards.filter((card) => card.equipped).length}/4</span>
+      <span>카드 슬롯 4x9 · 장착 ${snapshot.save.cards.filter((card) => card.equipped).length}/4</span>
       <em>세트 효과 ${snapshot.cardSetEffects.length}개 발동 중</em>
     </div>
-    <div class="slot-grid card-slot-grid">${fillSlots(cardCells, 9, '빈 카드 슬롯')}</div>
+    <div class="slot-grid card-slot-grid">${fillSlots(cardCells, 36, '빈 카드 슬롯')}</div>
     ${renderCardSetSummary(snapshot.save)}
   `;
 }
@@ -975,10 +1012,10 @@ function renderInventory(snapshot: Snapshot) {
 
   return `
     <div class="slot-toolbar">
-      <span>인벤토리 5x9 · ${snapshot.save.inventory.length}/45</span>
+      <span>인벤토리 7x7 · ${snapshot.save.inventory.length}/49</span>
       <em>무기/방어구/유물은 슬롯에서 바로 장착 가능합니다.</em>
     </div>
-    <div class="slot-grid inventory-slot-grid">${fillSlots(itemCells, 45, '빈 가방')}</div>
+    <div class="slot-grid inventory-slot-grid">${fillSlots(itemCells, 49, '빈 가방')}</div>
   `;
 }
 
@@ -990,12 +1027,14 @@ function renderSkills(snapshot: Snapshot) {
 function renderSkillGrid(save: PlayerSave, townMode: boolean) {
   const classSkills = skills.filter((skill) => skill.classId === save.classId);
   const cells = classSkills.map((skill) => {
-    const unlocked = save.level >= skill.unlockLevel;
+    const learned = Array.isArray(save.learnedSkillIds) && save.learnedSkillIds.includes(skill.id);
+    const levelReady = save.level >= skill.unlockLevel;
+    const unlocked = learned && levelReady;
     return `
       <article class="slot-cell skill-slot ${unlocked ? 'unlocked' : 'locked'}">
         <span class="slot-rarity">${escapeHtml(skill.hotkey)}</span>
         <b>${escapeHtml(skill.name)}</b>
-        <em>${unlocked ? `쿨 ${skill.cooldownSec}s · MP ${skill.mpCost}` : `Lv.${skill.unlockLevel} 해금`}</em>
+        <em>${!learned ? '미습득' : levelReady ? `쿨 ${skill.cooldownSec}s · MP ${skill.mpCost}` : `Lv.${skill.unlockLevel} 필요`}</em>
         <p>${escapeHtml(skill.description)}</p>
       </article>
     `;
@@ -1024,10 +1063,10 @@ function renderCardSlot(def: CardDefinition, instance: { uid: string; level: num
 
 function renderItemSlot(save: PlayerSave, def: ItemDefinition, uidValue: string, count: number, actionAttr: string, upgradeAttr?: string) {
   const slot = def.type as EquipmentSlot;
-  const canEquip = def.type !== 'material';
+  const canEquip = def.type === 'weapon' || def.type === 'armor' || def.type === 'relic';
   const equipped = canEquip && save.equipment?.[slot] === uidValue;
   const enhanceLevel = save.enhancements?.[uidValue] || 0;
-  const typeLabel: Record<string, string> = { weapon: '무기', armor: '방어구', relic: '유물', material: '재료' };
+  const typeLabel: Record<string, string> = { weapon: '무기', armor: '방어구', relic: '유물', material: '재료', skillbook: '스킬서' };
   const cost = enhancementCost(enhanceLevel);
   const upgradeLabel = enhanceLevel >= MAX_ENHANCE_LEVEL ? 'MAX' : `+${cost.next} (${Math.round(cost.successRate * 100)}%)`;
   const upgradeDisabled = enhanceLevel >= MAX_ENHANCE_LEVEL ? 'disabled' : '';
@@ -1037,8 +1076,8 @@ function renderItemSlot(save: PlayerSave, def: ItemDefinition, uidValue: string,
       <span class="slot-rarity rarity-${def.rarity.toLowerCase()}">${def.rarity}${canEquip ? ` · +${enhanceLevel}` : ''}</span>
       <b>${escapeHtml(def.name)}${canEquip && enhanceLevel ? ` +${enhanceLevel}` : ''}</b>
       <em>${typeLabel[def.type] || escapeHtml(def.type)} · x${count}${equipped ? ' · 장착중' : ''}</em>
-      <p>${escapeHtml(def.effectText)}${canEquip && enhanceLevel < MAX_ENHANCE_LEVEL ? ` · 다음 ${formatGold(cost.gold)} · 성공 ${Math.round(cost.successRate * 100)}%${cost.shard ? ` · 파편 ${cost.shard}` : ''}` : ''}</p>
-      ${canEquip ? `<div class="slot-actions"><button ${actionAttr}="${uidValue}">${equipped ? '해제' : '장착'}</button>${upgradeAttr ? `<button ${upgradeDisabled} ${upgradeAttr}="${uidValue}">${upgradeLabel}</button>` : ''}</div>` : '<span class="slot-passive">재료</span>'}
+      <p>${escapeHtml(def.effectText)}${canEquip && enhanceLevel < MAX_ENHANCE_LEVEL ? ` · 다음 ${formatGold(cost.gold)} · 성공 ${Math.round(cost.successRate * 100)}%${cost.shard ? ` · 파편 ${cost.shard}` : ''}${cost.stone ? ` · 강화석 ${cost.stone}` : ''}` : ''}</p>
+      ${canEquip ? `<div class="slot-actions"><button ${actionAttr}="${uidValue}">${equipped ? '해제' : '장착'}</button>${upgradeAttr ? `<button ${upgradeDisabled} ${upgradeAttr}="${uidValue}">${upgradeLabel}</button>` : ''}</div>` : def.type === 'skillbook' ? `<button ${actionAttr}="${uidValue}">배우기</button>` : '<span class="slot-passive">재료</span>'}
     </article>
   `;
 }
@@ -1214,7 +1253,7 @@ function renderTown(save: PlayerSave | null) {
   townHeroGlyph.textContent = klass.glyph;
   setClassArt(townHeroGlyph, save.classId);
   townHeroName.textContent = save.name;
-  townHeroMeta.textContent = `Lv.${save.level} · ${klass.name} · ${(save.gender || 'male') === 'female' ? '여자' : '남자'} · ${klass.roleText}`;
+  townHeroMeta.textContent = `Lv.${save.level} · ${klass.name} · ${(save.gender || 'male') === 'female' ? '여자' : '남자'} · HP ${save.hp} / MP ${save.mp}`;
   townGoldText.textContent = formatGold(save.gold);
   townGemText.textContent = formatSoul(save.gems);
   townPowerText.textContent = `전투력 ${formatNumber(powerFromSave(save))}`;
@@ -1367,12 +1406,44 @@ function claimStoryQuest(questId: string) {
   showToast(`${quest.title} 완료 · 보상 획득`);
 }
 
+
+function classSkillId(save: PlayerSave, token: string) {
+  const classSkills = skills.filter((skill) => skill.classId === save.classId);
+  if (token === 'class-basic') return classSkills[0]?.id || '';
+  if (token === 'class-second') return classSkills[1]?.id || '';
+  if (token === 'class-third') return classSkills[2]?.id || '';
+  return token;
+}
+
+function skillRewardName(save: PlayerSave | undefined, token: string) {
+  if (!save) return '스킬 각인';
+  const id = classSkillId(save, token);
+  const skill = skills.find((entry) => entry.id === id);
+  return skill ? `${skill.name} 습득` : '스킬 각인';
+}
+
+function learnSkillReward(save: PlayerSave, token: string) {
+  const id = classSkillId(save, token);
+  if (!id) return false;
+  const skill = skills.find((entry) => entry.id === id && entry.classId === save.classId);
+  if (!skill) return false;
+  save.learnedSkillIds ||= [];
+  if (save.learnedSkillIds.includes(id)) return false;
+  save.learnedSkillIds.push(id);
+  return true;
+}
+
+function emptyKillRecord(): Record<any, number> {
+  return { slime: 0, wolf: 0, goblin: 0, crystalBear: 0, dragon: 0, shadowImp: 0, mossGolem: 0, wraith: 0, fireDrake: 0, stormHarpy: 0, graveKnight: 0, fieldBoss: 0 };
+}
+
 function applyStoryReward(save: PlayerSave, reward: (typeof storyQuests)[number]['reward']) {
   if (reward.gold) save.gold += reward.gold;
   if (reward.gems) save.gems += reward.gems;
   if (reward.itemId) {
     for (let i = 0; i < (reward.itemCount || 1); i += 1) addInventoryItem(save, reward.itemId);
   }
+  if (reward.skillId) learnSkillReward(save, reward.skillId);
   if (reward.exp) {
     save.exp += reward.exp;
     while (save.exp >= expToNext(save.level)) {
@@ -1392,6 +1463,7 @@ function storyRewardText(reward: (typeof storyQuests)[number]['reward']) {
     const def = items.find((item) => item.id === reward.itemId);
     parts.push(`${def ? def.name : reward.itemId} x${reward.itemCount || 1}`);
   }
+  if (reward.skillId) parts.push(skillRewardName(pendingSave || undefined, reward.skillId));
   return parts.join(' · ') || '없음';
 }
 
@@ -1467,7 +1539,7 @@ function renderTownCards(save: PlayerSave) {
 
   return `
     <div class="town-content-note">카드 보관함 3x3 · 장착 ${equippedCount}/4 · 조합이 맞으면 세트 효과가 자동 발동합니다.</div>
-    <div class="slot-grid card-slot-grid town-slot-grid">${fillSlots(cells, 9, '빈 카드 슬롯')}</div>
+    <div class="slot-grid card-slot-grid town-slot-grid">${fillSlots(cells, 36, '빈 카드 슬롯')}</div>
     ${renderCardSetSummary(save)}
   `;
 }
@@ -1490,16 +1562,16 @@ function renderTownInventory(save: PlayerSave) {
       <span>ASPD <b>${stats.aspd}</b></span>
       <span>CRIT <b>${Math.round(stats.crit * 100)}%</b></span>
     </div>
-    <div class="slot-toolbar"><span>인벤토리 5x9 · ${save.inventory.length}/45</span><em>슬롯을 눌러 장착/해제합니다.</em></div>
-    <div class="slot-grid inventory-slot-grid town-slot-grid">${fillSlots(cells, 45, '빈 가방')}</div>
+    <div class="slot-toolbar"><span>인벤토리 7x7 · ${save.inventory.length}/49</span><em>슬롯을 눌러 장착/해제합니다.</em></div>
+    <div class="slot-grid inventory-slot-grid town-slot-grid">${fillSlots(cells, 49, '빈 가방')}</div>
   `;
 }
 
 function renderTownInventoryRow(save: PlayerSave, def: ItemDefinition, uidValue: string, count: number) {
   const slot = def.type as EquipmentSlot;
-  const canEquip = def.type !== 'material';
+  const canEquip = def.type === 'weapon' || def.type === 'armor' || def.type === 'relic';
   const equipped = canEquip && save.equipment?.[slot] === uidValue;
-  const typeLabel: Record<string, string> = { weapon: '무기', armor: '방어구', relic: '유물', material: '재료' };
+  const typeLabel: Record<string, string> = { weapon: '무기', armor: '방어구', relic: '유물', material: '재료', skillbook: '스킬서' };
   return `
     <article class="item-row ${equipped ? 'equipped' : ''}">
       <div class="item-info">
@@ -1524,10 +1596,15 @@ function renderTownSkills(save: PlayerSave) {
 
 function renderTownShop(save: PlayerSave) {
   const stock: Array<{ itemId: string; price: number; label: string }> = [
-    { itemId: 'iron-sword', price: 140, label: '초반 무기 보강' },
-    { itemId: 'leather-armor', price: 120, label: '생존력 보강' },
-    { itemId: 'fox-charm', price: 240, label: '유물 슬롯 개방' },
-    { itemId: 'soul-shard', price: 80, label: '카드 합성 재료' }
+    { itemId: 'skillbook-basic', price: 180, label: '1번 스킬 습득' },
+    { itemId: 'skillbook-second', price: 850, label: '2번 스킬 습득' },
+    { itemId: 'skillbook-third', price: 2600, label: '3번 스킬 습득' },
+    { itemId: 'iron-sword', price: 180, label: '초반 무기 보강' },
+    { itemId: 'moon-blade', price: 560, label: 'R 무기' },
+    { itemId: 'crystal-mail', price: 620, label: 'R 방어구' },
+    { itemId: 'fox-charm', price: 900, label: '유물 슬롯' },
+    { itemId: 'soul-shard', price: 120, label: '강화 재료' },
+    { itemId: 'enhance-stone', price: 420, label: '+10 이후 재료' }
   ];
   const rows = stock
     .flatMap((entry) => {
@@ -1618,7 +1695,7 @@ function questProgress(save: PlayerSave, questId: string) {
   return 0;
 }
 
-function rewardText(reward: { gold?: number; gems?: number; itemId?: string; itemCount?: number }) {
+function rewardText(reward: { gold?: number; gems?: number; itemId?: string; itemCount?: number; skillId?: string }) {
   const parts: string[] = [];
   if (reward.gold) parts.push(formatGold(reward.gold));
   if (reward.gems) parts.push(`소울젬 ${formatNumber(reward.gems)}`);
@@ -1626,6 +1703,7 @@ function rewardText(reward: { gold?: number; gems?: number; itemId?: string; ite
     const def = items.find((item) => item.id === reward.itemId);
     parts.push(`${def ? def.name : reward.itemId} x${reward.itemCount || 1}`);
   }
+  if (reward.skillId) parts.push(skillRewardName(pendingSave || undefined, reward.skillId));
   return parts.join(' · ') || '없음';
 }
 
@@ -1633,9 +1711,9 @@ function claimDailyQuest(questId: string) {
   if (!pendingSave) return;
   const quest = dailyQuests.find((entry) => entry.id === questId);
   if (!quest) return;
-  pendingSave.daily ||= { dateKey: todayKey(), kills: { slime: 0, wolf: 0, goblin: 0, crystalBear: 0, dragon: 0 }, claimedQuestIds: [] };
+  pendingSave.daily ||= { dateKey: todayKey(), kills: emptyKillRecord(), claimedQuestIds: [] };
   if (pendingSave.daily.dateKey !== todayKey()) {
-    pendingSave.daily = { dateKey: todayKey(), kills: { slime: 0, wolf: 0, goblin: 0, crystalBear: 0, dragon: 0 }, claimedQuestIds: [] };
+    pendingSave.daily = { dateKey: todayKey(), kills: emptyKillRecord(), claimedQuestIds: [] };
   }
   if (pendingSave.daily.claimedQuestIds.includes(quest.id)) {
     showToast('이미 보상을 받은 의뢰입니다.');
@@ -1712,7 +1790,19 @@ function toggleTownItem(itemUid: string) {
   const entry = pendingSave.inventory.find((item) => item.uid === itemUid);
   if (!entry) return;
   const def = items.find((item) => item.id === entry.itemId);
-  if (!def || def.type === 'material') {
+  if (!def) return;
+  if (def.type === 'skillbook') {
+    if (learnSkillReward(pendingSave, def.skillId || '')) {
+      entry.count -= 1;
+      if (entry.count <= 0) pendingSave.inventory = pendingSave.inventory.filter((item) => item.uid !== entry.uid);
+      showToast(`${def.name} 사용 · 스킬 습득`);
+      persistTownSave();
+    } else {
+      showToast('이미 배웠거나 현재 직업에 맞지 않는 스킬서입니다.');
+    }
+    return;
+  }
+  if (def.type === 'material') {
     showToast('재료 아이템은 장착할 수 없습니다.');
     return;
   }
@@ -1734,8 +1824,8 @@ function upgradeTownItem(itemUid: string) {
   const entry = pendingSave.inventory.find((item) => item.uid === itemUid);
   if (!entry) return;
   const def = items.find((item) => item.id === entry.itemId);
-  if (!def || def.type === 'material') {
-    showToast('재료 아이템은 강화할 수 없습니다.');
+  if (!def || def.type === 'material' || def.type === 'skillbook') {
+    showToast('해당 아이템은 강화할 수 없습니다.');
     return;
   }
   pendingSave.enhancements ||= {};
@@ -1753,8 +1843,13 @@ function upgradeTownItem(itemUid: string) {
     showToast(`소울 파편 부족 · 필요 ${cost.shard}개`);
     return;
   }
+  if (cost.stone && materialCount(pendingSave, 'enhance-stone') < cost.stone) {
+    showToast(`강화석 부족 · 필요 ${cost.stone}개`);
+    return;
+  }
   pendingSave.gold -= cost.gold;
   if (cost.shard) consumeMaterial(pendingSave, 'soul-shard', cost.shard);
+  if (cost.stone) consumeMaterial(pendingSave, 'enhance-stone', cost.stone);
   const success = roll(cost.successRate);
   if (success) {
     pendingSave.enhancements[itemUid] = current + 1;
@@ -1771,10 +1866,15 @@ function upgradeTownItem(itemUid: string) {
 function buyTownShopItem(itemId: string) {
   if (!pendingSave) return;
   const stock: Record<string, number> = {
-    'iron-sword': 140,
-    'leather-armor': 120,
-    'fox-charm': 240,
-    'soul-shard': 80
+    'skillbook-basic': 180,
+    'skillbook-second': 850,
+    'skillbook-third': 2600,
+    'iron-sword': 180,
+    'moon-blade': 560,
+    'crystal-mail': 620,
+    'fox-charm': 900,
+    'soul-shard': 120,
+    'enhance-stone': 420
   };
   const price = stock[itemId];
   const def = items.find((item) => item.id === itemId);
@@ -1784,6 +1884,12 @@ function buyTownShopItem(itemId: string) {
     return;
   }
   pendingSave.gold -= price;
+  if (def.type === 'skillbook' && def.skillId && learnSkillReward(pendingSave, def.skillId)) {
+    audioService.play('reward');
+    persistTownSave();
+    showToast(`${def.name} 구매 · 스킬 습득 완료`);
+    return;
+  }
   addInventoryItem(pendingSave, itemId);
   audioService.play('buy');
   persistTownSave();
@@ -1850,10 +1956,10 @@ function calculateStatsFromSave(save: PlayerSave): Stats {
   for (const entry of save.inventory) {
     if (!equippedItemIds.has(entry.uid)) continue;
     const def = items.find((item) => item.id === entry.itemId);
-    if (!def || def.type === 'material') continue;
+    if (!def || def.type === 'material' || def.type === 'skillbook') continue;
     const enhanceLevel = save.enhancements?.[entry.uid] || 0;
-    applyTownBonus(stats, def.bonus, 1 + enhanceLevel * 0.14);
-    if (enhanceLevel > 0) applyTownBonus(stats, { atk: enhanceLevel * 0.8, def: enhanceLevel * 0.55, hp: enhanceLevel * 3 }, 1);
+    applyTownBonus(stats, def.bonus, 1 + enhanceLevel * 0.10);
+    if (enhanceLevel > 0) applyTownBonus(stats, { atk: enhanceLevel * 1.4, def: enhanceLevel * 0.95, hp: enhanceLevel * 7 }, 1);
   }
 
   for (const entry of save.souls.filter((soul) => soul.unlocked)) {
