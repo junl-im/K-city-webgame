@@ -70,8 +70,12 @@ const mobHomeRadius: Partial<Record<MonsterId, number>> = {
 
 const tileTextureKey: Record<TileId, TextureKey> = {
   grass: 'tileGrass',
+  dirt: 'tileDirt',
+  moss: 'tileMoss',
   stone: 'tileStone',
+  crystal: 'tileCrystal',
   water: 'tileWater',
+  cliff: 'tileCliff',
   portal: 'tilePortal'
 };
 
@@ -420,6 +424,7 @@ export class SolGame {
     this.ambientLayer.removeChildren();
     this.propLayer.removeChildren();
 
+    this.addTerrainBackdrop();
     for (let y = 0; y < MAP_H; y += 1) {
       for (let x = 0; x < MAP_W; x += 1) {
         const tile = worldMap[y][x];
@@ -427,19 +432,23 @@ export class SolGame {
         const pos = isoToScreen(x, y);
         sprite.anchor.set(0.5, 0.5);
         sprite.position.set(pos.x, pos.y);
+        sprite.alpha = tile === 'water' ? 0.95 : tile === 'cliff' ? 0.96 : 1;
         this.mapLayer.addChild(sprite);
+        this.addGroundDecal(tile, x, y);
       }
     }
 
+    this.addTerrainTransitions();
     this.addZoneGroundMood();
     this.addVillageDecor();
+    this.addZoneLandmarks();
 
     const trees = [
       [3, 7],
       [4, 14],
-      [14, 6],
       [7, 16],
-      [17, 14]
+      [10, 4],
+      [13, 5]
     ];
     for (const [x, y] of trees) this.addProp('propTree', x, y, 0.72);
 
@@ -447,9 +456,171 @@ export class SolGame {
       [12, 12],
       [16, 16],
       [11, 5],
-      [18, 10]
+      [17.2, 10.4]
     ];
     for (const [x, y] of crystals) this.addProp('propCrystal', x, y, 0.66);
+
+    const rocks = [
+      [2.8, 10.8, 0.5],
+      [9.5, 13.4, 0.48],
+      [15.8, 8.4, 0.54],
+      [14.5, 16.5, 0.6]
+    ];
+    for (const [x, y, scale] of rocks) this.addProp('propRock', x, y, scale);
+  }
+
+
+  private addTerrainBackdrop() {
+    const bounds = [isoToScreen(0, 0), isoToScreen(MAP_W - 1, 0), isoToScreen(MAP_W - 1, MAP_H - 1), isoToScreen(0, MAP_H - 1)];
+    const shadow = new Graphics()
+      .moveTo(bounds[0].x, bounds[0].y + 18)
+      .lineTo(bounds[1].x, bounds[1].y + 18)
+      .lineTo(bounds[2].x, bounds[2].y + 26)
+      .lineTo(bounds[3].x, bounds[3].y + 26)
+      .closePath()
+      .fill({ color: 0x050809, alpha: 0.32 });
+    this.mapLayer.addChild(shadow);
+  }
+
+  private addGroundDecal(tile: TileId, x: number, y: number) {
+    if (tile === 'water' || tile === 'cliff') return;
+    const seed = (x * 92821 + y * 68917) % 1000;
+    const pos = isoToScreen(x, y);
+    const decal = new Graphics();
+
+    if (tile === 'grass' && seed % 3 === 0) {
+      decal
+        .moveTo(pos.x - 20, pos.y + 2)
+        .quadraticCurveTo(pos.x - 2, pos.y - 7, pos.x + 18, pos.y + 2)
+        .stroke({ color: 0xd1e98e, alpha: 0.18, width: 1.5 });
+      for (let i = 0; i < 3; i += 1) {
+        const ox = ((seed + i * 17) % 34) - 17;
+        const oy = ((seed + i * 23) % 15) - 6;
+        decal.moveTo(pos.x + ox, pos.y + oy + 3).lineTo(pos.x + ox + 3, pos.y + oy - 3).stroke({ color: 0xc5f18f, alpha: 0.18, width: 1.2 });
+      }
+    }
+
+    if (tile === 'dirt') {
+      decal
+        .moveTo(pos.x - 32, pos.y + 1)
+        .quadraticCurveTo(pos.x - 10, pos.y + 9, pos.x + 30, pos.y + 3)
+        .stroke({ color: 0xf1c577, alpha: 0.18, width: 3 });
+      if (seed % 2 === 0) {
+        decal.circle(pos.x - 16, pos.y - 2, 1.6).fill({ color: 0xf3d09a, alpha: 0.22 });
+        decal.circle(pos.x + 19, pos.y + 8, 1.4).fill({ color: 0x281812, alpha: 0.18 });
+      }
+    }
+
+    if (tile === 'moss') {
+      decal
+        .ellipse(pos.x + 8, pos.y - 1, 24, 8)
+        .fill({ color: 0x78ffdc, alpha: 0.035 })
+        .moveTo(pos.x - 24, pos.y + 2)
+        .quadraticCurveTo(pos.x - 3, pos.y - 9, pos.x + 26, pos.y)
+        .stroke({ color: 0xc8ffef, alpha: 0.17, width: 1.8 });
+    }
+
+    if (tile === 'stone' && seed % 2 === 1) {
+      decal
+        .moveTo(pos.x - 22, pos.y - 2)
+        .lineTo(pos.x - 5, pos.y - 10)
+        .lineTo(pos.x + 16, pos.y - 2)
+        .stroke({ color: 0xe5d4ac, alpha: 0.18, width: 1.4 })
+        .moveTo(pos.x + 2, pos.y + 10)
+        .lineTo(pos.x + 22, pos.y + 2)
+        .stroke({ color: 0x1d251f, alpha: 0.16, width: 1.6 });
+    }
+
+    if (tile === 'crystal') {
+      decal
+        .circle(pos.x + 8, pos.y - 4, 13)
+        .fill({ color: 0x72e7ff, alpha: 0.035 })
+        .moveTo(pos.x - 20, pos.y + 3)
+        .lineTo(pos.x + 14, pos.y - 10)
+        .stroke({ color: 0xbdf9ff, alpha: 0.24, width: 1.5 })
+        .moveTo(pos.x + 2, pos.y + 12)
+        .lineTo(pos.x + 28, pos.y + 1)
+        .stroke({ color: 0x9c80ff, alpha: 0.18, width: 2 });
+    }
+
+    if (tile === 'portal') {
+      decal.circle(pos.x, pos.y + 2, 52).fill({ color: 0x72e7ff, alpha: 0.035 });
+    }
+
+    if (decal.width || decal.height) this.ambientLayer.addChild(decal);
+  }
+
+  private addTerrainTransitions() {
+    const edge = new Graphics();
+    for (let y = 0; y < MAP_H; y += 1) {
+      for (let x = 0; x < MAP_W; x += 1) {
+        const tile = worldMap[y][x];
+        if (tile === 'water' || tile === 'cliff') continue;
+        const pos = isoToScreen(x, y);
+        const nearWater = this.neighborHas(x, y, 'water');
+        const nearCliff = this.neighborHas(x, y, 'cliff');
+        if (nearWater) {
+          edge
+            .moveTo(pos.x - 50, pos.y + 19)
+            .quadraticCurveTo(pos.x, pos.y + 32, pos.x + 50, pos.y + 19)
+            .stroke({ color: 0xbffff8, alpha: 0.16, width: 3 });
+        }
+        if (nearCliff) {
+          edge
+            .moveTo(pos.x - 56, pos.y + 25)
+            .quadraticCurveTo(pos.x, pos.y + 42, pos.x + 56, pos.y + 25)
+            .stroke({ color: 0x000000, alpha: 0.18, width: 6 });
+        }
+        if ((tile === 'grass' || tile === 'moss') && this.neighborHas(x, y, 'dirt')) {
+          edge
+            .moveTo(pos.x - 26, pos.y + 10)
+            .lineTo(pos.x + 26, pos.y - 3)
+            .stroke({ color: 0xe8c681, alpha: 0.08, width: 2 });
+        }
+      }
+    }
+    this.ambientLayer.addChild(edge);
+  }
+
+  private neighborHas(x: number, y: number, tile: TileId) {
+    const checks = [
+      [x - 1, y],
+      [x + 1, y],
+      [x, y - 1],
+      [x, y + 1]
+    ];
+    return checks.some(([nx, ny]) => nx >= 0 && ny >= 0 && nx < MAP_W && ny < MAP_H && worldMap[ny][nx] === tile);
+  }
+
+  private addZoneLandmarks() {
+    const ruins = [
+      [11.4, 12.6, 0.52],
+      [13.4, 14.7, 0.58],
+      [16.5, 13.2, 0.56]
+    ];
+    for (const [x, y, scale] of ruins) this.addProp('propRuin', x, y, scale);
+
+    if (this.options.zoneId === 'crystal-raid') {
+      const pos = isoToScreen(16.4, 10.6);
+      const altar = new Graphics()
+        .ellipse(0, 0, 96, 38)
+        .fill({ color: 0x17132f, alpha: 0.46 })
+        .ellipse(0, 0, 70, 27)
+        .stroke({ color: 0x72e7ff, alpha: 0.28, width: 3 })
+        .ellipse(0, 0, 44, 17)
+        .stroke({ color: 0xf2d66c, alpha: 0.22, width: 2 });
+      altar.position.set(pos.x, pos.y + 8);
+      this.ambientLayer.addChild(altar);
+    }
+
+    if (this.options.zoneId === 'black-cave') {
+      const caveGlow = new Graphics();
+      for (const [x, y] of [[15.8, 15.2], [16.6, 13.5], [14.2, 16.2]]) {
+        const pos = isoToScreen(x, y);
+        caveGlow.circle(pos.x, pos.y - 10, 28).fill({ color: 0x806dff, alpha: 0.055 });
+      }
+      this.ambientLayer.addChild(caveGlow);
+    }
   }
 
 
@@ -489,7 +660,8 @@ export class SolGame {
     this.mapLayer.addChild(ring);
 
     for (const prop of villageProps) {
-      this.addProp(prop.type === 'tree' ? 'propTree' : 'propCrystal', prop.x, prop.y, prop.scale);
+      const key = prop.type === 'tree' ? 'propTree' : prop.type === 'rock' ? 'propRock' : prop.type === 'ruin' ? 'propRuin' : 'propCrystal';
+      this.addProp(key, prop.x, prop.y, prop.scale);
     }
 
     const labels = [
@@ -1512,7 +1684,7 @@ export class SolGame {
     const tx = Math.floor(x);
     const ty = Math.floor(y);
     if (tx < 0 || ty < 0 || tx >= MAP_W || ty >= MAP_H) return false;
-    return worldMap[ty][tx] !== 'water';
+    return worldMap[ty][tx] !== 'water' && worldMap[ty][tx] !== 'cliff';
   }
 
   private placeEntity(entity: Container, x: number, y: number) {

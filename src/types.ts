@@ -1,6 +1,6 @@
 export type CharacterClassId = 'warrior' | 'taoist' | 'cleric';
 export type MonsterId = 'slime' | 'wolf' | 'goblin' | 'crystalBear' | 'dragon';
-export type TileId = 'grass' | 'stone' | 'water' | 'portal';
+export type TileId = 'grass' | 'dirt' | 'moss' | 'stone' | 'crystal' | 'water' | 'cliff' | 'portal';
 export type CardRarity = 'N' | 'R' | 'SR' | 'SSR';
 export type SheetTab = 'cards' | 'inventory' | 'skills' | 'souls' | 'account';
 export type DailyQuestGoalType = 'kill' | 'level';

@@ -1,7 +1,7 @@
 import type { CardDefinition, CardSetDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, SoulDefinition, TileId, ZoneDefinition, SkillDefinition } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 export const MAP_W = 20;
 export const MAP_H = 20;
 
@@ -500,12 +500,25 @@ export const monsters: MonsterDefinition[] = [
   }
 ];
 
+const pathTiles = new Set([
+  '8,8', '8,9', '8,10', '7,10', '6,11', '5,12', '5,13', '5,14',
+  '9,8', '10,8', '11,8', '12,8', '13,8',
+  '9,9', '10,10', '11,11', '12,12', '13,13', '14,14', '15,15',
+  '8,7', '8,6', '9,6', '10,6', '11,6'
+]);
+
 export const worldMap: TileId[][] = Array.from({ length: MAP_H }, (_, y) =>
   Array.from({ length: MAP_W }, (_, x) => {
-    if ((x <= 1 && y < 8) || (y <= 1 && x < 7) || x + y > 33) return 'water';
-    if (x >= 6 && x <= 10 && y >= 6 && y <= 10) return 'stone';
-    if ((x > 10 && y > 12) || (x > 13 && y > 6 && y < 11)) return 'stone';
+    const key = `${x},${y}`;
+    if ((x <= 1 && y < 8) || (y <= 1 && x < 7) || x + y > 34 || (x === 18 && y > 12)) return 'water';
+    if (x === 0 || y === 0 || x === MAP_W - 1 || y === MAP_H - 1 || x + y > 32) return 'cliff';
     if (x === 8 && y === 8) return 'portal';
+    if (x >= 6 && x <= 10 && y >= 6 && y <= 10) return 'stone';
+    if (pathTiles.has(key)) return 'dirt';
+    if ((x >= 11 && x <= 15 && y >= 6 && y <= 10) || (x >= 10 && x <= 14 && y >= 5 && y <= 8)) return 'moss';
+    if ((x >= 11 && y >= 12) || (x >= 14 && y >= 9)) return 'stone';
+    if ((x >= 15 && y >= 13) || (x >= 16 && y >= 9 && y <= 12)) return 'crystal';
+    if ((x + y) % 11 === 0 && x > 3 && y > 4) return 'moss';
     return 'grass';
   })
 );
@@ -527,7 +540,9 @@ export const villageProps = [
   { type: 'tree', x: 10.8, y: 6.0, scale: 0.62 },
   { type: 'crystal', x: 8.0, y: 8.0, scale: 0.5 },
   { type: 'crystal', x: 6.3, y: 9.8, scale: 0.42 },
-  { type: 'crystal', x: 10.0, y: 9.7, scale: 0.42 }
+  { type: 'crystal', x: 10.0, y: 9.7, scale: 0.42 },
+  { type: 'rock', x: 7.0, y: 6.8, scale: 0.48 },
+  { type: 'ruin', x: 10.4, y: 8.7, scale: 0.5 }
 ] as const;
 
 export const expToNext = (level: number) => 90 + level * level * 32;

@@ -2924,7 +2924,7 @@ body,
   }
 }
 
-/* Alpha 0.11~0.12 audio and visual polish */
+/* Alpha 0.11~0.13 audio, visual, and field polish */
 .title-mini-nav button,
 .town-quick-actions button.muted,
 .town-quick-actions button#townAudioBtn {
@@ -2988,7 +2988,7 @@ body,
   text-shadow: 0 0 16px rgba(114, 231, 255, 0.75);
 }
 
-/* extra painterly ambience for the 0.12 town pass */
+/* extra painterly ambience for the town and field passes */
 .town-backdrop::after {
   content: "";
   position: absolute;
