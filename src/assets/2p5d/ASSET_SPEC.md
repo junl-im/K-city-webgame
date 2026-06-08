@@ -39,3 +39,15 @@ The next implementation step is atlas animation support:
 - idle / walk / attack / hit / death
 - 4-direction or 8-direction sprite sheets
 - Pixi `AnimatedSprite` wrapper per actor
+
+## Alpha 0.17 sprite-sheet contract
+
+The runtime now supports tall male/female 2.5D character sheets and monster sheets.
+
+- Character frame: 128x192
+- Monster frame: 128x160
+- Columns: 48
+- Rows: 8 directions: S, SW, W, NW, N, NE, E, SE
+- Motions: idle, walk, run, attack, hit, death, skill
+
+Replace the prototype PNG files under `src/assets/2p5d/characters` and `src/assets/2p5d/monsters` with final prerendered sheets that use the same grid.

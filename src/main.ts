@@ -4,7 +4,7 @@ import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { SolGame } from './game/SolGame';
 import { audioService } from './game/AudioService';
 import { formatNumber, uid } from './game/math';
-import type { CardDefinition, CharacterClassId, EquipmentSlot, ItemDefinition, PlayerSave, SheetTab, Snapshot, Stats } from './types';
+import type { CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, ItemDefinition, PlayerSave, SheetTab, Snapshot, Stats } from './types';
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
 type TownContentId = 'story' | 'cards' | 'inventory' | 'skills' | 'shop' | 'boss' | 'quests' | 'settings' | 'account';
@@ -17,6 +17,7 @@ let characterRoster: PlayerSave[] = [];
 let selectedCharacterId = '';
 let creatingCharacter = false;
 let selectedClass: CharacterClassId = 'warrior';
+let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
@@ -108,6 +109,7 @@ async function boot() {
 
   if (pendingSave) {
     selectedClass = pendingSave.classId;
+    selectedGender = pendingSave.gender || 'male';
     nameInput.value = pendingSave.name;
     loginStatus.textContent = `${characterRoster.length}개 캐릭터를 찾았습니다.`;
   }
@@ -301,6 +303,7 @@ function bindLoginFlow() {
     if (selected) {
       pendingSave = selected;
       selectedClass = selected.classId;
+      selectedGender = selected.gender || 'male';
       nameInput.value = selected.name;
       saveService.setActiveSave(selected.saveId);
     }
@@ -317,6 +320,7 @@ function bindLoginFlow() {
     }
     pendingSave = saveService.validateSave(selected);
     selectedClass = pendingSave.classId;
+    selectedGender = pendingSave.gender || 'male';
     nameInput.value = pendingSave.name;
     saveService.setActiveSave(pendingSave.saveId);
     renderCharacterSlots();
@@ -362,6 +366,16 @@ function bindLoginFlow() {
     });
   });
 
+  document.querySelectorAll<HTMLButtonElement>('[data-gender]').forEach((button) => {
+    button.addEventListener('click', () => {
+      selectedGender = (button.dataset.gender || 'male') as CharacterGender;
+      document.querySelectorAll('[data-gender]').forEach((item) => item.classList.remove('active'));
+      button.classList.add('active');
+      renderCharacterSummary();
+      updateWorldSummary();
+    });
+  });
+
   nameInput.addEventListener('input', updateWorldSummary);
 
   characterNextBtn.addEventListener('click', () => {
@@ -370,7 +384,7 @@ function bindLoginFlow() {
       return;
     }
     const name = nameInput.value.trim().slice(0, 12) || suggestedCharacterName();
-    const prepared = saveService.createSave(name, selectedClass);
+    const prepared = saveService.createSave(name, selectedClass, selectedGender);
     pendingSave = prepared;
     saveService.saveLocal(prepared);
     refreshCharacterRoster(prepared.saveId);
@@ -1070,9 +1084,16 @@ function renderAccount(snapshot: Snapshot) {
 }
 
 function renderCharacterSummary() {
+  document.querySelectorAll<HTMLButtonElement>('[data-class]').forEach((button) => {
+    button.classList.toggle('active', button.dataset.class === selectedClass);
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-gender]').forEach((button) => {
+    button.classList.toggle('active', button.dataset.gender === selectedGender);
+  });
   const klass = classes[selectedClass];
+  const genderLabel = selectedGender === 'female' ? '여자' : '남자';
   characterSummary.innerHTML = `
-    <b>${escapeHtml(klass.name)} · ${escapeHtml(klass.roleText)}</b><br />
+    <b>${escapeHtml(klass.name)} · ${genderLabel} · ${escapeHtml(klass.roleText)}</b><br />
     ${escapeHtml(klass.description)}<br />
     스킬: ${escapeHtml(klass.skillName)} · 사거리 ${klass.attackRange.toFixed(1)}
   `;
@@ -1095,7 +1116,7 @@ function renderCharacterSlots() {
               <span class="slot-glyph">${escapeHtml(klass.glyph)}</span>
               <span class="slot-main">
                 <b>${escapeHtml(save.name)}</b>
-                <em>Lv.${save.level} · ${escapeHtml(klass.name)} · ${formatNumber(save.gold)}G</em>
+                <em>Lv.${save.level} · ${escapeHtml(klass.name)} · ${(save.gender || 'male') === 'female' ? '여자' : '남자'} · ${formatNumber(save.gold)}G</em>
               </span>
               <span class="slot-date">${date}</span>
             </button>
@@ -1115,11 +1136,13 @@ function updateWorldSummary() {
   const selected = getSelectedCharacter();
   const classId = creatingCharacter ? selectedClass : selected?.classId || pendingSave?.classId || selectedClass;
   const klass = classes[classId];
+  const gender = creatingCharacter ? selectedGender : selected?.gender || pendingSave?.gender || selectedGender;
+  const genderLabel = gender === 'female' ? '여자' : '남자';
   worldServerText.textContent = selectedServer === 'bearfox' ? SERVER_NAME : SERVER_NAME;
   worldCharacterText.textContent = creatingCharacter
     ? nameInput.value.trim() || suggestedCharacterName()
     : selected?.name || pendingSave?.name || '캐릭터 선택 필요';
-  worldClassText.textContent = `${klass.name} · ${klass.roleText}`;
+  worldClassText.textContent = `${klass.name} · ${genderLabel} · ${klass.roleText}`;
 }
 function renderTown(save: PlayerSave | null) {
   if (!save) return;
@@ -1127,7 +1150,7 @@ function renderTown(save: PlayerSave | null) {
   townHeroGlyph.textContent = klass.glyph;
   setClassArt(townHeroGlyph, save.classId);
   townHeroName.textContent = save.name;
-  townHeroMeta.textContent = `Lv.${save.level} · ${klass.name} · ${klass.roleText}`;
+  townHeroMeta.textContent = `Lv.${save.level} · ${klass.name} · ${(save.gender || 'male') === 'female' ? '여자' : '남자'} · ${klass.roleText}`;
   townGoldText.textContent = `${formatNumber(save.gold)}G`;
   townGemText.textContent = `${formatNumber(save.gems)}소울`;
   townPowerText.textContent = `전투력 ${formatNumber(powerFromSave(save))}`;

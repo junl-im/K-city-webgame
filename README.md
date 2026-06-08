@@ -1,6 +1,6 @@
-# 소울 온라인 Alpha 0.16 Field Depth & Real Asset Pass
+# 소울 온라인 Alpha 0.17 Sprite Sheet & Real Asset Pass
 
-모바일 세로형 2.5D 웹 MMORPG 프로토타입입니다. 0.16에서는 40x40 대형 필드, 필드 바닥 깊이감, 사냥 포켓 연출, 유닛 축소 스케일, 자동사냥 상태 리본, 애니메이션 OST 느낌의 절차형 BGM 보정, 실제 2.5D 에셋 교체 기반을 적용했습니다.
+모바일 세로형 2.5D 웹 MMORPG 프로토타입입니다. 0.17에서는 40x40 대형 필드, 필드 바닥 깊이감, 사냥 포켓 연출, 유닛 축소 스케일, 자동사냥 상태 리본, 애니메이션 OST 느낌의 절차형 BGM 보정, 실제 2.5D 에셋 교체 기반을 적용했습니다.
 
 ## 실행
 
@@ -15,7 +15,7 @@ npm run dev
 npm run build
 ```
 
-## 0.16 Field Depth & Real Asset Pass
+## 0.17 Sprite Sheet & Real Asset Pass
 
 - 필드 구조 확장
   - 기존 20x20 기반에서 32x32 대형 필드로 확장
@@ -60,12 +60,21 @@ npm run build
 
 ## PWA 캐시
 
-- `soul-online-alpha-v0-16`
+- `soul-online-alpha-v0-17`
 
 기존 설치 앱에서 이전 화면이 남으면 브라우저 캐시 삭제 또는 홈 화면 앱 재설치가 필요할 수 있습니다.
 
-## 0.16.1 Hotfix
+## 0.17.1 Hotfix
 
 - Fixed GitHub Actions `npm ci` failure caused by a stale `package-lock.json` entry for `@firebase/messaging@0.14.0`.
 - The lockfile now points to the public npm package `@firebase/messaging@0.13.0`, which is the Firebase 12.14.0 dependency version available from the public registry.
 - Verified with `npm ci --registry=https://registry.npmjs.org/` and `npm run build`.
+
+
+## 0.17 Sprite Sheet Pass
+
+- Added male/female tall 2.5D character sprite sheets.
+- Added 8-direction idle/walk/run/attack/hit/death/skill animation runtime.
+- Added monster sprite sheets for slime, wolf, goblin, bear, and dragon.
+- Added gender selection and save migration.
+- See `docs/SPRITE_SHEET_0_17.md` for the replacement contract.

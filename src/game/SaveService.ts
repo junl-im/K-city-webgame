@@ -13,7 +13,7 @@ import {
 import { doc, getDoc, getFirestore, serverTimestamp, setDoc, type Firestore } from 'firebase/firestore';
 import { firebaseConfig } from '../config/firebase';
 import { SAVE_VERSION, cards, classes, expToNext, items, souls, storyQuests } from '../data/gameData';
-import type { CharacterClassId, DailyProgress, EquipmentSlot, MonsterId, PlayerSave, SaveRoster, StoryProgress } from '../types';
+import type { CharacterClassId, CharacterGender, DailyProgress, EquipmentSlot, MonsterId, PlayerSave, SaveRoster, StoryProgress } from '../types';
 import { uid } from './math';
 
 const LEGACY_SAVE_KEY = 'sol-online-alpha-save-v1';
@@ -201,7 +201,7 @@ export class SaveService {
     };
   }
 
-  createSave(name: string, classId: CharacterClassId): PlayerSave {
+  createSave(name: string, classId: CharacterClassId, gender: CharacterGender = 'male'): PlayerSave {
     const base = classes[classId] ?? classes.warrior;
     const starterWeaponUid = uid('item');
     const starterArmorUid = uid('item');
@@ -210,6 +210,7 @@ export class SaveService {
       saveId: uid('save'),
       name: name.trim().slice(0, 12) || '솔마스터',
       classId: base.id,
+      gender,
       level: 1,
       exp: 0,
       gold: 120,
@@ -252,6 +253,7 @@ export class SaveService {
     save.version = SAVE_VERSION;
     save.saveId ||= uid('save');
     save.classId = classId;
+    save.gender = save.gender === 'female' ? 'female' : 'male';
     save.name = (save.name || '솔마스터').trim().slice(0, 12) || '솔마스터';
     save.hp = Math.max(1, Math.min(save.hp || classes[classId].baseStats.hp, 999999));
     save.mp = Math.max(0, Math.min(save.mp || classes[classId].baseStats.mp, 999999));
@@ -340,13 +342,15 @@ export class SaveService {
 
   private migrate(raw: Partial<PlayerSave>): PlayerSave {
     const classId = raw.classId && classes[raw.classId] ? raw.classId : 'warrior';
-    const fresh = this.createSave(raw.name || '솔마스터', classId);
+    const gender = raw.gender === 'female' ? 'female' : 'male';
+    const fresh = this.createSave(raw.name || '솔마스터', classId, gender);
     const migrated: PlayerSave = {
       ...fresh,
       ...raw,
       version: SAVE_VERSION,
       saveId: raw.saveId || fresh.saveId,
       classId,
+      gender,
       kills: { ...fresh.kills, ...(raw.kills || {}) },
       cards: Array.isArray(raw.cards) && raw.cards.length ? raw.cards : fresh.cards,
       inventory: Array.isArray(raw.inventory) && raw.inventory.length ? raw.inventory : fresh.inventory,

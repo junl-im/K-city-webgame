@@ -1,4 +1,5 @@
 export type CharacterClassId = 'warrior' | 'taoist' | 'cleric';
+export type CharacterGender = 'male' | 'female';
 export type MonsterId = 'slime' | 'wolf' | 'goblin' | 'crystalBear' | 'dragon';
 export type TileId = 'grass' | 'dirt' | 'moss' | 'stone' | 'crystal' | 'water' | 'cliff' | 'portal';
 export type CardRarity = 'N' | 'R' | 'SR' | 'SSR';
@@ -180,6 +181,7 @@ export interface PlayerSave {
   saveId: string;
   name: string;
   classId: CharacterClassId;
+  gender: CharacterGender;
   level: number;
   exp: number;
   gold: number;
@@ -211,6 +213,7 @@ export interface WorldMob {
   hp: number;
   alive: boolean;
   respawnAt: number;
+  deathVisibleUntil: number;
   attackCooldown: number;
   aggroUntil: number;
   wanderCooldown: number;

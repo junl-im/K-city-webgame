@@ -37,10 +37,12 @@ import { isoToScreen, screenToIso } from './iso';
 import { clamp, distance, formatNumber, normalize, roll, uid } from './math';
 import { SaveService } from './SaveService';
 import { audioService } from './AudioService';
+import { HUMANOID_SHEET_META, MONSTER_SHEET_META, SpriteSheetAnimator, directionFromIsoVector, type SpriteDirection } from './SpriteSheetAnimator';
 
 type MobView = {
   root: Container;
   body: Sprite;
+  animator?: SpriteSheetAnimator;
   hpFill: Graphics;
   name: Text;
   baseScale: number;
@@ -103,6 +105,8 @@ export class SolGame {
   private fxLayer = new Container();
   private playerRoot = new Container();
   private playerBody: Sprite | null = null;
+  private playerAnimator: SpriteSheetAnimator | null = null;
+  private playerFacing: SpriteDirection = 's';
   private playerShadow: Graphics | null = null;
   private textures = new Map<string, Texture>();
   private currentMap: TileId[][] = worldMap.map((row) => [...row]);
@@ -216,6 +220,7 @@ export class SolGame {
     if (skill.kind === 'heal') {
       this.save.mp -= skill.mpCost;
       this.skillCooldowns[skill.id] = skill.cooldownSec;
+      this.castPose();
       const heal = Math.max(18, Math.round(stats.hp * 0.22 + stats.atk * 0.65));
       this.save.hp = Math.min(stats.hp, this.save.hp + heal);
       this.healPulse(this.save.x, this.save.y);
@@ -245,6 +250,7 @@ export class SolGame {
       return;
     }
 
+    this.facePlayerTo(this.target.x, this.target.y);
     this.save.mp -= skill.mpCost;
     this.skillCooldowns[skill.id] = skill.cooldownSec;
     audioService.play('skill');
@@ -941,6 +947,7 @@ export class SolGame {
           hp: def.stats.hp,
           alive: true,
           respawnAt: 0,
+          deathVisibleUntil: 0,
           attackCooldown: Math.random() * 1.2,
           aggroUntil: 0,
           wanderCooldown: Math.random() * 2.5,
@@ -961,8 +968,8 @@ export class SolGame {
     this.playerRoot.removeChildren();
 
     this.playerShadow = new Graphics().ellipse(0, 0, 18 * PLAYER_SHADOW_SCALE, 6 * PLAYER_SHADOW_SCALE).fill({ color: 0x000000, alpha: 0.28 });
-    this.playerBody = new Sprite(this.mustTexture(this.classTextureKey()));
-    this.playerBody.anchor.set(0.5, 0.94);
+    this.playerAnimator = new SpriteSheetAnimator(this.mustTexture(this.classSheetTextureKey()), HUMANOID_SHEET_META, 0.94);
+    this.playerBody = this.playerAnimator.sprite;
     this.playerBody.scale.set(PLAYER_VISUAL_SCALE);
 
     const aura = new Graphics()
@@ -1008,9 +1015,9 @@ export class SolGame {
     const isLarge = mob.def.id === 'crystalBear' || isDragon;
     const shadow = new Graphics().ellipse(0, 0, isDragon ? 24 : isLarge ? 18 : 12, isDragon ? 6 : 4).fill({ color: 0x000000, alpha: 0.3 });
     const aggroRing = new Graphics().ellipse(0, 0, isDragon ? 27 : isLarge ? 19 : 15, isDragon ? 9 : 5).stroke({ color: 0xff5d5d, alpha: 0, width: 1.5 });
-    const body = new Sprite(this.mustTexture(this.monsterTextureKey(mob.def.id)));
+    const animator = new SpriteSheetAnimator(this.mustTexture(this.monsterSheetTextureKey(mob.def.id)), MONSTER_SHEET_META, 0.92);
+    const body = animator.sprite;
     const baseScale = MOB_VISUAL_SCALE[mob.def.id];
-    body.anchor.set(0.5, 0.92);
     body.scale.set(baseScale);
 
     const hpBack = new Graphics().roundRect(-18, -39, 36, 4, 2).fill({ color: 0x151515, alpha: 0.72 });
@@ -1031,7 +1038,7 @@ export class SolGame {
 
     root.addChild(shadow, aggroRing, body, hpBack, hpFill, name);
     this.entityLayer.addChild(root);
-    this.mobViews.set(mob.uid, { root, body, hpFill, name, baseScale, aggroRing });
+    this.mobViews.set(mob.uid, { root, body, animator, hpFill, name, baseScale, aggroRing });
     this.placeEntity(root, mob.x, mob.y);
   }
 
@@ -1159,27 +1166,36 @@ export class SolGame {
         movedAxis = true;
       }
       if (!movedAxis && this.save.autoHunt && this.moveTarget) this.recoverAutoHuntStuck('blocked-axis');
-      if (this.playerBody) this.playerBody.scale.x = dir.x < -0.05 ? -Math.abs(this.playerBody.scale.x) : Math.abs(this.playerBody.scale.x);
+      this.setPlayerFacing(dir.x, dir.y);
     }
 
     this.resolvePlayerMobOverlap();
     this.updateAutoHuntRecovery(dt, beforeX, beforeY, moving);
     this.lastMoving = moving;
-    this.updatePlayerAnimation(moving);
+    this.updatePlayerAnimation(moving, dt);
     this.placeEntity(this.playerRoot, this.save.x, this.save.y);
   }
 
-  private updatePlayerAnimation(moving: boolean) {
-    if (!this.playerBody) return;
-    const bob = moving ? Math.sin(this.time * 14) * 4 : Math.sin(this.time * 3) * 1.4;
-    this.playerBody.y = bob;
-    const abs = Math.abs(this.playerBody.scale.x);
-    const stretch = moving ? 1 + Math.sin(this.time * 14) * 0.025 : 1;
-    this.playerBody.scale.y = abs * stretch;
+  private updatePlayerAnimation(moving: boolean, dt: number) {
+    if (!this.playerBody || !this.playerAnimator) return;
+    const autoRunning = this.save.autoHunt && moving;
+    this.playerAnimator.setMotion(moving ? (autoRunning ? 'run' : 'walk') : 'idle');
+    this.playerAnimator.setDirection(this.playerFacing);
+    this.playerAnimator.update(dt);
+    this.playerBody.y = moving ? Math.sin(this.time * 12) * 1.2 : 0;
     if (this.playerShadow) {
       const shadowScale = moving ? 1 + Math.sin(this.time * 14) * 0.05 : 1;
       this.playerShadow.scale.set(shadowScale, 1);
     }
+  }
+
+  private setPlayerFacing(dx: number, dy: number) {
+    this.playerFacing = directionFromIsoVector(dx, dy);
+    this.playerAnimator?.setDirection(this.playerFacing);
+  }
+
+  private facePlayerTo(x: number, y: number) {
+    this.setPlayerFacing(x - this.save.x, y - this.save.y);
   }
 
   private autoHuntMove() {
@@ -1257,7 +1273,8 @@ export class SolGame {
       if (!view) continue;
 
       if (!mob.alive) {
-        view.root.visible = false;
+        view.root.visible = performance.now() < (mob.deathVisibleUntil || 0);
+        view.animator?.update(dt);
         continue;
       }
 
@@ -1268,7 +1285,7 @@ export class SolGame {
 
       this.updateMobAi(mob, view, stats, dt);
       this.resolveMobOverlap(mob);
-      this.updateMobAnimation(view, mob);
+      this.updateMobAnimation(view, mob, dt);
       this.updateMobHp(view, mob);
       this.placeEntity(view.root, mob.x, mob.y);
       mob.lastX = mob.x;
@@ -1410,13 +1427,13 @@ export class SolGame {
         moved = true;
       }
     }
-    view.body.scale.x = dir.x < -0.05 ? -Math.abs(view.body.scale.x) : Math.abs(view.body.scale.x);
+    view.animator?.setDirection(directionFromIsoVector(dir.x, dir.y));
     return moved;
   }
 
   private faceMobToPlayer(view: MobView, mob: WorldMob) {
     const dir = normalize(this.save.x - mob.x, this.save.y - mob.y);
-    view.body.scale.x = dir.x < -0.05 ? -Math.abs(view.body.scale.x) : Math.abs(view.body.scale.x);
+    view.animator?.setDirection(directionFromIsoVector(dir.x, dir.y));
   }
 
   private attackTell(view: MobView, mob: WorldMob) {
@@ -1432,6 +1449,7 @@ export class SolGame {
     if (result.hit) {
       audioService.play('hit');
       this.save.hp = Math.max(0, this.save.hp - result.damage);
+      this.playerAnimator?.playOnce(this.save.hp <= 0 ? 'death' : 'hit', 'idle');
       this.floatText(`-${result.damage}`, this.save.x, this.save.y, 0xff7878);
       this.impactBurst(this.save.x, this.save.y, 0xff5d5d, false);
       if (mob.def.id === 'dragon') this.screenShake();
@@ -1481,13 +1499,18 @@ export class SolGame {
     return 1.75;
   }
 
-  private updateMobAnimation(view: MobView, mob: WorldMob) {
+  private updateMobAnimation(view: MobView, mob: WorldMob, dt: number) {
     const engaged = mob.state === 'alert' || mob.state === 'chase' || mob.state === 'attackWindup' || mob.state === 'attack';
     const returning = mob.state === 'return';
+    const moving = mob.state === 'chase' || mob.state === 'return';
+    if (view.animator) {
+      if (mob.state === 'attack' || mob.state === 'attackWindup') view.animator.setMotion('attack');
+      else view.animator.setMotion(moving ? (mob.state === 'chase' ? 'run' : 'walk') : 'idle');
+      view.animator.update(dt);
+    }
     const phase = this.time * (mob.def.id === 'dragon' ? 2.2 : engaged ? 5.4 : 3.2) + mob.spawnX;
-    view.body.y = Math.sin(phase) * (mob.def.id === 'dragon' ? 1.8 : engaged ? 3.1 : 2.1);
-    const sx = Math.sign(view.body.scale.x || 1) * view.baseScale;
-    view.body.scale.x += (sx - view.body.scale.x) * 0.08;
+    view.body.y = Math.sin(phase) * (mob.def.id === 'dragon' ? 0.8 : engaged ? 1.3 : 0.9);
+    view.body.scale.x += (view.baseScale - view.body.scale.x) * 0.08;
     view.body.scale.y += (view.baseScale - view.body.scale.y) * 0.08;
     view.aggroRing.clear().ellipse(0, 0, mob.def.id === 'dragon' ? 27 : mob.def.id === 'crystalBear' ? 19 : 15, mob.def.id === 'dragon' ? 9 : 5).stroke({ color: engaged ? 0xff5d5d : returning ? 0x72e7ff : 0x72e7ff, alpha: engaged ? 0.38 : returning ? 0.14 : 0.06, width: engaged ? 2 : 1 });
   }
@@ -1498,6 +1521,7 @@ export class SolGame {
       if (!mob.alive && now >= mob.respawnAt) {
         mob.alive = true;
         mob.hp = mob.def.stats.hp;
+        mob.deathVisibleUntil = 0;
         mob.aggroUntil = 0;
         mob.state = 'idle';
         mob.stateTimer = 0;
@@ -1523,6 +1547,7 @@ export class SolGame {
     }
     if (this.attackCooldown > 0) return;
 
+    this.facePlayerTo(mob.x, mob.y);
     const stats = this.calculateStats();
     this.attackCooldown = Math.max(0.28, 1 / stats.aspd);
     mob.aggroUntil = Math.max(mob.aggroUntil, this.time + 3.8);
@@ -1604,6 +1629,7 @@ export class SolGame {
     mob.state = 'idle';
     mob.stateTimer = 0;
     mob.aggroUntil = 0;
+    mob.deathVisibleUntil = performance.now() + 680;
     mob.respawnAt = performance.now() + mob.def.respawnMs;
     if (this.target?.uid === mob.uid) this.target = null;
 
@@ -1615,6 +1641,7 @@ export class SolGame {
     this.checkLevelUp();
     this.rollDrops(mob.def);
     audioService.play(mob.def.id === 'dragon' ? 'boss' : 'reward');
+    this.mobViews.get(mob.uid)?.animator?.playOnce('death', 'death');
     this.impactBurst(mob.x, mob.y, 0xe2b95f, true);
     this.pushLog(`${mob.def.name} 정화 +${mob.def.exp}EXP +${mob.def.gold}G`);
     this.markDirty();
@@ -1741,6 +1768,7 @@ export class SolGame {
   }
 
   private playerKnockout() {
+    this.playerAnimator?.playOnce('death', 'idle');
     audioService.play('error');
     this.pushLog('기절했습니다. 마을 포탈에서 재정비합니다.');
     this.save.x = 8.0;
@@ -1969,6 +1997,7 @@ export class SolGame {
   private animateMobHit(mob: WorldMob) {
     const view = this.mobViews.get(mob.uid);
     if (!view) return;
+    view.animator?.playOnce('hit', mob.state === 'chase' ? 'run' : 'idle');
     view.body.tint = 0xffd1d1;
     const originalX = view.body.x;
     this.animate(0.16, (t) => {
@@ -1981,6 +2010,7 @@ export class SolGame {
   }
 
   private animateMobAttack(view: MobView) {
+    view.animator?.playOnce('attack', 'idle');
     const baseY = view.body.y;
     this.animate(0.22, (t) => {
       view.body.y = baseY - Math.sin(t * Math.PI) * 8;
@@ -1991,6 +2021,8 @@ export class SolGame {
 
   private lungePlayer(mob: WorldMob) {
     if (!this.playerBody) return;
+    this.facePlayerTo(mob.x, mob.y);
+    this.playerAnimator?.playOnce('attack', 'idle');
     const dir = normalize(mob.x - this.save.x, mob.y - this.save.y);
     const sx = (dir.x - dir.y) * 14;
     const sy = (dir.x + dir.y) * 7;
@@ -2012,6 +2044,7 @@ export class SolGame {
 
   private castPose() {
     if (!this.playerBody) return;
+    this.playerAnimator?.playOnce('skill', 'idle');
     this.animate(0.22, (t) => {
       const pulse = Math.sin(t * Math.PI);
       if (this.playerBody) {
@@ -2276,6 +2309,22 @@ export class SolGame {
     const texture = this.textures.get(key);
     if (!texture) throw new Error(`Missing texture ${key}`);
     return texture;
+  }
+
+
+  private classSheetTextureKey(): TextureKey {
+    const gender = this.save.gender === 'female' ? 'Female' : 'Male';
+    if (this.save.classId === 'taoist') return `heroTaoist${gender}Sheet` as TextureKey;
+    if (this.save.classId === 'cleric') return `heroCleric${gender}Sheet` as TextureKey;
+    return `heroWarrior${gender}Sheet` as TextureKey;
+  }
+
+  private monsterSheetTextureKey(monsterId: MonsterId): TextureKey {
+    if (monsterId === 'wolf') return 'monsterWolfSheet';
+    if (monsterId === 'goblin') return 'monsterGoblinSheet';
+    if (monsterId === 'crystalBear') return 'monsterBearSheet';
+    if (monsterId === 'dragon') return 'bossDragonSheet';
+    return 'monsterSlimeSheet';
   }
 
   private classTextureKey(): TextureKey {

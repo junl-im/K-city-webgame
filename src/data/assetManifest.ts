@@ -18,7 +18,18 @@ export const textureUrls = {
   monsterWolf: new URL('../assets/sprites/monster-wolf.svg', import.meta.url).href,
   monsterGoblin: new URL('../assets/sprites/monster-goblin.svg', import.meta.url).href,
   monsterBear: new URL('../assets/sprites/monster-bear.svg', import.meta.url).href,
-  bossDragon: new URL('../assets/sprites/boss-dragon.svg', import.meta.url).href
+  bossDragon: new URL('../assets/sprites/boss-dragon.svg', import.meta.url).href,
+  heroWarriorMaleSheet: new URL('../assets/2p5d/characters/hero-warrior-male-sheet.png', import.meta.url).href,
+  heroWarriorFemaleSheet: new URL('../assets/2p5d/characters/hero-warrior-female-sheet.png', import.meta.url).href,
+  heroTaoistMaleSheet: new URL('../assets/2p5d/characters/hero-taoist-male-sheet.png', import.meta.url).href,
+  heroTaoistFemaleSheet: new URL('../assets/2p5d/characters/hero-taoist-female-sheet.png', import.meta.url).href,
+  heroClericMaleSheet: new URL('../assets/2p5d/characters/hero-cleric-male-sheet.png', import.meta.url).href,
+  heroClericFemaleSheet: new URL('../assets/2p5d/characters/hero-cleric-female-sheet.png', import.meta.url).href,
+  monsterSlimeSheet: new URL('../assets/2p5d/monsters/monster-slime-sheet.png', import.meta.url).href,
+  monsterWolfSheet: new URL('../assets/2p5d/monsters/monster-wolf-sheet.png', import.meta.url).href,
+  monsterGoblinSheet: new URL('../assets/2p5d/monsters/monster-goblin-sheet.png', import.meta.url).href,
+  monsterBearSheet: new URL('../assets/2p5d/monsters/monster-bear-sheet.png', import.meta.url).href,
+  bossDragonSheet: new URL('../assets/2p5d/monsters/boss-dragon-sheet.png', import.meta.url).href
 } as const;
 
 export const cardArtUrls = {
@@ -33,13 +44,14 @@ export const cardArtUrls = {
 export const highQualityAssetSlots = {
   basePath: 'src/assets/2p5d',
   characters: [
-    'hero-warrior-idle.webp', 'hero-warrior-walk.webp', 'hero-warrior-skill.webp',
-    'hero-taoist-idle.webp', 'hero-taoist-walk.webp', 'hero-taoist-skill.webp',
-    'hero-cleric-idle.webp', 'hero-cleric-walk.webp', 'hero-cleric-skill.webp'
+    'hero-warrior-male-sheet.png', 'hero-warrior-female-sheet.png',
+    'hero-taoist-male-sheet.png', 'hero-taoist-female-sheet.png',
+    'hero-cleric-male-sheet.png', 'hero-cleric-female-sheet.png',
+    'future-webp-atlas-ready'
   ],
   monsters: [
-    'monster-slime-idle.webp', 'monster-wolf-idle.webp', 'monster-goblin-idle.webp',
-    'monster-crystal-bear-idle.webp', 'boss-dragon-idle.webp'
+    'monster-slime-sheet.png', 'monster-wolf-sheet.png', 'monster-goblin-sheet.png',
+    'monster-bear-sheet.png', 'boss-dragon-sheet.png'
   ],
   tiles: [
     'tile-grass.webp', 'tile-dirt.webp', 'tile-moss.webp', 'tile-stone.webp',

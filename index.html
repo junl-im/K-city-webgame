@@ -23,16 +23,16 @@
         </div>
         <div class="title-stage">
           <div class="title-copy">
-            <span class="title-kicker">ALPHA 0.16 · FIELD DEPTH</span>
+            <span class="title-kicker">ALPHA 0.17 · SPRITE SHEET</span>
             <h1>소울 온라인</h1>
-            <p>꺼져가는 루미나의 등불을 지키고, 타락한 영혼을 정화하는 2.5D 웹 RPG · 사냥터 구조, 미니맵, 모바일 마을 레이아웃 보강 적용.</p>
+            <p>꺼져가는 루미나의 등불을 지키고, 타락한 영혼을 정화하는 2.5D 웹 RPG · 8방향 캐릭터/몬스터 스프라이트 시트 패스 적용.</p>
           </div>
           <div class="title-hero" aria-hidden="true">
             <span class="title-soul-ring"></span>
             <span class="title-character"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn">게임 시작</button>
-          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.16.0</span></div>
+          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.17.0</span></div>
           <small>전체화면은 브라우저 정책상 버튼 입력 후 시도됩니다.</small>
         </div>
       </section>
@@ -105,6 +105,16 @@
                 <button data-class="cleric" class="class-card">
                   <b>성휘사</b>
                   <span>중거리 · 회복 · 성휘</span>
+                </button>
+              </div>
+              <div class="gender-grid">
+                <button data-gender="male" class="class-card compact active">
+                  <b>남자</b>
+                  <span>장신 실루엣 · 중갑/로브 기준</span>
+                </button>
+                <button data-gender="female" class="class-card compact">
+                  <b>여자</b>
+                  <span>슬림 실루엣 · 동일 모션셋</span>
                 </button>
               </div>
               <div class="character-summary" id="characterSummary"></div>
