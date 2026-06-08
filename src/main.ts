@@ -1,5 +1,5 @@
 import './styles.css';
-import { cards, classes, dailyQuests, expToNext, items, monsters, skills, souls, storyQuests, zones } from './data/gameData';
+import { MAX_ENHANCE_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { SolGame } from './game/SolGame';
 import { formatNumber, uid } from './game/math';
@@ -53,6 +53,7 @@ const autoHuntBtn = must<HTMLButtonElement>('#autoHuntBtn');
 const attackBtn = must<HTMLButtonElement>('#attackBtn');
 const cardsBtn = must<HTMLButtonElement>('#cardsBtn');
 const inventoryBtn = must<HTMLButtonElement>('#inventoryBtn');
+const skillDockButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-skill-slot]'));
 const openMenu = must<HTMLButtonElement>('#openMenu');
 const sheet = must('#sheet');
 const closeSheet = must<HTMLButtonElement>('#closeSheet');
@@ -122,6 +123,7 @@ async function boot() {
 function bindTitleFlow() {
   startGameBtn.addEventListener('click', async () => {
     void ensureFullscreen();
+    void lockPortraitMode();
     await withSceneTransition('접속 화면 준비 중', async () => {
       titleScreen.classList.add('hidden');
       loginScreen.classList.remove('hidden');
@@ -299,6 +301,7 @@ function bindLoginFlow() {
 
   enterTownBtn.addEventListener('click', async () => {
     void ensureFullscreen();
+    void lockPortraitMode();
     if (!pendingSave) pendingSave = getSelectedCharacter();
     if (!pendingSave) {
       showToast('접속할 캐릭터를 먼저 선택하세요.');
@@ -331,6 +334,7 @@ function bindLoginFlow() {
   document.querySelectorAll<HTMLButtonElement>('[data-zone-id]').forEach((button) => {
     button.addEventListener('click', async () => {
       void ensureFullscreen();
+      void lockPortraitMode();
       document.querySelectorAll('[data-zone-id]').forEach((item) => item.classList.remove('active'));
       button.classList.add('active');
       const zoneId = button.dataset.zoneId || 'slime-forest';
@@ -365,6 +369,12 @@ function bindLoginFlow() {
     const equipItem = target.closest<HTMLButtonElement>('[data-town-equip-item]');
     if (equipItem) {
       toggleTownItem(equipItem.dataset.townEquipItem || '');
+      return;
+    }
+
+    const upgradeTown = target.closest<HTMLButtonElement>('[data-town-upgrade-item]');
+    if (upgradeTown) {
+      upgradeTownItem(upgradeTown.dataset.townUpgradeItem || '');
       return;
     }
 
@@ -526,6 +536,12 @@ function bindActions() {
   });
 
   attackBtn.addEventListener('click', () => game?.manualAttack());
+  for (const button of skillDockButtons) {
+    button.addEventListener('click', () => {
+      const slot = Number(button.dataset.skillSlot || 0);
+      game?.useSkill(slot);
+    });
+  }
   cardsBtn.addEventListener('click', () => openSheet('cards'));
   inventoryBtn.addEventListener('click', () => openSheet('inventory'));
   openMenu.addEventListener('click', () => openSheet('account'));
@@ -604,6 +620,12 @@ function bindSheet() {
       return;
     }
 
+    const upgradeItem = target.closest<HTMLButtonElement>('[data-upgrade-item]');
+    if (upgradeItem) {
+      game?.upgradeItem(upgradeItem.dataset.upgradeItem || '');
+      return;
+    }
+
     const action = target.closest<HTMLButtonElement>('[data-account-action]');
     if (!action) return;
     await handleAccountAction(action.dataset.accountAction || '');
@@ -665,6 +687,7 @@ function renderHud(snapshot: Snapshot) {
   styleWidth('#expBar', expPercent);
 
   autoHuntBtn.classList.toggle('active', snapshot.save.autoHunt);
+  renderSkillDock(snapshot);
 
   if (snapshot.target) {
     text('#targetName', snapshot.target.def.name);
@@ -728,9 +751,10 @@ function renderCards(snapshot: Snapshot) {
   return `
     <div class="slot-toolbar">
       <span>카드 슬롯 3x3 · 장착 ${snapshot.save.cards.filter((card) => card.equipped).length}/4</span>
-      <em>카드를 눌러 장착/해제합니다.</em>
+      <em>세트 효과 ${snapshot.cardSetEffects.length}개 발동 중</em>
     </div>
     <div class="slot-grid card-slot-grid">${fillSlots(cardCells, 9, '빈 카드 슬롯')}</div>
+    ${renderCardSetSummary(snapshot.save)}
   `;
 }
 
@@ -741,7 +765,7 @@ function renderInventory(snapshot: Snapshot) {
       const described = game?.describeItem(instance);
       return described ? [described] : [];
     })
-    .map(({ def, instance }) => renderItemSlot(snapshot.save, def, instance.uid, instance.count, 'data-equip-item'));
+    .map(({ def, instance }) => renderItemSlot(snapshot.save, def, instance.uid, instance.count, 'data-equip-item', 'data-upgrade-item'));
 
   return `
     <div class="slot-toolbar">
@@ -765,7 +789,7 @@ function renderSkillGrid(save: PlayerSave, townMode: boolean) {
       <article class="slot-cell skill-slot ${unlocked ? 'unlocked' : 'locked'}">
         <span class="slot-rarity">${escapeHtml(skill.hotkey)}</span>
         <b>${escapeHtml(skill.name)}</b>
-        <em>${unlocked ? `${skill.cooldownSec}s` : `Lv.${skill.unlockLevel} 해금`}</em>
+        <em>${unlocked ? `쿨 ${skill.cooldownSec}s · MP ${skill.mpCost}` : `Lv.${skill.unlockLevel} 해금`}</em>
         <p>${escapeHtml(skill.description)}</p>
       </article>
     `;
@@ -773,7 +797,7 @@ function renderSkillGrid(save: PlayerSave, townMode: boolean) {
   return `
     <div class="slot-toolbar">
       <span>스킬 슬롯 3x3 · ${classes[save.classId].name}</span>
-      <em>${townMode ? '마을에서 스킬 구성을 확인합니다.' : '전투 스킬 액티브 연결은 다음 단계 예정입니다.'}</em>
+      <em>${townMode ? '전투 화면 우측 스킬 버튼으로 사용합니다.' : '쿨타임/MP 소모/범위 공격이 적용됩니다.'}</em>
     </div>
     <div class="slot-grid skill-slot-grid">${fillSlots(cells, 9, '미개방 슬롯')}</div>
   `;
@@ -792,19 +816,23 @@ function renderCardSlot(def: CardDefinition, instance: { uid: string; level: num
   `;
 }
 
-function renderItemSlot(save: PlayerSave, def: ItemDefinition, uidValue: string, count: number, actionAttr: string) {
+function renderItemSlot(save: PlayerSave, def: ItemDefinition, uidValue: string, count: number, actionAttr: string, upgradeAttr?: string) {
   const slot = def.type as EquipmentSlot;
   const canEquip = def.type !== 'material';
   const equipped = canEquip && save.equipment?.[slot] === uidValue;
+  const enhanceLevel = save.enhancements?.[uidValue] || 0;
   const typeLabel: Record<string, string> = { weapon: '무기', armor: '방어구', relic: '유물', material: '재료' };
+  const cost = enhancementCost(enhanceLevel);
+  const upgradeLabel = enhanceLevel >= MAX_ENHANCE_LEVEL ? 'MAX' : `강화 +${cost.next}`;
+  const upgradeDisabled = enhanceLevel >= MAX_ENHANCE_LEVEL ? 'disabled' : '';
   return `
     <article class="slot-cell item-slot ${equipped ? 'equipped' : ''}">
       <span class="item-icon">${itemIcon(def.type)}</span>
-      <span class="slot-rarity rarity-${def.rarity.toLowerCase()}">${def.rarity}</span>
-      <b>${escapeHtml(def.name)}</b>
+      <span class="slot-rarity rarity-${def.rarity.toLowerCase()}">${def.rarity}${canEquip ? ` · +${enhanceLevel}` : ''}</span>
+      <b>${escapeHtml(def.name)}${canEquip && enhanceLevel ? ` +${enhanceLevel}` : ''}</b>
       <em>${typeLabel[def.type] || escapeHtml(def.type)} · x${count}${equipped ? ' · 장착중' : ''}</em>
-      <p>${escapeHtml(def.effectText)}</p>
-      ${canEquip ? `<button ${actionAttr}="${uidValue}">${equipped ? '해제' : '장착'}</button>` : '<span class="slot-passive">재료</span>'}
+      <p>${escapeHtml(def.effectText)}${canEquip && enhanceLevel < MAX_ENHANCE_LEVEL ? ` · 다음 ${formatNumber(cost.gold)}G${cost.shard ? ` / 파편 ${cost.shard}` : ''}` : ''}</p>
+      ${canEquip ? `<div class="slot-actions"><button ${actionAttr}="${uidValue}">${equipped ? '해제' : '장착'}</button>${upgradeAttr ? `<button ${upgradeDisabled} ${upgradeAttr}="${uidValue}">${upgradeLabel}</button>` : ''}</div>` : '<span class="slot-passive">재료</span>'}
     </article>
   `;
 }
@@ -820,6 +848,50 @@ function itemIcon(type: string) {
   if (type === 'armor') return '▣';
   if (type === 'relic') return '✦';
   return '◆';
+}
+
+function renderSkillDock(snapshot: Snapshot) {
+  for (const button of skillDockButtons) {
+    const slot = Number(button.dataset.skillSlot || 0);
+    const skill = snapshot.skills[slot];
+    if (!skill) {
+      button.disabled = true;
+      button.innerHTML = '<span>-</span><b>빈 슬롯</b><em></em>';
+      continue;
+    }
+    const cooling = skill.cooldownRemaining > 0;
+    const mpLack = snapshot.save.mp < skill.mpCost;
+    button.disabled = !skill.unlocked || cooling || mpLack;
+    button.classList.toggle('locked', !skill.unlocked);
+    button.classList.toggle('cooling', cooling);
+    button.classList.toggle('mp-lack', mpLack && skill.unlocked && !cooling);
+    const label = !skill.unlocked ? '잠금' : cooling ? `${skill.cooldownRemaining.toFixed(1)}s` : mpLack ? 'MP' : '준비';
+    button.innerHTML = `<span>${escapeHtml(skill.hotkey)}</span><b>${escapeHtml(skill.name)}</b><em>${label}</em>`;
+  }
+}
+
+function renderCardSetSummary(save: PlayerSave) {
+  const active = new Set(activeCardSetEffects(save).map((set) => set.id));
+  const rows = cardSets.map((set) => {
+    const on = active.has(set.id);
+    const required = set.requiredCardIds
+      .map((id) => cards.find((card) => card.id === id)?.name || id)
+      .join(' + ');
+    return `
+      <article class="set-row ${on ? 'active' : ''}">
+        <div class="pill-row"><span class="pill">${on ? '발동' : '미발동'}</span><span class="pill">${set.requiredCardIds.length}장 조합</span></div>
+        <h3>${escapeHtml(set.name)}</h3>
+        <p>${escapeHtml(required)}</p>
+        <p class="quest-reward">${escapeHtml(set.effectText)}</p>
+      </article>
+    `;
+  }).join('');
+  return `<div class="set-list">${rows}</div>`;
+}
+
+function activeCardSetEffects(save: PlayerSave) {
+  const equippedIds = new Set(save.cards.filter((card) => card.equipped).map((card) => card.cardId));
+  return cardSets.filter((set) => set.requiredCardIds.every((id) => equippedIds.has(id)));
 }
 
 function renderSouls(snapshot: Snapshot) {
@@ -1175,8 +1247,9 @@ function renderTownCards(save: PlayerSave) {
     .map(({ def, instance }) => renderCardSlot(def, instance, 'data-town-equip-card'));
 
   return `
-    <div class="town-content-note">카드 보관함을 3x3 슬롯으로 확장했습니다. 카드는 최대 4장까지 장착되고, 최소 1장은 유지됩니다. 현재 장착 ${equippedCount}/4</div>
+    <div class="town-content-note">카드 보관함 3x3 · 장착 ${equippedCount}/4 · 조합이 맞으면 세트 효과가 자동 발동합니다.</div>
     <div class="slot-grid card-slot-grid town-slot-grid">${fillSlots(cells, 9, '빈 카드 슬롯')}</div>
+    ${renderCardSetSummary(save)}
   `;
 }
 
@@ -1187,7 +1260,7 @@ function renderTownInventory(save: PlayerSave) {
       const def = items.find((item) => item.id === instance.itemId);
       return def ? [{ def, instance }] : [];
     })
-    .map(({ def, instance }) => renderItemSlot(save, def, instance.uid, instance.count, 'data-town-equip-item'));
+    .map(({ def, instance }) => renderItemSlot(save, def, instance.uid, instance.count, 'data-town-equip-item', 'data-town-upgrade-item'));
 
   return `
     <div class="town-stat-grid">
@@ -1435,6 +1508,38 @@ function toggleTownItem(itemUid: string) {
   persistTownSave();
 }
 
+function upgradeTownItem(itemUid: string) {
+  if (!pendingSave) return;
+  const entry = pendingSave.inventory.find((item) => item.uid === itemUid);
+  if (!entry) return;
+  const def = items.find((item) => item.id === entry.itemId);
+  if (!def || def.type === 'material') {
+    showToast('재료 아이템은 강화할 수 없습니다.');
+    return;
+  }
+  pendingSave.enhancements ||= {};
+  const current = pendingSave.enhancements[itemUid] || 0;
+  if (current >= MAX_ENHANCE_LEVEL) {
+    showToast('이미 최대 강화입니다.');
+    return;
+  }
+  const cost = enhancementCost(current);
+  if (pendingSave.gold < cost.gold) {
+    showToast(`골드 부족 · 필요 ${formatNumber(cost.gold)}G`);
+    return;
+  }
+  if (cost.shard && materialCount(pendingSave, 'soul-shard') < cost.shard) {
+    showToast(`소울 파편 부족 · 필요 ${cost.shard}개`);
+    return;
+  }
+  pendingSave.gold -= cost.gold;
+  if (cost.shard) consumeMaterial(pendingSave, 'soul-shard', cost.shard);
+  pendingSave.enhancements[itemUid] = current + 1;
+  repairTownVitals(pendingSave);
+  persistTownSave();
+  showToast(`${def.name} +${current + 1} 강화 성공`);
+}
+
 function buyTownShopItem(itemId: string) {
   if (!pendingSave) return;
   const stock: Record<string, number> = {
@@ -1471,6 +1576,21 @@ function addInventoryItem(save: PlayerSave, itemId: string) {
   else save.inventory.push({ uid: uid('item'), itemId, count: 1 });
 }
 
+function materialCount(save: PlayerSave, itemId: string) {
+  return save.inventory.filter((entry) => entry.itemId === itemId).reduce((sum, entry) => sum + entry.count, 0);
+}
+
+function consumeMaterial(save: PlayerSave, itemId: string, count: number) {
+  let rest = count;
+  for (const entry of [...save.inventory]) {
+    if (entry.itemId !== itemId || rest <= 0) continue;
+    const used = Math.min(entry.count, rest);
+    entry.count -= used;
+    rest -= used;
+    if (entry.count <= 0) save.inventory = save.inventory.filter((item) => item.uid !== entry.uid);
+  }
+}
+
 function repairTownVitals(save: PlayerSave) {
   const stats = calculateStatsFromSave(save);
   save.hp = Math.min(stats.hp, Math.max(1, save.hp));
@@ -1495,12 +1615,16 @@ function calculateStatsFromSave(save: PlayerSave): Stats {
     applyTownBonus(stats, def.bonus, 1 + (instance.level - 1) * 0.34);
   }
 
+  for (const set of activeCardSetEffects(save)) applyTownBonus(stats, set.bonus, 1);
+
   const equippedItemIds = new Set(Object.values(save.equipment || {}));
   for (const entry of save.inventory) {
     if (!equippedItemIds.has(entry.uid)) continue;
     const def = items.find((item) => item.id === entry.itemId);
     if (!def || def.type === 'material') continue;
-    applyTownBonus(stats, def.bonus, 1);
+    const enhanceLevel = save.enhancements?.[entry.uid] || 0;
+    applyTownBonus(stats, def.bonus, 1 + enhanceLevel * 0.14);
+    if (enhanceLevel > 0) applyTownBonus(stats, { atk: enhanceLevel * 0.8, def: enhanceLevel * 0.55, hp: enhanceLevel * 3 }, 1);
   }
 
   for (const entry of save.souls.filter((soul) => soul.unlocked)) {
@@ -1561,14 +1685,29 @@ async function ensureFullscreen(forceToast = false) {
     webkitRequestFullscreen?: () => Promise<void>;
   };
 
-  if (document.fullscreenElement || doc.webkitFullscreenElement) return;
+  if (document.fullscreenElement || doc.webkitFullscreenElement) {
+    void lockPortraitMode();
+    return;
+  }
   try {
     if (document.fullscreenEnabled && rootEl.requestFullscreen) await rootEl.requestFullscreen();
     else if (rootEl.webkitRequestFullscreen) await rootEl.webkitRequestFullscreen();
     else if (forceToast) showToast('이 브라우저는 자동 전체화면을 지원하지 않습니다. 홈 화면에 설치하면 주소창 없는 실행이 가능합니다.');
+    void lockPortraitMode();
   } catch (error) {
     if (forceToast) showToast('브라우저 정책상 버튼 터치 후에만 전체화면 전환이 가능합니다.');
     console.warn('[Fullscreen]', error);
+  }
+}
+
+async function lockPortraitMode() {
+  const screenWithOrientation = window.screen as Screen & {
+    orientation?: ScreenOrientation & { lock?: (orientation: 'portrait' | 'portrait-primary') => Promise<void> };
+  };
+  try {
+    await screenWithOrientation.orientation?.lock?.('portrait');
+  } catch {
+    // Some mobile browsers allow orientation lock only in fullscreen/PWA contexts.
   }
 }
 

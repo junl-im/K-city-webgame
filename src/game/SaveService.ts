@@ -237,6 +237,7 @@ export class SaveService {
         weapon: starterWeaponUid,
         armor: starterArmorUid
       },
+      enhancements: {},
       souls: souls.map((soul) => ({ soulId: soul.id, unlocked: false, progress: 0 })),
       daily: this.createDailyProgress(),
       story: this.createStoryProgress(),
@@ -272,6 +273,7 @@ export class SaveService {
     save.cards = Array.isArray(save.cards) ? save.cards : [];
     save.inventory = Array.isArray(save.inventory) ? save.inventory : [];
     save.equipment = this.normalizeEquipment(save);
+    save.enhancements = this.normalizeEnhancements(save);
     save.souls = souls.map((soul) => {
       const old = save.souls?.find((entry) => entry.soulId === soul.id);
       return old || { soulId: soul.id, unlocked: false, progress: save.kills?.[soul.monsterId as MonsterId] || 0 };
@@ -349,6 +351,7 @@ export class SaveService {
       cards: Array.isArray(raw.cards) && raw.cards.length ? raw.cards : fresh.cards,
       inventory: Array.isArray(raw.inventory) && raw.inventory.length ? raw.inventory : fresh.inventory,
       equipment: raw.equipment || fresh.equipment,
+      enhancements: this.normalizeEnhancements(raw),
       daily: this.normalizeDailyProgress(raw.daily),
       story: this.normalizeStoryProgress(raw.story),
       souls: souls.map((soul) => {
@@ -434,6 +437,17 @@ export class SaveService {
     const mm = String(now.getMonth() + 1).padStart(2, '0');
     const dd = String(now.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
+  }
+
+  private normalizeEnhancements(save: Partial<PlayerSave>): Record<string, number> {
+    const raw = save.enhancements || {};
+    const validUids = new Set((save.inventory || []).map((item) => item.uid).filter(Boolean));
+    const next: Record<string, number> = {};
+    for (const [uidValue, level] of Object.entries(raw)) {
+      if (!validUids.has(uidValue)) continue;
+      next[uidValue] = Math.max(0, Math.min(10, Math.floor(Number(level) || 0)));
+    }
+    return next;
   }
 
   private normalizeEquipment(save: PlayerSave) {

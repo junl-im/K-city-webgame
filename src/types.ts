@@ -42,6 +42,14 @@ export interface CardDefinition {
   bonus: Partial<Stats>;
 }
 
+export interface CardSetDefinition {
+  id: string;
+  name: string;
+  requiredCardIds: string[];
+  effectText: string;
+  bonus: Partial<Stats>;
+}
+
 export interface SoulDefinition {
   id: string;
   name: string;
@@ -82,6 +90,11 @@ export interface SkillDefinition {
   hotkey: string;
   unlockLevel: number;
   cooldownSec: number;
+  mpCost: number;
+  damageMultiplier: number;
+  range: number;
+  radius: number;
+  kind: 'damage' | 'heal' | 'damageHeal';
   description: string;
 }
 
@@ -179,6 +192,7 @@ export interface PlayerSave {
   cards: CardInstance[];
   inventory: InventoryItem[];
   equipment: EquipmentSlots;
+  enhancements: Record<string, number>;
   souls: SoulInstance[];
   daily: DailyProgress;
   story: StoryProgress;
@@ -216,6 +230,16 @@ export interface CombatResult {
   killed: boolean;
 }
 
+export interface SkillSnapshot {
+  id: string;
+  name: string;
+  hotkey: string;
+  unlocked: boolean;
+  cooldownSec: number;
+  cooldownRemaining: number;
+  mpCost: number;
+}
+
 export interface Snapshot {
   save: PlayerSave;
   stats: Stats;
@@ -225,6 +249,8 @@ export interface Snapshot {
   log: string[];
   online: boolean;
   userLabel: string;
+  skills: SkillSnapshot[];
+  cardSetEffects: CardSetDefinition[];
 }
 
 export interface SaveRoster {

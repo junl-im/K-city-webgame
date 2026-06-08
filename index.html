@@ -2,7 +2,7 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#10120f" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -23,7 +23,7 @@
         </div>
         <div class="title-stage">
           <div class="title-copy">
-            <span class="title-kicker">ALPHA 0.8 · STORY FOUNDATION</span>
+            <span class="title-kicker">ALPHA 0.10 · GROWTH & SKILLS</span>
             <h1>소울 온라인</h1>
             <p>꺼져가는 루미나의 등불을 지키고, 타락한 영혼을 정화하는 2.5D 웹 RPG.</p>
           </div>
@@ -32,7 +32,7 @@
             <span class="title-character"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn">게임 시작</button>
-          <div class="title-mini-nav"><span>공지 준비중</span><span>설정 준비중</span><span>v0.9.0</span></div>
+          <div class="title-mini-nav"><span>공지 준비중</span><span>설정 준비중</span><span>v0.10.0</span></div>
           <small>전체화면은 브라우저 정책상 버튼 입력 후 시도됩니다.</small>
         </div>
       </section>
@@ -243,6 +243,8 @@
         </aside>
       </section>
 
+      <div class="orientation-guard" aria-hidden="true"><div><b>세로 모드 전용</b><span>기기를 세로로 돌리면 게임 화면이 다시 표시됩니다.</span></div></div>
+
       <div class="scene-transition" id="sceneTransition" aria-hidden="true">
         <div>
           <span>소울 온라인</span>
@@ -284,6 +286,12 @@
       <div class="joystick" id="joystick" aria-label="이동 조이스틱">
         <i id="joystickKnob"></i>
       </div>
+
+      <nav class="skill-dock" aria-label="스킬 단축 버튼">
+        <button class="skill-btn" data-skill-slot="0"><span>1</span><b>스킬1</b><em></em></button>
+        <button class="skill-btn" data-skill-slot="1"><span>2</span><b>스킬2</b><em></em></button>
+        <button class="skill-btn" data-skill-slot="2"><span>3</span><b>스킬3</b><em></em></button>
+      </nav>
 
       <nav class="action-dock" aria-label="전투 행동">
         <button id="autoHuntBtn" class="dock-btn"><span>⟳</span><b>자동</b></button>

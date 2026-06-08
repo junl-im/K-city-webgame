@@ -1,7 +1,7 @@
-import type { CardDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, SoulDefinition, TileId, ZoneDefinition, SkillDefinition } from '../types';
+import type { CardDefinition, CardSetDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, SoulDefinition, TileId, ZoneDefinition, SkillDefinition } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 export const MAP_W = 20;
 export const MAP_H = 20;
 
@@ -114,15 +114,15 @@ export const zones: ZoneDefinition[] = [
 ];
 
 export const skills: SkillDefinition[] = [
-  { id: 'warrior-basic', classId: 'warrior', name: '혼월참', hotkey: '기본', unlockLevel: 1, cooldownSec: 0.9, description: '전방의 적을 빠르게 베고 가까운 적에게 작은 범위 피해를 줍니다.' },
-  { id: 'warrior-guard', classId: 'warrior', name: '철혼 가드', hotkey: 'Lv.4', unlockLevel: 4, cooldownSec: 8, description: '짧은 시간 받는 피해를 줄이는 방어 기술입니다. 다음 패치에서 액티브로 연결됩니다.' },
-  { id: 'warrior-cleave', classId: 'warrior', name: '파혼난무', hotkey: 'Lv.8', unlockLevel: 8, cooldownSec: 14, description: '근처 적을 연속으로 베는 광역 기술 예정 슬롯입니다.' },
-  { id: 'taoist-basic', classId: 'taoist', name: '소울 탄환', hotkey: '기본', unlockLevel: 1, cooldownSec: 1.1, description: '영혼 결정을 발사해 원거리 적에게 피해를 줍니다.' },
-  { id: 'taoist-orb', classId: 'taoist', name: '결정 구체', hotkey: 'Lv.4', unlockLevel: 4, cooldownSec: 7, description: '폭발하는 구체를 만들어 다수의 몬스터를 견제하는 기술 예정 슬롯입니다.' },
-  { id: 'taoist-rain', classId: 'taoist', name: '영혼비', hotkey: 'Lv.8', unlockLevel: 8, cooldownSec: 15, description: '넓은 범위에 영혼 탄환을 떨어뜨리는 광역 기술 예정 슬롯입니다.' },
-  { id: 'cleric-basic', classId: 'cleric', name: '성휘', hotkey: '기본', unlockLevel: 1, cooldownSec: 1.0, description: '빛의 줄기로 적을 타격하고 자신의 HP를 조금 회복합니다.' },
-  { id: 'cleric-shield', classId: 'cleric', name: '소울 보호막', hotkey: 'Lv.4', unlockLevel: 4, cooldownSec: 9, description: '일정 피해를 흡수하는 보호막 기술 예정 슬롯입니다.' },
-  { id: 'cleric-nova', classId: 'cleric', name: '루미나 노바', hotkey: 'Lv.8', unlockLevel: 8, cooldownSec: 16, description: '주변을 정화하며 회복과 피해를 동시에 주는 기술 예정 슬롯입니다.' }
+  { id: 'warrior-basic', classId: 'warrior', name: '혼월참', hotkey: '1', unlockLevel: 1, cooldownSec: 3.2, mpCost: 5, damageMultiplier: 1.25, range: 1.45, radius: 0.85, kind: 'damage', description: '전방의 적을 베고 주변 적에게 범위 피해를 줍니다.' },
+  { id: 'warrior-guard', classId: 'warrior', name: '철혼 파동', hotkey: '2', unlockLevel: 4, cooldownSec: 8, mpCost: 12, damageMultiplier: 1.1, range: 1.8, radius: 1.35, kind: 'damageHeal', description: '검의 파동으로 주변을 밀어내고 HP를 조금 회복합니다.' },
+  { id: 'warrior-cleave', classId: 'warrior', name: '파혼난무', hotkey: '3', unlockLevel: 8, cooldownSec: 14, mpCost: 22, damageMultiplier: 1.8, range: 1.65, radius: 1.65, kind: 'damage', description: '근처 적들을 연속으로 베는 강력한 광역 기술입니다.' },
+  { id: 'taoist-basic', classId: 'taoist', name: '소울 탄환', hotkey: '1', unlockLevel: 1, cooldownSec: 3.8, mpCost: 8, damageMultiplier: 1.35, range: 4.0, radius: 0.72, kind: 'damage', description: '영혼 결정을 발사해 원거리 적과 주변 적을 타격합니다.' },
+  { id: 'taoist-orb', classId: 'taoist', name: '결정 구체', hotkey: '2', unlockLevel: 4, cooldownSec: 7, mpCost: 18, damageMultiplier: 1.22, range: 4.2, radius: 1.45, kind: 'damage', description: '폭발하는 구체를 만들어 다수의 몬스터를 견제합니다.' },
+  { id: 'taoist-rain', classId: 'taoist', name: '영혼비', hotkey: '3', unlockLevel: 8, cooldownSec: 15, mpCost: 34, damageMultiplier: 1.65, range: 4.6, radius: 2.1, kind: 'damage', description: '넓은 범위에 영혼 탄환을 떨어뜨리는 광역 기술입니다.' },
+  { id: 'cleric-basic', classId: 'cleric', name: '성휘', hotkey: '1', unlockLevel: 1, cooldownSec: 3.5, mpCost: 7, damageMultiplier: 1.08, range: 2.8, radius: 0.92, kind: 'damageHeal', description: '빛의 줄기로 적을 타격하고 자신의 HP를 회복합니다.' },
+  { id: 'cleric-shield', classId: 'cleric', name: '소울 보호막', hotkey: '2', unlockLevel: 4, cooldownSec: 9, mpCost: 20, damageMultiplier: 0, range: 0, radius: 0, kind: 'heal', description: '소울 보호막을 펼쳐 HP를 크게 회복합니다.' },
+  { id: 'cleric-nova', classId: 'cleric', name: '루미나 노바', hotkey: '3', unlockLevel: 8, cooldownSec: 16, mpCost: 36, damageMultiplier: 1.48, range: 2.8, radius: 2.2, kind: 'damageHeal', description: '주변을 정화하며 회복과 범위 피해를 동시에 줍니다.' }
 ];
 
 
@@ -178,6 +178,31 @@ export const cards: CardDefinition[] = [
     art: cardArtUrls.crystalBear,
     effectText: '체력 +70, 공격 +12',
     bonus: { hp: 70, atk: 12 }
+  }
+];
+
+
+export const cardSets: CardSetDefinition[] = [
+  {
+    id: 'set-forest-memory',
+    name: '초록 숲의 기억',
+    requiredCardIds: ['card-slime', 'card-wolf', 'card-goblin'],
+    effectText: 'HP +50, 공격 +4, 이동속도 +0.12',
+    bonus: { hp: 50, atk: 4, move: 0.12 }
+  },
+  {
+    id: 'set-soul-oath',
+    name: '소울 바인더의 서약',
+    requiredCardIds: ['card-soul-knight', 'card-slime'],
+    effectText: '방어 +5, 체력 +35',
+    bonus: { def: 5, hp: 35 }
+  },
+  {
+    id: 'set-crystal-rage',
+    name: '흑수정의 분노',
+    requiredCardIds: ['card-rune-taoist', 'card-crystal-bear'],
+    effectText: '공격 +10, 치명 +4%',
+    bonus: { atk: 10, crit: 0.04 }
   }
 ];
 
@@ -369,7 +394,7 @@ export const items: ItemDefinition[] = [
     name: '소울 파편',
     type: 'material',
     rarity: 'R',
-    effectText: '카드 합성 재료',
+    effectText: '카드 합성/장비 강화 재료',
     bonus: {}
   },
   {
@@ -381,6 +406,18 @@ export const items: ItemDefinition[] = [
     bonus: { atk: 4, def: 3, crit: 0.03 }
   }
 ];
+
+
+export const MAX_ENHANCE_LEVEL = 10;
+
+export function enhancementCost(level: number) {
+  const next = Math.min(MAX_ENHANCE_LEVEL, Math.max(0, level) + 1);
+  return {
+    next,
+    gold: 90 + next * 70 + Math.max(0, next - 5) * 60,
+    shard: next <= 3 ? 0 : Math.ceil((next - 3) / 2)
+  };
+}
 
 export const monsters: MonsterDefinition[] = [
   {

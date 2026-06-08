@@ -2,11 +2,15 @@ import { Application, Assets, Container, Graphics, Sprite, Text, type Texture } 
 import {
   MAP_H,
   MAP_W,
+  MAX_ENHANCE_LEVEL,
+  cardSets,
   cards,
   classes,
+  enhancementCost,
   expToNext,
   items,
   monsters,
+  skills,
   souls,
   spawnTable,
   zones,
@@ -87,6 +91,7 @@ export class SolGame {
   private moveTarget: { x: number; y: number } | null = null;
   private joystick = { x: 0, y: 0 };
   private attackCooldown = 0;
+  private skillCooldowns: Record<string, number> = {};
   private regenTick = 0;
   private dirtyTimer = 0;
   private cloudTimer = 0;
@@ -162,6 +167,134 @@ export class SolGame {
   manualAttack() {
     if (!this.target || !this.target.alive) this.target = this.findNearestMob();
     if (this.target) this.tryPlayerAttack(this.target, true);
+  }
+
+  useSkill(slotIndex: number) {
+    const skill = skills.filter((entry) => entry.classId === this.save.classId)[slotIndex];
+    if (!skill) return;
+    if (this.save.level < skill.unlockLevel) {
+      this.pushLog(`Lv.${skill.unlockLevel}에 해금되는 스킬입니다.`);
+      this.emit();
+      return;
+    }
+    if ((this.skillCooldowns[skill.id] || 0) > 0) {
+      this.pushLog(`${skill.name} 재사용 대기 중`);
+      this.emit();
+      return;
+    }
+    if (this.save.mp < skill.mpCost) {
+      this.pushLog(`MP 부족 · ${skill.name}`);
+      this.emit();
+      return;
+    }
+
+    const stats = this.calculateStats();
+    if (skill.kind === 'heal') {
+      this.save.mp -= skill.mpCost;
+      this.skillCooldowns[skill.id] = skill.cooldownSec;
+      const heal = Math.max(18, Math.round(stats.hp * 0.22 + stats.atk * 0.65));
+      this.save.hp = Math.min(stats.hp, this.save.hp + heal);
+      this.healPulse(this.save.x, this.save.y);
+      this.floatText(`+${heal}`, this.save.x, this.save.y, 0x8dffb3);
+      this.pushLog(`${skill.name} 사용 · HP 회복`);
+      this.markDirty();
+      return;
+    }
+
+    if (!this.target || !this.target.alive) this.target = this.findNearestMob();
+    if (!this.target) {
+      this.pushLog('스킬 대상이 없습니다.');
+      this.emit();
+      return;
+    }
+
+    const dist = distance(this.save.x, this.save.y, this.target.x, this.target.y);
+    if (dist > skill.range) {
+      const dir = normalize(this.target.x - this.save.x, this.target.y - this.save.y);
+      this.moveTarget = {
+        x: clamp(this.target.x - dir.x * Math.max(0.5, skill.range * 0.68), 1, MAP_W - 2),
+        y: clamp(this.target.y - dir.y * Math.max(0.5, skill.range * 0.68), 1, MAP_H - 2)
+      };
+      this.pushLog(`${skill.name} 사거리 밖 · 접근 중`);
+      this.emit();
+      return;
+    }
+
+    this.save.mp -= skill.mpCost;
+    this.skillCooldowns[skill.id] = skill.cooldownSec;
+    this.castPose();
+    const affected = this.mobs.filter((mob) => mob.alive && distance(this.target!.x, this.target!.y, mob.x, mob.y) <= Math.max(0.05, skill.radius));
+    const targets = affected.length ? affected : [this.target];
+    let killed = 0;
+    let totalDamage = 0;
+    for (const mob of targets) {
+      mob.aggroUntil = Math.max(mob.aggroUntil, this.time + 3.8);
+      if (mob.state === 'idle' || mob.state === 'return') {
+        mob.state = 'alert';
+        mob.stateTimer = Math.min(mob.alertDelay, 0.14);
+      }
+      const skillStats = { ...stats, atk: Math.round(stats.atk * skill.damageMultiplier) };
+      const result = this.resolveDamage(skillStats, mob.def.stats, this.save.level - mob.def.level);
+      if (!result.hit) {
+        this.floatText('MISS', mob.x, mob.y, 0xd6d1c2);
+        continue;
+      }
+      mob.hp = Math.max(0, mob.hp - result.damage);
+      totalDamage += result.damage;
+      this.floatText(`${result.crit ? 'CRIT ' : ''}${result.damage}`, mob.x, mob.y, result.crit ? 0xffd15f : 0xf5f1e8);
+      this.animateMobHit(mob);
+      this.skillBurstEffect(mob.x, mob.y, classes[this.save.classId].accent, skill.radius, result.crit);
+      if (mob.hp <= 0) {
+        killed += 1;
+        this.killMob(mob);
+      }
+    }
+
+    if (skill.kind === 'damageHeal') {
+      const heal = Math.max(5, Math.round(Math.max(totalDamage, stats.atk) * 0.16));
+      this.save.hp = Math.min(stats.hp, this.save.hp + heal);
+      this.floatText(`+${heal}`, this.save.x, this.save.y, 0x8dffb3);
+      this.healPulse(this.save.x, this.save.y);
+    }
+    this.hitStop(skill.radius > 1.4 ? 0.075 : 0.05);
+    if (skill.radius > 1.1) this.screenShake();
+    this.pushLog(`${skill.name} 사용 · ${targets.length}명 타격${killed ? ` · ${killed} 정화` : ''}`);
+    this.markDirty();
+  }
+
+  upgradeItem(itemUid: string) {
+    const entry = this.save.inventory.find((item) => item.uid === itemUid);
+    if (!entry) return;
+    const def = items.find((item) => item.id === entry.itemId);
+    if (!def || def.type === 'material') {
+      this.pushLog('재료 아이템은 강화할 수 없습니다.');
+      this.emit();
+      return;
+    }
+    this.save.enhancements ||= {};
+    const current = this.save.enhancements[itemUid] || 0;
+    if (current >= MAX_ENHANCE_LEVEL) {
+      this.pushLog('이미 최대 강화입니다.');
+      this.emit();
+      return;
+    }
+    const cost = enhancementCost(current);
+    if (this.save.gold < cost.gold) {
+      this.pushLog(`골드 부족 · 필요 ${formatNumber(cost.gold)}G`);
+      this.emit();
+      return;
+    }
+    if (cost.shard && this.materialCount('soul-shard') < cost.shard) {
+      this.pushLog(`소울 파편 부족 · 필요 ${cost.shard}개`);
+      this.emit();
+      return;
+    }
+    this.save.gold -= cost.gold;
+    if (cost.shard) this.consumeMaterial('soul-shard', cost.shard);
+    this.save.enhancements[itemUid] = current + 1;
+    this.repairVitals();
+    this.pushLog(`${def.name} +${current + 1} 강화 성공`);
+    this.markDirty();
   }
 
   equipCard(cardUid: string) {
@@ -497,6 +630,7 @@ export class SolGame {
   private update(dt: number) {
     this.time += dt;
     this.attackCooldown = Math.max(0, this.attackCooldown - dt);
+    this.updateSkillCooldowns(dt);
     this.manualMoveLock = Math.max(0, this.manualMoveLock - dt);
     this.regenTick += dt;
     if (this.regenTick >= 1.2) {
@@ -1164,12 +1298,16 @@ export class SolGame {
       this.applyBonus(stats, def.bonus, scalar);
     }
 
+    for (const set of this.activeCardSetEffects()) this.applyBonus(stats, set.bonus, 1);
+
     const equippedItemIds = new Set(Object.values(this.save.equipment || {}));
     for (const entry of this.save.inventory) {
       if (!equippedItemIds.has(entry.uid)) continue;
       const def = items.find((item) => item.id === entry.itemId);
       if (!def || def.type === 'material') continue;
-      this.applyBonus(stats, def.bonus, 1);
+      const enhanceLevel = this.save.enhancements?.[entry.uid] || 0;
+      this.applyBonus(stats, def.bonus, 1 + enhanceLevel * 0.14);
+      if (enhanceLevel > 0) this.applyBonus(stats, { atk: enhanceLevel * 0.8, def: enhanceLevel * 0.55, hp: enhanceLevel * 3 }, 1);
     }
 
     for (const entry of this.save.souls.filter((soul) => soul.unlocked)) {
@@ -1192,6 +1330,44 @@ export class SolGame {
     for (const [key, value] of Object.entries(bonus) as [keyof Stats, number][]) {
       stats[key] += value * scalar;
     }
+  }
+
+  private activeCardSetEffects() {
+    const equippedIds = new Set(this.save.cards.filter((card) => card.equipped).map((card) => card.cardId));
+    return cardSets.filter((set) => set.requiredCardIds.every((id) => equippedIds.has(id)));
+  }
+
+  private materialCount(itemId: string) {
+    return this.save.inventory.filter((entry) => entry.itemId === itemId).reduce((sum, entry) => sum + entry.count, 0);
+  }
+
+  private consumeMaterial(itemId: string, count: number) {
+    let rest = count;
+    for (const entry of [...this.save.inventory]) {
+      if (entry.itemId !== itemId || rest <= 0) continue;
+      const used = Math.min(entry.count, rest);
+      entry.count -= used;
+      rest -= used;
+      if (entry.count <= 0) this.save.inventory = this.save.inventory.filter((item) => item.uid !== entry.uid);
+    }
+  }
+
+  private updateSkillCooldowns(dt: number) {
+    for (const key of Object.keys(this.skillCooldowns)) this.skillCooldowns[key] = Math.max(0, this.skillCooldowns[key] - dt);
+  }
+
+  private createSkillSnapshots() {
+    return skills
+      .filter((skill) => skill.classId === this.save.classId)
+      .map((skill) => ({
+        id: skill.id,
+        name: skill.name,
+        hotkey: skill.hotkey,
+        unlocked: this.save.level >= skill.unlockLevel,
+        cooldownSec: skill.cooldownSec,
+        cooldownRemaining: Number((this.skillCooldowns[skill.id] || 0).toFixed(1)),
+        mpCost: skill.mpCost
+      }));
   }
 
   private repairVitals() {
@@ -1445,6 +1621,22 @@ export class SolGame {
     }, () => pulse.destroy());
   }
 
+  private skillBurstEffect(x: number, y: number, color: number, radius: number, crit: boolean) {
+    const pos = isoToScreen(x, y);
+    const burst = new Graphics()
+      .circle(0, 0, 16 + radius * 16)
+      .stroke({ color, alpha: crit ? 0.86 : 0.62, width: crit ? 5 : 3 })
+      .circle(0, 0, 6 + radius * 8)
+      .fill({ color, alpha: 0.08 });
+    burst.position.set(pos.x, pos.y - 32);
+    this.fxLayer.addChild(burst);
+    this.animate(0.36, (t) => {
+      burst.alpha = 1 - t;
+      burst.scale.set(0.5 + t * 1.15);
+      burst.rotation = t * 0.8;
+    }, () => burst.destroy());
+  }
+
   private impactBurst(x: number, y: number, color: number, strong: boolean) {
     const pos = isoToScreen(x, y);
     const container = new Container();
@@ -1560,7 +1752,9 @@ export class SolGame {
       targetHpPercent: target ? clamp(target.hp / target.def.stats.hp, 0, 1) : 0,
       log: this.log,
       online: this.saveService.isOnline(),
-      userLabel: this.saveService.userLabel()
+      userLabel: this.saveService.userLabel(),
+      skills: this.createSkillSnapshots(),
+      cardSetEffects: this.activeCardSetEffects()
     };
   }
 
