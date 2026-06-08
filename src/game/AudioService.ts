@@ -9,13 +9,13 @@ export interface AudioSettings {
   sfxVolume: number;
 }
 
-const STORAGE_KEY = 'soul-online-audio-settings-v1';
+const STORAGE_KEY = 'soul-online-audio-settings-v2';
 
 const DEFAULT_SETTINGS: AudioSettings = {
   bgm: true,
   sfx: true,
   masterVolume: 0.72,
-  bgmVolume: 0.42,
+  bgmVolume: 0.18,
   sfxVolume: 0.72
 };
 
@@ -142,12 +142,12 @@ class AudioService {
       const oscillator = this.context!.createOscillator();
       const filter = this.context!.createBiquadFilter();
       const gain = this.context!.createGain();
-      oscillator.type = 'sine';
+      oscillator.type = 'triangle';
       oscillator.frequency.setValueAtTime(freq, now);
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(scene === 'boss' ? 360 : 980 + index * 180, now);
+      filter.frequency.setValueAtTime(scene === 'boss' ? 260 : 420 + index * 90, now);
       filter.Q.setValueAtTime(0.38, now);
-      gain.gain.setValueAtTime(index === 0 ? 0.28 : index === 1 ? 0.082 : 0.052, now);
+      gain.gain.setValueAtTime(index === 0 ? 0.010 : index === 1 ? 0.005 : 0.003, now);
       oscillator.connect(filter).connect(gain).connect(this.bgmGain!);
       oscillator.start(now + index * 0.04);
       return { oscillator, gain, filter };
@@ -179,7 +179,7 @@ class AudioService {
 
   private updateBgmGain(fade = 0.08) {
     if (!this.bgmGain || !this.context) return;
-    const value = Math.max(0.0001, this.settings.masterVolume * this.settings.bgmVolume * 0.28);
+    const value = Math.max(0.0001, this.settings.masterVolume * this.settings.bgmVolume * 0.20);
     const now = this.context.currentTime;
     this.bgmGain.gain.cancelScheduledValues(now);
     this.bgmGain.gain.setValueAtTime(Math.max(0.0001, this.bgmGain.gain.value), now);
@@ -198,16 +198,16 @@ class AudioService {
       for (const [index, node] of this.bgmNodes.entries()) {
         const target = chord[index] * [1, chordPhase === 1 ? 1.125 : 1, chordPhase === 2 ? 1.2 : 1, chordPhase === 3 ? 0.875 : 1][Math.min(3, chordPhase)];
         node.oscillator.frequency.exponentialRampToValueAtTime(Math.max(44, target), now + 1.1);
-        node.filter.frequency.exponentialRampToValueAtTime(this.scene === 'boss' ? 380 : 780 + index * 120, now + 0.9);
+        node.filter.frequency.exponentialRampToValueAtTime(this.scene === 'boss' ? 300 : 480 + index * 80, now + 0.9);
       }
 
       const melody = scale[this.melodyStep % scale.length];
       const harmony = scale[(this.melodyStep + 3) % scale.length] * 0.5;
-      this.playBgmNote(melody, 0, 0.58, this.scene === 'boss' ? 0.046 : 0.058);
-      if (this.melodyStep % 4 === 0) this.playBgmNote(harmony, 0.16, 0.96, this.scene === 'boss' ? 0.035 : 0.041);
-      if (this.scene !== 'boss' && this.melodyStep % 8 === 6) this.playBgmNote(scale[(this.melodyStep + 5) % scale.length] * 1.01, 0.28, 0.72, 0.032);
+      this.playBgmNote(melody, 0, 0.72, this.scene === 'boss' ? 0.030 : 0.024);
+      if (this.melodyStep % 4 === 0) this.playBgmNote(harmony, 0.20, 1.15, this.scene === 'boss' ? 0.022 : 0.016);
+      if (this.scene !== 'boss' && this.melodyStep % 8 === 6) this.playBgmNote(scale[(this.melodyStep + 5) % scale.length] * 1.01, 0.34, 0.88, 0.014);
       this.melodyStep += 1;
-    }, this.scene === 'boss' ? 780 : 720);
+    }, this.scene === 'boss' ? 1080 : 1180);
   }
 
   private playBgmNote(freq: number, offset: number, duration: number, gainValue: number) {
@@ -216,11 +216,11 @@ class AudioService {
     const osc = this.context.createOscillator();
     const gain = this.context.createGain();
     const filter = this.context.createBiquadFilter();
-    osc.type = 'sine';
+    osc.type = 'triangle';
     osc.frequency.setValueAtTime(freq, now);
     osc.frequency.exponentialRampToValueAtTime(freq * (this.scene === 'boss' ? 0.992 : 1.002), now + duration);
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(this.scene === 'boss' ? 620 : 1900, now);
+    filter.frequency.setValueAtTime(this.scene === 'boss' ? 560 : 1450, now);
     gain.gain.setValueAtTime(0.0001, now);
     gain.gain.exponentialRampToValueAtTime(gainValue, now + 0.03);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);

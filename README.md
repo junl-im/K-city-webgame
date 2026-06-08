@@ -1,6 +1,6 @@
-# 소울 온라인 Alpha 0.17 Sprite Sheet & Real Asset Pass
+# 소울 온라인 Alpha 0.18 UI/Audio/Asset Quality Pass
 
-모바일 세로형 2.5D 웹 MMORPG 프로토타입입니다. 0.17에서는 40x40 대형 필드, 필드 바닥 깊이감, 사냥 포켓 연출, 유닛 축소 스케일, 자동사냥 상태 리본, 애니메이션 OST 느낌의 절차형 BGM 보정, 실제 2.5D 에셋 교체 기반을 적용했습니다.
+모바일 세로형 2.5D 웹 MMORPG 프로토타입입니다. 0.18에서는 마을 화면 오버플로우, 자동사냥 상태창 위치, 하단 버튼 배치, BGM 기계음 느낌, 임시 캐릭터/몬스터 스프라이트 품질을 중점 개선했습니다.
 
 ## 실행
 
@@ -15,38 +15,36 @@ npm run dev
 npm run build
 ```
 
-## 0.17 Sprite Sheet & Real Asset Pass
+## 0.18 변경점
 
-- 필드 구조 확장
-  - 기존 20x20 기반에서 32x32 대형 필드로 확장
-  - 사냥터별 진입로, 넓은 전투 구역, 몬스터 포켓을 더 멀리 배치
-  - 초록 숲/수정 이끼길/고블린 길목/흑수정 동굴/수정 레이드 터의 바닥 구성을 대형 필드 기준으로 재배치
-- 캐릭터/몬스터 스케일 다운
-  - 플레이어와 몬스터를 기존보다 작게 렌더링
-  - 작은 유닛이 넓은 필드를 이동하는 모바일 MMORPG 느낌 강화
-- 자동사냥 개선
-  - 자동사냥 ON/OFF 버튼 문구와 발광 애니메이션 강화
-  - 자동사냥 중 쿨타임/MP/레벨 조건이 맞으면 스킬 자동 사용
-  - 체력이 낮으면 회복 스킬을 우선 사용
-- 모바일 방치 플레이 대응
-  - 사냥터 진입 시 Screen Wake Lock API로 화면 꺼짐 방지 시도
-  - 마을 복귀 시 Wake Lock 해제
-  - 브라우저가 지원하지 않으면 조용히 무시하고 게임은 계속 진행
-- BGM 톤 보정
-  - 랜덤 기계음 느낌을 줄이고, 부드러운 패드 + 벨 멜로디 루프로 변경
-  - 타이틀/마을/필드/보스 장면별 분위기 유지
-- 스킬 이펙트 강화
-  - 검혼: 다중 검격 아크
-  - 영술사: 결정 파편/영혼비 낙하 이펙트
-  - 성휘사: 성광 링/수직 빛줄기 이펙트
+- 모바일 마을 UI 재배치
+  - 루미나 마을 배경이 화면을 밀어내지 않도록 축소/후면화
+  - 상단 캐릭터/재화 영역 축소
+  - 스토리 완료/보상 카드가 화면을 과하게 차지하지 않도록 압축
+  - 마을 패널 내부 스크롤과 하단 드로어 높이 제한 강화
+- 필드 HUD 최적화
+  - `AUTO HUNT · 자동스킬 · 화면 유지` 리본을 상단에서 제거
+  - 자동사냥 상태를 하단 미니 리본과 자동 버튼 발광으로 표시
+  - 모바일 소형 화면에서 액션 버튼을 2x2, 스킬 버튼을 3개 가로 배치로 정리
+- BGM 완화
+  - 기존 Web Audio 임시 BGM의 지속적인 “위이잉” 패드음을 크게 낮춤
+  - 새 오디오 설정 키 `soul-online-audio-settings-v2` 적용
+  - 기본 BGM 볼륨을 낮춰 첫 실행 피로감 완화
+- 임시 스프라이트 품질 개선
+  - 기존 막대형 프로토타입보다 더 긴 8등신 실루엣, 갑옷/로브/망토/무기 디테일 추가
+  - 남자/여자 3직업 스프라이트 시트 재생성
+  - 몬스터 5종 스프라이트 시트 재생성
+- 그래픽 교체 로드맵 추가
+  - `docs/GRAPHICS_ROADMAP_0_18.md`
 
-## 이전 주요 기능 유지
+## 기존 주요 기능 유지
 
 - 첫 화면 → 로그인 → 서버 → 캐릭터 → 마을 입장 플로우
 - 루미나 마을 허브
-- 스토리 퀘스트
 - 사냥터 지역 진행도
+- 40x40 대형 필드
 - 몬스터 AI 상태머신
+- 자동사냥/자동스킬/화면 유지
 - 스킬 버튼/쿨타임/MP 소모/범위 공격
 - 카드 세트 효과
 - 장비 강화
@@ -55,32 +53,15 @@ npm run build
 
 ## 저장 버전
 
-- `SAVE_VERSION = 12`
-- 기존 0.15 이하 캐릭터는 자동 마이그레이션됩니다.
+- `SAVE_VERSION = 14`
+- 기존 0.17 이하 캐릭터는 자동 마이그레이션됩니다.
 
 ## PWA 캐시
 
-- `soul-online-alpha-v0-17-1`
+- `soul-online-alpha-v0-18`
 
 기존 설치 앱에서 이전 화면이 남으면 브라우저 캐시 삭제 또는 홈 화면 앱 재설치가 필요할 수 있습니다.
 
-## 0.17.1 Hotfix
+## 그래픽 관련 메모
 
-- Fixed GitHub Actions `npm ci` failure caused by a stale `package-lock.json` entry for `@firebase/messaging@0.14.0`.
-- The lockfile now points to the public npm package `@firebase/messaging@0.13.0`, which is the Firebase 12.14.0 dependency version available from the public registry.
-- Verified with `npm ci --registry=https://registry.npmjs.org/` and `npm run build`.
-
-
-## 0.17 Sprite Sheet Pass
-
-- Added male/female tall 2.5D character sprite sheets.
-- Added 8-direction idle/walk/run/attack/hit/death/skill animation runtime.
-- Added monster sprite sheets for slime, wolf, goblin, bear, and dragon.
-- Added gender selection and save migration.
-- See `docs/SPRITE_SHEET_0_17.md` for the replacement contract.
-
-
-## 0.17.1 Deploy Hotfix
-
-- Fixed npm ci failure caused by non-existent Firebase subpackage versions in package-lock.json.
-- Pinned Firebase to 12.13.0 and regenerated lockfile with public npm registry URLs.
+현재 포함된 캐릭터/몬스터는 여전히 코드로 생성한 임시 시트입니다. 리니지/MIR/오딘/나이트크로우급 비주얼은 실제 원화 기반 2.5D 프리렌더 에셋이 필요합니다. 0.18은 그 에셋을 끼워 넣을 런타임 구조와 임시 시트 품질을 올린 단계입니다.
