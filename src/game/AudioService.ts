@@ -1,4 +1,4 @@
-import { audioTrackUrls } from '../data/assetManifest';
+import { audioTrackUrls, sfxTrackUrls } from '../data/assetManifest';
 
 export type AudioScene = 'title' | 'town' | 'field' | 'boss';
 export type SfxName = 'ui' | 'confirm' | 'attack' | 'hit' | 'skill' | 'heal' | 'reward' | 'level' | 'error' | 'boss' | 'buy' | 'enhance';
@@ -11,14 +11,14 @@ export interface AudioSettings {
   sfxVolume: number;
 }
 
-const STORAGE_KEY = 'soul-online-audio-settings-v3';
+const STORAGE_KEY = 'soul-online-audio-settings-v4';
 
 const DEFAULT_SETTINGS: AudioSettings = {
   bgm: true,
   sfx: true,
-  masterVolume: 0.72,
-  bgmVolume: 0.38,
-  sfxVolume: 0.72
+  masterVolume: 0.68,
+  bgmVolume: 0.28,
+  sfxVolume: 0.78
 };
 
 const clamp01 = (value: number) => Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
@@ -96,7 +96,33 @@ class AudioService {
   }
 
   play(name: SfxName) {
-    if (!this.settings.sfx || !this.context || !this.unlocked) return;
+    if (!this.settings.sfx || !this.unlocked) return;
+    if (this.tryFileSfx(name)) return;
+    this.playSynthSfx(name);
+  }
+
+  private tryFileSfx(name: SfxName) {
+    const mapped = this.mapFileSfx(name);
+    if (!mapped) return false;
+    try {
+      const audio = new Audio(new URL(mapped, window.location.href).href);
+      audio.volume = clamp01(this.settings.masterVolume * this.settings.sfxVolume * 0.86);
+      audio.preload = 'auto';
+      void audio.play().catch(() => undefined);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private mapFileSfx(name: SfxName) {
+    if (name === 'confirm' || name === 'buy') return sfxTrackUrls.ui;
+    if (name === 'boss') return sfxTrackUrls.skill;
+    return sfxTrackUrls[name as keyof typeof sfxTrackUrls];
+  }
+
+  private playSynthSfx(name: SfxName) {
+    if (!this.context) return;
     const now = this.context.currentTime;
     const master = this.context.createGain();
     master.gain.setValueAtTime(0.0001, now);

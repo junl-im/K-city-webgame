@@ -19,7 +19,22 @@ export const uid = (prefix: string) => `${prefix}-${Date.now().toString(36)}-${M
 export const roll = (chance: number) => Math.random() < chance;
 
 export const formatNumber = (value: number) => {
-  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-  if (value >= 10000) return `${(value / 1000).toFixed(1)}K`;
-  return Math.floor(value).toLocaleString('ko-KR');
+  const safe = Math.max(0, Math.floor(Number.isFinite(value) ? value : 0));
+  if (safe >= 100000000) {
+    const amount = safe / 100000000;
+    return `${amount >= 10 ? amount.toFixed(0) : amount.toFixed(1)}억`;
+  }
+  if (safe >= 10000) {
+    const amount = safe / 10000;
+    return `${amount >= 10 ? amount.toFixed(0) : amount.toFixed(1)}만`;
+  }
+  if (safe >= 1000) {
+    const amount = safe / 1000;
+    return `${amount >= 10 ? amount.toFixed(0) : amount.toFixed(1)}천`;
+  }
+  return safe.toLocaleString('ko-KR');
 };
+
+export const formatGold = (value: number) => `${formatNumber(value)}골드`;
+export const formatSoul = (value: number) => `${formatNumber(value)}소울`;
+

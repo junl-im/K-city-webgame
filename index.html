@@ -23,16 +23,16 @@
         </div>
         <div class="title-stage">
           <div class="title-copy">
-            <span class="title-kicker">ALPHA 0.19 · REAL ASSET PIPELINE</span>
+            <span class="title-kicker">ALPHA 0.20 · SFX & COMBAT FEEL</span>
             <h1>소울 온라인</h1>
-            <p>꺼져가는 루미나의 등불을 지키고, 타락한 영혼을 정화하는 2.5D 웹 RPG · 모바일 UI 최적화와 8등신 스프라이트 임시 에셋 고도화 적용.</p>
+            <p>꺼져가는 루미나의 등불을 지키고, 타락한 영혼을 정화하는 2.5D 웹 RPG · 마을 하단 메뉴, 강화 확률, 미니맵, 자동전투 UX와 효과음 패스를 적용한 모바일 2.5D 웹 RPG.</p>
           </div>
           <div class="title-hero" aria-hidden="true">
             <span class="title-soul-ring"></span>
             <span class="title-character"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn">게임 시작</button>
-          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.19.0</span></div>
+          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.20.0</span></div>
           <small>전체화면은 브라우저 정책상 버튼 입력 후 시도됩니다.</small>
         </div>
       </section>
@@ -217,6 +217,18 @@
                 <em>05</em><b>수정 레이드 터</b>
                 <span>Lv.8+ · 보스 테스트 · 고위험</span>
               </button>
+              <button class="zone-card" data-zone-id="moonlit-grove">
+                <em>06</em><b>달빛 고목숲</b>
+                <span>Lv.10 · 늑대/고블린 무리 · 자동스킬 사냥</span>
+              </button>
+              <button class="zone-card" data-zone-id="soul-ruins">
+                <em>07</em><b>영혼 폐허지대</b>
+                <span>Lv.12 · 고블린/흑수정 곰 · 강화 재료</span>
+              </button>
+              <button class="zone-card" data-zone-id="dragon-nest">
+                <em>08</em><b>용의 그림자 둥지</b>
+                <span>Lv.14 · 고위험 · 보스 전초</span>
+              </button>
             </div>
           </section>
 
@@ -267,6 +279,7 @@
             <span id="levelText">Lv.1</span>
           </div>
           <div class="bar hp"><i id="hpBar"></i><em id="hpText">100/100</em></div>
+          <div class="bar mp"><i id="mpBar"></i><em id="mpText">0/0</em></div>
           <div class="bar exp"><i id="expBar"></i><em id="expText">0%</em></div>
         </div>
         <button class="icon-btn" id="returnTownBtn" title="마을 복귀" aria-label="마을 복귀">⌂</button>
@@ -287,17 +300,13 @@
         <div class="target-hp"><i id="targetHp"></i></div>
       </section>
 
-      <div class="auto-hunt-ribbon" id="autoHuntRibbon" aria-hidden="true">
-        <b>AUTO HUNT</b><span>자동 스킬 · 화면 유지</span>
-      </div>
-
       <section class="field-minimap" id="fieldMiniMap" aria-label="미니맵">
         <div class="minimap-head"><b id="miniZoneName">사냥터</b><span id="miniZoneMeta">Lv.1</span></div>
         <div class="minimap-canvas">
           <i class="mini-safe"></i>
           <i class="mini-path"></i>
           <i class="mini-boss"></i>
-          <i class="mini-player"></i>
+          <i class="mini-player" id="miniPlayerDot"></i>
         </div>
       </section>
 

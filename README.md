@@ -1,6 +1,6 @@
-# 소울 온라인 Alpha 0.19 Real Asset Pipeline
+# 소울 온라인 Alpha 0.20 SFX & Mobile Combat Pass
 
-모바일 세로형 2.5D 웹 MMORPG 프로토타입입니다. 0.19에서는 이제부터 실제 상용급 에셋을 꽂아 넣을 수 있도록 `public/assets/soulpack` 런타임 에셋 팩 구조를 추가했습니다.
+모바일 세로형 2.5D 웹 MMORPG 프로토타입입니다. 0.20에서는 마을 하단 고정 메뉴, 한국식 재화 단위, 강화 확률, 사냥터 미니맵, MP 게이지, 모바일 뒤로가기 방지, 조이스틱 보정, 몬스터 개체수/AI, 파일 기반 SFX를 정리했습니다.
 
 ## 실행
 
@@ -15,52 +15,40 @@ npm run dev
 npm run build
 ```
 
-## 0.19 변경점
+## 0.20 변경점
 
-- 실제 에셋 교체용 런타임 팩 추가
-  - `public/assets/soulpack/characters`
-  - `public/assets/soulpack/monsters`
-  - `public/assets/soulpack/tiles`
-  - `public/assets/soulpack/props`
-  - `public/assets/soulpack/audio`
-- 게임 로더 변경
-  - 런타임 에셋을 먼저 로드
-  - 실패하면 기존 번들 fallback 에셋으로 자동 복구
-- 파일 기반 BGM 로더 추가
-  - `title-theme.ogg`
-  - `town-lumina.ogg`
-  - `field-forest.ogg`
-  - `boss-crystal.ogg`
-- Web Audio 기계음 BGM은 fallback으로만 사용
-- PNG 아이소메트릭 타일 샘플 팩 추가
-  - 잔디, 흙길, 수정 이끼, 석재, 흑수정, 물, 절벽, 포탈
-- PNG 프랍 샘플 추가
-  - 나무, 수정, 바위, 폐허
-- 에셋 팩 규격 문서 추가
-  - `public/assets/soulpack/README.md`
-  - `public/assets/soulpack/asset-pack.json`
-  - `docs/REAL_ASSET_PIPELINE_0_19.md`
-
-## 에셋 교체 방식
-
-같은 파일명으로 `public/assets/soulpack` 안의 파일을 교체하면 됩니다.
-코드 수정 없이 다음 실행/배포부터 새 에셋을 우선 로드합니다.
-
-예시:
-
-```txt
-public/assets/soulpack/characters/hero-warrior-male-sheet.png
-public/assets/soulpack/monsters/monster-wolf-sheet.png
-public/assets/soulpack/tiles/tile-grass.png
-public/assets/soulpack/audio/town-lumina.ogg
-```
+- 마을 기본 메뉴를 모바일 하단 1줄 고정 메뉴로 재배치
+- `AUTO HUNT` 문구 제거, 자동 ON/OFF 버튼 상태만 강조
+- 골드/소울 표시를 `천`, `만`, `억` 기준 한글 단위로 변경
+- 강화 확률 적용
+  - +1 ~ +4: 100%
+  - +5: 90%
+  - +6: 80%
+  - +7: 70%
+  - +8: 60%
+  - +9: 50%
+  - +10: 40%
+- 강화 확률을 UI에 명확히 표시
+- 사냥터 우측 상단 미니맵 표시 및 플레이어 위치 연동
+- MP 게이지 HUD 추가
+- 모바일 뒤로가기 시 바로 이탈하지 않고 종료 확인 표시
+- 캐릭터/몬스터 크기 소폭 확대
+- 조이스틱 반응 범위와 감도 보정
+- 사냥터 3종 추가
+  - 달빛 고목숲
+  - 영혼 폐허지대
+  - 용의 그림자 둥지
+- 몬스터 개체수 증가 및 다중 어그로 강화
+- 파일 기반 SFX 팩 추가
+  - `public/assets/soulpack/sfx/*.wav`
+- BGM 루프를 더 부드러운 MR 느낌으로 재생성
 
 ## 버전
 
-- 앱 버전: `0.19.0`
-- `SAVE_VERSION = 15`
-- PWA 캐시: `soul-online-alpha-v0-19`
+- 앱 버전: `0.20.0`
+- `SAVE_VERSION = 16`
+- PWA 캐시: `soul-online-alpha-v0-20`
 
-## 주의
+## 메모
 
-현재 캐릭터/몬스터 시트는 아직 샘플입니다. 리니지/MIR/오딘/나이트크로우급 비주얼은 원화 기반 2.5D 프리렌더 시트가 실제로 필요합니다. 0.19는 그 에셋을 바로 꽂을 수 있는 첫 번째 실전 구조입니다.
+`public/assets/soulpack` 안의 파일을 실제 상용급 원화 기반 에셋으로 교체하면 코드 변경 없이 그래픽/음원을 교체할 수 있습니다. 현재 포함된 캐릭터/몬스터/타일은 교체용 샘플입니다.

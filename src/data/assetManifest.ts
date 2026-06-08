@@ -65,6 +65,19 @@ export const audioTrackUrls = {
   boss: './assets/soulpack/audio/boss-crystal.ogg'
 } as const;
 
+
+export const sfxTrackUrls = {
+  ui: './assets/soulpack/sfx/ui.wav',
+  attack: './assets/soulpack/sfx/attack.wav',
+  hit: './assets/soulpack/sfx/hit.wav',
+  skill: './assets/soulpack/sfx/skill.wav',
+  heal: './assets/soulpack/sfx/heal.wav',
+  reward: './assets/soulpack/sfx/reward.wav',
+  enhance: './assets/soulpack/sfx/enhance.wav',
+  level: './assets/soulpack/sfx/level.wav',
+  error: './assets/soulpack/sfx/error.wav'
+} as const;
+
 export const cardArtUrls = {
   warrior: new URL('../assets/cards/card-warrior.jpg', import.meta.url).href,
   taoist: new URL('../assets/cards/card-taoist.jpg', import.meta.url).href,
@@ -91,5 +104,6 @@ export const highQualityAssetSlots = {
     'tiles/tile-crystal.png', 'tiles/tile-water.png', 'tiles/tile-cliff.png', 'tiles/tile-portal.png'
   ],
   props: ['props/prop-tree.png', 'props/prop-crystal.png', 'props/prop-rock.png', 'props/prop-ruin.png', 'props/prop-gate.png'],
-  audio: ['audio/title-theme.ogg', 'audio/town-lumina.ogg', 'audio/field-forest.ogg', 'audio/boss-crystal.ogg']
+  audio: ['audio/title-theme.ogg', 'audio/town-lumina.ogg', 'audio/field-forest.ogg', 'audio/boss-crystal.ogg'],
+  sfx: ['sfx/ui.wav', 'sfx/attack.wav', 'sfx/hit.wav', 'sfx/skill.wav', 'sfx/heal.wav', 'sfx/reward.wav', 'sfx/enhance.wav', 'sfx/level.wav', 'sfx/error.wav']
 } as const;

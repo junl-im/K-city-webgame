@@ -34,7 +34,7 @@ import type {
   WorldMob
 } from '../types';
 import { isoToScreen, screenToIso } from './iso';
-import { clamp, distance, formatNumber, normalize, roll, uid } from './math';
+import { clamp, distance, formatGold, formatNumber, normalize, roll, uid } from './math';
 import { SaveService } from './SaveService';
 import { audioService } from './AudioService';
 import { HUMANOID_SHEET_META, MONSTER_SHEET_META, SpriteSheetAnimator, directionFromIsoVector, type SpriteDirection } from './SpriteSheetAnimator';
@@ -57,11 +57,14 @@ type SolGameOptions = {
 };
 
 const zoneMonsterIds: Record<string, MonsterId[]> = {
-  'slime-forest': ['slime', 'slime', 'slime', 'slime', 'wolf', 'wolf', 'wolf'],
-  'crystal-moss': ['slime', 'slime', 'wolf', 'wolf', 'wolf', 'wolf'],
-  'goblin-road': ['wolf', 'wolf', 'goblin', 'goblin', 'goblin', 'crystalBear'],
-  'black-cave': ['goblin', 'goblin', 'goblin', 'crystalBear', 'crystalBear', 'crystalBear'],
-  'crystal-raid': ['goblin', 'goblin', 'crystalBear', 'crystalBear', 'dragon']
+  'slime-forest': ['slime', 'slime', 'slime', 'slime', 'slime', 'slime', 'wolf', 'wolf', 'wolf', 'wolf'],
+  'crystal-moss': ['slime', 'slime', 'slime', 'wolf', 'wolf', 'wolf', 'wolf', 'wolf', 'wolf', 'wolf'],
+  'goblin-road': ['wolf', 'wolf', 'wolf', 'goblin', 'goblin', 'goblin', 'goblin', 'goblin', 'goblin', 'crystalBear'],
+  'black-cave': ['goblin', 'goblin', 'goblin', 'goblin', 'goblin', 'crystalBear', 'crystalBear', 'crystalBear', 'crystalBear'],
+  'crystal-raid': ['goblin', 'goblin', 'goblin', 'crystalBear', 'crystalBear', 'crystalBear', 'dragon'],
+  'moonlit-grove': ['wolf', 'wolf', 'wolf', 'wolf', 'goblin', 'goblin', 'goblin', 'goblin', 'crystalBear', 'crystalBear'],
+  'soul-ruins': ['goblin', 'goblin', 'goblin', 'goblin', 'goblin', 'goblin', 'crystalBear', 'crystalBear', 'crystalBear', 'crystalBear'],
+  'dragon-nest': ['crystalBear', 'crystalBear', 'crystalBear', 'crystalBear', 'crystalBear', 'dragon', 'dragon']
 };
 
 const mobHomeRadius: Partial<Record<MonsterId, number>> = {
@@ -84,14 +87,14 @@ const tileTextureKey: Record<TileId, TextureKey> = {
 };
 
 const FIELD_ZOOM = 0.76;
-const PLAYER_VISUAL_SCALE = 0.255;
+const PLAYER_VISUAL_SCALE = 0.285;
 const PLAYER_SHADOW_SCALE = 0.72;
 const MOB_VISUAL_SCALE: Record<MonsterId, number> = {
-  slime: 0.22,
-  wolf: 0.21,
-  goblin: 0.2,
-  crystalBear: 0.25,
-  dragon: 0.34
+  slime: 0.245,
+  wolf: 0.235,
+  goblin: 0.225,
+  crystalBear: 0.285,
+  dragon: 0.38
 };
 
 
@@ -265,6 +268,7 @@ export class SolGame {
         mob.state = 'alert';
         mob.stateTimer = Math.min(mob.alertDelay, 0.14);
       }
+      this.callNearbyMobs(mob, skill.radius > 1.2 ? 3.0 : 2.35);
       const skillStats = { ...stats, atk: Math.round(stats.atk * skill.damageMultiplier) };
       const result = this.resolveDamage(skillStats, mob.def.stats, this.save.level - mob.def.level);
       if (!result.hit) {
@@ -314,7 +318,7 @@ export class SolGame {
     }
     const cost = enhancementCost(current);
     if (this.save.gold < cost.gold) {
-      this.pushLog(`골드 부족 · 필요 ${formatNumber(cost.gold)}G`);
+      this.pushLog(`골드 부족 · 필요 ${formatGold(cost.gold)}`);
       this.emit();
       return;
     }
@@ -325,10 +329,16 @@ export class SolGame {
     }
     this.save.gold -= cost.gold;
     if (cost.shard) this.consumeMaterial('soul-shard', cost.shard);
-    this.save.enhancements[itemUid] = current + 1;
-    this.repairVitals();
-    audioService.play('enhance');
-    this.pushLog(`${def.name} +${current + 1} 강화 성공`);
+    const success = roll(cost.successRate);
+    if (success) {
+      this.save.enhancements[itemUid] = current + 1;
+      this.repairVitals();
+      audioService.play('enhance');
+      this.pushLog(`${def.name} +${current + 1} 강화 성공 · 확률 ${Math.round(cost.successRate * 100)}%`);
+    } else {
+      audioService.play('error');
+      this.pushLog(`${def.name} 강화 실패 · 확률 ${Math.round(cost.successRate * 100)}% · 단계 유지`);
+    }
     this.markDirty();
   }
 
@@ -887,44 +897,93 @@ export class SolGame {
   private spawnCandidatesForZone(zoneId: string) {
     const tables: Record<string, Array<{ monsterId: MonsterId; x: number; y: number }>> = {
       'slime-forest': [
-        { monsterId: 'slime', x: 10.8, y: 23.7 },
-        { monsterId: 'slime', x: 13.4, y: 24.8 },
-        { monsterId: 'slime', x: 17.2, y: 22.7 },
+        { monsterId: 'slime', x: 9.8, y: 24.0 },
+        { monsterId: 'slime', x: 12.2, y: 25.0 },
+        { monsterId: 'slime', x: 15.4, y: 23.4 },
+        { monsterId: 'slime', x: 18.2, y: 22.1 },
         { monsterId: 'slime', x: 21.8, y: 19.6 },
-        { monsterId: 'wolf', x: 25.4, y: 18.0 },
+        { monsterId: 'slime', x: 25.0, y: 20.1 },
+        { monsterId: 'wolf', x: 27.4, y: 18.0 },
         { monsterId: 'wolf', x: 30.4, y: 17.8 },
-        { monsterId: 'wolf', x: 34.0, y: 18.4 }
+        { monsterId: 'wolf', x: 34.0, y: 18.4 },
+        { monsterId: 'wolf', x: 36.0, y: 21.0 }
       ],
       'crystal-moss': [
-        { monsterId: 'slime', x: 13.2, y: 21.8 },
-        { monsterId: 'slime', x: 16.2, y: 18.8 },
+        { monsterId: 'slime', x: 12.8, y: 22.0 },
+        { monsterId: 'slime', x: 15.8, y: 20.0 },
+        { monsterId: 'slime', x: 18.0, y: 17.4 },
         { monsterId: 'wolf', x: 20.0, y: 15.4 },
-        { monsterId: 'wolf', x: 24.8, y: 13.4 },
+        { monsterId: 'wolf', x: 23.4, y: 13.7 },
+        { monsterId: 'wolf', x: 26.8, y: 13.0 },
         { monsterId: 'wolf', x: 30.8, y: 14.8 },
-        { monsterId: 'wolf', x: 34.2, y: 18.0 }
+        { monsterId: 'wolf', x: 34.2, y: 18.0 },
+        { monsterId: 'wolf', x: 36.4, y: 21.2 },
+        { monsterId: 'wolf', x: 31.2, y: 23.5 }
       ],
       'goblin-road': [
-        { monsterId: 'wolf', x: 13.4, y: 22.4 },
-        { monsterId: 'wolf', x: 16.8, y: 23.2 },
+        { monsterId: 'wolf', x: 12.8, y: 22.0 },
+        { monsterId: 'wolf', x: 15.6, y: 23.2 },
+        { monsterId: 'wolf', x: 18.4, y: 24.0 },
         { monsterId: 'goblin', x: 20.6, y: 24.2 },
-        { monsterId: 'goblin', x: 25.4, y: 26.7 },
-        { monsterId: 'goblin', x: 31.6, y: 29.3 },
-        { monsterId: 'crystalBear', x: 35.0, y: 30.0 }
+        { monsterId: 'goblin', x: 23.6, y: 25.8 },
+        { monsterId: 'goblin', x: 26.4, y: 26.7 },
+        { monsterId: 'goblin', x: 29.4, y: 28.1 },
+        { monsterId: 'goblin', x: 32.6, y: 29.3 },
+        { monsterId: 'goblin', x: 35.2, y: 28.4 },
+        { monsterId: 'crystalBear', x: 36.0, y: 30.0 }
       ],
       'black-cave': [
-        { monsterId: 'goblin', x: 15.0, y: 24.8 },
-        { monsterId: 'goblin', x: 19.0, y: 26.2 },
-        { monsterId: 'goblin', x: 23.2, y: 28.0 },
+        { monsterId: 'goblin', x: 13.8, y: 24.4 },
+        { monsterId: 'goblin', x: 16.8, y: 25.0 },
+        { monsterId: 'goblin', x: 19.4, y: 26.2 },
+        { monsterId: 'goblin', x: 22.6, y: 27.4 },
+        { monsterId: 'goblin', x: 25.2, y: 28.0 },
         { monsterId: 'crystalBear', x: 27.8, y: 30.0 },
-        { monsterId: 'crystalBear', x: 32.2, y: 30.6 },
-        { monsterId: 'crystalBear', x: 35.0, y: 31.0 }
+        { monsterId: 'crystalBear', x: 30.8, y: 30.6 },
+        { monsterId: 'crystalBear', x: 33.6, y: 31.0 },
+        { monsterId: 'crystalBear', x: 36.0, y: 29.8 }
       ],
       'crystal-raid': [
-        { monsterId: 'goblin', x: 16.7, y: 23.8 },
-        { monsterId: 'goblin', x: 21.6, y: 21.7 },
-        { monsterId: 'crystalBear', x: 26.2, y: 20.2 },
-        { monsterId: 'crystalBear', x: 31.2, y: 19.0 },
+        { monsterId: 'goblin', x: 14.8, y: 24.0 },
+        { monsterId: 'goblin', x: 18.6, y: 22.6 },
+        { monsterId: 'goblin', x: 22.0, y: 21.7 },
+        { monsterId: 'crystalBear', x: 25.6, y: 20.2 },
+        { monsterId: 'crystalBear', x: 29.2, y: 19.0 },
+        { monsterId: 'crystalBear', x: 32.0, y: 19.6 },
         { monsterId: 'dragon', x: 35.2, y: 18.2 }
+      ],
+      'moonlit-grove': [
+        { monsterId: 'wolf', x: 13.2, y: 22.8 },
+        { monsterId: 'wolf', x: 16.0, y: 21.0 },
+        { monsterId: 'wolf', x: 19.2, y: 19.4 },
+        { monsterId: 'wolf', x: 22.2, y: 18.4 },
+        { monsterId: 'goblin', x: 24.8, y: 20.6 },
+        { monsterId: 'goblin', x: 27.8, y: 21.2 },
+        { monsterId: 'goblin', x: 30.4, y: 22.0 },
+        { monsterId: 'goblin', x: 33.0, y: 24.0 },
+        { monsterId: 'crystalBear', x: 35.4, y: 25.8 },
+        { monsterId: 'crystalBear', x: 36.8, y: 28.2 }
+      ],
+      'soul-ruins': [
+        { monsterId: 'goblin', x: 12.8, y: 24.8 },
+        { monsterId: 'goblin', x: 15.8, y: 25.2 },
+        { monsterId: 'goblin', x: 18.8, y: 25.8 },
+        { monsterId: 'goblin', x: 22.0, y: 26.6 },
+        { monsterId: 'goblin', x: 25.2, y: 27.6 },
+        { monsterId: 'goblin', x: 28.4, y: 28.6 },
+        { monsterId: 'crystalBear', x: 31.2, y: 29.4 },
+        { monsterId: 'crystalBear', x: 33.8, y: 30.2 },
+        { monsterId: 'crystalBear', x: 36.0, y: 31.0 },
+        { monsterId: 'crystalBear', x: 37.2, y: 28.2 }
+      ],
+      'dragon-nest': [
+        { monsterId: 'crystalBear', x: 15.0, y: 24.0 },
+        { monsterId: 'crystalBear', x: 18.8, y: 22.8 },
+        { monsterId: 'crystalBear', x: 22.4, y: 21.4 },
+        { monsterId: 'crystalBear', x: 26.2, y: 20.2 },
+        { monsterId: 'crystalBear', x: 30.0, y: 19.0 },
+        { monsterId: 'dragon', x: 33.4, y: 18.4 },
+        { monsterId: 'dragon', x: 36.4, y: 19.4 }
       ]
     };
     return tables[zoneId] || [...spawnTable];
@@ -1377,7 +1436,7 @@ export class SolGame {
         this.attackTell(view, mob);
         return;
       }
-      const speedFactor = mob.def.id === 'dragon' ? 0.2 : 0.48;
+      const speedFactor = mob.def.id === 'dragon' ? 0.26 : 0.56;
       const moved = this.moveMobToward(mob, view, this.save.x, this.save.y, dt, speedFactor);
       const stepMoved = distance(mob.lastX, mob.lastY, mob.x, mob.y);
       mob.stuckTimer = moved || stepMoved > 0.004 ? 0 : mob.stuckTimer + dt;
@@ -1500,15 +1559,32 @@ export class SolGame {
   }
 
   private maxAggroCount() {
-    return this.options.zoneId === 'crystal-raid' || this.options.zoneId === 'black-cave' ? 2 : 1;
+    const zoneId = this.options.zoneId || 'slime-forest';
+    if (zoneId === 'crystal-raid' || zoneId === 'dragon-nest') return 4;
+    if (zoneId === 'black-cave' || zoneId === 'moonlit-grove' || zoneId === 'soul-ruins') return 3;
+    return 2;
   }
 
   private mobAggroRange(mob: WorldMob) {
-    if (mob.def.id === 'dragon') return 2.45;
-    if (mob.def.id === 'crystalBear') return 2.25;
-    if (mob.def.id === 'goblin') return 2.65;
-    if (mob.def.id === 'wolf') return 2.35;
-    return 1.75;
+    if (mob.def.id === 'dragon') return 3.15;
+    if (mob.def.id === 'crystalBear') return 2.75;
+    if (mob.def.id === 'goblin') return 3.0;
+    if (mob.def.id === 'wolf') return 2.75;
+    return 2.15;
+  }
+
+  private callNearbyMobs(source: WorldMob, radius = 2.35) {
+    let slots = Math.max(0, this.maxAggroCount() - this.activeAggroCount(source.uid));
+    if (slots <= 0) return;
+    for (const mob of this.mobs) {
+      if (slots <= 0) break;
+      if (!mob.alive || mob.uid === source.uid) continue;
+      if (mob.state !== 'idle' && mob.state !== 'return') continue;
+      if (distance(mob.x, mob.y, source.x, source.y) > radius) continue;
+      mob.state = 'alert';
+      mob.stateTimer = 0.12 + Math.random() * 0.22;
+      slots -= 1;
+    }
   }
 
   private updateMobAnimation(view: MobView, mob: WorldMob, dt: number) {
@@ -1567,6 +1643,7 @@ export class SolGame {
       mob.state = 'alert';
       mob.stateTimer = Math.min(mob.alertDelay, 0.18);
     }
+    this.callNearbyMobs(mob, mob.def.id === 'slime' ? 2.0 : 2.65);
     const result = this.resolveDamage(stats, mob.def.stats, this.save.level - mob.def.level);
     audioService.play('attack');
     this.animatePlayerAttack(mob, result);
@@ -1655,7 +1732,7 @@ export class SolGame {
     audioService.play(mob.def.id === 'dragon' ? 'boss' : 'reward');
     this.mobViews.get(mob.uid)?.animator?.playOnce('death', 'death');
     this.impactBurst(mob.x, mob.y, 0xe2b95f, true);
-    this.pushLog(`${mob.def.name} 정화 +${mob.def.exp}EXP +${mob.def.gold}G`);
+    this.pushLog(`${mob.def.name} 정화 +${mob.def.exp}EXP +${formatGold(mob.def.gold)}`);
     this.markDirty();
   }
 

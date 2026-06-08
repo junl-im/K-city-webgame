@@ -1,7 +1,7 @@
 import type { CardDefinition, CardSetDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, SoulDefinition, TileId, ZoneDefinition, SkillDefinition } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 15;
+export const SAVE_VERSION = 16;
 export const MAP_W = 40;
 export const MAP_H = 40;
 
@@ -110,7 +110,45 @@ export const zones: ZoneDefinition[] = [
     unlockQuestId: 'story-soul-growth',
     unlockLevel: 8,
     badge: '05'
+  },
+  {
+    id: 'moonlit-grove',
+    order: 6,
+    title: '달빛 고목숲',
+    subtitle: '푸른 혼불이 떠도는 심야 숲',
+    description: '늑대 무리와 고블린 정찰대가 함께 등장합니다. 자동 스킬 사냥 효율을 확인하기 좋은 밀집 지역입니다.',
+    recommendedLevel: 10,
+    monsterIds: ['wolf', 'wolf', 'goblin', 'goblin', 'crystalBear'],
+    entry: { x: 7.8, y: 20.8 },
+    unlockQuestId: 'story-crystal-bear',
+    unlockLevel: 10,
+    badge: '06'
+  },
+  {
+    id: 'soul-ruins',
+    order: 7,
+    title: '영혼 폐허지대',
+    subtitle: '오래된 성소가 무너진 전장',
+    description: '고블린과 흑수정 곰 개체수가 늘어난 사냥터입니다. 장비 강화 재료와 골드 수급에 특화되어 있습니다.',
+    recommendedLevel: 12,
+    monsterIds: ['goblin', 'goblin', 'goblin', 'crystalBear', 'crystalBear'],
+    entry: { x: 8.8, y: 22.0 },
+    unlockLevel: 12,
+    badge: '07'
+  },
+  {
+    id: 'dragon-nest',
+    order: 8,
+    title: '용의 그림자 둥지',
+    subtitle: '잠든 용의 영혼이 새어나오는 협곡',
+    description: '흑수정 곰과 드래곤의 압박이 강한 고위험 지역입니다. 월드보스 전초 사냥터로 사용됩니다.',
+    recommendedLevel: 14,
+    monsterIds: ['crystalBear', 'crystalBear', 'crystalBear', 'dragon'],
+    entry: { x: 10.4, y: 23.6 },
+    unlockLevel: 14,
+    badge: '08'
   }
+
 ];
 
 export const skills: SkillDefinition[] = [
@@ -410,12 +448,19 @@ export const items: ItemDefinition[] = [
 
 export const MAX_ENHANCE_LEVEL = 10;
 
+export function enhancementSuccessRate(level: number) {
+  const next = Math.min(MAX_ENHANCE_LEVEL, Math.max(0, level) + 1);
+  if (next <= 4) return 1;
+  return Math.max(0.1, 1 - (next - 4) * 0.1);
+}
+
 export function enhancementCost(level: number) {
   const next = Math.min(MAX_ENHANCE_LEVEL, Math.max(0, level) + 1);
   return {
     next,
     gold: 90 + next * 70 + Math.max(0, next - 5) * 60,
-    shard: next <= 3 ? 0 : Math.ceil((next - 3) / 2)
+    shard: next <= 3 ? 0 : Math.ceil((next - 3) / 2),
+    successRate: enhancementSuccessRate(level)
   };
 }
 

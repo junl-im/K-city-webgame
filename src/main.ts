@@ -1,9 +1,9 @@
 import './styles.css';
-import { MAX_ENHANCE_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, skills, souls, storyQuests, zones } from './data/gameData';
+import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { SolGame } from './game/SolGame';
 import { audioService } from './game/AudioService';
-import { formatNumber, uid } from './game/math';
+import { formatGold, formatNumber, formatSoul, roll, uid } from './game/math';
 import type { CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, ItemDefinition, PlayerSave, SheetTab, Snapshot, Stats } from './types';
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
@@ -36,6 +36,7 @@ const loginStatus = must('#loginStatus');
 const loginFlowHint = document.querySelector<HTMLElement>('#loginFlowHint');
 const miniZoneName = document.querySelector<HTMLElement>('#miniZoneName');
 const miniZoneMeta = document.querySelector<HTMLElement>('#miniZoneMeta');
+const miniPlayerDot = document.querySelector<HTMLElement>('#miniPlayerDot');
 const guestLoginBtn = must<HTMLButtonElement>('#guestLoginBtn');
 const googleLoginBtn = must<HTMLButtonElement>('#googleLoginBtn');
 const localLoginBtn = must<HTMLButtonElement>('#localLoginBtn');
@@ -120,6 +121,7 @@ async function boot() {
   bindJoystick();
   bindSheet();
   bindAudioControls();
+  bindBackButtonGuard();
   renderCharacterSummary();
   renderCharacterSlots();
   updateWorldSummary();
@@ -205,7 +207,7 @@ function renderAudioSettingsPanel(mode: 'town' | 'field') {
   return `
     <div class="audio-settings-panel ${mode}">
       <article class="audio-hero-card">
-        <span class="town-eyebrow">REAL AUDIO 0.19</span>
+        <span class="town-eyebrow">REAL AUDIO 0.20</span>
         <h3>루미나 사운드 믹서</h3>
         <p>public/assets/soulpack/audio 안의 실제 OGG 루프를 우선 재생합니다. 파일이 없거나 재생이 막히면 Web Audio fallback으로 전환됩니다.</p>
         <div class="pill-row">
@@ -691,7 +693,7 @@ function bindActions() {
 
 function bindJoystick() {
   let active = false;
-  const radius = 34;
+  const radius = 48;
 
   const reset = () => {
     active = false;
@@ -709,21 +711,29 @@ function bindJoystick() {
     const clamped = Math.min(radius, len);
     const nx = (dx / len) * clamped;
     const ny = (dy / len) * clamped;
+    const strength = clamped / radius;
+    const boosted = strength < 0.04 ? 0 : Math.min(1, strength * 1.18);
     joystickKnob.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`;
-    game?.setJoystick(nx / radius, ny / radius);
+    game?.setJoystick((dx / len) * boosted, (dy / len) * boosted);
   };
 
   joystick.addEventListener('pointerdown', (event) => {
+    event.preventDefault();
     active = true;
     joystick.setPointerCapture(event.pointerId);
     update(event.clientX, event.clientY);
-  });
+  }, { passive: false });
 
   joystick.addEventListener('pointermove', (event) => {
-    if (active) update(event.clientX, event.clientY);
-  });
+    if (!active) return;
+    event.preventDefault();
+    update(event.clientX, event.clientY);
+  }, { passive: false });
 
-  joystick.addEventListener('pointerup', reset);
+  joystick.addEventListener('pointerup', (event) => {
+    event.preventDefault();
+    reset();
+  }, { passive: false });
   joystick.addEventListener('pointercancel', reset);
   joystick.addEventListener('lostpointercapture', reset);
 }
@@ -813,6 +823,7 @@ async function mergeCloudAfterLogin() {
 function renderHud(snapshot: Snapshot) {
   const klass = classes[snapshot.save.classId];
   const hpPercent = `${Math.round((snapshot.save.hp / snapshot.stats.hp) * 100)}%`;
+  const mpPercent = `${Math.round((snapshot.save.mp / Math.max(1, snapshot.stats.mp)) * 100)}%`;
   const expPercent = `${Math.round((snapshot.save.exp / expToNext(snapshot.save.level)) * 100)}%`;
 
   text('#playerName', snapshot.save.name);
@@ -820,13 +831,16 @@ function renderHud(snapshot: Snapshot) {
   text('#classPortrait', klass.glyph);
   setClassArt(must('#classPortrait'), snapshot.save.classId);
   text('#hpText', `${Math.ceil(snapshot.save.hp)}/${snapshot.stats.hp}`);
+  text('#mpText', `${Math.floor(snapshot.save.mp)}/${snapshot.stats.mp}`);
   text('#expText', `${Math.floor(snapshot.save.exp)}/${expToNext(snapshot.save.level)}`);
-  text('#goldText', `${formatNumber(snapshot.save.gold)}G`);
-  text('#gemText', `${formatNumber(snapshot.save.gems)}소울`);
+  text('#goldText', formatGold(snapshot.save.gold));
+  text('#gemText', formatSoul(snapshot.save.gems));
   text('#dpsText', `전투력 ${formatNumber(snapshot.power)}`);
 
   styleWidth('#hpBar', hpPercent);
+  styleWidth('#mpBar', mpPercent);
   styleWidth('#expBar', expPercent);
+  updateFieldMiniMap(snapshot);
 
   autoHuntBtn.classList.toggle('active', snapshot.save.autoHunt);
   document.body.classList.toggle('field-auto-active', snapshot.save.autoHunt);
@@ -845,6 +859,54 @@ function renderHud(snapshot: Snapshot) {
 
   const log = must('#combatLog');
   log.innerHTML = snapshot.log.slice(0, 3).map((line) => `<p>${escapeHtml(line)}</p>`).join('');
+}
+
+
+function updateFieldMiniMap(snapshot: Snapshot) {
+  if (!miniPlayerDot) return;
+  const left = Math.max(7, Math.min(86, (snapshot.save.x / MAP_W) * 100));
+  const top = Math.max(7, Math.min(86, (snapshot.save.y / MAP_H) * 100));
+  miniPlayerDot.style.left = `${left}%`;
+  miniPlayerDot.style.top = `${top}%`;
+}
+
+function bindBackButtonGuard() {
+  const stateKey = 'soul-online-guard';
+  if (!window.history.state || window.history.state.key !== stateKey) {
+    window.history.replaceState({ key: stateKey }, document.title, window.location.href);
+    window.history.pushState({ key: stateKey, guard: true }, document.title, window.location.href);
+  }
+
+  window.addEventListener('popstate', () => {
+    const active = document.body.classList.contains('field-active') || document.body.classList.contains('town-active') || !loginScreen.classList.contains('hidden');
+    if (!active) {
+      window.history.pushState({ key: stateKey, guard: true }, document.title, window.location.href);
+      return;
+    }
+    const ok = window.confirm('게임을 종료할까요? 저장 후 첫 화면으로 돌아갑니다.');
+    if (ok) {
+      try {
+        if (game) {
+          const save = game.getSave();
+          saveService.saveLocal(save);
+          game.destroy();
+          game = null;
+          pendingSave = save;
+        } else if (pendingSave) {
+          saveService.saveLocal(pendingSave);
+        }
+      } catch (error) {
+        console.warn('[BackGuard] save skipped', error);
+      }
+      document.body.classList.remove('field-active', 'town-active');
+      root.replaceChildren();
+      townScreen.classList.add('hidden');
+      loginScreen.classList.add('hidden');
+      titleScreen.classList.remove('hidden');
+      showToast('진행 상황을 저장하고 첫 화면으로 돌아왔습니다.');
+    }
+    window.history.pushState({ key: stateKey, guard: true }, document.title, window.location.href);
+  });
 }
 
 function openSheet(tab: SheetTab) {
@@ -967,7 +1029,7 @@ function renderItemSlot(save: PlayerSave, def: ItemDefinition, uidValue: string,
   const enhanceLevel = save.enhancements?.[uidValue] || 0;
   const typeLabel: Record<string, string> = { weapon: '무기', armor: '방어구', relic: '유물', material: '재료' };
   const cost = enhancementCost(enhanceLevel);
-  const upgradeLabel = enhanceLevel >= MAX_ENHANCE_LEVEL ? 'MAX' : `강화 +${cost.next}`;
+  const upgradeLabel = enhanceLevel >= MAX_ENHANCE_LEVEL ? 'MAX' : `+${cost.next} (${Math.round(cost.successRate * 100)}%)`;
   const upgradeDisabled = enhanceLevel >= MAX_ENHANCE_LEVEL ? 'disabled' : '';
   return `
     <article class="slot-cell item-slot ${equipped ? 'equipped' : ''}">
@@ -975,7 +1037,7 @@ function renderItemSlot(save: PlayerSave, def: ItemDefinition, uidValue: string,
       <span class="slot-rarity rarity-${def.rarity.toLowerCase()}">${def.rarity}${canEquip ? ` · +${enhanceLevel}` : ''}</span>
       <b>${escapeHtml(def.name)}${canEquip && enhanceLevel ? ` +${enhanceLevel}` : ''}</b>
       <em>${typeLabel[def.type] || escapeHtml(def.type)} · x${count}${equipped ? ' · 장착중' : ''}</em>
-      <p>${escapeHtml(def.effectText)}${canEquip && enhanceLevel < MAX_ENHANCE_LEVEL ? ` · 다음 ${formatNumber(cost.gold)}G${cost.shard ? ` / 파편 ${cost.shard}` : ''}` : ''}</p>
+      <p>${escapeHtml(def.effectText)}${canEquip && enhanceLevel < MAX_ENHANCE_LEVEL ? ` · 다음 ${formatGold(cost.gold)} · 성공 ${Math.round(cost.successRate * 100)}%${cost.shard ? ` · 파편 ${cost.shard}` : ''}` : ''}</p>
       ${canEquip ? `<div class="slot-actions"><button ${actionAttr}="${uidValue}">${equipped ? '해제' : '장착'}</button>${upgradeAttr ? `<button ${upgradeDisabled} ${upgradeAttr}="${uidValue}">${upgradeLabel}</button>` : ''}</div>` : '<span class="slot-passive">재료</span>'}
     </article>
   `;
@@ -1118,7 +1180,7 @@ function renderCharacterSlots() {
               <span class="slot-glyph">${escapeHtml(klass.glyph)}</span>
               <span class="slot-main">
                 <b>${escapeHtml(save.name)}</b>
-                <em>Lv.${save.level} · ${escapeHtml(klass.name)} · ${(save.gender || 'male') === 'female' ? '여자' : '남자'} · ${formatNumber(save.gold)}G</em>
+                <em>Lv.${save.level} · ${escapeHtml(klass.name)} · ${(save.gender || 'male') === 'female' ? '여자' : '남자'} · ${formatGold(save.gold)}</em>
               </span>
               <span class="slot-date">${date}</span>
             </button>
@@ -1153,8 +1215,8 @@ function renderTown(save: PlayerSave | null) {
   setClassArt(townHeroGlyph, save.classId);
   townHeroName.textContent = save.name;
   townHeroMeta.textContent = `Lv.${save.level} · ${klass.name} · ${(save.gender || 'male') === 'female' ? '여자' : '남자'} · ${klass.roleText}`;
-  townGoldText.textContent = `${formatNumber(save.gold)}G`;
-  townGemText.textContent = `${formatNumber(save.gems)}소울`;
+  townGoldText.textContent = formatGold(save.gold);
+  townGemText.textContent = formatSoul(save.gems);
   townPowerText.textContent = `전투력 ${formatNumber(powerFromSave(save))}`;
   renderTownStorySnapshot(save);
   updateZoneLocks(save);
@@ -1324,7 +1386,7 @@ function applyStoryReward(save: PlayerSave, reward: (typeof storyQuests)[number]
 function storyRewardText(reward: (typeof storyQuests)[number]['reward']) {
   const parts: string[] = [];
   if (reward.exp) parts.push(`${formatNumber(reward.exp)}EXP`);
-  if (reward.gold) parts.push(`${formatNumber(reward.gold)}G`);
+  if (reward.gold) parts.push(formatGold(reward.gold));
   if (reward.gems) parts.push(`소울젬 ${formatNumber(reward.gems)}`);
   if (reward.itemId) {
     const def = items.find((item) => item.id === reward.itemId);
@@ -1479,7 +1541,7 @@ function renderTownShop(save: PlayerSave) {
           <div>
             <div class="pill-row"><span class="pill">${def.rarity}</span><span class="pill">${label}</span></div>
             <h3>${escapeHtml(def.name)}</h3>
-            <p>${escapeHtml(def.effectText)} · 가격 ${formatNumber(price)}G</p>
+            <p>${escapeHtml(def.effectText)} · 가격 ${formatGold(price)}</p>
           </div>
           <button ${disabled} data-town-shop-buy="${def.id}">${save.gold < price ? '골드 부족' : '구매'}</button>
         </article>
@@ -1487,7 +1549,7 @@ function renderTownShop(save: PlayerSave) {
     })
     .join('');
   return `
-    <div class="town-content-note">보유 골드 ${formatNumber(save.gold)}G · 구매 즉시 로컬 저장됩니다.</div>
+    <div class="town-content-note">보유 골드 ${formatGold(save.gold)} · 구매 즉시 로컬 저장됩니다.</div>
     <div class="shop-list">${rows}</div>
   `;
 }
@@ -1506,7 +1568,7 @@ function renderTownBoss(save: PlayerSave) {
         </div>
         <h3>${dragon ? escapeHtml(dragon.name) : '저녁 레이드 드래곤'}</h3>
         <p>수정 레이드 터에서 드래곤과 흑수정 곰이 등장합니다. 현재는 솔로 입장형 보스 테스트이며, 추후 시간표/기여도/랭킹 보상으로 확장합니다.</p>
-        ${dragon ? `<p>보상: ${formatNumber(dragon.gold)}G, ${dragon.exp}EXP, 소울젬/SSR 카드 확률 드랍</p>` : ''}
+        ${dragon ? `<p>보상: ${formatGold(dragon.gold)}, ${dragon.exp}EXP, 소울젬/SSR 카드 확률 드랍</p>` : ''}
         ${bear ? `<p>중간 보스: ${escapeHtml(bear.name)} · Lv.${bear.level}</p>` : ''}
         <button class="wide-action primary" data-town-zone-enter="crystal-raid">수정 레이드 터 입장</button>
       </div>
@@ -1558,7 +1620,7 @@ function questProgress(save: PlayerSave, questId: string) {
 
 function rewardText(reward: { gold?: number; gems?: number; itemId?: string; itemCount?: number }) {
   const parts: string[] = [];
-  if (reward.gold) parts.push(`${formatNumber(reward.gold)}G`);
+  if (reward.gold) parts.push(formatGold(reward.gold));
   if (reward.gems) parts.push(`소울젬 ${formatNumber(reward.gems)}`);
   if (reward.itemId) {
     const def = items.find((item) => item.id === reward.itemId);
@@ -1684,7 +1746,7 @@ function upgradeTownItem(itemUid: string) {
   }
   const cost = enhancementCost(current);
   if (pendingSave.gold < cost.gold) {
-    showToast(`골드 부족 · 필요 ${formatNumber(cost.gold)}G`);
+    showToast(`골드 부족 · 필요 ${formatGold(cost.gold)}`);
     return;
   }
   if (cost.shard && materialCount(pendingSave, 'soul-shard') < cost.shard) {
@@ -1693,11 +1755,17 @@ function upgradeTownItem(itemUid: string) {
   }
   pendingSave.gold -= cost.gold;
   if (cost.shard) consumeMaterial(pendingSave, 'soul-shard', cost.shard);
-  pendingSave.enhancements[itemUid] = current + 1;
-  repairTownVitals(pendingSave);
-  audioService.play('enhance');
+  const success = roll(cost.successRate);
+  if (success) {
+    pendingSave.enhancements[itemUid] = current + 1;
+    repairTownVitals(pendingSave);
+    audioService.play('enhance');
+    showToast(`${def.name} +${current + 1} 강화 성공 · 확률 ${Math.round(cost.successRate * 100)}%`);
+  } else {
+    audioService.play('error');
+    showToast(`${def.name} 강화 실패 · 확률 ${Math.round(cost.successRate * 100)}% · 단계 유지`);
+  }
   persistTownSave();
-  showToast(`${def.name} +${current + 1} 강화 성공`);
 }
 
 function buyTownShopItem(itemId: string) {

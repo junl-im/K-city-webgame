@@ -1,6 +1,6 @@
 {
   "name": "Soul Online Runtime Asset Pack",
-  "version": "0.19.0",
+  "version": "0.20.0",
   "description": "Drop-in runtime asset pack. Replace files in this folder without changing code.",
   "characters": {
     "frameSize": [128, 192],
@@ -22,6 +22,17 @@
   "tiles": {
     "frameSize": [128, 70],
     "format": "single isometric png per terrain"
+  },
+  "sfx": {
+    "ui": "sfx/ui.wav",
+    "attack": "sfx/attack.wav",
+    "hit": "sfx/hit.wav",
+    "skill": "sfx/skill.wav",
+    "heal": "sfx/heal.wav",
+    "reward": "sfx/reward.wav",
+    "enhance": "sfx/enhance.wav",
+    "level": "sfx/level.wav",
+    "error": "sfx/error.wav"
   },
   "audio": {
     "format": "ogg loop",
