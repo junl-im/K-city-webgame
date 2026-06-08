@@ -1664,7 +1664,7 @@ body.combat-log-collapsed .combat-log-toggle {
   }
 }
 
-/* Alpha 0.7 flow and town refresh */
+/* Alpha 0.7-0.8 flow and town refresh */
 .title-screen {
   position: fixed;
   inset: 0;
@@ -2123,4 +2123,328 @@ body.screen-shake .game-root canvas {
 .portrait.class-cleric,
 .town-portrait.class-cleric {
   background-image: url("./assets/sprites/hero-cleric.svg");
+}
+
+/* Alpha 0.8: content foundation UI pass */
+.title-stage {
+  width: min(100%, 860px);
+  border-radius: 34px;
+  background:
+    linear-gradient(180deg, rgba(22, 28, 28, 0.82), rgba(7, 8, 8, 0.9)),
+    radial-gradient(circle at 50% 12%, rgba(114, 231, 255, 0.2), transparent 42%);
+}
+
+.title-copy h1 {
+  background: linear-gradient(180deg, #fff7d3 0%, #e2b95f 46%, #8e5b2c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.title-mini-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.title-mini-nav span {
+  padding: 7px 12px;
+  border: 1px solid rgba(245, 241, 232, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(245, 241, 232, 0.68);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.login-panel-v3 {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(340px, 1fr);
+  gap: 14px;
+  width: min(100%, 940px);
+  max-height: min(780px, 100%);
+  padding: 14px;
+}
+
+.login-lore-card,
+.login-flow-card {
+  min-width: 0;
+  border: 1px solid rgba(245, 241, 232, 0.13);
+  border-radius: 18px;
+}
+
+.login-lore-card {
+  display: grid;
+  align-content: end;
+  gap: 12px;
+  min-height: 520px;
+  padding: 24px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(10, 12, 12, 0.1), rgba(7, 8, 8, 0.9)),
+    url("./assets/cards/card-crystal-fox.jpg") center / cover;
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.34);
+}
+
+.login-lore-card span {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+}
+
+.login-lore-card h2,
+.login-lore-card p {
+  margin: 0;
+}
+
+.login-lore-card h2 {
+  max-width: 340px;
+  font-size: clamp(28px, 4vw, 46px);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+}
+
+.login-lore-card p {
+  max-width: 340px;
+  color: #d9cfbb;
+  line-height: 1.55;
+}
+
+.login-flow-card {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 16px;
+  background: rgba(8, 10, 9, 0.52);
+}
+
+.login-flow-card .brand-block h1 {
+  font-size: 34px;
+}
+
+.character-slot {
+  border-radius: 16px;
+}
+
+.town-topbar {
+  margin-bottom: clamp(132px, 22vh, 218px);
+}
+
+.town-layout-v2 {
+  grid-template-columns: minmax(300px, 1.05fr) minmax(320px, 1fr) minmax(300px, 1fr);
+}
+
+.town-hero-panel,
+.town-zone-panel,
+.town-action-panel {
+  border-color: rgba(245, 241, 232, 0.18);
+  background:
+    linear-gradient(180deg, rgba(22, 25, 22, 0.78), rgba(8, 9, 8, 0.9)),
+    radial-gradient(circle at 100% 0, rgba(114, 231, 255, 0.1), transparent 38%);
+}
+
+.town-hero-panel {
+  align-content: stretch;
+  min-height: 360px;
+  background:
+    linear-gradient(180deg, rgba(12, 14, 13, 0.12), rgba(8, 9, 8, 0.9)),
+    url("./assets/cards/card-crystal-bear.jpg") center 40% / cover;
+}
+
+.story-snapshot {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  margin-top: auto;
+  border: 1px solid rgba(226, 185, 95, 0.2);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 0 0, rgba(226, 185, 95, 0.15), transparent 40%),
+    rgba(6, 8, 7, 0.62);
+  backdrop-filter: blur(10px);
+}
+
+.story-snapshot span {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+}
+
+.story-snapshot b,
+.story-snapshot em {
+  display: block;
+}
+
+.story-snapshot b {
+  font-size: 18px;
+}
+
+.story-snapshot em {
+  color: #d9cfbb;
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.story-progress-bar {
+  height: 16px;
+}
+
+.story-action-btn {
+  min-height: 40px;
+  border: 1px solid rgba(255, 238, 176, 0.58);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 238, 176, 0.95), rgba(226, 185, 95, 0.9) 54%, rgba(126, 76, 28, 0.96));
+  color: #16100a;
+  font-weight: 950;
+}
+
+.zone-card.locked {
+  opacity: 0.48;
+  filter: grayscale(0.55);
+}
+
+.zone-card.locked::after {
+  content: "스토리 잠금";
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  padding: 4px 8px;
+  border: 1px solid rgba(245, 241, 232, 0.12);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.42);
+  color: #efe5c6;
+  font-size: 10px;
+  font-weight: 950;
+}
+
+.content-card.featured {
+  border-color: rgba(226, 185, 95, 0.45);
+  background:
+    radial-gradient(circle at 100% 0, rgba(226, 185, 95, 0.2), transparent 40%),
+    rgba(226, 185, 95, 0.09);
+}
+
+.story-brief {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(226, 185, 95, 0.24);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 0 0, rgba(226, 185, 95, 0.16), transparent 44%),
+    rgba(255, 255, 255, 0.045);
+}
+
+.story-npc-medal {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border: 1px solid rgba(255, 238, 176, 0.45);
+  border-radius: 18px;
+  background: linear-gradient(145deg, #fff0b9, #c28e3d 54%, #4a2d18);
+  color: #1a1208;
+  font-size: 26px;
+  font-weight: 950;
+}
+
+.story-brief h3,
+.story-brief p {
+  margin: 0;
+}
+
+.story-brief h3 {
+  margin: 5px 0 8px;
+  font-size: 22px;
+}
+
+.story-brief p {
+  color: #ddd3bf;
+  line-height: 1.48;
+}
+
+.story-brief .wide-action {
+  margin-top: 12px;
+}
+
+.story-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.story-row {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(245, 241, 232, 0.12);
+  border-radius: 16px;
+  background: rgba(245, 241, 232, 0.052);
+}
+
+.story-row.active {
+  border-color: rgba(226, 185, 95, 0.46);
+  background: rgba(226, 185, 95, 0.1);
+}
+
+.story-row.claimed {
+  opacity: 0.62;
+}
+
+.story-row-chapter {
+  display: grid;
+  place-items: center;
+  height: 44px;
+  border: 1px solid rgba(226, 185, 95, 0.2);
+  border-radius: 14px;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.story-row h3,
+.story-row p {
+  margin: 0;
+}
+
+.story-row h3 {
+  margin: 5px 0;
+  font-size: 16px;
+}
+
+.story-row p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.42;
+}
+
+@media (max-width: 900px) {
+  .login-panel-v3 {
+    grid-template-columns: 1fr;
+  }
+
+  .login-lore-card {
+    min-height: 210px;
+  }
+}
+
+@media (max-width: 760px) {
+  .town-topbar {
+    margin-bottom: 30vh;
+  }
+
+  .town-hero-panel {
+    min-height: 330px;
+  }
+
+  .story-brief,
+  .story-row {
+    grid-template-columns: 1fr;
+  }
 }

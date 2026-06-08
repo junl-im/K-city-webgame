@@ -12,8 +12,8 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, getFirestore, serverTimestamp, setDoc, type Firestore } from 'firebase/firestore';
 import { firebaseConfig } from '../config/firebase';
-import { SAVE_VERSION, cards, classes, expToNext, items, souls } from '../data/gameData';
-import type { CharacterClassId, DailyProgress, EquipmentSlot, MonsterId, PlayerSave, SaveRoster } from '../types';
+import { SAVE_VERSION, cards, classes, expToNext, items, souls, storyQuests } from '../data/gameData';
+import type { CharacterClassId, DailyProgress, EquipmentSlot, MonsterId, PlayerSave, SaveRoster, StoryProgress } from '../types';
 import { uid } from './math';
 
 const LEGACY_SAVE_KEY = 'sol-online-alpha-save-v1';
@@ -239,6 +239,7 @@ export class SaveService {
       },
       souls: souls.map((soul) => ({ soulId: soul.id, unlocked: false, progress: 0 })),
       daily: this.createDailyProgress(),
+      story: this.createStoryProgress(),
       autoHunt: false,
       createdAt: Date.now(),
       updatedAt: Date.now()
@@ -276,6 +277,7 @@ export class SaveService {
       return old || { soulId: soul.id, unlocked: false, progress: save.kills?.[soul.monsterId as MonsterId] || 0 };
     });
     save.daily = this.normalizeDailyProgress(save.daily);
+    save.story = this.normalizeStoryProgress(save.story);
     while (save.exp >= expToNext(save.level)) {
       save.exp -= expToNext(save.level);
       save.level += 1;
@@ -348,6 +350,7 @@ export class SaveService {
       inventory: Array.isArray(raw.inventory) && raw.inventory.length ? raw.inventory : fresh.inventory,
       equipment: raw.equipment || fresh.equipment,
       daily: this.normalizeDailyProgress(raw.daily),
+      story: this.normalizeStoryProgress(raw.story),
       souls: souls.map((soul) => {
         const old = raw.souls?.find((entry) => entry.soulId === soul.id);
         return old || { soulId: soul.id, unlocked: false, progress: raw.kills?.[soul.monsterId as MonsterId] || 0 };
@@ -383,6 +386,26 @@ export class SaveService {
       kills: this.emptyKillRecord(),
       claimedQuestIds: []
     };
+  }
+
+  private createStoryProgress(raw?: Partial<StoryProgress>): StoryProgress {
+    const first = storyQuests[0]?.id || '';
+    return this.normalizeStoryProgress(raw || { activeQuestId: first, completedQuestIds: [], claimedQuestIds: [] });
+  }
+
+  private normalizeStoryProgress(raw?: Partial<StoryProgress>): StoryProgress {
+    const validIds = new Set(storyQuests.map((quest) => quest.id));
+    const claimedQuestIds = Array.isArray(raw?.claimedQuestIds)
+      ? Array.from(new Set(raw.claimedQuestIds.filter((id) => validIds.has(id))))
+      : [];
+    const completedQuestIds = Array.isArray(raw?.completedQuestIds)
+      ? Array.from(new Set(raw.completedQuestIds.filter((id) => validIds.has(id))))
+      : [];
+    const firstUnclaimed = storyQuests.find((quest) => !claimedQuestIds.includes(quest.id));
+    const activeQuestId = raw?.activeQuestId && validIds.has(raw.activeQuestId) && !claimedQuestIds.includes(raw.activeQuestId)
+      ? raw.activeQuestId
+      : firstUnclaimed?.id || storyQuests.at(-1)?.id || '';
+    return { activeQuestId, completedQuestIds, claimedQuestIds };
   }
 
   private normalizeDailyProgress(raw?: Partial<DailyProgress>): DailyProgress {

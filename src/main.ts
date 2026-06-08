@@ -1,12 +1,12 @@
 import './styles.css';
-import { cards, classes, dailyQuests, expToNext, items, monsters, souls } from './data/gameData';
+import { cards, classes, dailyQuests, expToNext, items, monsters, souls, storyQuests } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { SolGame } from './game/SolGame';
 import { formatNumber, uid } from './game/math';
 import type { CardDefinition, CharacterClassId, EquipmentSlot, ItemDefinition, PlayerSave, SheetTab, Snapshot, Stats } from './types';
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
-type TownContentId = 'cards' | 'inventory' | 'shop' | 'boss' | 'quests' | 'account';
+type TownContentId = 'story' | 'cards' | 'inventory' | 'shop' | 'boss' | 'quests' | 'account';
 
 const saveService = new SaveService();
 let game: SolGame | null = null;
@@ -20,7 +20,7 @@ let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
 let activeSheetTab: SheetTab = 'cards';
-let activeTownContent: TownContentId = 'cards';
+let activeTownContent: TownContentId = 'story';
 let sheetOpen = false;
 let townContentOpen = false;
 
@@ -67,6 +67,12 @@ const townHeroMeta = must('#townHeroMeta');
 const townGoldText = must('#townGoldText');
 const townGemText = must('#townGemText');
 const townPowerText = must('#townPowerText');
+const townChapterText = must('#townChapterText');
+const townStoryTitle = must('#townStoryTitle');
+const townStoryDesc = must('#townStoryDesc');
+const townStoryProgress = must<HTMLElement>('#townStoryProgress');
+const townStoryProgressText = must('#townStoryProgressText');
+const townStoryActionBtn = must<HTMLButtonElement>('#townStoryActionBtn');
 const townFullscreenBtn = must<HTMLButtonElement>('#townFullscreenBtn');
 const townSaveBtn = must<HTMLButtonElement>('#townSaveBtn');
 const townAccountBtn = must<HTMLButtonElement>('#townAccountBtn');
@@ -318,6 +324,9 @@ function bindLoginFlow() {
   });
 
   townAccountBtn.addEventListener('click', () => openTownContent('account'));
+  townStoryActionBtn.addEventListener('click', async () => {
+    await handleStoryAction();
+  });
 
   document.querySelectorAll<HTMLButtonElement>('[data-zone-id]').forEach((button) => {
     button.addEventListener('click', async () => {
@@ -363,6 +372,12 @@ function bindLoginFlow() {
     const claimQuest = target.closest<HTMLButtonElement>('[data-town-claim-quest]');
     if (claimQuest) {
       claimDailyQuest(claimQuest.dataset.townClaimQuest || '');
+      return;
+    }
+
+    const story = target.closest<HTMLButtonElement>('[data-town-story-action]');
+    if (story) {
+      await handleStoryAction();
       return;
     }
 
@@ -859,6 +874,8 @@ function renderTown(save: PlayerSave | null) {
   townGoldText.textContent = `${formatNumber(save.gold)}G`;
   townGemText.textContent = `${formatNumber(save.gems)}소울`;
   townPowerText.textContent = `전투력 ${formatNumber(powerFromSave(save))}`;
+  renderTownStorySnapshot(save);
+  updateZoneLocks(save);
   if (townContentOpen) renderTownContent();
 }
 
@@ -898,6 +915,7 @@ function closeTownContentPanel() {
 function renderTownContent() {
   if (!pendingSave) return;
   const titles: Record<TownContentId, [string, string]> = {
+    story: ['MAIN STORY', '스토리 퀘스트'],
     cards: ['SOUL CODEX', '카드 도감'],
     inventory: ['BAG', '장비 가방'],
     shop: ['MERCHANT', '루미나 상점'],
@@ -907,12 +925,195 @@ function renderTownContent() {
   };
   townContentEyebrow.textContent = titles[activeTownContent][0];
   townContentTitle.textContent = titles[activeTownContent][1];
+  if (activeTownContent === 'story') townContentBody.innerHTML = renderTownStory(pendingSave);
   if (activeTownContent === 'cards') townContentBody.innerHTML = renderTownCards(pendingSave);
   if (activeTownContent === 'inventory') townContentBody.innerHTML = renderTownInventory(pendingSave);
   if (activeTownContent === 'shop') townContentBody.innerHTML = renderTownShop(pendingSave);
   if (activeTownContent === 'boss') townContentBody.innerHTML = renderTownBoss(pendingSave);
   if (activeTownContent === 'quests') townContentBody.innerHTML = renderTownQuests(pendingSave);
   if (activeTownContent === 'account') townContentBody.innerHTML = renderTownAccount(pendingSave);
+}
+
+
+
+function currentStoryQuest(save: PlayerSave) {
+  const claimed = new Set(save.story?.claimedQuestIds || []);
+  const activeId = save.story?.activeQuestId;
+  const active = storyQuests.find((quest) => quest.id === activeId && !claimed.has(quest.id));
+  return active || storyQuests.find((quest) => !claimed.has(quest.id)) || null;
+}
+
+function storyQuestProgress(save: PlayerSave, quest: (typeof storyQuests)[number]) {
+  if (quest.goalType === 'talk') return 1;
+  if (quest.goalType === 'level') return save.level;
+  if (quest.goalType === 'kill' && quest.monsterId) return save.kills?.[quest.monsterId] || 0;
+  return 0;
+}
+
+function renderTownStorySnapshot(save: PlayerSave) {
+  const quest = currentStoryQuest(save);
+  if (!quest) {
+    townChapterText.textContent = 'STORY CLEAR';
+    townStoryTitle.textContent = '현재 챕터 완료';
+    townStoryDesc.textContent = 'Alpha 0.8 스토리를 모두 완료했습니다.';
+    townStoryProgress.style.width = '100%';
+    townStoryProgressText.textContent = '완료';
+    townStoryActionBtn.textContent = '스토리 보기';
+    return;
+  }
+  const progress = storyQuestProgress(save, quest);
+  const percent = Math.min(100, Math.round((progress / quest.target) * 100));
+  townChapterText.textContent = `CHAPTER ${quest.chapter}`;
+  townStoryTitle.textContent = quest.title;
+  townStoryDesc.textContent = `${quest.npc}: ${quest.goalText}`;
+  townStoryProgress.style.width = `${percent}%`;
+  townStoryProgressText.textContent = `${Math.min(progress, quest.target)}/${quest.target}`;
+  townStoryActionBtn.textContent = storyActionLabel(save, quest);
+}
+
+function storyActionLabel(save: PlayerSave, quest: (typeof storyQuests)[number]) {
+  const ready = storyQuestProgress(save, quest) >= quest.target;
+  if (ready) return quest.goalType === 'talk' ? '대화 완료' : '보상 수령';
+  if (quest.unlockZoneId) return '사냥터 이동';
+  return '스토리 확인';
+}
+
+async function handleStoryAction() {
+  if (!pendingSave) return;
+  const quest = currentStoryQuest(pendingSave);
+  if (!quest) {
+    openTownContent('story');
+    return;
+  }
+  const progress = storyQuestProgress(pendingSave, quest);
+  if (progress < quest.target) {
+    if (quest.unlockZoneId) {
+      closeTownContentPanel();
+      await startField(pendingSave, quest.unlockZoneId);
+      return;
+    }
+    openTownContent('story');
+    return;
+  }
+  claimStoryQuest(quest.id);
+}
+
+function claimStoryQuest(questId: string) {
+  if (!pendingSave) return;
+  const quest = storyQuests.find((entry) => entry.id === questId);
+  if (!quest) return;
+  pendingSave.story ||= { activeQuestId: storyQuests[0]?.id || '', completedQuestIds: [], claimedQuestIds: [] };
+  if (pendingSave.story.claimedQuestIds.includes(quest.id)) {
+    showToast('이미 완료한 스토리입니다.');
+    return;
+  }
+  if (storyQuestProgress(pendingSave, quest) < quest.target) {
+    showToast('스토리 목표를 아직 달성하지 못했습니다.');
+    return;
+  }
+  if (!pendingSave.story.completedQuestIds.includes(quest.id)) pendingSave.story.completedQuestIds.push(quest.id);
+  pendingSave.story.claimedQuestIds.push(quest.id);
+  applyStoryReward(pendingSave, quest.reward);
+  const next = storyQuests.find((entry) => !pendingSave?.story.claimedQuestIds.includes(entry.id));
+  pendingSave.story.activeQuestId = next?.id || quest.id;
+  persistTownSave();
+  showToast(`${quest.title} 완료 · 보상 획득`);
+}
+
+function applyStoryReward(save: PlayerSave, reward: (typeof storyQuests)[number]['reward']) {
+  if (reward.gold) save.gold += reward.gold;
+  if (reward.gems) save.gems += reward.gems;
+  if (reward.itemId) {
+    for (let i = 0; i < (reward.itemCount || 1); i += 1) addInventoryItem(save, reward.itemId);
+  }
+  if (reward.exp) {
+    save.exp += reward.exp;
+    while (save.exp >= expToNext(save.level)) {
+      save.exp -= expToNext(save.level);
+      save.level += 1;
+    }
+  }
+  repairTownVitals(save);
+}
+
+function storyRewardText(reward: (typeof storyQuests)[number]['reward']) {
+  const parts: string[] = [];
+  if (reward.exp) parts.push(`${formatNumber(reward.exp)}EXP`);
+  if (reward.gold) parts.push(`${formatNumber(reward.gold)}G`);
+  if (reward.gems) parts.push(`소울젬 ${formatNumber(reward.gems)}`);
+  if (reward.itemId) {
+    const def = items.find((item) => item.id === reward.itemId);
+    parts.push(`${def ? def.name : reward.itemId} x${reward.itemCount || 1}`);
+  }
+  return parts.join(' · ') || '없음';
+}
+
+function updateZoneLocks(save: PlayerSave) {
+  const claimed = new Set(save.story?.claimedQuestIds || []);
+  const slimeUnlocked = true;
+  const goblinUnlocked = claimed.has('story-crystal-wolf') || save.level >= 4;
+  const raidUnlocked = claimed.has('story-soul-growth') || save.level >= 8;
+  const zones: Record<string, boolean> = {
+    'slime-forest': slimeUnlocked,
+    'goblin-road': goblinUnlocked,
+    'crystal-raid': raidUnlocked
+  };
+  document.querySelectorAll<HTMLButtonElement>('[data-zone-id]').forEach((button) => {
+    const unlocked = zones[button.dataset.zoneId || ''] ?? true;
+    button.disabled = !unlocked;
+    button.classList.toggle('locked', !unlocked);
+  });
+}
+
+function renderTownStory(save: PlayerSave) {
+  const quest = currentStoryQuest(save);
+  const rows = storyQuests
+    .map((entry) => {
+      const claimed = save.story.claimedQuestIds.includes(entry.id);
+      const active = quest?.id === entry.id;
+      const progress = Math.min(entry.target, storyQuestProgress(save, entry));
+      const percent = entry.target ? Math.min(100, Math.round((progress / entry.target) * 100)) : 100;
+      const ready = progress >= entry.target;
+      return `
+        <article class="story-row ${active ? 'active' : ''} ${claimed ? 'claimed' : ''}">
+          <div class="story-row-chapter">CH.${entry.chapter}</div>
+          <div>
+            <div class="pill-row">
+              <span class="pill">${claimed ? '완료' : active ? ready ? '보상 가능' : '진행중' : '대기'}</span>
+              <span class="pill">${escapeHtml(entry.npc)}</span>
+            </div>
+            <h3>${escapeHtml(entry.title)}</h3>
+            <p>${escapeHtml(entry.subtitle)} · ${escapeHtml(entry.goalText)}</p>
+            <div class="bar exp quest-progress"><i style="width:${percent}%"></i><em>${progress}/${entry.target}</em></div>
+            <p class="quest-reward">보상: ${storyRewardText(entry.reward)}</p>
+          </div>
+        </article>
+      `;
+    })
+    .join('');
+
+  if (!quest) {
+    return `
+      <div class="town-content-note">현재 준비된 Alpha 0.8 스토리를 모두 완료했습니다. 다음 챕터는 흑수정 동굴과 잠든 용의 둥지로 확장됩니다.</div>
+      <div class="story-list">${rows}</div>
+    `;
+  }
+
+  const progress = storyQuestProgress(save, quest);
+  const ready = progress >= quest.target;
+  return `
+    <section class="story-brief">
+      <div class="story-npc-medal">${escapeHtml(quest.npc.slice(0, 1))}</div>
+      <div>
+        <span class="town-eyebrow">CHAPTER ${quest.chapter}</span>
+        <h3>${escapeHtml(quest.title)}</h3>
+        <p><b>${escapeHtml(quest.npc)}</b> “${escapeHtml(quest.dialogue)}”</p>
+        <p>${escapeHtml(quest.goalText)} · ${Math.min(progress, quest.target)}/${quest.target}</p>
+        <button class="wide-action primary" data-town-story-action="${quest.id}">${storyActionLabel(save, quest)}</button>
+      </div>
+    </section>
+    <div class="story-list">${rows}</div>
+  `;
 }
 
 function renderTownCards(save: PlayerSave) {

@@ -1,18 +1,18 @@
-import type { CardDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, MonsterDefinition, SoulDefinition, TileId } from '../types';
+import type { CardDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, SoulDefinition, TileId } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 export const MAP_W = 20;
 export const MAP_H = 20;
 
 export const classes: Record<string, CharacterClass> = {
   warrior: {
     id: 'warrior',
-    name: '전사',
+    name: '검혼',
     glyph: 'W',
-    description: '짧은 사거리, 높은 체력과 방어, 근접 폭발력',
-    roleText: '근접 탱커',
-    skillName: '반월참',
+    description: '소울검으로 전장을 가르는 근접 돌격형 수호자',
+    roleText: '근접 브레이커',
+    skillName: '혼월참',
     attackStyle: 'melee',
     accent: 0xe2b95f,
     sprite: textureUrls.heroWarrior,
@@ -21,11 +21,11 @@ export const classes: Record<string, CharacterClass> = {
   },
   taoist: {
     id: 'taoist',
-    name: '술사',
+    name: '영술사',
     glyph: 'T',
-    description: '긴 사거리, 높은 공격력과 치명타, 낮은 생존력',
-    roleText: '원거리 딜러',
-    skillName: '수정 탄환',
+    description: '영혼결정을 탄환으로 빚어 쏘는 원거리 폭딜러',
+    roleText: '원거리 캐스터',
+    skillName: '소울 탄환',
     attackStyle: 'projectile',
     accent: 0x72e7ff,
     sprite: textureUrls.heroTaoist,
@@ -34,11 +34,11 @@ export const classes: Record<string, CharacterClass> = {
   },
   cleric: {
     id: 'cleric',
-    name: '성직자',
+    name: '성휘사',
     glyph: 'C',
-    description: '중거리, 낮은 화력, 타격 시 회복으로 안정 사냥',
+    description: '빛의 영혼으로 자신을 회복하며 전선을 버티는 지원형 전투가',
     roleText: '회복 서포터',
-    skillName: '성광',
+    skillName: '성휘',
     attackStyle: 'holy',
     accent: 0xf2d66c,
     sprite: textureUrls.heroCleric,
@@ -137,6 +137,90 @@ export const souls: SoulDefinition[] = [
   }
 ];
 
+
+
+export const storyQuests: StoryQuestDefinition[] = [
+  {
+    id: 'story-lumina-oath',
+    chapter: 1,
+    title: '꺼져가는 루미나의 등불',
+    subtitle: '프롤로그 · 소울 바인더의 서약',
+    npc: '등불지기 리아',
+    dialogue: '마을의 결계가 약해지고 있어요. 당신의 소울 코어가 마지막 불씨를 붙잡을 수 있을지 시험해야 합니다.',
+    goalText: '등불지기 리아와 대화 완료',
+    goalType: 'talk',
+    target: 1,
+    reward: { gold: 60, gems: 1, exp: 35 }
+  },
+  {
+    id: 'story-cleanse-slimes',
+    chapter: 1,
+    title: '숲 입구의 첫 정화',
+    subtitle: '초록 숲 입구 개방',
+    npc: '경비대장 로한',
+    dialogue: '슬라임에게 붙은 어둠은 약하지만, 그대로 두면 숲 전체가 썩어갑니다. 초록 숲 입구에서 정화를 시작하세요.',
+    goalText: '초록 슬라임 5마리 처치',
+    goalType: 'kill',
+    monsterId: 'slime',
+    target: 5,
+    unlockZoneId: 'slime-forest',
+    reward: { gold: 130, gems: 2, itemId: 'soul-shard', itemCount: 1, exp: 80 }
+  },
+  {
+    id: 'story-crystal-wolf',
+    chapter: 2,
+    title: '수정 늑대의 울음',
+    subtitle: '결정화된 영혼의 흔적',
+    npc: '소울 연구가 세린',
+    dialogue: '늑대들의 몸에 수정 파편이 자라고 있어요. 이건 자연스러운 변이가 아닙니다. 영혼 오염의 흔적을 모아주세요.',
+    goalText: '수정 늑대 3마리 처치',
+    goalType: 'kill',
+    monsterId: 'wolf',
+    target: 3,
+    unlockZoneId: 'slime-forest',
+    reward: { gold: 180, gems: 3, exp: 110 }
+  },
+  {
+    id: 'story-goblin-road',
+    chapter: 3,
+    title: '고블린 길목의 검은 깃발',
+    subtitle: '폐허로 가는 길',
+    npc: '방랑 상인 모루',
+    dialogue: '고블린들이 검은 제단으로 가는 길을 막고 있어요. 길목을 확보하면 더 깊은 사냥터가 열릴 겁니다.',
+    goalText: '고블린 추적자 2마리 처치',
+    goalType: 'kill',
+    monsterId: 'goblin',
+    target: 2,
+    unlockZoneId: 'goblin-road',
+    reward: { gold: 240, gems: 4, itemId: 'iron-sword', itemCount: 1, exp: 140 }
+  },
+  {
+    id: 'story-soul-growth',
+    chapter: 4,
+    title: '소울 코어 공명',
+    subtitle: '성장 튜토리얼',
+    npc: '소울 성소의 엘린',
+    dialogue: '레벨이 오르면 소울 코어가 더 큰 영혼을 받아들일 수 있습니다. 지금의 힘으로 다음 결계를 열어보세요.',
+    goalText: '캐릭터 Lv.5 달성',
+    goalType: 'level',
+    target: 5,
+    reward: { gold: 320, gems: 6, itemId: 'fox-charm', itemCount: 1, exp: 180 }
+  },
+  {
+    id: 'story-crystal-bear',
+    chapter: 5,
+    title: '흑수정 곰의 심장',
+    subtitle: '보스 토벌 예고',
+    npc: '경비대장 로한',
+    dialogue: '흑수정 곰은 마을 결계를 직접 두드리는 존재입니다. 쓰러뜨릴 준비가 되면 수정 레이드 터로 향하세요.',
+    goalText: '흑수정 곰 1마리 처치',
+    goalType: 'kill',
+    monsterId: 'crystalBear',
+    target: 1,
+    unlockZoneId: 'crystal-raid',
+    reward: { gold: 500, gems: 10, itemId: 'soul-shard', itemCount: 3, exp: 260 }
+  }
+];
 
 export const dailyQuests: DailyQuestDefinition[] = [
   {

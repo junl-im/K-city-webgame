@@ -4,6 +4,7 @@ export type TileId = 'grass' | 'stone' | 'water' | 'portal';
 export type CardRarity = 'N' | 'R' | 'SR' | 'SSR';
 export type SheetTab = 'cards' | 'inventory' | 'souls' | 'account';
 export type DailyQuestGoalType = 'kill' | 'level';
+export type StoryQuestGoalType = 'talk' | 'kill' | 'level';
 export type EquipmentSlot = 'weapon' | 'armor' | 'relic';
 
 export interface Stats {
@@ -57,6 +58,21 @@ export interface DailyQuestDefinition {
   monsterId?: MonsterId;
   target: number;
   reward: { gold?: number; gems?: number; itemId?: string; itemCount?: number };
+}
+
+export interface StoryQuestDefinition {
+  id: string;
+  chapter: number;
+  title: string;
+  subtitle: string;
+  npc: string;
+  dialogue: string;
+  goalText: string;
+  goalType: StoryQuestGoalType;
+  monsterId?: MonsterId;
+  target: number;
+  unlockZoneId?: string;
+  reward: { gold?: number; gems?: number; itemId?: string; itemCount?: number; exp?: number };
 }
 
 export interface ItemDefinition {
@@ -115,6 +131,12 @@ export interface DailyProgress {
   claimedQuestIds: string[];
 }
 
+export interface StoryProgress {
+  activeQuestId: string;
+  completedQuestIds: string[];
+  claimedQuestIds: string[];
+}
+
 export interface PlayerSave {
   version: number;
   saveId: string;
@@ -134,6 +156,7 @@ export interface PlayerSave {
   equipment: EquipmentSlots;
   souls: SoulInstance[];
   daily: DailyProgress;
+  story: StoryProgress;
   autoHunt: boolean;
   createdAt: number;
   updatedAt: number;
