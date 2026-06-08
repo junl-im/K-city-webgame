@@ -150,6 +150,8 @@ export interface WorldMob {
   alive: boolean;
   respawnAt: number;
   attackCooldown: number;
+  aggroUntil: number;
+  wanderCooldown: number;
 }
 
 export interface CombatResult {

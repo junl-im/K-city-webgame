@@ -1663,3 +1663,464 @@ body.combat-log-collapsed .combat-log-toggle {
     grid-template-columns: 1fr;
   }
 }
+
+/* Alpha 0.7 flow and town refresh */
+.title-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: max(18px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background:
+    radial-gradient(circle at 66% 28%, rgba(114, 231, 255, 0.18), transparent 30%),
+    radial-gradient(circle at 18% 18%, rgba(226, 185, 95, 0.16), transparent 28%),
+    linear-gradient(135deg, #080b0d 0%, #121812 52%, #070807 100%);
+}
+
+.title-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+}
+
+.title-bg,
+.title-orb {
+  position: absolute;
+  inset: 0;
+}
+
+.title-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 34%, rgba(0, 0, 0, 0.38)),
+    repeating-linear-gradient(90deg, transparent 0 36px, rgba(255, 255, 255, 0.025) 36px 37px);
+}
+
+.title-orb {
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  filter: blur(3px);
+  opacity: 0.5;
+}
+
+.orb-a { left: 12%; top: 12%; background: radial-gradient(circle, rgba(226, 185, 95, 0.32), transparent 62%); }
+.orb-b { left: auto; right: 12%; top: 22%; background: radial-gradient(circle, rgba(114, 231, 255, 0.28), transparent 62%); }
+.orb-c { left: 36%; top: auto; bottom: 2%; background: radial-gradient(circle, rgba(157, 120, 217, 0.22), transparent 62%); }
+
+.title-stage {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 18px;
+  justify-items: center;
+  width: min(100%, 760px);
+  padding: clamp(22px, 5vw, 44px);
+  border: 1px solid rgba(245, 241, 232, 0.16);
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(20, 24, 20, 0.78), rgba(8, 10, 8, 0.84));
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(18px);
+  text-align: center;
+}
+
+.title-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.title-kicker {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.18em;
+}
+
+.title-copy h1 {
+  margin: 0;
+  font-size: clamp(54px, 11vw, 104px);
+  line-height: 0.88;
+  letter-spacing: -0.07em;
+  text-shadow: 0 16px 42px rgba(0, 0, 0, 0.6);
+}
+
+.title-copy p {
+  width: min(100%, 520px);
+  margin: 0 auto;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.title-hero {
+  position: relative;
+  width: min(76vw, 390px);
+  height: min(44vw, 210px);
+}
+
+.title-soul-ring {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: 76%;
+  height: 36%;
+  border: 2px solid rgba(226, 185, 95, 0.28);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) rotateX(64deg);
+  background: radial-gradient(ellipse at center, rgba(226, 185, 95, 0.24), transparent 68%);
+}
+
+.title-character {
+  position: absolute;
+  left: 50%;
+  bottom: 2%;
+  width: 124px;
+  height: 154px;
+  transform: translateX(-50%);
+  background: url("./assets/sprites/hero-warrior.svg") center bottom / contain no-repeat;
+  filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.5));
+}
+
+.start-game-btn {
+  min-width: min(100%, 320px);
+  min-height: 64px;
+  border: 1px solid rgba(255, 238, 176, 0.72);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 238, 176, 0.95), rgba(226, 185, 95, 0.94) 46%, rgba(126, 76, 28, 0.96));
+  color: #16100a;
+  font-size: 21px;
+  font-weight: 950;
+  box-shadow: 0 16px 44px rgba(226, 185, 95, 0.2);
+}
+
+.title-stage small {
+  color: rgba(245, 241, 232, 0.58);
+  font-size: 12px;
+}
+
+.login-steps {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.login-steps span {
+  display: grid;
+  place-items: center;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.login-steps span.active {
+  border-color: rgba(226, 185, 95, 0.62);
+  color: #fff0c4;
+  background: rgba(226, 185, 95, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.login-panel {
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(19, 22, 19, 0.9), rgba(9, 11, 9, 0.9));
+}
+
+.town-screen {
+  background:
+    radial-gradient(circle at 66% 10%, rgba(114, 231, 255, 0.18), transparent 28%),
+    radial-gradient(circle at 24% 10%, rgba(226, 185, 95, 0.18), transparent 24%),
+    linear-gradient(180deg, #101a1d 0%, #152018 46%, #090d0a 100%);
+}
+
+.town-topbar,
+.town-layout-v2 {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 1180px);
+  margin: 0 auto;
+}
+
+.town-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: clamp(180px, 28vh, 270px);
+}
+
+.town-layout-v2 {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.95fr) minmax(320px, 1.1fr) minmax(280px, 0.95fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.town-hero-panel,
+.town-zone-panel,
+.town-action-panel {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(245, 241, 232, 0.16);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(18, 20, 17, 0.72), rgba(9, 11, 9, 0.84));
+  box-shadow: 0 22px 64px rgba(0, 0, 0, 0.36);
+  backdrop-filter: blur(18px);
+}
+
+.town-hero-panel {
+  align-content: end;
+  min-height: 270px;
+  background:
+    linear-gradient(180deg, rgba(14, 16, 13, 0.08), rgba(14, 16, 13, 0.88)),
+    url("./assets/cards/card-crystal-bear.jpg") center 44% / cover;
+}
+
+.town-section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: end;
+}
+
+.town-hero-panel h1,
+.town-section-head h2 {
+  margin: 0;
+}
+
+.town-hero-panel h1 {
+  font-size: clamp(38px, 6vw, 66px);
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+}
+
+.town-hero-panel p {
+  margin: 0;
+  color: #e6dec7;
+  line-height: 1.5;
+}
+
+.zone-list-v2 {
+  display: grid;
+  gap: 10px;
+}
+
+.zone-list-v2 .zone-card {
+  position: relative;
+  grid-template-columns: 48px minmax(0, 1fr);
+  padding: 14px;
+  overflow: hidden;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(114, 231, 255, 0.12), transparent 36%),
+    rgba(245, 241, 232, 0.07);
+}
+
+.zone-card em {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(226, 185, 95, 0.28);
+  border-radius: 12px;
+  color: var(--gold);
+  font-style: normal;
+  font-weight: 950;
+}
+
+.zone-card b,
+.content-card b {
+  font-size: 15px;
+}
+
+.town-content-grid-v2 {
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.town-content-grid-v2 .content-card {
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: center;
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(245, 241, 232, 0.055);
+}
+
+.content-card i {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(226, 185, 95, 0.25);
+  border-radius: 12px;
+  color: #fff1c5;
+  background: rgba(226, 185, 95, 0.1);
+  font-style: normal;
+  font-weight: 950;
+}
+
+.town-diorama {
+  top: 42%;
+  height: min(620px, 72vh);
+  opacity: 0.94;
+}
+
+.town-road {
+  position: absolute;
+  left: 50%;
+  top: 57%;
+  width: 46%;
+  height: 14%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) rotateX(65deg) rotate(-14deg);
+  background: linear-gradient(90deg, transparent, rgba(226, 185, 95, 0.2), transparent);
+  border: 1px solid rgba(226, 185, 95, 0.12);
+}
+
+.town-road.side-road {
+  top: 63%;
+  width: 34%;
+  transform: translate(-50%, -50%) rotateX(65deg) rotate(25deg);
+}
+
+.town-plaza {
+  bottom: 4%;
+  width: 62%;
+  height: 30%;
+  background:
+    radial-gradient(ellipse at center, rgba(226, 185, 95, 0.28), rgba(42, 51, 41, 0.5) 48%, rgba(8, 10, 8, 0.14) 76%),
+    repeating-linear-gradient(130deg, rgba(255, 255, 255, 0.055) 0 8px, transparent 8px 18px);
+}
+
+.town-building {
+  border-radius: 18px 18px 10px 10px;
+  transform: skewY(-8deg) rotate(-1deg);
+}
+
+.town-building i {
+  position: absolute;
+  left: 50%;
+  bottom: -28px;
+  transform: translateX(-50%) skewY(8deg);
+  padding: 4px 8px;
+  border: 1px solid rgba(245, 241, 232, 0.12);
+  border-radius: 999px;
+  background: rgba(8, 10, 8, 0.72);
+  color: #efe5c6;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.town-building.gate {
+  left: 37%;
+  top: 22%;
+  width: 26%;
+  height: 34%;
+}
+
+.town-building.hall { left: 11%; top: 38%; width: 23%; height: 25%; }
+.town-building.forge { right: 10%; top: 39%; width: 23%; height: 25%; }
+.town-building.shrine { left: 26%; top: 64%; width: 16%; height: 18%; }
+.town-building.shop { right: 26%; top: 64%; width: 16%; height: 18%; }
+
+.town-citizen {
+  position: absolute;
+  display: block;
+  width: 26px;
+  height: 42px;
+  border-radius: 16px 16px 8px 8px;
+  background: linear-gradient(180deg, #f3d0ad 0 24%, #3f6f75 24% 70%, #1b2026 70%);
+  box-shadow: 0 10px 16px rgba(0, 0, 0, 0.34);
+}
+
+.citizen-a { left: 48%; top: 64%; }
+.citizen-b { left: 42%; top: 70%; background: linear-gradient(180deg, #edc69c 0 24%, #7d5736 24% 70%, #1b2026 70%); }
+.citizen-c { left: 57%; top: 70%; background: linear-gradient(180deg, #edc69c 0 24%, #6a568e 24% 70%, #1b2026 70%); }
+
+.portrait,
+.town-portrait {
+  background-image: url("./assets/sprites/hero-warrior.svg");
+  background-size: 120%;
+  background-position: center bottom;
+  color: transparent;
+}
+
+body.screen-shake .game-root canvas {
+  animation: screen-shake 0.24s linear;
+}
+
+@media (max-width: 980px) {
+  .town-layout-v2 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .town-hero-panel {
+    grid-column: 1 / -1;
+    min-height: 220px;
+  }
+}
+
+@media (max-width: 760px) {
+  .title-copy h1 {
+    font-size: clamp(48px, 17vw, 74px);
+  }
+
+  .town-topbar {
+    display: grid;
+    margin-bottom: 34vh;
+  }
+
+  .town-layout-v2 {
+    grid-template-columns: 1fr;
+  }
+
+  .town-hero-panel {
+    min-height: 180px;
+  }
+
+  .town-diorama {
+    top: 36%;
+    width: 150vw;
+    height: 58vh;
+  }
+}
+
+@media (max-width: 520px) {
+  .title-stage {
+    padding: 22px 16px;
+  }
+
+  .title-hero {
+    height: 180px;
+  }
+
+  .login-steps span {
+    font-size: 10px;
+  }
+}
+
+.portrait.class-warrior,
+.town-portrait.class-warrior,
+.title-character {
+  background-image: url("./assets/sprites/hero-warrior.svg");
+}
+
+.portrait.class-taoist,
+.town-portrait.class-taoist {
+  background-image: url("./assets/sprites/hero-taoist.svg");
+}
+
+.portrait.class-cleric,
+.town-portrait.class-cleric {
+  background-image: url("./assets/sprites/hero-cleric.svg");
+}

@@ -1,7 +1,7 @@
 import type { CardDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, MonsterDefinition, SoulDefinition, TileId } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 export const MAP_W = 20;
 export const MAP_H = 20;
 

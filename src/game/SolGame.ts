@@ -38,12 +38,28 @@ type MobView = {
   hpFill: Graphics;
   name: Text;
   baseScale: number;
+  aggroRing: Graphics;
 };
 
 type TextureKey = keyof typeof textureUrls;
 
 type SolGameOptions = {
+  zoneId?: string;
   zoneName?: string;
+};
+
+const zoneMonsterIds: Record<string, MonsterId[]> = {
+  'slime-forest': ['slime', 'slime', 'slime', 'wolf', 'wolf'],
+  'goblin-road': ['wolf', 'goblin', 'goblin', 'crystalBear'],
+  'crystal-raid': ['goblin', 'crystalBear', 'dragon']
+};
+
+const mobHomeRadius: Partial<Record<MonsterId, number>> = {
+  slime: 2.0,
+  wolf: 2.35,
+  goblin: 2.5,
+  crystalBear: 2.8,
+  dragon: 3.4
 };
 
 const tileTextureKey: Record<TileId, TextureKey> = {
@@ -328,23 +344,37 @@ export class SolGame {
   }
 
   private spawnMobs() {
-    this.mobs = spawnTable.map((spawn, index) => {
-      const def = monsters.find((monster) => monster.id === spawn.monsterId);
-      if (!def) throw new Error(`Missing monster ${spawn.monsterId}`);
-      const safe = this.findSafeMobPosition(spawn.x, spawn.y, 1.35);
-      return {
-        uid: `${def.id}-${index}`,
-        def,
-        x: safe.x,
-        y: safe.y,
-        spawnX: safe.x,
-        spawnY: safe.y,
-        hp: def.stats.hp,
-        alive: true,
-        respawnAt: 0,
-        attackCooldown: Math.random() * 1.2
-      };
-    });
+    const allowed = zoneMonsterIds[this.options.zoneId || 'slime-forest'] || zoneMonsterIds['slime-forest'];
+    const counters = new Map<MonsterId, number>();
+    this.mobs = spawnTable
+      .filter((spawn) => {
+        const id = spawn.monsterId as MonsterId;
+        const maxCount = allowed.filter((item) => item === id).length;
+        if (!maxCount) return false;
+        const count = counters.get(id) || 0;
+        if (count >= maxCount) return false;
+        counters.set(id, count + 1);
+        return true;
+      })
+      .map((spawn, index) => {
+        const def = monsters.find((monster) => monster.id === spawn.monsterId);
+        if (!def) throw new Error(`Missing monster ${spawn.monsterId}`);
+        const safe = this.findSafeMobPosition(spawn.x, spawn.y, 1.7);
+        return {
+          uid: `${def.id}-${index}`,
+          def,
+          x: safe.x,
+          y: safe.y,
+          spawnX: safe.x,
+          spawnY: safe.y,
+          hp: def.stats.hp,
+          alive: true,
+          respawnAt: 0,
+          attackCooldown: Math.random() * 1.2,
+          aggroUntil: 0,
+          wanderCooldown: Math.random() * 2.5
+        };
+      });
 
     for (const mob of this.mobs) this.buildMobView(mob);
   }
@@ -353,12 +383,16 @@ export class SolGame {
     const klass = classes[this.save.classId];
     this.playerRoot.removeChildren();
 
-    this.playerShadow = new Graphics().ellipse(0, 0, 24, 9).fill({ color: 0x000000, alpha: 0.3 });
+    this.playerShadow = new Graphics().ellipse(0, 0, 29, 10).fill({ color: 0x000000, alpha: 0.32 });
     this.playerBody = new Sprite(this.mustTexture(this.classTextureKey()));
     this.playerBody.anchor.set(0.5, 0.94);
-    this.playerBody.scale.set(0.62);
+    this.playerBody.scale.set(0.74);
 
-    const aura = new Graphics().circle(0, -26, 26).stroke({ color: klass.accent, alpha: 0.22, width: 2 });
+    const aura = new Graphics()
+      .circle(0, -34, 34)
+      .stroke({ color: klass.accent, alpha: 0.26, width: 2 })
+      .circle(0, -34, 22)
+      .stroke({ color: 0xffffff, alpha: 0.08, width: 1 });
 
     const name = new Text({
       text: this.save.name,
@@ -371,7 +405,7 @@ export class SolGame {
       }
     });
     name.anchor.set(0.5, 1);
-    name.position.y = -74;
+    name.position.y = -86;
 
     const badge = new Text({
       text: `${klass.name} · ${klass.skillName}`,
@@ -384,7 +418,7 @@ export class SolGame {
       }
     });
     badge.anchor.set(0.5, 1);
-    badge.position.y = -90;
+    badge.position.y = -104;
 
     this.playerRoot.addChild(this.playerShadow, aura, this.playerBody, name, badge);
     if (!this.entityLayer.children.includes(this.playerRoot)) this.entityLayer.addChild(this.playerRoot);
@@ -393,14 +427,15 @@ export class SolGame {
 
   private buildMobView(mob: WorldMob) {
     const root = new Container();
-    const shadow = new Graphics().ellipse(0, 0, 24, 9).fill({ color: 0x000000, alpha: 0.28 });
+    const shadow = new Graphics().ellipse(0, 0, mob.def.id === 'dragon' ? 48 : 28, mob.def.id === 'dragon' ? 13 : 10).fill({ color: 0x000000, alpha: 0.3 });
+    const aggroRing = new Graphics().ellipse(0, 0, mob.def.id === 'dragon' ? 58 : 34, mob.def.id === 'dragon' ? 18 : 11).stroke({ color: 0xff5d5d, alpha: 0, width: 2 });
     const body = new Sprite(this.mustTexture(this.monsterTextureKey(mob.def.id)));
-    const baseScale = mob.def.id === 'dragon' ? 0.76 : 0.58;
+    const baseScale = mob.def.id === 'dragon' ? 0.86 : mob.def.id === 'crystalBear' ? 0.72 : mob.def.id === 'goblin' ? 0.64 : 0.68;
     body.anchor.set(0.5, 0.92);
     body.scale.set(baseScale);
 
-    const hpBack = new Graphics().roundRect(-30, -70, 60, 6, 2).fill({ color: 0x151515, alpha: 0.72 });
-    const hpFill = new Graphics().roundRect(-30, -70, 60, 6, 2).fill({ color: 0xd95757, alpha: 0.95 });
+    const hpBack = new Graphics().roundRect(-34, -82, 68, 7, 2).fill({ color: 0x151515, alpha: 0.72 });
+    const hpFill = new Graphics().roundRect(-34, -82, 68, 7, 2).fill({ color: 0xd95757, alpha: 0.95 });
 
     const name = new Text({
       text: mob.def.name,
@@ -413,11 +448,11 @@ export class SolGame {
       }
     });
     name.anchor.set(0.5, 1);
-    name.position.y = -74;
+    name.position.y = -86;
 
-    root.addChild(shadow, body, hpBack, hpFill, name);
+    root.addChild(shadow, aggroRing, body, hpBack, hpFill, name);
     this.entityLayer.addChild(root);
-    this.mobViews.set(mob.uid, { root, body, hpFill, name, baseScale });
+    this.mobViews.set(mob.uid, { root, body, hpFill, name, baseScale, aggroRing });
     this.placeEntity(root, mob.x, mob.y);
   }
 
@@ -555,29 +590,49 @@ export class SolGame {
 
       view.root.visible = true;
       mob.attackCooldown = Math.max(0, mob.attackCooldown - dt);
+      mob.wanderCooldown = Math.max(0, mob.wanderCooldown - dt);
 
       const dist = distance(this.save.x, this.save.y, mob.x, mob.y);
-      if (dist < 4.8 && mob.def.id !== 'dragon') {
+      const aggroRange = this.mobAggroRange(mob);
+      const canJoinAggro = this.activeAggroCount(mob.uid) < this.maxAggroCount();
+      if ((this.target?.uid === mob.uid || dist < aggroRange) && canJoinAggro) {
+        mob.aggroUntil = Math.max(mob.aggroUntil, this.time + 2.8);
+      }
+
+      const engaged = mob.aggroUntil > this.time || this.target?.uid === mob.uid;
+      const homeDist = distance(mob.spawnX, mob.spawnY, mob.x, mob.y);
+      if (homeDist > (mobHomeRadius[mob.def.id] || 2.4)) mob.aggroUntil = 0;
+
+      if (engaged && mob.def.id !== 'dragon') {
         const dir = normalize(this.save.x - mob.x, this.save.y - mob.y);
-        const nextX = mob.x + dir.x * mob.def.stats.move * dt * 0.48;
-        const nextY = mob.y + dir.y * mob.def.stats.move * dt * 0.48;
+        const nextX = mob.x + dir.x * mob.def.stats.move * dt * 0.42;
+        const nextY = mob.y + dir.y * mob.def.stats.move * dt * 0.42;
         if (this.isWalkable(nextX, nextY)) {
           mob.x = clamp(nextX, 1, MAP_W - 2);
           mob.y = clamp(nextY, 1, MAP_H - 2);
         }
         view.body.scale.x = dir.x < -0.05 ? -Math.abs(view.body.scale.x) : Math.abs(view.body.scale.x);
+      } else if (engaged && mob.def.id === 'dragon' && dist < 3.1) {
+        const dir = normalize(this.save.x - mob.x, this.save.y - mob.y);
+        mob.x = clamp(mob.x + dir.x * mob.def.stats.move * dt * 0.16, 1, MAP_W - 2);
+        mob.y = clamp(mob.y + dir.y * mob.def.stats.move * dt * 0.16, 1, MAP_H - 2);
+        view.body.scale.x = dir.x < -0.05 ? -Math.abs(view.body.scale.x) : Math.abs(view.body.scale.x);
+      } else {
+        this.updateMobIdleMovement(mob, dt);
       }
 
       this.resolveMobOverlap(mob);
       const attackDist = distance(this.save.x, this.save.y, mob.x, mob.y);
-      if (attackDist < 1.16 && mob.attackCooldown <= 0 && this.save.hp > 0) {
-        mob.attackCooldown = 1 / mob.def.stats.aspd + 0.45;
+      const canAttack = engaged && attackDist < (mob.def.id === 'dragon' ? 1.58 : 1.12);
+      if (canAttack && mob.attackCooldown <= 0 && this.save.hp > 0) {
+        mob.attackCooldown = 1 / mob.def.stats.aspd + 0.65;
         const result = this.resolveDamage(mob.def.stats, stats, mob.def.level - this.save.level);
         this.animateMobAttack(view);
         if (result.hit) {
           this.save.hp = Math.max(0, this.save.hp - result.damage);
           this.floatText(`-${result.damage}`, this.save.x, this.save.y, 0xff7878);
           this.impactBurst(this.save.x, this.save.y, 0xff5d5d, false);
+          if (mob.def.id === 'dragon') this.screenShake();
           if (this.save.hp <= 0) this.playerKnockout();
         } else {
           this.floatText('MISS', this.save.x, this.save.y, 0xd6d1c2);
@@ -590,12 +645,50 @@ export class SolGame {
     }
   }
 
+  private updateMobIdleMovement(mob: WorldMob, dt: number) {
+    if (mob.wanderCooldown > 0) return;
+    mob.wanderCooldown = 1.2 + Math.random() * 2.2;
+    if (distance(mob.spawnX, mob.spawnY, mob.x, mob.y) > 0.35) {
+      const dir = normalize(mob.spawnX - mob.x, mob.spawnY - mob.y);
+      mob.x = clamp(mob.x + dir.x * mob.def.stats.move * dt * 0.25, 1, MAP_W - 2);
+      mob.y = clamp(mob.y + dir.y * mob.def.stats.move * dt * 0.25, 1, MAP_H - 2);
+      return;
+    }
+    if (Math.random() < 0.45) {
+      const angle = Math.random() * Math.PI * 2;
+      const nextX = mob.x + Math.cos(angle) * 0.18;
+      const nextY = mob.y + Math.sin(angle) * 0.18;
+      if (this.isWalkable(nextX, nextY) && distance(nextX, nextY, mob.spawnX, mob.spawnY) < (mobHomeRadius[mob.def.id] || 2.4)) {
+        mob.x = clamp(nextX, 1, MAP_W - 2);
+        mob.y = clamp(nextY, 1, MAP_H - 2);
+      }
+    }
+  }
+
+  private activeAggroCount(exceptUid = '') {
+    return this.mobs.filter((mob) => mob.alive && mob.uid !== exceptUid && (mob.aggroUntil > this.time || this.target?.uid === mob.uid)).length;
+  }
+
+  private maxAggroCount() {
+    return this.options.zoneId === 'crystal-raid' ? 2 : 1;
+  }
+
+  private mobAggroRange(mob: WorldMob) {
+    if (mob.def.id === 'dragon') return 2.45;
+    if (mob.def.id === 'crystalBear') return 2.25;
+    if (mob.def.id === 'goblin') return 2.65;
+    if (mob.def.id === 'wolf') return 2.35;
+    return 1.75;
+  }
+
   private updateMobAnimation(view: MobView, mob: WorldMob) {
-    const phase = this.time * (mob.def.id === 'dragon' ? 2.2 : 3.5) + mob.spawnX;
-    view.body.y = Math.sin(phase) * (mob.def.id === 'dragon' ? 1.6 : 2.4);
+    const engaged = mob.aggroUntil > this.time || this.target?.uid === mob.uid;
+    const phase = this.time * (mob.def.id === 'dragon' ? 2.2 : engaged ? 5.4 : 3.2) + mob.spawnX;
+    view.body.y = Math.sin(phase) * (mob.def.id === 'dragon' ? 1.8 : engaged ? 3.1 : 2.1);
     const sx = Math.sign(view.body.scale.x || 1) * view.baseScale;
     view.body.scale.x += (sx - view.body.scale.x) * 0.08;
     view.body.scale.y += (view.baseScale - view.body.scale.y) * 0.08;
+    view.aggroRing.clear().ellipse(0, 0, mob.def.id === 'dragon' ? 58 : 34, mob.def.id === 'dragon' ? 18 : 11).stroke({ color: engaged ? 0xff5d5d : 0x72e7ff, alpha: engaged ? 0.36 : 0.08, width: engaged ? 3 : 1 });
   }
 
   private updateRespawns() {
@@ -604,7 +697,9 @@ export class SolGame {
       if (!mob.alive && now >= mob.respawnAt) {
         mob.alive = true;
         mob.hp = mob.def.stats.hp;
-        const safe = this.findSafeMobPosition(mob.spawnX, mob.spawnY, 1.35);
+        mob.aggroUntil = 0;
+        mob.wanderCooldown = 0.8 + Math.random() * 1.4;
+        const safe = this.findSafeMobPosition(mob.spawnX, mob.spawnY, 1.7);
         mob.x = safe.x;
         mob.y = safe.y;
         this.impactBurst(mob.x, mob.y, 0x72e7ff, false);
@@ -624,6 +719,7 @@ export class SolGame {
 
     const stats = this.calculateStats();
     this.attackCooldown = Math.max(0.28, 1 / stats.aspd);
+    mob.aggroUntil = Math.max(mob.aggroUntil, this.time + 3.8);
     const result = this.resolveDamage(stats, mob.def.stats, this.save.level - mob.def.level);
     this.animatePlayerAttack(mob, result);
 
@@ -996,7 +1092,7 @@ export class SolGame {
 
   private updateMobHp(view: MobView, mob: WorldMob) {
     const ratio = clamp(mob.hp / mob.def.stats.hp, 0, 1);
-    view.hpFill.clear().roundRect(-30, -70, 60 * ratio, 6, 2).fill({ color: 0xd95757, alpha: 0.95 });
+    view.hpFill.clear().roundRect(-34, -82, 68 * ratio, 7, 2).fill({ color: ratio < 0.35 ? 0xff7b58 : 0xd95757, alpha: 0.95 });
   }
 
   private animateMobHit(mob: WorldMob) {
@@ -1027,16 +1123,18 @@ export class SolGame {
     const dir = normalize(mob.x - this.save.x, mob.y - this.save.y);
     const sx = (dir.x - dir.y) * 14;
     const sy = (dir.x + dir.y) * 7;
-    this.animate(0.16, (t) => {
+    this.animate(0.2, (t) => {
       const pulse = Math.sin(t * Math.PI);
       if (this.playerBody) {
         this.playerBody.x = sx * pulse;
-        this.playerBody.y = -sy * pulse;
+        this.playerBody.y = -sy * pulse - pulse * 4;
+        this.playerBody.rotation = pulse * 0.13 * (this.playerBody.scale.x < 0 ? -1 : 1);
       }
     }, () => {
       if (this.playerBody) {
         this.playerBody.x = 0;
         this.playerBody.y = 0;
+        this.playerBody.rotation = 0;
       }
     });
   }
@@ -1061,19 +1159,21 @@ export class SolGame {
     const pos = isoToScreen(mob.x, mob.y);
     const color = crit ? 0xffd15f : classes.warrior.accent;
     const slash = new Graphics()
-      .moveTo(-34, -16)
-      .quadraticCurveTo(4, -46, 38, -12)
-      .stroke({ color, alpha: 0.95, width: crit ? 8 : 6 })
-      .moveTo(-24, -6)
-      .quadraticCurveTo(6, -28, 28, -4)
-      .stroke({ color: 0xffffff, alpha: 0.62, width: 2 });
+      .moveTo(-46, -18)
+      .quadraticCurveTo(4, -58, 52, -12)
+      .stroke({ color, alpha: 0.98, width: crit ? 10 : 7 })
+      .moveTo(-32, -6)
+      .quadraticCurveTo(8, -38, 39, -3)
+      .stroke({ color: 0xffffff, alpha: 0.72, width: 3 })
+      .circle(28, -18, crit ? 8 : 5)
+      .fill({ color: 0xffffff, alpha: crit ? 0.42 : 0.24 });
     slash.position.set(pos.x, pos.y - 22);
     slash.rotation = -0.18;
     this.fxLayer.addChild(slash);
     this.animate(0.18, (t) => {
       slash.alpha = 1 - t;
-      slash.scale.set(0.72 + t * 0.55);
-      slash.rotation = -0.4 + t * 0.8;
+      slash.scale.set(0.62 + t * 0.72);
+      slash.rotation = -0.52 + t * 1.05;
     }, () => slash.destroy());
     this.impactBurst(mob.x, mob.y, color, crit);
   }
@@ -1087,8 +1187,8 @@ export class SolGame {
     bolt.addChild(glow, core);
     bolt.position.set(start.x, start.y - 38);
     this.fxLayer.addChild(bolt);
-    this.animate(0.28, (t) => {
-      const arc = Math.sin(t * Math.PI) * 26;
+    this.animate(0.24, (t) => {
+      const arc = Math.sin(t * Math.PI) * 34;
       bolt.position.set(start.x + (end.x - start.x) * t, start.y - 38 + (end.y - start.y) * t - arc);
       bolt.scale.set(1 + t * 0.3);
     }, () => {
@@ -1108,8 +1208,9 @@ export class SolGame {
       .lineTo(end.x, end.y - 34)
       .stroke({ color: 0xffffff, alpha: 0.72, width: 2 });
     this.fxLayer.addChild(beam);
-    this.animate(0.18, (t) => {
+    this.animate(0.24, (t) => {
       beam.alpha = 1 - t;
+      beam.scale.set(1 + t * 0.08);
     }, () => {
       beam.destroy();
       if (hit) this.impactBurst(mob.x, mob.y, 0xf2d66c, false);

@@ -25,6 +25,8 @@ let sheetOpen = false;
 let townContentOpen = false;
 
 const root = must('#game-root');
+const titleScreen = must('#titleScreen');
+const startGameBtn = must<HTMLButtonElement>('#startGameBtn');
 const loginScreen = must('#loginScreen');
 const loginStatus = must('#loginStatus');
 const guestLoginBtn = must<HTMLButtonElement>('#guestLoginBtn');
@@ -95,6 +97,7 @@ async function boot() {
     loginStatus.textContent = `${characterRoster.length}개 캐릭터를 찾았습니다.`;
   }
 
+  bindTitleFlow();
   bindLoginFlow();
   bindActions();
   bindJoystick();
@@ -103,9 +106,24 @@ async function boot() {
   renderCharacterSlots();
   updateWorldSummary();
   goStep('login');
+  titleScreen.classList.remove('hidden');
+  loginScreen.classList.add('hidden');
   registerServiceWorker();
 }
 
+
+
+function bindTitleFlow() {
+  startGameBtn.addEventListener('click', async () => {
+    void ensureFullscreen();
+    await withSceneTransition('접속 화면 준비 중', async () => {
+      titleScreen.classList.add('hidden');
+      loginScreen.classList.remove('hidden');
+      loginScreen.setAttribute('aria-hidden', 'false');
+      goStep('login');
+    });
+  });
+}
 
 function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
@@ -144,14 +162,6 @@ async function mergeCloudRosterToLocal() {
 }
 
 function bindLoginFlow() {
-  document.querySelectorAll<HTMLButtonElement>('[data-flow-step]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const step = (button.dataset.flowStep || 'login') as FlowStep;
-      if (step === 'town' && !pendingSave) return;
-      goStep(step);
-    });
-  });
-
   guestLoginBtn.addEventListener('click', async () => {
     await runLoginAction(async () => {
       await saveService.loginGuest();
@@ -388,8 +398,8 @@ function setLoginButtons(enabled: boolean) {
 
 function goStep(step: FlowStep) {
   if (step === 'character') refreshCharacterRoster(selectedCharacterId);
-  document.querySelectorAll('[data-flow-step]').forEach((button) => {
-    button.classList.toggle('active', (button as HTMLElement).dataset.flowStep === step);
+  document.querySelectorAll('[data-flow-indicator]').forEach((indicator) => {
+    indicator.classList.toggle('active', (indicator as HTMLElement).dataset.flowIndicator === step);
   });
   document.querySelectorAll('[data-flow-page]').forEach((page) => {
     page.classList.toggle('active', (page as HTMLElement).dataset.flowPage === step);
@@ -437,6 +447,7 @@ async function enterTown(save: PlayerSave, label = '마을로 이동 중') {
 
     closeCurrentSheet();
     root.replaceChildren();
+    titleScreen.classList.add('hidden');
     loginScreen.classList.add('hidden');
     townScreen.classList.remove('hidden');
     townScreen.setAttribute('aria-hidden', 'false');
@@ -450,16 +461,20 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest') {
   const zoneName = zoneTitle(zoneId);
   await withSceneTransition(`${zoneName} 입장 중`, async () => {
     const prepared = saveService.validateSave(save);
+    const entry = zoneEntryPoint(zoneId);
+    prepared.x = entry.x;
+    prepared.y = entry.y;
     pendingSave = prepared;
     saveService.saveLocal(prepared);
     townScreen.classList.add('hidden');
     townScreen.setAttribute('aria-hidden', 'true');
+    titleScreen.classList.add('hidden');
     loginScreen.classList.add('hidden');
     document.body.classList.remove('town-active');
     document.body.classList.add('field-active');
 
     if (game) game.destroy();
-    game = new SolGame(prepared, saveService, { zoneName });
+    game = new SolGame(prepared, saveService, { zoneId, zoneName });
     await game.mount(root);
     game.onSnapshot((snapshot) => {
       latest = snapshot;
@@ -614,6 +629,7 @@ function renderHud(snapshot: Snapshot) {
   text('#playerName', snapshot.save.name);
   text('#levelText', `Lv.${snapshot.save.level}`);
   text('#classPortrait', klass.glyph);
+  setClassArt(must('#classPortrait'), snapshot.save.classId);
   text('#hpText', `${Math.ceil(snapshot.save.hp)}/${snapshot.stats.hp}`);
   text('#expText', `${Math.floor(snapshot.save.exp)}/${expToNext(snapshot.save.level)}`);
   text('#goldText', `${formatNumber(snapshot.save.gold)}G`);
@@ -837,12 +853,23 @@ function renderTown(save: PlayerSave | null) {
   if (!save) return;
   const klass = classes[save.classId];
   townHeroGlyph.textContent = klass.glyph;
+  setClassArt(townHeroGlyph, save.classId);
   townHeroName.textContent = save.name;
   townHeroMeta.textContent = `Lv.${save.level} · ${klass.name} · ${klass.roleText}`;
   townGoldText.textContent = `${formatNumber(save.gold)}G`;
   townGemText.textContent = `${formatNumber(save.gems)}소울`;
   townPowerText.textContent = `전투력 ${formatNumber(powerFromSave(save))}`;
   if (townContentOpen) renderTownContent();
+}
+
+
+function zoneEntryPoint(zoneId: string) {
+  const entries: Record<string, { x: number; y: number }> = {
+    'slime-forest': { x: 5.3, y: 11.4 },
+    'goblin-road': { x: 10.6, y: 12.2 },
+    'crystal-raid': { x: 15.4, y: 14.6 }
+  };
+  return entries[zoneId] || entries['slime-forest'];
 }
 
 function zoneTitle(zoneId: string) {
@@ -1329,6 +1356,12 @@ function showToast(message: string) {
   window.clearTimeout(Number(toastEl.dataset.timer || 0));
   const timer = window.setTimeout(() => toastEl.classList.remove('show'), 2200);
   toastEl.dataset.timer = String(timer);
+}
+
+
+function setClassArt(el: Element, classId: CharacterClassId) {
+  el.classList.remove('class-warrior', 'class-taoist', 'class-cleric');
+  el.classList.add(`class-${classId}`);
 }
 
 function text(selector: string, value: string) {

@@ -15,7 +15,28 @@
     <div id="app">
       <div id="game-root" class="game-root"></div>
 
-      <section class="login-screen" id="loginScreen">
+      <section class="title-screen" id="titleScreen">
+        <div class="title-bg">
+          <span class="title-orb orb-a"></span>
+          <span class="title-orb orb-b"></span>
+          <span class="title-orb orb-c"></span>
+        </div>
+        <div class="title-stage">
+          <div class="title-copy">
+            <span class="title-kicker">ALPHA 0.7 · 2.5D WEB RPG</span>
+            <h1>소울 온라인</h1>
+            <p>마을에서 정비하고, 사냥터를 선택해, 카드와 영혼을 성장시키는 모바일 웹 RPG.</p>
+          </div>
+          <div class="title-hero" aria-hidden="true">
+            <span class="title-soul-ring"></span>
+            <span class="title-character"></span>
+          </div>
+          <button id="startGameBtn" class="start-game-btn">게임 시작</button>
+          <small>전체화면은 브라우저 정책상 버튼 입력 후 시도됩니다.</small>
+        </div>
+      </section>
+
+      <section class="login-screen hidden" id="loginScreen">
         <div class="login-backdrop">
           <div class="login-art warrior-art"></div>
           <div class="login-art mage-art"></div>
@@ -28,10 +49,10 @@
           </div>
 
           <div class="login-steps" aria-label="접속 단계">
-            <button data-flow-step="login" class="active">로그인</button>
-            <button data-flow-step="server">서버</button>
-            <button data-flow-step="character">캐릭터</button>
-            <button data-flow-step="town">마을</button>
+            <span data-flow-indicator="login" class="active">1 로그인</span>
+            <span data-flow-indicator="server">2 서버</span>
+            <span data-flow-indicator="character">3 캐릭터</span>
+            <span data-flow-indicator="town">4 입장</span>
           </div>
 
           <div class="flow-page active" data-flow-page="login">
@@ -107,20 +128,25 @@
         <div class="town-backdrop">
           <div class="town-sky"></div>
           <div class="town-diorama" aria-hidden="true">
-            <span class="town-building gate"></span>
-            <span class="town-building hall"></span>
-            <span class="town-building forge"></span>
-            <span class="town-building shrine"></span>
-            <span class="town-building shop"></span>
             <span class="town-plaza"></span>
+            <span class="town-road main-road"></span>
+            <span class="town-road side-road"></span>
+            <span class="town-building gate"><i>필드 게이트</i></span>
+            <span class="town-building hall"><i>의뢰소</i></span>
+            <span class="town-building forge"><i>대장간</i></span>
+            <span class="town-building shrine"><i>소울 성소</i></span>
+            <span class="town-building shop"><i>상점</i></span>
+            <span class="town-citizen citizen-a"></span>
+            <span class="town-citizen citizen-b"></span>
+            <span class="town-citizen citizen-c"></span>
           </div>
         </div>
 
-        <div class="town-hud">
+        <div class="town-topbar">
           <div class="town-hero-card">
             <div class="town-portrait" id="townHeroGlyph">W</div>
             <div>
-              <span>소울 온라인 · TOWN HUB</span>
+              <span>SOUL ONLINE · 루미나 허브</span>
               <h2 id="townHeroName">솔마스터</h2>
               <p id="townHeroMeta">Lv.1 · 전사 · 근접 탱커</p>
             </div>
@@ -132,11 +158,11 @@
           </div>
         </div>
 
-        <main class="town-layout">
-          <section class="town-panel town-panel-main">
-            <span class="town-eyebrow">시작 위치</span>
+        <main class="town-layout town-layout-v2">
+          <section class="town-hero-panel">
+            <span class="town-eyebrow">LUMINA TOWN</span>
             <h1>루미나 마을</h1>
-            <p>마을에서 캐릭터를 정비하고 컨텐츠를 선택한 뒤 사냥터나 던전으로 입장합니다.</p>
+            <p>정비, 의뢰, 상점, 카드 세팅을 끝낸 뒤 원하는 사냥터로 출발하세요.</p>
             <div class="town-quick-actions">
               <button id="townFullscreenBtn">전체화면</button>
               <button id="townSaveBtn">저장</button>
@@ -144,31 +170,39 @@
             </div>
           </section>
 
-          <section class="town-panel">
-            <span class="town-eyebrow">사냥터</span>
-            <h2>필드 입장</h2>
-            <div class="zone-list">
+          <section class="town-zone-panel">
+            <div class="town-section-head">
+              <span class="town-eyebrow">FIELD GATE</span>
+              <h2>사냥터 선택</h2>
+            </div>
+            <div class="zone-list zone-list-v2">
               <button class="zone-card active" data-zone-id="slime-forest">
-                <b>초록 숲 입구</b>
-                <span>Lv.1-3 · 슬라임/늑대 · 자동사냥 추천</span>
+                <em>01</em><b>초록 숲 입구</b>
+                <span>Lv.1-3 · 적은 어그로 · 입문 사냥터</span>
               </button>
               <button class="zone-card" data-zone-id="goblin-road">
-                <b>고블린 길목</b>
-                <span>Lv.5+ · 장비 드랍 · 위험도 보통</span>
+                <em>02</em><b>고블린 길목</b>
+                <span>Lv.5+ · 장비 드랍 · 추적자 등장</span>
               </button>
               <button class="zone-card" data-zone-id="crystal-raid">
-                <b>수정 레이드 터</b>
-                <span>Lv.8+ · 흑수정 곰/드래곤 · 파티 컨텐츠 예정</span>
+                <em>03</em><b>수정 레이드 터</b>
+                <span>Lv.8+ · 보스 테스트 · 고위험</span>
               </button>
             </div>
           </section>
 
-          <section class="town-panel town-content-grid">
-            <button class="content-card" data-town-content="cards"><b>카드 도감</b><span>마을에서 카드 장착/해제</span></button>
-            <button class="content-card" data-town-content="inventory"><b>장비 가방</b><span>무기/방어구/유물 장착</span></button>
-            <button class="content-card" data-town-content="shop"><b>상점</b><span>골드로 장비/재료 구매</span></button>
-            <button class="content-card" data-town-content="quests"><b>일일 의뢰</b><span>매일 목표 달성/보상 수령</span></button>
-            <button class="content-card" data-town-content="boss"><b>월드 보스</b><span>레이드 정보/입장</span></button>
+          <section class="town-action-panel">
+            <div class="town-section-head">
+              <span class="town-eyebrow">TOWN SYSTEM</span>
+              <h2>마을 기능</h2>
+            </div>
+            <div class="town-content-grid town-content-grid-v2">
+              <button class="content-card" data-town-content="cards"><i>◆</i><b>카드 도감</b><span>장착/해제</span></button>
+              <button class="content-card" data-town-content="inventory"><i>▤</i><b>장비 가방</b><span>무기/방어구/유물</span></button>
+              <button class="content-card" data-town-content="shop"><i>◈</i><b>상점</b><span>장비와 재료 구매</span></button>
+              <button class="content-card" data-town-content="quests"><i>!</i><b>일일 의뢰</b><span>목표와 보상</span></button>
+              <button class="content-card" data-town-content="boss"><i>♛</i><b>월드 보스</b><span>레이드 입장</span></button>
+            </div>
           </section>
         </main>
 
