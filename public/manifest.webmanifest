@@ -1,7 +1,7 @@
 {
   "name": "소울 온라인 Alpha",
   "short_name": "소울 온라인",
-  "description": "소울 온라인 Alpha - mobile 2.5D web MMORPG prototype",
+  "description": "소울 온라인 Alpha - mobile 2.5D web MMORPG prototype with audio and visual polish",
   "start_url": "/",
   "scope": "/",
   "display": "fullscreen",

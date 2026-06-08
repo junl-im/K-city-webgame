@@ -36,6 +36,7 @@ import type {
 import { isoToScreen, screenToIso } from './iso';
 import { clamp, distance, formatNumber, normalize, roll, uid } from './math';
 import { SaveService } from './SaveService';
+import { audioService } from './AudioService';
 
 type MobView = {
   root: Container;
@@ -78,6 +79,7 @@ export class SolGame {
   private app: Application | null = null;
   private world = new Container();
   private mapLayer = new Container();
+  private ambientLayer = new Container();
   private propLayer = new Container();
   private entityLayer = new Container();
   private fxLayer = new Container();
@@ -123,7 +125,7 @@ export class SolGame {
     });
 
     root.replaceChildren(this.app.canvas);
-    this.world.addChild(this.mapLayer, this.propLayer, this.entityLayer, this.fxLayer);
+    this.world.addChild(this.mapLayer, this.ambientLayer, this.propLayer, this.entityLayer, this.fxLayer);
     this.app.stage.addChild(this.world);
 
     await this.loadTextures();
@@ -160,6 +162,7 @@ export class SolGame {
 
   setAutoHunt(enabled: boolean) {
     this.save.autoHunt = enabled;
+    audioService.play(enabled ? 'confirm' : 'ui');
     this.pushLog(enabled ? '자동사냥 시작' : '자동사냥 정지');
     this.markDirty();
   }
@@ -196,6 +199,7 @@ export class SolGame {
       this.save.hp = Math.min(stats.hp, this.save.hp + heal);
       this.healPulse(this.save.x, this.save.y);
       this.floatText(`+${heal}`, this.save.x, this.save.y, 0x8dffb3);
+      audioService.play('heal');
       this.pushLog(`${skill.name} 사용 · HP 회복`);
       this.markDirty();
       return;
@@ -222,6 +226,7 @@ export class SolGame {
 
     this.save.mp -= skill.mpCost;
     this.skillCooldowns[skill.id] = skill.cooldownSec;
+    audioService.play('skill');
     this.castPose();
     const affected = this.mobs.filter((mob) => mob.alive && distance(this.target!.x, this.target!.y, mob.x, mob.y) <= Math.max(0.05, skill.radius));
     const targets = affected.length ? affected : [this.target];
@@ -241,6 +246,7 @@ export class SolGame {
       }
       mob.hp = Math.max(0, mob.hp - result.damage);
       totalDamage += result.damage;
+      audioService.play('hit');
       this.floatText(`${result.crit ? 'CRIT ' : ''}${result.damage}`, mob.x, mob.y, result.crit ? 0xffd15f : 0xf5f1e8);
       this.animateMobHit(mob);
       this.skillBurstEffect(mob.x, mob.y, classes[this.save.classId].accent, skill.radius, result.crit);
@@ -255,6 +261,7 @@ export class SolGame {
       this.save.hp = Math.min(stats.hp, this.save.hp + heal);
       this.floatText(`+${heal}`, this.save.x, this.save.y, 0x8dffb3);
       this.healPulse(this.save.x, this.save.y);
+      audioService.play('heal');
     }
     this.hitStop(skill.radius > 1.4 ? 0.075 : 0.05);
     if (skill.radius > 1.1) this.screenShake();
@@ -293,6 +300,7 @@ export class SolGame {
     if (cost.shard) this.consumeMaterial('soul-shard', cost.shard);
     this.save.enhancements[itemUid] = current + 1;
     this.repairVitals();
+    audioService.play('enhance');
     this.pushLog(`${def.name} +${current + 1} 강화 성공`);
     this.markDirty();
   }
@@ -332,9 +340,11 @@ export class SolGame {
     this.save.equipment ||= {};
     if (this.save.equipment[slot] === entry.uid) {
       delete this.save.equipment[slot];
+      audioService.play('ui');
       this.pushLog(`${def.name} 장착 해제`);
     } else {
       this.save.equipment[slot] = entry.uid;
+      audioService.play('confirm');
       this.pushLog(`${def.name} 장착`);
     }
     this.repairVitals();
@@ -407,6 +417,7 @@ export class SolGame {
 
   private buildMap() {
     this.mapLayer.removeChildren();
+    this.ambientLayer.removeChildren();
     this.propLayer.removeChildren();
 
     for (let y = 0; y < MAP_H; y += 1) {
@@ -420,6 +431,7 @@ export class SolGame {
       }
     }
 
+    this.addZoneGroundMood();
     this.addVillageDecor();
 
     const trees = [
@@ -438,6 +450,32 @@ export class SolGame {
       [18, 10]
     ];
     for (const [x, y] of crystals) this.addProp('propCrystal', x, y, 0.66);
+  }
+
+
+  private addZoneGroundMood() {
+    const zoneId = this.options.zoneId || 'slime-forest';
+    const tint = zoneId === 'crystal-raid' ? 0x5b4cff : zoneId === 'black-cave' ? 0x4b5f86 : zoneId === 'goblin-road' ? 0x8f6a3c : zoneId === 'crystal-moss' ? 0x72e7ff : 0xa8d06f;
+    const mist = new Graphics();
+    for (let i = 0; i < 18; i += 1) {
+      const x = 2 + ((i * 5.7) % 16);
+      const y = 3 + ((i * 4.1) % 15);
+      const pos = isoToScreen(x, y);
+      mist.ellipse(pos.x, pos.y + 8, 52 + (i % 4) * 12, 16 + (i % 3) * 6).fill({ color: tint, alpha: zoneId === 'black-cave' ? 0.055 : 0.038 });
+    }
+    this.ambientLayer.addChild(mist);
+
+    const veins = new Graphics();
+    for (let i = 0; i < 16; i += 1) {
+      const x = 2 + ((i * 3.3) % 16);
+      const y = 3 + ((i * 6.1) % 14);
+      const pos = isoToScreen(x, y);
+      veins
+        .moveTo(pos.x - 20, pos.y - 2)
+        .quadraticCurveTo(pos.x, pos.y - 12 - (i % 3) * 5, pos.x + 24, pos.y + 2)
+        .stroke({ color: tint, alpha: 0.08, width: 2 });
+    }
+    this.ambientLayer.addChild(veins);
   }
 
   private addVillageDecor() {
@@ -968,6 +1006,7 @@ export class SolGame {
     const result = this.resolveDamage(mob.def.stats, playerStats, mob.def.level - this.save.level);
     this.animateMobAttack(view);
     if (result.hit) {
+      audioService.play('hit');
       this.save.hp = Math.max(0, this.save.hp - result.damage);
       this.floatText(`-${result.damage}`, this.save.x, this.save.y, 0xff7878);
       this.impactBurst(this.save.x, this.save.y, 0xff5d5d, false);
@@ -1068,6 +1107,7 @@ export class SolGame {
       mob.stateTimer = Math.min(mob.alertDelay, 0.18);
     }
     const result = this.resolveDamage(stats, mob.def.stats, this.save.level - mob.def.level);
+    audioService.play('attack');
     this.animatePlayerAttack(mob, result);
 
     if (!result.hit) {
@@ -1077,6 +1117,7 @@ export class SolGame {
 
     mob.hp = Math.max(0, mob.hp - result.damage);
     this.animateMobHit(mob);
+    audioService.play('hit');
     this.hitStop(result.crit ? 0.07 : 0.04);
     this.floatText(`${result.crit ? 'CRIT ' : ''}${result.damage}`, mob.x, mob.y, result.crit ? 0xffd15f : 0xf5f1e8);
 
@@ -1149,6 +1190,7 @@ export class SolGame {
     this.updateSoulProgress(mob.def.id);
     this.checkLevelUp();
     this.rollDrops(mob.def);
+    audioService.play(mob.def.id === 'dragon' ? 'boss' : 'reward');
     this.impactBurst(mob.x, mob.y, 0xe2b95f, true);
     this.pushLog(`${mob.def.name} 정화 +${mob.def.exp}EXP +${mob.def.gold}G`);
     this.markDirty();
@@ -1189,17 +1231,24 @@ export class SolGame {
     }
     if (drop.type === 'gem') {
       this.save.gems += drop.amount || 0;
+      audioService.play('reward');
       this.pushLog(`소울젬 +${drop.amount || 0}`);
       return;
     }
     if (drop.type === 'item' && drop.id) {
       const item = this.addItem(drop.id);
-      if (item) this.pushLog(`${item.name} 획득`);
+      if (item) {
+        audioService.play('reward');
+        this.pushLog(`${item.name} 획득`);
+      }
       return;
     }
     if (drop.type === 'card' && drop.id) {
       const card = this.addCard(drop.id);
-      if (card) this.pushLog(`${card.name} 드랍`);
+      if (card) {
+        audioService.play('reward');
+        this.pushLog(`${card.name} 드랍`);
+      }
     }
   }
 
@@ -1254,6 +1303,7 @@ export class SolGame {
       this.save.hp = stats.hp;
       this.save.mp = stats.mp;
       this.save.gems += 5;
+      audioService.play('level');
       this.pushLog(`레벨 ${this.save.level} 달성`);
       this.healPulse(this.save.x, this.save.y);
     }
@@ -1267,6 +1317,7 @@ export class SolGame {
   }
 
   private playerKnockout() {
+    audioService.play('error');
     this.pushLog('기절했습니다. 마을 포탈에서 재정비합니다.');
     this.save.x = 8.0;
     this.save.y = 8.2;

@@ -1,19 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 48">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 70">
   <defs>
-    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#6f925a"/>
-      <stop offset=".45" stop-color="#486f48"/>
-      <stop offset="1" stop-color="#2d5140"/>
-    </linearGradient>
-    <linearGradient id="sideA" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#28462f"/>
-      <stop offset="1" stop-color="#17281e"/>
-    </linearGradient>
+    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8db36b"/><stop offset=".38" stop-color="#547b54"/><stop offset=".72" stop-color="#315a49"/><stop offset="1" stop-color="#203f35"/></linearGradient>
+    <linearGradient id="edgeL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#304d31"/><stop offset="1" stop-color="#14251c"/></linearGradient>
+    <linearGradient id="edgeR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#264437"/><stop offset="1" stop-color="#101f1a"/></linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation=".55"/></filter>
   </defs>
-  <path d="M48 2 94 24 48 46 2 24Z" fill="url(#top)" stroke="#23352b" stroke-width="1.2"/>
-  <path d="M2 24 48 46 48 38 2 16Z" fill="url(#sideA)" opacity=".45"/>
-  <path d="M94 24 48 46 48 38 94 16Z" fill="#1f3729" opacity=".42"/>
-  <path d="M25 23c8-5 17-5 25 0M54 20c9-3 17-2 24 3M18 29c5 1 9 2 13 5" fill="none" stroke="#b3ce7c" stroke-width="1.4" opacity=".35"/>
-  <path d="M44 15 52 19 43 23 36 19Z" fill="#82a45d" opacity=".22"/>
-  <path d="M61 29 69 33 59 38 51 34Z" fill="#203d34" opacity=".22"/>
+  <path d="M64 4 124 34 64 66 4 34Z" fill="url(#top)" stroke="#1d3029" stroke-width="1.7"/>
+  <path d="M4 34 64 66 64 55 4 24Z" fill="url(#edgeL)" opacity=".76"/>
+  <path d="M124 34 64 66 64 55 124 24Z" fill="url(#edgeR)" opacity=".72"/>
+  <path d="M19 32c8-7 19-7 31-1M58 23c12-5 26-4 40 4M34 43c8 2 15 4 22 9M80 43c9-7 20-7 29-2" fill="none" stroke="#c1da82" stroke-width="1.8" opacity=".42" stroke-linecap="round"/>
+  <path d="M40 22 52 17 65 23 51 30Z" fill="#b9c877" opacity=".16"/>
+  <path d="M69 34 81 28 96 35 82 43Z" fill="#132f2c" opacity=".18"/>
+  <path d="M26 36 36 32 43 36 32 42Z" fill="#e5d08b" opacity=".1"/>
+  <g opacity=".28" stroke="#d8ef9a" stroke-width="1.25" stroke-linecap="round">
+    <path d="M30 27v-6M34 29l5-5M94 30v-7M98 31l6-4M70 48v-6M73 49l5-5"/>
+  </g>
+  <ellipse cx="64" cy="35" rx="42" ry="18" fill="#9ec46f" opacity=".06" filter="url(#soft)"/>
 </svg>

@@ -1,0 +1,237 @@
+export type AudioScene = 'title' | 'town' | 'field' | 'boss';
+export type SfxName = 'ui' | 'confirm' | 'attack' | 'hit' | 'skill' | 'heal' | 'reward' | 'level' | 'error' | 'boss' | 'buy' | 'enhance';
+
+export interface AudioSettings {
+  bgm: boolean;
+  sfx: boolean;
+  masterVolume: number;
+  bgmVolume: number;
+  sfxVolume: number;
+}
+
+const STORAGE_KEY = 'soul-online-audio-settings-v1';
+
+const DEFAULT_SETTINGS: AudioSettings = {
+  bgm: true,
+  sfx: true,
+  masterVolume: 0.72,
+  bgmVolume: 0.42,
+  sfxVolume: 0.72
+};
+
+const clamp01 = (value: number) => Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
+
+class AudioService {
+  private context: AudioContext | null = null;
+  private settings: AudioSettings = this.loadSettings();
+  private scene: AudioScene = 'title';
+  private bgmNodes: { oscillator: OscillatorNode; gain: GainNode; filter: BiquadFilterNode }[] = [];
+  private bgmGain: GainNode | null = null;
+  private pulseTimer = 0;
+  private unlocked = false;
+
+  getSettings() {
+    return { ...this.settings };
+  }
+
+  isUnlocked() {
+    return this.unlocked;
+  }
+
+  async unlock() {
+    const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctor) return false;
+    if (!this.context) this.context = new Ctor({ latencyHint: 'interactive' });
+    if (this.context.state === 'suspended') await this.context.resume().catch(() => undefined);
+    this.unlocked = this.context.state === 'running';
+    if (this.unlocked) this.play('ui');
+    if (this.unlocked && this.settings.bgm) this.startBgm(this.scene);
+    return this.unlocked;
+  }
+
+  setScene(scene: AudioScene) {
+    this.scene = scene;
+    if (this.settings.bgm && this.unlocked) this.startBgm(scene);
+  }
+
+  toggleBgm() {
+    this.settings.bgm = !this.settings.bgm;
+    this.saveSettings();
+    if (this.settings.bgm) this.startBgm(this.scene);
+    else this.stopBgm();
+    return this.getSettings();
+  }
+
+  toggleSfx() {
+    this.settings.sfx = !this.settings.sfx;
+    this.saveSettings();
+    if (this.settings.sfx) this.play('confirm');
+    return this.getSettings();
+  }
+
+  setMasterVolume(value: number) {
+    this.settings.masterVolume = clamp01(value);
+    this.saveSettings();
+    this.updateBgmGain();
+  }
+
+  setBgmVolume(value: number) {
+    this.settings.bgmVolume = clamp01(value);
+    this.saveSettings();
+    this.updateBgmGain();
+  }
+
+  setSfxVolume(value: number) {
+    this.settings.sfxVolume = clamp01(value);
+    this.saveSettings();
+  }
+
+  play(name: SfxName) {
+    if (!this.settings.sfx || !this.context || !this.unlocked) return;
+    const now = this.context.currentTime;
+    const master = this.context.createGain();
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.exponentialRampToValueAtTime(Math.max(0.0001, this.settings.masterVolume * this.settings.sfxVolume), now + 0.008);
+    master.gain.exponentialRampToValueAtTime(0.0001, now + this.sfxDuration(name));
+    master.connect(this.context.destination);
+
+    const makeTone = (freq: number, offset: number, duration: number, type: OscillatorType = 'sine', gain = 0.46) => {
+      if (!this.context) return;
+      const osc = this.context.createOscillator();
+      const g = this.context.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, now + offset);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(40, freq * this.sfxEndRatio(name)), now + offset + duration);
+      g.gain.setValueAtTime(0.0001, now + offset);
+      g.gain.exponentialRampToValueAtTime(gain, now + offset + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + offset + duration);
+      osc.connect(g).connect(master);
+      osc.start(now + offset);
+      osc.stop(now + offset + duration + 0.02);
+    };
+
+    if (name === 'ui') makeTone(520, 0, 0.07, 'triangle', 0.18);
+    else if (name === 'confirm') { makeTone(520, 0, 0.07, 'triangle', 0.22); makeTone(780, 0.055, 0.09, 'triangle', 0.18); }
+    else if (name === 'attack') { makeTone(180, 0, 0.12, 'sawtooth', 0.16); makeTone(920, 0.015, 0.07, 'square', 0.12); }
+    else if (name === 'hit') { makeTone(90, 0, 0.11, 'sawtooth', 0.24); makeTone(220, 0.02, 0.08, 'triangle', 0.18); }
+    else if (name === 'skill') { makeTone(420, 0, 0.2, 'triangle', 0.24); makeTone(840, 0.05, 0.22, 'sine', 0.2); }
+    else if (name === 'heal') { makeTone(392, 0, 0.15, 'sine', 0.2); makeTone(659, 0.08, 0.18, 'sine', 0.2); makeTone(988, 0.16, 0.2, 'sine', 0.12); }
+    else if (name === 'reward') { makeTone(523, 0, 0.1, 'triangle', 0.2); makeTone(784, 0.075, 0.12, 'triangle', 0.18); makeTone(1046, 0.16, 0.16, 'sine', 0.14); }
+    else if (name === 'level') { makeTone(392, 0, 0.16, 'triangle', 0.2); makeTone(523, 0.12, 0.16, 'triangle', 0.2); makeTone(784, 0.24, 0.24, 'sine', 0.18); }
+    else if (name === 'error') makeTone(140, 0, 0.18, 'sawtooth', 0.16);
+    else if (name === 'boss') { makeTone(70, 0, 0.34, 'sawtooth', 0.22); makeTone(110, 0.06, 0.34, 'square', 0.12); }
+    else if (name === 'buy') { makeTone(660, 0, 0.08, 'triangle', 0.16); makeTone(990, 0.07, 0.09, 'sine', 0.12); }
+    else if (name === 'enhance') { makeTone(260, 0, 0.12, 'triangle', 0.18); makeTone(980, 0.08, 0.22, 'sine', 0.2); }
+
+    window.setTimeout(() => master.disconnect(), (this.sfxDuration(name) + 0.08) * 1000);
+  }
+
+  private startBgm(scene: AudioScene) {
+    if (!this.context || !this.unlocked || !this.settings.bgm) return;
+    this.stopBgm();
+    const now = this.context.currentTime;
+    this.bgmGain = this.context.createGain();
+    this.bgmGain.gain.setValueAtTime(0.0001, now);
+    this.bgmGain.connect(this.context.destination);
+    this.updateBgmGain(0.9);
+
+    const palette = this.scenePalette(scene);
+    this.bgmNodes = palette.map((freq, index) => {
+      const oscillator = this.context!.createOscillator();
+      const filter = this.context!.createBiquadFilter();
+      const gain = this.context!.createGain();
+      oscillator.type = index === 0 ? 'sine' : index === 1 ? 'triangle' : 'sine';
+      oscillator.frequency.setValueAtTime(freq, now);
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(scene === 'boss' ? 520 : scene === 'field' ? 760 : 620, now);
+      gain.gain.setValueAtTime(index === 0 ? 0.44 : index === 1 ? 0.18 : 0.1, now);
+      oscillator.connect(filter).connect(gain).connect(this.bgmGain!);
+      oscillator.start(now + index * 0.02);
+      return { oscillator, gain, filter };
+    });
+
+    this.scheduleBgmPulse();
+  }
+
+  private stopBgm() {
+    if (this.pulseTimer) window.clearInterval(this.pulseTimer);
+    this.pulseTimer = 0;
+    const now = this.context?.currentTime || 0;
+    for (const node of this.bgmNodes) {
+      try {
+        node.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+        node.oscillator.stop(now + 0.22);
+      } catch {}
+    }
+    this.bgmNodes = [];
+    if (this.bgmGain) {
+      const gain = this.bgmGain;
+      window.setTimeout(() => gain.disconnect(), 280);
+    }
+    this.bgmGain = null;
+  }
+
+  private updateBgmGain(fade = 0.08) {
+    if (!this.bgmGain || !this.context) return;
+    const value = Math.max(0.0001, this.settings.masterVolume * this.settings.bgmVolume * 0.42);
+    const now = this.context.currentTime;
+    this.bgmGain.gain.cancelScheduledValues(now);
+    this.bgmGain.gain.setValueAtTime(Math.max(0.0001, this.bgmGain.gain.value), now);
+    this.bgmGain.gain.exponentialRampToValueAtTime(value, now + fade);
+  }
+
+  private scheduleBgmPulse() {
+    if (this.pulseTimer) window.clearInterval(this.pulseTimer);
+    this.pulseTimer = window.setInterval(() => {
+      if (!this.context || !this.bgmNodes.length) return;
+      const now = this.context.currentTime;
+      const palette = this.scenePalette(this.scene);
+      for (const [index, node] of this.bgmNodes.entries()) {
+        const drift = this.scene === 'field' ? [1, 9 / 8, 4 / 3, 3 / 2][Math.floor(Math.random() * 4)] : this.scene === 'boss' ? [1, 0.75, 0.5, 1.25][Math.floor(Math.random() * 4)] : [1, 5 / 4, 3 / 2, 2][Math.floor(Math.random() * 4)];
+        node.oscillator.frequency.exponentialRampToValueAtTime(Math.max(44, palette[index] * drift), now + 0.8 + index * 0.12);
+        node.filter.frequency.exponentialRampToValueAtTime(this.scene === 'boss' ? 420 + Math.random() * 240 : 560 + Math.random() * 420, now + 0.65);
+      }
+    }, this.scene === 'boss' ? 1800 : 2600);
+  }
+
+  private scenePalette(scene: AudioScene) {
+    if (scene === 'town') return [130.81, 196.0, 261.63];
+    if (scene === 'field') return [110.0, 164.81, 220.0];
+    if (scene === 'boss') return [55.0, 82.41, 110.0];
+    return [98.0, 146.83, 196.0];
+  }
+
+  private sfxDuration(name: SfxName) {
+    if (name === 'level') return 0.54;
+    if (name === 'boss') return 0.42;
+    if (name === 'skill' || name === 'heal' || name === 'enhance') return 0.34;
+    if (name === 'reward') return 0.36;
+    return 0.18;
+  }
+
+  private sfxEndRatio(name: SfxName) {
+    if (name === 'attack' || name === 'hit' || name === 'boss' || name === 'error') return 0.52;
+    return 1.35;
+  }
+
+  private loadSettings(): AudioSettings {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') as Partial<AudioSettings>;
+      return {
+        bgm: typeof parsed.bgm === 'boolean' ? parsed.bgm : DEFAULT_SETTINGS.bgm,
+        sfx: typeof parsed.sfx === 'boolean' ? parsed.sfx : DEFAULT_SETTINGS.sfx,
+        masterVolume: clamp01(parsed.masterVolume ?? DEFAULT_SETTINGS.masterVolume),
+        bgmVolume: clamp01(parsed.bgmVolume ?? DEFAULT_SETTINGS.bgmVolume),
+        sfxVolume: clamp01(parsed.sfxVolume ?? DEFAULT_SETTINGS.sfxVolume)
+      };
+    } catch {
+      return { ...DEFAULT_SETTINGS };
+    }
+  }
+
+  private saveSettings() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.settings));
+  }
+}
+
+export const audioService = new AudioService();

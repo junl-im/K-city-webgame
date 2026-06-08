@@ -2,11 +2,12 @@ import './styles.css';
 import { MAX_ENHANCE_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { SolGame } from './game/SolGame';
+import { audioService } from './game/AudioService';
 import { formatNumber, uid } from './game/math';
 import type { CardDefinition, CharacterClassId, EquipmentSlot, ItemDefinition, PlayerSave, SheetTab, Snapshot, Stats } from './types';
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
-type TownContentId = 'story' | 'cards' | 'inventory' | 'skills' | 'shop' | 'boss' | 'quests' | 'account';
+type TownContentId = 'story' | 'cards' | 'inventory' | 'skills' | 'shop' | 'boss' | 'quests' | 'settings' | 'account';
 
 const saveService = new SaveService();
 let game: SolGame | null = null;
@@ -86,6 +87,8 @@ const townContentTitle = must('#townContentTitle');
 const townContentEyebrow = must('#townContentEyebrow');
 const townContentBody = must('#townContentBody');
 const closeTownContent = must<HTMLButtonElement>('#closeTownContent');
+const titleAudioBtn = must<HTMLButtonElement>('#titleAudioBtn');
+const townAudioBtn = must<HTMLButtonElement>('#townAudioBtn');
 
 boot().catch((error) => {
   console.error(error);
@@ -109,6 +112,7 @@ async function boot() {
   bindActions();
   bindJoystick();
   bindSheet();
+  bindAudioControls();
   renderCharacterSummary();
   renderCharacterSlots();
   updateWorldSummary();
@@ -116,6 +120,7 @@ async function boot() {
   titleScreen.classList.remove('hidden');
   loginScreen.classList.add('hidden');
   registerServiceWorker();
+  updateAudioButtons();
 }
 
 
@@ -124,6 +129,8 @@ function bindTitleFlow() {
   startGameBtn.addEventListener('click', async () => {
     void ensureFullscreen();
     void lockPortraitMode();
+    await audioService.unlock();
+    audioService.setScene('title');
     await withSceneTransition('접속 화면 준비 중', async () => {
       titleScreen.classList.add('hidden');
       loginScreen.classList.remove('hidden');
@@ -139,6 +146,76 @@ function registerServiceWorker() {
     navigator.serviceWorker.register('/sw.js').catch((error) => console.warn('[PWA] service worker skipped', error));
   });
 }
+
+
+
+function bindAudioControls() {
+  titleAudioBtn.addEventListener('click', async () => {
+    await audioService.unlock();
+    audioService.toggleBgm();
+    updateAudioButtons();
+    showToast(audioService.getSettings().bgm ? 'BGM 켜짐' : 'BGM 꺼짐');
+  });
+
+  document.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest('button');
+    if (!button) return;
+    const danger = button.classList.contains('danger') || button.disabled;
+    audioService.play(danger ? 'error' : 'ui');
+  }, true);
+}
+
+function updateAudioButtons() {
+  const settings = audioService.getSettings();
+  const bgmText = settings.bgm ? 'BGM ON' : 'BGM OFF';
+  titleAudioBtn.textContent = bgmText;
+  townAudioBtn.textContent = bgmText;
+  titleAudioBtn.classList.toggle('muted', !settings.bgm);
+  townAudioBtn.classList.toggle('muted', !settings.bgm);
+}
+
+function handleAudioSettingsAction(action: string) {
+  if (action === 'toggle-bgm') {
+    audioService.toggleBgm();
+    showToast(audioService.getSettings().bgm ? 'BGM 켜짐' : 'BGM 꺼짐');
+  }
+  if (action === 'toggle-sfx') {
+    audioService.toggleSfx();
+    showToast(audioService.getSettings().sfx ? '효과음 켜짐' : '효과음 꺼짐');
+  }
+  if (action === 'unlock') {
+    void audioService.unlock().then((ok) => showToast(ok ? '오디오 준비 완료' : '이 브라우저는 오디오 잠금 해제가 제한됩니다.'));
+  }
+  updateAudioButtons();
+  if (townContentOpen && activeTownContent === 'settings') townContentBody.innerHTML = renderAudioSettingsPanel('town');
+  if (sheetOpen && activeSheetTab === 'account') renderSheet();
+}
+
+function renderAudioSettingsPanel(mode: 'town' | 'field') {
+  const settings = audioService.getSettings();
+  const unlocked = audioService.isUnlocked();
+  return `
+    <div class="audio-settings-panel ${mode}">
+      <article class="audio-hero-card">
+        <span class="town-eyebrow">AUDIO PASS 0.11</span>
+        <h3>루미나 사운드 믹서</h3>
+        <p>현재는 Web Audio 기반 임시 BGM/효과음입니다. 추후 실제 MP3/OGG BGM을 넣어도 같은 설정을 그대로 사용합니다.</p>
+        <div class="pill-row">
+          <span class="pill">${unlocked ? '오디오 준비됨' : '버튼 입력 후 준비'}</span>
+          <span class="pill">BGM ${settings.bgm ? 'ON' : 'OFF'}</span>
+          <span class="pill">SFX ${settings.sfx ? 'ON' : 'OFF'}</span>
+        </div>
+      </article>
+      <div class="audio-toggle-grid">
+        <button class="wide-action ${settings.bgm ? 'primary' : 'subtle'}" data-town-settings-action="toggle-bgm" data-audio-action="toggle-bgm">BGM ${settings.bgm ? '끄기' : '켜기'}</button>
+        <button class="wide-action ${settings.sfx ? 'primary' : 'subtle'}" data-town-settings-action="toggle-sfx" data-audio-action="toggle-sfx">효과음 ${settings.sfx ? '끄기' : '켜기'}</button>
+        <button class="wide-action" data-town-settings-action="unlock" data-audio-action="unlock">오디오 다시 준비</button>
+      </div>
+      <div class="town-content-note">모바일 브라우저는 사용자 터치 후에만 소리가 시작됩니다. 설치형 PWA에서는 더 안정적으로 동작합니다.</div>
+    </div>
+  `;
+}
+
 
 async function tryLoadCloud() {
   try {
@@ -327,6 +404,7 @@ function bindLoginFlow() {
   });
 
   townAccountBtn.addEventListener('click', () => openTownContent('account'));
+  townAudioBtn.addEventListener('click', () => { audioService.toggleBgm(); updateAudioButtons(); renderTownContent(); });
   townStoryActionBtn.addEventListener('click', async () => {
     await handleStoryAction();
   });
@@ -409,6 +487,9 @@ function bindLoginFlow() {
     }
 
     const account = target.closest<HTMLButtonElement>('[data-town-account-action]');
+    const settings = target.closest<HTMLButtonElement>('[data-town-settings-action]');
+    if (settings) { handleAudioSettingsAction(settings.dataset.townSettingsAction || ''); return; }
+
     if (account) await handleTownAccountAction(account.dataset.townAccountAction || '');
   });
 }
@@ -488,6 +569,7 @@ async function enterTown(save: PlayerSave, label = '마을로 이동 중') {
     townScreen.setAttribute('aria-hidden', 'false');
     document.body.classList.remove('field-active');
     document.body.classList.add('town-active');
+    audioService.setScene('town');
     renderTown(pendingSave);
   });
 }
@@ -509,6 +591,7 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest') {
     document.body.classList.add('field-active');
 
     if (game) game.destroy();
+    audioService.setScene(zoneId === 'crystal-raid' ? 'boss' : 'field');
     game = new SolGame(prepared, saveService, { zoneId, zoneName });
     await game.mount(root);
     game.onSnapshot((snapshot) => {
@@ -626,6 +709,12 @@ function bindSheet() {
       return;
     }
 
+    const audioAction = target.closest<HTMLButtonElement>('[data-audio-action]');
+    if (audioAction) {
+      handleAudioSettingsAction(audioAction.dataset.audioAction || '');
+      return;
+    }
+
     const action = target.closest<HTMLButtonElement>('[data-account-action]');
     if (!action) return;
     await handleAccountAction(action.dataset.accountAction || '');
@@ -648,6 +737,9 @@ async function handleAccountAction(action: string) {
     if (action === 'save') {
       await game.saveNow();
       showToast('저장 완료');
+    }
+    if (action === 'toggle-bgm' || action === 'toggle-sfx' || action === 'unlock') {
+      handleAudioSettingsAction(action);
     }
     if (action === 'logout') {
       await saveService.logout();
@@ -936,6 +1028,7 @@ function renderAccount(snapshot: Snapshot) {
         <button data-account-action="guest">게스트 클라우드</button>
         <button data-account-action="logout">로그아웃</button>
       </article>
+      ${renderAudioSettingsPanel('field')}
     </div>
   `;
 }
@@ -1048,6 +1141,7 @@ function renderTownContent() {
     shop: ['MERCHANT', '루미나 상점'],
     boss: ['RAID', '월드 보스'],
     quests: ['DAILY REQUEST', '일일 의뢰'],
+    settings: ['AUDIO MIXER', '사운드 설정'],
     account: ['ACCOUNT', '계정/저장']
   };
   townContentEyebrow.textContent = titles[activeTownContent][0];
@@ -1059,6 +1153,7 @@ function renderTownContent() {
   if (activeTownContent === 'shop') townContentBody.innerHTML = renderTownShop(pendingSave);
   if (activeTownContent === 'boss') townContentBody.innerHTML = renderTownBoss(pendingSave);
   if (activeTownContent === 'quests') townContentBody.innerHTML = renderTownQuests(pendingSave);
+  if (activeTownContent === 'settings') townContentBody.innerHTML = renderAudioSettingsPanel('town');
   if (activeTownContent === 'account') townContentBody.innerHTML = renderTownAccount(pendingSave);
 }
 
@@ -1144,6 +1239,7 @@ function claimStoryQuest(questId: string) {
   applyStoryReward(pendingSave, quest.reward);
   const next = storyQuests.find((entry) => !pendingSave?.story.claimedQuestIds.includes(entry.id));
   pendingSave.story.activeQuestId = next?.id || quest.id;
+  audioService.play('reward');
   persistTownSave();
   showToast(`${quest.title} 완료 · 보상 획득`);
 }
@@ -1432,6 +1528,7 @@ function claimDailyQuest(questId: string) {
     for (let i = 0; i < (quest.reward.itemCount || 1); i += 1) addInventoryItem(pendingSave, quest.reward.itemId);
   }
   pendingSave.daily.claimedQuestIds.push(quest.id);
+  audioService.play('reward');
   persistTownSave();
   showToast(`${quest.title} 보상 수령`);
 }
@@ -1460,6 +1557,7 @@ function renderTownAccount(save: PlayerSave) {
         ${cloud.lastError ? `<p>최근 클라우드 오류: ${escapeHtml(cloud.lastError)}</p>` : ''}
         <button data-town-account-action="save">수동 저장</button>
       </article>
+      ${renderAudioSettingsPanel('town')}
     </div>
   `;
 }
@@ -1536,6 +1634,7 @@ function upgradeTownItem(itemUid: string) {
   if (cost.shard) consumeMaterial(pendingSave, 'soul-shard', cost.shard);
   pendingSave.enhancements[itemUid] = current + 1;
   repairTownVitals(pendingSave);
+  audioService.play('enhance');
   persistTownSave();
   showToast(`${def.name} +${current + 1} 강화 성공`);
 }
@@ -1557,6 +1656,7 @@ function buyTownShopItem(itemId: string) {
   }
   pendingSave.gold -= price;
   addInventoryItem(pendingSave, itemId);
+  audioService.play('buy');
   persistTownSave();
   showToast(`${def.name} 구매 완료`);
 }
