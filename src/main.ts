@@ -24,6 +24,8 @@ let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'story';
 let sheetOpen = false;
 let townContentOpen = false;
+type WakeLockHandle = { release: () => Promise<void>; addEventListener?: (type: 'release', listener: () => void) => void };
+let wakeLockHandle: WakeLockHandle | null = null;
 
 const root = must('#game-root');
 const titleScreen = must('#titleScreen');
@@ -604,6 +606,7 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest') {
       setFieldZoneHud(zoneId);
 
       if (game) game.destroy();
+      void requestWakeLock();
       audioService.setScene(zoneId === 'crystal-raid' ? 'boss' : 'field');
       game = new SolGame(prepared, saveService, { zoneId, zoneName });
       await game.mount(root);
@@ -635,6 +638,7 @@ async function returnToTown() {
   if (!game) return;
   const save = game.getSave();
   await game.saveNow();
+  await releaseWakeLock();
   await enterTown(save, '마을로 복귀 중');
   refreshCharacterRoster(save.saveId);
   showToast('루미나 마을로 복귀했습니다.');
@@ -643,7 +647,9 @@ async function returnToTown() {
 function bindActions() {
   autoHuntBtn.addEventListener('click', () => {
     if (!game || !latest) return;
-    game.setAutoHunt(!latest.save.autoHunt);
+    const next = !latest.save.autoHunt;
+    game.setAutoHunt(next);
+    if (next) void requestWakeLock();
   });
 
   attackBtn.addEventListener('click', () => game?.manualAttack());
@@ -807,6 +813,8 @@ function renderHud(snapshot: Snapshot) {
   styleWidth('#expBar', expPercent);
 
   autoHuntBtn.classList.toggle('active', snapshot.save.autoHunt);
+  document.body.classList.toggle('field-auto-active', snapshot.save.autoHunt);
+  autoHuntBtn.innerHTML = snapshot.save.autoHunt ? '<span>●</span><b>자동 ON</b>' : '<span>⟳</span><b>자동 OFF</b>';
   renderSkillDock(snapshot);
 
   if (snapshot.target) {
@@ -1803,6 +1811,34 @@ async function handleTownAccountAction(action: string) {
     showToast(cloudOk === false ? '로컬 저장 완료 · 클라우드 동기화 보류' : '저장 완료');
   }
 }
+
+async function requestWakeLock() {
+  const nav = navigator as Navigator & { wakeLock?: { request: (type: 'screen') => Promise<WakeLockHandle> } };
+  if (!nav.wakeLock || wakeLockHandle) return;
+  try {
+    wakeLockHandle = await nav.wakeLock.request('screen');
+    wakeLockHandle.addEventListener?.('release', () => {
+      wakeLockHandle = null;
+    });
+  } catch (error) {
+    console.warn('[WakeLock] screen lock skipped', error);
+  }
+}
+
+async function releaseWakeLock() {
+  if (!wakeLockHandle) return;
+  try {
+    await wakeLockHandle.release();
+  } catch (error) {
+    console.warn('[WakeLock] release skipped', error);
+  } finally {
+    wakeLockHandle = null;
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && document.body.classList.contains('field-active')) void requestWakeLock();
+});
 
 async function ensureFullscreen(forceToast = false) {
   const doc = document as Document & {

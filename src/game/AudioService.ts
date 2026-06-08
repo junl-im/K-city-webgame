@@ -28,6 +28,7 @@ class AudioService {
   private bgmNodes: { oscillator: OscillatorNode; gain: GainNode; filter: BiquadFilterNode }[] = [];
   private bgmGain: GainNode | null = null;
   private pulseTimer = 0;
+  private melodyStep = 0;
   private unlocked = false;
 
   getSettings() {
@@ -130,26 +131,29 @@ class AudioService {
     if (!this.context || !this.unlocked || !this.settings.bgm) return;
     this.stopBgm();
     const now = this.context.currentTime;
+    this.melodyStep = 0;
     this.bgmGain = this.context.createGain();
     this.bgmGain.gain.setValueAtTime(0.0001, now);
     this.bgmGain.connect(this.context.destination);
-    this.updateBgmGain(0.9);
+    this.updateBgmGain(1.2);
 
     const palette = this.scenePalette(scene);
     this.bgmNodes = palette.map((freq, index) => {
       const oscillator = this.context!.createOscillator();
       const filter = this.context!.createBiquadFilter();
       const gain = this.context!.createGain();
-      oscillator.type = index === 0 ? 'sine' : index === 1 ? 'triangle' : 'sine';
+      oscillator.type = index === 0 ? 'sine' : 'triangle';
       oscillator.frequency.setValueAtTime(freq, now);
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(scene === 'boss' ? 520 : scene === 'field' ? 760 : 620, now);
-      gain.gain.setValueAtTime(index === 0 ? 0.44 : index === 1 ? 0.18 : 0.1, now);
+      filter.frequency.setValueAtTime(scene === 'boss' ? 420 : 720 + index * 160, now);
+      filter.Q.setValueAtTime(0.6, now);
+      gain.gain.setValueAtTime(index === 0 ? 0.34 : index === 1 ? 0.11 : 0.07, now);
       oscillator.connect(filter).connect(gain).connect(this.bgmGain!);
-      oscillator.start(now + index * 0.02);
+      oscillator.start(now + index * 0.04);
       return { oscillator, gain, filter };
     });
 
+    // Soft MR-style loop: stable pad + bell-like motif, no random oscillator jumps.
     this.scheduleBgmPulse();
   }
 
@@ -159,21 +163,23 @@ class AudioService {
     const now = this.context?.currentTime || 0;
     for (const node of this.bgmNodes) {
       try {
-        node.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
-        node.oscillator.stop(now + 0.22);
+        node.gain.gain.cancelScheduledValues(now);
+        node.gain.gain.setValueAtTime(Math.max(0.0001, node.gain.gain.value), now);
+        node.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+        node.oscillator.stop(now + 0.42);
       } catch {}
     }
     this.bgmNodes = [];
     if (this.bgmGain) {
       const gain = this.bgmGain;
-      window.setTimeout(() => gain.disconnect(), 280);
+      window.setTimeout(() => gain.disconnect(), 520);
     }
     this.bgmGain = null;
   }
 
   private updateBgmGain(fade = 0.08) {
     if (!this.bgmGain || !this.context) return;
-    const value = Math.max(0.0001, this.settings.masterVolume * this.settings.bgmVolume * 0.42);
+    const value = Math.max(0.0001, this.settings.masterVolume * this.settings.bgmVolume * 0.34);
     const now = this.context.currentTime;
     this.bgmGain.gain.cancelScheduledValues(now);
     this.bgmGain.gain.setValueAtTime(Math.max(0.0001, this.bgmGain.gain.value), now);
@@ -183,22 +189,58 @@ class AudioService {
   private scheduleBgmPulse() {
     if (this.pulseTimer) window.clearInterval(this.pulseTimer);
     this.pulseTimer = window.setInterval(() => {
-      if (!this.context || !this.bgmNodes.length) return;
+      if (!this.context || !this.bgmGain || !this.bgmNodes.length) return;
       const now = this.context.currentTime;
-      const palette = this.scenePalette(this.scene);
+      const scale = this.sceneScale(this.scene);
+      const chord = this.scenePalette(this.scene);
+      const chordPhase = Math.floor(this.melodyStep / 8) % 4;
+
       for (const [index, node] of this.bgmNodes.entries()) {
-        const drift = this.scene === 'field' ? [1, 9 / 8, 4 / 3, 3 / 2][Math.floor(Math.random() * 4)] : this.scene === 'boss' ? [1, 0.75, 0.5, 1.25][Math.floor(Math.random() * 4)] : [1, 5 / 4, 3 / 2, 2][Math.floor(Math.random() * 4)];
-        node.oscillator.frequency.exponentialRampToValueAtTime(Math.max(44, palette[index] * drift), now + 0.8 + index * 0.12);
-        node.filter.frequency.exponentialRampToValueAtTime(this.scene === 'boss' ? 420 + Math.random() * 240 : 560 + Math.random() * 420, now + 0.65);
+        const target = chord[index] * [1, chordPhase === 1 ? 1.125 : 1, chordPhase === 2 ? 1.2 : 1, chordPhase === 3 ? 0.875 : 1][Math.min(3, chordPhase)];
+        node.oscillator.frequency.exponentialRampToValueAtTime(Math.max(44, target), now + 1.1);
+        node.filter.frequency.exponentialRampToValueAtTime(this.scene === 'boss' ? 380 : 780 + index * 120, now + 0.9);
       }
-    }, this.scene === 'boss' ? 1800 : 2600);
+
+      const melody = scale[this.melodyStep % scale.length];
+      const harmony = scale[(this.melodyStep + 3) % scale.length] * 0.5;
+      this.playBgmNote(melody, 0, 0.42, this.scene === 'boss' ? 0.055 : 0.075);
+      if (this.melodyStep % 4 === 0) this.playBgmNote(harmony, 0.08, 0.72, this.scene === 'boss' ? 0.045 : 0.055);
+      this.melodyStep += 1;
+    }, this.scene === 'boss' ? 620 : 540);
+  }
+
+  private playBgmNote(freq: number, offset: number, duration: number, gainValue: number) {
+    if (!this.context || !this.bgmGain) return;
+    const now = this.context.currentTime + offset;
+    const osc = this.context.createOscillator();
+    const gain = this.context.createGain();
+    const filter = this.context.createBiquadFilter();
+    osc.type = this.scene === 'boss' ? 'triangle' : 'sine';
+    osc.frequency.setValueAtTime(freq, now);
+    osc.frequency.exponentialRampToValueAtTime(freq * (this.scene === 'boss' ? 0.985 : 1.004), now + duration);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(this.scene === 'boss' ? 680 : 1500, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(gainValue, now + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    osc.connect(filter).connect(gain).connect(this.bgmGain);
+    osc.start(now);
+    osc.stop(now + duration + 0.04);
+    window.setTimeout(() => gain.disconnect(), (duration + offset + 0.12) * 1000);
   }
 
   private scenePalette(scene: AudioScene) {
     if (scene === 'town') return [130.81, 196.0, 261.63];
-    if (scene === 'field') return [110.0, 164.81, 220.0];
+    if (scene === 'field') return [110.0, 164.81, 246.94];
     if (scene === 'boss') return [55.0, 82.41, 110.0];
     return [98.0, 146.83, 196.0];
+  }
+
+  private sceneScale(scene: AudioScene) {
+    if (scene === 'town') return [523.25, 587.33, 659.25, 783.99, 659.25, 587.33, 523.25, 392.0];
+    if (scene === 'field') return [440.0, 493.88, 554.37, 659.25, 739.99, 659.25, 554.37, 493.88];
+    if (scene === 'boss') return [220.0, 246.94, 261.63, 329.63, 293.66, 246.94, 220.0, 164.81];
+    return [392.0, 440.0, 493.88, 587.33, 659.25, 587.33, 493.88, 440.0];
   }
 
   private sfxDuration(name: SfxName) {

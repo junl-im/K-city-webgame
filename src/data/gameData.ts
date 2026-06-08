@@ -1,9 +1,9 @@
 import type { CardDefinition, CardSetDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, SoulDefinition, TileId, ZoneDefinition, SkillDefinition } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 10;
-export const MAP_W = 20;
-export const MAP_H = 20;
+export const SAVE_VERSION = 11;
+export const MAP_W = 32;
+export const MAP_H = 32;
 
 export const classes: Record<string, CharacterClass> = {
   warrior: {
@@ -56,7 +56,7 @@ export const zones: ZoneDefinition[] = [
     description: '슬라임과 어린 수정 늑대가 배회하는 입문 지역입니다. 자동사냥 튜토리얼과 초반 카드 파밍에 적합합니다.',
     recommendedLevel: 1,
     monsterIds: ['slime', 'slime', 'slime', 'wolf'],
-    entry: { x: 5.3, y: 11.4 },
+    entry: { x: 7.5, y: 19.4 },
     badge: '01'
   },
   {
@@ -67,7 +67,7 @@ export const zones: ZoneDefinition[] = [
     description: '수정 늑대의 비중이 늘어납니다. 이동 속도 카드와 소울 링크 성장을 노리기 좋은 구간입니다.',
     recommendedLevel: 3,
     monsterIds: ['slime', 'wolf', 'wolf', 'wolf'],
-    entry: { x: 11.8, y: 8.4 },
+    entry: { x: 9.2, y: 21.0 },
     unlockQuestId: 'story-cleanse-slimes',
     unlockLevel: 3,
     badge: '02'
@@ -80,7 +80,7 @@ export const zones: ZoneDefinition[] = [
     description: '고블린 추적자가 등장합니다. 장비 드랍과 골드 수급을 위한 중반 진입 사냥터입니다.',
     recommendedLevel: 5,
     monsterIds: ['wolf', 'goblin', 'goblin', 'goblin'],
-    entry: { x: 10.6, y: 12.2 },
+    entry: { x: 8.4, y: 20.4 },
     unlockQuestId: 'story-crystal-wolf',
     unlockLevel: 4,
     badge: '03'
@@ -93,7 +93,7 @@ export const zones: ZoneDefinition[] = [
     description: '흑수정 곰이 본격적으로 등장합니다. 방어와 체력 세팅을 확인해야 하는 위험 지역입니다.',
     recommendedLevel: 7,
     monsterIds: ['goblin', 'goblin', 'crystalBear', 'crystalBear'],
-    entry: { x: 15.4, y: 15.4 },
+    entry: { x: 9.5, y: 22.2 },
     unlockQuestId: 'story-goblin-road',
     unlockLevel: 6,
     badge: '04'
@@ -106,7 +106,7 @@ export const zones: ZoneDefinition[] = [
     description: '흑수정 곰과 드래곤이 등장하는 보스 테스트 지역입니다. 현재는 솔로 인스턴스 형태로 동작합니다.',
     recommendedLevel: 8,
     monsterIds: ['goblin', 'crystalBear', 'dragon'],
-    entry: { x: 15.4, y: 14.6 },
+    entry: { x: 10.8, y: 23.2 },
     unlockQuestId: 'story-soul-growth',
     unlockLevel: 8,
     badge: '05'
@@ -500,49 +500,54 @@ export const monsters: MonsterDefinition[] = [
   }
 ];
 
-const pathTiles = new Set([
-  '8,8', '8,9', '8,10', '7,10', '6,11', '5,12', '5,13', '5,14',
-  '9,8', '10,8', '11,8', '12,8', '13,8',
-  '9,9', '10,10', '11,11', '12,12', '13,13', '14,14', '15,15',
-  '8,7', '8,6', '9,6', '10,6', '11,6'
-]);
+const pathTiles = new Set<string>();
+for (let i = 0; i < MAP_W; i += 1) {
+  pathTiles.add(`${i},${Math.round(19 + Math.sin(i * 0.42) * 2)}`);
+}
+for (let i = 5; i < 28; i += 1) {
+  pathTiles.add(`${Math.round(7 + Math.sin(i * 0.35) * 2)},${i}`);
+  pathTiles.add(`${Math.round(15 + Math.sin(i * 0.28) * 3)},${i}`);
+}
 
 export const worldMap: TileId[][] = Array.from({ length: MAP_H }, (_, y) =>
   Array.from({ length: MAP_W }, (_, x) => {
     const key = `${x},${y}`;
-    if ((x <= 1 && y < 8) || (y <= 1 && x < 7) || x + y > 34 || (x === 18 && y > 12)) return 'water';
-    if (x === 0 || y === 0 || x === MAP_W - 1 || y === MAP_H - 1 || x + y > 32) return 'cliff';
-    if (x === 8 && y === 8) return 'portal';
-    if (x >= 6 && x <= 10 && y >= 6 && y <= 10) return 'stone';
+    if (x === 0 || y === 0 || x === MAP_W - 1 || y === MAP_H - 1) return 'cliff';
+    if ((x <= 2 && y < 12) || (y <= 2 && x < 10) || (x > 28 && y > 18) || (x + y > 56)) return 'water';
+    if ((x < 4 && y > 21) || (x > 25 && y < 9) || (x + y > 53)) return 'cliff';
+    if (x === 8 && y === 19) return 'portal';
+    if ((x >= 5 && x <= 11 && y >= 17 && y <= 22) || (x >= 8 && x <= 13 && y >= 14 && y <= 18)) return 'stone';
     if (pathTiles.has(key)) return 'dirt';
-    if ((x >= 11 && x <= 15 && y >= 6 && y <= 10) || (x >= 10 && x <= 14 && y >= 5 && y <= 8)) return 'moss';
-    if ((x >= 11 && y >= 12) || (x >= 14 && y >= 9)) return 'stone';
-    if ((x >= 15 && y >= 13) || (x >= 16 && y >= 9 && y <= 12)) return 'crystal';
-    if ((x + y) % 11 === 0 && x > 3 && y > 4) return 'moss';
+    if ((x >= 12 && x <= 22 && y >= 7 && y <= 15) || (x >= 16 && x <= 25 && y >= 14 && y <= 20)) return 'moss';
+    if ((x >= 17 && y >= 20) || (x >= 22 && y >= 12)) return 'stone';
+    if ((x >= 23 && y >= 18) || (x >= 24 && y >= 10 && y <= 16)) return 'crystal';
+    if ((x + y) % 13 === 0 && x > 4 && y > 5) return 'moss';
     return 'grass';
   })
 );
 
 export const spawnTable = [
-  { monsterId: 'slime', x: 5.1, y: 12.3 },
-  { monsterId: 'slime', x: 6.3, y: 13.4 },
-  { monsterId: 'slime', x: 4.4, y: 15.2 },
-  { monsterId: 'wolf', x: 12.0, y: 8.0 },
-  { monsterId: 'wolf', x: 13.6, y: 9.1 },
-  { monsterId: 'goblin', x: 11.5, y: 13.2 },
-  { monsterId: 'goblin', x: 14.4, y: 14.4 },
-  { monsterId: 'crystalBear', x: 16.2, y: 16.1 },
-  { monsterId: 'dragon', x: 17.2, y: 10.8 }
+  { monsterId: 'slime', x: 8.8, y: 20.2 },
+  { monsterId: 'slime', x: 10.4, y: 22.0 },
+  { monsterId: 'slime', x: 12.4, y: 18.4 },
+  { monsterId: 'wolf', x: 16.2, y: 15.2 },
+  { monsterId: 'wolf', x: 19.4, y: 16.6 },
+  { monsterId: 'goblin', x: 18.6, y: 22.8 },
+  { monsterId: 'goblin', x: 22.2, y: 23.6 },
+  { monsterId: 'crystalBear', x: 25.0, y: 25.2 },
+  { monsterId: 'dragon', x: 27.0, y: 18.8 }
 ] as const;
 
 export const villageProps = [
-  { type: 'tree', x: 5.6, y: 6.1, scale: 0.62 },
-  { type: 'tree', x: 10.8, y: 6.0, scale: 0.62 },
-  { type: 'crystal', x: 8.0, y: 8.0, scale: 0.5 },
-  { type: 'crystal', x: 6.3, y: 9.8, scale: 0.42 },
-  { type: 'crystal', x: 10.0, y: 9.7, scale: 0.42 },
-  { type: 'rock', x: 7.0, y: 6.8, scale: 0.48 },
-  { type: 'ruin', x: 10.4, y: 8.7, scale: 0.5 }
+  { type: 'tree', x: 5.8, y: 16.6, scale: 0.48 },
+  { type: 'tree', x: 12.2, y: 16.0, scale: 0.48 },
+  { type: 'tree', x: 6.8, y: 23.8, scale: 0.46 },
+  { type: 'crystal', x: 8.0, y: 19.0, scale: 0.38 },
+  { type: 'crystal', x: 6.2, y: 21.0, scale: 0.34 },
+  { type: 'crystal', x: 11.2, y: 21.4, scale: 0.34 },
+  { type: 'rock', x: 7.0, y: 17.6, scale: 0.34 },
+  { type: 'rock', x: 13.4, y: 20.8, scale: 0.34 },
+  { type: 'ruin', x: 11.8, y: 18.8, scale: 0.36 }
 ] as const;
 
 export const expToNext = (level: number) => 90 + level * level * 32;
