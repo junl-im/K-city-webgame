@@ -1,18 +1,19 @@
 {
-  "name": "sol-online",
-  "version": "1.0.0",
+  "name": "sol-online-alpha",
+  "version": "0.1.0",
+  "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
-    "firebase": "^10.12.0",
-    "pixi.js": "^8.1.0"
+    "firebase": "^12.14.0",
+    "pixi.js": "^8.13.1"
   },
   "devDependencies": {
-    "typescript": "^5.4.5",
-    "vite": "^5.2.0"
+    "typescript": "^5.8.3",
+    "vite": "^7.2.4"
   }
 }

@@ -1,38 +1,64 @@
-# K-City Innerworld Static Hotfix
+# SOL Online Alpha 0.1
 
-GitHub Pages에서 빈 화면이 나는 상황을 피하기 위한 무빌드 정적 버전입니다.
+모바일 웹에서 바로 접속하는 2.5D MMORPG + 카드 수집 RPG 알파 프로토타입입니다.
 
-## 업로드
+## 들어간 기능
 
-이 폴더의 파일을 GitHub 저장소 루트에 그대로 올립니다.
+- PixiJS 8 기반 등각 타일 필드
+- 모바일 조이스틱 이동
+- 탭 이동
+- 자동사냥 토글
+- Mir식 전투 흐름: 거리 체크, 명중, 방어 감산, 크리티컬, 사망 판정
+- 몬스터 리스폰
+- 골드, 소울젬, 장비, 카드 드랍
+- 카드 장착 4슬롯
+- 중복 카드 자동 합성
+- 몬스터 처치 기반 영혼 링크
+- 로컬 저장
+- Firebase Auth + Firestore 클라우드 저장
+- GitHub Pages/Firebase Hosting 배포용 Vite 설정
 
-필수 파일:
+## 실행
 
-- index.html
-- src/main.js
-- src/styles.css
-- assets/icon.svg
-- firestore.rules
-- firestore.indexes.json
-- firebase.json
+```bash
+npm install
+npm run dev
+```
 
-GitHub Pages 설정:
+개발 서버 기본 주소는 `http://127.0.0.1:8765` 입니다.
 
-- Settings → Pages
-- Source: Deploy from a branch
-- Branch: main
-- Folder: /root
+## 빌드
 
-주소:
+```bash
+npm run build
+```
 
-https://junl-im.github.io/K-city-webgame/
+빌드 결과는 `dist/` 폴더에 생성됩니다. GitHub Pages에는 `dist` 내용을 배포하거나, Firebase Hosting에는 아래 명령을 사용합니다.
+
+```bash
+firebase deploy
+```
 
 ## Firebase
 
-Firestore Rules 배포:
+현재 설정은 사용자가 제공한 `k-city-webgame` Firebase 프로젝트를 사용합니다.
 
-```bash
-firebase deploy --only firestore:rules,firestore:indexes --project k-city-webgame
-```
+Firestore Rules:
 
-Authentication에서 Email/Password, Google 로그인 제공업체를 켜야 로그인 기능이 동작합니다.
+- `users/{uid}`: 본인만 읽기/쓰기
+- `rankings/{uid}`: 누구나 읽기, 본인만 쓰기
+- `worldboss/{id}`: 읽기 전용
+
+알파 0.1은 클라이언트 전투 계산으로 동작합니다. 실제 서비스 단계에서는 Cloud Functions에서 전투 결과, 드랍, 경험치, 골드 지급을 검증해야 합니다.
+
+## 다음 개발 순서
+
+1. Cloud Functions 전투 검증
+2. 서버 시간 기반 월드보스
+3. 파티/길드 기본 구조
+4. 카드 합성 UI
+5. 맵 에디터 JSON 로더
+6. 스프라이트 시트 기반 8방향 애니메이션
+7. 장비 장착 슬롯
+8. Firestore 랭킹 화면
+

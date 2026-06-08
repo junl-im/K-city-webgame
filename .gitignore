@@ -1,7 +1,0 @@
-node_modules
-dist
-.firebase
-.env
-.env.local
-.DS_Store
-*.log
