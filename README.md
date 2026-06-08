@@ -63,3 +63,9 @@ npm run build
 - `soul-online-alpha-v0-16`
 
 기존 설치 앱에서 이전 화면이 남으면 브라우저 캐시 삭제 또는 홈 화면 앱 재설치가 필요할 수 있습니다.
+
+## 0.16.1 Hotfix
+
+- Fixed GitHub Actions `npm ci` failure caused by a stale `package-lock.json` entry for `@firebase/messaging@0.14.0`.
+- The lockfile now points to the public npm package `@firebase/messaging@0.13.0`, which is the Firebase 12.14.0 dependency version available from the public registry.
+- Verified with `npm ci --registry=https://registry.npmjs.org/` and `npm run build`.
