@@ -23,13 +23,13 @@ export class SaveService {
   private auth: Auth | null = null;
   private db: Firestore | null = null;
   private user: User | null = null;
-  private ready = false;
 
   async init() {
     try {
       this.app = initializeApp(firebaseConfig);
       this.auth = getAuth(this.app);
       this.db = getFirestore(this.app);
+
       isAnalyticsSupported()
         .then((supported) => {
           if (supported && this.app) getAnalytics(this.app);
@@ -40,14 +40,12 @@ export class SaveService {
         if (!this.auth) return resolve();
         const off = onAuthStateChanged(this.auth, (user) => {
           this.user = user;
-          this.ready = true;
           off();
           resolve();
         });
       });
     } catch (error) {
       console.warn('[Firebase] init failed, local save only', error);
-      this.ready = true;
     }
   }
 
@@ -151,8 +149,8 @@ export class SaveService {
       gems: 20,
       hp: base.baseStats.hp,
       mp: base.baseStats.mp,
-      x: 7.8,
-      y: 7.4,
+      x: 8.0,
+      y: 8.2,
       kills: {
         slime: 0,
         wolf: 0,
@@ -161,23 +159,25 @@ export class SaveService {
         dragon: 0
       },
       cards: [
-        { uid: uid('card'), cardId: 'card-soul-knight', level: 1, copies: 1, equipped: true },
+        { uid: uid('card'), cardId: classId === 'taoist' ? 'card-rune-taoist' : 'card-soul-knight', level: 1, copies: 1, equipped: true },
         { uid: uid('card'), cardId: 'card-slime', level: 1, copies: 1, equipped: true }
       ],
       inventory: [
         { uid: uid('item'), itemId: classId === 'taoist' ? 'rune-staff' : 'iron-sword', count: 1 }
       ],
       souls: souls.map((soul) => ({ soulId: soul.id, unlocked: false, progress: 0 })),
-      autoHunt: true,
+      autoHunt: false,
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
   }
 
   validateSave(save: PlayerSave) {
-    const maxHp = classes[save.classId]?.baseStats.hp ?? 200;
+    const maxHp = classes[save.classId]?.baseStats.hp ?? 220;
     save.hp = Math.max(1, Math.min(save.hp || maxHp, 999999));
     save.level = Math.max(1, Math.min(save.level || 1, 99));
+    save.gold = Math.max(0, save.gold || 0);
+    save.gems = Math.max(0, save.gems || 0);
     while (save.exp >= expToNext(save.level)) {
       save.exp -= expToNext(save.level);
       save.level += 1;
@@ -207,6 +207,12 @@ export class SaveService {
       card.level = Math.max(1, card.level || 1);
       card.copies = Math.max(1, card.copies || 1);
       card.uid ||= uid('card');
+    }
+
+    if (!raw.version || raw.version < SAVE_VERSION) {
+      migrated.x = fresh.x;
+      migrated.y = fresh.y;
+      migrated.autoHunt = false;
     }
 
     return this.validateSave(migrated);

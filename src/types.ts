@@ -22,6 +22,10 @@ export interface CharacterClass {
   sprite: string;
   baseStats: Stats;
   attackRange: number;
+  roleText: string;
+  skillName: string;
+  attackStyle: 'melee' | 'projectile' | 'holy';
+  accent: number;
 }
 
 export interface CardDefinition {

@@ -11,6 +11,82 @@
     <div id="app">
       <div id="game-root" class="game-root"></div>
 
+      <section class="login-screen" id="loginScreen">
+        <div class="login-backdrop">
+          <div class="login-art warrior-art"></div>
+          <div class="login-art mage-art"></div>
+        </div>
+
+        <div class="login-panel">
+          <div class="brand-block">
+            <span>SOL ONLINE</span>
+            <h1>소울 카드가 열린 세계</h1>
+          </div>
+
+          <div class="login-steps" aria-label="접속 단계">
+            <button data-flow-step="login" class="active">로그인</button>
+            <button data-flow-step="server">서버</button>
+            <button data-flow-step="character">캐릭터</button>
+            <button data-flow-step="world">입장</button>
+          </div>
+
+          <div class="flow-page active" data-flow-page="login">
+            <div class="account-choice">
+              <button id="guestLoginBtn" class="wide-action primary">게스트 접속</button>
+              <button id="googleLoginBtn" class="wide-action">Google 로그인</button>
+              <button id="localLoginBtn" class="wide-action subtle">로컬 저장으로 계속</button>
+            </div>
+            <p class="login-status" id="loginStatus">접속 방식을 선택하세요.</p>
+          </div>
+
+          <div class="flow-page" data-flow-page="server">
+            <div class="server-list">
+              <button data-server-id="sol-1" class="server-card active">
+                <b>솔라리스 1</b>
+                <span>혼잡도 원활 · 추천</span>
+              </button>
+              <button data-server-id="sol-2" class="server-card">
+                <b>미르림 2</b>
+                <span>혼잡도 보통 · 레이드 중심</span>
+              </button>
+            </div>
+            <button id="serverNextBtn" class="wide-action primary">서버 선택</button>
+          </div>
+
+          <div class="flow-page" data-flow-page="character">
+            <label class="field">
+              <span>닉네임</span>
+              <input id="nameInput" maxlength="12" value="솔마스터" />
+            </label>
+            <div class="class-grid">
+              <button data-class="warrior" class="class-card active">
+                <b>전사</b>
+                <span>근접 · 튼튼함 · 반월참</span>
+              </button>
+              <button data-class="taoist" class="class-card">
+                <b>술사</b>
+                <span>원거리 · 폭딜 · 수정 탄환</span>
+              </button>
+              <button data-class="cleric" class="class-card">
+                <b>성직자</b>
+                <span>중거리 · 회복 · 성광</span>
+              </button>
+            </div>
+            <div class="character-summary" id="characterSummary"></div>
+            <button id="characterNextBtn" class="wide-action primary">캐릭터 준비</button>
+          </div>
+
+          <div class="flow-page" data-flow-page="world">
+            <div class="world-card">
+              <span id="worldServerText">솔라리스 1</span>
+              <h2 id="worldCharacterText">솔마스터</h2>
+              <p id="worldClassText">전사 · 근접 탱커</p>
+            </div>
+            <button id="enterWorldBtn" class="wide-action primary">월드 입장</button>
+          </div>
+        </div>
+      </section>
+
       <header class="hud-top">
         <div class="portrait" id="classPortrait">S</div>
         <div class="hero-status">
@@ -45,7 +121,7 @@
       </div>
 
       <nav class="action-dock" aria-label="전투 행동">
-        <button id="autoHuntBtn" class="dock-btn active"><span>⟳</span><b>자동</b></button>
+        <button id="autoHuntBtn" class="dock-btn"><span>⟳</span><b>자동</b></button>
         <button id="attackBtn" class="dock-btn primary"><span>⚔</span><b>공격</b></button>
         <button id="cardsBtn" class="dock-btn"><span>◆</span><b>카드</b></button>
         <button id="inventoryBtn" class="dock-btn"><span>▤</span><b>가방</b></button>
@@ -66,32 +142,6 @@
           <button data-sheet-tab="account">계정</button>
         </div>
         <div id="sheetBody" class="sheet-body"></div>
-      </section>
-
-      <section class="create-modal" id="createModal" aria-modal="true" role="dialog">
-        <div class="create-panel">
-          <span class="eyebrow">SOL ONLINE ALPHA 0.1</span>
-          <h1>소울 마스터 생성</h1>
-          <label class="field">
-            <span>닉네임</span>
-            <input id="nameInput" maxlength="12" value="솔마스터" />
-          </label>
-          <div class="class-grid">
-            <button data-class="warrior" class="class-card active">
-              <b>전사</b>
-              <span>근접, 높은 생존력</span>
-            </button>
-            <button data-class="taoist" class="class-card">
-              <b>술사</b>
-              <span>원거리, 폭발 피해</span>
-            </button>
-            <button data-class="cleric" class="class-card">
-              <b>성직자</b>
-              <span>회복, 안정 사냥</span>
-            </button>
-          </div>
-          <button id="startGameBtn" class="start-btn">접속</button>
-        </div>
       </section>
 
       <div class="toast" id="toast"></div>

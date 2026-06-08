@@ -3,19 +3,33 @@ import { classes, expToNext, souls } from './data/gameData';
 import { SaveService } from './game/SaveService';
 import { SolGame } from './game/SolGame';
 import { formatNumber } from './game/math';
-import type { CharacterClassId, SheetTab, Snapshot } from './types';
+import type { CharacterClassId, PlayerSave, SheetTab, Snapshot } from './types';
+
+type FlowStep = 'login' | 'server' | 'character' | 'world';
 
 const saveService = new SaveService();
 let game: SolGame | null = null;
 let latest: Snapshot | null = null;
+let pendingSave: PlayerSave | null = null;
 let selectedClass: CharacterClassId = 'warrior';
+let selectedServer = 'sol-1';
 let activeSheetTab: SheetTab = 'cards';
 let sheetOpen = false;
 
 const root = must('#game-root');
-const createModal = must('#createModal');
+const loginScreen = must('#loginScreen');
+const loginStatus = must('#loginStatus');
+const guestLoginBtn = must<HTMLButtonElement>('#guestLoginBtn');
+const googleLoginBtn = must<HTMLButtonElement>('#googleLoginBtn');
+const localLoginBtn = must<HTMLButtonElement>('#localLoginBtn');
+const serverNextBtn = must<HTMLButtonElement>('#serverNextBtn');
+const characterNextBtn = must<HTMLButtonElement>('#characterNextBtn');
+const enterWorldBtn = must<HTMLButtonElement>('#enterWorldBtn');
 const nameInput = must<HTMLInputElement>('#nameInput');
-const startGameBtn = must<HTMLButtonElement>('#startGameBtn');
+const characterSummary = must('#characterSummary');
+const worldServerText = must('#worldServerText');
+const worldCharacterText = must('#worldCharacterText');
+const worldClassText = must('#worldClassText');
 const joystick = must('#joystick');
 const joystickKnob = must('#joystickKnob');
 const autoHuntBtn = must<HTMLButtonElement>('#autoHuntBtn');
@@ -39,15 +53,21 @@ async function boot() {
   await saveService.init();
   const local = saveService.loadLocal();
   const cloud = await tryLoadCloud();
-  const save = chooseSave(local, cloud);
+  pendingSave = chooseSave(local, cloud);
 
-  bindCreateModal();
+  if (pendingSave) {
+    selectedClass = pendingSave.classId;
+    nameInput.value = pendingSave.name;
+    loginStatus.textContent = `${pendingSave.name} 저장 데이터를 찾았습니다.`;
+  }
+
+  bindLoginFlow();
   bindActions();
   bindJoystick();
   bindSheet();
-
-  if (save) await startWithSave(save);
-  else openCreateModal();
+  renderCharacterSummary();
+  updateWorldSummary();
+  goStep('login');
 }
 
 async function tryLoadCloud() {
@@ -59,35 +79,136 @@ async function tryLoadCloud() {
   }
 }
 
-function chooseSave(local: ReturnType<SaveService['loadLocal']>, cloud: Awaited<ReturnType<SaveService['loadCloud']>>) {
+function chooseSave(local: PlayerSave | null, cloud: PlayerSave | null) {
   if (local && cloud) return cloud.updatedAt > local.updatedAt ? cloud : local;
   return cloud || local;
 }
 
-async function startWithSave(save: NonNullable<ReturnType<typeof chooseSave>>) {
-  createModal.classList.remove('open');
+function bindLoginFlow() {
+  document.querySelectorAll<HTMLButtonElement>('[data-flow-step]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const step = (button.dataset.flowStep || 'login') as FlowStep;
+      if (step === 'login') goStep(step);
+      if (step === 'server') goStep(step);
+      if (step === 'character') goStep(step);
+      if (step === 'world' && pendingSave) goStep(step);
+    });
+  });
+
+  guestLoginBtn.addEventListener('click', async () => {
+    await runLoginAction(async () => {
+      await saveService.loginGuest();
+      const cloud = await tryLoadCloud();
+      if (cloud) pendingSave = cloud;
+      loginStatus.textContent = '게스트 클라우드로 접속했습니다.';
+      goStep('server');
+    });
+  });
+
+  googleLoginBtn.addEventListener('click', async () => {
+    await runLoginAction(async () => {
+      await saveService.loginGoogle();
+      const cloud = await tryLoadCloud();
+      if (cloud) pendingSave = cloud;
+      loginStatus.textContent = 'Google 계정으로 접속했습니다.';
+      goStep('server');
+    });
+  });
+
+  localLoginBtn.addEventListener('click', () => {
+    loginStatus.textContent = '로컬 저장으로 진행합니다.';
+    goStep('server');
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-server-id]').forEach((button) => {
+    button.addEventListener('click', () => {
+      selectedServer = button.dataset.serverId || 'sol-1';
+      document.querySelectorAll('[data-server-id]').forEach((item) => item.classList.remove('active'));
+      button.classList.add('active');
+      updateWorldSummary();
+    });
+  });
+
+  serverNextBtn.addEventListener('click', () => goStep('character'));
+
+  document.querySelectorAll<HTMLButtonElement>('[data-class]').forEach((button) => {
+    button.addEventListener('click', () => {
+      selectedClass = (button.dataset.class || 'warrior') as CharacterClassId;
+      document.querySelectorAll('[data-class]').forEach((item) => item.classList.remove('active'));
+      button.classList.add('active');
+      renderCharacterSummary();
+      updateWorldSummary();
+    });
+  });
+
+  nameInput.addEventListener('input', updateWorldSummary);
+
+  characterNextBtn.addEventListener('click', () => {
+    const name = nameInput.value.trim().slice(0, 12) || '솔마스터';
+    const shouldCreate =
+      !pendingSave ||
+      pendingSave.name !== name ||
+      pendingSave.classId !== selectedClass;
+
+    const prepared = shouldCreate ? saveService.createSave(name, selectedClass) : pendingSave;
+    if (!prepared) return;
+    prepared.name = name;
+    prepared.classId = selectedClass;
+    pendingSave = prepared;
+    saveService.saveLocal(prepared);
+    renderCharacterSummary();
+    updateWorldSummary();
+    goStep('world');
+  });
+
+  enterWorldBtn.addEventListener('click', async () => {
+    if (!pendingSave) pendingSave = saveService.createSave(nameInput.value, selectedClass);
+    saveService.saveLocal(pendingSave);
+    await startWithSave(pendingSave);
+    if (saveService.isOnline()) {
+      await game?.saveNow();
+    }
+  });
+}
+
+async function runLoginAction(action: () => Promise<void>) {
+  setLoginButtons(false);
+  try {
+    await action();
+  } catch (error) {
+    console.warn('[Login]', error);
+    loginStatus.textContent = error instanceof Error ? error.message : '로그인 실패';
+  } finally {
+    setLoginButtons(true);
+  }
+}
+
+function setLoginButtons(enabled: boolean) {
+  guestLoginBtn.disabled = !enabled;
+  googleLoginBtn.disabled = !enabled;
+  localLoginBtn.disabled = !enabled;
+}
+
+function goStep(step: FlowStep) {
+  document.querySelectorAll('[data-flow-step]').forEach((button) => {
+    button.classList.toggle('active', (button as HTMLElement).dataset.flowStep === step);
+  });
+  document.querySelectorAll('[data-flow-page]').forEach((page) => {
+    page.classList.toggle('active', (page as HTMLElement).dataset.flowPage === step);
+  });
+  renderCharacterSummary();
+  updateWorldSummary();
+}
+
+async function startWithSave(save: PlayerSave) {
+  document.body.classList.add('world-active');
+  loginScreen.classList.add('hidden');
   game = new SolGame(saveService.validateSave(save), saveService);
   await game.mount(root);
   game.onSnapshot((snapshot) => {
     latest = snapshot;
     renderHud(snapshot);
     if (sheetOpen) renderSheet();
-  });
-}
-
-function bindCreateModal() {
-  document.querySelectorAll<HTMLButtonElement>('[data-class]').forEach((button) => {
-    button.addEventListener('click', () => {
-      selectedClass = (button.dataset.class || 'warrior') as CharacterClassId;
-      document.querySelectorAll('[data-class]').forEach((item) => item.classList.remove('active'));
-      button.classList.add('active');
-    });
-  });
-
-  startGameBtn.addEventListener('click', async () => {
-    const save = saveService.createSave(nameInput.value, selectedClass);
-    saveService.saveLocal(save);
-    await startWithSave(save);
   });
 }
 
@@ -227,8 +348,8 @@ function renderHud(snapshot: Snapshot) {
     text('#targetMeta', `Lv.${snapshot.target.def.level} HP ${Math.ceil(snapshot.target.hp)}/${snapshot.target.def.stats.hp}`);
     styleWidth('#targetHp', `${Math.round(snapshot.targetHpPercent * 100)}%`);
   } else {
-    text('#targetName', '필드 탐색');
-    text('#targetMeta', snapshot.save.autoHunt ? '자동사냥 중' : '대기');
+    text('#targetName', '마을');
+    text('#targetMeta', snapshot.save.autoHunt ? '자동사냥 탐색 중' : '정비 중');
     styleWidth('#targetHp', '0%');
   }
 
@@ -348,12 +469,14 @@ function renderSouls(snapshot: Snapshot) {
 
 function renderAccount(snapshot: Snapshot) {
   const stats = snapshot.stats;
+  const klass = classes[snapshot.save.classId];
   return `
     <div class="account-box">
       <article class="account-panel">
         <div class="pill-row">
           <span class="pill">${snapshot.online ? '온라인' : '로컬'}</span>
           <span class="pill">${escapeHtml(snapshot.userLabel)}</span>
+          <span class="pill">${escapeHtml(klass.skillName)}</span>
         </div>
         <p>HP ${stats.hp} / MP ${stats.mp} / ATK ${stats.atk} / DEF ${stats.def} / ASPD ${stats.aspd} / CRIT ${Math.round(stats.crit * 100)}%</p>
         <button data-account-action="save">수동 저장</button>
@@ -368,8 +491,21 @@ function renderAccount(snapshot: Snapshot) {
   `;
 }
 
-function openCreateModal() {
-  createModal.classList.add('open');
+function renderCharacterSummary() {
+  const klass = classes[selectedClass];
+  characterSummary.innerHTML = `
+    <b>${escapeHtml(klass.name)} · ${escapeHtml(klass.roleText)}</b><br />
+    ${escapeHtml(klass.description)}<br />
+    스킬: ${escapeHtml(klass.skillName)} · 사거리 ${klass.attackRange.toFixed(1)}
+  `;
+}
+
+function updateWorldSummary() {
+  const klass = classes[selectedClass];
+  const serverName = selectedServer === 'sol-2' ? '미르림 2' : '솔라리스 1';
+  worldServerText.textContent = serverName;
+  worldCharacterText.textContent = nameInput.value.trim() || pendingSave?.name || '솔마스터';
+  worldClassText.textContent = `${klass.name} · ${klass.roleText}`;
 }
 
 function showToast(message: string) {

@@ -40,6 +40,21 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+body:not(.world-active) .hud-top,
+body:not(.world-active) .resource-strip,
+body:not(.world-active) .target-card,
+body:not(.world-active) .combat-log,
+body:not(.world-active) .joystick,
+body:not(.world-active) .action-dock,
+body:not(.world-active) .sheet {
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.screen-shake .game-root canvas {
+  animation: screen-shake 0.18s linear;
+}
+
 button,
 input {
   font: inherit;
@@ -59,8 +74,8 @@ button:disabled {
   position: fixed;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(16, 18, 15, 0.35), rgba(16, 18, 15, 0.08) 45%, rgba(16, 18, 15, 0.42)),
-    #172018;
+    linear-gradient(180deg, rgba(12, 15, 14, 0.18), rgba(12, 15, 14, 0.05) 45%, rgba(12, 15, 14, 0.42)),
+    #141a16;
 }
 
 .game-root canvas {
@@ -80,6 +95,209 @@ button:disabled {
 .toast {
   position: fixed;
   z-index: 10;
+}
+
+.login-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom));
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(8, 10, 12, 0.92), rgba(8, 10, 12, 0.54) 48%, rgba(8, 10, 12, 0.9)),
+    #10120f;
+}
+
+.login-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+}
+
+.login-backdrop,
+.login-art {
+  position: absolute;
+  inset: 0;
+}
+
+.login-backdrop {
+  overflow: hidden;
+  filter: saturate(1.08) contrast(1.04);
+}
+
+.login-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(16, 18, 15, 0.24), rgba(16, 18, 15, 0.9)),
+    repeating-linear-gradient(90deg, transparent 0 24px, rgba(255, 255, 255, 0.025) 24px 25px);
+}
+
+.login-art {
+  background-position: center;
+  background-size: cover;
+  opacity: 0.44;
+  transform: scale(1.08);
+}
+
+.warrior-art {
+  right: 42%;
+  background-image: url("./assets/cards/card-warrior.jpg");
+  clip-path: polygon(0 0, 58% 0, 44% 100%, 0 100%);
+}
+
+.mage-art {
+  left: 42%;
+  background-image: url("./assets/cards/card-taoist.jpg");
+  clip-path: polygon(22% 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.login-panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 430px);
+  max-height: min(740px, 100%);
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid rgba(245, 241, 232, 0.18);
+  border-radius: 8px;
+  background: rgba(17, 19, 17, 0.84);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(18px);
+}
+
+.brand-block {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.brand-block span,
+.login-status {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.brand-block h1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.08;
+}
+
+.login-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.login-steps button {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.login-steps button.active {
+  border-color: rgba(226, 185, 95, 0.58);
+  color: var(--ink);
+  background: rgba(226, 185, 95, 0.16);
+}
+
+.flow-page {
+  display: none;
+  gap: 10px;
+}
+
+.flow-page.active {
+  display: grid;
+}
+
+.account-choice,
+.server-list {
+  display: grid;
+  gap: 8px;
+}
+
+.wide-action,
+.server-card {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(245, 241, 232, 0.07);
+  color: var(--ink);
+  font-weight: 950;
+}
+
+.wide-action.primary {
+  border-color: rgba(226, 185, 95, 0.55);
+  background: linear-gradient(180deg, #e0b760, #865833);
+  color: #17120c;
+}
+
+.wide-action.subtle {
+  color: var(--muted);
+}
+
+.server-card {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  text-align: left;
+}
+
+.server-card span,
+.character-summary,
+.world-card p {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.server-card.active {
+  border-color: rgba(98, 198, 200, 0.6);
+  background: rgba(98, 198, 200, 0.12);
+}
+
+.character-summary {
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  line-height: 1.45;
+}
+
+.world-card {
+  min-height: 148px;
+  display: grid;
+  align-content: end;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid rgba(226, 185, 95, 0.32);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(16, 18, 15, 0.1), rgba(16, 18, 15, 0.78)),
+    url("./assets/cards/card-crystal-fox.jpg") center 42% / cover;
+}
+
+.world-card span {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.world-card h2,
+.world-card p {
+  margin: 0;
 }
 
 .hud-top {
@@ -652,4 +870,12 @@ button:disabled {
   .class-grid {
     grid-template-columns: 1fr;
   }
+}
+
+@keyframes screen-shake {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(3px, -2px); }
+  50% { transform: translate(-2px, 2px); }
+  75% { transform: translate(2px, 1px); }
+  100% { transform: translate(0, 0); }
 }

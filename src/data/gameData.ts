@@ -1,37 +1,49 @@
 import type { CardDefinition, CharacterClass, ItemDefinition, MonsterDefinition, SoulDefinition, TileId } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 1;
-export const MAP_W = 18;
-export const MAP_H = 18;
+export const SAVE_VERSION = 2;
+export const MAP_W = 20;
+export const MAP_H = 20;
 
 export const classes: Record<string, CharacterClass> = {
   warrior: {
     id: 'warrior',
     name: '전사',
     glyph: 'W',
-    description: '검과 갑옷으로 버티며 사냥하는 근접형',
+    description: '짧은 사거리, 높은 체력과 방어, 근접 폭발력',
+    roleText: '근접 탱커',
+    skillName: '반월참',
+    attackStyle: 'melee',
+    accent: 0xe2b95f,
     sprite: textureUrls.heroWarrior,
-    baseStats: { hp: 240, mp: 45, atk: 34, def: 18, aspd: 1.05, crit: 0.08, move: 3.1 },
+    baseStats: { hp: 280, mp: 42, atk: 40, def: 24, aspd: 1.12, crit: 0.08, move: 3.05 },
     attackRange: 1.16
   },
   taoist: {
     id: 'taoist',
     name: '술사',
     glyph: 'T',
-    description: '부적과 수정 지팡이로 강한 한 방을 넣는 원거리형',
+    description: '긴 사거리, 높은 공격력과 치명타, 낮은 생존력',
+    roleText: '원거리 딜러',
+    skillName: '수정 탄환',
+    attackStyle: 'projectile',
+    accent: 0x72e7ff,
     sprite: textureUrls.heroTaoist,
-    baseStats: { hp: 180, mp: 110, atk: 43, def: 11, aspd: 0.88, crit: 0.14, move: 3.0 },
-    attackRange: 2.55
+    baseStats: { hp: 178, mp: 132, atk: 52, def: 9, aspd: 0.88, crit: 0.16, move: 3.0 },
+    attackRange: 3.35
   },
   cleric: {
     id: 'cleric',
     name: '성직자',
     glyph: 'C',
-    description: '회복과 보호막으로 오래 사냥하는 안정형',
+    description: '중거리, 낮은 화력, 타격 시 회복으로 안정 사냥',
+    roleText: '회복 서포터',
+    skillName: '성광',
+    attackStyle: 'holy',
+    accent: 0xf2d66c,
     sprite: textureUrls.heroCleric,
-    baseStats: { hp: 210, mp: 95, atk: 28, def: 15, aspd: 0.98, crit: 0.06, move: 3.05 },
-    attackRange: 1.85
+    baseStats: { hp: 226, mp: 118, atk: 31, def: 17, aspd: 0.98, crit: 0.06, move: 3.08 },
+    attackRange: 2.25
   }
 };
 
@@ -243,23 +255,32 @@ export const monsters: MonsterDefinition[] = [
 
 export const worldMap: TileId[][] = Array.from({ length: MAP_H }, (_, y) =>
   Array.from({ length: MAP_W }, (_, x) => {
-    if ((x === 0 && y < 6) || (y === 0 && x < 5) || x + y > 28) return 'water';
-    if ((x > 8 && y > 10) || (x > 11 && y > 5 && y < 10)) return 'stone';
+    if ((x <= 1 && y < 8) || (y <= 1 && x < 7) || x + y > 33) return 'water';
+    if (x >= 6 && x <= 10 && y >= 6 && y <= 10) return 'stone';
+    if ((x > 10 && y > 12) || (x > 13 && y > 6 && y < 11)) return 'stone';
     if (x === 8 && y === 8) return 'portal';
     return 'grass';
   })
 );
 
 export const spawnTable = [
-  { monsterId: 'slime', x: 5.5, y: 5.4 },
-  { monsterId: 'slime', x: 7.2, y: 4.9 },
-  { monsterId: 'slime', x: 4.4, y: 8.8 },
-  { monsterId: 'wolf', x: 10.8, y: 6.5 },
-  { monsterId: 'wolf', x: 12.4, y: 7.8 },
-  { monsterId: 'goblin', x: 9.5, y: 11.2 },
-  { monsterId: 'goblin', x: 12.8, y: 12.6 },
-  { monsterId: 'crystalBear', x: 14.2, y: 14.1 },
-  { monsterId: 'dragon', x: 15.2, y: 9.8 }
+  { monsterId: 'slime', x: 5.1, y: 12.3 },
+  { monsterId: 'slime', x: 6.3, y: 13.4 },
+  { monsterId: 'slime', x: 4.4, y: 15.2 },
+  { monsterId: 'wolf', x: 12.0, y: 8.0 },
+  { monsterId: 'wolf', x: 13.6, y: 9.1 },
+  { monsterId: 'goblin', x: 11.5, y: 13.2 },
+  { monsterId: 'goblin', x: 14.4, y: 14.4 },
+  { monsterId: 'crystalBear', x: 16.2, y: 16.1 },
+  { monsterId: 'dragon', x: 17.2, y: 10.8 }
+] as const;
+
+export const villageProps = [
+  { type: 'tree', x: 5.6, y: 6.1, scale: 0.62 },
+  { type: 'tree', x: 10.8, y: 6.0, scale: 0.62 },
+  { type: 'crystal', x: 8.0, y: 8.0, scale: 0.5 },
+  { type: 'crystal', x: 6.3, y: 9.8, scale: 0.42 },
+  { type: 'crystal', x: 10.0, y: 9.7, scale: 0.42 }
 ] as const;
 
 export const expToNext = (level: number) => 90 + level * level * 32;
