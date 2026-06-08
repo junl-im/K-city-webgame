@@ -1,12 +1,4 @@
 {
-  "indexes": [
-    {
-      "collectionGroup": "rankings",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "rating", "order": "DESCENDING" }
-      ]
-    }
-  ],
+  "indexes": [],
   "fieldOverrides": []
 }
