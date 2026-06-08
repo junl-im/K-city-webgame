@@ -9,6 +9,7 @@ import {
   monsters,
   souls,
   spawnTable,
+  zones,
   villageProps,
   worldMap
 } from '../data/gameData';
@@ -92,6 +93,11 @@ export class SolGame {
   private manualMoveLock = 0;
   private time = 0;
   private lastMoving = false;
+  private autoStuckTimer = 0;
+  private autoLastX = 0;
+  private autoLastY = 0;
+  private autoRecoveryCooldown = 0;
+  private hitStopTimer = 0;
   private listeners = new Set<(snapshot: Snapshot) => void>();
   private log: string[] = ['마을에서 사냥터로 이동했습니다.'];
 
@@ -119,6 +125,8 @@ export class SolGame {
     this.buildMap();
     this.spawnMobs();
     this.ensurePlayerSafePosition();
+    this.autoLastX = this.save.x;
+    this.autoLastY = this.save.y;
     this.buildPlayer();
     this.bindCanvasInput();
 
@@ -221,6 +229,8 @@ export class SolGame {
   }
   destroy() {
     if (this.cloudTimer) window.clearTimeout(this.cloudTimer);
+    if (this.hitStopTimer) window.clearTimeout(this.hitStopTimer);
+    if (this.app) this.app.ticker.speed = 1;
     this.listeners.clear();
     const canvas = this.app?.canvas;
     this.app?.ticker.stop();
@@ -344,7 +354,8 @@ export class SolGame {
   }
 
   private spawnMobs() {
-    const allowed = zoneMonsterIds[this.options.zoneId || 'slime-forest'] || zoneMonsterIds['slime-forest'];
+    const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest')) || zones[0];
+    const allowed = zone.monsterIds;
     const counters = new Map<MonsterId, number>();
     this.mobs = spawnTable
       .filter((spawn) => {
@@ -372,7 +383,13 @@ export class SolGame {
           respawnAt: 0,
           attackCooldown: Math.random() * 1.2,
           aggroUntil: 0,
-          wanderCooldown: Math.random() * 2.5
+          wanderCooldown: Math.random() * 2.5,
+          state: 'idle' as const,
+          stateTimer: 0,
+          alertDelay: 0.32 + Math.random() * 0.42,
+          stuckTimer: 0,
+          lastX: safe.x,
+          lastY: safe.y
         };
       });
 
@@ -530,16 +547,27 @@ export class SolGame {
     }
 
     const moving = Boolean(vx || vy);
+    const beforeX = this.save.x;
+    const beforeY = this.save.y;
     if (moving) {
       const dir = normalize(vx, vy);
       const nextX = this.save.x + dir.x * stats.move * dt;
       const nextY = this.save.y + dir.y * stats.move * dt;
-      if (this.isWalkable(nextX, this.save.y)) this.save.x = clamp(nextX, 1, MAP_W - 2);
-      if (this.isWalkable(this.save.x, nextY)) this.save.y = clamp(nextY, 1, MAP_H - 2);
+      let movedAxis = false;
+      if (this.isWalkable(nextX, this.save.y)) {
+        this.save.x = clamp(nextX, 1, MAP_W - 2);
+        movedAxis = true;
+      }
+      if (this.isWalkable(this.save.x, nextY)) {
+        this.save.y = clamp(nextY, 1, MAP_H - 2);
+        movedAxis = true;
+      }
+      if (!movedAxis && this.save.autoHunt && this.moveTarget) this.recoverAutoHuntStuck('blocked-axis');
       if (this.playerBody) this.playerBody.scale.x = dir.x < -0.05 ? -Math.abs(this.playerBody.scale.x) : Math.abs(this.playerBody.scale.x);
     }
 
     this.resolvePlayerMobOverlap();
+    this.updateAutoHuntRecovery(dt, beforeX, beforeY, moving);
     this.lastMoving = moving;
     this.updatePlayerAnimation(moving);
     this.placeEntity(this.playerRoot, this.save.x, this.save.y);
@@ -571,10 +599,59 @@ export class SolGame {
     }
 
     const dir = normalize(this.target.x - this.save.x, this.target.y - this.save.y);
-    this.moveTarget = {
-      x: this.save.x + dir.x * Math.min(0.75, dist),
-      y: this.save.y + dir.y * Math.min(0.75, dist)
+    const step = Math.min(0.82, Math.max(0.24, dist - Math.max(0.35, klass.attackRange * 0.76)));
+    const direct = {
+      x: clamp(this.save.x + dir.x * step, 1, MAP_W - 2),
+      y: clamp(this.save.y + dir.y * step, 1, MAP_H - 2)
     };
+    if (this.isWalkable(direct.x, direct.y)) {
+      this.moveTarget = direct;
+      return;
+    }
+
+    const sideA = { x: clamp(this.save.x + -dir.y * 0.72 + dir.x * 0.2, 1, MAP_W - 2), y: clamp(this.save.y + dir.x * 0.72 + dir.y * 0.2, 1, MAP_H - 2) };
+    const sideB = { x: clamp(this.save.x + dir.y * 0.72 + dir.x * 0.2, 1, MAP_W - 2), y: clamp(this.save.y + -dir.x * 0.72 + dir.y * 0.2, 1, MAP_H - 2) };
+    this.moveTarget = this.isWalkable(sideA.x, sideA.y) ? sideA : this.isWalkable(sideB.x, sideB.y) ? sideB : null;
+  }
+
+  private updateAutoHuntRecovery(dt: number, beforeX: number, beforeY: number, moving: boolean) {
+    this.autoRecoveryCooldown = Math.max(0, this.autoRecoveryCooldown - dt);
+    if (!this.save.autoHunt || this.manualMoveLock > 0) {
+      this.autoStuckTimer = 0;
+      this.autoLastX = this.save.x;
+      this.autoLastY = this.save.y;
+      return;
+    }
+
+    const moved = distance(beforeX, beforeY, this.save.x, this.save.y);
+    const targetDist = this.moveTarget ? distance(this.save.x, this.save.y, this.moveTarget.x, this.moveTarget.y) : 0;
+    const wantsMove = moving || Boolean(this.moveTarget && targetDist > 0.12);
+    if (wantsMove && moved < 0.006) this.autoStuckTimer += dt;
+    else this.autoStuckTimer = Math.max(0, this.autoStuckTimer - dt * 1.8);
+
+    if (this.autoStuckTimer > 0.62 && this.autoRecoveryCooldown <= 0) this.recoverAutoHuntStuck('stuck-watchdog');
+    this.autoLastX = this.save.x;
+    this.autoLastY = this.save.y;
+  }
+
+  private recoverAutoHuntStuck(reason: string) {
+    this.autoStuckTimer = 0;
+    this.autoRecoveryCooldown = 0.55;
+    const source = this.target?.alive ? this.target : this.findNearestMob();
+    if (!source) {
+      this.moveTarget = null;
+      return;
+    }
+    const dir = normalize(source.x - this.save.x || 0.1, source.y - this.save.y || 0.1);
+    const candidates = [
+      { x: this.save.x - dir.y * 0.9, y: this.save.y + dir.x * 0.9 },
+      { x: this.save.x + dir.y * 0.9, y: this.save.y - dir.x * 0.9 },
+      { x: this.save.x - dir.x * 0.62, y: this.save.y - dir.y * 0.62 },
+      { x: source.x - dir.x * 0.82, y: source.y - dir.y * 0.82 }
+    ].map((point) => ({ x: clamp(point.x, 1, MAP_W - 2), y: clamp(point.y, 1, MAP_H - 2) }));
+
+    this.moveTarget = candidates.find((point) => this.isWalkable(point.x, point.y)) || null;
+    if (reason === 'stuck-watchdog') this.pushLog('자동사냥 경로 재탐색');
   }
 
   private updateMobs(dt: number) {
@@ -591,57 +668,179 @@ export class SolGame {
       view.root.visible = true;
       mob.attackCooldown = Math.max(0, mob.attackCooldown - dt);
       mob.wanderCooldown = Math.max(0, mob.wanderCooldown - dt);
+      mob.stateTimer = Math.max(0, mob.stateTimer - dt);
 
-      const dist = distance(this.save.x, this.save.y, mob.x, mob.y);
-      const aggroRange = this.mobAggroRange(mob);
-      const canJoinAggro = this.activeAggroCount(mob.uid) < this.maxAggroCount();
-      if ((this.target?.uid === mob.uid || dist < aggroRange) && canJoinAggro) {
-        mob.aggroUntil = Math.max(mob.aggroUntil, this.time + 2.8);
-      }
-
-      const engaged = mob.aggroUntil > this.time || this.target?.uid === mob.uid;
-      const homeDist = distance(mob.spawnX, mob.spawnY, mob.x, mob.y);
-      if (homeDist > (mobHomeRadius[mob.def.id] || 2.4)) mob.aggroUntil = 0;
-
-      if (engaged && mob.def.id !== 'dragon') {
-        const dir = normalize(this.save.x - mob.x, this.save.y - mob.y);
-        const nextX = mob.x + dir.x * mob.def.stats.move * dt * 0.42;
-        const nextY = mob.y + dir.y * mob.def.stats.move * dt * 0.42;
-        if (this.isWalkable(nextX, nextY)) {
-          mob.x = clamp(nextX, 1, MAP_W - 2);
-          mob.y = clamp(nextY, 1, MAP_H - 2);
-        }
-        view.body.scale.x = dir.x < -0.05 ? -Math.abs(view.body.scale.x) : Math.abs(view.body.scale.x);
-      } else if (engaged && mob.def.id === 'dragon' && dist < 3.1) {
-        const dir = normalize(this.save.x - mob.x, this.save.y - mob.y);
-        mob.x = clamp(mob.x + dir.x * mob.def.stats.move * dt * 0.16, 1, MAP_W - 2);
-        mob.y = clamp(mob.y + dir.y * mob.def.stats.move * dt * 0.16, 1, MAP_H - 2);
-        view.body.scale.x = dir.x < -0.05 ? -Math.abs(view.body.scale.x) : Math.abs(view.body.scale.x);
-      } else {
-        this.updateMobIdleMovement(mob, dt);
-      }
-
+      this.updateMobAi(mob, view, stats, dt);
       this.resolveMobOverlap(mob);
-      const attackDist = distance(this.save.x, this.save.y, mob.x, mob.y);
-      const canAttack = engaged && attackDist < (mob.def.id === 'dragon' ? 1.58 : 1.12);
-      if (canAttack && mob.attackCooldown <= 0 && this.save.hp > 0) {
-        mob.attackCooldown = 1 / mob.def.stats.aspd + 0.65;
-        const result = this.resolveDamage(mob.def.stats, stats, mob.def.level - this.save.level);
-        this.animateMobAttack(view);
-        if (result.hit) {
-          this.save.hp = Math.max(0, this.save.hp - result.damage);
-          this.floatText(`-${result.damage}`, this.save.x, this.save.y, 0xff7878);
-          this.impactBurst(this.save.x, this.save.y, 0xff5d5d, false);
-          if (mob.def.id === 'dragon') this.screenShake();
-          if (this.save.hp <= 0) this.playerKnockout();
-        } else {
-          this.floatText('MISS', this.save.x, this.save.y, 0xd6d1c2);
-        }
-      }
-
       this.updateMobAnimation(view, mob);
       this.updateMobHp(view, mob);
       this.placeEntity(view.root, mob.x, mob.y);
+      mob.lastX = mob.x;
+      mob.lastY = mob.y;
+    }
+  }
+
+  private updateMobAi(mob: WorldMob, view: MobView, playerStats: Stats, dt: number) {
+    const dist = distance(this.save.x, this.save.y, mob.x, mob.y);
+    const homeDist = distance(mob.spawnX, mob.spawnY, mob.x, mob.y);
+    const homeLimit = mobHomeRadius[mob.def.id] || 2.4;
+    const attackDist = mob.def.id === 'dragon' ? 1.58 : 1.12;
+    const canJoinAggro = this.activeAggroCount(mob.uid) < this.maxAggroCount();
+    const playerPulled = this.target?.uid === mob.uid;
+
+    if ((playerPulled || dist < this.mobAggroRange(mob)) && canJoinAggro && mob.state === 'idle') {
+      mob.state = 'alert';
+      mob.stateTimer = mob.alertDelay;
+      mob.aggroUntil = this.time + 3.2;
+    }
+
+    if (playerPulled && mob.state !== 'return') {
+      mob.aggroUntil = this.time + 3.8;
+      if (mob.state === 'idle') {
+        mob.state = 'alert';
+        mob.stateTimer = Math.min(mob.alertDelay, 0.22);
+      }
+    }
+
+    if (homeDist > homeLimit * 1.12 && mob.state !== 'return') {
+      mob.state = 'return';
+      mob.stateTimer = 0;
+      mob.aggroUntil = 0;
+    }
+
+    if (mob.state === 'idle') {
+      this.updateMobIdleMovement(mob, dt);
+      return;
+    }
+
+    if (mob.state === 'alert') {
+      this.faceMobToPlayer(view, mob);
+      view.body.tint = 0xfff2c0;
+      if (mob.stateTimer <= 0) {
+        view.body.tint = 0xffffff;
+        mob.state = 'chase';
+        mob.aggroUntil = this.time + 3.4;
+      }
+      return;
+    }
+
+    if (mob.state === 'return') {
+      view.body.tint = 0xd7f2ff;
+      this.moveMobToward(mob, view, mob.spawnX, mob.spawnY, dt, 0.52);
+      if (distance(mob.spawnX, mob.spawnY, mob.x, mob.y) < 0.12) {
+        mob.x = mob.spawnX;
+        mob.y = mob.spawnY;
+        mob.state = 'idle';
+        mob.stateTimer = 0;
+        mob.aggroUntil = 0;
+        view.body.tint = 0xffffff;
+      }
+      return;
+    }
+
+    if (this.save.hp <= 0) {
+      mob.state = 'return';
+      mob.aggroUntil = 0;
+      return;
+    }
+
+    if (mob.state === 'chase') {
+      mob.aggroUntil = Math.max(mob.aggroUntil, this.time + 1.2);
+      if (dist <= attackDist) {
+        mob.state = 'attackWindup';
+        mob.stateTimer = mob.def.id === 'dragon' ? 0.42 : 0.26;
+        this.attackTell(view, mob);
+        return;
+      }
+      const speedFactor = mob.def.id === 'dragon' ? 0.2 : 0.48;
+      const moved = this.moveMobToward(mob, view, this.save.x, this.save.y, dt, speedFactor);
+      const stepMoved = distance(mob.lastX, mob.lastY, mob.x, mob.y);
+      mob.stuckTimer = moved || stepMoved > 0.004 ? 0 : mob.stuckTimer + dt;
+      if (mob.stuckTimer > 0.8) {
+        mob.stuckTimer = 0;
+        mob.state = 'return';
+      }
+      return;
+    }
+
+    if (mob.state === 'attackWindup') {
+      this.faceMobToPlayer(view, mob);
+      if (dist > attackDist * 1.45) {
+        mob.state = 'chase';
+        view.body.tint = 0xffffff;
+        return;
+      }
+      if (mob.stateTimer <= 0) {
+        this.performMobAttack(mob, view, playerStats);
+        mob.state = 'attack';
+        mob.stateTimer = 0.22;
+      }
+      return;
+    }
+
+    if (mob.state === 'attack') {
+      if (mob.stateTimer <= 0) {
+        view.body.tint = 0xffffff;
+        mob.state = distance(this.save.x, this.save.y, mob.x, mob.y) <= attackDist * 1.05 ? 'attackWindup' : 'chase';
+        if (mob.state === 'attackWindup') mob.stateTimer = mob.def.id === 'dragon' ? 0.48 : 0.34;
+      }
+    }
+  }
+
+  private moveMobToward(mob: WorldMob, view: MobView, x: number, y: number, dt: number, speedFactor: number) {
+    const dir = normalize(x - mob.x, y - mob.y);
+    const step = mob.def.stats.move * dt * speedFactor;
+    const nextX = clamp(mob.x + dir.x * step, 1, MAP_W - 2);
+    const nextY = clamp(mob.y + dir.y * step, 1, MAP_H - 2);
+    let moved = false;
+    if (this.isWalkable(nextX, mob.y)) {
+      mob.x = nextX;
+      moved = true;
+    }
+    if (this.isWalkable(mob.x, nextY)) {
+      mob.y = nextY;
+      moved = true;
+    }
+    if (!moved) {
+      const sideA = { x: clamp(mob.x + -dir.y * step, 1, MAP_W - 2), y: clamp(mob.y + dir.x * step, 1, MAP_H - 2) };
+      const sideB = { x: clamp(mob.x + dir.y * step, 1, MAP_W - 2), y: clamp(mob.y + -dir.x * step, 1, MAP_H - 2) };
+      if (this.isWalkable(sideA.x, sideA.y)) {
+        mob.x = sideA.x;
+        mob.y = sideA.y;
+        moved = true;
+      } else if (this.isWalkable(sideB.x, sideB.y)) {
+        mob.x = sideB.x;
+        mob.y = sideB.y;
+        moved = true;
+      }
+    }
+    view.body.scale.x = dir.x < -0.05 ? -Math.abs(view.body.scale.x) : Math.abs(view.body.scale.x);
+    return moved;
+  }
+
+  private faceMobToPlayer(view: MobView, mob: WorldMob) {
+    const dir = normalize(this.save.x - mob.x, this.save.y - mob.y);
+    view.body.scale.x = dir.x < -0.05 ? -Math.abs(view.body.scale.x) : Math.abs(view.body.scale.x);
+  }
+
+  private attackTell(view: MobView, mob: WorldMob) {
+    view.body.tint = mob.def.id === 'dragon' ? 0xffd15f : 0xffb7b7;
+    this.impactBurst(mob.x, mob.y, 0xff7b58, false);
+  }
+
+  private performMobAttack(mob: WorldMob, view: MobView, playerStats: Stats) {
+    if (mob.attackCooldown > 0 || this.save.hp <= 0) return;
+    mob.attackCooldown = 1 / mob.def.stats.aspd + 0.65;
+    const result = this.resolveDamage(mob.def.stats, playerStats, mob.def.level - this.save.level);
+    this.animateMobAttack(view);
+    if (result.hit) {
+      this.save.hp = Math.max(0, this.save.hp - result.damage);
+      this.floatText(`-${result.damage}`, this.save.x, this.save.y, 0xff7878);
+      this.impactBurst(this.save.x, this.save.y, 0xff5d5d, false);
+      if (mob.def.id === 'dragon') this.screenShake();
+      if (this.save.hp <= 0) this.playerKnockout();
+    } else {
+      this.floatText('MISS', this.save.x, this.save.y, 0xd6d1c2);
     }
   }
 
@@ -666,11 +865,15 @@ export class SolGame {
   }
 
   private activeAggroCount(exceptUid = '') {
-    return this.mobs.filter((mob) => mob.alive && mob.uid !== exceptUid && (mob.aggroUntil > this.time || this.target?.uid === mob.uid)).length;
+    return this.mobs.filter((mob) => {
+      if (!mob.alive || mob.uid === exceptUid) return false;
+      if (this.target?.uid === mob.uid) return true;
+      return mob.state === 'alert' || mob.state === 'chase' || mob.state === 'attackWindup' || mob.state === 'attack';
+    }).length;
   }
 
   private maxAggroCount() {
-    return this.options.zoneId === 'crystal-raid' ? 2 : 1;
+    return this.options.zoneId === 'crystal-raid' || this.options.zoneId === 'black-cave' ? 2 : 1;
   }
 
   private mobAggroRange(mob: WorldMob) {
@@ -682,13 +885,14 @@ export class SolGame {
   }
 
   private updateMobAnimation(view: MobView, mob: WorldMob) {
-    const engaged = mob.aggroUntil > this.time || this.target?.uid === mob.uid;
+    const engaged = mob.state === 'alert' || mob.state === 'chase' || mob.state === 'attackWindup' || mob.state === 'attack';
+    const returning = mob.state === 'return';
     const phase = this.time * (mob.def.id === 'dragon' ? 2.2 : engaged ? 5.4 : 3.2) + mob.spawnX;
     view.body.y = Math.sin(phase) * (mob.def.id === 'dragon' ? 1.8 : engaged ? 3.1 : 2.1);
     const sx = Math.sign(view.body.scale.x || 1) * view.baseScale;
     view.body.scale.x += (sx - view.body.scale.x) * 0.08;
     view.body.scale.y += (view.baseScale - view.body.scale.y) * 0.08;
-    view.aggroRing.clear().ellipse(0, 0, mob.def.id === 'dragon' ? 58 : 34, mob.def.id === 'dragon' ? 18 : 11).stroke({ color: engaged ? 0xff5d5d : 0x72e7ff, alpha: engaged ? 0.36 : 0.08, width: engaged ? 3 : 1 });
+    view.aggroRing.clear().ellipse(0, 0, mob.def.id === 'dragon' ? 58 : 34, mob.def.id === 'dragon' ? 18 : 11).stroke({ color: engaged ? 0xff5d5d : returning ? 0x72e7ff : 0x72e7ff, alpha: engaged ? 0.38 : returning ? 0.14 : 0.06, width: engaged ? 3 : 1 });
   }
 
   private updateRespawns() {
@@ -698,10 +902,15 @@ export class SolGame {
         mob.alive = true;
         mob.hp = mob.def.stats.hp;
         mob.aggroUntil = 0;
+        mob.state = 'idle';
+        mob.stateTimer = 0;
+        mob.stuckTimer = 0;
         mob.wanderCooldown = 0.8 + Math.random() * 1.4;
         const safe = this.findSafeMobPosition(mob.spawnX, mob.spawnY, 1.7);
         mob.x = safe.x;
         mob.y = safe.y;
+        mob.lastX = safe.x;
+        mob.lastY = safe.y;
         this.impactBurst(mob.x, mob.y, 0x72e7ff, false);
       }
     }
@@ -720,6 +929,10 @@ export class SolGame {
     const stats = this.calculateStats();
     this.attackCooldown = Math.max(0.28, 1 / stats.aspd);
     mob.aggroUntil = Math.max(mob.aggroUntil, this.time + 3.8);
+    if (mob.state === 'idle' || mob.state === 'return') {
+      mob.state = 'alert';
+      mob.stateTimer = Math.min(mob.alertDelay, 0.18);
+    }
     const result = this.resolveDamage(stats, mob.def.stats, this.save.level - mob.def.level);
     this.animatePlayerAttack(mob, result);
 
@@ -730,6 +943,7 @@ export class SolGame {
 
     mob.hp = Math.max(0, mob.hp - result.damage);
     this.animateMobHit(mob);
+    this.hitStop(result.crit ? 0.07 : 0.04);
     this.floatText(`${result.crit ? 'CRIT ' : ''}${result.damage}`, mob.x, mob.y, result.crit ? 0xffd15f : 0xf5f1e8);
 
     if (this.save.classId === 'warrior') this.applyWarriorCleave(mob, result.damage);
@@ -788,6 +1002,9 @@ export class SolGame {
 
   private killMob(mob: WorldMob) {
     mob.alive = false;
+    mob.state = 'idle';
+    mob.stateTimer = 0;
+    mob.aggroUntil = 0;
     mob.respawnAt = performance.now() + mob.def.respawnMs;
     if (this.target?.uid === mob.uid) this.target = null;
 
@@ -1283,6 +1500,15 @@ export class SolGame {
     void document.body.offsetWidth;
     document.body.classList.add('screen-shake');
     window.setTimeout(() => document.body.classList.remove('screen-shake'), 220);
+  }
+
+  private hitStop(duration: number) {
+    if (!this.app) return;
+    window.clearTimeout(this.hitStopTimer);
+    this.app.ticker.speed = 0.18;
+    this.hitStopTimer = window.setTimeout(() => {
+      if (this.app) this.app.ticker.speed = 1;
+    }, duration * 1000);
   }
 
   private animate(duration: number, onUpdate: (t: number) => void, onDone?: () => void) {

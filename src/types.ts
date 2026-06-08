@@ -2,10 +2,11 @@ export type CharacterClassId = 'warrior' | 'taoist' | 'cleric';
 export type MonsterId = 'slime' | 'wolf' | 'goblin' | 'crystalBear' | 'dragon';
 export type TileId = 'grass' | 'stone' | 'water' | 'portal';
 export type CardRarity = 'N' | 'R' | 'SR' | 'SSR';
-export type SheetTab = 'cards' | 'inventory' | 'souls' | 'account';
+export type SheetTab = 'cards' | 'inventory' | 'skills' | 'souls' | 'account';
 export type DailyQuestGoalType = 'kill' | 'level';
 export type StoryQuestGoalType = 'talk' | 'kill' | 'level';
 export type EquipmentSlot = 'weapon' | 'armor' | 'relic';
+export type MobAiState = 'idle' | 'alert' | 'chase' | 'attackWindup' | 'attack' | 'return';
 
 export interface Stats {
   hp: number;
@@ -58,6 +59,30 @@ export interface DailyQuestDefinition {
   monsterId?: MonsterId;
   target: number;
   reward: { gold?: number; gems?: number; itemId?: string; itemCount?: number };
+}
+
+export interface ZoneDefinition {
+  id: string;
+  order: number;
+  title: string;
+  subtitle: string;
+  description: string;
+  recommendedLevel: number;
+  monsterIds: MonsterId[];
+  entry: { x: number; y: number };
+  unlockQuestId?: string;
+  unlockLevel?: number;
+  badge: string;
+}
+
+export interface SkillDefinition {
+  id: string;
+  classId: CharacterClassId;
+  name: string;
+  hotkey: string;
+  unlockLevel: number;
+  cooldownSec: number;
+  description: string;
 }
 
 export interface StoryQuestDefinition {
@@ -175,7 +200,14 @@ export interface WorldMob {
   attackCooldown: number;
   aggroUntil: number;
   wanderCooldown: number;
+  state: MobAiState;
+  stateTimer: number;
+  alertDelay: number;
+  stuckTimer: number;
+  lastX: number;
+  lastY: number;
 }
+
 
 export interface CombatResult {
   hit: boolean;

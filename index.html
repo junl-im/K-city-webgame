@@ -32,7 +32,7 @@
             <span class="title-character"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn">게임 시작</button>
-          <div class="title-mini-nav"><span>공지 준비중</span><span>설정 준비중</span><span>v0.8.0</span></div>
+          <div class="title-mini-nav"><span>공지 준비중</span><span>설정 준비중</span><span>v0.9.0</span></div>
           <small>전체화면은 브라우저 정책상 버튼 입력 후 시도됩니다.</small>
         </div>
       </section>
@@ -193,14 +193,22 @@
             <div class="zone-list zone-list-v2">
               <button class="zone-card active" data-zone-id="slime-forest">
                 <em>01</em><b>초록 숲 입구</b>
-                <span>Lv.1-3 · 적은 어그로 · 입문 사냥터</span>
+                <span>Lv.1 · 슬라임/늑대 · 입문 사냥터</span>
+              </button>
+              <button class="zone-card" data-zone-id="crystal-moss">
+                <em>02</em><b>수정 이끼길</b>
+                <span>Lv.3 · 수정 늑대 · 이동 카드 파밍</span>
               </button>
               <button class="zone-card" data-zone-id="goblin-road">
-                <em>02</em><b>고블린 길목</b>
-                <span>Lv.5+ · 장비 드랍 · 추적자 등장</span>
+                <em>03</em><b>고블린 길목</b>
+                <span>Lv.5 · 고블린 · 장비 드랍</span>
+              </button>
+              <button class="zone-card" data-zone-id="black-cave">
+                <em>04</em><b>흑수정 동굴</b>
+                <span>Lv.7 · 흑수정 곰 · 위험 지역</span>
               </button>
               <button class="zone-card" data-zone-id="crystal-raid">
-                <em>03</em><b>수정 레이드 터</b>
+                <em>05</em><b>수정 레이드 터</b>
                 <span>Lv.8+ · 보스 테스트 · 고위험</span>
               </button>
             </div>
@@ -214,7 +222,8 @@
             <div class="town-content-grid town-content-grid-v2">
               <button class="content-card featured" data-town-content="story"><i>★</i><b>스토리</b><span>챕터 진행/보상</span></button>
               <button class="content-card" data-town-content="cards"><i>◆</i><b>카드 도감</b><span>장착/해제</span></button>
-              <button class="content-card" data-town-content="inventory"><i>▤</i><b>장비 가방</b><span>무기/방어구/유물</span></button>
+              <button class="content-card" data-town-content="inventory"><i>▤</i><b>장비 가방</b><span>5x9 슬롯형 가방</span></button>
+              <button class="content-card" data-town-content="skills"><i>✦</i><b>스킬</b><span>3x3 스킬 슬롯</span></button>
               <button class="content-card" data-town-content="shop"><i>◈</i><b>상점</b><span>장비와 재료 구매</span></button>
               <button class="content-card" data-town-content="quests"><i>!</i><b>일일 의뢰</b><span>목표와 보상</span></button>
               <button class="content-card" data-town-content="boss"><i>♛</i><b>월드 보스</b><span>레이드 입장</span></button>
@@ -293,7 +302,8 @@
         </div>
         <div class="tabs">
           <button data-sheet-tab="cards" class="active">카드</button>
-          <button data-sheet-tab="inventory">장비</button>
+          <button data-sheet-tab="inventory">가방</button>
+          <button data-sheet-tab="skills">스킬</button>
           <button data-sheet-tab="souls">영혼</button>
           <button data-sheet-tab="account">계정</button>
         </div>

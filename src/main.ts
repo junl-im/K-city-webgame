@@ -1,12 +1,12 @@
 import './styles.css';
-import { cards, classes, dailyQuests, expToNext, items, monsters, souls, storyQuests } from './data/gameData';
+import { cards, classes, dailyQuests, expToNext, items, monsters, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { SolGame } from './game/SolGame';
 import { formatNumber, uid } from './game/math';
 import type { CardDefinition, CharacterClassId, EquipmentSlot, ItemDefinition, PlayerSave, SheetTab, Snapshot, Stats } from './types';
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
-type TownContentId = 'story' | 'cards' | 'inventory' | 'shop' | 'boss' | 'quests' | 'account';
+type TownContentId = 'story' | 'cards' | 'inventory' | 'skills' | 'shop' | 'boss' | 'quests' | 'account';
 
 const saveService = new SaveService();
 let game: SolGame | null = null;
@@ -335,6 +335,11 @@ function bindLoginFlow() {
       button.classList.add('active');
       const zoneId = button.dataset.zoneId || 'slime-forest';
       if (!pendingSave) pendingSave = getSelectedCharacter();
+      if (pendingSave && !isZoneUnlocked(pendingSave, zoneId)) {
+        showToast('아직 해금되지 않은 사냥터입니다. 스토리 또는 레벨 조건을 확인하세요.');
+        updateZoneLocks(pendingSave);
+        return;
+      }
       if (!pendingSave) {
         showToast('사냥터에 입장할 캐릭터를 선택하세요.');
         goStep('character');
@@ -383,8 +388,13 @@ function bindLoginFlow() {
 
     const zone = target.closest<HTMLButtonElement>('[data-town-zone-enter]');
     if (zone && pendingSave) {
+      const zoneId = zone.dataset.townZoneEnter || 'crystal-raid';
+      if (!isZoneUnlocked(pendingSave, zoneId)) {
+        showToast('아직 해금되지 않은 사냥터입니다.');
+        return;
+      }
       closeTownContentPanel();
-      await startField(pendingSave, zone.dataset.townZoneEnter || 'crystal-raid');
+      await startField(pendingSave, zoneId);
       return;
     }
 
@@ -692,6 +702,7 @@ function renderSheet() {
   const titles: Record<SheetTab, [string, string]> = {
     cards: ['SOUL CODEX', '카드 도감'],
     inventory: ['BAG', '장비 가방'],
+    skills: ['SOUL SKILL', '스킬 슬롯'],
     souls: ['SOUL LINK', '영혼 링크'],
     account: ['FIREBASE', '계정 저장']
   };
@@ -700,70 +711,115 @@ function renderSheet() {
 
   if (activeSheetTab === 'cards') sheetBody.innerHTML = renderCards(latest);
   if (activeSheetTab === 'inventory') sheetBody.innerHTML = renderInventory(latest);
+  if (activeSheetTab === 'skills') sheetBody.innerHTML = renderSkills(latest);
   if (activeSheetTab === 'souls') sheetBody.innerHTML = renderSouls(latest);
   if (activeSheetTab === 'account') sheetBody.innerHTML = renderAccount(latest);
 }
 
 function renderCards(snapshot: Snapshot) {
   if (!game) return '';
-  const cardsHtml = snapshot.save.cards
+  const cardCells = snapshot.save.cards
     .flatMap((instance) => {
       const described = game?.describeCard(instance);
       return described ? [described] : [];
     })
-    .map(({ def, instance }) => {
-      const equipped = instance.equipped;
-      return `
-        <article class="codex-card ${equipped ? 'equipped' : ''}">
-          <img src="${def.art}" alt="${escapeHtml(def.name)}" />
-          <div>
-            <div class="pill-row">
-              <span class="pill">${def.rarity}</span>
-              <span class="pill">Lv.${instance.level}</span>
-              <span class="pill">x${instance.copies}</span>
-            </div>
-            <h3>${escapeHtml(def.name)}</h3>
-            <p>${escapeHtml(def.effectText)}</p>
-          </div>
-          <button data-equip-card="${instance.uid}">${equipped ? '해제' : '장착'}</button>
-        </article>
-      `;
-    })
-    .join('');
+    .map(({ def, instance }) => renderCardSlot(def, instance, 'data-equip-card'));
 
-  return `<div class="card-list">${cardsHtml}</div>`;
+  return `
+    <div class="slot-toolbar">
+      <span>카드 슬롯 3x3 · 장착 ${snapshot.save.cards.filter((card) => card.equipped).length}/4</span>
+      <em>카드를 눌러 장착/해제합니다.</em>
+    </div>
+    <div class="slot-grid card-slot-grid">${fillSlots(cardCells, 9, '빈 카드 슬롯')}</div>
+  `;
 }
 
 function renderInventory(snapshot: Snapshot) {
   if (!game) return '';
-  const rows = snapshot.save.inventory
+  const itemCells = snapshot.save.inventory
     .flatMap((instance) => {
       const described = game?.describeItem(instance);
       return described ? [described] : [];
     })
-    .map(({ def, instance }) => {
-      const slot = def.type as EquipmentSlot;
-      const canEquip = def.type !== 'material';
-      const equipped = canEquip && snapshot.save.equipment?.[slot] === instance.uid;
-      const typeLabel: Record<string, string> = { weapon: '무기', armor: '방어구', relic: '유물', material: '재료' };
-      return `
-        <article class="item-row ${equipped ? 'equipped' : ''}">
-          <div class="item-info">
-            <div class="pill-row">
-              <span class="pill">${def.rarity}</span>
-              <span class="pill">${typeLabel[def.type] || escapeHtml(def.type)}</span>
-              <span class="pill">x${instance.count}</span>
-              ${equipped ? '<span class="pill">장착중</span>' : ''}
-            </div>
-            <h3>${escapeHtml(def.name)}</h3>
-            <p>${escapeHtml(def.effectText)}</p>
-          </div>
-          ${canEquip ? `<button data-equip-item="${instance.uid}">${equipped ? '해제' : '장착'}</button>` : ''}
-        </article>
-      `;
-    })
-    .join('');
-  return `<div class="item-list">${rows || '<p class="account-panel">가방이 비었습니다.</p>'}</div>`;
+    .map(({ def, instance }) => renderItemSlot(snapshot.save, def, instance.uid, instance.count, 'data-equip-item'));
+
+  return `
+    <div class="slot-toolbar">
+      <span>인벤토리 5x9 · ${snapshot.save.inventory.length}/45</span>
+      <em>무기/방어구/유물은 슬롯에서 바로 장착 가능합니다.</em>
+    </div>
+    <div class="slot-grid inventory-slot-grid">${fillSlots(itemCells, 45, '빈 가방')}</div>
+  `;
+}
+
+
+function renderSkills(snapshot: Snapshot) {
+  return renderSkillGrid(snapshot.save, false);
+}
+
+function renderSkillGrid(save: PlayerSave, townMode: boolean) {
+  const classSkills = skills.filter((skill) => skill.classId === save.classId);
+  const cells = classSkills.map((skill) => {
+    const unlocked = save.level >= skill.unlockLevel;
+    return `
+      <article class="slot-cell skill-slot ${unlocked ? 'unlocked' : 'locked'}">
+        <span class="slot-rarity">${escapeHtml(skill.hotkey)}</span>
+        <b>${escapeHtml(skill.name)}</b>
+        <em>${unlocked ? `${skill.cooldownSec}s` : `Lv.${skill.unlockLevel} 해금`}</em>
+        <p>${escapeHtml(skill.description)}</p>
+      </article>
+    `;
+  });
+  return `
+    <div class="slot-toolbar">
+      <span>스킬 슬롯 3x3 · ${classes[save.classId].name}</span>
+      <em>${townMode ? '마을에서 스킬 구성을 확인합니다.' : '전투 스킬 액티브 연결은 다음 단계 예정입니다.'}</em>
+    </div>
+    <div class="slot-grid skill-slot-grid">${fillSlots(cells, 9, '미개방 슬롯')}</div>
+  `;
+}
+
+function renderCardSlot(def: CardDefinition, instance: { uid: string; level: number; copies: number; equipped: boolean }, actionAttr: string) {
+  return `
+    <article class="slot-cell card-slot ${instance.equipped ? 'equipped' : ''}">
+      <img src="${def.art}" alt="${escapeHtml(def.name)}" />
+      <span class="slot-rarity rarity-${def.rarity.toLowerCase()}">${def.rarity}</span>
+      <b>${escapeHtml(def.name)}</b>
+      <em>Lv.${instance.level} · x${instance.copies}${instance.equipped ? ' · 장착중' : ''}</em>
+      <p>${escapeHtml(def.effectText)}</p>
+      <button ${actionAttr}="${instance.uid}">${instance.equipped ? '해제' : '장착'}</button>
+    </article>
+  `;
+}
+
+function renderItemSlot(save: PlayerSave, def: ItemDefinition, uidValue: string, count: number, actionAttr: string) {
+  const slot = def.type as EquipmentSlot;
+  const canEquip = def.type !== 'material';
+  const equipped = canEquip && save.equipment?.[slot] === uidValue;
+  const typeLabel: Record<string, string> = { weapon: '무기', armor: '방어구', relic: '유물', material: '재료' };
+  return `
+    <article class="slot-cell item-slot ${equipped ? 'equipped' : ''}">
+      <span class="item-icon">${itemIcon(def.type)}</span>
+      <span class="slot-rarity rarity-${def.rarity.toLowerCase()}">${def.rarity}</span>
+      <b>${escapeHtml(def.name)}</b>
+      <em>${typeLabel[def.type] || escapeHtml(def.type)} · x${count}${equipped ? ' · 장착중' : ''}</em>
+      <p>${escapeHtml(def.effectText)}</p>
+      ${canEquip ? `<button ${actionAttr}="${uidValue}">${equipped ? '해제' : '장착'}</button>` : '<span class="slot-passive">재료</span>'}
+    </article>
+  `;
+}
+
+function fillSlots(cells: string[], total: number, label: string) {
+  const next = [...cells];
+  while (next.length < total) next.push(`<article class="slot-cell empty-slot-cell"><span>+</span><b>${escapeHtml(label)}</b></article>`);
+  return next.slice(0, total).join('');
+}
+
+function itemIcon(type: string) {
+  if (type === 'weapon') return '⚔';
+  if (type === 'armor') return '▣';
+  if (type === 'relic') return '✦';
+  return '◆';
 }
 
 function renderSouls(snapshot: Snapshot) {
@@ -881,21 +937,19 @@ function renderTown(save: PlayerSave | null) {
 
 
 function zoneEntryPoint(zoneId: string) {
-  const entries: Record<string, { x: number; y: number }> = {
-    'slime-forest': { x: 5.3, y: 11.4 },
-    'goblin-road': { x: 10.6, y: 12.2 },
-    'crystal-raid': { x: 15.4, y: 14.6 }
-  };
-  return entries[zoneId] || entries['slime-forest'];
+  return zones.find((zone) => zone.id === zoneId)?.entry || zones[0].entry;
 }
 
 function zoneTitle(zoneId: string) {
-  const names: Record<string, string> = {
-    'slime-forest': '초록 숲 입구',
-    'goblin-road': '고블린 길목',
-    'crystal-raid': '수정 레이드 터'
-  };
-  return names[zoneId] || '사냥터';
+  return zones.find((zone) => zone.id === zoneId)?.title || '사냥터';
+}
+
+function isZoneUnlocked(save: PlayerSave, zoneId: string) {
+  const zone = zones.find((entry) => entry.id === zoneId);
+  if (!zone) return true;
+  const claimed = new Set(save.story?.claimedQuestIds || []);
+  if (!zone.unlockQuestId && !zone.unlockLevel) return true;
+  return Boolean((zone.unlockQuestId && claimed.has(zone.unlockQuestId)) || (zone.unlockLevel && save.level >= zone.unlockLevel));
 }
 
 function openTownContent(content: TownContentId) {
@@ -918,6 +972,7 @@ function renderTownContent() {
     story: ['MAIN STORY', '스토리 퀘스트'],
     cards: ['SOUL CODEX', '카드 도감'],
     inventory: ['BAG', '장비 가방'],
+    skills: ['SOUL SKILL', '스킬 슬롯'],
     shop: ['MERCHANT', '루미나 상점'],
     boss: ['RAID', '월드 보스'],
     quests: ['DAILY REQUEST', '일일 의뢰'],
@@ -928,6 +983,7 @@ function renderTownContent() {
   if (activeTownContent === 'story') townContentBody.innerHTML = renderTownStory(pendingSave);
   if (activeTownContent === 'cards') townContentBody.innerHTML = renderTownCards(pendingSave);
   if (activeTownContent === 'inventory') townContentBody.innerHTML = renderTownInventory(pendingSave);
+  if (activeTownContent === 'skills') townContentBody.innerHTML = renderTownSkills(pendingSave);
   if (activeTownContent === 'shop') townContentBody.innerHTML = renderTownShop(pendingSave);
   if (activeTownContent === 'boss') townContentBody.innerHTML = renderTownBoss(pendingSave);
   if (activeTownContent === 'quests') townContentBody.innerHTML = renderTownQuests(pendingSave);
@@ -1049,19 +1105,12 @@ function storyRewardText(reward: (typeof storyQuests)[number]['reward']) {
 }
 
 function updateZoneLocks(save: PlayerSave) {
-  const claimed = new Set(save.story?.claimedQuestIds || []);
-  const slimeUnlocked = true;
-  const goblinUnlocked = claimed.has('story-crystal-wolf') || save.level >= 4;
-  const raidUnlocked = claimed.has('story-soul-growth') || save.level >= 8;
-  const zones: Record<string, boolean> = {
-    'slime-forest': slimeUnlocked,
-    'goblin-road': goblinUnlocked,
-    'crystal-raid': raidUnlocked
-  };
   document.querySelectorAll<HTMLButtonElement>('[data-zone-id]').forEach((button) => {
-    const unlocked = zones[button.dataset.zoneId || ''] ?? true;
+    const zone = zones.find((entry) => entry.id === (button.dataset.zoneId || ''));
+    const unlocked = isZoneUnlocked(save, button.dataset.zoneId || '');
     button.disabled = !unlocked;
     button.classList.toggle('locked', !unlocked);
+    button.title = unlocked ? `${zone?.title || '사냥터'} 입장` : `${zone?.unlockLevel ? `Lv.${zone.unlockLevel}` : '스토리'} 이후 해금`;
   });
 }
 
@@ -1118,47 +1167,27 @@ function renderTownStory(save: PlayerSave) {
 
 function renderTownCards(save: PlayerSave) {
   const equippedCount = save.cards.filter((card) => card.equipped).length;
-  const rows = save.cards
+  const cells = save.cards
     .flatMap((instance) => {
       const def = cards.find((card) => card.id === instance.cardId);
       return def ? [{ def, instance }] : [];
     })
-    .map(({ def, instance }) => {
-      const equipped = instance.equipped;
-      return `
-        <article class="codex-card town-manage-card ${equipped ? 'equipped' : ''}">
-          <img src="${def.art}" alt="${escapeHtml(def.name)}" />
-          <div>
-            <div class="pill-row">
-              <span class="pill">${def.rarity}</span>
-              <span class="pill">Lv.${instance.level}</span>
-              <span class="pill">x${instance.copies}</span>
-              ${equipped ? '<span class="pill">장착중</span>' : ''}
-            </div>
-            <h3>${escapeHtml(def.name)}</h3>
-            <p>${escapeHtml(def.effectText)} · 장착 ${equippedCount}/4</p>
-          </div>
-          <button data-town-equip-card="${instance.uid}">${equipped ? '해제' : '장착'}</button>
-        </article>
-      `;
-    })
-    .join('');
+    .map(({ def, instance }) => renderCardSlot(def, instance, 'data-town-equip-card'));
 
   return `
-    <div class="town-content-note">카드는 최대 4장까지 장착됩니다. 최소 1장은 유지해야 합니다.</div>
-    <div class="card-list">${rows || '<p class="account-panel">보유 카드가 없습니다.</p>'}</div>
+    <div class="town-content-note">카드 보관함을 3x3 슬롯으로 확장했습니다. 카드는 최대 4장까지 장착되고, 최소 1장은 유지됩니다. 현재 장착 ${equippedCount}/4</div>
+    <div class="slot-grid card-slot-grid town-slot-grid">${fillSlots(cells, 9, '빈 카드 슬롯')}</div>
   `;
 }
 
 function renderTownInventory(save: PlayerSave) {
   const stats = calculateStatsFromSave(save);
-  const rows = save.inventory
+  const cells = save.inventory
     .flatMap((instance) => {
       const def = items.find((item) => item.id === instance.itemId);
       return def ? [{ def, instance }] : [];
     })
-    .map(({ def, instance }) => renderTownInventoryRow(save, def, instance.uid, instance.count))
-    .join('');
+    .map(({ def, instance }) => renderItemSlot(save, def, instance.uid, instance.count, 'data-town-equip-item'));
 
   return `
     <div class="town-stat-grid">
@@ -1169,7 +1198,8 @@ function renderTownInventory(save: PlayerSave) {
       <span>ASPD <b>${stats.aspd}</b></span>
       <span>CRIT <b>${Math.round(stats.crit * 100)}%</b></span>
     </div>
-    <div class="item-list">${rows || '<p class="account-panel">가방이 비었습니다.</p>'}</div>
+    <div class="slot-toolbar"><span>인벤토리 5x9 · ${save.inventory.length}/45</span><em>슬롯을 눌러 장착/해제합니다.</em></div>
+    <div class="slot-grid inventory-slot-grid town-slot-grid">${fillSlots(cells, 45, '빈 가방')}</div>
   `;
 }
 
@@ -1193,6 +1223,11 @@ function renderTownInventoryRow(save: PlayerSave, def: ItemDefinition, uidValue:
       ${canEquip ? `<button data-town-equip-item="${uidValue}">${equipped ? '해제' : '장착'}</button>` : ''}
     </article>
   `;
+}
+
+
+function renderTownSkills(save: PlayerSave) {
+  return renderSkillGrid(save, true);
 }
 
 function renderTownShop(save: PlayerSave) {

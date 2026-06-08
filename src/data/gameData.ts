@@ -1,7 +1,7 @@
-import type { CardDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, SoulDefinition, TileId } from '../types';
+import type { CardDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, SoulDefinition, TileId, ZoneDefinition, SkillDefinition } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 export const MAP_W = 20;
 export const MAP_H = 20;
 
@@ -46,6 +46,85 @@ export const classes: Record<string, CharacterClass> = {
     attackRange: 2.25
   }
 };
+
+export const zones: ZoneDefinition[] = [
+  {
+    id: 'slime-forest',
+    order: 1,
+    title: '초록 숲 입구',
+    subtitle: '루미나 결계 바깥의 첫 사냥터',
+    description: '슬라임과 어린 수정 늑대가 배회하는 입문 지역입니다. 자동사냥 튜토리얼과 초반 카드 파밍에 적합합니다.',
+    recommendedLevel: 1,
+    monsterIds: ['slime', 'slime', 'slime', 'wolf'],
+    entry: { x: 5.3, y: 11.4 },
+    badge: '01'
+  },
+  {
+    id: 'crystal-moss',
+    order: 2,
+    title: '수정 이끼길',
+    subtitle: '영혼 결정이 자라난 숲길',
+    description: '수정 늑대의 비중이 늘어납니다. 이동 속도 카드와 소울 링크 성장을 노리기 좋은 구간입니다.',
+    recommendedLevel: 3,
+    monsterIds: ['slime', 'wolf', 'wolf', 'wolf'],
+    entry: { x: 11.8, y: 8.4 },
+    unlockQuestId: 'story-cleanse-slimes',
+    unlockLevel: 3,
+    badge: '02'
+  },
+  {
+    id: 'goblin-road',
+    order: 3,
+    title: '고블린 길목',
+    subtitle: '검은 깃발이 꽂힌 폐허 입구',
+    description: '고블린 추적자가 등장합니다. 장비 드랍과 골드 수급을 위한 중반 진입 사냥터입니다.',
+    recommendedLevel: 5,
+    monsterIds: ['wolf', 'goblin', 'goblin', 'goblin'],
+    entry: { x: 10.6, y: 12.2 },
+    unlockQuestId: 'story-crystal-wolf',
+    unlockLevel: 4,
+    badge: '03'
+  },
+  {
+    id: 'black-cave',
+    order: 4,
+    title: '흑수정 동굴',
+    subtitle: '거대한 영혼 파편이 박힌 동굴',
+    description: '흑수정 곰이 본격적으로 등장합니다. 방어와 체력 세팅을 확인해야 하는 위험 지역입니다.',
+    recommendedLevel: 7,
+    monsterIds: ['goblin', 'goblin', 'crystalBear', 'crystalBear'],
+    entry: { x: 15.4, y: 15.4 },
+    unlockQuestId: 'story-goblin-road',
+    unlockLevel: 6,
+    badge: '04'
+  },
+  {
+    id: 'crystal-raid',
+    order: 5,
+    title: '수정 레이드 터',
+    subtitle: '잠든 용의 그림자가 내려앉은 제단',
+    description: '흑수정 곰과 드래곤이 등장하는 보스 테스트 지역입니다. 현재는 솔로 인스턴스 형태로 동작합니다.',
+    recommendedLevel: 8,
+    monsterIds: ['goblin', 'crystalBear', 'dragon'],
+    entry: { x: 15.4, y: 14.6 },
+    unlockQuestId: 'story-soul-growth',
+    unlockLevel: 8,
+    badge: '05'
+  }
+];
+
+export const skills: SkillDefinition[] = [
+  { id: 'warrior-basic', classId: 'warrior', name: '혼월참', hotkey: '기본', unlockLevel: 1, cooldownSec: 0.9, description: '전방의 적을 빠르게 베고 가까운 적에게 작은 범위 피해를 줍니다.' },
+  { id: 'warrior-guard', classId: 'warrior', name: '철혼 가드', hotkey: 'Lv.4', unlockLevel: 4, cooldownSec: 8, description: '짧은 시간 받는 피해를 줄이는 방어 기술입니다. 다음 패치에서 액티브로 연결됩니다.' },
+  { id: 'warrior-cleave', classId: 'warrior', name: '파혼난무', hotkey: 'Lv.8', unlockLevel: 8, cooldownSec: 14, description: '근처 적을 연속으로 베는 광역 기술 예정 슬롯입니다.' },
+  { id: 'taoist-basic', classId: 'taoist', name: '소울 탄환', hotkey: '기본', unlockLevel: 1, cooldownSec: 1.1, description: '영혼 결정을 발사해 원거리 적에게 피해를 줍니다.' },
+  { id: 'taoist-orb', classId: 'taoist', name: '결정 구체', hotkey: 'Lv.4', unlockLevel: 4, cooldownSec: 7, description: '폭발하는 구체를 만들어 다수의 몬스터를 견제하는 기술 예정 슬롯입니다.' },
+  { id: 'taoist-rain', classId: 'taoist', name: '영혼비', hotkey: 'Lv.8', unlockLevel: 8, cooldownSec: 15, description: '넓은 범위에 영혼 탄환을 떨어뜨리는 광역 기술 예정 슬롯입니다.' },
+  { id: 'cleric-basic', classId: 'cleric', name: '성휘', hotkey: '기본', unlockLevel: 1, cooldownSec: 1.0, description: '빛의 줄기로 적을 타격하고 자신의 HP를 조금 회복합니다.' },
+  { id: 'cleric-shield', classId: 'cleric', name: '소울 보호막', hotkey: 'Lv.4', unlockLevel: 4, cooldownSec: 9, description: '일정 피해를 흡수하는 보호막 기술 예정 슬롯입니다.' },
+  { id: 'cleric-nova', classId: 'cleric', name: '루미나 노바', hotkey: 'Lv.8', unlockLevel: 8, cooldownSec: 16, description: '주변을 정화하며 회복과 피해를 동시에 주는 기술 예정 슬롯입니다.' }
+];
+
 
 export const cards: CardDefinition[] = [
   {
