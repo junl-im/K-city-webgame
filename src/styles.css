@@ -3023,3 +3023,307 @@ body,
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Alpha 0.14: mobile viewport fix, natural login flow, map structure HUD */
+.login-flow-hint {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(226, 185, 95, 0.18);
+  border-radius: 14px;
+  background: rgba(226, 185, 95, 0.075);
+  color: #efe5c6;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.42;
+}
+
+.login-steps {
+  display: none !important;
+}
+
+.town-screen {
+  overflow: hidden !important;
+  padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)) !important;
+}
+
+.town-backdrop {
+  pointer-events: none;
+}
+
+.town-topbar {
+  display: flex !important;
+  align-items: center !important;
+  margin-bottom: 8px !important;
+  min-height: 0;
+}
+
+.town-hero-card {
+  min-width: 0;
+  padding: 8px !important;
+  border-radius: 14px !important;
+}
+
+.town-hero-card h2 {
+  max-width: 42vw;
+  overflow: hidden;
+  font-size: clamp(16px, 4.2vw, 24px) !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.town-hero-card p {
+  max-width: 48vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.town-currencies {
+  flex: 0 0 auto;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(52vw, 430px);
+  padding: 6px !important;
+}
+
+.town-currencies span {
+  min-width: 0 !important;
+  padding: 7px 6px !important;
+  overflow: hidden;
+  font-size: 10px !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.town-diorama {
+  top: 23% !important;
+  height: min(340px, 42dvh) !important;
+  width: min(980px, 150vw) !important;
+  opacity: 0.82;
+  transform: translate(-50%, -48%) scale(0.92) !important;
+}
+
+.town-layout-v2 {
+  position: relative !important;
+  z-index: 3 !important;
+  max-height: calc(100dvh - 86px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 0 2px 20px !important;
+  scroll-padding-bottom: 24px;
+}
+
+.town-hero-panel,
+.town-zone-panel,
+.town-action-panel {
+  min-width: 0;
+  contain: layout paint;
+}
+
+.story-snapshot,
+.story-brief,
+.story-row,
+.quest-row {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.story-action-btn,
+.wide-action.primary {
+  max-width: 100%;
+}
+
+.town-drawer {
+  z-index: 55 !important;
+  max-width: calc(100vw - 20px) !important;
+  max-height: min(76dvh, 640px) !important;
+  overflow: hidden !important;
+}
+
+.town-drawer-body {
+  max-width: 100%;
+  overflow-x: hidden !important;
+}
+
+.field-minimap {
+  position: fixed;
+  top: calc(max(10px, env(safe-area-inset-top)) + 154px);
+  right: max(10px, env(safe-area-inset-right));
+  z-index: 10;
+  width: 132px;
+  padding: 8px;
+  border: 1px solid rgba(226, 185, 95, 0.18);
+  border-radius: 14px;
+  background: rgba(9, 11, 9, 0.64);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
+  pointer-events: none;
+  backdrop-filter: blur(12px);
+}
+
+body:not(.field-active) .field-minimap {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.minimap-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 6px;
+  color: #efe5c6;
+  font-size: 10px;
+  font-weight: 950;
+}
+
+.minimap-head b,
+.minimap-head span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.minimap-canvas {
+  position: relative;
+  height: 82px;
+  overflow: hidden;
+  border: 1px solid rgba(245, 241, 232, 0.11);
+  border-radius: 10px;
+  background:
+    linear-gradient(140deg, rgba(92, 122, 72, 0.38), rgba(24, 36, 33, 0.72)),
+    radial-gradient(circle at 78% 22%, rgba(114, 231, 255, 0.2), transparent 24%);
+}
+
+.minimap-canvas i {
+  position: absolute;
+  display: block;
+}
+
+.mini-safe {
+  left: 18%;
+  top: 48%;
+  width: 30px;
+  height: 18px;
+  border: 1px solid rgba(226, 185, 95, 0.5);
+  border-radius: 50%;
+}
+
+.mini-path {
+  left: 20%;
+  top: 38%;
+  width: 72px;
+  height: 18px;
+  border-top: 3px solid rgba(226, 185, 95, 0.34);
+  border-radius: 50%;
+  transform: rotate(-22deg);
+}
+
+.mini-boss {
+  right: 16%;
+  top: 24%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #d95757;
+  box-shadow: 0 0 12px rgba(217, 87, 87, 0.8);
+}
+
+.mini-player {
+  left: 46%;
+  top: 48%;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #111;
+  border-radius: 50%;
+  background: #e2b95f;
+  box-shadow: 0 0 12px rgba(226, 185, 95, 0.9);
+}
+
+@media (min-width: 981px) {
+  .town-layout-v2 {
+    grid-template-columns: minmax(250px, 0.82fr) minmax(320px, 1fr) minmax(250px, 0.82fr) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .login-panel-v3 {
+    max-height: calc(100dvh - 22px) !important;
+  }
+
+  .login-lore-card {
+    display: none !important;
+  }
+
+  .town-topbar {
+    gap: 6px !important;
+  }
+
+  .town-portrait {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  .town-hero-card span {
+    font-size: 9px !important;
+  }
+
+  .town-currencies {
+    width: 45vw;
+    grid-template-columns: 1fr;
+  }
+
+  .town-currencies span {
+    padding: 5px 6px !important;
+  }
+
+  .town-diorama {
+    top: 20% !important;
+    width: 164vw !important;
+    height: 30dvh !important;
+    opacity: 0.45;
+  }
+
+  .town-layout-v2 {
+    max-height: calc(100dvh - 74px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    gap: 10px !important;
+  }
+
+  .town-hero-panel {
+    min-height: auto !important;
+    padding: 14px !important;
+  }
+
+  .town-hero-panel h1 {
+    font-size: clamp(28px, 10vw, 42px) !important;
+  }
+
+  .story-snapshot {
+    padding: 10px !important;
+  }
+
+  .zone-list-v2 .zone-card,
+  .town-content-grid-v2 .content-card {
+    padding: 11px !important;
+  }
+
+  .town-drawer {
+    left: 10px !important;
+    right: 10px !important;
+    bottom: max(10px, env(safe-area-inset-bottom)) !important;
+    max-height: min(72dvh, 580px) !important;
+  }
+
+  .field-minimap {
+    width: 116px;
+    top: calc(max(10px, env(safe-area-inset-top)) + 150px);
+  }
+}
+
+@media (max-width: 430px) {
+  .town-hero-card h2 { max-width: 36vw; }
+  .town-hero-card p { display: none; }
+  .town-currencies { width: 42vw; }
+  .town-currencies span:nth-child(3) { display: none; }
+  .field-minimap { display: none; }
+}

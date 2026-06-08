@@ -23,16 +23,16 @@
         </div>
         <div class="title-stage">
           <div class="title-copy">
-            <span class="title-kicker">ALPHA 0.13 · FIELD QUALITY</span>
+            <span class="title-kicker">ALPHA 0.14 · MAP STRUCTURE</span>
             <h1>소울 온라인</h1>
-            <p>꺼져가는 루미나의 등불을 지키고, 타락한 영혼을 정화하는 2.5D 웹 RPG · 필드 지형/바닥 퀄리티 패스 적용.</p>
+            <p>꺼져가는 루미나의 등불을 지키고, 타락한 영혼을 정화하는 2.5D 웹 RPG · 사냥터 구조, 미니맵, 모바일 마을 레이아웃 보강 적용.</p>
           </div>
           <div class="title-hero" aria-hidden="true">
             <span class="title-soul-ring"></span>
             <span class="title-character"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn">게임 시작</button>
-          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.13.0</span></div>
+          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.14.0</span></div>
           <small>전체화면은 브라우저 정책상 버튼 입력 후 시도됩니다.</small>
         </div>
       </section>
@@ -55,12 +55,7 @@
               <h1>접속 준비</h1>
             </div>
 
-          <div class="login-steps" aria-label="접속 단계">
-            <span data-flow-indicator="login" class="active">1 로그인</span>
-            <span data-flow-indicator="server">2 서버</span>
-            <span data-flow-indicator="character">3 캐릭터</span>
-            <span data-flow-indicator="town">4 입장</span>
-          </div>
+          <p class="login-flow-hint" id="loginFlowHint">접속 방식을 선택하면 다음 단계로 자연스럽게 이동합니다.</p>
 
           <div class="flow-page active" data-flow-page="login">
             <div class="account-choice">
@@ -280,6 +275,16 @@
           <span id="targetMeta">자동사냥 대기</span>
         </div>
         <div class="target-hp"><i id="targetHp"></i></div>
+      </section>
+
+      <section class="field-minimap" id="fieldMiniMap" aria-label="미니맵">
+        <div class="minimap-head"><b id="miniZoneName">사냥터</b><span id="miniZoneMeta">Lv.1</span></div>
+        <div class="minimap-canvas">
+          <i class="mini-safe"></i>
+          <i class="mini-path"></i>
+          <i class="mini-boss"></i>
+          <i class="mini-player"></i>
+        </div>
       </section>
 
       <button class="combat-log-toggle" id="combatLogToggle" aria-label="상태 기록 접기">기록 접기</button>

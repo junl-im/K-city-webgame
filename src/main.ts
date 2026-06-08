@@ -30,6 +30,9 @@ const titleScreen = must('#titleScreen');
 const startGameBtn = must<HTMLButtonElement>('#startGameBtn');
 const loginScreen = must('#loginScreen');
 const loginStatus = must('#loginStatus');
+const loginFlowHint = document.querySelector<HTMLElement>('#loginFlowHint');
+const miniZoneName = document.querySelector<HTMLElement>('#miniZoneName');
+const miniZoneMeta = document.querySelector<HTMLElement>('#miniZoneMeta');
 const guestLoginBtn = must<HTMLButtonElement>('#guestLoginBtn');
 const googleLoginBtn = must<HTMLButtonElement>('#googleLoginBtn');
 const localLoginBtn = must<HTMLButtonElement>('#localLoginBtn');
@@ -514,11 +517,17 @@ function setLoginButtons(enabled: boolean) {
 
 function goStep(step: FlowStep) {
   if (step === 'character') refreshCharacterRoster(selectedCharacterId);
-  document.querySelectorAll('[data-flow-indicator]').forEach((indicator) => {
-    indicator.classList.toggle('active', (indicator as HTMLElement).dataset.flowIndicator === step);
-  });
+  const hintText: Record<FlowStep, string> = {
+    login: '접속 방식을 선택하세요.',
+    server: '곰같은여우 서버 상태를 확인하고 다음으로 이동합니다.',
+    character: '캐릭터를 선택하거나 새 소울 바인더를 생성하세요.',
+    town: '접속 준비가 끝났습니다. 마을 입장을 누르면 루미나로 이동합니다.'
+  };
+  if (loginFlowHint) loginFlowHint.textContent = hintText[step];
   document.querySelectorAll('[data-flow-page]').forEach((page) => {
-    page.classList.toggle('active', (page as HTMLElement).dataset.flowPage === step);
+    const active = (page as HTMLElement).dataset.flowPage === step;
+    page.classList.toggle('active', active);
+    page.setAttribute('aria-hidden', active ? 'false' : 'true');
   });
   renderCharacterSummary();
   renderCharacterSlots();
@@ -575,32 +584,51 @@ async function enterTown(save: PlayerSave, label = '마을로 이동 중') {
 }
 
 async function startField(save: PlayerSave, zoneId = 'slime-forest') {
-  const zoneName = zoneTitle(zoneId);
-  await withSceneTransition(`${zoneName} 입장 중`, async () => {
-    const prepared = saveService.validateSave(save);
-    const entry = zoneEntryPoint(zoneId);
-    prepared.x = entry.x;
-    prepared.y = entry.y;
-    pendingSave = prepared;
-    saveService.saveLocal(prepared);
-    townScreen.classList.add('hidden');
-    townScreen.setAttribute('aria-hidden', 'true');
-    titleScreen.classList.add('hidden');
-    loginScreen.classList.add('hidden');
-    document.body.classList.remove('town-active');
-    document.body.classList.add('field-active');
+  const zone = zones.find((entry) => entry.id === zoneId) || zones[0];
+  const zoneName = zone.title;
+  try {
+    await withSceneTransition(`${zoneName} 입장 중`, async () => {
+      const prepared = saveService.validateSave(save);
+      const entry = zone.entry || zones[0].entry;
+      prepared.x = entry.x;
+      prepared.y = entry.y;
+      pendingSave = prepared;
+      saveService.saveLocal(prepared);
+      townScreen.classList.add('hidden');
+      townScreen.setAttribute('aria-hidden', 'true');
+      titleScreen.classList.add('hidden');
+      loginScreen.classList.add('hidden');
+      closeTownContentPanel();
+      document.body.classList.remove('town-active');
+      document.body.classList.add('field-active');
+      setFieldZoneHud(zoneId);
 
-    if (game) game.destroy();
-    audioService.setScene(zoneId === 'crystal-raid' ? 'boss' : 'field');
-    game = new SolGame(prepared, saveService, { zoneId, zoneName });
-    await game.mount(root);
-    game.onSnapshot((snapshot) => {
-      latest = snapshot;
-      pendingSave = snapshot.save;
-      renderHud(snapshot);
-      if (sheetOpen) renderSheet();
+      if (game) game.destroy();
+      audioService.setScene(zoneId === 'crystal-raid' ? 'boss' : 'field');
+      game = new SolGame(prepared, saveService, { zoneId, zoneName });
+      await game.mount(root);
+      game.onSnapshot((snapshot) => {
+        latest = snapshot;
+        pendingSave = snapshot.save;
+        renderHud(snapshot);
+        if (sheetOpen) renderSheet();
+      });
+      showToast(`${zoneName} 입장`);
     });
-  });
+  } catch (error) {
+    console.error('[Field] enter failed', error);
+    document.body.classList.remove('field-active');
+    document.body.classList.add('town-active');
+    townScreen.classList.remove('hidden');
+    townScreen.setAttribute('aria-hidden', 'false');
+    showToast(error instanceof Error ? `사냥터 입장 실패: ${error.message}` : '사냥터 입장 실패');
+  }
+}
+
+function setFieldZoneHud(zoneId: string) {
+  const zone = zones.find((entry) => entry.id === zoneId) || zones[0];
+  if (miniZoneName) miniZoneName.textContent = zone.title;
+  if (miniZoneMeta) miniZoneMeta.textContent = `권장 Lv.${zone.recommendedLevel}`;
 }
 
 async function returnToTown() {

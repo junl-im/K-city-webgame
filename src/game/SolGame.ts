@@ -56,7 +56,9 @@ type SolGameOptions = {
 
 const zoneMonsterIds: Record<string, MonsterId[]> = {
   'slime-forest': ['slime', 'slime', 'slime', 'wolf', 'wolf'],
+  'crystal-moss': ['slime', 'wolf', 'wolf', 'wolf'],
   'goblin-road': ['wolf', 'goblin', 'goblin', 'crystalBear'],
+  'black-cave': ['goblin', 'goblin', 'crystalBear', 'crystalBear'],
   'crystal-raid': ['goblin', 'crystalBear', 'dragon']
 };
 
@@ -91,6 +93,7 @@ export class SolGame {
   private playerBody: Sprite | null = null;
   private playerShadow: Graphics | null = null;
   private textures = new Map<string, Texture>();
+  private currentMap: TileId[][] = worldMap.map((row) => [...row]);
   private mobs: WorldMob[] = [];
   private mobViews = new Map<string, MobView>();
   private target: WorldMob | null = null;
@@ -423,11 +426,12 @@ export class SolGame {
     this.mapLayer.removeChildren();
     this.ambientLayer.removeChildren();
     this.propLayer.removeChildren();
+    this.currentMap = this.createZoneMap();
 
     this.addTerrainBackdrop();
     for (let y = 0; y < MAP_H; y += 1) {
       for (let x = 0; x < MAP_W; x += 1) {
-        const tile = worldMap[y][x];
+        const tile = this.tileAt(x, y);
         const sprite = new Sprite(this.mustTexture(tileTextureKey[tile]));
         const pos = isoToScreen(x, y);
         sprite.anchor.set(0.5, 0.5);
@@ -469,6 +473,73 @@ export class SolGame {
     for (const [x, y, scale] of rocks) this.addProp('propRock', x, y, scale);
   }
 
+
+  private createZoneMap() {
+    const zoneId = this.options.zoneId || 'slime-forest';
+    const map = worldMap.map((row) => [...row]);
+
+    const paint = (x: number, y: number, tile: TileId) => {
+      if (x <= 0 || y <= 0 || x >= MAP_W - 1 || y >= MAP_H - 1) return;
+      if (map[y][x] === 'water' || map[y][x] === 'cliff') return;
+      map[y][x] = tile;
+    };
+
+    const brush = (cx: number, cy: number, radius: number, tile: TileId) => {
+      for (let y = Math.floor(cy - radius); y <= Math.ceil(cy + radius); y += 1) {
+        for (let x = Math.floor(cx - radius); x <= Math.ceil(cx + radius); x += 1) {
+          if (distance(cx, cy, x, y) <= radius) paint(x, y, tile);
+        }
+      }
+    };
+
+    const road = (points: Array<[number, number]>, tile: TileId, width = 1) => {
+      for (let i = 0; i < points.length - 1; i += 1) {
+        const [sx, sy] = points[i];
+        const [ex, ey] = points[i + 1];
+        const steps = Math.max(Math.abs(ex - sx), Math.abs(ey - sy), 1) * 3;
+        for (let step = 0; step <= steps; step += 1) {
+          const t = step / steps;
+          brush(sx + (ex - sx) * t, sy + (ey - sy) * t, width, tile);
+        }
+      }
+    };
+
+    // Every hunting zone gets a clear entry plaza and a readable route to monster pockets.
+    brush(5.2, 11.5, 1.5, 'stone');
+    road([[5, 12], [8, 11], [11, 10], [14, 12], [16, 15]], 'dirt', 0.72);
+
+    if (zoneId === 'crystal-moss') {
+      road([[4, 13], [8, 10], [12, 8], [15, 7]], 'moss', 1.15);
+      brush(12, 8, 2.2, 'moss');
+      brush(15, 8, 1.4, 'crystal');
+    } else if (zoneId === 'goblin-road') {
+      road([[5, 12], [8, 12], [11, 13], [15, 14]], 'stone', 1.0);
+      brush(11, 13, 2.2, 'stone');
+      brush(14, 14, 1.6, 'dirt');
+    } else if (zoneId === 'black-cave') {
+      road([[5, 12], [8, 13], [11, 14], [15, 15]], 'stone', 1.15);
+      brush(14, 14, 2.6, 'crystal');
+      brush(16, 15, 1.7, 'crystal');
+      for (const [x, y] of [[6, 7], [7, 8], [12, 6], [17, 11], [10, 16]]) paint(x, y, 'cliff');
+    } else if (zoneId === 'crystal-raid') {
+      brush(8, 12, 2.2, 'stone');
+      brush(13, 12, 3.0, 'crystal');
+      brush(16, 11, 2.4, 'crystal');
+      road([[5, 12], [8, 12], [12, 12], [16, 11]], 'stone', 1.0);
+    } else {
+      road([[5, 12], [6, 13], [7, 14]], 'dirt', 0.85);
+      brush(5, 13, 2.0, 'grass');
+    }
+
+    const entry = zones.find((zone) => zone.id === zoneId)?.entry;
+    if (entry) brush(entry.x, entry.y, 1.05, zoneId === 'black-cave' || zoneId === 'crystal-raid' ? 'stone' : 'dirt');
+    return map;
+  }
+
+  private tileAt(x: number, y: number) {
+    if (x < 0 || y < 0 || x >= MAP_W || y >= MAP_H) return 'cliff' as TileId;
+    return this.currentMap[y]?.[x] || 'cliff';
+  }
 
   private addTerrainBackdrop() {
     const bounds = [isoToScreen(0, 0), isoToScreen(MAP_W - 1, 0), isoToScreen(MAP_W - 1, MAP_H - 1), isoToScreen(0, MAP_H - 1)];
@@ -554,7 +625,7 @@ export class SolGame {
     const edge = new Graphics();
     for (let y = 0; y < MAP_H; y += 1) {
       for (let x = 0; x < MAP_W; x += 1) {
-        const tile = worldMap[y][x];
+        const tile = this.tileAt(x, y);
         if (tile === 'water' || tile === 'cliff') continue;
         const pos = isoToScreen(x, y);
         const nearWater = this.neighborHas(x, y, 'water');
@@ -589,7 +660,7 @@ export class SolGame {
       [x, y - 1],
       [x, y + 1]
     ];
-    return checks.some(([nx, ny]) => nx >= 0 && ny >= 0 && nx < MAP_W && ny < MAP_H && worldMap[ny][nx] === tile);
+    return checks.some(([nx, ny]) => nx >= 0 && ny >= 0 && nx < MAP_W && ny < MAP_H && this.tileAt(nx, ny) === tile);
   }
 
   private addZoneLandmarks() {
@@ -664,10 +735,10 @@ export class SolGame {
       this.addProp(key, prop.x, prop.y, prop.scale);
     }
 
+    const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest')) || zones[0];
     const labels = [
-      { text: '마을', x: 8.1, y: 7.15, color: 0xe2b95f },
-      { text: '수정숲', x: 12.6, y: 8.0, color: 0x72e7ff },
-      { text: '고블린 길목', x: 12.0, y: 13.2, color: 0xf5d18a }
+      { text: '안전 진입로', x: zone.entry.x, y: zone.entry.y - 0.55, color: 0xe2b95f },
+      { text: zone.title, x: Math.min(16, zone.entry.x + 4.2), y: Math.max(6, zone.entry.y - 2.1), color: zone.id === 'crystal-raid' ? 0xff8dd6 : zone.id === 'black-cave' ? 0x9c80ff : zone.id === 'crystal-moss' ? 0x72e7ff : 0xf5d18a }
     ];
     for (const label of labels) {
       const text = new Text({
@@ -696,11 +767,49 @@ export class SolGame {
     this.propLayer.addChild(sprite);
   }
 
+  private spawnCandidatesForZone(zoneId: string) {
+    const tables: Record<string, Array<{ monsterId: MonsterId; x: number; y: number }>> = {
+      'slime-forest': [
+        { monsterId: 'slime', x: 5.1, y: 12.3 },
+        { monsterId: 'slime', x: 6.3, y: 13.4 },
+        { monsterId: 'slime', x: 4.4, y: 15.2 },
+        { monsterId: 'wolf', x: 8.4, y: 14.2 },
+        { monsterId: 'wolf', x: 10.2, y: 12.6 }
+      ],
+      'crystal-moss': [
+        { monsterId: 'slime', x: 9.2, y: 9.8 },
+        { monsterId: 'wolf', x: 11.4, y: 8.6 },
+        { monsterId: 'wolf', x: 13.2, y: 8.2 },
+        { monsterId: 'wolf', x: 14.8, y: 9.8 }
+      ],
+      'goblin-road': [
+        { monsterId: 'wolf', x: 9.2, y: 12.4 },
+        { monsterId: 'goblin', x: 11.5, y: 13.2 },
+        { monsterId: 'goblin', x: 13.4, y: 13.8 },
+        { monsterId: 'goblin', x: 15.2, y: 14.5 },
+        { monsterId: 'crystalBear', x: 16.0, y: 15.3 }
+      ],
+      'black-cave': [
+        { monsterId: 'goblin', x: 11.0, y: 13.8 },
+        { monsterId: 'goblin', x: 12.8, y: 14.4 },
+        { monsterId: 'crystalBear', x: 14.8, y: 15.1 },
+        { monsterId: 'crystalBear', x: 16.1, y: 15.7 }
+      ],
+      'crystal-raid': [
+        { monsterId: 'goblin', x: 11.7, y: 12.3 },
+        { monsterId: 'crystalBear', x: 14.4, y: 12.1 },
+        { monsterId: 'dragon', x: 16.5, y: 10.9 }
+      ]
+    };
+    return tables[zoneId] || [...spawnTable];
+  }
+
   private spawnMobs() {
     const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest')) || zones[0];
-    const allowed = zone.monsterIds;
+    const allowed = zoneMonsterIds[zone.id] || zone.monsterIds;
+    const candidates = this.spawnCandidatesForZone(zone.id);
     const counters = new Map<MonsterId, number>();
-    this.mobs = spawnTable
+    this.mobs = candidates
       .filter((spawn) => {
         const id = spawn.monsterId as MonsterId;
         const maxCount = allowed.filter((item) => item === id).length;
@@ -1684,7 +1793,8 @@ export class SolGame {
     const tx = Math.floor(x);
     const ty = Math.floor(y);
     if (tx < 0 || ty < 0 || tx >= MAP_W || ty >= MAP_H) return false;
-    return worldMap[ty][tx] !== 'water' && worldMap[ty][tx] !== 'cliff';
+    const tile = this.tileAt(tx, ty);
+    return tile !== 'water' && tile !== 'cliff';
   }
 
   private placeEntity(entity: Container, x: number, y: number) {
