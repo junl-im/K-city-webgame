@@ -60,7 +60,7 @@ npm run build
 
 ## PWA 캐시
 
-- `soul-online-alpha-v0-17`
+- `soul-online-alpha-v0-17-1`
 
 기존 설치 앱에서 이전 화면이 남으면 브라우저 캐시 삭제 또는 홈 화면 앱 재설치가 필요할 수 있습니다.
 
@@ -78,3 +78,9 @@ npm run build
 - Added monster sprite sheets for slime, wolf, goblin, bear, and dragon.
 - Added gender selection and save migration.
 - See `docs/SPRITE_SHEET_0_17.md` for the replacement contract.
+
+
+## 0.17.1 Deploy Hotfix
+
+- Fixed npm ci failure caused by non-existent Firebase subpackage versions in package-lock.json.
+- Pinned Firebase to 12.13.0 and regenerated lockfile with public npm registry URLs.
