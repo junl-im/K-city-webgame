@@ -148,7 +148,7 @@ function bindTitleFlow() {
 function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((error) => console.warn('[PWA] service worker skipped', error));
+    navigator.serviceWorker.register(new URL('./sw.js', window.location.href)).catch((error) => console.warn('[PWA] service worker skipped', error));
   });
 }
 

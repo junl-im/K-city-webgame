@@ -142,12 +142,12 @@ class AudioService {
       const oscillator = this.context!.createOscillator();
       const filter = this.context!.createBiquadFilter();
       const gain = this.context!.createGain();
-      oscillator.type = index === 0 ? 'sine' : 'triangle';
+      oscillator.type = 'sine';
       oscillator.frequency.setValueAtTime(freq, now);
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(scene === 'boss' ? 420 : 720 + index * 160, now);
-      filter.Q.setValueAtTime(0.6, now);
-      gain.gain.setValueAtTime(index === 0 ? 0.34 : index === 1 ? 0.11 : 0.07, now);
+      filter.frequency.setValueAtTime(scene === 'boss' ? 360 : 980 + index * 180, now);
+      filter.Q.setValueAtTime(0.38, now);
+      gain.gain.setValueAtTime(index === 0 ? 0.28 : index === 1 ? 0.082 : 0.052, now);
       oscillator.connect(filter).connect(gain).connect(this.bgmGain!);
       oscillator.start(now + index * 0.04);
       return { oscillator, gain, filter };
@@ -179,7 +179,7 @@ class AudioService {
 
   private updateBgmGain(fade = 0.08) {
     if (!this.bgmGain || !this.context) return;
-    const value = Math.max(0.0001, this.settings.masterVolume * this.settings.bgmVolume * 0.34);
+    const value = Math.max(0.0001, this.settings.masterVolume * this.settings.bgmVolume * 0.28);
     const now = this.context.currentTime;
     this.bgmGain.gain.cancelScheduledValues(now);
     this.bgmGain.gain.setValueAtTime(Math.max(0.0001, this.bgmGain.gain.value), now);
@@ -203,10 +203,11 @@ class AudioService {
 
       const melody = scale[this.melodyStep % scale.length];
       const harmony = scale[(this.melodyStep + 3) % scale.length] * 0.5;
-      this.playBgmNote(melody, 0, 0.42, this.scene === 'boss' ? 0.055 : 0.075);
-      if (this.melodyStep % 4 === 0) this.playBgmNote(harmony, 0.08, 0.72, this.scene === 'boss' ? 0.045 : 0.055);
+      this.playBgmNote(melody, 0, 0.58, this.scene === 'boss' ? 0.046 : 0.058);
+      if (this.melodyStep % 4 === 0) this.playBgmNote(harmony, 0.16, 0.96, this.scene === 'boss' ? 0.035 : 0.041);
+      if (this.scene !== 'boss' && this.melodyStep % 8 === 6) this.playBgmNote(scale[(this.melodyStep + 5) % scale.length] * 1.01, 0.28, 0.72, 0.032);
       this.melodyStep += 1;
-    }, this.scene === 'boss' ? 620 : 540);
+    }, this.scene === 'boss' ? 780 : 720);
   }
 
   private playBgmNote(freq: number, offset: number, duration: number, gainValue: number) {
@@ -215,11 +216,11 @@ class AudioService {
     const osc = this.context.createOscillator();
     const gain = this.context.createGain();
     const filter = this.context.createBiquadFilter();
-    osc.type = this.scene === 'boss' ? 'triangle' : 'sine';
+    osc.type = 'sine';
     osc.frequency.setValueAtTime(freq, now);
-    osc.frequency.exponentialRampToValueAtTime(freq * (this.scene === 'boss' ? 0.985 : 1.004), now + duration);
+    osc.frequency.exponentialRampToValueAtTime(freq * (this.scene === 'boss' ? 0.992 : 1.002), now + duration);
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(this.scene === 'boss' ? 680 : 1500, now);
+    filter.frequency.setValueAtTime(this.scene === 'boss' ? 620 : 1900, now);
     gain.gain.setValueAtTime(0.0001, now);
     gain.gain.exponentialRampToValueAtTime(gainValue, now + 0.03);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
@@ -230,17 +231,17 @@ class AudioService {
   }
 
   private scenePalette(scene: AudioScene) {
-    if (scene === 'town') return [130.81, 196.0, 261.63];
-    if (scene === 'field') return [110.0, 164.81, 246.94];
-    if (scene === 'boss') return [55.0, 82.41, 110.0];
-    return [98.0, 146.83, 196.0];
+    if (scene === 'town') return [146.83, 220.0, 293.66];
+    if (scene === 'field') return [123.47, 185.0, 277.18];
+    if (scene === 'boss') return [61.74, 92.5, 123.47];
+    return [110.0, 164.81, 246.94];
   }
 
   private sceneScale(scene: AudioScene) {
-    if (scene === 'town') return [523.25, 587.33, 659.25, 783.99, 659.25, 587.33, 523.25, 392.0];
-    if (scene === 'field') return [440.0, 493.88, 554.37, 659.25, 739.99, 659.25, 554.37, 493.88];
-    if (scene === 'boss') return [220.0, 246.94, 261.63, 329.63, 293.66, 246.94, 220.0, 164.81];
-    return [392.0, 440.0, 493.88, 587.33, 659.25, 587.33, 493.88, 440.0];
+    if (scene === 'town') return [587.33, 659.25, 739.99, 880.0, 987.77, 880.0, 739.99, 659.25, 587.33, 493.88, 440.0, 493.88];
+    if (scene === 'field') return [493.88, 554.37, 659.25, 739.99, 830.61, 739.99, 659.25, 554.37, 493.88, 415.3, 369.99, 415.3];
+    if (scene === 'boss') return [220.0, 246.94, 293.66, 329.63, 369.99, 329.63, 293.66, 246.94, 220.0, 185.0, 164.81, 185.0];
+    return [440.0, 493.88, 554.37, 659.25, 739.99, 659.25, 554.37, 493.88, 440.0, 369.99, 329.63, 369.99];
   }
 
   private sfxDuration(name: SfxName) {

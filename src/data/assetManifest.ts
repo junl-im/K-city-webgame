@@ -32,8 +32,20 @@ export const cardArtUrls = {
 
 export const highQualityAssetSlots = {
   basePath: 'src/assets/2p5d',
-  characters: ['hero-warrior-idle.webp', 'hero-taoist-idle.webp', 'hero-cleric-idle.webp'],
-  monsters: ['monster-slime-idle.webp', 'monster-wolf-idle.webp', 'monster-goblin-idle.webp', 'monster-crystal-bear-idle.webp', 'boss-dragon-idle.webp'],
-  tiles: ['tile-grass.webp', 'tile-dirt.webp', 'tile-moss.webp', 'tile-stone.webp', 'tile-crystal.webp', 'tile-water.webp', 'tile-cliff.webp', 'tile-portal.webp'],
-  props: ['prop-tree.webp', 'prop-crystal.webp', 'prop-rock.webp', 'prop-ruin.webp']
+  characters: [
+    'hero-warrior-idle.webp', 'hero-warrior-walk.webp', 'hero-warrior-skill.webp',
+    'hero-taoist-idle.webp', 'hero-taoist-walk.webp', 'hero-taoist-skill.webp',
+    'hero-cleric-idle.webp', 'hero-cleric-walk.webp', 'hero-cleric-skill.webp'
+  ],
+  monsters: [
+    'monster-slime-idle.webp', 'monster-wolf-idle.webp', 'monster-goblin-idle.webp',
+    'monster-crystal-bear-idle.webp', 'boss-dragon-idle.webp'
+  ],
+  tiles: [
+    'tile-grass.webp', 'tile-dirt.webp', 'tile-moss.webp', 'tile-stone.webp',
+    'tile-crystal.webp', 'tile-water.webp', 'tile-cliff.webp', 'tile-portal.webp',
+    'edge-grass-dirt.webp', 'edge-cliff-shadow.webp', 'decal-crystal-vein.webp'
+  ],
+  props: ['prop-tree.webp', 'prop-crystal.webp', 'prop-rock.webp', 'prop-ruin.webp', 'prop-gate.webp'],
+  audio: ['title-theme.ogg', 'town-lumina.ogg', 'field-forest.ogg', 'boss-crystal.ogg']
 } as const;

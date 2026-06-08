@@ -1,9 +1,9 @@
 import type { CardDefinition, CardSetDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, SoulDefinition, TileId, ZoneDefinition, SkillDefinition } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 11;
-export const MAP_W = 32;
-export const MAP_H = 32;
+export const SAVE_VERSION = 12;
+export const MAP_W = 40;
+export const MAP_H = 40;
 
 export const classes: Record<string, CharacterClass> = {
   warrior: {
@@ -501,26 +501,28 @@ export const monsters: MonsterDefinition[] = [
 ];
 
 const pathTiles = new Set<string>();
-for (let i = 0; i < MAP_W; i += 1) {
-  pathTiles.add(`${i},${Math.round(19 + Math.sin(i * 0.42) * 2)}`);
+for (let i = 3; i < MAP_W - 3; i += 1) {
+  pathTiles.add(`${i},${Math.round(23 + Math.sin(i * 0.36) * 2.2)}`);
+  pathTiles.add(`${i},${Math.round(17 + Math.sin(i * 0.22) * 1.8)}`);
 }
-for (let i = 5; i < 28; i += 1) {
-  pathTiles.add(`${Math.round(7 + Math.sin(i * 0.35) * 2)},${i}`);
-  pathTiles.add(`${Math.round(15 + Math.sin(i * 0.28) * 3)},${i}`);
+for (let i = 7; i < MAP_H - 4; i += 1) {
+  pathTiles.add(`${Math.round(8 + Math.sin(i * 0.32) * 2.4)},${i}`);
+  pathTiles.add(`${Math.round(17 + Math.sin(i * 0.26) * 3.2)},${i}`);
+  pathTiles.add(`${Math.round(27 + Math.sin(i * 0.24) * 2.5)},${i}`);
 }
 
 export const worldMap: TileId[][] = Array.from({ length: MAP_H }, (_, y) =>
   Array.from({ length: MAP_W }, (_, x) => {
     const key = `${x},${y}`;
     if (x === 0 || y === 0 || x === MAP_W - 1 || y === MAP_H - 1) return 'cliff';
-    if ((x <= 2 && y < 12) || (y <= 2 && x < 10) || (x > 28 && y > 18) || (x + y > 56)) return 'water';
-    if ((x < 4 && y > 21) || (x > 25 && y < 9) || (x + y > 53)) return 'cliff';
-    if (x === 8 && y === 19) return 'portal';
-    if ((x >= 5 && x <= 11 && y >= 17 && y <= 22) || (x >= 8 && x <= 13 && y >= 14 && y <= 18)) return 'stone';
+    if ((x <= 2 && y < 14) || (y <= 2 && x < 12) || (x > 35 && y > 24) || (x + y > 72)) return 'water';
+    if ((x < 4 && y > 28) || (x > 33 && y < 10) || (x + y > 69)) return 'cliff';
+    if (x === 8 && y === 21) return 'portal';
+    if ((x >= 5 && x <= 12 && y >= 18 && y <= 24) || (x >= 9 && x <= 15 && y >= 14 && y <= 19)) return 'stone';
     if (pathTiles.has(key)) return 'dirt';
-    if ((x >= 12 && x <= 22 && y >= 7 && y <= 15) || (x >= 16 && x <= 25 && y >= 14 && y <= 20)) return 'moss';
-    if ((x >= 17 && y >= 20) || (x >= 22 && y >= 12)) return 'stone';
-    if ((x >= 23 && y >= 18) || (x >= 24 && y >= 10 && y <= 16)) return 'crystal';
+    if ((x >= 12 && x <= 24 && y >= 7 && y <= 16) || (x >= 18 && x <= 30 && y >= 14 && y <= 22)) return 'moss';
+    if ((x >= 22 && y >= 24) || (x >= 25 && y >= 12 && y <= 19)) return 'crystal';
+    if ((x >= 17 && y >= 22) || (x >= 25 && y >= 19)) return 'stone';
     if ((x + y) % 13 === 0 && x > 4 && y > 5) return 'moss';
     return 'grass';
   })

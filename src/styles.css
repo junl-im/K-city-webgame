@@ -3385,3 +3385,52 @@ body.field-auto-active .target-card {
   0%, 100% { transform: translateY(0); filter: brightness(1); }
   50% { transform: translateY(-2px); filter: brightness(1.18); }
 }
+
+/* 0.16 Field Depth & Idle Visibility Pass */
+.auto-hunt-ribbon {
+  position: fixed;
+  left: 50%;
+  top: calc(env(safe-area-inset-top, 0px) + 84px);
+  transform: translateX(-50%) translateY(-10px);
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px;
+  border: 1px solid rgba(114, 231, 255, 0.5);
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(5, 27, 32, 0.88), rgba(16, 64, 70, 0.88));
+  box-shadow: 0 0 24px rgba(114, 231, 255, 0.25), 0 10px 24px rgba(0, 0, 0, 0.36);
+  color: #e9feff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.auto-hunt-ribbon b {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: #72e7ff;
+  text-shadow: 0 0 12px rgba(114, 231, 255, 0.9);
+}
+
+.auto-hunt-ribbon span {
+  font-size: 10px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+body.field-auto-active .auto-hunt-ribbon {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  animation: auto-ribbon-breathe 1.4s ease-in-out infinite;
+}
+
+body.field-auto-active .skill-dock .skill-btn:not(:disabled) {
+  border-color: rgba(114, 231, 255, 0.28);
+}
+
+@keyframes auto-ribbon-breathe {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.22); }
+}
