@@ -1,8 +1,8 @@
-# SOL Online Design Brief
+# 소울 온라인 Design Brief
 
 ## 목표
 
-SOL Online은 Mir1의 저사양 2.5D 필드 사냥 감각에 카드 수집과 방치 성장을 섞은 모바일 웹 MMORPG입니다.
+소울 온라인은 Mir1의 저사양 2.5D 필드 사냥 감각에 카드 수집과 방치 성장을 섞은 모바일 웹 MMORPG입니다.
 
 ## 핵심 루프
 

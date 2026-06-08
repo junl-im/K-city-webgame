@@ -1589,3 +1589,77 @@ body.combat-log-collapsed .combat-log-toggle {
     grid-template-columns: 1fr;
   }
 }
+
+.quest-list {
+  display: grid;
+  gap: 8px;
+}
+
+.quest-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 82px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.quest-row.ready {
+  border-color: rgba(226, 185, 95, 0.45);
+  background: rgba(226, 185, 95, 0.1);
+}
+
+.quest-row.claimed {
+  border-color: rgba(98, 198, 200, 0.28);
+  background: rgba(98, 198, 200, 0.075);
+}
+
+.quest-row h3 {
+  margin: 6px 0 4px;
+  font-size: 15px;
+}
+
+.quest-row p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.36;
+}
+
+.quest-row .quest-reward {
+  margin-top: 6px;
+  color: #efe5c6;
+  font-weight: 850;
+}
+
+.quest-progress {
+  margin-top: 8px;
+}
+
+.quest-row button {
+  min-height: 38px;
+  border-radius: 7px;
+  background: rgba(226, 185, 95, 0.18);
+  color: #fff1c7;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.quest-row button:disabled {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+}
+
+@media (min-width: 761px) {
+  .town-content-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .quest-row {
+    grid-template-columns: 1fr;
+  }
+}

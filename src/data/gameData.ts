@@ -1,7 +1,7 @@
-import type { CardDefinition, CharacterClass, ItemDefinition, MonsterDefinition, SoulDefinition, TileId } from '../types';
+import type { CardDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, MonsterDefinition, SoulDefinition, TileId } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 export const MAP_W = 20;
 export const MAP_H = 20;
 
@@ -134,6 +134,45 @@ export const souls: SoulDefinition[] = [
     effectText: '공격 +14, 치명 +4%',
     bonus: { atk: 14, crit: 0.04 },
     requiredKills: 10
+  }
+];
+
+
+export const dailyQuests: DailyQuestDefinition[] = [
+  {
+    id: 'daily-slime-cleanup',
+    title: '마을 앞 슬라임 정화',
+    description: '초록 숲 입구에서 슬라임을 5마리 처치',
+    goalType: 'kill',
+    monsterId: 'slime',
+    target: 5,
+    reward: { gold: 80, gems: 2 }
+  },
+  {
+    id: 'daily-wolf-trace',
+    title: '수정 늑대 흔적 회수',
+    description: '수정 늑대를 3마리 처치',
+    goalType: 'kill',
+    monsterId: 'wolf',
+    target: 3,
+    reward: { gold: 120, itemId: 'soul-shard', itemCount: 1 }
+  },
+  {
+    id: 'daily-goblin-road',
+    title: '고블린 길목 확보',
+    description: '고블린 추적자를 2마리 처치',
+    goalType: 'kill',
+    monsterId: 'goblin',
+    target: 2,
+    reward: { gold: 180, gems: 3 }
+  },
+  {
+    id: 'daily-grow-soul',
+    title: '소울 성장 점검',
+    description: '오늘 캐릭터 레벨 3 이상 달성',
+    goalType: 'level',
+    target: 3,
+    reward: { gold: 150, gems: 4 }
   }
 ];
 

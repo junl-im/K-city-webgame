@@ -1,12 +1,12 @@
 import './styles.css';
-import { cards, classes, expToNext, items, monsters, souls } from './data/gameData';
+import { cards, classes, dailyQuests, expToNext, items, monsters, souls } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { SolGame } from './game/SolGame';
 import { formatNumber, uid } from './game/math';
 import type { CardDefinition, CharacterClassId, EquipmentSlot, ItemDefinition, PlayerSave, SheetTab, Snapshot, Stats } from './types';
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
-type TownContentId = 'cards' | 'inventory' | 'shop' | 'boss' | 'account';
+type TownContentId = 'cards' | 'inventory' | 'shop' | 'boss' | 'quests' | 'account';
 
 const saveService = new SaveService();
 let game: SolGame | null = null;
@@ -347,6 +347,12 @@ function bindLoginFlow() {
     const buyItem = target.closest<HTMLButtonElement>('[data-town-shop-buy]');
     if (buyItem) {
       buyTownShopItem(buyItem.dataset.townShopBuy || '');
+      return;
+    }
+
+    const claimQuest = target.closest<HTMLButtonElement>('[data-town-claim-quest]');
+    if (claimQuest) {
+      claimDailyQuest(claimQuest.dataset.townClaimQuest || '');
       return;
     }
 
@@ -869,6 +875,7 @@ function renderTownContent() {
     inventory: ['BAG', '장비 가방'],
     shop: ['MERCHANT', '루미나 상점'],
     boss: ['RAID', '월드 보스'],
+    quests: ['DAILY REQUEST', '일일 의뢰'],
     account: ['ACCOUNT', '계정/저장']
   };
   townContentEyebrow.textContent = titles[activeTownContent][0];
@@ -877,6 +884,7 @@ function renderTownContent() {
   if (activeTownContent === 'inventory') townContentBody.innerHTML = renderTownInventory(pendingSave);
   if (activeTownContent === 'shop') townContentBody.innerHTML = renderTownShop(pendingSave);
   if (activeTownContent === 'boss') townContentBody.innerHTML = renderTownBoss(pendingSave);
+  if (activeTownContent === 'quests') townContentBody.innerHTML = renderTownQuests(pendingSave);
   if (activeTownContent === 'account') townContentBody.innerHTML = renderTownAccount(pendingSave);
 }
 
@@ -1011,6 +1019,93 @@ function renderTownBoss(save: PlayerSave) {
       </div>
     </div>
   `;
+}
+
+
+function renderTownQuests(save: PlayerSave) {
+  const claimed = new Set(save.daily?.claimedQuestIds || []);
+  const completed = dailyQuests.filter((quest) => claimed.has(quest.id)).length;
+  const rows = dailyQuests
+    .map((quest) => {
+      const progress = questProgress(save, quest.id);
+      const percent = Math.min(100, Math.round((progress / quest.target) * 100));
+      const done = progress >= quest.target;
+      const isClaimed = claimed.has(quest.id);
+      return `
+        <article class="quest-row ${done ? 'ready' : ''} ${isClaimed ? 'claimed' : ''}">
+          <div>
+            <div class="pill-row">
+              <span class="pill">${isClaimed ? '완료' : done ? '보상 가능' : '진행중'}</span>
+              <span class="pill">${progress}/${quest.target}</span>
+            </div>
+            <h3>${escapeHtml(quest.title)}</h3>
+            <p>${escapeHtml(quest.description)}</p>
+            <div class="bar exp quest-progress"><i style="width:${percent}%"></i><em>${percent}%</em></div>
+            <p class="quest-reward">보상: ${rewardText(quest.reward)}</p>
+          </div>
+          <button ${!done || isClaimed ? 'disabled' : ''} data-town-claim-quest="${quest.id}">${isClaimed ? '수령 완료' : done ? '수령' : '진행중'}</button>
+        </article>
+      `;
+    })
+    .join('');
+
+  return `
+    <div class="town-content-note">오늘 의뢰 ${completed}/${dailyQuests.length} 완료 · 날짜가 바뀌면 진행도와 수령 상태가 초기화됩니다.</div>
+    <div class="quest-list">${rows}</div>
+  `;
+}
+
+function questProgress(save: PlayerSave, questId: string) {
+  const quest = dailyQuests.find((entry) => entry.id === questId);
+  if (!quest) return 0;
+  if (quest.goalType === 'level') return save.level;
+  if (quest.goalType === 'kill' && quest.monsterId) return save.daily?.kills?.[quest.monsterId] || 0;
+  return 0;
+}
+
+function rewardText(reward: { gold?: number; gems?: number; itemId?: string; itemCount?: number }) {
+  const parts: string[] = [];
+  if (reward.gold) parts.push(`${formatNumber(reward.gold)}G`);
+  if (reward.gems) parts.push(`소울젬 ${formatNumber(reward.gems)}`);
+  if (reward.itemId) {
+    const def = items.find((item) => item.id === reward.itemId);
+    parts.push(`${def ? def.name : reward.itemId} x${reward.itemCount || 1}`);
+  }
+  return parts.join(' · ') || '없음';
+}
+
+function claimDailyQuest(questId: string) {
+  if (!pendingSave) return;
+  const quest = dailyQuests.find((entry) => entry.id === questId);
+  if (!quest) return;
+  pendingSave.daily ||= { dateKey: todayKey(), kills: { slime: 0, wolf: 0, goblin: 0, crystalBear: 0, dragon: 0 }, claimedQuestIds: [] };
+  if (pendingSave.daily.dateKey !== todayKey()) {
+    pendingSave.daily = { dateKey: todayKey(), kills: { slime: 0, wolf: 0, goblin: 0, crystalBear: 0, dragon: 0 }, claimedQuestIds: [] };
+  }
+  if (pendingSave.daily.claimedQuestIds.includes(quest.id)) {
+    showToast('이미 보상을 받은 의뢰입니다.');
+    return;
+  }
+  if (questProgress(pendingSave, quest.id) < quest.target) {
+    showToast('아직 의뢰 조건을 달성하지 못했습니다.');
+    return;
+  }
+  if (quest.reward.gold) pendingSave.gold += quest.reward.gold;
+  if (quest.reward.gems) pendingSave.gems += quest.reward.gems;
+  if (quest.reward.itemId) {
+    for (let i = 0; i < (quest.reward.itemCount || 1); i += 1) addInventoryItem(pendingSave, quest.reward.itemId);
+  }
+  pendingSave.daily.claimedQuestIds.push(quest.id);
+  persistTownSave();
+  showToast(`${quest.title} 보상 수령`);
+}
+
+function todayKey() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 function renderTownAccount(save: PlayerSave) {

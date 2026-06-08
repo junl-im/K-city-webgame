@@ -1,6 +1,6 @@
-# SOL Online 2.5D Asset Slots
+# 소울 온라인 2.5D Asset Slots
 
-Alpha 0.5 keeps the current SVG prototype assets running, but adds a stable folder contract for high-quality 2.5D replacements.
+Alpha 0.6 keeps the current SVG prototype assets running, but adds a stable folder contract for high-quality 2.5D replacements.
 
 ## Target export style
 

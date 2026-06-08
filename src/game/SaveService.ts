@@ -13,7 +13,7 @@ import {
 import { doc, getDoc, getFirestore, serverTimestamp, setDoc, type Firestore } from 'firebase/firestore';
 import { firebaseConfig } from '../config/firebase';
 import { SAVE_VERSION, cards, classes, expToNext, items, souls } from '../data/gameData';
-import type { CharacterClassId, EquipmentSlot, MonsterId, PlayerSave, SaveRoster } from '../types';
+import type { CharacterClassId, DailyProgress, EquipmentSlot, MonsterId, PlayerSave, SaveRoster } from '../types';
 import { uid } from './math';
 
 const LEGACY_SAVE_KEY = 'sol-online-alpha-save-v1';
@@ -238,6 +238,7 @@ export class SaveService {
         armor: starterArmorUid
       },
       souls: souls.map((soul) => ({ soulId: soul.id, unlocked: false, progress: 0 })),
+      daily: this.createDailyProgress(),
       autoHunt: false,
       createdAt: Date.now(),
       updatedAt: Date.now()
@@ -274,6 +275,7 @@ export class SaveService {
       const old = save.souls?.find((entry) => entry.soulId === soul.id);
       return old || { soulId: soul.id, unlocked: false, progress: save.kills?.[soul.monsterId as MonsterId] || 0 };
     });
+    save.daily = this.normalizeDailyProgress(save.daily);
     while (save.exp >= expToNext(save.level)) {
       save.exp -= expToNext(save.level);
       save.level += 1;
@@ -345,6 +347,7 @@ export class SaveService {
       cards: Array.isArray(raw.cards) && raw.cards.length ? raw.cards : fresh.cards,
       inventory: Array.isArray(raw.inventory) && raw.inventory.length ? raw.inventory : fresh.inventory,
       equipment: raw.equipment || fresh.equipment,
+      daily: this.normalizeDailyProgress(raw.daily),
       souls: souls.map((soul) => {
         const old = raw.souls?.find((entry) => entry.soulId === soul.id);
         return old || { soulId: soul.id, unlocked: false, progress: raw.kills?.[soul.monsterId as MonsterId] || 0 };
@@ -364,13 +367,50 @@ export class SaveService {
       item.uid ||= uid('item');
     }
 
-    if (!raw.version || raw.version < SAVE_VERSION) {
+    if (!raw.version || raw.version < 2) {
       migrated.x = fresh.x;
       migrated.y = fresh.y;
       migrated.autoHunt = false;
     }
 
     return this.validateSave(migrated);
+  }
+
+
+  private createDailyProgress(): DailyProgress {
+    return {
+      dateKey: this.todayKey(),
+      kills: this.emptyKillRecord(),
+      claimedQuestIds: []
+    };
+  }
+
+  private normalizeDailyProgress(raw?: Partial<DailyProgress>): DailyProgress {
+    const today = this.todayKey();
+    if (!raw || raw.dateKey !== today) return this.createDailyProgress();
+    return {
+      dateKey: today,
+      kills: { ...this.emptyKillRecord(), ...(raw.kills || {}) },
+      claimedQuestIds: Array.isArray(raw.claimedQuestIds) ? Array.from(new Set(raw.claimedQuestIds)) : []
+    };
+  }
+
+  private emptyKillRecord(): Record<MonsterId, number> {
+    return {
+      slime: 0,
+      wolf: 0,
+      goblin: 0,
+      crystalBear: 0,
+      dragon: 0
+    };
+  }
+
+  private todayKey() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   }
 
   private normalizeEquipment(save: PlayerSave) {

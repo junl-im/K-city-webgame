@@ -3,6 +3,7 @@ export type MonsterId = 'slime' | 'wolf' | 'goblin' | 'crystalBear' | 'dragon';
 export type TileId = 'grass' | 'stone' | 'water' | 'portal';
 export type CardRarity = 'N' | 'R' | 'SR' | 'SSR';
 export type SheetTab = 'cards' | 'inventory' | 'souls' | 'account';
+export type DailyQuestGoalType = 'kill' | 'level';
 export type EquipmentSlot = 'weapon' | 'armor' | 'relic';
 
 export interface Stats {
@@ -46,6 +47,16 @@ export interface SoulDefinition {
   effectText: string;
   bonus: Partial<Stats>;
   requiredKills: number;
+}
+
+export interface DailyQuestDefinition {
+  id: string;
+  title: string;
+  description: string;
+  goalType: DailyQuestGoalType;
+  monsterId?: MonsterId;
+  target: number;
+  reward: { gold?: number; gems?: number; itemId?: string; itemCount?: number };
 }
 
 export interface ItemDefinition {
@@ -98,6 +109,12 @@ export interface SoulInstance {
   progress: number;
 }
 
+export interface DailyProgress {
+  dateKey: string;
+  kills: Record<MonsterId, number>;
+  claimedQuestIds: string[];
+}
+
 export interface PlayerSave {
   version: number;
   saveId: string;
@@ -116,6 +133,7 @@ export interface PlayerSave {
   inventory: InventoryItem[];
   equipment: EquipmentSlots;
   souls: SoulInstance[];
+  daily: DailyProgress;
   autoHunt: boolean;
   createdAt: number;
   updatedAt: number;

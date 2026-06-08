@@ -1,7 +1,7 @@
 {
-  "name": "SOL Online Alpha",
-  "short_name": "SOL Online",
-  "description": "SOL Online Alpha - mobile 2.5D web MMORPG prototype",
+  "name": "소울 온라인 Alpha",
+  "short_name": "소울 온라인",
+  "description": "소울 온라인 Alpha - mobile 2.5D web MMORPG prototype",
   "start_url": "/",
   "scope": "/",
   "display": "fullscreen",

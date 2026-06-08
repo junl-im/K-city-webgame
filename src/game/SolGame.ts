@@ -698,12 +698,34 @@ export class SolGame {
     this.save.gold += mob.def.gold;
     this.save.exp += mob.def.exp;
     this.save.kills[mob.def.id] = (this.save.kills[mob.def.id] || 0) + 1;
+    this.addDailyKill(mob.def.id);
     this.updateSoulProgress(mob.def.id);
     this.checkLevelUp();
     this.rollDrops(mob.def);
     this.impactBurst(mob.x, mob.y, 0xe2b95f, true);
     this.pushLog(`${mob.def.name} 정화 +${mob.def.exp}EXP +${mob.def.gold}G`);
     this.markDirty();
+  }
+
+
+  private addDailyKill(monsterId: MonsterId) {
+    const today = this.todayKey();
+    if (!this.save.daily || this.save.daily.dateKey !== today) {
+      this.save.daily = {
+        dateKey: today,
+        kills: { slime: 0, wolf: 0, goblin: 0, crystalBear: 0, dragon: 0 },
+        claimedQuestIds: []
+      };
+    }
+    this.save.daily.kills[monsterId] = (this.save.daily.kills[monsterId] || 0) + 1;
+  }
+
+  private todayKey() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   }
 
   private rollDrops(def: MonsterDefinition) {
