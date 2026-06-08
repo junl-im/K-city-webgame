@@ -1,11 +1,12 @@
 import './styles.css';
-import { classes, expToNext, souls } from './data/gameData';
+import { cards, classes, expToNext, items, monsters, souls } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { SolGame } from './game/SolGame';
-import { formatNumber } from './game/math';
-import type { CharacterClassId, EquipmentSlot, PlayerSave, SheetTab, Snapshot } from './types';
+import { formatNumber, uid } from './game/math';
+import type { CardDefinition, CharacterClassId, EquipmentSlot, ItemDefinition, PlayerSave, SheetTab, Snapshot, Stats } from './types';
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
+type TownContentId = 'cards' | 'inventory' | 'shop' | 'boss' | 'account';
 
 const saveService = new SaveService();
 let game: SolGame | null = null;
@@ -19,7 +20,9 @@ let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
 let activeSheetTab: SheetTab = 'cards';
+let activeTownContent: TownContentId = 'cards';
 let sheetOpen = false;
+let townContentOpen = false;
 
 const root = must('#game-root');
 const loginScreen = must('#loginScreen');
@@ -69,6 +72,11 @@ const returnTownBtn = must<HTMLButtonElement>('#returnTownBtn');
 const combatLogToggle = must<HTMLButtonElement>('#combatLogToggle');
 const sceneTransition = must('#sceneTransition');
 const sceneTransitionLabel = must('#sceneTransitionLabel');
+const townContentPanel = must('#townContentPanel');
+const townContentTitle = must('#townContentTitle');
+const townContentEyebrow = must('#townContentEyebrow');
+const townContentBody = must('#townContentBody');
+const closeTownContent = must<HTMLButtonElement>('#closeTownContent');
 
 boot().catch((error) => {
   console.error(error);
@@ -284,7 +292,7 @@ function bindLoginFlow() {
     pendingSave = saveService.validateSave(pendingSave);
     saveService.saveLocal(pendingSave);
     await enterTown(pendingSave, '루미나 마을로 이동 중');
-    if (saveService.isOnline()) await saveService.saveCloud(pendingSave, latest?.power || 0);
+    await saveCloudIfAvailable(pendingSave, latest?.power || powerFromSave(pendingSave), false);
   });
 
   townFullscreenBtn.addEventListener('click', () => {
@@ -294,14 +302,12 @@ function bindLoginFlow() {
   townSaveBtn.addEventListener('click', async () => {
     if (!pendingSave) return;
     saveService.saveLocal(pendingSave);
-    if (saveService.isOnline()) await saveService.saveCloud(pendingSave, latest?.power || 0);
+    const cloudOk = await saveCloudIfAvailable(pendingSave, latest?.power || powerFromSave(pendingSave), true);
     refreshCharacterRoster(pendingSave.saveId);
-    showToast('마을 저장 완료');
+    showToast(cloudOk === false ? '로컬 저장 완료 · 클라우드 동기화 보류' : '마을 저장 완료');
   });
 
-  townAccountBtn.addEventListener('click', () => {
-    showTownContent('계정', '계정 연결과 클라우드 저장은 사냥터 우측 메뉴에서 사용할 수 있습니다. 캐릭터 슬롯은 로컬/클라우드 로스터 구조로 저장됩니다.');
-  });
+  townAccountBtn.addEventListener('click', () => openTownContent('account'));
 
   document.querySelectorAll<HTMLButtonElement>('[data-zone-id]').forEach((button) => {
     button.addEventListener('click', async () => {
@@ -320,17 +326,39 @@ function bindLoginFlow() {
   });
 
   document.querySelectorAll<HTMLButtonElement>('[data-town-content]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const content = button.dataset.townContent || 'cards';
-      const titles: Record<string, [string, string]> = {
-        cards: ['카드 도감', '카드 장착/합성은 현재 사냥터 HUD의 카드 메뉴에서 사용 가능합니다. 다음 단계에서 마을 전용 카드 관리 화면으로 분리합니다.'],
-        inventory: ['장비 가방', '사냥터 가방 메뉴에서 장비 장착/해제를 사용할 수 있습니다. 다음 단계에서 마을 장비 창고로 분리합니다.'],
-        shop: ['상점', '소모품, 강화 재료, 스킨 판매 기능을 연결할 자리입니다.'],
-        boss: ['월드 보스', '보스 시간표, 입장권, 기여도 보상 UI를 연결할 자리입니다.']
-      };
-      const [title, message] = titles[content] || titles.cards;
-      showTownContent(title, message);
-    });
+    button.addEventListener('click', () => openTownContent((button.dataset.townContent || 'cards') as TownContentId));
+  });
+
+  closeTownContent.addEventListener('click', closeTownContentPanel);
+  townContentBody.addEventListener('click', async (event) => {
+    const target = event.target as HTMLElement;
+    const equipCard = target.closest<HTMLButtonElement>('[data-town-equip-card]');
+    if (equipCard) {
+      toggleTownCard(equipCard.dataset.townEquipCard || '');
+      return;
+    }
+
+    const equipItem = target.closest<HTMLButtonElement>('[data-town-equip-item]');
+    if (equipItem) {
+      toggleTownItem(equipItem.dataset.townEquipItem || '');
+      return;
+    }
+
+    const buyItem = target.closest<HTMLButtonElement>('[data-town-shop-buy]');
+    if (buyItem) {
+      buyTownShopItem(buyItem.dataset.townShopBuy || '');
+      return;
+    }
+
+    const zone = target.closest<HTMLButtonElement>('[data-town-zone-enter]');
+    if (zone && pendingSave) {
+      closeTownContentPanel();
+      await startField(pendingSave, zone.dataset.townZoneEnter || 'crystal-raid');
+      return;
+    }
+
+    const account = target.closest<HTMLButtonElement>('[data-town-account-action]');
+    if (account) await handleTownAccountAction(account.dataset.townAccountAction || '');
   });
 }
 
@@ -807,7 +835,8 @@ function renderTown(save: PlayerSave | null) {
   townHeroMeta.textContent = `Lv.${save.level} · ${klass.name} · ${klass.roleText}`;
   townGoldText.textContent = `${formatNumber(save.gold)}G`;
   townGemText.textContent = `${formatNumber(save.gems)}소울`;
-  townPowerText.textContent = latest ? `전투력 ${formatNumber(latest.power)}` : '전투력 정비 중';
+  townPowerText.textContent = `전투력 ${formatNumber(powerFromSave(save))}`;
+  if (townContentOpen) renderTownContent();
 }
 
 function zoneTitle(zoneId: string) {
@@ -819,8 +848,350 @@ function zoneTitle(zoneId: string) {
   return names[zoneId] || '사냥터';
 }
 
-function showTownContent(title: string, message: string) {
-  showToast(`${title}: ${message}`);
+function openTownContent(content: TownContentId) {
+  activeTownContent = content;
+  townContentOpen = true;
+  townContentPanel.classList.remove('hidden');
+  townContentPanel.setAttribute('aria-hidden', 'false');
+  renderTownContent();
+}
+
+function closeTownContentPanel() {
+  townContentOpen = false;
+  townContentPanel.classList.add('hidden');
+  townContentPanel.setAttribute('aria-hidden', 'true');
+}
+
+function renderTownContent() {
+  if (!pendingSave) return;
+  const titles: Record<TownContentId, [string, string]> = {
+    cards: ['SOUL CODEX', '카드 도감'],
+    inventory: ['BAG', '장비 가방'],
+    shop: ['MERCHANT', '루미나 상점'],
+    boss: ['RAID', '월드 보스'],
+    account: ['ACCOUNT', '계정/저장']
+  };
+  townContentEyebrow.textContent = titles[activeTownContent][0];
+  townContentTitle.textContent = titles[activeTownContent][1];
+  if (activeTownContent === 'cards') townContentBody.innerHTML = renderTownCards(pendingSave);
+  if (activeTownContent === 'inventory') townContentBody.innerHTML = renderTownInventory(pendingSave);
+  if (activeTownContent === 'shop') townContentBody.innerHTML = renderTownShop(pendingSave);
+  if (activeTownContent === 'boss') townContentBody.innerHTML = renderTownBoss(pendingSave);
+  if (activeTownContent === 'account') townContentBody.innerHTML = renderTownAccount(pendingSave);
+}
+
+function renderTownCards(save: PlayerSave) {
+  const equippedCount = save.cards.filter((card) => card.equipped).length;
+  const rows = save.cards
+    .flatMap((instance) => {
+      const def = cards.find((card) => card.id === instance.cardId);
+      return def ? [{ def, instance }] : [];
+    })
+    .map(({ def, instance }) => {
+      const equipped = instance.equipped;
+      return `
+        <article class="codex-card town-manage-card ${equipped ? 'equipped' : ''}">
+          <img src="${def.art}" alt="${escapeHtml(def.name)}" />
+          <div>
+            <div class="pill-row">
+              <span class="pill">${def.rarity}</span>
+              <span class="pill">Lv.${instance.level}</span>
+              <span class="pill">x${instance.copies}</span>
+              ${equipped ? '<span class="pill">장착중</span>' : ''}
+            </div>
+            <h3>${escapeHtml(def.name)}</h3>
+            <p>${escapeHtml(def.effectText)} · 장착 ${equippedCount}/4</p>
+          </div>
+          <button data-town-equip-card="${instance.uid}">${equipped ? '해제' : '장착'}</button>
+        </article>
+      `;
+    })
+    .join('');
+
+  return `
+    <div class="town-content-note">카드는 최대 4장까지 장착됩니다. 최소 1장은 유지해야 합니다.</div>
+    <div class="card-list">${rows || '<p class="account-panel">보유 카드가 없습니다.</p>'}</div>
+  `;
+}
+
+function renderTownInventory(save: PlayerSave) {
+  const stats = calculateStatsFromSave(save);
+  const rows = save.inventory
+    .flatMap((instance) => {
+      const def = items.find((item) => item.id === instance.itemId);
+      return def ? [{ def, instance }] : [];
+    })
+    .map(({ def, instance }) => renderTownInventoryRow(save, def, instance.uid, instance.count))
+    .join('');
+
+  return `
+    <div class="town-stat-grid">
+      <span>HP <b>${stats.hp}</b></span>
+      <span>MP <b>${stats.mp}</b></span>
+      <span>ATK <b>${stats.atk}</b></span>
+      <span>DEF <b>${stats.def}</b></span>
+      <span>ASPD <b>${stats.aspd}</b></span>
+      <span>CRIT <b>${Math.round(stats.crit * 100)}%</b></span>
+    </div>
+    <div class="item-list">${rows || '<p class="account-panel">가방이 비었습니다.</p>'}</div>
+  `;
+}
+
+function renderTownInventoryRow(save: PlayerSave, def: ItemDefinition, uidValue: string, count: number) {
+  const slot = def.type as EquipmentSlot;
+  const canEquip = def.type !== 'material';
+  const equipped = canEquip && save.equipment?.[slot] === uidValue;
+  const typeLabel: Record<string, string> = { weapon: '무기', armor: '방어구', relic: '유물', material: '재료' };
+  return `
+    <article class="item-row ${equipped ? 'equipped' : ''}">
+      <div class="item-info">
+        <div class="pill-row">
+          <span class="pill">${def.rarity}</span>
+          <span class="pill">${typeLabel[def.type] || escapeHtml(def.type)}</span>
+          <span class="pill">x${count}</span>
+          ${equipped ? '<span class="pill">장착중</span>' : ''}
+        </div>
+        <h3>${escapeHtml(def.name)}</h3>
+        <p>${escapeHtml(def.effectText)}</p>
+      </div>
+      ${canEquip ? `<button data-town-equip-item="${uidValue}">${equipped ? '해제' : '장착'}</button>` : ''}
+    </article>
+  `;
+}
+
+function renderTownShop(save: PlayerSave) {
+  const stock: Array<{ itemId: string; price: number; label: string }> = [
+    { itemId: 'iron-sword', price: 140, label: '초반 무기 보강' },
+    { itemId: 'leather-armor', price: 120, label: '생존력 보강' },
+    { itemId: 'fox-charm', price: 240, label: '유물 슬롯 개방' },
+    { itemId: 'soul-shard', price: 80, label: '카드 합성 재료' }
+  ];
+  const rows = stock
+    .flatMap((entry) => {
+      const def = items.find((item) => item.id === entry.itemId);
+      return def ? [{ ...entry, def }] : [];
+    })
+    .map(({ def, price, label }) => {
+      const disabled = save.gold < price ? 'disabled' : '';
+      return `
+        <article class="shop-row">
+          <div>
+            <div class="pill-row"><span class="pill">${def.rarity}</span><span class="pill">${label}</span></div>
+            <h3>${escapeHtml(def.name)}</h3>
+            <p>${escapeHtml(def.effectText)} · 가격 ${formatNumber(price)}G</p>
+          </div>
+          <button ${disabled} data-town-shop-buy="${def.id}">${save.gold < price ? '골드 부족' : '구매'}</button>
+        </article>
+      `;
+    })
+    .join('');
+  return `
+    <div class="town-content-note">보유 골드 ${formatNumber(save.gold)}G · 구매 즉시 로컬 저장됩니다.</div>
+    <div class="shop-list">${rows}</div>
+  `;
+}
+
+function renderTownBoss(save: PlayerSave) {
+  const dragon = monsters.find((monster) => monster.id === 'dragon');
+  const bear = monsters.find((monster) => monster.id === 'crystalBear');
+  return `
+    <div class="boss-panel">
+      <div class="boss-emblem">DRAGON</div>
+      <div>
+        <div class="pill-row">
+          <span class="pill">권장 Lv.8+</span>
+          <span class="pill">보스 ${dragon ? `Lv.${dragon.level}` : '준비중'}</span>
+          <span class="pill">내 Lv.${save.level}</span>
+        </div>
+        <h3>${dragon ? escapeHtml(dragon.name) : '저녁 레이드 드래곤'}</h3>
+        <p>수정 레이드 터에서 드래곤과 흑수정 곰이 등장합니다. 현재는 솔로 입장형 보스 테스트이며, 추후 시간표/기여도/랭킹 보상으로 확장합니다.</p>
+        ${dragon ? `<p>보상: ${formatNumber(dragon.gold)}G, ${dragon.exp}EXP, 소울젬/SSR 카드 확률 드랍</p>` : ''}
+        ${bear ? `<p>중간 보스: ${escapeHtml(bear.name)} · Lv.${bear.level}</p>` : ''}
+        <button class="wide-action primary" data-town-zone-enter="crystal-raid">수정 레이드 터 입장</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderTownAccount(save: PlayerSave) {
+  const online = saveService.isOnline();
+  const cloud = saveService.getCloudWriteStatus();
+  return `
+    <div class="account-box">
+      <article class="account-panel">
+        <div class="pill-row">
+          <span class="pill">${online ? '온라인' : '로컬'}</span>
+          <span class="pill">${escapeHtml(saveService.userLabel())}</span>
+          <span class="pill">슬롯 ${characterRoster.length}/${MAX_CHARACTER_SLOTS}</span>
+          ${cloud.paused ? '<span class="pill">클라우드 보류</span>' : ''}
+        </div>
+        <p>클라우드 저장이 실패해도 로컬 저장은 계속 유지됩니다. Firestore 규칙/프로젝트 설정이 막혀 있으면 자동 동기화만 조용히 보류됩니다.</p>
+        ${cloud.lastError ? `<p>최근 클라우드 오류: ${escapeHtml(cloud.lastError)}</p>` : ''}
+        <button data-town-account-action="save">수동 저장</button>
+      </article>
+    </div>
+  `;
+}
+
+function toggleTownCard(cardUid: string) {
+  if (!pendingSave) return;
+  const card = pendingSave.cards.find((item) => item.uid === cardUid);
+  if (!card) return;
+  const equippedCount = pendingSave.cards.filter((item) => item.equipped).length;
+  if (card.equipped) {
+    if (equippedCount <= 1) {
+      showToast('카드는 최소 1장 장착해야 합니다.');
+      return;
+    }
+    card.equipped = false;
+  } else {
+    if (equippedCount >= 4) {
+      showToast('장착 카드는 최대 4장입니다.');
+      return;
+    }
+    card.equipped = true;
+  }
+  persistTownSave();
+  showToast(card.equipped ? '카드를 장착했습니다.' : '카드를 해제했습니다.');
+}
+
+function toggleTownItem(itemUid: string) {
+  if (!pendingSave) return;
+  const entry = pendingSave.inventory.find((item) => item.uid === itemUid);
+  if (!entry) return;
+  const def = items.find((item) => item.id === entry.itemId);
+  if (!def || def.type === 'material') {
+    showToast('재료 아이템은 장착할 수 없습니다.');
+    return;
+  }
+  const slot = def.type as EquipmentSlot;
+  pendingSave.equipment ||= {};
+  if (pendingSave.equipment[slot] === entry.uid) {
+    delete pendingSave.equipment[slot];
+    showToast(`${def.name} 장착 해제`);
+  } else {
+    pendingSave.equipment[slot] = entry.uid;
+    showToast(`${def.name} 장착`);
+  }
+  repairTownVitals(pendingSave);
+  persistTownSave();
+}
+
+function buyTownShopItem(itemId: string) {
+  if (!pendingSave) return;
+  const stock: Record<string, number> = {
+    'iron-sword': 140,
+    'leather-armor': 120,
+    'fox-charm': 240,
+    'soul-shard': 80
+  };
+  const price = stock[itemId];
+  const def = items.find((item) => item.id === itemId);
+  if (!price || !def) return;
+  if (pendingSave.gold < price) {
+    showToast('골드가 부족합니다.');
+    return;
+  }
+  pendingSave.gold -= price;
+  addInventoryItem(pendingSave, itemId);
+  persistTownSave();
+  showToast(`${def.name} 구매 완료`);
+}
+
+function persistTownSave() {
+  if (!pendingSave) return;
+  pendingSave.updatedAt = Date.now();
+  saveService.saveLocal(pendingSave);
+  refreshCharacterRoster(pendingSave.saveId);
+  renderTown(pendingSave);
+  renderTownContent();
+}
+
+function addInventoryItem(save: PlayerSave, itemId: string) {
+  const found = save.inventory.find((item) => item.itemId === itemId);
+  if (found) found.count += 1;
+  else save.inventory.push({ uid: uid('item'), itemId, count: 1 });
+}
+
+function repairTownVitals(save: PlayerSave) {
+  const stats = calculateStatsFromSave(save);
+  save.hp = Math.min(stats.hp, Math.max(1, save.hp));
+  save.mp = Math.min(stats.mp, Math.max(0, save.mp));
+}
+
+function calculateStatsFromSave(save: PlayerSave): Stats {
+  const base = classes[save.classId].baseStats;
+  const stats: Stats = {
+    hp: base.hp + (save.level - 1) * 22,
+    mp: base.mp + (save.level - 1) * 7,
+    atk: base.atk + (save.level - 1) * 4,
+    def: base.def + (save.level - 1) * 2,
+    aspd: base.aspd,
+    crit: base.crit,
+    move: base.move
+  };
+
+  for (const instance of save.cards.filter((card) => card.equipped)) {
+    const def = cards.find((card) => card.id === instance.cardId);
+    if (!def) continue;
+    applyTownBonus(stats, def.bonus, 1 + (instance.level - 1) * 0.34);
+  }
+
+  const equippedItemIds = new Set(Object.values(save.equipment || {}));
+  for (const entry of save.inventory) {
+    if (!equippedItemIds.has(entry.uid)) continue;
+    const def = items.find((item) => item.id === entry.itemId);
+    if (!def || def.type === 'material') continue;
+    applyTownBonus(stats, def.bonus, 1);
+  }
+
+  for (const entry of save.souls.filter((soul) => soul.unlocked)) {
+    const def = souls.find((soul) => soul.id === entry.soulId);
+    if (!def) continue;
+    applyTownBonus(stats, def.bonus, 1);
+  }
+
+  stats.hp = Math.round(stats.hp);
+  stats.mp = Math.round(stats.mp);
+  stats.atk = Math.round(stats.atk);
+  stats.def = Math.round(stats.def);
+  stats.aspd = Number(stats.aspd.toFixed(2));
+  stats.crit = Number(stats.crit.toFixed(3));
+  stats.move = Number(stats.move.toFixed(2));
+  return stats;
+}
+
+function applyTownBonus(stats: Stats, bonus: Partial<Stats>, scalar: number) {
+  for (const [key, value] of Object.entries(bonus) as [keyof Stats, number][]) stats[key] += value * scalar;
+}
+
+function powerFromSave(save: PlayerSave) {
+  const stats = calculateStatsFromSave(save);
+  return Math.round(stats.hp * 0.42 + stats.mp * 0.12 + stats.atk * 9.5 + stats.def * 6.2 + stats.aspd * 70 + stats.crit * 520);
+}
+
+async function saveCloudIfAvailable(save: PlayerSave, power: number, explicit: boolean) {
+  if (!saveService.isOnline()) return null;
+  try {
+    const saved = await saveService.saveCloud(save, power);
+    if (!saved && explicit) showToast('로컬 저장 완료 · 클라우드 동기화 보류');
+    return saved;
+  } catch (error) {
+    console.warn('[Cloud] save deferred', error);
+    if (explicit) showToast('로컬 저장 완료 · 클라우드 동기화 보류');
+    return false;
+  }
+}
+
+async function handleTownAccountAction(action: string) {
+  if (!pendingSave) return;
+  if (action === 'save') {
+    saveService.saveLocal(pendingSave);
+    const cloudOk = await saveCloudIfAvailable(pendingSave, powerFromSave(pendingSave), true);
+    refreshCharacterRoster(pendingSave.saveId);
+    renderTown(pendingSave);
+    showToast(cloudOk === false ? '로컬 저장 완료 · 클라우드 동기화 보류' : '저장 완료');
+  }
 }
 
 async function ensureFullscreen(forceToast = false) {

@@ -164,12 +164,23 @@
           </section>
 
           <section class="town-panel town-content-grid">
-            <button class="content-card" data-town-content="cards"><b>카드 도감</b><span>장착/합성 UI 개선 예정</span></button>
-            <button class="content-card" data-town-content="inventory"><b>장비 가방</b><span>무기/방어구 성장 예정</span></button>
-            <button class="content-card" data-town-content="shop"><b>상점</b><span>소모품/강화 재료 예정</span></button>
-            <button class="content-card" data-town-content="boss"><b>월드 보스</b><span>시간표/랭킹 예정</span></button>
+            <button class="content-card" data-town-content="cards"><b>카드 도감</b><span>마을에서 카드 장착/해제</span></button>
+            <button class="content-card" data-town-content="inventory"><b>장비 가방</b><span>무기/방어구/유물 장착</span></button>
+            <button class="content-card" data-town-content="shop"><b>상점</b><span>골드로 장비/재료 구매</span></button>
+            <button class="content-card" data-town-content="boss"><b>월드 보스</b><span>레이드 정보/입장</span></button>
           </section>
         </main>
+
+        <aside class="town-drawer hidden" id="townContentPanel" aria-hidden="true">
+          <div class="town-drawer-head">
+            <div>
+              <span id="townContentEyebrow">TOWN</span>
+              <h2 id="townContentTitle">마을 컨텐츠</h2>
+            </div>
+            <button class="icon-btn" id="closeTownContent" title="닫기" aria-label="닫기">×</button>
+          </div>
+          <div class="town-drawer-body" id="townContentBody"></div>
+        </aside>
       </section>
 
       <div class="scene-transition" id="sceneTransition" aria-hidden="true">

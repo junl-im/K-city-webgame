@@ -27,6 +27,8 @@ export class SaveService {
   private auth: Auth | null = null;
   private db: Firestore | null = null;
   private user: User | null = null;
+  private cloudWritePausedUntil = 0;
+  private lastCloudWriteError = '';
 
   async init() {
     try {
@@ -143,41 +145,60 @@ export class SaveService {
     return [];
   }
 
-  async saveCloud(save: PlayerSave, power: number) {
-    if (!this.db || !this.user) return;
-    const normalized = this.validateSave({ ...save, updatedAt: Date.now() });
-    const roster = this.readRoster();
-    const saves = roster.saves.some((entry) => entry.saveId === normalized.saveId)
-      ? roster.saves.map((entry) => (entry.saveId === normalized.saveId ? normalized : entry))
-      : [...roster.saves, normalized];
+  async saveCloud(save: PlayerSave, power: number): Promise<boolean> {
+    if (!this.db || !this.user) return false;
+    if (Date.now() < this.cloudWritePausedUntil) return false;
 
-    await setDoc(
-      doc(this.db, 'users', this.user.uid),
-      {
-        uid: this.user.uid,
-        name: normalized.name,
-        classId: normalized.classId,
-        level: normalized.level,
-        save: normalized,
-        saves: saves.slice(0, MAX_CHARACTER_SLOTS),
-        activeSaveId: normalized.saveId,
-        updatedAt: serverTimestamp()
-      },
-      { merge: true }
-    );
+    try {
+      const normalized = this.validateSave({ ...save, updatedAt: Date.now() });
+      const roster = this.readRoster();
+      const saves = roster.saves.some((entry) => entry.saveId === normalized.saveId)
+        ? roster.saves.map((entry) => (entry.saveId === normalized.saveId ? normalized : entry))
+        : [...roster.saves, normalized];
 
-    await setDoc(
-      doc(this.db, 'rankings', this.user.uid),
-      {
-        uid: this.user.uid,
-        name: normalized.name,
-        level: normalized.level,
-        classId: normalized.classId,
-        power,
-        updatedAt: serverTimestamp()
-      },
-      { merge: true }
-    );
+      await setDoc(
+        doc(this.db, 'users', this.user.uid),
+        {
+          uid: this.user.uid,
+          name: normalized.name,
+          classId: normalized.classId,
+          level: normalized.level,
+          save: normalized,
+          saves: saves.slice(0, MAX_CHARACTER_SLOTS),
+          activeSaveId: normalized.saveId,
+          updatedAt: serverTimestamp()
+        },
+        { merge: true }
+      );
+
+      await setDoc(
+        doc(this.db, 'rankings', this.user.uid),
+        {
+          uid: this.user.uid,
+          name: normalized.name,
+          level: normalized.level,
+          classId: normalized.classId,
+          power,
+          updatedAt: serverTimestamp()
+        },
+        { merge: true }
+      );
+
+      this.lastCloudWriteError = '';
+      return true;
+    } catch (error) {
+      this.cloudWritePausedUntil = Date.now() + 30000;
+      this.lastCloudWriteError = error instanceof Error ? error.message : 'Cloud save failed';
+      console.warn('[Firebase] cloud save paused for 30s', error);
+      return false;
+    }
+  }
+
+  getCloudWriteStatus() {
+    return {
+      paused: Date.now() < this.cloudWritePausedUntil,
+      lastError: this.lastCloudWriteError
+    };
   }
 
   createSave(name: string, classId: CharacterClassId): PlayerSave {

@@ -187,8 +187,16 @@ export class SolGame {
 
   async saveNow() {
     this.saveService.saveLocal(this.save);
-    if (this.saveService.isOnline()) await this.saveService.saveCloud(this.save, this.power());
-    this.pushLog('진행 상황 저장 완료');
+    let cloudDeferred = false;
+    if (this.saveService.isOnline()) {
+      try {
+        cloudDeferred = !(await this.saveService.saveCloud(this.save, this.power()));
+      } catch (error) {
+        cloudDeferred = true;
+        console.warn('[Save] cloud save deferred', error);
+      }
+    }
+    this.pushLog(cloudDeferred ? '로컬 저장 완료 · 클라우드 동기화 보류' : '진행 상황 저장 완료');
     this.emit();
   }
 
@@ -1180,8 +1188,7 @@ export class SolGame {
     if (this.saveService.isOnline()) {
       this.cloudTimer = window.setTimeout(() => {
         this.saveService.saveCloud(this.save, this.power()).catch((error) => {
-          console.warn('[Save] cloud save failed', error);
-          this.pushLog('클라우드 저장 실패');
+          console.warn('[Save] cloud save deferred', error);
         });
       }, 900);
     }

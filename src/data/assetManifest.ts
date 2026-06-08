@@ -23,3 +23,11 @@ export const cardArtUrls = {
   equipmentPack: new URL('../assets/cards/equipment-pack.jpg', import.meta.url).href,
   uiIcons: new URL('../assets/cards/ui-icons.jpg', import.meta.url).href
 } as const;
+
+export const highQualityAssetSlots = {
+  basePath: 'src/assets/2p5d',
+  characters: ['hero-warrior-idle.webp', 'hero-taoist-idle.webp', 'hero-cleric-idle.webp'],
+  monsters: ['monster-slime-idle.webp', 'monster-wolf-idle.webp', 'monster-goblin-idle.webp', 'monster-crystal-bear-idle.webp', 'boss-dragon-idle.webp'],
+  tiles: ['tile-grass.webp', 'tile-stone.webp', 'tile-water.webp', 'tile-portal.webp'],
+  props: ['prop-tree.webp', 'prop-crystal.webp']
+} as const;

@@ -169,6 +169,14 @@ export const items: ItemDefinition[] = [
     rarity: 'R',
     effectText: '카드 합성 재료',
     bonus: {}
+  },
+  {
+    id: 'fox-charm',
+    name: '곰같은여우 부적',
+    type: 'relic',
+    rarity: 'SR',
+    effectText: '공격 +4, 방어 +3, 치명 +3%',
+    bonus: { atk: 4, def: 3, crit: 0.03 }
   }
 ];
 
