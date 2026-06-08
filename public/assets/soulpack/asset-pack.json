@@ -1,0 +1,30 @@
+{
+  "name": "Soul Online Runtime Asset Pack",
+  "version": "0.19.0",
+  "description": "Drop-in runtime asset pack. Replace files in this folder without changing code.",
+  "characters": {
+    "frameSize": [128, 192],
+    "directions": ["s", "sw", "w", "nw", "n", "ne", "e", "se"],
+    "actions": {
+      "idle": [0, 4],
+      "walk": [4, 8],
+      "run": [12, 8],
+      "attack": [20, 8],
+      "hit": [28, 4],
+      "death": [32, 8],
+      "skill": [40, 8]
+    }
+  },
+  "monsters": {
+    "frameSize": [128, 160],
+    "directions": ["s", "sw", "w", "nw", "n", "ne", "e", "se"]
+  },
+  "tiles": {
+    "frameSize": [128, 70],
+    "format": "single isometric png per terrain"
+  },
+  "audio": {
+    "format": "ogg loop",
+    "tracks": ["title-theme.ogg", "town-lumina.ogg", "field-forest.ogg", "boss-crystal.ogg"]
+  }
+}

@@ -201,16 +201,18 @@ function handleAudioSettingsAction(action: string) {
 function renderAudioSettingsPanel(mode: 'town' | 'field') {
   const settings = audioService.getSettings();
   const unlocked = audioService.isUnlocked();
+  const bgmMode = audioService.getBgmMode();
   return `
     <div class="audio-settings-panel ${mode}">
       <article class="audio-hero-card">
-        <span class="town-eyebrow">AUDIO PASS 0.11</span>
+        <span class="town-eyebrow">REAL AUDIO 0.19</span>
         <h3>루미나 사운드 믹서</h3>
-        <p>현재는 Web Audio 기반 임시 BGM/효과음입니다. 추후 실제 MP3/OGG BGM을 넣어도 같은 설정을 그대로 사용합니다.</p>
+        <p>public/assets/soulpack/audio 안의 실제 OGG 루프를 우선 재생합니다. 파일이 없거나 재생이 막히면 Web Audio fallback으로 전환됩니다.</p>
         <div class="pill-row">
           <span class="pill">${unlocked ? '오디오 준비됨' : '버튼 입력 후 준비'}</span>
           <span class="pill">BGM ${settings.bgm ? 'ON' : 'OFF'}</span>
           <span class="pill">SFX ${settings.sfx ? 'ON' : 'OFF'}</span>
+          <span class="pill">${bgmMode === 'file' ? 'OGG 재생중' : bgmMode === 'synth' ? 'Fallback 재생중' : '대기중'}</span>
         </div>
       </article>
       <div class="audio-toggle-grid">

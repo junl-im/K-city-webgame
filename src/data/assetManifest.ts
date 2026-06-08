@@ -32,6 +32,39 @@ export const textureUrls = {
   bossDragonSheet: new URL('../assets/2p5d/monsters/boss-dragon-sheet.png', import.meta.url).href
 } as const;
 
+export const runtimeTextureUrls: Partial<Record<keyof typeof textureUrls, string>> = {
+  tileGrass: './assets/soulpack/tiles/tile-grass.png',
+  tileDirt: './assets/soulpack/tiles/tile-dirt.png',
+  tileMoss: './assets/soulpack/tiles/tile-moss.png',
+  tileStone: './assets/soulpack/tiles/tile-stone.png',
+  tileCrystal: './assets/soulpack/tiles/tile-crystal.png',
+  tileWater: './assets/soulpack/tiles/tile-water.png',
+  tileCliff: './assets/soulpack/tiles/tile-cliff.png',
+  tilePortal: './assets/soulpack/tiles/tile-portal.png',
+  propTree: './assets/soulpack/props/prop-tree.png',
+  propCrystal: './assets/soulpack/props/prop-crystal.png',
+  propRock: './assets/soulpack/props/prop-rock.png',
+  propRuin: './assets/soulpack/props/prop-ruin.png',
+  heroWarriorMaleSheet: './assets/soulpack/characters/hero-warrior-male-sheet.png',
+  heroWarriorFemaleSheet: './assets/soulpack/characters/hero-warrior-female-sheet.png',
+  heroTaoistMaleSheet: './assets/soulpack/characters/hero-taoist-male-sheet.png',
+  heroTaoistFemaleSheet: './assets/soulpack/characters/hero-taoist-female-sheet.png',
+  heroClericMaleSheet: './assets/soulpack/characters/hero-cleric-male-sheet.png',
+  heroClericFemaleSheet: './assets/soulpack/characters/hero-cleric-female-sheet.png',
+  monsterSlimeSheet: './assets/soulpack/monsters/monster-slime-sheet.png',
+  monsterWolfSheet: './assets/soulpack/monsters/monster-wolf-sheet.png',
+  monsterGoblinSheet: './assets/soulpack/monsters/monster-goblin-sheet.png',
+  monsterBearSheet: './assets/soulpack/monsters/monster-bear-sheet.png',
+  bossDragonSheet: './assets/soulpack/monsters/boss-dragon-sheet.png'
+} as const;
+
+export const audioTrackUrls = {
+  title: './assets/soulpack/audio/title-theme.ogg',
+  town: './assets/soulpack/audio/town-lumina.ogg',
+  field: './assets/soulpack/audio/field-forest.ogg',
+  boss: './assets/soulpack/audio/boss-crystal.ogg'
+} as const;
+
 export const cardArtUrls = {
   warrior: new URL('../assets/cards/card-warrior.jpg', import.meta.url).href,
   taoist: new URL('../assets/cards/card-taoist.jpg', import.meta.url).href,
@@ -42,22 +75,21 @@ export const cardArtUrls = {
 } as const;
 
 export const highQualityAssetSlots = {
-  basePath: 'src/assets/2p5d',
+  basePath: 'public/assets/soulpack',
+  bundledFallbackPath: 'src/assets/2p5d',
   characters: [
-    'hero-warrior-male-sheet.png', 'hero-warrior-female-sheet.png',
-    'hero-taoist-male-sheet.png', 'hero-taoist-female-sheet.png',
-    'hero-cleric-male-sheet.png', 'hero-cleric-female-sheet.png',
-    'future-webp-atlas-ready'
+    'characters/hero-warrior-male-sheet.png', 'characters/hero-warrior-female-sheet.png',
+    'characters/hero-taoist-male-sheet.png', 'characters/hero-taoist-female-sheet.png',
+    'characters/hero-cleric-male-sheet.png', 'characters/hero-cleric-female-sheet.png'
   ],
   monsters: [
-    'monster-slime-sheet.png', 'monster-wolf-sheet.png', 'monster-goblin-sheet.png',
-    'monster-bear-sheet.png', 'boss-dragon-sheet.png'
+    'monsters/monster-slime-sheet.png', 'monsters/monster-wolf-sheet.png', 'monsters/monster-goblin-sheet.png',
+    'monsters/monster-bear-sheet.png', 'monsters/boss-dragon-sheet.png'
   ],
   tiles: [
-    'tile-grass.webp', 'tile-dirt.webp', 'tile-moss.webp', 'tile-stone.webp',
-    'tile-crystal.webp', 'tile-water.webp', 'tile-cliff.webp', 'tile-portal.webp',
-    'edge-grass-dirt.webp', 'edge-cliff-shadow.webp', 'decal-crystal-vein.webp'
+    'tiles/tile-grass.png', 'tiles/tile-dirt.png', 'tiles/tile-moss.png', 'tiles/tile-stone.png',
+    'tiles/tile-crystal.png', 'tiles/tile-water.png', 'tiles/tile-cliff.png', 'tiles/tile-portal.png'
   ],
-  props: ['prop-tree.webp', 'prop-crystal.webp', 'prop-rock.webp', 'prop-ruin.webp', 'prop-gate.webp'],
-  audio: ['title-theme.ogg', 'town-lumina.ogg', 'field-forest.ogg', 'boss-crystal.ogg']
+  props: ['props/prop-tree.png', 'props/prop-crystal.png', 'props/prop-rock.png', 'props/prop-ruin.png', 'props/prop-gate.png'],
+  audio: ['audio/title-theme.ogg', 'audio/town-lumina.ogg', 'audio/field-forest.ogg', 'audio/boss-crystal.ogg']
 } as const;

@@ -17,7 +17,7 @@ import {
   villageProps,
   worldMap
 } from '../data/gameData';
-import { textureUrls } from '../data/assetManifest';
+import { runtimeTextureUrls, textureUrls } from '../data/assetManifest';
 import type {
   CardDefinition,
   CardInstance,
@@ -433,13 +433,25 @@ export class SolGame {
   }
 
   private async loadTextures() {
-    const entries = Object.entries(textureUrls);
+    const entries = Object.entries(textureUrls) as Array<[TextureKey, string]>;
     await Promise.all(
-      entries.map(async ([key, url]) => {
-        const texture = await Assets.load<Texture>(url);
+      entries.map(async ([key, fallbackUrl]) => {
+        const runtimeUrl = runtimeTextureUrls[key];
+        const texture = await this.loadTextureWithFallback(runtimeUrl, fallbackUrl);
         this.textures.set(key, texture);
       })
     );
+  }
+
+  private async loadTextureWithFallback(runtimeUrl: string | undefined, fallbackUrl: string) {
+    if (runtimeUrl) {
+      try {
+        return await Assets.load<Texture>(runtimeUrl);
+      } catch {
+        // Runtime asset packs are optional. If a file is missing or corrupt, keep the game playable.
+      }
+    }
+    return Assets.load<Texture>(fallbackUrl);
   }
 
   private buildMap() {

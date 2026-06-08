@@ -1,6 +1,6 @@
-# 소울 온라인 Alpha 0.18 UI/Audio/Asset Quality Pass
+# 소울 온라인 Alpha 0.19 Real Asset Pipeline
 
-모바일 세로형 2.5D 웹 MMORPG 프로토타입입니다. 0.18에서는 마을 화면 오버플로우, 자동사냥 상태창 위치, 하단 버튼 배치, BGM 기계음 느낌, 임시 캐릭터/몬스터 스프라이트 품질을 중점 개선했습니다.
+모바일 세로형 2.5D 웹 MMORPG 프로토타입입니다. 0.19에서는 이제부터 실제 상용급 에셋을 꽂아 넣을 수 있도록 `public/assets/soulpack` 런타임 에셋 팩 구조를 추가했습니다.
 
 ## 실행
 
@@ -15,53 +15,52 @@ npm run dev
 npm run build
 ```
 
-## 0.18 변경점
+## 0.19 변경점
 
-- 모바일 마을 UI 재배치
-  - 루미나 마을 배경이 화면을 밀어내지 않도록 축소/후면화
-  - 상단 캐릭터/재화 영역 축소
-  - 스토리 완료/보상 카드가 화면을 과하게 차지하지 않도록 압축
-  - 마을 패널 내부 스크롤과 하단 드로어 높이 제한 강화
-- 필드 HUD 최적화
-  - `AUTO HUNT · 자동스킬 · 화면 유지` 리본을 상단에서 제거
-  - 자동사냥 상태를 하단 미니 리본과 자동 버튼 발광으로 표시
-  - 모바일 소형 화면에서 액션 버튼을 2x2, 스킬 버튼을 3개 가로 배치로 정리
-- BGM 완화
-  - 기존 Web Audio 임시 BGM의 지속적인 “위이잉” 패드음을 크게 낮춤
-  - 새 오디오 설정 키 `soul-online-audio-settings-v2` 적용
-  - 기본 BGM 볼륨을 낮춰 첫 실행 피로감 완화
-- 임시 스프라이트 품질 개선
-  - 기존 막대형 프로토타입보다 더 긴 8등신 실루엣, 갑옷/로브/망토/무기 디테일 추가
-  - 남자/여자 3직업 스프라이트 시트 재생성
-  - 몬스터 5종 스프라이트 시트 재생성
-- 그래픽 교체 로드맵 추가
-  - `docs/GRAPHICS_ROADMAP_0_18.md`
+- 실제 에셋 교체용 런타임 팩 추가
+  - `public/assets/soulpack/characters`
+  - `public/assets/soulpack/monsters`
+  - `public/assets/soulpack/tiles`
+  - `public/assets/soulpack/props`
+  - `public/assets/soulpack/audio`
+- 게임 로더 변경
+  - 런타임 에셋을 먼저 로드
+  - 실패하면 기존 번들 fallback 에셋으로 자동 복구
+- 파일 기반 BGM 로더 추가
+  - `title-theme.ogg`
+  - `town-lumina.ogg`
+  - `field-forest.ogg`
+  - `boss-crystal.ogg`
+- Web Audio 기계음 BGM은 fallback으로만 사용
+- PNG 아이소메트릭 타일 샘플 팩 추가
+  - 잔디, 흙길, 수정 이끼, 석재, 흑수정, 물, 절벽, 포탈
+- PNG 프랍 샘플 추가
+  - 나무, 수정, 바위, 폐허
+- 에셋 팩 규격 문서 추가
+  - `public/assets/soulpack/README.md`
+  - `public/assets/soulpack/asset-pack.json`
+  - `docs/REAL_ASSET_PIPELINE_0_19.md`
 
-## 기존 주요 기능 유지
+## 에셋 교체 방식
 
-- 첫 화면 → 로그인 → 서버 → 캐릭터 → 마을 입장 플로우
-- 루미나 마을 허브
-- 사냥터 지역 진행도
-- 40x40 대형 필드
-- 몬스터 AI 상태머신
-- 자동사냥/자동스킬/화면 유지
-- 스킬 버튼/쿨타임/MP 소모/범위 공격
-- 카드 세트 효과
-- 장비 강화
-- BGM/SFX 및 사운드 설정
-- PWA 세로 모드 설정
+같은 파일명으로 `public/assets/soulpack` 안의 파일을 교체하면 됩니다.
+코드 수정 없이 다음 실행/배포부터 새 에셋을 우선 로드합니다.
 
-## 저장 버전
+예시:
 
-- `SAVE_VERSION = 14`
-- 기존 0.17 이하 캐릭터는 자동 마이그레이션됩니다.
+```txt
+public/assets/soulpack/characters/hero-warrior-male-sheet.png
+public/assets/soulpack/monsters/monster-wolf-sheet.png
+public/assets/soulpack/tiles/tile-grass.png
+public/assets/soulpack/audio/town-lumina.ogg
+```
 
-## PWA 캐시
+## 버전
 
-- `soul-online-alpha-v0-18`
+- 앱 버전: `0.19.0`
+- `SAVE_VERSION = 15`
+- PWA 캐시: `soul-online-alpha-v0-19`
 
-기존 설치 앱에서 이전 화면이 남으면 브라우저 캐시 삭제 또는 홈 화면 앱 재설치가 필요할 수 있습니다.
+## 주의
 
-## 그래픽 관련 메모
-
-현재 포함된 캐릭터/몬스터는 여전히 코드로 생성한 임시 시트입니다. 리니지/MIR/오딘/나이트크로우급 비주얼은 실제 원화 기반 2.5D 프리렌더 에셋이 필요합니다. 0.18은 그 에셋을 끼워 넣을 런타임 구조와 임시 시트 품질을 올린 단계입니다.
+현재 캐릭터/몬스터 시트는 아직 샘플입니다. 리니지/MIR/오딘/나이트크로우급 비주얼은 원화 기반 2.5D 프리렌더 시트가 실제로 필요합니다. 0.19는 그 에셋을 바로 꽂을 수 있는 첫 번째 실전 구조입니다.
