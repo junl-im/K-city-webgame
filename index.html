@@ -45,44 +45,56 @@
 
           <div class="flow-page" data-flow-page="server">
             <div class="server-list">
-              <button data-server-id="sol-1" class="server-card active">
-                <b>솔라리스 1</b>
-                <span>혼잡도 원활 · 추천</span>
-              </button>
-              <button data-server-id="sol-2" class="server-card">
-                <b>미르림 2</b>
-                <span>혼잡도 보통 · 레이드 중심</span>
+              <button data-server-id="bearfox" class="server-card active">
+                <b>곰같은여우 서버</b>
+                <span>단일 서버 · 캐릭터 최대 4개 · 추천</span>
               </button>
             </div>
             <button id="serverNextBtn" class="wide-action primary">서버 선택</button>
           </div>
 
           <div class="flow-page" data-flow-page="character">
-            <label class="field">
-              <span>닉네임</span>
-              <input id="nameInput" maxlength="12" value="솔마스터" />
-            </label>
-            <div class="class-grid">
-              <button data-class="warrior" class="class-card active">
-                <b>전사</b>
-                <span>근접 · 튼튼함 · 반월참</span>
-              </button>
-              <button data-class="taoist" class="class-card">
-                <b>술사</b>
-                <span>원거리 · 폭딜 · 수정 탄환</span>
-              </button>
-              <button data-class="cleric" class="class-card">
-                <b>성직자</b>
-                <span>중거리 · 회복 · 성광</span>
-              </button>
+            <div class="slot-headline">
+              <b>캐릭터 선택</b>
+              <span id="characterSlotHelper">캐릭터 슬롯을 불러오는 중입니다.</span>
             </div>
-            <div class="character-summary" id="characterSummary"></div>
-            <button id="characterNextBtn" class="wide-action primary">캐릭터 준비</button>
+            <div class="character-slot-list" id="characterSlotList"></div>
+            <div class="character-actions">
+              <button id="connectCharacterBtn" class="wide-action primary">접속</button>
+              <button id="newCharacterBtn" class="wide-action">캐릭터 생성</button>
+              <button id="deleteCharacterBtn" class="wide-action danger">삭제</button>
+            </div>
+
+            <div class="character-create-panel hidden" id="characterCreatePanel">
+              <label class="field">
+                <span>닉네임</span>
+                <input id="nameInput" maxlength="12" value="솔마스터" />
+              </label>
+              <div class="class-grid">
+                <button data-class="warrior" class="class-card active">
+                  <b>전사</b>
+                  <span>근접 · 튼튼함 · 반월참</span>
+                </button>
+                <button data-class="taoist" class="class-card">
+                  <b>술사</b>
+                  <span>원거리 · 폭딜 · 수정 탄환</span>
+                </button>
+                <button data-class="cleric" class="class-card">
+                  <b>성직자</b>
+                  <span>중거리 · 회복 · 성광</span>
+                </button>
+              </div>
+              <div class="character-summary" id="characterSummary"></div>
+              <div class="character-actions two">
+                <button id="characterNextBtn" class="wide-action primary">캐릭터 생성 완료</button>
+                <button id="cancelCreateBtn" class="wide-action subtle">취소</button>
+              </div>
+            </div>
           </div>
 
           <div class="flow-page" data-flow-page="town">
             <div class="world-card">
-              <span id="worldServerText">솔라리스 1</span>
+              <span id="worldServerText">곰같은여우 서버</span>
               <h2 id="worldCharacterText">솔마스터</h2>
               <p id="worldClassText">전사 · 근접 탱커</p>
             </div>
@@ -195,6 +207,7 @@
         <div class="target-hp"><i id="targetHp"></i></div>
       </section>
 
+      <button class="combat-log-toggle" id="combatLogToggle" aria-label="상태 기록 접기">기록 접기</button>
       <div class="combat-log" id="combatLog"></div>
 
       <div class="joystick" id="joystick" aria-label="이동 조이스틱">

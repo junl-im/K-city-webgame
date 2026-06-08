@@ -1,9 +1,9 @@
 import './styles.css';
 import { classes, expToNext, souls } from './data/gameData';
-import { SaveService } from './game/SaveService';
+import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { SolGame } from './game/SolGame';
 import { formatNumber } from './game/math';
-import type { CharacterClassId, PlayerSave, SheetTab, Snapshot } from './types';
+import type { CharacterClassId, EquipmentSlot, PlayerSave, SheetTab, Snapshot } from './types';
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
 
@@ -11,8 +11,13 @@ const saveService = new SaveService();
 let game: SolGame | null = null;
 let latest: Snapshot | null = null;
 let pendingSave: PlayerSave | null = null;
+let characterRoster: PlayerSave[] = [];
+let selectedCharacterId = '';
+let creatingCharacter = false;
 let selectedClass: CharacterClassId = 'warrior';
-let selectedServer = 'sol-1';
+let selectedServer = 'bearfox';
+let combatLogCollapsed = false;
+const SERVER_NAME = '곰같은여우 서버';
 let activeSheetTab: SheetTab = 'cards';
 let sheetOpen = false;
 
@@ -24,6 +29,13 @@ const googleLoginBtn = must<HTMLButtonElement>('#googleLoginBtn');
 const localLoginBtn = must<HTMLButtonElement>('#localLoginBtn');
 const serverNextBtn = must<HTMLButtonElement>('#serverNextBtn');
 const characterNextBtn = must<HTMLButtonElement>('#characterNextBtn');
+const connectCharacterBtn = must<HTMLButtonElement>('#connectCharacterBtn');
+const newCharacterBtn = must<HTMLButtonElement>('#newCharacterBtn');
+const deleteCharacterBtn = must<HTMLButtonElement>('#deleteCharacterBtn');
+const cancelCreateBtn = must<HTMLButtonElement>('#cancelCreateBtn');
+const characterSlotList = must('#characterSlotList');
+const characterSlotHelper = must('#characterSlotHelper');
+const characterCreatePanel = must('#characterCreatePanel');
 const enterTownBtn = must<HTMLButtonElement>('#enterTownBtn');
 const nameInput = must<HTMLInputElement>('#nameInput');
 const characterSummary = must('#characterSummary');
@@ -54,6 +66,7 @@ const townFullscreenBtn = must<HTMLButtonElement>('#townFullscreenBtn');
 const townSaveBtn = must<HTMLButtonElement>('#townSaveBtn');
 const townAccountBtn = must<HTMLButtonElement>('#townAccountBtn');
 const returnTownBtn = must<HTMLButtonElement>('#returnTownBtn');
+const combatLogToggle = must<HTMLButtonElement>('#combatLogToggle');
 const sceneTransition = must('#sceneTransition');
 const sceneTransitionLabel = must('#sceneTransitionLabel');
 
@@ -64,14 +77,14 @@ boot().catch((error) => {
 
 async function boot() {
   await saveService.init();
-  const local = saveService.loadLocal();
-  const cloud = await tryLoadCloud();
-  pendingSave = chooseSave(local, cloud);
+  await mergeCloudRosterToLocal();
+  pendingSave = saveService.loadLocal();
+  refreshCharacterRoster();
 
   if (pendingSave) {
     selectedClass = pendingSave.classId;
     nameInput.value = pendingSave.name;
-    loginStatus.textContent = `${pendingSave.name} 저장 데이터를 찾았습니다.`;
+    loginStatus.textContent = `${characterRoster.length}개 캐릭터를 찾았습니다.`;
   }
 
   bindLoginFlow();
@@ -79,6 +92,7 @@ async function boot() {
   bindJoystick();
   bindSheet();
   renderCharacterSummary();
+  renderCharacterSlots();
   updateWorldSummary();
   goStep('login');
   registerServiceWorker();
@@ -101,27 +115,40 @@ async function tryLoadCloud() {
   }
 }
 
-function chooseSave(local: PlayerSave | null, cloud: PlayerSave | null) {
-  if (local && cloud) return cloud.updatedAt > local.updatedAt ? cloud : local;
-  return cloud || local;
+async function tryLoadCloudRoster() {
+  try {
+    return await saveService.loadCloudRoster();
+  } catch (error) {
+    console.warn('[Cloud] roster load failed', error);
+    return [];
+  }
+}
+
+async function mergeCloudRosterToLocal() {
+  const before = saveService.loadLocal()?.saveId || '';
+  const local = saveService.loadLocalRoster();
+  const cloudRoster = await tryLoadCloudRoster();
+  for (const cloud of cloudRoster) {
+    const localCopy = local.find((save) => save.saveId === cloud.saveId);
+    if (!localCopy || cloud.updatedAt > localCopy.updatedAt) saveService.saveLocal(cloud);
+  }
+  if (before) saveService.setActiveSave(before);
 }
 
 function bindLoginFlow() {
   document.querySelectorAll<HTMLButtonElement>('[data-flow-step]').forEach((button) => {
     button.addEventListener('click', () => {
       const step = (button.dataset.flowStep || 'login') as FlowStep;
-      if (step === 'login') goStep(step);
-      if (step === 'server') goStep(step);
-      if (step === 'character') goStep(step);
-      if (step === 'town' && pendingSave) goStep(step);
+      if (step === 'town' && !pendingSave) return;
+      goStep(step);
     });
   });
 
   guestLoginBtn.addEventListener('click', async () => {
     await runLoginAction(async () => {
       await saveService.loginGuest();
-      const cloud = await tryLoadCloud();
-      if (cloud) pendingSave = cloud;
+      await mergeCloudRosterToLocal();
+      refreshCharacterRoster();
       loginStatus.textContent = '게스트 클라우드로 접속했습니다.';
       goStep('server');
     });
@@ -130,28 +157,92 @@ function bindLoginFlow() {
   googleLoginBtn.addEventListener('click', async () => {
     await runLoginAction(async () => {
       await saveService.loginGoogle();
-      const cloud = await tryLoadCloud();
-      if (cloud) pendingSave = cloud;
+      await mergeCloudRosterToLocal();
+      refreshCharacterRoster();
       loginStatus.textContent = 'Google 계정으로 접속했습니다.';
       goStep('server');
     });
   });
 
   localLoginBtn.addEventListener('click', () => {
+    refreshCharacterRoster();
     loginStatus.textContent = '로컬 저장으로 진행합니다.';
     goStep('server');
   });
 
   document.querySelectorAll<HTMLButtonElement>('[data-server-id]').forEach((button) => {
     button.addEventListener('click', () => {
-      selectedServer = button.dataset.serverId || 'sol-1';
+      selectedServer = 'bearfox';
       document.querySelectorAll('[data-server-id]').forEach((item) => item.classList.remove('active'));
       button.classList.add('active');
       updateWorldSummary();
     });
   });
 
-  serverNextBtn.addEventListener('click', () => goStep('character'));
+  serverNextBtn.addEventListener('click', () => {
+    refreshCharacterRoster();
+    if (!characterRoster.length) creatingCharacter = true;
+    goStep('character');
+  });
+
+  characterSlotList.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-character-id]');
+    if (!button) return;
+    selectedCharacterId = button.dataset.characterId || '';
+    const selected = characterRoster.find((save) => save.saveId === selectedCharacterId) || null;
+    if (selected) {
+      pendingSave = selected;
+      selectedClass = selected.classId;
+      nameInput.value = selected.name;
+      saveService.setActiveSave(selected.saveId);
+    }
+    creatingCharacter = false;
+    renderCharacterSlots();
+    updateWorldSummary();
+  });
+
+  connectCharacterBtn.addEventListener('click', () => {
+    const selected = getSelectedCharacter();
+    if (!selected) {
+      showToast('접속할 캐릭터를 선택하세요.');
+      return;
+    }
+    pendingSave = saveService.validateSave(selected);
+    selectedClass = pendingSave.classId;
+    nameInput.value = pendingSave.name;
+    saveService.setActiveSave(pendingSave.saveId);
+    renderCharacterSlots();
+    updateWorldSummary();
+    goStep('town');
+  });
+
+  newCharacterBtn.addEventListener('click', () => {
+    if (characterRoster.length >= MAX_CHARACTER_SLOTS) {
+      showToast('캐릭터는 최대 4개까지 생성할 수 있습니다.');
+      return;
+    }
+    creatingCharacter = true;
+    nameInput.value = suggestedCharacterName();
+    renderCharacterSlots();
+    updateWorldSummary();
+  });
+
+  deleteCharacterBtn.addEventListener('click', () => {
+    const selected = getSelectedCharacter();
+    if (!selected) return;
+    const ok = window.confirm(`${selected.name} 캐릭터를 삭제할까요? 이 작업은 로컬 저장에서 즉시 삭제됩니다.`);
+    if (!ok) return;
+    saveService.deleteLocalSave(selected.saveId);
+    if (pendingSave?.saveId === selected.saveId) pendingSave = null;
+    refreshCharacterRoster();
+    showToast('캐릭터를 삭제했습니다.');
+    updateWorldSummary();
+  });
+
+  cancelCreateBtn.addEventListener('click', () => {
+    creatingCharacter = false;
+    renderCharacterSlots();
+  });
 
   document.querySelectorAll<HTMLButtonElement>('[data-class]').forEach((button) => {
     button.addEventListener('click', () => {
@@ -166,26 +257,30 @@ function bindLoginFlow() {
   nameInput.addEventListener('input', updateWorldSummary);
 
   characterNextBtn.addEventListener('click', () => {
-    const name = nameInput.value.trim().slice(0, 12) || '솔마스터';
-    const shouldCreate =
-      !pendingSave ||
-      pendingSave.name !== name ||
-      pendingSave.classId !== selectedClass;
-
-    const prepared = shouldCreate ? saveService.createSave(name, selectedClass) : pendingSave;
-    if (!prepared) return;
-    prepared.name = name;
-    prepared.classId = selectedClass;
+    if (characterRoster.length >= MAX_CHARACTER_SLOTS) {
+      showToast('캐릭터는 최대 4개까지 생성할 수 있습니다.');
+      return;
+    }
+    const name = nameInput.value.trim().slice(0, 12) || suggestedCharacterName();
+    const prepared = saveService.createSave(name, selectedClass);
     pendingSave = prepared;
     saveService.saveLocal(prepared);
+    refreshCharacterRoster(prepared.saveId);
+    creatingCharacter = false;
     renderCharacterSummary();
     updateWorldSummary();
+    showToast(`${prepared.name} 캐릭터 생성 완료`);
     goStep('town');
   });
 
   enterTownBtn.addEventListener('click', async () => {
     void ensureFullscreen();
-    if (!pendingSave) pendingSave = saveService.createSave(nameInput.value, selectedClass);
+    if (!pendingSave) pendingSave = getSelectedCharacter();
+    if (!pendingSave) {
+      showToast('접속할 캐릭터를 먼저 선택하세요.');
+      goStep('character');
+      return;
+    }
     pendingSave = saveService.validateSave(pendingSave);
     saveService.saveLocal(pendingSave);
     await enterTown(pendingSave, '루미나 마을로 이동 중');
@@ -200,11 +295,12 @@ function bindLoginFlow() {
     if (!pendingSave) return;
     saveService.saveLocal(pendingSave);
     if (saveService.isOnline()) await saveService.saveCloud(pendingSave, latest?.power || 0);
+    refreshCharacterRoster(pendingSave.saveId);
     showToast('마을 저장 완료');
   });
 
   townAccountBtn.addEventListener('click', () => {
-    showTownContent('계정', '계정 연결과 클라우드 저장은 사냥터 진입 후 우측 메뉴에서 사용할 수 있습니다. 다음 패치에서 마을 계정 패널로 분리할 예정입니다.');
+    showTownContent('계정', '계정 연결과 클라우드 저장은 사냥터 우측 메뉴에서 사용할 수 있습니다. 캐릭터 슬롯은 로컬/클라우드 로스터 구조로 저장됩니다.');
   });
 
   document.querySelectorAll<HTMLButtonElement>('[data-zone-id]').forEach((button) => {
@@ -213,7 +309,12 @@ function bindLoginFlow() {
       document.querySelectorAll('[data-zone-id]').forEach((item) => item.classList.remove('active'));
       button.classList.add('active');
       const zoneId = button.dataset.zoneId || 'slime-forest';
-      if (!pendingSave) pendingSave = saveService.createSave(nameInput.value, selectedClass);
+      if (!pendingSave) pendingSave = getSelectedCharacter();
+      if (!pendingSave) {
+        showToast('사냥터에 입장할 캐릭터를 선택하세요.');
+        goStep('character');
+        return;
+      }
       await startField(pendingSave, zoneId);
     });
   });
@@ -223,7 +324,7 @@ function bindLoginFlow() {
       const content = button.dataset.townContent || 'cards';
       const titles: Record<string, [string, string]> = {
         cards: ['카드 도감', '카드 장착/합성은 현재 사냥터 HUD의 카드 메뉴에서 사용 가능합니다. 다음 단계에서 마을 전용 카드 관리 화면으로 분리합니다.'],
-        inventory: ['장비 가방', '획득 장비와 재료를 보여주는 마을 창고 화면을 붙일 예정입니다. 현재는 사냥터 HUD의 가방 메뉴를 사용하세요.'],
+        inventory: ['장비 가방', '사냥터 가방 메뉴에서 장비 장착/해제를 사용할 수 있습니다. 다음 단계에서 마을 장비 창고로 분리합니다.'],
         shop: ['상점', '소모품, 강화 재료, 스킨 판매 기능을 연결할 자리입니다.'],
         boss: ['월드 보스', '보스 시간표, 입장권, 기여도 보상 UI를 연결할 자리입니다.']
       };
@@ -252,6 +353,7 @@ function setLoginButtons(enabled: boolean) {
 }
 
 function goStep(step: FlowStep) {
+  if (step === 'character') refreshCharacterRoster(selectedCharacterId);
   document.querySelectorAll('[data-flow-step]').forEach((button) => {
     button.classList.toggle('active', (button as HTMLElement).dataset.flowStep === step);
   });
@@ -259,7 +361,32 @@ function goStep(step: FlowStep) {
     page.classList.toggle('active', (page as HTMLElement).dataset.flowPage === step);
   });
   renderCharacterSummary();
+  renderCharacterSlots();
   updateWorldSummary();
+}
+
+function refreshCharacterRoster(preferredSaveId = selectedCharacterId) {
+  characterRoster = saveService.loadLocalRoster();
+  const preferred = characterRoster.find((save) => save.saveId === preferredSaveId);
+  const active = saveService.loadLocal();
+  const selected = preferred || (active ? characterRoster.find((save) => save.saveId === active.saveId) : null) || characterRoster[0] || null;
+  selectedCharacterId = selected?.saveId || '';
+  pendingSave = selected || null;
+  if (selected) {
+    selectedClass = selected.classId;
+    nameInput.value = selected.name;
+  } else {
+    creatingCharacter = true;
+  }
+  renderCharacterSlots();
+}
+
+function getSelectedCharacter() {
+  return characterRoster.find((save) => save.saveId === selectedCharacterId) || null;
+}
+
+function suggestedCharacterName() {
+  return `솔마스터${characterRoster.length + 1}`.slice(0, 12);
 }
 
 async function enterTown(save: PlayerSave, label = '마을로 이동 중') {
@@ -314,6 +441,7 @@ async function returnToTown() {
   const save = game.getSave();
   await game.saveNow();
   await enterTown(save, '마을로 복귀 중');
+  refreshCharacterRoster(save.saveId);
   showToast('루미나 마을로 복귀했습니다.');
 }
 
@@ -330,7 +458,13 @@ function bindActions() {
   returnTownBtn.addEventListener('click', () => {
     void returnToTown();
   });
+  combatLogToggle.addEventListener('click', () => {
+    combatLogCollapsed = !combatLogCollapsed;
+    document.body.classList.toggle('combat-log-collapsed', combatLogCollapsed);
+    combatLogToggle.textContent = combatLogCollapsed ? '기록 열기' : '기록 접기';
+  });
 }
+
 
 function bindJoystick() {
   let active = false;
@@ -387,6 +521,12 @@ function bindSheet() {
     const equip = target.closest<HTMLButtonElement>('[data-equip-card]');
     if (equip) {
       game?.equipCard(equip.dataset.equipCard || '');
+      return;
+    }
+
+    const equipItem = target.closest<HTMLButtonElement>('[data-equip-item]');
+    if (equipItem) {
+      game?.equipItem(equipItem.dataset.equipItem || '');
       return;
     }
 
@@ -462,7 +602,7 @@ function renderHud(snapshot: Snapshot) {
   }
 
   const log = must('#combatLog');
-  log.innerHTML = snapshot.log.map((line) => `<p>${escapeHtml(line)}</p>`).join('');
+  log.innerHTML = snapshot.log.slice(0, 3).map((line) => `<p>${escapeHtml(line)}</p>`).join('');
 }
 
 function openSheet(tab: SheetTab) {
@@ -537,15 +677,23 @@ function renderInventory(snapshot: Snapshot) {
       return described ? [described] : [];
     })
     .map(({ def, instance }) => {
+      const slot = def.type as EquipmentSlot;
+      const canEquip = def.type !== 'material';
+      const equipped = canEquip && snapshot.save.equipment?.[slot] === instance.uid;
+      const typeLabel: Record<string, string> = { weapon: '무기', armor: '방어구', relic: '유물', material: '재료' };
       return `
-        <article class="item-row">
-          <div class="pill-row">
-            <span class="pill">${def.rarity}</span>
-            <span class="pill">${escapeHtml(def.type)}</span>
-            <span class="pill">x${instance.count}</span>
+        <article class="item-row ${equipped ? 'equipped' : ''}">
+          <div class="item-info">
+            <div class="pill-row">
+              <span class="pill">${def.rarity}</span>
+              <span class="pill">${typeLabel[def.type] || escapeHtml(def.type)}</span>
+              <span class="pill">x${instance.count}</span>
+              ${equipped ? '<span class="pill">장착중</span>' : ''}
+            </div>
+            <h3>${escapeHtml(def.name)}</h3>
+            <p>${escapeHtml(def.effectText)}</p>
           </div>
-          <h3>${escapeHtml(def.name)}</h3>
-          <p>${escapeHtml(def.effectText)}</p>
+          ${canEquip ? `<button data-equip-item="${instance.uid}">${equipped ? '해제' : '장착'}</button>` : ''}
         </article>
       `;
     })
@@ -608,11 +756,47 @@ function renderCharacterSummary() {
   `;
 }
 
+function renderCharacterSlots() {
+  const selected = getSelectedCharacter();
+  characterSlotHelper.textContent = characterRoster.length
+    ? `${characterRoster.length}/${MAX_CHARACTER_SLOTS} 슬롯 사용 중 · 선택 후 접속하세요.`
+    : '아직 생성된 캐릭터가 없습니다. 첫 캐릭터를 생성하세요.';
+
+  characterSlotList.innerHTML = characterRoster.length
+    ? characterRoster
+        .map((save) => {
+          const klass = classes[save.classId];
+          const active = save.saveId === selectedCharacterId;
+          const date = new Date(save.updatedAt || save.createdAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
+          return `
+            <button class="character-slot ${active ? 'active' : ''}" data-character-id="${save.saveId}">
+              <span class="slot-glyph">${escapeHtml(klass.glyph)}</span>
+              <span class="slot-main">
+                <b>${escapeHtml(save.name)}</b>
+                <em>Lv.${save.level} · ${escapeHtml(klass.name)} · ${formatNumber(save.gold)}G</em>
+              </span>
+              <span class="slot-date">${date}</span>
+            </button>
+          `;
+        })
+        .join('')
+    : '<div class="empty-slot">빈 슬롯 · 최대 4개까지 생성 가능</div>';
+
+  characterCreatePanel.classList.toggle('hidden', !creatingCharacter);
+  connectCharacterBtn.disabled = !selected;
+  deleteCharacterBtn.disabled = !selected;
+  newCharacterBtn.disabled = characterRoster.length >= MAX_CHARACTER_SLOTS;
+  newCharacterBtn.textContent = characterRoster.length >= MAX_CHARACTER_SLOTS ? '슬롯 가득참' : '캐릭터 생성';
+}
+
 function updateWorldSummary() {
-  const klass = classes[selectedClass];
-  const serverName = selectedServer === 'sol-2' ? '미르림 2' : '솔라리스 1';
-  worldServerText.textContent = serverName;
-  worldCharacterText.textContent = nameInput.value.trim() || pendingSave?.name || '솔마스터';
+  const selected = getSelectedCharacter();
+  const classId = creatingCharacter ? selectedClass : selected?.classId || pendingSave?.classId || selectedClass;
+  const klass = classes[classId];
+  worldServerText.textContent = selectedServer === 'bearfox' ? SERVER_NAME : SERVER_NAME;
+  worldCharacterText.textContent = creatingCharacter
+    ? nameInput.value.trim() || suggestedCharacterName()
+    : selected?.name || pendingSave?.name || '캐릭터 선택 필요';
   worldClassText.textContent = `${klass.name} · ${klass.roleText}`;
 }
 function renderTown(save: PlayerSave | null) {

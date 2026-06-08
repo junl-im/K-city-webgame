@@ -44,6 +44,7 @@ body:not(.field-active) .hud-top,
 body:not(.field-active) .resource-strip,
 body:not(.field-active) .target-card,
 body:not(.field-active) .combat-log,
+body:not(.field-active) .combat-log-toggle,
 body:not(.field-active) .joystick,
 body:not(.field-active) .action-dock,
 body:not(.field-active) .sheet {
@@ -88,6 +89,7 @@ button:disabled {
 .resource-strip,
 .target-card,
 .combat-log,
+.combat-log-toggle,
 .action-dock,
 .joystick,
 .sheet,
@@ -249,6 +251,12 @@ button:disabled {
   color: var(--muted);
 }
 
+.wide-action.danger {
+  border-color: rgba(217, 87, 87, 0.38);
+  background: rgba(217, 87, 87, 0.12);
+  color: #ffd8d8;
+}
+
 .server-card {
   display: grid;
   gap: 4px;
@@ -275,6 +283,104 @@ button:disabled {
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.2);
   line-height: 1.45;
+}
+
+.slot-headline {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: end;
+}
+
+.slot-headline b {
+  font-size: 16px;
+}
+
+.slot-headline span {
+  color: var(--muted);
+  font-size: 11px;
+  text-align: right;
+}
+
+.character-slot-list {
+  display: grid;
+  gap: 8px;
+}
+
+.character-slot,
+.empty-slot {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 66px;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--ink);
+  text-align: left;
+}
+
+.character-slot.active {
+  border-color: rgba(226, 185, 95, 0.65);
+  background: rgba(226, 185, 95, 0.12);
+}
+
+.slot-glyph {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(226, 185, 95, 0.28), rgba(98, 198, 200, 0.12));
+  color: var(--gold);
+  font-size: 22px;
+  font-weight: 950;
+}
+
+.slot-main {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.slot-main b,
+.slot-main em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slot-main em,
+.slot-date,
+.empty-slot {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.character-actions {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 0.8fr;
+  gap: 7px;
+}
+
+.character-actions.two {
+  grid-template-columns: 1.3fr 0.8fr;
+}
+
+.character-create-panel {
+  display: grid;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid rgba(226, 185, 95, 0.24);
+  border-radius: 8px;
+  background: rgba(226, 185, 95, 0.06);
+}
+
+.character-create-panel.hidden {
+  display: none;
 }
 
 .world-card {
@@ -832,25 +938,49 @@ button:disabled {
   background: var(--red);
 }
 
+.combat-log-toggle {
+  left: 10px;
+  bottom: calc(195px + env(safe-area-inset-bottom));
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(245, 241, 232, 0.1);
+  border-radius: 999px;
+  background: rgba(8, 10, 8, 0.62);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  backdrop-filter: blur(8px);
+}
+
 .combat-log {
   left: 10px;
   bottom: calc(118px + env(safe-area-inset-bottom));
   display: grid;
-  gap: 5px;
-  width: min(330px, calc(100% - 20px));
+  gap: 4px;
+  width: min(260px, calc(100% - 20px));
+  max-height: 74px;
+  overflow: hidden;
   pointer-events: none;
 }
 
 .combat-log p {
   margin: 0;
-  padding: 7px 9px;
+  padding: 5px 8px;
   border: 1px solid rgba(245, 241, 232, 0.08);
   border-radius: 6px;
-  background: rgba(8, 10, 8, 0.58);
+  background: rgba(8, 10, 8, 0.5);
   color: #f2ead9;
-  font-size: 11px;
-  line-height: 1.35;
+  font-size: 10px;
+  line-height: 1.28;
   text-shadow: 0 1px 2px black;
+}
+
+body.combat-log-collapsed .combat-log {
+  display: none;
+}
+
+body.combat-log-collapsed .combat-log-toggle {
+  bottom: calc(118px + env(safe-area-inset-bottom));
 }
 
 .joystick {
@@ -1054,8 +1184,21 @@ button:disabled {
   font-weight: 900;
 }
 
-.codex-card.equipped {
+.codex-card.equipped,
+.item-row.equipped {
   border-color: rgba(98, 198, 200, 0.5);
+  background: rgba(98, 198, 200, 0.08);
+}
+
+.item-row {
+  grid-template-columns: minmax(0, 1fr) 72px;
+  align-items: center;
+}
+
+.item-info {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
 }
 
 .create-modal {
@@ -1222,9 +1365,17 @@ button:disabled {
     grid-template-columns: repeat(2, 58px);
   }
 
+  .combat-log-toggle {
+    bottom: calc(230px + env(safe-area-inset-bottom));
+  }
+
   .combat-log {
     bottom: calc(156px + env(safe-area-inset-bottom));
-    width: min(260px, calc(100% - 20px));
+    width: min(230px, calc(100% - 20px));
+  }
+
+  body.combat-log-collapsed .combat-log-toggle {
+    bottom: calc(156px + env(safe-area-inset-bottom));
   }
 
   .codex-card {

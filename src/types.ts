@@ -3,6 +3,7 @@ export type MonsterId = 'slime' | 'wolf' | 'goblin' | 'crystalBear' | 'dragon';
 export type TileId = 'grass' | 'stone' | 'water' | 'portal';
 export type CardRarity = 'N' | 'R' | 'SR' | 'SSR';
 export type SheetTab = 'cards' | 'inventory' | 'souls' | 'account';
+export type EquipmentSlot = 'weapon' | 'armor' | 'relic';
 
 export interface Stats {
   hp: number;
@@ -89,6 +90,8 @@ export interface InventoryItem {
   count: number;
 }
 
+export type EquipmentSlots = Partial<Record<EquipmentSlot, string>>;
+
 export interface SoulInstance {
   soulId: string;
   unlocked: boolean;
@@ -97,6 +100,7 @@ export interface SoulInstance {
 
 export interface PlayerSave {
   version: number;
+  saveId: string;
   name: string;
   classId: CharacterClassId;
   level: number;
@@ -110,6 +114,7 @@ export interface PlayerSave {
   kills: Record<MonsterId, number>;
   cards: CardInstance[];
   inventory: InventoryItem[];
+  equipment: EquipmentSlots;
   souls: SoulInstance[];
   autoHunt: boolean;
   createdAt: number;
@@ -145,4 +150,11 @@ export interface Snapshot {
   log: string[];
   online: boolean;
   userLabel: string;
+}
+
+export interface SaveRoster {
+  version: number;
+  activeSaveId: string | null;
+  saves: PlayerSave[];
+  updatedAt: number;
 }

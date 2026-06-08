@@ -18,6 +18,7 @@ import type {
   CardInstance,
   CombatResult,
   DropEntry,
+  EquipmentSlot,
   InventoryItem,
   MonsterDefinition,
   MonsterId,
@@ -101,6 +102,7 @@ export class SolGame {
     await this.loadTextures();
     this.buildMap();
     this.spawnMobs();
+    this.ensurePlayerSafePosition();
     this.buildPlayer();
     this.bindCanvasInput();
 
@@ -154,6 +156,29 @@ export class SolGame {
         return;
       }
       card.equipped = true;
+    }
+    this.repairVitals();
+    this.markDirty();
+    this.emit();
+  }
+
+  equipItem(itemUid: string) {
+    const entry = this.save.inventory.find((item) => item.uid === itemUid);
+    if (!entry) return;
+    const def = items.find((item) => item.id === entry.itemId);
+    if (!def || def.type === 'material') {
+      this.pushLog('재료 아이템은 장착할 수 없습니다.');
+      this.emit();
+      return;
+    }
+    const slot = def.type as EquipmentSlot;
+    this.save.equipment ||= {};
+    if (this.save.equipment[slot] === entry.uid) {
+      delete this.save.equipment[slot];
+      this.pushLog(`${def.name} 장착 해제`);
+    } else {
+      this.save.equipment[slot] = entry.uid;
+      this.pushLog(`${def.name} 장착`);
     }
     this.repairVitals();
     this.markDirty();
@@ -298,13 +323,14 @@ export class SolGame {
     this.mobs = spawnTable.map((spawn, index) => {
       const def = monsters.find((monster) => monster.id === spawn.monsterId);
       if (!def) throw new Error(`Missing monster ${spawn.monsterId}`);
+      const safe = this.findSafeMobPosition(spawn.x, spawn.y, 1.35);
       return {
         uid: `${def.id}-${index}`,
         def,
-        x: spawn.x,
-        y: spawn.y,
-        spawnX: spawn.x,
-        spawnY: spawn.y,
+        x: safe.x,
+        y: safe.y,
+        spawnX: safe.x,
+        spawnY: safe.y,
         hp: def.stats.hp,
         alive: true,
         respawnAt: 0,
@@ -470,6 +496,7 @@ export class SolGame {
       if (this.playerBody) this.playerBody.scale.x = dir.x < -0.05 ? -Math.abs(this.playerBody.scale.x) : Math.abs(this.playerBody.scale.x);
     }
 
+    this.resolvePlayerMobOverlap();
     this.lastMoving = moving;
     this.updatePlayerAnimation(moving);
     this.placeEntity(this.playerRoot, this.save.x, this.save.y);
@@ -533,7 +560,9 @@ export class SolGame {
         view.body.scale.x = dir.x < -0.05 ? -Math.abs(view.body.scale.x) : Math.abs(view.body.scale.x);
       }
 
-      if (dist < 1.16 && mob.attackCooldown <= 0 && this.save.hp > 0) {
+      this.resolveMobOverlap(mob);
+      const attackDist = distance(this.save.x, this.save.y, mob.x, mob.y);
+      if (attackDist < 1.16 && mob.attackCooldown <= 0 && this.save.hp > 0) {
         mob.attackCooldown = 1 / mob.def.stats.aspd + 0.45;
         const result = this.resolveDamage(mob.def.stats, stats, mob.def.level - this.save.level);
         this.animateMobAttack(view);
@@ -567,8 +596,9 @@ export class SolGame {
       if (!mob.alive && now >= mob.respawnAt) {
         mob.alive = true;
         mob.hp = mob.def.stats.hp;
-        mob.x = mob.spawnX;
-        mob.y = mob.spawnY;
+        const safe = this.findSafeMobPosition(mob.spawnX, mob.spawnY, 1.35);
+        mob.x = safe.x;
+        mob.y = safe.y;
         this.impactBurst(mob.x, mob.y, 0x72e7ff, false);
       }
     }
@@ -791,7 +821,9 @@ export class SolGame {
       this.applyBonus(stats, def.bonus, scalar);
     }
 
+    const equippedItemIds = new Set(Object.values(this.save.equipment || {}));
     for (const entry of this.save.inventory) {
+      if (!equippedItemIds.has(entry.uid)) continue;
       const def = items.find((item) => item.id === entry.itemId);
       if (!def || def.type === 'material') continue;
       this.applyBonus(stats, def.bonus, 1);
@@ -842,6 +874,68 @@ export class SolGame {
       }
     }
     return nearest;
+  }
+
+  private ensurePlayerSafePosition() {
+    if (!this.isWalkable(this.save.x, this.save.y)) {
+      this.save.x = 8.0;
+      this.save.y = 8.2;
+    }
+    for (const mob of this.mobs) {
+      if (!mob.alive) continue;
+      if (distance(this.save.x, this.save.y, mob.x, mob.y) >= 0.92) continue;
+      const safe = this.findSafeMobPosition(mob.x, mob.y, 1.35);
+      mob.x = safe.x;
+      mob.y = safe.y;
+      mob.spawnX = safe.x;
+      mob.spawnY = safe.y;
+    }
+  }
+
+  private findSafeMobPosition(x: number, y: number, minPlayerDistance = 1.1) {
+    if (this.isWalkable(x, y) && distance(this.save.x, this.save.y, x, y) >= minPlayerDistance) return { x, y };
+    for (let radius = minPlayerDistance; radius <= 4.5; radius += 0.45) {
+      for (let i = 0; i < 16; i += 1) {
+        const angle = (Math.PI * 2 * i) / 16;
+        const nx = clamp(x + Math.cos(angle) * radius, 1, MAP_W - 2);
+        const ny = clamp(y + Math.sin(angle) * radius, 1, MAP_H - 2);
+        if (!this.isWalkable(nx, ny)) continue;
+        if (distance(this.save.x, this.save.y, nx, ny) < minPlayerDistance) continue;
+        return { x: nx, y: ny };
+      }
+    }
+    return { x: 5.2, y: 12.4 };
+  }
+
+  private resolvePlayerMobOverlap() {
+    for (const mob of this.mobs) {
+      if (!mob.alive) continue;
+      const minDistance = mob.def.id === 'dragon' ? 1.05 : 0.72;
+      const dist = distance(this.save.x, this.save.y, mob.x, mob.y);
+      if (dist <= 0 || dist >= minDistance) continue;
+      const dir = normalize(this.save.x - mob.x || 0.01, this.save.y - mob.y || 0.01);
+      const push = minDistance - dist;
+      const nextX = this.save.x + dir.x * push;
+      const nextY = this.save.y + dir.y * push;
+      if (this.isWalkable(nextX, nextY)) {
+        this.save.x = clamp(nextX, 1, MAP_W - 2);
+        this.save.y = clamp(nextY, 1, MAP_H - 2);
+      }
+    }
+  }
+
+  private resolveMobOverlap(mob: WorldMob) {
+    const minDistance = mob.def.id === 'dragon' ? 1.05 : 0.72;
+    const dist = distance(this.save.x, this.save.y, mob.x, mob.y);
+    if (dist <= 0 || dist >= minDistance) return;
+    const dir = normalize(mob.x - this.save.x || 0.01, mob.y - this.save.y || 0.01);
+    const push = minDistance - dist;
+    const nextX = mob.x + dir.x * push;
+    const nextY = mob.y + dir.y * push;
+    if (this.isWalkable(nextX, nextY)) {
+      mob.x = clamp(nextX, 1, MAP_W - 2);
+      mob.y = clamp(nextY, 1, MAP_H - 2);
+    }
   }
 
   private isWalkable(x: number, y: number) {
