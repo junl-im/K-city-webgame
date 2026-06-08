@@ -1,21 +1,18 @@
 {
-  "name": "k-city-innerworld",
-  "private": true,
-  "version": "0.1.0",
+  "name": "sol-online",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
+    "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0",
-    "deploy:firebase": "npm run build && firebase deploy",
-    "lint:check": "node scripts/check-project.mjs",
-    "build:github": "vite build --base=/K-city-webgame/",
-    "preview:github": "npm run build:github && vite preview --host 0.0.0.0"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@vitejs/plugin-basic-ssl": "latest",
-    "vite": "latest",
-    "firebase": "latest"
+    "firebase": "^10.12.0",
+    "pixi.js": "^8.1.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vite": "^5.2.0"
+  }
 }
