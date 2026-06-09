@@ -1,5 +1,5 @@
 import './styles.css';
-import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, skills, souls, storyQuests, zones } from './data/gameData';
+import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
 import { formatGold, formatNumber, formatSoul, roll, uid } from './game/math';
@@ -555,6 +555,12 @@ function bindLoginFlow() {
       return;
     }
 
+    const upgradeTownSkill = target.closest<HTMLButtonElement>('[data-town-upgrade-skill]');
+    if (upgradeTownSkill) {
+      trainTownSkill(upgradeTownSkill.dataset.townUpgradeSkill || '');
+      return;
+    }
+
     const buyItem = target.closest<HTMLButtonElement>('[data-town-shop-buy]');
     if (buyItem) {
       buyTownShopItem(buyItem.dataset.townShopBuy || '');
@@ -915,6 +921,12 @@ function bindSheet() {
       return;
     }
 
+    const upgradeSkill = target.closest<HTMLButtonElement>('[data-upgrade-skill]');
+    if (upgradeSkill) {
+      game?.upgradeSkill(upgradeSkill.dataset.upgradeSkill || '');
+      return;
+    }
+
     const audioAction = target.closest<HTMLButtonElement>('[data-audio-action]');
     if (audioAction) {
       handleAudioSettingsAction(audioAction.dataset.audioAction || '');
@@ -1240,23 +1252,61 @@ function renderSkillGrid(save: PlayerSave, townMode: boolean) {
     const learned = Array.isArray(save.learnedSkillIds) && save.learnedSkillIds.includes(skill.id);
     const levelReady = save.level >= skill.unlockLevel;
     const unlocked = learned && levelReady;
-    const state = !learned ? '미습득' : levelReady ? '사용 가능' : `Lv.${skill.unlockLevel}`;
+    const level = skillLevel(save, skill.id);
+    const state = !learned ? '미습득' : levelReady ? `Lv.${level}` : `Lv.${skill.unlockLevel}`;
+    const canUpgrade = canUpgradeSkill(save, skill);
+    const cost = level < SKILL_MAX_LEVEL ? skillMasteryCost(level) : null;
+    const costText = cost ? `골드 ${formatGold(cost.gold)} · 파편 ${cost.shard}${cost.stone ? ` · 강화석 ${cost.stone}` : ''}` : '최대 숙련';
+    const upgradeButton = learned
+      ? `<button class="skill-train-btn" data-${townMode ? 'town-' : ''}upgrade-skill="${skill.id}" ${canUpgrade ? '' : 'disabled'}>${level >= SKILL_MAX_LEVEL ? 'MAX' : '숙련 강화'}</button>`
+      : '<span class="slot-passive">스킬서 필요</span>';
     return `
       <article class="slot-cell skill-slot ${unlocked ? 'unlocked' : 'locked'}" data-skill-detail="${skill.id}" tabindex="0" role="button" aria-label="${escapeHtml(skill.name)} 상세 보기">
         <span class="slot-art skill-art skill-art-${skill.hotkey}"><img src="${skillArtUrl(skill)}" alt="${escapeHtml(skill.name)}" onerror="this.remove()" />${inlineFallbackIcon(skill.hotkey)}</span>
         <span class="slot-rarity">${state}</span>
         <b>${escapeHtml(skill.name)}</b>
-        <em>MP ${skill.mpCost} · 쿨 ${skill.cooldownSec}s</em>
+        <em>MP ${effectiveSkillMpCost(skill, level)} · 쿨 ${effectiveSkillCooldown(skill, level)}s</em>
+        <small class="skill-mastery-meta">피해/회복 +${skillMasteryBonusPercent(level)}% · ${costText}</small>
+        ${upgradeButton}
       </article>
     `;
   });
   return `
     <div class="slot-toolbar">
       <span>스킬 슬롯 3x3 · ${classes[save.classId].name}</span>
-      <em>클릭하면 상세 정보가 전면 팝업으로 열립니다.</em>
+      <em>숙련 강화로 피해/회복, 쿨타임, MP 효율이 성장합니다.</em>
     </div>
     <div class="slot-grid skill-slot-grid compact-slot-grid">${fillSlots(cells, 9, '미개방')}</div>
   `;
+}
+
+function skillLevel(save: PlayerSave, skillId: string) {
+  const learned = Array.isArray(save.learnedSkillIds) && save.learnedSkillIds.includes(skillId);
+  if (!learned) return 0;
+  const raw = Number(save.skillLevels?.[skillId]);
+  return Math.max(1, Math.min(SKILL_MAX_LEVEL, Math.floor(Number.isFinite(raw) ? raw : 1)));
+}
+
+function skillMasteryBonusPercent(level: number) {
+  return Math.max(0, level - 1) * 14;
+}
+
+function effectiveSkillMpCost(skill: SkillDefinition, level: number) {
+  return Math.max(1, Math.round(skill.mpCost * (1 - Math.max(0, level - 1) * 0.045)));
+}
+
+function effectiveSkillCooldown(skill: SkillDefinition, level: number) {
+  return Number(Math.max(1.2, skill.cooldownSec * (1 - Math.max(0, level - 1) * 0.035)).toFixed(1));
+}
+
+function canUpgradeSkill(save: PlayerSave, skill: SkillDefinition) {
+  const level = skillLevel(save, skill.id);
+  if (level <= 0 || level >= SKILL_MAX_LEVEL) return false;
+  const cost = skillMasteryCost(level);
+  return save.level >= Math.max(skill.unlockLevel, cost.levelReq)
+    && save.gold >= cost.gold
+    && materialCount(save, 'soul-shard') >= cost.shard
+    && materialCount(save, 'enhance-stone') >= cost.stone;
 }
 
 function renderCardSlot(def: CardDefinition, instance: { uid: string; level: number; copies: number; equipped: boolean }, actionAttr: string) {
@@ -1342,7 +1392,7 @@ function renderSkillDock(snapshot: Snapshot) {
     button.classList.toggle('cooling', cooling);
     button.classList.toggle('mp-lack', mpLack && skill.unlocked && !cooling);
     const label = !skill.unlocked ? '잠금' : cooling ? `${skill.cooldownRemaining.toFixed(1)}s` : mpLack ? 'MP' : '준비';
-    button.innerHTML = `<i class="skill-dock-art"><img src="${runtimeAsset(`skills/${skill.id}.webp`)}" alt="${escapeHtml(skill.name)}" onerror="this.remove()" /><span>${escapeHtml(skill.hotkey)}</span></i><b>${escapeHtml(skill.name)}</b><em>${label}</em>`;
+    button.innerHTML = `<i class="skill-dock-art"><img src="${runtimeAsset(`skills/${skill.id}.webp`)}" alt="${escapeHtml(skill.name)}" onerror="this.remove()" /><span>${escapeHtml(skill.hotkey)}</span></i><b>${escapeHtml(skill.name)}</b><em>Lv.${skill.level || 0} · ${label}</em>`;
   }
 }
 
@@ -1738,8 +1788,13 @@ function learnSkillReward(save: PlayerSave, token: string) {
   const skill = skills.find((entry) => entry.id === id && entry.classId === save.classId);
   if (!skill) return false;
   save.learnedSkillIds ||= [];
-  if (save.learnedSkillIds.includes(id)) return false;
+  save.skillLevels ||= {};
+  if (save.learnedSkillIds.includes(id)) {
+    save.skillLevels[id] ||= 1;
+    return false;
+  }
   save.learnedSkillIds.push(id);
+  save.skillLevels[id] = Math.max(1, save.skillLevels[id] || 1);
   return true;
 }
 
@@ -2319,6 +2374,30 @@ function buyTownShopItem(itemId: string) {
   showToast(`${def.name} 구매 완료`);
 }
 
+function trainTownSkill(skillId: string) {
+  if (!pendingSave) return;
+  const skill = skills.find((entry) => entry.id === skillId && entry.classId === pendingSave?.classId);
+  if (!skill) return;
+  const learned = pendingSave.learnedSkillIds?.includes(skill.id);
+  if (!learned) { showToast('먼저 스킬을 습득해야 합니다.'); return; }
+  const level = skillLevel(pendingSave, skill.id);
+  if (level >= SKILL_MAX_LEVEL) { showToast('이미 최대 숙련입니다.'); return; }
+  const cost = skillMasteryCost(level);
+  if (pendingSave.level < Math.max(skill.unlockLevel, cost.levelReq)) { showToast(`Lv.${Math.max(skill.unlockLevel, cost.levelReq)}부터 강화할 수 있습니다.`); return; }
+  if (pendingSave.gold < cost.gold) { showToast(`골드 부족 · 필요 ${formatGold(cost.gold)}`); return; }
+  if (materialCount(pendingSave, 'soul-shard') < cost.shard) { showToast(`소울 파편 부족 · 필요 ${cost.shard}개`); return; }
+  if (materialCount(pendingSave, 'enhance-stone') < cost.stone) { showToast(`강화석 부족 · 필요 ${cost.stone}개`); return; }
+  pendingSave.gold -= cost.gold;
+  consumeMaterial(pendingSave, 'soul-shard', cost.shard);
+  if (cost.stone) consumeMaterial(pendingSave, 'enhance-stone', cost.stone);
+  pendingSave.skillLevels ||= {};
+  pendingSave.skillLevels[skill.id] = level + 1;
+  audioService.play('enhance');
+  showLootPresentation({ type: 'skill', title: skill.name, subtitle: `숙련 Lv.${level + 1} 달성`, art: skillArtUrl(skill), rarity: level + 1 >= SKILL_MAX_LEVEL ? 'UR' : 'SR' });
+  persistTownSave();
+  showToast(`${skill.name} 숙련 Lv.${level + 1}`);
+}
+
 function persistTownSave() {
   if (!pendingSave) return;
   pendingSave.updatedAt = Date.now();
@@ -2696,12 +2775,16 @@ function openSkillDetail(skillId: string, townMode: boolean) {
   if (!save || !def) return;
   const learned = save.learnedSkillIds?.includes(def.id);
   const levelReady = save.level >= def.unlockLevel;
+  const level = skillLevel(save, def.id);
+  const cost = level > 0 && level < SKILL_MAX_LEVEL ? skillMasteryCost(level) : null;
+  const costText = cost ? `${formatGold(cost.gold)} · 파편 ${cost.shard}${cost.stone ? ` · 강화석 ${cost.stone}` : ''}` : level >= SKILL_MAX_LEVEL ? '최대 숙련' : '스킬서 필요';
   openDetailModal({
-    eyebrow: `${classes[def.classId].name} SKILL · ${learned ? '습득' : '미습득'}`,
+    eyebrow: `${classes[def.classId].name} SKILL · ${learned ? `숙련 Lv.${level}` : '미습득'}`,
     title: def.name,
-    desc: def.description,
+    desc: `${def.description}
+숙련 효과: Lv마다 피해/회복 +14%, 쿨타임 -3.5%, MP 소모 -4.5%`,
     visual: `<span class="slot-art skill-art skill-art-${def.hotkey}"><img src="${skillArtUrl(def)}" alt="${escapeHtml(def.name)}" onerror="this.remove()" />${inlineFallbackIcon(def.hotkey)}</span>`,
-    stats: `<span><b>MP</b><em>${def.mpCost}</em></span><span><b>쿨타임</b><em>${def.cooldownSec}s</em></span><span><b>사거리</b><em>${def.range}</em></span><span><b>범위</b><em>${def.radius}</em></span><span><b>상태</b><em>${!learned ? '스킬북 필요' : levelReady ? '사용 가능' : `Lv.${def.unlockLevel} 필요`}</em></span>`
+    stats: `<span><b>숙련</b><em>${level || 0}/${SKILL_MAX_LEVEL}</em></span><span><b>MP</b><em>${effectiveSkillMpCost(def, level)}</em></span><span><b>쿨타임</b><em>${effectiveSkillCooldown(def, level)}s</em></span><span><b>피해/회복</b><em>+${skillMasteryBonusPercent(level)}%</em></span><span><b>범위</b><em>${def.radius}</em></span><span><b>다음 비용</b><em>${costText}</em></span><span><b>상태</b><em>${!learned ? '스킬북 필요' : levelReady ? '사용 가능' : `Lv.${def.unlockLevel} 필요`}</em></span>`
   });
 }
 

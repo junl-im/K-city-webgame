@@ -8595,3 +8595,38 @@ body.field-active .target-card.elite-target { border-color: rgba(226,185,95,.62)
   .field-chain-meter b { font-size: 11px; }
   .field-chain-meter em { font-size: 9px; }
 }
+
+/* 0.39 Skill Mastery Pass */
+.skill-mastery-meta {
+  display: block;
+  margin-top: 4px;
+  color: rgba(245, 241, 232, 0.68);
+  font-size: 0.68rem;
+  line-height: 1.25;
+}
+
+.skill-slot .skill-train-btn {
+  width: 100%;
+  min-height: 28px;
+  margin-top: 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(226, 185, 95, 0.42);
+  background: linear-gradient(180deg, rgba(226, 185, 95, 0.18), rgba(76, 52, 25, 0.9));
+  color: #f8e7ad;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.skill-slot .skill-train-btn:disabled {
+  opacity: 0.45;
+  filter: grayscale(0.45);
+}
+
+.skill-slot.unlocked {
+  box-shadow: inset 0 0 0 1px rgba(226, 185, 95, 0.18), 0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+.skill-slot.unlocked .slot-rarity {
+  color: #ffd15f;
+}

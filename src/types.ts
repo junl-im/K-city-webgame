@@ -205,6 +205,7 @@ export interface PlayerSave {
   story: StoryProgress;
   autoHunt: boolean;
   learnedSkillIds: string[];
+  skillLevels: Record<string, number>;
   sleepMode: boolean;
   createdAt: number;
   updatedAt: number;
@@ -256,6 +257,9 @@ export interface SkillSnapshot {
   cooldownSec: number;
   cooldownRemaining: number;
   mpCost: number;
+  level: number;
+  maxLevel: number;
+  nextCost?: { gold: number; shard: number; stone: number; levelReq: number };
 }
 
 export interface CombatChainSnapshot {

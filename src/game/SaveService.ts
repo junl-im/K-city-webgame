@@ -12,7 +12,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, getFirestore, serverTimestamp, setDoc, type Firestore } from 'firebase/firestore';
 import { firebaseConfig } from '../config/firebase';
-import { SAVE_VERSION, cards, classes, expToNext, items, souls, storyQuests } from '../data/gameData';
+import { SAVE_VERSION, cards, classes, expToNext, items, skills, souls, storyQuests } from '../data/gameData';
 import type { CharacterClassId, CharacterGender, DailyProgress, EquipmentSlot, MonsterId, PlayerSave, SaveRoster, StoryProgress } from '../types';
 import { uid } from './math';
 
@@ -238,6 +238,7 @@ export class SaveService {
       story: this.createStoryProgress(),
       autoHunt: false,
       learnedSkillIds: [],
+      skillLevels: {},
       sleepMode: false,
       createdAt: Date.now(),
       updatedAt: Date.now()
@@ -286,6 +287,7 @@ export class SaveService {
     save.daily = this.normalizeDailyProgress(save.daily);
     save.story = this.normalizeStoryProgress(save.story);
     save.learnedSkillIds = this.normalizeLearnedSkills(save.learnedSkillIds, save.classId);
+    save.skillLevels = this.normalizeSkillLevels(save.skillLevels, save.learnedSkillIds, save.classId);
     save.sleepMode = Boolean(save.sleepMode);
     while (save.exp >= expToNext(save.level)) {
       save.exp -= expToNext(save.level);
@@ -364,6 +366,7 @@ export class SaveService {
       daily: this.normalizeDailyProgress(raw.daily),
       story: this.normalizeStoryProgress(raw.story),
       learnedSkillIds: this.normalizeLearnedSkills(raw.learnedSkillIds, classId),
+      skillLevels: this.normalizeSkillLevels(raw.skillLevels, this.normalizeLearnedSkills(raw.learnedSkillIds, classId), classId),
       sleepMode: Boolean(raw.sleepMode),
       souls: souls.map((soul) => {
         const old = raw.souls?.find((entry) => entry.soulId === soul.id);
@@ -455,6 +458,18 @@ export class SaveService {
     const classPrefix = classId === 'warrior' ? 'warrior' : classId === 'taoist' ? 'taoist' : 'cleric';
     const list = Array.isArray(raw) ? raw : [];
     return Array.from(new Set(list.filter((id): id is string => typeof id === 'string' && valid.has(id) && id.startsWith(classPrefix))));
+  }
+
+  private normalizeSkillLevels(raw: unknown, learnedSkillIds: string[], classId: CharacterClassId): Record<string, number> {
+    const validIds = new Set(skills.filter((skill) => skill.classId === classId).map((skill) => skill.id));
+    const learned = new Set(learnedSkillIds.filter((id) => validIds.has(id)));
+    const source = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string, unknown> : {};
+    const next: Record<string, number> = {};
+    for (const id of learned) {
+      const rawLevel = Number(source[id]);
+      next[id] = Math.max(1, Math.min(5, Math.floor(Number.isFinite(rawLevel) ? rawLevel : 1)));
+    }
+    return next;
   }
 
   private todayKey() {

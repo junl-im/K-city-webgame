@@ -3,6 +3,7 @@ import {
   MAP_H,
   MAP_W,
   MAX_ENHANCE_LEVEL,
+  SKILL_MAX_LEVEL,
   cardSets,
   cards,
   classes,
@@ -10,6 +11,7 @@ import {
   expToNext,
   items,
   monsters,
+  skillMasteryCost,
   skills,
   souls,
   spawnTable,
@@ -274,6 +276,74 @@ export class SolGame {
     return Array.isArray(this.save.learnedSkillIds) && this.save.learnedSkillIds.includes(skillId);
   }
 
+  private skillMasteryLevel(skillId: string) {
+    if (!this.hasLearnedSkill(skillId)) return 0;
+    const raw = Number(this.save.skillLevels?.[skillId]);
+    return Math.max(1, Math.min(SKILL_MAX_LEVEL, Math.floor(Number.isFinite(raw) ? raw : 1)));
+  }
+
+  private skillDamageScale(skillId: string) {
+    return 1 + Math.max(0, this.skillMasteryLevel(skillId) - 1) * 0.14;
+  }
+
+  private effectiveSkillMpCost(skillId: string, baseCost: number) {
+    return Math.max(1, Math.round(baseCost * (1 - Math.max(0, this.skillMasteryLevel(skillId) - 1) * 0.045)));
+  }
+
+  private effectiveSkillCooldown(skillId: string, baseCooldown: number) {
+    return Number(Math.max(1.2, baseCooldown * (1 - Math.max(0, this.skillMasteryLevel(skillId) - 1) * 0.035)).toFixed(1));
+  }
+
+  upgradeSkill(skillId: string) {
+    const skill = skills.find((entry) => entry.id === skillId && entry.classId === this.save.classId);
+    if (!skill) return;
+    if (!this.hasLearnedSkill(skill.id)) {
+      this.pushLog('먼저 스킬을 습득해야 합니다.');
+      this.emit();
+      return;
+    }
+    const level = this.skillMasteryLevel(skill.id);
+    if (level >= SKILL_MAX_LEVEL) {
+      this.pushLog(`${skill.name} 최대 숙련입니다.`);
+      this.emit();
+      return;
+    }
+    const cost = skillMasteryCost(level);
+    const requiredLevel = Math.max(skill.unlockLevel, cost.levelReq);
+    if (this.save.level < requiredLevel) {
+      this.pushLog(`Lv.${requiredLevel}부터 ${skill.name} 숙련 강화 가능`);
+      this.emit();
+      return;
+    }
+    if (this.save.gold < cost.gold) {
+      this.pushLog(`골드 부족 · 필요 ${formatGold(cost.gold)}`);
+      this.emit();
+      return;
+    }
+    if (this.materialCount('soul-shard') < cost.shard) {
+      this.pushLog(`소울 파편 부족 · 필요 ${cost.shard}개`);
+      this.emit();
+      return;
+    }
+    if (this.materialCount('enhance-stone') < cost.stone) {
+      this.pushLog(`강화석 부족 · 필요 ${cost.stone}개`);
+      this.emit();
+      return;
+    }
+
+    this.save.gold -= cost.gold;
+    this.consumeMaterial('soul-shard', cost.shard);
+    if (cost.stone) this.consumeMaterial('enhance-stone', cost.stone);
+    this.save.skillLevels ||= {};
+    this.save.skillLevels[skill.id] = level + 1;
+    audioService.play('enhance');
+    this.floatText(`SKILL Lv.${level + 1}`, this.save.x, this.save.y - 0.42, level + 1 >= SKILL_MAX_LEVEL ? 0xffd15f : classes[this.save.classId].accent);
+    this.healPulse(this.save.x, this.save.y);
+    this.pushLog(`${skill.name} 숙련 Lv.${level + 1} 달성`);
+    window.dispatchEvent(new CustomEvent('soul:loot', { detail: { type: 'skill', title: skill.name, subtitle: `숙련 Lv.${level + 1} 달성`, rarity: level + 1 >= SKILL_MAX_LEVEL ? 'UR' : 'SR' } }));
+    this.markDirty();
+  }
+
   useSkill(slotIndex: number) {
     const skill = skills.filter((entry) => entry.classId === this.save.classId)[slotIndex];
     if (!skill) return;
@@ -292,7 +362,10 @@ export class SolGame {
       this.emit();
       return;
     }
-    if (this.save.mp < skill.mpCost) {
+    const mpCost = this.effectiveSkillMpCost(skill.id, skill.mpCost);
+    const cooldownSec = this.effectiveSkillCooldown(skill.id, skill.cooldownSec);
+    const masteryScale = this.skillDamageScale(skill.id);
+    if (this.save.mp < mpCost) {
       this.pushLog(`MP 부족 · ${skill.name}`);
       this.emit();
       return;
@@ -300,10 +373,10 @@ export class SolGame {
 
     const stats = this.calculateStats();
     if (skill.kind === 'heal') {
-      this.save.mp -= skill.mpCost;
-      this.skillCooldowns[skill.id] = skill.cooldownSec;
+      this.save.mp -= mpCost;
+      this.skillCooldowns[skill.id] = cooldownSec;
       this.castPose();
-      const heal = Math.max(18, Math.round(stats.hp * 0.22 + stats.atk * 0.65));
+      const heal = Math.max(18, Math.round((stats.hp * 0.22 + stats.atk * 0.65) * masteryScale));
       this.save.hp = Math.min(stats.hp, this.save.hp + heal);
       this.healPulse(this.save.x, this.save.y);
       this.floatText(`+${heal}`, this.save.x, this.save.y, 0x8dffb3);
@@ -333,8 +406,8 @@ export class SolGame {
     }
 
     this.facePlayerTo(this.target.x, this.target.y);
-    this.save.mp -= skill.mpCost;
-    this.skillCooldowns[skill.id] = skill.cooldownSec;
+    this.save.mp -= mpCost;
+    this.skillCooldowns[skill.id] = cooldownSec;
     audioService.play('skill');
     this.castPose();
     const affected = this.mobs.filter((mob) => mob.alive && distance(this.target!.x, this.target!.y, mob.x, mob.y) <= Math.max(0.05, skill.radius));
@@ -348,7 +421,7 @@ export class SolGame {
         mob.stateTimer = Math.min(mob.alertDelay, 0.14);
       }
       this.callNearbyMobs(mob, skill.radius > 1.2 ? 3.0 : 2.35);
-      const skillStats = { ...stats, atk: Math.round(stats.atk * skill.damageMultiplier) };
+      const skillStats = { ...stats, atk: Math.round(stats.atk * skill.damageMultiplier * masteryScale) };
       const result = this.resolveDamage(skillStats, this.mobCombatStats(mob), this.save.level - mob.def.level);
       if (!result.hit) {
         this.floatText('MISS', mob.x, mob.y, 0xd6d1c2);
@@ -367,7 +440,7 @@ export class SolGame {
     }
 
     if (skill.kind === 'damageHeal') {
-      const heal = Math.max(5, Math.round(Math.max(totalDamage, stats.atk) * 0.16));
+      const heal = Math.max(5, Math.round(Math.max(totalDamage, stats.atk) * 0.16 * masteryScale));
       this.save.hp = Math.min(stats.hp, this.save.hp + heal);
       this.floatText(`+${heal}`, this.save.x, this.save.y, 0x8dffb3);
       this.healPulse(this.save.x, this.save.y);
@@ -463,8 +536,13 @@ export class SolGame {
     const skill = skills.find((entry) => entry.id === id && entry.classId === this.save.classId);
     if (!skill) return false;
     this.save.learnedSkillIds ||= [];
-    if (this.save.learnedSkillIds.includes(id)) return false;
+    this.save.skillLevels ||= {};
+    if (this.save.learnedSkillIds.includes(id)) {
+      this.save.skillLevels[id] ||= 1;
+      return false;
+    }
     this.save.learnedSkillIds.push(id);
+    this.save.skillLevels[id] = Math.max(1, this.save.skillLevels[id] || 1);
     return true;
   }
 
@@ -1495,7 +1573,7 @@ export class SolGame {
     const stats = this.calculateStats();
     const classSkills = skills.filter((entry) => entry.classId === this.save.classId);
     const hpRatio = this.save.hp / Math.max(1, stats.hp);
-    const healingSlot = classSkills.findIndex((skill) => skill.kind === 'heal' && this.hasLearnedSkill(skill.id) && this.save.level >= skill.unlockLevel && (this.skillCooldowns[skill.id] || 0) <= 0 && this.save.mp >= skill.mpCost);
+    const healingSlot = classSkills.findIndex((skill) => skill.kind === 'heal' && this.hasLearnedSkill(skill.id) && this.save.level >= skill.unlockLevel && (this.skillCooldowns[skill.id] || 0) <= 0 && this.save.mp >= this.effectiveSkillMpCost(skill.id, skill.mpCost));
     if (hpRatio < 0.62 && healingSlot >= 0) {
       this.useSkill(healingSlot);
       this.autoSkillThinkTimer = 0.75;
@@ -1506,7 +1584,7 @@ export class SolGame {
     if (!this.target) return;
     const sorted = classSkills
       .map((skill, slot) => ({ skill, slot }))
-      .filter(({ skill }) => skill.kind !== 'heal' && this.hasLearnedSkill(skill.id) && this.save.level >= skill.unlockLevel && (this.skillCooldowns[skill.id] || 0) <= 0 && this.save.mp >= skill.mpCost)
+      .filter(({ skill }) => skill.kind !== 'heal' && this.hasLearnedSkill(skill.id) && this.save.level >= skill.unlockLevel && (this.skillCooldowns[skill.id] || 0) <= 0 && this.save.mp >= this.effectiveSkillMpCost(skill.id, skill.mpCost))
       .sort((a, b) => b.skill.radius - a.skill.radius || b.skill.damageMultiplier - a.skill.damageMultiplier);
 
     for (const { skill, slot } of sorted) {
@@ -2542,9 +2620,12 @@ export class SolGame {
         name: skill.name,
         hotkey: skill.hotkey,
         unlocked: this.save.level >= skill.unlockLevel && this.hasLearnedSkill(skill.id),
-        cooldownSec: skill.cooldownSec,
+        cooldownSec: this.effectiveSkillCooldown(skill.id, skill.cooldownSec),
         cooldownRemaining: Number((this.skillCooldowns[skill.id] || 0).toFixed(1)),
-        mpCost: skill.mpCost
+        mpCost: this.effectiveSkillMpCost(skill.id, skill.mpCost),
+        level: this.skillMasteryLevel(skill.id),
+        maxLevel: SKILL_MAX_LEVEL,
+        nextCost: this.skillMasteryLevel(skill.id) > 0 && this.skillMasteryLevel(skill.id) < SKILL_MAX_LEVEL ? skillMasteryCost(this.skillMasteryLevel(skill.id)) : undefined
       }));
   }
 

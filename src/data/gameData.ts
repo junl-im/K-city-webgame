@@ -1,9 +1,22 @@
 import type { CardDefinition, CardSetDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, SoulDefinition, TileId, ZoneDefinition, SkillDefinition } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 27;
+export const SAVE_VERSION = 28;
 export const MAP_W = 40;
 export const MAP_H = 40;
+
+
+export const SKILL_MAX_LEVEL = 5;
+
+export function skillMasteryCost(currentLevel: number) {
+  const level = Math.max(1, Math.min(SKILL_MAX_LEVEL, Math.floor(currentLevel || 1)));
+  return {
+    gold: 420 * level * level + 180 * level,
+    shard: level + 1,
+    stone: level >= 3 ? level - 2 : 0,
+    levelReq: level <= 1 ? 1 : level * 3
+  };
+}
 
 export const classes: Record<string, CharacterClass> = {
   warrior: {
