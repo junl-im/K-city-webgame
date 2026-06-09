@@ -8,6 +8,7 @@ export type DailyQuestGoalType = 'kill' | 'level' | 'collect';
 export type StoryQuestGoalType = 'talk' | 'kill' | 'level' | 'collect';
 export type EquipmentSlot = 'weapon' | 'armor' | 'relic';
 export type MobAiState = 'idle' | 'alert' | 'chase' | 'attackWindup' | 'attack' | 'return';
+export type EliteAffixId = 'fierce' | 'ancient' | 'swift' | 'cursed';
 
 export interface Stats {
   hp: number;
@@ -211,6 +212,9 @@ export interface PlayerSave {
 export interface WorldMob {
   uid: string;
   def: MonsterDefinition;
+  eliteAffix?: EliteAffixId;
+  eliteLabel?: string;
+  eliteColor?: number;
   x: number;
   y: number;
   spawnX: number;
@@ -248,6 +252,13 @@ export interface SkillSnapshot {
   mpCost: number;
 }
 
+export interface CombatChainSnapshot {
+  count: number;
+  timer: number;
+  maxTimer: number;
+  bonusPercent: number;
+}
+
 export interface Snapshot {
   save: PlayerSave;
   stats: Stats;
@@ -259,6 +270,7 @@ export interface Snapshot {
   userLabel: string;
   skills: SkillSnapshot[];
   cardSetEffects: CardSetDefinition[];
+  combatChain: CombatChainSnapshot;
 }
 
 export interface SaveRoster {

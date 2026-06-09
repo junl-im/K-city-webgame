@@ -10,12 +10,12 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="description" content="소울 온라인 Alpha - 모바일 2.5D 웹 MMORPG 프로토타입" />
     <title>소울 온라인 Alpha</title>
-    <script type="module" crossorigin src="./assets/index-Djxlz3WS.js"></script>
+    <script type="module" crossorigin src="./assets/index-BWvvt2cT.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/pixi-engine-C-SW8LSP.js">
     <link rel="modulepreload" crossorigin href="./assets/game-data-BUSnarRi.js">
     <link rel="modulepreload" crossorigin href="./assets/firebase-sdk-B8Ih3TGo.js">
-    <link rel="modulepreload" crossorigin href="./assets/field-engine-DUd139ug.js">
-    <link rel="stylesheet" crossorigin href="./assets/index-Cc-wgT_q.css">
+    <link rel="modulepreload" crossorigin href="./assets/field-engine-C2BYmvmZ.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-BTKInqtQ.css">
   </head>
   <body>
     <div id="app">
@@ -38,7 +38,7 @@
             <span class="title-character title-character-visual"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn">게임 시작</button>
-          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.36.0</span></div>
+          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.37.0</span></div>
           <small>전체화면은 브라우저 정책상 버튼 입력 후 시도됩니다.</small>
         </div>
       </section>
@@ -302,6 +302,13 @@
         <span>진행중 퀘스트</span>
         <b id="fieldQuestTitle">스토리 확인</b>
         <em id="fieldQuestProgress">0/0</em>
+      </section>
+
+      <section class="field-chain-meter" id="fieldChainMeter" aria-label="전투 연쇄">
+        <span>CHAIN BONUS</span>
+        <b id="fieldChainValue">0 CHAIN</b>
+        <em id="fieldChainBonus">보너스 대기</em>
+        <div class="chain-timer"><i id="fieldChainTimer"></i></div>
       </section>
 
       <section class="field-minimap" id="fieldMiniMap" aria-label="미니맵">

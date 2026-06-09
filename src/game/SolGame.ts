@@ -23,6 +23,7 @@ import type {
   CardInstance,
   CombatResult,
   DropEntry,
+  EliteAffixId,
   EquipmentSlot,
   InventoryItem,
   MonsterDefinition,
@@ -56,6 +57,27 @@ type SolGameOptions = {
   zoneName?: string;
   onLoadProgress?: (loaded: number, total: number, key: string) => void;
 };
+
+type EliteAffixDefinition = {
+  id: EliteAffixId;
+  label: string;
+  color: number;
+  statScale: number;
+  rewardScale: number;
+  moveScale?: number;
+  aspdScale?: number;
+};
+
+const CHAIN_MAX_TIMER = 9.5;
+const CHAIN_BONUS_STEP = 0.02;
+const CHAIN_BONUS_CAP = 0.28;
+
+const eliteAffixes: EliteAffixDefinition[] = [
+  { id: 'fierce', label: '분노한', color: 0xff5d5d, statScale: 1.22, rewardScale: 1.42, aspdScale: 1.08 },
+  { id: 'ancient', label: '고대의', color: 0xe2b95f, statScale: 1.32, rewardScale: 1.62 },
+  { id: 'swift', label: '신속한', color: 0x72e7ff, statScale: 1.16, rewardScale: 1.34, moveScale: 1.18, aspdScale: 1.18 },
+  { id: 'cursed', label: '저주받은', color: 0x9c80ff, statScale: 1.26, rewardScale: 1.55, moveScale: 1.06 }
+];
 
 const zoneMonsterIds: Record<string, MonsterId[]> = {
   'slime-forest': ['slime', 'slime', 'slime', 'slime', 'wolf', 'wolf', 'shadowImp', 'shadowImp', 'slime', 'wolf', 'shadowImp', 'slime'],
@@ -161,6 +183,9 @@ export class SolGame {
   private autoRecoveryCooldown = 0;
   private autoSkillThinkTimer = 0;
   private hitStopTimer = 0;
+  private chainCount = 0;
+  private chainTimer = 0;
+  private chainBest = 0;
   private listeners = new Set<(snapshot: Snapshot) => void>();
   private log: string[] = ['마을에서 사냥터로 이동했습니다.'];
 
@@ -309,7 +334,7 @@ export class SolGame {
       }
       this.callNearbyMobs(mob, skill.radius > 1.2 ? 3.0 : 2.35);
       const skillStats = { ...stats, atk: Math.round(stats.atk * skill.damageMultiplier) };
-      const result = this.resolveDamage(skillStats, mob.def.stats, this.save.level - mob.def.level);
+      const result = this.resolveDamage(skillStats, this.mobCombatStats(mob), this.save.level - mob.def.level);
       if (!result.hit) {
         this.floatText('MISS', mob.x, mob.y, 0xd6d1c2);
         continue;
@@ -1275,12 +1300,17 @@ export class SolGame {
         return true;
       })
       .map((spawn, index) => {
-        const def = monsters.find((monster) => monster.id === spawn.monsterId);
-        if (!def) throw new Error(`Missing monster ${spawn.monsterId}`);
+        const baseDef = monsters.find((monster) => monster.id === spawn.monsterId);
+        if (!baseDef) throw new Error(`Missing monster ${spawn.monsterId}`);
+        const elite = this.pickEliteAffix(zone.id, baseDef, index);
+        const def = elite ? this.createEliteMonsterDef(baseDef, elite) : baseDef;
         const safe = this.findSafeMobPosition(spawn.x, spawn.y, 1.7);
         return {
           uid: `${def.id}-${index}`,
           def,
+          eliteAffix: elite?.id,
+          eliteLabel: elite?.label,
+          eliteColor: elite?.color,
           x: safe.x,
           y: safe.y,
           spawnX: safe.x,
@@ -1354,11 +1384,17 @@ export class SolGame {
     const root = new Container();
     const isDragon = mob.def.id === 'dragon';
     const isLarge = mob.def.id === 'crystalBear' || isDragon;
+    const eliteColor = mob.eliteColor || 0xff5d5d;
     const shadow = new Graphics().ellipse(0, 0, isDragon ? 24 : isLarge ? 18 : 12, isDragon ? 6 : 4).fill({ color: 0x000000, alpha: 0.3 });
-    const aggroRing = new Graphics().ellipse(0, 0, isDragon ? 27 : isLarge ? 19 : 15, isDragon ? 9 : 5).stroke({ color: 0xff5d5d, alpha: 0, width: 1.5 });
+    const aggroRing = new Graphics().ellipse(0, 0, isDragon ? 27 : isLarge ? 19 : 15, isDragon ? 9 : 5).stroke({ color: mob.eliteAffix ? eliteColor : 0xff5d5d, alpha: mob.eliteAffix ? 0.42 : 0, width: mob.eliteAffix ? 2.4 : 1.5 });
+    const eliteHalo = mob.eliteAffix ? new Graphics()
+      .ellipse(0, -6, isDragon ? 33 : isLarge ? 25 : 20, isDragon ? 12 : 8)
+      .stroke({ color: eliteColor, alpha: 0.32, width: 2 })
+      .ellipse(0, -6, isDragon ? 24 : isLarge ? 18 : 14, isDragon ? 8 : 5)
+      .fill({ color: eliteColor, alpha: 0.035 }) : null;
     const animator = new SpriteSheetAnimator(this.mustTexture(this.monsterSheetTextureKey(mob.def.id)), MONSTER_SHEET_META, 0.92);
     const body = animator.sprite;
-    const baseScale = MOB_VISUAL_SCALE[mob.def.id];
+    const baseScale = MOB_VISUAL_SCALE[mob.def.id] * (mob.eliteAffix ? 1.08 : 1);
     body.scale.set(baseScale);
 
     const hpBack = new Graphics().roundRect(-18, -39, 36, 4, 2).fill({ color: 0x151515, alpha: 0.72 });
@@ -1367,7 +1403,7 @@ export class SolGame {
     const name = new Text({
       text: mob.def.name,
       style: {
-        fill: isDragon ? 0xffd15f : 0xf5f1e8,
+        fill: mob.eliteAffix ? eliteColor : isDragon ? 0xffd15f : 0xf5f1e8,
         fontFamily: 'Arial',
         fontSize: isDragon ? 9 : 8,
         fontWeight: '800',
@@ -1377,7 +1413,9 @@ export class SolGame {
     name.anchor.set(0.5, 1);
     name.position.y = -42;
 
-    root.addChild(shadow, aggroRing, body, hpBack, hpFill, name);
+    root.addChild(shadow);
+    if (eliteHalo) root.addChild(eliteHalo);
+    root.addChild(aggroRing, body, hpBack, hpFill, name);
     this.entityLayer.addChild(root);
     this.mobViews.set(mob.uid, { root, body, animator, hpFill, name, baseScale, aggroRing });
     this.placeEntity(root, mob.x, mob.y);
@@ -1408,6 +1446,7 @@ export class SolGame {
   private update(dt: number) {
     this.time += dt;
     this.attackCooldown = Math.max(0, this.attackCooldown - dt);
+    this.updateCombatChainTimer(dt);
     this.updateSkillCooldowns(dt);
     this.autoSkillThinkTimer = Math.max(0, this.autoSkillThinkTimer - dt);
     if (this.save.autoHunt && this.autoSkillThinkTimer <= 0) this.tryAutoSkillUse();
@@ -1743,7 +1782,7 @@ export class SolGame {
 
   private moveMobToward(mob: WorldMob, view: MobView, x: number, y: number, dt: number, speedFactor: number) {
     const dir = normalize(x - mob.x, y - mob.y);
-    const step = mob.def.stats.move * dt * speedFactor;
+    const step = this.mobCombatStats(mob).move * dt * speedFactor;
     const nextX = clamp(mob.x + dir.x * step, 1, MAP_W - 2);
     const nextY = clamp(mob.y + dir.y * step, 1, MAP_H - 2);
     let moved = false;
@@ -1784,8 +1823,9 @@ export class SolGame {
 
   private performMobAttack(mob: WorldMob, view: MobView, playerStats: Stats) {
     if (mob.attackCooldown > 0 || this.save.hp <= 0) return;
-    mob.attackCooldown = 1 / mob.def.stats.aspd + 0.65;
-    const result = this.resolveDamage(mob.def.stats, playerStats, mob.def.level - this.save.level);
+    const mobStats = this.mobCombatStats(mob);
+    mob.attackCooldown = 1 / mobStats.aspd + 0.65;
+    const result = this.resolveDamage(mobStats, playerStats, mob.def.level - this.save.level);
     this.animateMobAttack(view);
     if (result.hit) {
       audioService.play('hit');
@@ -1805,8 +1845,9 @@ export class SolGame {
     mob.wanderCooldown = 1.2 + Math.random() * 2.2;
     if (distance(mob.spawnX, mob.spawnY, mob.x, mob.y) > 0.35) {
       const dir = normalize(mob.spawnX - mob.x, mob.spawnY - mob.y);
-      mob.x = clamp(mob.x + dir.x * mob.def.stats.move * dt * 0.25, 1, MAP_W - 2);
-      mob.y = clamp(mob.y + dir.y * mob.def.stats.move * dt * 0.25, 1, MAP_H - 2);
+      const mobStats = this.mobCombatStats(mob);
+      mob.x = clamp(mob.x + dir.x * mobStats.move * dt * 0.25, 1, MAP_W - 2);
+      mob.y = clamp(mob.y + dir.y * mobStats.move * dt * 0.25, 1, MAP_H - 2);
       return;
     }
     if (Math.random() < 0.45) {
@@ -1880,7 +1921,7 @@ export class SolGame {
     for (const mob of this.mobs) {
       if (!mob.alive && now >= mob.respawnAt) {
         mob.alive = true;
-        mob.hp = mob.def.stats.hp;
+        mob.hp = this.mobCombatStats(mob).hp;
         mob.deathVisibleUntil = 0;
         mob.aggroUntil = 0;
         mob.state = 'idle';
@@ -1916,7 +1957,7 @@ export class SolGame {
       mob.stateTimer = Math.min(mob.alertDelay, 0.18);
     }
     this.callNearbyMobs(mob, mob.def.id === 'slime' ? 2.35 : 3.25);
-    const result = this.resolveDamage(stats, mob.def.stats, this.save.level - mob.def.level);
+    const result = this.resolveDamage(stats, this.mobCombatStats(mob), this.save.level - mob.def.level);
     audioService.play('attack');
     this.animatePlayerAttack(mob, result);
 
@@ -1994,8 +2035,11 @@ export class SolGame {
     mob.respawnAt = performance.now() + mob.def.respawnMs;
     if (this.target?.uid === mob.uid) this.target = null;
 
-    this.save.gold += mob.def.gold;
-    this.save.exp += mob.def.exp;
+    const chain = this.registerChainKill();
+    const bonusGold = Math.round(mob.def.gold * chain.bonusRate);
+    const bonusExp = Math.round(mob.def.exp * chain.bonusRate);
+    this.save.gold += mob.def.gold + bonusGold;
+    this.save.exp += mob.def.exp + bonusExp;
     this.save.kills[mob.def.id] = (this.save.kills[mob.def.id] || 0) + 1;
     this.addDailyKill(mob.def.id);
     this.updateSoulProgress(mob.def.id);
@@ -2004,10 +2048,73 @@ export class SolGame {
     audioService.play(mob.def.id === 'dragon' ? 'boss' : 'reward');
     this.mobViews.get(mob.uid)?.animator?.playOnce('death', 'death');
     this.impactBurst(mob.x, mob.y, 0xe2b95f, true);
-    this.pushLog(`${mob.def.name} 정화 +${mob.def.exp}EXP +${formatGold(mob.def.gold)}`);
+    const chainText = chain.count > 1 ? ` · ${chain.count}연쇄 +${Math.round(chain.bonusRate * 100)}%` : '';
+    this.floatText(chain.count > 1 ? `${chain.count} CHAIN` : 'SOUL +', mob.x, mob.y - 0.35, chain.count > 4 ? 0xffd15f : 0xe2b95f);
+    if (mob.eliteAffix) this.emitLoot({ type: 'elite', title: `${mob.def.name} 정화`, subtitle: `정예 보너스 +${formatGold(bonusGold)} / +${bonusExp}EXP`, rarity: 'SSR' });
+    this.pushLog(`${mob.def.name} 정화 +${mob.def.exp + bonusExp}EXP +${formatGold(mob.def.gold + bonusGold)}${chainText}`);
     this.markDirty();
   }
 
+
+  private updateCombatChainTimer(dt: number) {
+    if (this.chainTimer <= 0) {
+      this.chainTimer = 0;
+      this.chainCount = 0;
+      return;
+    }
+    this.chainTimer = Math.max(0, this.chainTimer - dt);
+    if (this.chainTimer <= 0) this.chainCount = 0;
+  }
+
+  private registerChainKill() {
+    this.chainCount = this.chainTimer > 0 ? this.chainCount + 1 : 1;
+    this.chainTimer = CHAIN_MAX_TIMER;
+    this.chainBest = Math.max(this.chainBest, this.chainCount);
+    const bonusRate = Math.min(CHAIN_BONUS_CAP, Math.max(0, this.chainCount - 1) * CHAIN_BONUS_STEP);
+    return { count: this.chainCount, bonusRate };
+  }
+
+  private combatChainSnapshot() {
+    return {
+      count: this.chainCount,
+      timer: Number(this.chainTimer.toFixed(1)),
+      maxTimer: CHAIN_MAX_TIMER,
+      bonusPercent: Math.round(Math.min(CHAIN_BONUS_CAP, Math.max(0, this.chainCount - 1) * CHAIN_BONUS_STEP) * 100)
+    };
+  }
+
+  private pickEliteAffix(zoneId: string, def: MonsterDefinition, index: number) {
+    if (def.id === 'slime' && zoneId === 'slime-forest' && index < 3) return null;
+    if (def.id === 'dragon' || def.id === 'fieldBoss') return eliteAffixes[(index + zoneId.length) % eliteAffixes.length];
+    const zoneOrder = zones.find((zone) => zone.id === zoneId)?.order || 1;
+    const chance = Math.min(0.22, 0.055 + zoneOrder * 0.008);
+    if (!roll(chance)) return null;
+    return eliteAffixes[(index + def.id.length + zoneOrder) % eliteAffixes.length];
+  }
+
+  private createEliteMonsterDef(def: MonsterDefinition, elite: EliteAffixDefinition): MonsterDefinition {
+    const statScale = elite.statScale;
+    return {
+      ...def,
+      name: `${elite.label} ${def.name}`,
+      stats: {
+        hp: Math.round(def.stats.hp * statScale),
+        mp: def.stats.mp,
+        atk: Math.round(def.stats.atk * (statScale + 0.03)),
+        def: Math.round(def.stats.def * (statScale + 0.01)),
+        aspd: Number((def.stats.aspd * (elite.aspdScale || 1)).toFixed(2)),
+        crit: Number(Math.min(0.55, def.stats.crit + 0.03).toFixed(3)),
+        move: Number((def.stats.move * (elite.moveScale || 1)).toFixed(2))
+      },
+      exp: Math.round(def.exp * elite.rewardScale),
+      gold: Math.round(def.gold * elite.rewardScale),
+      drops: def.drops.map((drop) => ({ ...drop, chance: Math.min(0.95, drop.chance * 1.18) }))
+    };
+  }
+
+  private mobCombatStats(mob: WorldMob) {
+    return mob.def.stats;
+  }
 
   private addDailyKill(monsterId: MonsterId) {
     const today = this.todayKey();
@@ -2362,7 +2469,7 @@ export class SolGame {
   }
 
   private updateMobHp(view: MobView, mob: WorldMob) {
-    const ratio = clamp(mob.hp / mob.def.stats.hp, 0, 1);
+    const ratio = clamp(mob.hp / this.mobCombatStats(mob).hp, 0, 1);
     view.hpFill.clear().roundRect(-18, -39, 36 * ratio, 4, 2).fill({ color: ratio < 0.35 ? 0xff7b58 : 0xd95757, alpha: 0.95 });
   }
 
@@ -2688,12 +2795,13 @@ export class SolGame {
       stats,
       power: this.power(),
       target,
-      targetHpPercent: target ? clamp(target.hp / target.def.stats.hp, 0, 1) : 0,
+      targetHpPercent: target ? clamp(target.hp / this.mobCombatStats(target).hp, 0, 1) : 0,
       log: this.log,
       online: this.saveService.isOnline(),
       userLabel: this.saveService.userLabel(),
       skills: this.createSkillSnapshots(),
-      cardSetEffects: this.activeCardSetEffects()
+      cardSetEffects: this.activeCardSetEffects(),
+      combatChain: this.combatChainSnapshot()
     };
   }
 

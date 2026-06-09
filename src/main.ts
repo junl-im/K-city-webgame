@@ -3,7 +3,7 @@ import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, cardSets, cards, classes, dailyQuests,
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
 import { formatGold, formatNumber, formatSoul, roll, uid } from './game/math';
-import type { CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
+import type { CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
 type TownContentId = 'hunt' | 'story' | 'cards' | 'inventory' | 'skills' | 'shop' | 'boss' | 'quests' | 'settings' | 'account';
@@ -41,6 +41,10 @@ const miniMapToggle = document.querySelector<HTMLButtonElement>('#miniMapToggle'
 const fieldQuestTracker = document.querySelector<HTMLElement>('#fieldQuestTracker');
 const fieldQuestTitle = document.querySelector<HTMLElement>('#fieldQuestTitle');
 const fieldQuestProgress = document.querySelector<HTMLElement>('#fieldQuestProgress');
+const fieldChainMeter = document.querySelector<HTMLElement>('#fieldChainMeter');
+const fieldChainValue = document.querySelector<HTMLElement>('#fieldChainValue');
+const fieldChainBonus = document.querySelector<HTMLElement>('#fieldChainBonus');
+const fieldChainTimer = document.querySelector<HTMLElement>('#fieldChainTimer');
 const guestLoginBtn = must<HTMLButtonElement>('#guestLoginBtn');
 const googleLoginBtn = must<HTMLButtonElement>('#googleLoginBtn');
 const localLoginBtn = must<HTMLButtonElement>('#localLoginBtn');
@@ -1025,6 +1029,7 @@ function renderHud(snapshot: Snapshot) {
   styleWidth('#expBar', expPercent);
   updateFieldMiniMap(snapshot);
   updateFieldQuestTracker(snapshot);
+  updateCombatChain(snapshot);
 
   autoHuntBtn.classList.toggle('active', snapshot.save.autoHunt);
   sleepModeBtn.classList.toggle('active', Boolean(snapshot.save.sleepMode));
@@ -1035,12 +1040,15 @@ function renderHud(snapshot: Snapshot) {
 
   if (snapshot.target) {
     text('#targetName', snapshot.target.def.name);
-    text('#targetMeta', `Lv.${snapshot.target.def.level} HP ${Math.ceil(snapshot.target.hp)}/${snapshot.target.def.stats.hp}`);
+    const eliteMeta = snapshot.target.eliteAffix ? `${eliteAffixName(snapshot.target.eliteAffix)} · ` : '';
+    text('#targetMeta', `${eliteMeta}Lv.${snapshot.target.def.level} HP ${Math.ceil(snapshot.target.hp)}/${snapshot.target.def.stats.hp}`);
     styleWidth('#targetHp', `${Math.round(snapshot.targetHpPercent * 100)}%`);
+    must('#targetCard').classList.toggle('elite-target', Boolean(snapshot.target.eliteAffix));
   } else {
     text('#targetName', '필드 탐색');
     text('#targetMeta', snapshot.save.autoHunt ? '자동사냥 탐색 중' : '수동 조작 중');
     styleWidth('#targetHp', '0%');
+    must('#targetCard').classList.remove('elite-target');
   }
 
   const log = must('#combatLog');
@@ -1048,6 +1056,22 @@ function renderHud(snapshot: Snapshot) {
 }
 
 
+
+function updateCombatChain(snapshot: Snapshot) {
+  if (!fieldChainMeter || !fieldChainValue || !fieldChainBonus || !fieldChainTimer) return;
+  const chain = snapshot.combatChain;
+  const active = chain.count > 1 && chain.timer > 0;
+  fieldChainMeter.classList.toggle('active', active);
+  fieldChainValue.textContent = active ? `${chain.count} CHAIN` : '0 CHAIN';
+  fieldChainBonus.textContent = active ? `EXP/GOLD +${chain.bonusPercent}% · ${chain.timer.toFixed(1)}s` : '연속 처치 대기';
+  const ratio = chain.maxTimer > 0 ? Math.max(0, Math.min(100, (chain.timer / chain.maxTimer) * 100)) : 0;
+  fieldChainTimer.style.width = `${ratio}%`;
+}
+
+function eliteAffixName(id: EliteAffixId) {
+  const labels: Record<EliteAffixId, string> = { fierce: '분노', ancient: '고대', swift: '신속', cursed: '저주' };
+  return labels[id] || '정예';
+}
 
 function updateFieldQuestTracker(snapshot: Snapshot) {
   if (!fieldQuestTitle || !fieldQuestProgress) return;
