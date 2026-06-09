@@ -1,5 +1,5 @@
 {
-  "version": "0.24.0-sample-style",
+  "version": "0.25.0-sample-style",
   "source": "User-provided sample assets converted into compatible Soul Online runtime sheets.",
   "characterSheets": "6 class/gender sheets rebuilt into 8-direction, 48-column runtime layout",
   "monsterSheets": "12 monster sheets rebuilt/mapped from sample creature direction sheets",

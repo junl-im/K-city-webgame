@@ -668,7 +668,13 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest') {
       if (game) game.destroy();
       void requestWakeLock();
       audioService.setScene(zoneId === 'crystal-raid' ? 'boss' : 'field');
-      game = new SolGame(prepared, saveService, { zoneId, zoneName });
+      game = new SolGame(prepared, saveService, {
+        zoneId,
+        zoneName,
+        onLoadProgress: (loaded, total) => {
+          sceneTransitionLabel.textContent = `${zoneName} 에셋 로딩 ${loaded}/${total}`;
+        }
+      });
       await game.mount(root);
       game.onSnapshot((snapshot) => {
         latest = snapshot;

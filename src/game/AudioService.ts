@@ -35,6 +35,8 @@ class AudioService {
   private unlocked = false;
   private bgmToken = 0;
   private mode: 'file' | 'synth' | 'off' = 'off';
+  private sfxPool = new Map<string, HTMLAudioElement[]>();
+  private sfxPoolIndex = new Map<string, number>();
 
   getSettings() {
     return { ...this.settings };
@@ -53,7 +55,10 @@ class AudioService {
     if (Ctor && !this.context) this.context = new Ctor({ latencyHint: 'interactive' });
     if (this.context?.state === 'suspended') await this.context.resume().catch(() => undefined);
     this.unlocked = !this.context || this.context.state === 'running';
-    if (this.unlocked) this.play('ui');
+    if (this.unlocked) {
+      this.preloadFileSfx();
+      this.play('ui');
+    }
     if (this.unlocked && this.settings.bgm) this.startBgm(this.scene);
     return this.unlocked;
   }
@@ -105,14 +110,39 @@ class AudioService {
     const mapped = this.mapFileSfx(name);
     if (!mapped) return false;
     try {
-      const audio = new Audio(new URL(mapped, window.location.href).href);
+      const key = mapped;
+      let pool = this.sfxPool.get(key);
+      if (!pool?.length) {
+        pool = this.createSfxPool(key);
+        this.sfxPool.set(key, pool);
+      }
+      const index = this.sfxPoolIndex.get(key) || 0;
+      const audio = pool[index % pool.length];
+      this.sfxPoolIndex.set(key, index + 1);
+      audio.pause();
+      audio.currentTime = 0;
       audio.volume = clamp01(this.settings.masterVolume * this.settings.sfxVolume * 0.86);
-      audio.preload = 'auto';
       void audio.play().catch(() => undefined);
       return true;
     } catch {
       return false;
     }
+  }
+
+  private preloadFileSfx() {
+    for (const url of Object.values(sfxTrackUrls)) {
+      if (!this.sfxPool.has(url)) this.sfxPool.set(url, this.createSfxPool(url));
+    }
+  }
+
+  private createSfxPool(url: string) {
+    const absoluteUrl = new URL(url, window.location.href).href;
+    return Array.from({ length: 3 }, () => {
+      const audio = new Audio(absoluteUrl);
+      audio.preload = 'auto';
+      audio.volume = clamp01(this.settings.masterVolume * this.settings.sfxVolume * 0.86);
+      return audio;
+    });
   }
 
   private mapFileSfx(name: SfxName) {

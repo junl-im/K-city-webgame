@@ -148,13 +148,13 @@ button:disabled {
 
 .warrior-art {
   right: 42%;
-  background-image: url("./assets/cards/card-warrior.jpg");
+  background-image: url("./assets/cards/card-warrior.webp");
   clip-path: polygon(0 0, 58% 0, 44% 100%, 0 100%);
 }
 
 .mage-art {
   left: 42%;
-  background-image: url("./assets/cards/card-taoist.jpg");
+  background-image: url("./assets/cards/card-taoist.webp");
   clip-path: polygon(22% 0, 100% 0, 100% 100%, 0 100%);
 }
 
@@ -393,7 +393,7 @@ button:disabled {
   border-radius: 8px;
   background:
     linear-gradient(180deg, rgba(16, 18, 15, 0.1), rgba(16, 18, 15, 0.78)),
-    url("./assets/cards/card-crystal-fox.jpg") center 42% / cover;
+    url("./assets/cards/card-crystal-fox.webp") center 42% / cover;
 }
 
 .world-card span {
@@ -659,7 +659,7 @@ button:disabled {
   align-content: end;
   background:
     linear-gradient(180deg, rgba(14, 16, 13, 0.16), rgba(14, 16, 13, 0.84)),
-    url("./assets/cards/card-crystal-bear.jpg") center 44% / cover;
+    url("./assets/cards/card-crystal-bear.webp") center 44% / cover;
 }
 
 .town-panel h1 {
@@ -1878,7 +1878,7 @@ body.combat-log-collapsed .combat-log-toggle {
   min-height: 270px;
   background:
     linear-gradient(180deg, rgba(14, 16, 13, 0.08), rgba(14, 16, 13, 0.88)),
-    url("./assets/cards/card-crystal-bear.jpg") center 44% / cover;
+    url("./assets/cards/card-crystal-bear.webp") center 44% / cover;
 }
 
 .town-section-head {
@@ -2183,7 +2183,7 @@ body.screen-shake .game-root canvas {
   overflow: hidden;
   background:
     linear-gradient(180deg, rgba(10, 12, 12, 0.1), rgba(7, 8, 8, 0.9)),
-    url("./assets/cards/card-crystal-fox.jpg") center / cover;
+    url("./assets/cards/card-crystal-fox.webp") center / cover;
   box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.34);
 }
 
@@ -2250,7 +2250,7 @@ body.screen-shake .game-root canvas {
   min-height: 360px;
   background:
     linear-gradient(180deg, rgba(12, 14, 13, 0.12), rgba(8, 9, 8, 0.9)),
-    url("./assets/cards/card-crystal-bear.jpg") center 40% / cover;
+    url("./assets/cards/card-crystal-bear.webp") center 40% / cover;
 }
 
 .story-snapshot {
@@ -4502,7 +4502,7 @@ body.field-active .town-drawer {
 .title-screen {
   background-image:
     linear-gradient(180deg, rgba(3, 5, 8, 0.12), rgba(3, 5, 8, 0.64)),
-    url("./assets/ui/title-bg.png") !important;
+    url("./assets/ui/title-bg.webp") !important;
   background-position: center !important;
   background-size: cover !important;
 }
@@ -4526,7 +4526,7 @@ body.field-active .town-drawer {
   position: absolute;
   inset: -54px -48px -24px -48px;
   display: block;
-  background: url("./assets/ui/title-hero.png") center bottom / contain no-repeat;
+  background: url("./assets/ui/title-hero.webp") center bottom / contain no-repeat;
   filter: drop-shadow(0 28px 48px rgba(0, 0, 0, 0.65));
 }
 
@@ -4568,13 +4568,13 @@ body.field-active .town-drawer {
   width: 46px !important;
   height: 46px !important;
   overflow: hidden;
-  background-image: url("./assets/ui/portrait-warrior-male.png");
+  background-image: url("./assets/ui/portrait-warrior-male.webp");
   background-size: 116%;
   background-position: center top;
   text-indent: -999px;
 }
-.portrait.class-taoist { background-image: url("./assets/ui/portrait-taoist-male.png"); }
-.portrait.class-cleric { background-image: url("./assets/ui/portrait-cleric-male.png"); }
+.portrait.class-taoist { background-image: url("./assets/ui/portrait-taoist-male.webp"); }
+.portrait.class-cleric { background-image: url("./assets/ui/portrait-cleric-male.webp"); }
 
 .resource-strip {
   top: calc(max(10px, env(safe-area-inset-top)) + 72px) !important;
@@ -4698,7 +4698,7 @@ body.field-active .town-drawer {
 .title-screen {
   background-image:
     linear-gradient(180deg, rgba(1, 3, 7, 0.2), rgba(1, 3, 7, 0.72) 66%, rgba(0, 0, 0, 0.96)),
-    url("./assets/ui/title-bg.png") !important;
+    url("./assets/ui/title-bg.webp") !important;
   background-position: center !important;
   background-size: cover !important;
 }
@@ -4764,7 +4764,7 @@ body.field-active .town-drawer {
 }
 .title-character-visual {
   inset: -40px -60px -18px -60px !important;
-  background-image: url("./assets/ui/title-hero.png") !important;
+  background-image: url("./assets/ui/title-hero.webp") !important;
   background-size: contain !important;
   background-position: center bottom !important;
   opacity: 1;
@@ -4806,7 +4806,7 @@ body.field-active .town-drawer {
 .login-screen {
   background-image:
     linear-gradient(90deg, rgba(3,5,7,.92), rgba(3,5,7,.58), rgba(3,5,7,.92)),
-    url("./assets/ui/title-bg.png") !important;
+    url("./assets/ui/title-bg.webp") !important;
   background-size: cover !important;
   background-position: center !important;
 }

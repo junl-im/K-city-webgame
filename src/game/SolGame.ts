@@ -54,6 +54,7 @@ type TextureKey = keyof typeof textureUrls;
 type SolGameOptions = {
   zoneId?: string;
   zoneName?: string;
+  onLoadProgress?: (loaded: number, total: number, key: string) => void;
 };
 
 const zoneMonsterIds: Record<string, MonsterId[]> = {
@@ -511,14 +512,40 @@ export class SolGame {
   }
 
   private async loadTextures() {
-    const entries = Object.entries(textureUrls) as Array<[TextureKey, string]>;
+    const required = this.requiredTextureKeys();
+    let loaded = 0;
     await Promise.all(
-      entries.map(async ([key, fallbackUrl]) => {
+      required.map(async (key) => {
+        const fallbackUrl = textureUrls[key];
         const runtimeUrl = runtimeTextureUrls[key];
         const texture = await this.loadTextureWithFallback(runtimeUrl, fallbackUrl);
         this.textures.set(key, texture);
+        loaded += 1;
+        this.options.onLoadProgress?.(loaded, required.length, String(key));
       })
     );
+  }
+
+  private requiredTextureKeys(): TextureKey[] {
+    const keys = new Set<TextureKey>([
+      'tileGrass', 'tileDirt', 'tileMoss', 'tileStone', 'tileCrystal', 'tileWater', 'tileCliff', 'tilePortal',
+      'propTree', 'propCrystal', 'propRock', 'propRuin',
+      'buildingHall', 'buildingForge', 'buildingStorage', 'buildingShop',
+      'propChest01', 'propChest02', 'propChest03', 'propChest04', 'propChest05',
+      'propTorch01', 'propTorch02', 'propTorch03', 'propTorch04', 'propTorch05'
+    ]);
+
+    for (let i = 1; i <= 10; i += 1) {
+      const num = String(i).padStart(2, '0');
+      keys.add(`propTree${num}` as TextureKey);
+      keys.add(`propRock${num}` as TextureKey);
+    }
+
+    keys.add(this.classSheetTextureKey());
+    const zoneId = this.options.zoneId || 'slime-forest';
+    const monsterIds = zoneMonsterIds[zoneId] || zoneMonsterIds['slime-forest'];
+    for (const monsterId of monsterIds) keys.add(this.monsterSheetTextureKey(monsterId));
+    return [...keys];
   }
 
   private async loadTextureWithFallback(runtimeUrl: string | undefined, fallbackUrl: string) {
