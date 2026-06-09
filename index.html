@@ -16,7 +16,7 @@
       <div id="game-root" class="game-root"></div>
 
       <section class="title-screen" id="titleScreen">
-        <div class="title-bg">
+        <div class="title-bg title-bg-visual">
           <span class="title-orb orb-a"></span>
           <span class="title-orb orb-b"></span>
           <span class="title-orb orb-c"></span>
@@ -29,10 +29,10 @@
           </div>
           <div class="title-hero" aria-hidden="true">
             <span class="title-soul-ring"></span>
-            <span class="title-character"></span>
+            <span class="title-character title-character-visual"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn">게임 시작</button>
-          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.22.0</span></div>
+          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.23.0</span></div>
           <small>전체화면은 브라우저 정책상 버튼 입력 후 시도됩니다.</small>
         </div>
       </section>
@@ -289,6 +289,13 @@
           <span id="targetMeta">자동사냥 대기</span>
         </div>
         <div class="target-hp"><i id="targetHp"></i></div>
+      </section>
+
+
+      <section class="field-quest-tracker" id="fieldQuestTracker" aria-label="진행중 퀘스트">
+        <span>진행중 퀘스트</span>
+        <b id="fieldQuestTitle">스토리 확인</b>
+        <em id="fieldQuestProgress">0/0</em>
       </section>
 
       <section class="field-minimap" id="fieldMiniMap" aria-label="미니맵">

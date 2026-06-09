@@ -37,6 +37,8 @@ const loginFlowHint = document.querySelector<HTMLElement>('#loginFlowHint');
 const miniZoneName = document.querySelector<HTMLElement>('#miniZoneName');
 const miniZoneMeta = document.querySelector<HTMLElement>('#miniZoneMeta');
 const miniPlayerDot = document.querySelector<HTMLElement>('#miniPlayerDot');
+const fieldQuestTitle = document.querySelector<HTMLElement>('#fieldQuestTitle');
+const fieldQuestProgress = document.querySelector<HTMLElement>('#fieldQuestProgress');
 const guestLoginBtn = must<HTMLButtonElement>('#guestLoginBtn');
 const googleLoginBtn = must<HTMLButtonElement>('#googleLoginBtn');
 const localLoginBtn = must<HTMLButtonElement>('#localLoginBtn');
@@ -125,6 +127,7 @@ async function boot() {
   bindJoystick();
   bindSheet();
   bindAudioControls();
+  must('#classPortrait').addEventListener('click', () => openSheet('account'));
   bindBackButtonGuard();
   renderCharacterSummary();
   renderCharacterSlots();
@@ -899,6 +902,7 @@ function renderHud(snapshot: Snapshot) {
   styleWidth('#mpBar', mpPercent);
   styleWidth('#expBar', expPercent);
   updateFieldMiniMap(snapshot);
+  updateFieldQuestTracker(snapshot);
 
   autoHuntBtn.classList.toggle('active', snapshot.save.autoHunt);
   sleepModeBtn.classList.toggle('active', Boolean(snapshot.save.sleepMode));
@@ -921,6 +925,20 @@ function renderHud(snapshot: Snapshot) {
   log.innerHTML = snapshot.log.slice(0, 3).map((line) => `<p>${escapeHtml(line)}</p>`).join('');
 }
 
+
+
+function updateFieldQuestTracker(snapshot: Snapshot) {
+  if (!fieldQuestTitle || !fieldQuestProgress) return;
+  const quest = currentStoryQuest(snapshot.save);
+  if (!quest) {
+    fieldQuestTitle.textContent = '현재 스토리 완료';
+    fieldQuestProgress.textContent = '완료';
+    return;
+  }
+  const progress = storyQuestProgress(snapshot.save, quest);
+  fieldQuestTitle.textContent = quest.title;
+  fieldQuestProgress.textContent = `${Math.min(progress, quest.target)}/${quest.target} · ${quest.goalText}`;
+}
 
 function updateFieldMiniMap(snapshot: Snapshot) {
   if (!miniPlayerDot) return;
@@ -1457,7 +1475,13 @@ function claimStoryQuest(questId: string) {
   audioService.play('reward');
   persistTownSave();
   showToast(`${quest.title} 완료 · 보상 획득`);
+  if (next?.unlockZoneId && pendingSave && storyQuestProgress(pendingSave, next) < next.target) {
+    window.setTimeout(() => {
+      if (pendingSave && document.body.classList.contains('town-active')) void startField(pendingSave, next.unlockZoneId);
+    }, 450);
+  }
 }
+
 
 
 function classSkillId(save: PlayerSave, token: string) {

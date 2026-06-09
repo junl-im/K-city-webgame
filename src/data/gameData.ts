@@ -1,7 +1,7 @@
 import type { CardDefinition, CardSetDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, SoulDefinition, TileId, ZoneDefinition, SkillDefinition } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 18;
+export const SAVE_VERSION = 19;
 export const MAP_W = 40;
 export const MAP_H = 40;
 
@@ -16,7 +16,7 @@ export const classes: Record<string, CharacterClass> = {
     attackStyle: 'melee',
     accent: 0xe2b95f,
     sprite: textureUrls.heroWarrior,
-    baseStats: { hp: 280, mp: 42, atk: 40, def: 24, aspd: 1.12, crit: 0.08, move: 3.05 },
+    baseStats: { hp: 280, mp: 42, atk: 40, def: 24, aspd: 1.12, crit: 0.08, move: 2.62 },
     attackRange: 1.16
   },
   taoist: {
@@ -29,7 +29,7 @@ export const classes: Record<string, CharacterClass> = {
     attackStyle: 'projectile',
     accent: 0x72e7ff,
     sprite: textureUrls.heroTaoist,
-    baseStats: { hp: 178, mp: 132, atk: 52, def: 9, aspd: 0.88, crit: 0.16, move: 3.0 },
+    baseStats: { hp: 178, mp: 132, atk: 52, def: 9, aspd: 0.88, crit: 0.16, move: 2.55 },
     attackRange: 3.35
   },
   cleric: {
@@ -42,7 +42,7 @@ export const classes: Record<string, CharacterClass> = {
     attackStyle: 'holy',
     accent: 0xf2d66c,
     sprite: textureUrls.heroCleric,
-    baseStats: { hp: 226, mp: 118, atk: 31, def: 17, aspd: 0.98, crit: 0.06, move: 3.08 },
+    baseStats: { hp: 226, mp: 118, atk: 31, def: 17, aspd: 0.98, crit: 0.06, move: 2.558 },
     attackRange: 2.25
   }
 };
@@ -57,7 +57,10 @@ export const zones: ZoneDefinition[] = [
   { id: 'soul-ruins', order: 7, title: '망각의 성소 폐허', subtitle: '오래된 성소가 무너진 전장', description: '망령 사제와 묘지 기사가 몰려옵니다. 광역 스킬과 강화가 중요합니다.', recommendedLevel: 12, monsterIds: ['wraith', 'graveKnight', 'crystalBear'], entry: { x: 8.8, y: 22.0 }, unlockLevel: 12, badge: '07' },
   { id: 'storm-citadel', order: 8, title: '폭풍 감시초소', subtitle: '하피 군단이 점령한 높은 성벽', description: '공격 속도가 빠른 몬스터가 많습니다. 방어구 강화와 회복 스킬을 준비하세요.', recommendedLevel: 14, monsterIds: ['stormHarpy', 'fireDrake', 'graveKnight'], entry: { x: 14.0, y: 16.2 }, unlockLevel: 14, badge: '08' },
   { id: 'dragon-nest', order: 9, title: '용그림자 둥지', subtitle: '잠든 용의 영혼이 새어나오는 협곡', description: '고위험 필드보스 전초 사냥터입니다. +10 이상 장비를 권장합니다.', recommendedLevel: 16, monsterIds: ['fireDrake', 'crystalBear', 'dragon'], entry: { x: 10.4, y: 23.6 }, unlockLevel: 16, badge: '09' },
-  { id: 'crystal-raid', order: 10, title: '심연 수정 레이드터', subtitle: '필드보스와 심연룡의 그림자가 출몰하는 제단', description: '자주 출몰하는 필드보스와 드래곤을 상대하는 고위험 지역입니다.', recommendedLevel: 18, monsterIds: ['fieldBoss', 'dragon', 'graveKnight', 'fireDrake'], entry: { x: 10.8, y: 23.2 }, unlockLevel: 18, badge: '10' }
+  { id: 'crystal-raid', order: 10, title: '심연 수정 레이드터', subtitle: '필드보스와 심연룡의 그림자가 출몰하는 제단', description: '자주 출몰하는 필드보스와 드래곤을 상대하는 고위험 지역입니다.', recommendedLevel: 18, monsterIds: ['fieldBoss', 'dragon', 'graveKnight', 'fireDrake'], entry: { x: 10.8, y: 23.2 }, unlockLevel: 18, badge: '10' },
+  { id: 'bloodstone-mine', order: 11, title: '혈석 광산 심층', subtitle: '고대 광산 아래 붉은 혼석이 숨 쉬는 곳', description: '강화 +12 이상을 권장하는 고난도 광산 필드입니다. 가디언과 기사형 몬스터가 밀집합니다.', recommendedLevel: 22, monsterIds: ['crystalBear', 'graveKnight', 'fieldBoss'], entry: { x: 11.2, y: 24.4 }, unlockLevel: 22, badge: '11' },
+  { id: 'sky-citadel', order: 12, title: '천공 성채 외곽', subtitle: '폭풍 하피와 드레이크가 공중에서 습격하는 성벽', description: '빠른 몬스터와 원거리 압박이 강한 상급 사냥터입니다.', recommendedLevel: 26, monsterIds: ['stormHarpy', 'fireDrake', 'dragon'], entry: { x: 13.2, y: 18.4 }, unlockLevel: 26, badge: '12' },
+  { id: 'demon-rift', order: 13, title: '마왕의 균열', subtitle: '심연룡과 야전 군주가 동시에 출몰하는 균열 지역', description: '현재 알파 최고 난이도 필드입니다. +15 이상 장비와 카드 세트가 필요합니다.', recommendedLevel: 30, monsterIds: ['fieldBoss', 'dragon', 'graveKnight', 'fireDrake'], entry: { x: 9.6, y: 25.0 }, unlockLevel: 30, badge: '13' }
 ];
 
 export const skills: SkillDefinition[] = [
@@ -126,7 +129,10 @@ export const storyQuests: StoryQuestDefinition[] = [
   { id: 'story-crystal-bear', chapter: 5, title: '흑요석 가디언의 심장', subtitle: '방어 세팅 점검', npc: '경비대장 로한', dialogue: '가디언의 일격은 강력합니다. 방어구와 유물을 강화하고 도전하세요.', goalText: '흑요석 가디언 3마리 처치', goalType: 'kill', monsterId: 'crystalBear', target: 3, unlockZoneId: 'black-cave', reward: { gold: 900, gems: 10, itemId: 'enhance-stone', itemCount: 3, exp: 360 } },
   { id: 'story-ember-ridge', chapter: 6, title: '불씨 능선의 포효', subtitle: '낙하형 스킬 훈련', npc: '전투 교관 카엘', dialogue: '하늘에서 떨어지는 마법과 번개를 익히면 몬스터 무리를 제압할 수 있습니다.', goalText: '화염 드레이크 2마리 처치', goalType: 'kill', monsterId: 'fireDrake', target: 2, unlockZoneId: 'ember-ridge', reward: { gold: 1200, gems: 12, itemId: 'skillbook-third', itemCount: 1, exp: 460 } },
   { id: 'story-ruin-priest', chapter: 7, title: '망령 사제의 성소', subtitle: '심화 지역 개방', npc: '소울 연구가 세린', dialogue: '망령 사제는 결계를 직접 오염시킵니다. 폐허를 정리하고 필드보스 징조를 확인하세요.', goalText: '망령 사제 5마리 처치', goalType: 'kill', monsterId: 'wraith', target: 5, unlockZoneId: 'soul-ruins', reward: { gold: 1500, gems: 15, itemId: 'soul-core', itemCount: 1, exp: 620 } },
-  { id: 'story-field-lord', chapter: 8, title: '야전 군주 발타르', subtitle: '필드보스 첫 조우', npc: '등불지기 리아', dialogue: '발타르가 루미나 결계를 두드리고 있어요. 강화를 충분히 마친 뒤 도전하세요.', goalText: '야전 군주 발타르 1마리 처치', goalType: 'kill', monsterId: 'fieldBoss', target: 1, unlockZoneId: 'crystal-raid', reward: { gold: 2600, gems: 25, itemId: 'dragon-heart', itemCount: 1, exp: 980 } }
+  { id: 'story-field-lord', chapter: 8, title: '야전 군주 발타르', subtitle: '필드보스 첫 조우', npc: '등불지기 리아', dialogue: '발타르가 루미나 결계를 두드리고 있어요. 강화를 충분히 마친 뒤 도전하세요.', goalText: '야전 군주 발타르 1마리 처치', goalType: 'kill', monsterId: 'fieldBoss', target: 1, unlockZoneId: 'crystal-raid', reward: { gold: 2600, gems: 25, itemId: 'dragon-heart', itemCount: 1, exp: 980 } },
+  { id: 'story-bloodstone', chapter: 9, title: '혈석 광산의 붉은 심장', subtitle: '상급 사냥터 개방', npc: '대장장이 브란', dialogue: '혈석은 무기를 더 강하게 만들지만, 광산의 수호자들은 쉽게 물러서지 않습니다.', goalText: '흑요석 가디언 6마리 처치', goalType: 'kill', monsterId: 'crystalBear', target: 6, unlockZoneId: 'bloodstone-mine', reward: { gold: 3600, gems: 30, itemId: 'enhance-stone', itemCount: 8, exp: 1200 } },
+  { id: 'story-sky-citadel', chapter: 10, title: '천공 성채의 번개깃', subtitle: '공중 몬스터 토벌', npc: '정찰대장 유나', dialogue: '성채 외곽에 폭풍 하피가 모였습니다. 빠른 이동과 자동 스킬 사용을 준비하세요.', goalText: '폭풍 하피 8마리 처치', goalType: 'kill', monsterId: 'stormHarpy', target: 8, unlockZoneId: 'sky-citadel', reward: { gold: 4600, gems: 36, itemId: 'skillbook-third', itemCount: 1, exp: 1480 } },
+  { id: 'story-demon-rift', chapter: 11, title: '마왕의 균열', subtitle: '알파 최고 난이도', npc: '소울 성소의 엘린', dialogue: '균열 너머의 심연은 지금의 루미나를 시험합니다. 강화, 카드, 영혼을 모두 점검하세요.', goalText: '심연룡 아케론 2마리 처치', goalType: 'kill', monsterId: 'dragon', target: 2, unlockZoneId: 'demon-rift', reward: { gold: 6200, gems: 50, itemId: 'dragon-heart', itemCount: 1, exp: 2100 } }
 ];
 
 export const dailyQuests: DailyQuestDefinition[] = [

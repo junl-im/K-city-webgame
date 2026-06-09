@@ -66,7 +66,10 @@ const zoneMonsterIds: Record<string, MonsterId[]> = {
   'soul-ruins': ['wraith', 'wraith', 'graveKnight', 'graveKnight', 'crystalBear', 'goblin', 'wraith', 'graveKnight', 'crystalBear', 'wraith'],
   'storm-citadel': ['stormHarpy', 'stormHarpy', 'stormHarpy', 'fireDrake', 'fireDrake', 'graveKnight', 'stormHarpy', 'fireDrake', 'graveKnight'],
   'dragon-nest': ['fireDrake', 'fireDrake', 'crystalBear', 'crystalBear', 'graveKnight', 'dragon', 'fireDrake', 'dragon'],
-  'crystal-raid': ['fieldBoss', 'graveKnight', 'fireDrake', 'dragon', 'fieldBoss', 'graveKnight', 'fireDrake']
+  'crystal-raid': ['fieldBoss', 'graveKnight', 'fireDrake', 'dragon', 'fieldBoss', 'graveKnight', 'fireDrake'],
+  'bloodstone-mine': ['crystalBear', 'crystalBear', 'graveKnight', 'graveKnight', 'graveKnight', 'fieldBoss', 'crystalBear', 'graveKnight'],
+  'sky-citadel': ['stormHarpy', 'stormHarpy', 'stormHarpy', 'fireDrake', 'fireDrake', 'dragon', 'stormHarpy', 'fireDrake'],
+  'demon-rift': ['fieldBoss', 'fieldBoss', 'dragon', 'dragon', 'graveKnight', 'graveKnight', 'fireDrake', 'fireDrake']
 };
 
 const mobHomeRadius: Partial<Record<MonsterId, number>> = {
@@ -96,21 +99,21 @@ const tileTextureKey: Record<TileId, TextureKey> = {
 };
 
 const FIELD_ZOOM = 0.78;
-const PLAYER_VISUAL_SCALE = 0.315;
+const PLAYER_VISUAL_SCALE = 0.31;
 const PLAYER_SHADOW_SCALE = 0.72;
 const MOB_VISUAL_SCALE: Record<MonsterId, number> = {
-  slime: 0.27,
-  wolf: 0.26,
-  goblin: 0.255,
-  shadowImp: 0.25,
-  mossGolem: 0.31,
-  wraith: 0.255,
-  crystalBear: 0.315,
-  fireDrake: 0.34,
-  stormHarpy: 0.285,
-  graveKnight: 0.285,
-  fieldBoss: 0.39,
-  dragon: 0.42
+  slime: 0.255,
+  wolf: 0.275,
+  goblin: 0.27,
+  shadowImp: 0.265,
+  mossGolem: 0.3,
+  wraith: 0.27,
+  crystalBear: 0.31,
+  fireDrake: 0.33,
+  stormHarpy: 0.28,
+  graveKnight: 0.29,
+  fieldBoss: 0.38,
+  dragon: 0.4
 };
 
 
@@ -558,7 +561,7 @@ export class SolGame {
     const trees = [
       [4, 16], [6, 25], [11, 15], [14, 26], [18, 13], [21, 16], [24, 23], [27, 17]
     ];
-    for (const [x, y] of trees) this.addProp('propTree', x, y, 0.44);
+    for (let i = 0; i < trees.length; i += 1) { const [x, y] = trees[i]; this.addProp(this.propVariant('tree', i), x, y, 0.42 + (i % 3) * 0.035); }
 
     const crystals = [
       [16, 17], [20, 14], [24, 18], [27.2, 20.4], [23.5, 25.8]
@@ -572,7 +575,12 @@ export class SolGame {
       [25.5, 26.5, 0.42],
       [27.2, 14.6, 0.36]
     ];
-    for (const [x, y, scale] of rocks) this.addProp('propRock', x, y, scale);
+    for (let i = 0; i < rocks.length; i += 1) { const [x, y, scale] = rocks[i]; this.addProp(this.propVariant('rock', i), x, y, scale); }
+
+    const chests = [[14.6, 24.8, 0.34], [22.4, 20.6, 0.32], [31.6, 23.8, 0.34]] as Array<[number, number, number]>;
+    for (let i = 0; i < chests.length; i += 1) { const [x, y, scale] = chests[i]; this.addProp(this.propVariant('chest', i), x, y, scale); }
+    const torches = [[9.0, 21.2, 0.34], [18.8, 22.0, 0.32], [27.6, 19.4, 0.32], [34.2, 25.8, 0.34]] as Array<[number, number, number]>;
+    for (let i = 0; i < torches.length; i += 1) { const [x, y, scale] = torches[i]; this.addProp(this.propVariant('torch', i), x, y, scale); }
   }
 
 
@@ -919,6 +927,10 @@ export class SolGame {
     const center = isoToScreen(8, 19);
     ring.position.set(center.x, center.y + 8);
     this.mapLayer.addChild(ring);
+    this.addProp('buildingHall', 6.0, 16.7, 0.32);
+    this.addProp('buildingForge', 11.6, 17.4, 0.29);
+    this.addProp('buildingStorage', 5.6, 23.2, 0.28);
+    this.addProp('buildingShop', 12.8, 22.8, 0.28);
 
     for (const prop of villageProps) {
       const key = prop.type === 'tree' ? 'propTree' : prop.type === 'rock' ? 'propRock' : prop.type === 'ruin' ? 'propRuin' : 'propCrystal';
@@ -946,6 +958,13 @@ export class SolGame {
       text.position.set(pos.x, pos.y - 18);
       this.propLayer.addChild(text);
     }
+  }
+
+  private propVariant(kind: 'tree' | 'rock' | 'chest' | 'torch', index: number): TextureKey {
+    const limits = { tree: 10, rock: 10, chest: 5, torch: 5 } as const;
+    const num = ((index % limits[kind]) + 1).toString().padStart(2, '0');
+    const prefix = kind === 'tree' ? 'propTree' : kind === 'rock' ? 'propRock' : kind === 'chest' ? 'propChest' : 'propTorch';
+    return `${prefix}${num}` as TextureKey;
   }
 
   private addProp(textureKey: TextureKey, x: number, y: number, scale: number) {
@@ -1040,6 +1059,32 @@ export class SolGame {
         { monsterId: 'crystalBear', x: 33.8, y: 30.2 },
         { monsterId: 'crystalBear', x: 36.0, y: 31.0 },
         { monsterId: 'crystalBear', x: 37.2, y: 28.2 }
+      ],
+      'bloodstone-mine': [
+        { monsterId: 'crystalBear', x: 15.0, y: 25.6 },
+        { monsterId: 'crystalBear', x: 18.0, y: 25.2 },
+        { monsterId: 'graveKnight', x: 21.4, y: 25.8 },
+        { monsterId: 'graveKnight', x: 24.4, y: 26.8 },
+        { monsterId: 'crystalBear', x: 28.0, y: 27.8 },
+        { monsterId: 'graveKnight', x: 31.2, y: 28.6 },
+        { monsterId: 'fieldBoss', x: 35.2, y: 29.2 }
+      ],
+      'sky-citadel': [
+        { monsterId: 'stormHarpy', x: 14.0, y: 20.0 },
+        { monsterId: 'stormHarpy', x: 17.6, y: 19.0 },
+        { monsterId: 'fireDrake', x: 21.4, y: 18.4 },
+        { monsterId: 'stormHarpy', x: 25.0, y: 18.2 },
+        { monsterId: 'fireDrake', x: 29.4, y: 17.8 },
+        { monsterId: 'dragon', x: 34.2, y: 18.8 }
+      ],
+      'demon-rift': [
+        { monsterId: 'graveKnight', x: 15.2, y: 24.0 },
+        { monsterId: 'fireDrake', x: 19.0, y: 22.5 },
+        { monsterId: 'fieldBoss', x: 23.0, y: 21.5 },
+        { monsterId: 'graveKnight', x: 27.0, y: 20.7 },
+        { monsterId: 'dragon', x: 31.0, y: 20.0 },
+        { monsterId: 'fieldBoss', x: 35.2, y: 19.2 },
+        { monsterId: 'dragon', x: 37.0, y: 21.4 }
       ],
       'dragon-nest': [
         { monsterId: 'crystalBear', x: 15.0, y: 24.0 },
@@ -2502,6 +2547,13 @@ export class SolGame {
   private monsterSheetTextureKey(monsterId: MonsterId): TextureKey {
     if (monsterId === 'wolf') return 'monsterWolfSheet';
     if (monsterId === 'goblin') return 'monsterGoblinSheet';
+    if (monsterId === 'shadowImp') return 'monsterImpSheet';
+    if (monsterId === 'mossGolem') return 'monsterGolemSheet';
+    if (monsterId === 'wraith') return 'monsterWraithSheet';
+    if (monsterId === 'fireDrake') return 'monsterFireDrakeSheet';
+    if (monsterId === 'stormHarpy') return 'monsterHarpySheet';
+    if (monsterId === 'graveKnight') return 'monsterGraveKnightSheet';
+    if (monsterId === 'fieldBoss') return 'monsterFieldBossSheet';
     if (monsterId === 'crystalBear') return 'monsterBearSheet';
     if (monsterId === 'dragon') return 'bossDragonSheet';
     return 'monsterSlimeSheet';

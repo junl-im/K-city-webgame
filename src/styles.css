@@ -4481,3 +4481,215 @@ body.town-active .field-minimap,
   .town-bottom-btn b { font-size: 10px; }
   .town-more-menu { grid-template-columns: 1fr 1fr; width: calc(100vw - 20px); }
 }
+
+/* 0.23 Real Visual Asset Expansion + HUD recovery */
+body:not(.field-active) .skill-dock,
+body:not(.field-active) .field-quest-tracker,
+body:not(.field-active) .field-minimap {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  display: none !important;
+}
+
+body:not(.town-active) .town-screen,
+body.field-active .town-bottom-menu,
+body.field-active .town-more-menu,
+body.field-active .town-drawer {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+.title-screen {
+  background-image:
+    linear-gradient(180deg, rgba(3, 5, 8, 0.12), rgba(3, 5, 8, 0.64)),
+    url("./assets/ui/title-bg.png") !important;
+  background-position: center !important;
+  background-size: cover !important;
+}
+
+.title-stage {
+  overflow: hidden;
+  min-height: min(820px, calc(100dvh - 36px));
+  background:
+    linear-gradient(180deg, rgba(10, 12, 14, 0.34), rgba(4, 5, 6, 0.66)),
+    radial-gradient(circle at 52% 72%, rgba(226, 185, 95, 0.18), transparent 35%) !important;
+}
+
+.title-hero {
+  position: relative;
+  width: min(54vw, 300px) !important;
+  height: min(52vh, 450px) !important;
+  margin: -10px 0 -12px;
+}
+
+.title-character-visual {
+  position: absolute;
+  inset: -54px -48px -24px -48px;
+  display: block;
+  background: url("./assets/ui/title-hero.png") center bottom / contain no-repeat;
+  filter: drop-shadow(0 28px 48px rgba(0, 0, 0, 0.65));
+}
+
+.title-soul-ring {
+  position: absolute;
+  inset: 14% 7% 2% 7%;
+  display: block;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(226, 185, 95, 0.2), transparent 62%);
+  box-shadow: 0 0 80px rgba(226, 185, 95, 0.22);
+}
+
+.hud-top {
+  top: max(12px, env(safe-area-inset-top)) !important;
+  left: max(8px, env(safe-area-inset-left)) !important;
+  right: auto !important;
+  width: min(62vw, 390px) !important;
+  grid-template-columns: 46px minmax(0, 1fr) 38px 38px !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  border-radius: 18px !important;
+}
+
+.hud-top .bar.exp {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  height: 6px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: rgba(0,0,0,0.55) !important;
+}
+
+.hud-top .bar.exp em { display: none !important; }
+.portrait {
+  width: 46px !important;
+  height: 46px !important;
+  overflow: hidden;
+  background-image: url("./assets/ui/portrait-warrior-male.png");
+  background-size: 116%;
+  background-position: center top;
+  text-indent: -999px;
+}
+.portrait.class-taoist { background-image: url("./assets/ui/portrait-taoist-male.png"); }
+.portrait.class-cleric { background-image: url("./assets/ui/portrait-cleric-male.png"); }
+
+.resource-strip {
+  top: calc(max(10px, env(safe-area-inset-top)) + 72px) !important;
+  left: max(8px, env(safe-area-inset-left)) !important;
+  transform: none !important;
+  width: min(62vw, 390px) !important;
+}
+
+.target-card {
+  top: calc(max(10px, env(safe-area-inset-top)) + 112px) !important;
+  left: max(8px, env(safe-area-inset-left)) !important;
+  width: min(62vw, 300px) !important;
+}
+
+.field-quest-tracker {
+  position: fixed;
+  z-index: 12;
+  top: calc(max(10px, env(safe-area-inset-top)) + 176px);
+  left: max(8px, env(safe-area-inset-left));
+  width: min(62vw, 310px);
+  padding: 8px 10px;
+  border: 1px solid rgba(226, 185, 95, 0.24);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(18, 17, 13, 0.78), rgba(8, 10, 9, 0.7));
+  box-shadow: 0 14px 32px rgba(0,0,0,0.34);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+.field-quest-tracker span { display:block; color:#e2b95f; font-size:10px; font-weight:950; letter-spacing:.08em; }
+.field-quest-tracker b { display:block; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; }
+.field-quest-tracker em { display:block; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:rgba(255,246,220,.78); font-size:10px; font-style:normal; font-weight:800; }
+
+.field-minimap {
+  top: max(12px, env(safe-area-inset-top)) !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  z-index: 11 !important;
+  width: 118px !important;
+  padding: 7px !important;
+}
+.minimap-canvas { height: 74px !important; }
+
+.joystick {
+  left: max(18px, env(safe-area-inset-left)) !important;
+  bottom: calc(22px + env(safe-area-inset-bottom)) !important;
+  width: 112px !important;
+  height: 112px !important;
+  border-width: 2px !important;
+  background: radial-gradient(circle, rgba(226,185,95,.16), rgba(12,14,12,.52)) !important;
+}
+.joystick i { width: 46px !important; height: 46px !important; }
+
+.action-dock {
+  left: auto !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+  transform: none !important;
+  grid-template-columns: repeat(3, 50px) !important;
+  gap: 6px !important;
+  padding: 6px !important;
+  border: 1px solid rgba(226,185,95,.16);
+}
+.dock-btn { width: 50px !important; height: 50px !important; border-radius: 14px !important; }
+.dock-btn span { font-size: 19px !important; }
+.dock-btn b { font-size: 9px !important; }
+
+.skill-dock {
+  left: auto !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  bottom: calc(132px + env(safe-area-inset-bottom)) !important;
+  transform: none !important;
+  grid-template-columns: repeat(3, 52px) !important;
+  gap: 6px !important;
+}
+.skill-btn { width: 52px !important; height: 52px !important; border-radius: 50% !important; }
+.skill-btn b { font-size: 8px !important; max-width: 44px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.skill-btn em { display:none !important; }
+
+.combat-log-toggle { left: max(14px, env(safe-area-inset-left)) !important; bottom: calc(142px + env(safe-area-inset-bottom)) !important; }
+.combat-log { left: max(14px, env(safe-area-inset-left)) !important; bottom: calc(170px + env(safe-area-inset-bottom)) !important; width: min(54vw, 250px) !important; }
+
+.slot-grid .slot-cell,
+.slot-grid.card-slot-grid .slot-cell,
+.slot-grid.inventory-slot-grid .slot-cell {
+  aspect-ratio: 1 / 1 !important;
+  min-height: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+}
+.slot-grid .slot-cell p,
+.slot-grid .slot-cell small { display:none !important; }
+.slot-grid .slot-cell b { font-size: 10px !important; text-align:center; }
+.slot-grid .slot-actions { display:none !important; }
+.slot-grid .slot-cell:hover .slot-actions,
+.slot-grid .slot-cell:focus-within .slot-actions { display:grid !important; }
+
+.zone-list-v2,
+.drawer-zone-grid {
+  gap: 10px !important;
+}
+.zone-card,
+.drawer-zone-card {
+  min-height: 86px !important;
+  border-radius: 18px !important;
+  background:
+    linear-gradient(90deg, rgba(5,8,8,.28), rgba(5,8,8,.86)),
+    radial-gradient(circle at 18% 28%, rgba(226,185,95,.2), transparent 34%),
+    linear-gradient(135deg, rgba(48,70,54,.62), rgba(30,34,36,.82)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 18px 36px rgba(0,0,0,.28) !important;
+}
+
+@media (max-width: 520px) {
+  .hud-top { width: min(70vw, 330px) !important; }
+  .resource-strip { width: min(70vw, 330px) !important; }
+  .target-card, .field-quest-tracker { width: min(60vw, 270px) !important; }
+  .field-minimap { width: 108px !important; }
+  .joystick { width: 104px !important; height: 104px !important; }
+}

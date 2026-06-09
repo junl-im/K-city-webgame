@@ -11,8 +11,8 @@ export interface SpriteSheetMeta {
 }
 
 export const HUMANOID_SHEET_META: SpriteSheetMeta = {
-  frameWidth: 128,
-  frameHeight: 192,
+  frameWidth: 160,
+  frameHeight: 240,
   rows: ['s', 'sw', 'w', 'nw', 'n', 'ne', 'e', 'se'],
   actions: {
     idle: { start: 0, frames: 4, fps: 4, loop: true },
@@ -26,8 +26,8 @@ export const HUMANOID_SHEET_META: SpriteSheetMeta = {
 };
 
 export const MONSTER_SHEET_META: SpriteSheetMeta = {
-  frameWidth: 128,
-  frameHeight: 160,
+  frameWidth: 160,
+  frameHeight: 200,
   rows: ['s', 'sw', 'w', 'nw', 'n', 'ne', 'e', 'se'],
   actions: {
     idle: { start: 0, frames: 4, fps: 4, loop: true },

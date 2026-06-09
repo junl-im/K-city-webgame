@@ -1,94 +1,104 @@
 {
-  "name": "Soul Online Runtime Asset Pack",
-  "version": "0.22.0",
-  "description": "Drop-in runtime asset pack. Replace files in this folder without changing code.",
-  "characters": {
-    "frameSize": [
-      128,
-      192
-    ],
-    "directions": [
-      "s",
-      "sw",
-      "w",
-      "nw",
-      "n",
-      "ne",
-      "e",
-      "se"
-    ],
-    "actions": {
-      "idle": [
-        0,
-        4
-      ],
-      "walk": [
-        4,
-        8
-      ],
-      "run": [
-        12,
-        8
-      ],
-      "attack": [
-        20,
-        8
-      ],
-      "hit": [
-        28,
-        4
-      ],
-      "death": [
-        32,
-        8
-      ],
-      "skill": [
-        40,
-        8
-      ]
-    }
+  "version": "0.23.0",
+  "style": "original dark-fantasy 2.5D asset expansion",
+  "characters": 6,
+  "directions": 8,
+  "motions": [
+    "idle",
+    "walk",
+    "run",
+    "attack",
+    "hit",
+    "death",
+    "skill"
+  ],
+  "monsters": [
+    "boss-dragon-sheet.png",
+    "monster-bear-sheet.png",
+    "monster-goblin-sheet.png",
+    "monster-slime-sheet.png",
+    "monster-wolf-sheet.png",
+    "monster-imp-sheet.png",
+    "monster-golem-sheet.png",
+    "monster-wraith-sheet.png",
+    "monster-firedrake-sheet.png",
+    "monster-harpy-sheet.png",
+    "monster-grave-knight-sheet.png",
+    "monster-fieldboss-sheet.png"
+  ],
+  "props": {
+    "trees": 10,
+    "rocks": 10,
+    "chests": 5,
+    "torches": 5
   },
-  "monsters": {
-    "frameSize": [
-      128,
-      160
-    ],
-    "directions": [
-      "s",
-      "sw",
-      "w",
-      "nw",
-      "n",
-      "ne",
-      "e",
-      "se"
-    ]
-  },
-  "tiles": {
-    "frameSize": [
-      128,
-      70
-    ],
-    "format": "single isometric png per terrain"
-  },
-  "sfx": {
-    "ui": "sfx/ui.wav",
-    "attack": "sfx/attack.wav",
-    "hit": "sfx/hit.wav",
-    "skill": "sfx/skill.wav",
-    "heal": "sfx/heal.wav",
-    "reward": "sfx/reward.wav",
-    "enhance": "sfx/enhance.wav",
-    "level": "sfx/level.wav",
-    "error": "sfx/error.wav"
-  },
-  "audio": {
-    "format": "ogg loop",
-    "tracks": [
-      "title-theme.ogg",
-      "town-lumina.ogg",
-      "field-forest.ogg",
-      "boss-crystal.ogg"
-    ]
-  }
+  "buildings": [
+    "town-hall.png",
+    "blacksmith.png",
+    "storage.png",
+    "shop.png"
+  ],
+  "icons": [
+    "ui/icons/icon-01.png",
+    "ui/icons/icon-02.png",
+    "ui/icons/icon-03.png",
+    "ui/icons/icon-04.png",
+    "ui/icons/icon-05.png",
+    "ui/icons/icon-06.png",
+    "ui/icons/icon-07.png",
+    "ui/icons/icon-08.png",
+    "ui/icons/icon-09.png",
+    "ui/icons/icon-10.png",
+    "ui/icons/icon-11.png",
+    "ui/icons/icon-12.png",
+    "ui/icons/icon-13.png",
+    "ui/icons/icon-14.png",
+    "ui/icons/icon-15.png",
+    "ui/icons/icon-16.png",
+    "ui/icons/icon-17.png",
+    "ui/icons/icon-18.png",
+    "ui/icons/icon-19.png",
+    "ui/icons/icon-20.png",
+    "ui/icons/icon-21.png",
+    "ui/icons/icon-22.png",
+    "ui/icons/icon-23.png",
+    "ui/icons/icon-24.png",
+    "ui/icons/icon-25.png",
+    "ui/icons/icon-26.png",
+    "ui/icons/icon-27.png",
+    "ui/icons/icon-28.png",
+    "ui/icons/icon-29.png",
+    "ui/icons/icon-30.png",
+    "ui/icons/icon-31.png",
+    "ui/icons/icon-32.png",
+    "ui/icons/icon-33.png",
+    "ui/icons/icon-34.png",
+    "ui/icons/icon-35.png",
+    "ui/icons/icon-36.png",
+    "ui/icons/icon-37.png",
+    "ui/icons/icon-38.png",
+    "ui/icons/icon-39.png",
+    "ui/icons/icon-40.png",
+    "ui/icons/icon-41.png",
+    "ui/icons/icon-42.png",
+    "ui/icons/icon-43.png",
+    "ui/icons/icon-44.png",
+    "ui/icons/icon-45.png",
+    "ui/icons/icon-46.png",
+    "ui/icons/icon-47.png",
+    "ui/icons/icon-48.png",
+    "ui/icons/icon-49.png",
+    "ui/icons/icon-50.png",
+    "ui/icons/icon-51.png",
+    "ui/icons/icon-52.png",
+    "ui/icons/icon-53.png",
+    "ui/icons/icon-54.png",
+    "ui/icons/icon-55.png",
+    "ui/icons/icon-56.png",
+    "ui/icons/icon-57.png",
+    "ui/icons/icon-58.png",
+    "ui/icons/icon-59.png",
+    "ui/icons/icon-60.png"
+  ],
+  "notes": "오리지널 생성형 2.5D 리소스팩. 상용 원화와 동일하지 않으며, 같은 파일명으로 외주/AI 프리렌더 원본을 교체할 수 있습니다."
 }
