@@ -272,6 +272,41 @@ export class SolGame {
     if (this.target) this.tryPlayerAttack(this.target, true);
   }
 
+  usePotion(itemId: string, silent = false) {
+    const entry = this.save.inventory.find((item) => item.itemId === itemId && item.count > 0);
+    const def = items.find((item) => item.id === itemId && item.type === 'consumable');
+    if (!entry || !def || !def.consume) {
+      if (!silent) {
+        this.pushLog('사용할 물약이 없습니다.');
+        this.emit();
+      }
+      return false;
+    }
+    const stats = this.calculateStats();
+    const hpGain = Math.ceil((def.consume.hpPercent || 0) * stats.hp + (def.consume.hpFlat || 0));
+    const mpGain = Math.ceil((def.consume.mpPercent || 0) * stats.mp + (def.consume.mpFlat || 0));
+    const needHp = hpGain > 0 && this.save.hp < stats.hp;
+    const needMp = mpGain > 0 && this.save.mp < stats.mp;
+    if (!needHp && !needMp) {
+      if (!silent) {
+        this.pushLog('이미 회복된 상태입니다.');
+        this.emit();
+      }
+      return false;
+    }
+
+    this.save.hp = Math.min(stats.hp, this.save.hp + hpGain);
+    this.save.mp = Math.min(stats.mp, this.save.mp + mpGain);
+    entry.count -= 1;
+    if (entry.count <= 0) this.save.inventory = this.save.inventory.filter((item) => item.uid !== entry.uid);
+    audioService.play('confirm');
+    this.healPulse(this.save.x, this.save.y);
+    this.floatText(def.consume.hpPercent ? 'HP POTION' : 'MP POTION', this.save.x, this.save.y - 0.38, def.consume.hpPercent ? 0x66f08a : 0x72b7ff);
+    this.pushLog(`${def.name} 사용 · ${hpGain ? `HP +${hpGain}` : ''}${hpGain && mpGain ? ' · ' : ''}${mpGain ? `MP +${mpGain}` : ''}`);
+    this.markDirty();
+    return true;
+  }
+
 
   private hasLearnedSkill(skillId: string) {
     return Array.isArray(this.save.learnedSkillIds) && this.save.learnedSkillIds.includes(skillId);
@@ -457,7 +492,7 @@ export class SolGame {
     const entry = this.save.inventory.find((item) => item.uid === itemUid);
     if (!entry) return;
     const def = items.find((item) => item.id === entry.itemId);
-    if (!def || def.type === 'material' || def.type === 'skillbook') {
+    if (!def || def.type === 'material' || def.type === 'skillbook' || def.type === 'consumable') {
       this.pushLog('해당 아이템은 강화할 수 없습니다.');
       this.emit();
       return;
@@ -563,6 +598,10 @@ export class SolGame {
         this.pushLog('이미 배웠거나 현재 직업에 맞지 않는 스킬서입니다.');
         this.emit();
       }
+      return;
+    }
+    if (def.type === 'consumable') {
+      this.usePotion(def.id);
       return;
     }
     if (def.type === 'material') {
@@ -1545,6 +1584,7 @@ export class SolGame {
     this.updateCombatChainTimer(dt);
     this.updateSkillCooldowns(dt);
     this.autoSkillThinkTimer = Math.max(0, this.autoSkillThinkTimer - dt);
+    if (this.save.autoHunt) this.tryAutoPotionUse();
     if (this.save.autoHunt && this.autoSkillThinkTimer <= 0) this.tryAutoSkillUse();
     this.manualMoveLock = Math.max(0, this.manualMoveLock - dt);
     this.regenTick += dt;
@@ -1566,6 +1606,18 @@ export class SolGame {
     }
 
     this.emit();
+  }
+
+  private tryAutoPotionUse() {
+    if (this.save.hp <= 0) return;
+    const stats = this.calculateStats();
+    const hpRatio = this.save.hp / Math.max(1, stats.hp);
+    const mpRatio = this.save.mp / Math.max(1, stats.mp);
+    if (hpRatio < 0.34) {
+      this.usePotion('hp-potion-small', true);
+      return;
+    }
+    if (mpRatio < 0.18) this.usePotion('mp-potion-small', true);
   }
 
   private tryAutoSkillUse() {
@@ -2562,7 +2614,7 @@ export class SolGame {
     for (const entry of this.save.inventory) {
       if (!equippedItemIds.has(entry.uid)) continue;
       const def = items.find((item) => item.id === entry.itemId);
-      if (!def || def.type === 'material' || def.type === 'skillbook') continue;
+      if (!def || def.type === 'material' || def.type === 'skillbook' || def.type === 'consumable') continue;
       const enhanceLevel = this.save.enhancements?.[entry.uid] || 0;
       this.applyBonus(stats, def.bonus, 1 + enhanceLevel * 0.10);
       if (enhanceLevel > 0) this.applyBonus(stats, { atk: enhanceLevel * 1.4, def: enhanceLevel * 0.95, hp: enhanceLevel * 7 }, 1);
@@ -3080,7 +3132,11 @@ export class SolGame {
       userLabel: this.saveService.userLabel(),
       skills: this.createSkillSnapshots(),
       cardSetEffects: this.activeCardSetEffects(),
-      combatChain: this.combatChainSnapshot()
+      combatChain: this.combatChainSnapshot(),
+      potionCounts: {
+        hpSmall: this.materialCount('hp-potion-small'),
+        mpSmall: this.materialCount('mp-potion-small')
+      }
     };
   }
 

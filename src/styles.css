@@ -8801,3 +8801,324 @@ body.field-active .target-card.elite-target { border-color: rgba(226,185,95,.62)
   .resonance-gear-row { grid-template-columns: 1fr; }
   .resonance-effect-list { grid-template-columns: 1fr; }
 }
+
+/* Alpha 0.41: Kakao in-app browser safe layout, field HUD rearrangement, potion belt */
+.browser-safe-tip {
+  position: fixed;
+  left: 50%;
+  bottom: calc(92px + env(safe-area-inset-bottom));
+  z-index: 130;
+  transform: translateX(-50%);
+  width: min(92vw, 420px);
+  padding: 8px 12px;
+  border: 1px solid rgba(226, 185, 95, .28);
+  border-radius: 999px;
+  background: rgba(10, 12, 11, .82);
+  color: #fff3c7;
+  font-size: 11px;
+  line-height: 1.25;
+  text-align: center;
+  pointer-events: none;
+  opacity: .92;
+}
+
+body:not(.kakao-inapp) .browser-safe-tip,
+.browser-safe-tip.hidden { display: none !important; }
+body.kakao-inapp .orientation-guard,
+body.forced-landscape-safe .orientation-guard { display: none !important; }
+
+body.field-active .hud-top {
+  position: fixed !important;
+  top: calc(8px + env(safe-area-inset-top)) !important;
+  left: max(8px, env(safe-area-inset-left)) !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  width: auto !important;
+  min-height: 66px !important;
+  padding: 7px 8px !important;
+  display: grid !important;
+  grid-template-columns: 50px minmax(0, 1fr) 36px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border-radius: 18px !important;
+  z-index: 34 !important;
+}
+
+body.field-active .hero-status {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+body.field-active .hud-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  margin-bottom: 3px !important;
+}
+body.field-active .hud-row strong { font-size: 12px !important; max-width: 54vw; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+body.field-active .hud-row span { font-size: 10px !important; }
+body.field-active .hud-top .bar { height: 9px !important; margin-top: 3px !important; }
+body.field-active .hud-top .bar em { font-size: 8px !important; }
+body.field-active #returnTownBtn {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  border-radius: 12px !important;
+  font-size: 14px !important;
+}
+
+.portrait,
+.town-portrait {
+  color: transparent !important;
+  text-shadow: none !important;
+  overflow: hidden !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+.portrait::after,
+.town-portrait::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.14));
+  pointer-events: none;
+}
+.portrait.class-warrior.gender-male,
+.town-portrait.class-warrior.gender-male { background-image: url("./assets/ui/portrait-warrior-male.webp") !important; }
+.portrait.class-warrior.gender-female,
+.town-portrait.class-warrior.gender-female { background-image: url("./assets/ui/portrait-warrior-female.webp") !important; }
+.portrait.class-taoist.gender-male,
+.town-portrait.class-taoist.gender-male { background-image: url("./assets/ui/portrait-taoist-male.webp") !important; }
+.portrait.class-taoist.gender-female,
+.town-portrait.class-taoist.gender-female { background-image: url("./assets/ui/portrait-taoist-female.webp") !important; }
+.portrait.class-cleric.gender-male,
+.town-portrait.class-cleric.gender-male { background-image: url("./assets/ui/portrait-cleric-male.webp") !important; }
+.portrait.class-cleric.gender-female,
+.town-portrait.class-cleric.gender-female { background-image: url("./assets/ui/portrait-cleric-female.webp") !important; }
+
+body.field-active .portrait {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  border-radius: 15px !important;
+}
+
+body.field-active .resource-strip {
+  top: calc(82px + env(safe-area-inset-top)) !important;
+  left: max(12px, env(safe-area-inset-left)) !important;
+  right: auto !important;
+  width: min(52vw, 214px) !important;
+  padding: 5px 7px !important;
+  gap: 5px !important;
+  font-size: 9px !important;
+  z-index: 30 !important;
+}
+
+body.field-active .target-card {
+  top: calc(82px + env(safe-area-inset-top)) !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  width: min(42vw, 168px) !important;
+  min-height: 42px !important;
+  padding: 7px 8px !important;
+  border-radius: 14px !important;
+  text-align: center !important;
+  z-index: 31 !important;
+}
+body.field-active .target-card div:first-child { gap: 1px !important; }
+body.field-active .target-card strong { font-size: 10.5px !important; line-height: 1.15 !important; }
+body.field-active .target-card span { font-size: 8.5px !important; line-height: 1.15 !important; }
+body.field-active .target-hp { height: 5px !important; margin-top: 5px !important; }
+
+body.field-active .field-quest-tracker {
+  top: calc(82px + env(safe-area-inset-top)) !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  left: auto !important;
+  width: min(35vw, 156px) !important;
+  min-height: 48px !important;
+  padding: 7px 8px !important;
+  border-radius: 14px !important;
+  z-index: 32 !important;
+}
+body.field-active .field-quest-tracker span { font-size: 8px !important; }
+body.field-active .field-quest-tracker b { font-size: 10px !important; line-height: 1.15 !important; }
+body.field-active .field-quest-tracker em { font-size: 9px !important; }
+
+body.field-active .field-chain-meter {
+  top: calc(138px + env(safe-area-inset-top)) !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  left: auto !important;
+  width: min(35vw, 156px) !important;
+  padding: 6px 8px !important;
+  border-radius: 13px !important;
+  z-index: 30 !important;
+}
+body.field-active .field-chain-meter span { font-size: 8px !important; }
+body.field-active .field-chain-meter b { font-size: 10px !important; }
+body.field-active .field-chain-meter em { font-size: 8px !important; }
+
+body.field-active .action-dock {
+  position: fixed !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+  left: auto !important;
+  width: 172px !important;
+  height: 172px !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, 52px) !important;
+  grid-template-rows: repeat(3, 52px) !important;
+  gap: 8px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  z-index: 45 !important;
+}
+body.field-active .action-dock .dock-btn {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  padding: 5px 4px !important;
+  border-radius: 15px !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 1px !important;
+}
+body.field-active .action-dock .dock-btn span { font-size: 17px !important; line-height: 1 !important; }
+body.field-active .action-dock .dock-btn b { font-size: 9px !important; line-height: 1 !important; white-space: nowrap !important; }
+body.field-active #autoHuntBtn { grid-column: 1 !important; grid-row: 3 !important; }
+body.field-active #attackBtn { grid-column: 2 !important; grid-row: 3 !important; }
+body.field-active #openMenu { grid-column: 3 !important; grid-row: 3 !important; }
+body.field-active #inventoryBtn { grid-column: 3 !important; grid-row: 2 !important; }
+body.field-active #sleepModeBtn { grid-column: 3 !important; grid-row: 1 !important; }
+body.field-active #cardsBtn.hidden-field-shortcut { display: none !important; }
+
+body.field-active .skill-dock {
+  position: fixed !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  bottom: calc(198px + env(safe-area-inset-bottom)) !important;
+  left: auto !important;
+  width: 172px !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, 52px) !important;
+  gap: 8px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  z-index: 44 !important;
+}
+body.field-active .skill-btn {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  padding: 4px !important;
+  border-radius: 15px !important;
+}
+body.field-active .skill-btn b { font-size: 8px !important; max-width: 44px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.field-active .skill-btn em { font-size: 7px !important; }
+body.field-active .skill-dock-art { width: 28px !important; height: 28px !important; }
+
+body.field-active .potion-dock {
+  position: fixed !important;
+  right: max(188px, calc(188px + env(safe-area-inset-right))) !important;
+  bottom: calc(198px + env(safe-area-inset-bottom)) !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, 44px) !important;
+  gap: 7px !important;
+  z-index: 44 !important;
+}
+body.field-active .potion-btn {
+  width: 44px !important;
+  height: 52px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(226, 185, 95, .28) !important;
+  background: linear-gradient(180deg, rgba(36, 30, 22, .88), rgba(9, 12, 10, .9)) !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,.34), inset 0 0 12px rgba(226,185,95,.08) !important;
+  color: #fff3c7 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 4px !important;
+}
+body.field-active .potion-btn span { font-size: 16px !important; line-height: 1 !important; }
+body.field-active .potion-btn b { font-size: 8px !important; line-height: 1 !important; }
+body.field-active .potion-btn em { font-size: 9px !important; color: #fff !important; }
+body.field-active .potion-btn:disabled { opacity: .42 !important; filter: grayscale(.35) !important; }
+body.field-active .hp-potion span { color: #8dffb3 !important; }
+body.field-active .mp-potion span { color: #8bc8ff !important; }
+
+body.field-active .joystick {
+  left: max(18px, env(safe-area-inset-left)) !important;
+  bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+  width: 112px !important;
+  height: 112px !important;
+  z-index: 40 !important;
+}
+
+body.field-active .sheet {
+  z-index: 70 !important;
+}
+
+@media (max-width: 430px) {
+  body.field-active .hud-top { grid-template-columns: 46px minmax(0,1fr) 32px !important; min-height: 62px !important; }
+  body.field-active .portrait { width: 44px !important; height: 44px !important; min-width: 44px !important; }
+  body.field-active .resource-strip { top: calc(77px + env(safe-area-inset-top)) !important; width: min(48vw, 178px) !important; }
+  body.field-active .target-card { top: calc(128px + env(safe-area-inset-top)) !important; width: min(48vw, 158px) !important; }
+  body.field-active .field-quest-tracker { top: calc(77px + env(safe-area-inset-top)) !important; width: min(40vw, 142px) !important; }
+  body.field-active .field-chain-meter { top: calc(132px + env(safe-area-inset-top)) !important; width: min(40vw, 142px) !important; }
+  body.field-active .potion-dock { right: max(8px, env(safe-area-inset-right)) !important; bottom: calc(258px + env(safe-area-inset-bottom)) !important; }
+}
+
+@media (orientation: landscape) and (max-height: 620px) {
+  body.kakao-inapp .orientation-guard,
+  body.forced-landscape-safe .orientation-guard { display: none !important; }
+  body.forced-landscape-safe .hud-top { min-height: 54px !important; grid-template-columns: 42px minmax(0,1fr) 32px !important; }
+  body.forced-landscape-safe .portrait { width: 40px !important; height: 40px !important; min-width: 40px !important; }
+  body.forced-landscape-safe .hud-top .bar { height: 7px !important; }
+  body.forced-landscape-safe .resource-strip { top: calc(66px + env(safe-area-inset-top)) !important; }
+  body.forced-landscape-safe .target-card { top: calc(66px + env(safe-area-inset-top)) !important; width: 158px !important; }
+  body.forced-landscape-safe .field-quest-tracker { top: calc(66px + env(safe-area-inset-top)) !important; width: 150px !important; }
+  body.forced-landscape-safe .field-chain-meter { top: calc(118px + env(safe-area-inset-top)) !important; width: 150px !important; }
+  body.forced-landscape-safe .skill-dock { bottom: calc(150px + env(safe-area-inset-bottom)) !important; }
+  body.forced-landscape-safe .potion-dock { bottom: calc(150px + env(safe-area-inset-bottom)) !important; }
+}
+
+body.town-active .town-topbar {
+  align-items: center !important;
+}
+body.town-active .town-hero-card {
+  min-height: 54px !important;
+}
+body.town-active .town-portrait {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  border-radius: 15px !important;
+}
+
+.profile-card-head {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+.profile-portrait {
+  display: block;
+  width: 74px;
+  height: 86px;
+  border-radius: 18px;
+  border: 1px solid rgba(226, 185, 95, .32);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  box-shadow: inset 0 0 24px rgba(0,0,0,.25), 0 10px 26px rgba(0,0,0,.28);
+}
+.profile-portrait.class-warrior.gender-male { background-image: url("./assets/ui/portrait-warrior-male.webp"); }
+.profile-portrait.class-warrior.gender-female { background-image: url("./assets/ui/portrait-warrior-female.webp"); }
+.profile-portrait.class-taoist.gender-male { background-image: url("./assets/ui/portrait-taoist-male.webp"); }
+.profile-portrait.class-taoist.gender-female { background-image: url("./assets/ui/portrait-taoist-female.webp"); }
+.profile-portrait.class-cleric.gender-male { background-image: url("./assets/ui/portrait-cleric-male.webp"); }
+.profile-portrait.class-cleric.gender-female { background-image: url("./assets/ui/portrait-cleric-female.webp"); }

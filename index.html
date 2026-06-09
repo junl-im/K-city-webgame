@@ -32,7 +32,7 @@
             <span class="title-character title-character-visual"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn">게임 시작</button>
-          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.40.0</span></div>
+          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.41.0</span></div>
           <small>전체화면은 브라우저 정책상 버튼 입력 후 시도됩니다.</small>
         </div>
       </section>
@@ -254,6 +254,7 @@
       </section>
 
       <div class="orientation-guard" aria-hidden="true"><div><b>세로 모드 전용</b><span>기기를 세로로 돌리면 게임 화면이 다시 표시됩니다.</span></div></div>
+      <div class="browser-safe-tip hidden" id="browserSafeTip" aria-hidden="true"></div>
 
       <div class="scene-transition" id="sceneTransition" aria-hidden="true">
         <div>
@@ -322,6 +323,11 @@
         <i id="joystickKnob"></i>
       </div>
 
+      <nav class="potion-dock" aria-label="물약 단축 버튼">
+        <button id="hpPotionBtn" class="potion-btn hp-potion"><span>♥</span><b>HP</b><em>0</em></button>
+        <button id="mpPotionBtn" class="potion-btn mp-potion"><span>✦</span><b>MP</b><em>0</em></button>
+      </nav>
+
       <nav class="skill-dock" aria-label="스킬 단축 버튼">
         <button class="skill-btn" data-skill-slot="0"><span>1</span><b>스킬1</b><em></em></button>
         <button class="skill-btn" data-skill-slot="1"><span>2</span><b>스킬2</b><em></em></button>
@@ -331,9 +337,10 @@
       <nav class="action-dock" aria-label="전투 행동">
         <button id="autoHuntBtn" class="dock-btn"><span>⟳</span><b>자동</b></button>
         <button id="attackBtn" class="dock-btn primary"><span>⚔</span><b>공격</b></button>
-        <button id="cardsBtn" class="dock-btn"><span>◆</span><b>카드</b></button>
-        <button id="inventoryBtn" class="dock-btn"><span>▤</span><b>가방</b></button>
-        <button id="sleepModeBtn" class="dock-btn"><span>☾</span><b>절전</b></button>
+        <button id="openMenu" class="dock-btn menu-btn" title="메뉴 더보기" aria-label="메뉴 더보기"><span>☰</span><b>메뉴</b></button>
+        <button id="inventoryBtn" class="dock-btn bag-btn"><span>▤</span><b>가방</b></button>
+        <button id="sleepModeBtn" class="dock-btn sleep-btn"><span>☾</span><b>절전</b></button>
+        <button id="cardsBtn" class="dock-btn hidden-field-shortcut" tabindex="-1" aria-hidden="true"><span>◆</span><b>카드</b></button>
       </nav>
 
       <section class="sheet" id="sheet" aria-hidden="true">

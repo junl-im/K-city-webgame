@@ -121,11 +121,12 @@ export interface StoryQuestDefinition {
 export interface ItemDefinition {
   id: string;
   name: string;
-  type: 'weapon' | 'armor' | 'relic' | 'material' | 'skillbook';
+  type: 'weapon' | 'armor' | 'relic' | 'material' | 'skillbook' | 'consumable';
   rarity: CardRarity;
   effectText: string;
   bonus: Partial<Stats>;
   skillId?: string;
+  consume?: { hpPercent?: number; mpPercent?: number; hpFlat?: number; mpFlat?: number };
 }
 
 export interface DropEntry {
@@ -281,7 +282,9 @@ export interface Snapshot {
   skills: SkillSnapshot[];
   cardSetEffects: CardSetDefinition[];
   combatChain: CombatChainSnapshot;
+  potionCounts: { hpSmall: number; mpSmall: number };
 }
+
 
 export interface SaveRoster {
   version: number;
