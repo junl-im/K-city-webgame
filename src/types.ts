@@ -8,6 +8,7 @@ export type DailyQuestGoalType = 'kill' | 'level' | 'collect';
 export type StoryQuestGoalType = 'talk' | 'kill' | 'level' | 'collect';
 export type EquipmentSlot = 'weapon' | 'armor' | 'relic';
 export type MobAiState = 'idle' | 'alert' | 'chase' | 'attackWindup' | 'attack' | 'return';
+export type MobPatternKind = 'flameLine' | 'shockwave' | 'shadowBurst';
 export type EliteAffixId = 'fierce' | 'ancient' | 'swift' | 'cursed';
 
 export interface Stats {
@@ -232,6 +233,11 @@ export interface WorldMob {
   stuckTimer: number;
   lastX: number;
   lastY: number;
+  patternCooldown: number;
+  patternWindup: number;
+  patternKind?: MobPatternKind;
+  patternTargetX?: number;
+  patternTargetY?: number;
 }
 
 

@@ -27,6 +27,7 @@ import type {
   EquipmentSlot,
   InventoryItem,
   MonsterDefinition,
+  MobPatternKind,
   MonsterId,
   PlayerSave,
   Snapshot,
@@ -71,6 +72,20 @@ type EliteAffixDefinition = {
 const CHAIN_MAX_TIMER = 9.5;
 const CHAIN_BONUS_STEP = 0.02;
 const CHAIN_BONUS_CAP = 0.28;
+
+const BOSS_PATTERN_MOBS = new Set<MonsterId>(['fireDrake', 'stormHarpy', 'graveKnight', 'fieldBoss', 'dragon', 'wraith', 'crystalBear']);
+
+const patternNames: Record<MobPatternKind, string> = {
+  flameLine: '화염 숨결',
+  shockwave: '대지 충격파',
+  shadowBurst: '그림자 폭발'
+};
+
+const patternColors: Record<MobPatternKind, number> = {
+  flameLine: 0xff6b36,
+  shockwave: 0xe2b95f,
+  shadowBurst: 0x9c80ff
+};
 
 const eliteAffixes: EliteAffixDefinition[] = [
   { id: 'fierce', label: '분노한', color: 0xff5d5d, statScale: 1.22, rewardScale: 1.42, aspdScale: 1.08 },
@@ -1327,7 +1342,9 @@ export class SolGame {
           alertDelay: 0.32 + Math.random() * 0.42,
           stuckTimer: 0,
           lastX: safe.x,
-          lastY: safe.y
+          lastY: safe.y,
+          patternCooldown: 2.2 + Math.random() * 3.2,
+          patternWindup: 0
         };
       });
 
@@ -1662,6 +1679,16 @@ export class SolGame {
       mob.attackCooldown = Math.max(0, mob.attackCooldown - dt);
       mob.wanderCooldown = Math.max(0, mob.wanderCooldown - dt);
       mob.stateTimer = Math.max(0, mob.stateTimer - dt);
+      mob.patternCooldown = Math.max(0, (mob.patternCooldown || 0) - dt);
+
+      if (this.updateMobPattern(mob, view, stats, dt)) {
+        this.updateMobAnimation(view, mob, dt);
+        this.updateMobHp(view, mob);
+        this.placeEntity(view.root, mob.x, mob.y);
+        mob.lastX = mob.x;
+        mob.lastY = mob.y;
+        continue;
+      }
 
       this.updateMobAi(mob, view, stats, dt);
       this.resolveMobOverlap(mob);
@@ -1671,6 +1698,166 @@ export class SolGame {
       mob.lastX = mob.x;
       mob.lastY = mob.y;
     }
+  }
+
+  private updateMobPattern(mob: WorldMob, view: MobView, playerStats: Stats, dt: number) {
+    if (!BOSS_PATTERN_MOBS.has(mob.def.id)) return false;
+
+    if ((mob.patternWindup || 0) > 0) {
+      mob.patternWindup = Math.max(0, mob.patternWindup - dt);
+      this.faceMobToPlayer(view, mob);
+      view.body.tint = mob.patternKind ? patternColors[mob.patternKind] : 0xffd15f;
+      if (mob.patternWindup <= 0) {
+        this.performMobPattern(mob, view, playerStats);
+        mob.patternKind = undefined;
+        mob.patternTargetX = undefined;
+        mob.patternTargetY = undefined;
+        view.body.tint = 0xffffff;
+        mob.state = distance(this.save.x, this.save.y, mob.x, mob.y) <= this.mobPatternFollowRange(mob) ? 'chase' : 'return';
+        mob.stateTimer = 0.18;
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  private maybeStartMobPattern(mob: WorldMob, view: MobView, dist: number) {
+    if (!BOSS_PATTERN_MOBS.has(mob.def.id)) return false;
+    if ((mob.patternCooldown || 0) > 0 || (mob.patternWindup || 0) > 0 || this.save.hp <= 0) return false;
+    if (mob.state === 'idle' || mob.state === 'return') return false;
+    if (dist > this.mobPatternFollowRange(mob)) return false;
+
+    const kind = this.patternKindForMob(mob, dist);
+    if (!kind) return false;
+
+    mob.patternKind = kind;
+    mob.patternTargetX = this.save.x;
+    mob.patternTargetY = this.save.y;
+    mob.patternWindup = kind === 'flameLine' ? (mob.def.id === 'dragon' ? 0.86 : 0.68) : kind === 'shockwave' ? 0.62 : 0.72;
+    const baseCooldown = mob.def.id === 'dragon' || mob.def.id === 'fieldBoss' ? 4.9 : 5.8;
+    const eliteTax = mob.eliteAffix ? -0.55 : 0;
+    const lowHpTax = mob.hp / Math.max(1, this.mobCombatStats(mob).hp) < 0.38 ? -0.75 : 0;
+    mob.patternCooldown = Math.max(3.2, baseCooldown + eliteTax + lowHpTax + Math.random() * 1.8);
+    mob.state = 'attackWindup';
+    mob.stateTimer = mob.patternWindup;
+    this.attackTell(view, mob, kind);
+    this.drawPatternTelegraph(mob, kind);
+    return true;
+  }
+
+  private patternKindForMob(mob: WorldMob, dist: number): MobPatternKind | null {
+    if ((mob.def.id === 'dragon' || mob.def.id === 'fireDrake') && dist <= 4.35 && dist >= 0.85) return 'flameLine';
+    if ((mob.def.id === 'fieldBoss' || mob.def.id === 'crystalBear' || mob.def.id === 'graveKnight') && dist <= 2.65) return 'shockwave';
+    if ((mob.def.id === 'wraith' || mob.def.id === 'stormHarpy') && dist <= 4.05) return 'shadowBurst';
+    if (mob.eliteAffix && dist <= 2.25) return 'shockwave';
+    return null;
+  }
+
+  private mobPatternFollowRange(mob: WorldMob) {
+    if (mob.def.id === 'dragon' || mob.def.id === 'fieldBoss') return 4.55;
+    if (mob.def.id === 'fireDrake' || mob.def.id === 'stormHarpy' || mob.def.id === 'wraith') return 4.1;
+    return 3.05;
+  }
+
+  private performMobPattern(mob: WorldMob, view: MobView, playerStats: Stats) {
+    const kind = mob.patternKind;
+    if (!kind || this.save.hp <= 0) return;
+    const hit = this.isPlayerInsidePattern(mob, kind);
+    this.animateMobAttack(view);
+    if (!hit) {
+      const tx = mob.patternTargetX ?? mob.x;
+      const ty = mob.patternTargetY ?? mob.y;
+      this.floatText('회피', tx, ty, 0x8dffb3);
+      this.impactBurst(tx, ty, patternColors[kind], false);
+      return;
+    }
+
+    const mobStats = this.mobCombatStats(mob);
+    const patternScale = kind === 'flameLine' ? 1.22 : kind === 'shockwave' ? 1.12 : 1.04;
+    const result = this.resolveDamage({ ...mobStats, atk: Math.round(mobStats.atk * patternScale) }, playerStats, mob.def.level - this.save.level);
+    if (result.hit) {
+      this.save.hp = Math.max(0, this.save.hp - result.damage);
+      audioService.play('hit');
+      this.playerAnimator?.playOnce(this.save.hp <= 0 ? 'death' : 'hit', 'idle');
+      this.floatText(`-${result.damage}`, this.save.x, this.save.y, kind === 'shadowBurst' ? 0x9c80ff : 0xff7878);
+      this.impactBurst(this.save.x, this.save.y, patternColors[kind], true);
+      if (kind !== 'shadowBurst') this.screenShake();
+      if (this.save.hp <= 0) this.playerKnockout();
+      this.pushLog(`${mob.def.name} ${patternNames[kind]} 적중`);
+    } else {
+      this.floatText('MISS', this.save.x, this.save.y, 0xd6d1c2);
+    }
+  }
+
+  private isPlayerInsidePattern(mob: WorldMob, kind: MobPatternKind) {
+    const px = this.save.x;
+    const py = this.save.y;
+    const tx = mob.patternTargetX ?? px;
+    const ty = mob.patternTargetY ?? py;
+    if (kind === 'flameLine') {
+      const reach = mob.def.id === 'dragon' ? 4.35 : 3.55;
+      const endDir = normalize(tx - mob.x, ty - mob.y);
+      const ex = mob.x + endDir.x * reach;
+      const ey = mob.y + endDir.y * reach;
+      return this.distancePointToSegment(px, py, mob.x, mob.y, ex, ey) <= (mob.def.id === 'dragon' ? 0.54 : 0.44);
+    }
+    if (kind === 'shockwave') return distance(px, py, mob.x, mob.y) <= (mob.def.id === 'fieldBoss' ? 2.35 : 1.95);
+    return distance(px, py, tx, ty) <= 1.35;
+  }
+
+  private distancePointToSegment(px: number, py: number, ax: number, ay: number, bx: number, by: number) {
+    const abx = bx - ax;
+    const aby = by - ay;
+    const apx = px - ax;
+    const apy = py - ay;
+    const lenSq = abx * abx + aby * aby || 1;
+    const t = clamp((apx * abx + apy * aby) / lenSq, 0, 1);
+    const cx = ax + abx * t;
+    const cy = ay + aby * t;
+    return distance(px, py, cx, cy);
+  }
+
+  private drawPatternTelegraph(mob: WorldMob, kind: MobPatternKind) {
+    const color = patternColors[kind];
+    if (kind === 'flameLine') {
+      const start = isoToScreen(mob.x, mob.y);
+      const tx = mob.patternTargetX ?? this.save.x;
+      const ty = mob.patternTargetY ?? this.save.y;
+      const dir = normalize(tx - mob.x, ty - mob.y);
+      const reach = mob.def.id === 'dragon' ? 4.35 : 3.55;
+      const end = isoToScreen(mob.x + dir.x * reach, mob.y + dir.y * reach);
+      const line = new Graphics()
+        .moveTo(start.x, start.y - 24)
+        .lineTo(end.x, end.y - 24)
+        .stroke({ color, alpha: 0.62, width: mob.def.id === 'dragon' ? 20 : 15 })
+        .moveTo(start.x, start.y - 24)
+        .lineTo(end.x, end.y - 24)
+        .stroke({ color: 0xffffff, alpha: 0.5, width: 3 });
+      this.fxLayer.addChild(line);
+      this.animate(0.72, (t) => {
+        line.alpha = 0.85 - t * 0.5;
+        line.scale.set(1 + Math.sin(t * Math.PI * 6) * 0.018);
+      }, () => line.destroy());
+      return;
+    }
+
+    const center = kind === 'shadowBurst'
+      ? isoToScreen(mob.patternTargetX ?? this.save.x, mob.patternTargetY ?? this.save.y)
+      : isoToScreen(mob.x, mob.y);
+    const radius = kind === 'shockwave' ? (mob.def.id === 'fieldBoss' ? 76 : 62) : 52;
+    const ring = new Graphics()
+      .circle(0, 0, radius)
+      .stroke({ color, alpha: 0.72, width: 4 })
+      .circle(0, 0, radius * 0.62)
+      .stroke({ color: 0xffffff, alpha: 0.38, width: 2 });
+    ring.position.set(center.x, center.y - 18);
+    this.fxLayer.addChild(ring);
+    this.animate(kind === 'shockwave' ? 0.62 : 0.72, (t) => {
+      ring.alpha = 0.9 - t * 0.55;
+      ring.scale.set(0.78 + t * 0.24);
+      ring.rotation = t * Math.PI * 0.5;
+    }, () => ring.destroy());
   }
 
   private updateMobAi(mob: WorldMob, view: MobView, playerStats: Stats, dt: number) {
@@ -1736,6 +1923,8 @@ export class SolGame {
       mob.aggroUntil = 0;
       return;
     }
+
+    if (this.maybeStartMobPattern(mob, view, dist)) return;
 
     if (mob.state === 'chase') {
       mob.aggroUntil = Math.max(mob.aggroUntil, this.time + 1.2);
@@ -1816,9 +2005,11 @@ export class SolGame {
     view.animator?.setDirection(directionFromIsoVector(dir.x, dir.y));
   }
 
-  private attackTell(view: MobView, mob: WorldMob) {
-    view.body.tint = mob.def.id === 'dragon' ? 0xffd15f : 0xffb7b7;
-    this.impactBurst(mob.x, mob.y, 0xff7b58, false);
+  private attackTell(view: MobView, mob: WorldMob, patternKind?: MobPatternKind) {
+    const color = patternKind ? patternColors[patternKind] : mob.def.id === 'dragon' ? 0xffd15f : 0xffb7b7;
+    view.body.tint = color;
+    this.impactBurst(mob.x, mob.y, color, Boolean(patternKind));
+    if (patternKind) this.floatText(patternNames[patternKind], mob.x, mob.y - 0.42, color);
   }
 
   private performMobAttack(mob: WorldMob, view: MobView, playerStats: Stats) {
@@ -1928,6 +2119,11 @@ export class SolGame {
         mob.stateTimer = 0;
         mob.stuckTimer = 0;
         mob.wanderCooldown = 0.8 + Math.random() * 1.4;
+        mob.patternCooldown = 2.4 + Math.random() * 4.2;
+        mob.patternWindup = 0;
+        mob.patternKind = undefined;
+        mob.patternTargetX = undefined;
+        mob.patternTargetY = undefined;
         const safe = this.findSafeMobPosition(mob.spawnX, mob.spawnY, 1.7);
         mob.x = safe.x;
         mob.y = safe.y;
