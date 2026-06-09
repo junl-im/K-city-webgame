@@ -76,7 +76,7 @@ const mpPotionBtn = must<HTMLButtonElement>('#mpPotionBtn');
 const sleepModeBtn = must<HTMLButtonElement>('#sleepModeBtn');
 const sleepOverlay = must<HTMLElement>('#sleepOverlay');
 const skillDockButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-skill-slot]'));
-const openMenu = must<HTMLButtonElement>('#openMenu');
+const fieldMenuButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-open-field-menu]'));
 const sheet = must('#sheet');
 const closeSheet = must<HTMLButtonElement>('#closeSheet');
 const sheetBody = must('#sheetBody');
@@ -572,6 +572,12 @@ function bindLoginFlow() {
       return;
     }
 
+    const buyBulkItem = target.closest<HTMLButtonElement>('[data-town-shop-buy-bulk]');
+    if (buyBulkItem) {
+      buyTownShopItem(buyBulkItem.dataset.townShopBuyBulk || '', Number(buyBulkItem.dataset.townShopCount || 5));
+      return;
+    }
+
     const buyItem = target.closest<HTMLButtonElement>('[data-town-shop-buy]');
     if (buyItem) {
       buyTownShopItem(buyItem.dataset.townShopBuy || '');
@@ -843,11 +849,13 @@ function bindActions() {
   }
   cardsBtn.addEventListener('click', () => openSheet('cards'));
   inventoryBtn.addEventListener('click', () => openSheet('inventory'));
-  hpPotionBtn.addEventListener('click', () => game?.usePotion('hp-potion-small'));
-  mpPotionBtn.addEventListener('click', () => game?.usePotion('mp-potion-small'));
+  hpPotionBtn.addEventListener('click', () => game?.useBestPotion('hp'));
+  mpPotionBtn.addEventListener('click', () => game?.useBestPotion('mp'));
   sleepModeBtn.addEventListener('click', () => toggleSleepMode());
   sleepOverlay.addEventListener('click', () => toggleSleepMode(false));
-  openMenu.addEventListener('click', () => openSheet('account'));
+  for (const button of fieldMenuButtons) {
+    button.addEventListener('click', () => openSheet('account'));
+  }
   miniMapToggle?.addEventListener('click', () => {
     document.body.classList.toggle('minimap-compact');
   });
@@ -1091,10 +1099,14 @@ function renderHud(snapshot: Snapshot) {
 }
 
 function updatePotionDock(snapshot: Snapshot) {
-  const hpCount = snapshot.potionCounts.hpSmall;
-  const mpCount = snapshot.potionCounts.mpSmall;
+  const hpCount = snapshot.potionCounts.hpTotal;
+  const mpCount = snapshot.potionCounts.mpTotal;
   hpPotionBtn.querySelector('em')!.textContent = String(hpCount);
   mpPotionBtn.querySelector('em')!.textContent = String(mpCount);
+  hpPotionBtn.querySelector('b')!.textContent = snapshot.potionCounts.hpBestName ? 'HP+' : 'HP';
+  mpPotionBtn.querySelector('b')!.textContent = snapshot.potionCounts.mpBestName ? 'MP+' : 'MP';
+  hpPotionBtn.title = snapshot.potionCounts.hpBestName ? `자동 선택: ${snapshot.potionCounts.hpBestName}` : '생명 물약 없음';
+  mpPotionBtn.title = snapshot.potionCounts.mpBestName ? `자동 선택: ${snapshot.potionCounts.mpBestName}` : '마나 물약 없음';
   hpPotionBtn.disabled = hpCount <= 0 || snapshot.save.hp >= snapshot.stats.hp;
   mpPotionBtn.disabled = mpCount <= 0 || snapshot.save.mp >= snapshot.stats.mp;
 }
@@ -1264,6 +1276,7 @@ function renderInventory(snapshot: Snapshot) {
 
   return `
     ${renderEquipmentResonanceSummary(snapshot.save)}
+    ${renderPotionBeltSummary(snapshot.save)}
     <div class="slot-toolbar">
       <span>가방 7x7 · ${snapshot.save.inventory.length}/49 · ${formatGold(snapshot.save.gold)} · ${formatSoul(snapshot.save.gems)}</span>
       <em>슬롯 클릭: 상세 · 더블클릭: 장착/해제</em>
@@ -2025,8 +2038,30 @@ function renderTownInventory(save: PlayerSave) {
       <span>CRIT <b>${Math.round(stats.crit * 100)}%</b></span>
     </div>
     ${renderEquipmentResonanceSummary(save, true)}
+    ${renderPotionBeltSummary(save)}
     <div class="slot-toolbar"><span>가방 7x7 · ${save.inventory.length}/49 · ${formatGold(save.gold)} · ${formatSoul(save.gems)}</span><em>클릭: 상세 · 더블클릭: 장착/해제</em></div>
     <div class="slot-grid inventory-slot-grid town-slot-grid">${fillSlots(cells, 49, '빈 가방')}</div>
+  `;
+}
+
+
+function renderPotionBeltSummary(save: PlayerSave) {
+  const potionIds = ['hp-potion-small', 'hp-potion-mid', 'hp-potion-high', 'mp-potion-small', 'mp-potion-mid', 'mp-potion-high'];
+  const rows = potionIds
+    .map((itemId) => {
+      const def = items.find((item) => item.id === itemId);
+      if (!def) return '';
+      const count = materialCount(save, itemId);
+      const mode = def.consume?.hpPercent ? 'HP' : 'MP';
+      const power = Math.round(((def.consume?.hpPercent || def.consume?.mpPercent || 0) * 100));
+      return `<article class="potion-belt-cell ${count > 0 ? 'ready' : 'empty'}"><span>${mode}</span><b>${escapeHtml(def.name)}</b><em>${power}% · ${count}개</em></article>`;
+    })
+    .join('');
+  return `
+    <section class="potion-belt-summary">
+      <div><span>POTION BELT</span><h3>자동 물약 벨트</h3><p>필드 단축키와 자동사냥이 보유 물약 중 상황에 맞는 등급을 선택합니다.</p></div>
+      <div class="potion-belt-grid">${rows}</div>
+    </section>
   `;
 }
 
@@ -2091,6 +2126,8 @@ function renderTownShop(save: PlayerSave) {
     { itemId: 'mp-potion-small', price: 55, label: 'MP 즉시 회복' },
     { itemId: 'hp-potion-mid', price: 160, label: '중급 HP 회복' },
     { itemId: 'mp-potion-mid', price: 190, label: '중급 MP 회복' },
+    { itemId: 'hp-potion-high', price: 520, label: '상급 HP 회복' },
+    { itemId: 'mp-potion-high', price: 590, label: '상급 MP 회복' },
     { itemId: 'skillbook-basic', price: 180, label: '1번 스킬 습득' },
     { itemId: 'skillbook-second', price: 850, label: '2번 스킬 습득' },
     { itemId: 'skillbook-third', price: 2600, label: '3번 스킬 습득' },
@@ -2109,7 +2146,9 @@ function renderTownShop(save: PlayerSave) {
     .map(({ def, price, label }) => {
       const soldOut = isSkillBookSoldOut(save, def);
       const disabled = soldOut || save.gold < price ? 'disabled' : '';
+      const bulkDisabled = soldOut || save.gold < price * 5 || def.type === 'skillbook' ? 'disabled' : '';
       const buyLabel = soldOut ? '품절' : save.gold < price ? '골드 부족' : '구매';
+      const bulkLabel = def.type === 'skillbook' ? '1회 한정' : `5개 ${formatGold(price * 5)}`;
       return `
         <article class="shop-row ${soldOut ? 'sold-out' : ''}">
           <span class="shop-item-art"><img src="${itemArtUrl(def)}" alt="${escapeHtml(def.name)}" onerror="this.remove()" />${inlineFallbackIcon(itemIcon(def.type))}</span>
@@ -2118,13 +2157,17 @@ function renderTownShop(save: PlayerSave) {
             <h3>${escapeHtml(def.name)}</h3>
             <p>${escapeHtml(def.effectText)} · 가격 ${formatGold(price)}</p>
           </div>
-          <button ${disabled} data-town-shop-buy="${def.id}">${buyLabel}</button>
+          <div class="shop-buy-actions">
+            <button ${disabled} data-town-shop-buy="${def.id}">${buyLabel}</button>
+            <button ${bulkDisabled} data-town-shop-buy-bulk="${def.id}" data-town-shop-count="5">${bulkLabel}</button>
+          </div>
         </article>
       `;
     })
     .join('');
   return `
-    <div class="town-content-note">보유 골드 ${formatGold(save.gold)} · 구매 즉시 로컬 저장됩니다.</div>
+    <div class="town-content-note">보유 골드 ${formatGold(save.gold)} · 소모품/재료는 5개 묶음 구매를 지원합니다.</div>
+    ${renderPotionBeltSummary(save)}
     <div class="shop-list">${rows}</div>
   `;
 }
@@ -2410,13 +2453,15 @@ function upgradeTownItem(itemUid: string) {
   persistTownSave();
 }
 
-function buyTownShopItem(itemId: string) {
+function buyTownShopItem(itemId: string, amount = 1) {
   if (!pendingSave) return;
   const stock: Record<string, number> = {
     'hp-potion-small': 45,
     'mp-potion-small': 55,
     'hp-potion-mid': 160,
     'mp-potion-mid': 190,
+    'hp-potion-high': 520,
+    'mp-potion-high': 590,
     'skillbook-basic': 180,
     'skillbook-second': 850,
     'skillbook-third': 2600,
@@ -2435,12 +2480,14 @@ function buyTownShopItem(itemId: string) {
     showToast('이미 배운 스킬입니다. 스킬서는 품절 처리됩니다.');
     return;
   }
-  if (pendingSave.gold < price) {
+  const buyAmount = def.type === 'skillbook' ? 1 : Math.max(1, Math.min(99, Math.floor(amount || 1)));
+  const totalPrice = price * buyAmount;
+  if (pendingSave.gold < totalPrice) {
     audioService.play('error');
-    showToast('골드가 부족합니다.');
+    showToast(`골드가 부족합니다. 필요 ${formatGold(totalPrice)}`);
     return;
   }
-  pendingSave.gold -= price;
+  pendingSave.gold -= totalPrice;
   if (def.type === 'skillbook' && def.skillId) {
     if (learnSkillReward(pendingSave, def.skillId)) {
       audioService.play('reward');
@@ -2450,17 +2497,17 @@ function buyTownShopItem(itemId: string) {
       showToast(`${def.name} 구매 · 스킬 습득 완료`);
       return;
     }
-    pendingSave.gold += price;
+    pendingSave.gold += totalPrice;
     audioService.play('error');
     showToast('현재 직업에서 배울 수 없는 스킬서입니다.');
     return;
   }
-  addInventoryItem(pendingSave, itemId);
+  addInventoryItem(pendingSave, itemId, buyAmount);
   audioService.play('buy');
   persistTownSave();
   flashActionFeedback('구매 완료');
-  showLootPresentation({ type: 'item', title: def.name, subtitle: '가방에 보관됨', art: itemArtUrl(def), rarity: def.rarity });
-  showToast(`${def.name} 구매 완료`);
+  showLootPresentation({ type: 'item', title: def.name, subtitle: buyAmount > 1 ? `${buyAmount}개 가방에 보관됨` : '가방에 보관됨', art: itemArtUrl(def), rarity: def.rarity });
+  showToast(`${def.name}${buyAmount > 1 ? ` x${buyAmount}` : ''} 구매 완료`);
 }
 
 function trainTownSkill(skillId: string) {

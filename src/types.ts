@@ -282,7 +282,20 @@ export interface Snapshot {
   skills: SkillSnapshot[];
   cardSetEffects: CardSetDefinition[];
   combatChain: CombatChainSnapshot;
-  potionCounts: { hpSmall: number; mpSmall: number };
+  potionCounts: {
+    hpSmall: number;
+    hpMid: number;
+    hpHigh: number;
+    hpTotal: number;
+    hpBestId?: string;
+    hpBestName?: string;
+    mpSmall: number;
+    mpMid: number;
+    mpHigh: number;
+    mpTotal: number;
+    mpBestId?: string;
+    mpBestName?: string;
+  };
 }
 
 

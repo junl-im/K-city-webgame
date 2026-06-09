@@ -28,6 +28,7 @@ import type {
   EliteAffixId,
   EquipmentSlot,
   InventoryItem,
+  ItemDefinition,
   MonsterDefinition,
   MobPatternKind,
   MonsterId,
@@ -275,7 +276,23 @@ export class SolGame {
   usePotion(itemId: string, silent = false) {
     const entry = this.save.inventory.find((item) => item.itemId === itemId && item.count > 0);
     const def = items.find((item) => item.id === itemId && item.type === 'consumable');
-    if (!entry || !def || !def.consume) {
+    return this.consumePotionEntry(entry, def, silent);
+  }
+
+  useBestPotion(kind: 'hp' | 'mp', silent = false) {
+    const choice = this.selectBestPotion(kind);
+    if (!choice) {
+      if (!silent) {
+        this.pushLog(kind === 'hp' ? '사용할 생명 물약이 없습니다.' : '사용할 마나 물약이 없습니다.');
+        this.emit();
+      }
+      return false;
+    }
+    return this.consumePotionEntry(choice.entry, choice.def, silent);
+  }
+
+  private consumePotionEntry(entry: InventoryItem | undefined, def: ItemDefinition | undefined, silent = false) {
+    if (!entry || !def || def.type !== 'consumable' || !def.consume) {
       if (!silent) {
         this.pushLog('사용할 물약이 없습니다.');
         this.emit();
@@ -304,7 +321,48 @@ export class SolGame {
     this.floatText(def.consume.hpPercent ? 'HP POTION' : 'MP POTION', this.save.x, this.save.y - 0.38, def.consume.hpPercent ? 0x66f08a : 0x72b7ff);
     this.pushLog(`${def.name} 사용 · ${hpGain ? `HP +${hpGain}` : ''}${hpGain && mpGain ? ' · ' : ''}${mpGain ? `MP +${mpGain}` : ''}`);
     this.markDirty();
+    this.emit();
     return true;
+  }
+
+  private selectBestPotion(kind: 'hp' | 'mp') {
+    const stats = this.calculateStats();
+    const ratio = kind === 'hp' ? this.save.hp / Math.max(1, stats.hp) : this.save.mp / Math.max(1, stats.mp);
+    const priority = kind === 'hp'
+      ? (ratio <= 0.22 ? ['hp-potion-high', 'hp-potion-mid', 'hp-potion-small'] : ratio <= 0.48 ? ['hp-potion-mid', 'hp-potion-small', 'hp-potion-high'] : ['hp-potion-small', 'hp-potion-mid', 'hp-potion-high'])
+      : (ratio <= 0.16 ? ['mp-potion-high', 'mp-potion-mid', 'mp-potion-small'] : ratio <= 0.40 ? ['mp-potion-mid', 'mp-potion-small', 'mp-potion-high'] : ['mp-potion-small', 'mp-potion-mid', 'mp-potion-high']);
+
+    for (const itemId of priority) {
+      const entry = this.save.inventory.find((item) => item.itemId === itemId && item.count > 0);
+      const def = items.find((item) => item.id === itemId && item.type === 'consumable' && item.consume);
+      if (entry && def) return { entry, def };
+    }
+    return null;
+  }
+
+  private potionSnapshot() {
+    const hpSmall = this.materialCount('hp-potion-small');
+    const hpMid = this.materialCount('hp-potion-mid');
+    const hpHigh = this.materialCount('hp-potion-high');
+    const mpSmall = this.materialCount('mp-potion-small');
+    const mpMid = this.materialCount('mp-potion-mid');
+    const mpHigh = this.materialCount('mp-potion-high');
+    const hpBest = this.selectBestPotion('hp')?.def;
+    const mpBest = this.selectBestPotion('mp')?.def;
+    return {
+      hpSmall,
+      hpMid,
+      hpHigh,
+      hpTotal: hpSmall + hpMid + hpHigh,
+      hpBestId: hpBest?.id,
+      hpBestName: hpBest?.name,
+      mpSmall,
+      mpMid,
+      mpHigh,
+      mpTotal: mpSmall + mpMid + mpHigh,
+      mpBestId: mpBest?.id,
+      mpBestName: mpBest?.name
+    };
   }
 
 
@@ -1613,11 +1671,11 @@ export class SolGame {
     const stats = this.calculateStats();
     const hpRatio = this.save.hp / Math.max(1, stats.hp);
     const mpRatio = this.save.mp / Math.max(1, stats.mp);
-    if (hpRatio < 0.34) {
-      this.usePotion('hp-potion-small', true);
+    if (hpRatio < 0.36) {
+      this.useBestPotion('hp', true);
       return;
     }
-    if (mpRatio < 0.18) this.usePotion('mp-potion-small', true);
+    if (mpRatio < 0.22) this.useBestPotion('mp', true);
   }
 
   private tryAutoSkillUse() {
@@ -3133,10 +3191,7 @@ export class SolGame {
       skills: this.createSkillSnapshots(),
       cardSetEffects: this.activeCardSetEffects(),
       combatChain: this.combatChainSnapshot(),
-      potionCounts: {
-        hpSmall: this.materialCount('hp-potion-small'),
-        mpSmall: this.materialCount('mp-potion-small')
-      }
+      potionCounts: this.potionSnapshot()
     };
   }
 
