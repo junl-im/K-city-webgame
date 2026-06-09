@@ -112,6 +112,9 @@ const itemDetailTitle = must<HTMLElement>('#itemDetailTitle');
 const itemDetailDesc = must<HTMLElement>('#itemDetailDesc');
 const itemDetailStats = must<HTMLElement>('#itemDetailStats');
 const itemDetailActions = must<HTMLElement>('#itemDetailActions');
+const exitConfirmModal = must<HTMLElement>('#exitConfirmModal');
+const exitCancelBtn = must<HTMLButtonElement>('#exitCancelBtn');
+const exitConfirmBtn = must<HTMLButtonElement>('#exitConfirmBtn');
 
 boot().catch((error) => {
   console.error(error);
@@ -140,6 +143,7 @@ async function boot() {
   bindAudioControls();
   must('#classPortrait').addEventListener('click', () => openSheet('account'));
   bindBackButtonGuard();
+  bindExitConfirmModal();
   renderCharacterSummary();
   renderCharacterSlots();
   updateWorldSummary();
@@ -189,6 +193,16 @@ function bindAudioControls() {
     if (!button) return;
     const danger = button.classList.contains('danger') || button.disabled;
     audioService.play(danger ? 'error' : 'ui');
+    if (!button.disabled) {
+      button.classList.remove('pressed-feedback');
+      void button.offsetWidth;
+      button.classList.add('pressed-feedback');
+      window.setTimeout(() => button.classList.remove('pressed-feedback'), 260);
+      if (button.dataset.townShopBuy) flashActionFeedback('구매 처리');
+      else if (button.dataset.townUpgradeItem || button.dataset.upgradeItem) flashActionFeedback('강화 시도');
+      else if (button.dataset.townEquipItem || button.dataset.equipItem || button.dataset.townEquipCard || button.dataset.equipCard) flashActionFeedback('장착 변경');
+      else if (button.classList.contains('wide-action') || button.classList.contains('dock-btn')) flashActionFeedback('확인');
+    }
   }, true);
 }
 
@@ -915,6 +929,23 @@ function bindSheet() {
   });
 }
 
+
+  sheetBody.addEventListener('dblclick', (event) => {
+    const target = event.target as HTMLElement;
+    const item = target.closest<HTMLElement>('[data-item-detail]');
+    if (item) { game?.equipItem(item.dataset.itemDetail || ''); return; }
+    const card = target.closest<HTMLElement>('[data-card-detail]');
+    if (card) { game?.equipCard(card.dataset.cardDetail || ''); }
+  });
+
+  townContentBody.addEventListener('dblclick', (event) => {
+    const target = event.target as HTMLElement;
+    const item = target.closest<HTMLElement>('[data-item-detail]');
+    if (item) { toggleTownItem(item.dataset.itemDetail || ''); return; }
+    const card = target.closest<HTMLElement>('[data-card-detail]');
+    if (card) { toggleTownCard(card.dataset.cardDetail || ''); }
+  });
+
 async function handleAccountAction(action: string) {
   if (!game) return;
   try {
@@ -1034,30 +1065,51 @@ function bindBackButtonGuard() {
       window.history.pushState({ key: stateKey, guard: true }, document.title, window.location.href);
       return;
     }
-    const ok = window.confirm('게임을 종료할까요? 저장 후 첫 화면으로 돌아갑니다.');
-    if (ok) {
-      try {
-        if (game) {
-          const save = game.getSave();
-          saveService.saveLocal(save);
-          game.destroy();
-          game = null;
-          pendingSave = save;
-        } else if (pendingSave) {
-          saveService.saveLocal(pendingSave);
-        }
-      } catch (error) {
-        console.warn('[BackGuard] save skipped', error);
-      }
-      document.body.classList.remove('field-active', 'town-active');
-      root.replaceChildren();
-      townScreen.classList.add('hidden');
-      loginScreen.classList.add('hidden');
-      titleScreen.classList.remove('hidden');
-      showToast('진행 상황을 저장하고 첫 화면으로 돌아왔습니다.');
-    }
+    showExitConfirmModal();
     window.history.pushState({ key: stateKey, guard: true }, document.title, window.location.href);
   });
+}
+
+function bindExitConfirmModal() {
+  exitCancelBtn.addEventListener('click', closeExitConfirmModal);
+  exitConfirmBtn.addEventListener('click', confirmExitToTitle);
+  exitConfirmModal.addEventListener('click', (event) => {
+    if ((event.target as HTMLElement).closest('[data-exit-cancel]')) closeExitConfirmModal();
+  });
+}
+
+function showExitConfirmModal() {
+  exitConfirmModal.classList.remove('hidden');
+  exitConfirmModal.setAttribute('aria-hidden', 'false');
+}
+
+function closeExitConfirmModal() {
+  exitConfirmModal.classList.add('hidden');
+  exitConfirmModal.setAttribute('aria-hidden', 'true');
+}
+
+function confirmExitToTitle() {
+  try {
+    if (game) {
+      const save = game.getSave();
+      saveService.saveLocal(save);
+      game.destroy();
+      game = null;
+      pendingSave = save;
+    } else if (pendingSave) {
+      saveService.saveLocal(pendingSave);
+    }
+  } catch (error) {
+    console.warn('[BackGuard] save skipped', error);
+  }
+  closeExitConfirmModal();
+  closeCurrentSheet();
+  document.body.classList.remove('field-active', 'town-active', 'sheet-open');
+  root.replaceChildren();
+  townScreen.classList.add('hidden');
+  loginScreen.classList.add('hidden');
+  titleScreen.classList.remove('hidden');
+  showToast('진행 상황을 저장하고 첫 화면으로 돌아왔습니다.');
 }
 
 function openSheet(tab: SheetTab) {
@@ -1086,7 +1138,7 @@ function renderSheet() {
     inventory: ['BAG', '장비 가방'],
     skills: ['SOUL SKILL', '스킬 슬롯'],
     souls: ['SOUL LINK', '영혼 링크'],
-    account: ['FIREBASE', '계정 저장']
+    account: ['CHARACTER', '캐릭터 정보']
   };
   sheetEyebrow.textContent = titles[activeSheetTab][0];
   sheetTitle.textContent = titles[activeSheetTab][1];
@@ -1128,8 +1180,8 @@ function renderInventory(snapshot: Snapshot) {
 
   return `
     <div class="slot-toolbar">
-      <span>인벤토리 7x7 · ${snapshot.save.inventory.length}/49</span>
-      <em>무기/방어구/유물은 슬롯에서 바로 장착 가능합니다.</em>
+      <span>가방 7x7 · ${snapshot.save.inventory.length}/49 · ${formatGold(snapshot.save.gold)} · ${formatSoul(snapshot.save.gems)}</span>
+      <em>슬롯 클릭: 상세 · 더블클릭: 장착/해제</em>
     </div>
     <div class="slot-grid inventory-slot-grid">${fillSlots(itemCells, 49, '빈 가방')}</div>
   `;
@@ -1149,7 +1201,7 @@ function renderSkillGrid(save: PlayerSave, townMode: boolean) {
     const state = !learned ? '미습득' : levelReady ? '사용 가능' : `Lv.${skill.unlockLevel}`;
     return `
       <article class="slot-cell skill-slot ${unlocked ? 'unlocked' : 'locked'}" data-skill-detail="${skill.id}" tabindex="0" role="button" aria-label="${escapeHtml(skill.name)} 상세 보기">
-        <span class="slot-art skill-art skill-art-${skill.hotkey}"><i>${escapeHtml(skill.hotkey)}</i></span>
+        <span class="slot-art skill-art skill-art-${skill.hotkey}"><img src="${skillArtUrl(skill)}" alt="${escapeHtml(skill.name)}" onerror="this.remove()" />${inlineFallbackIcon(skill.hotkey)}</span>
         <span class="slot-rarity">${state}</span>
         <b>${escapeHtml(skill.name)}</b>
         <em>MP ${skill.mpCost} · 쿨 ${skill.cooldownSec}s</em>
@@ -1159,7 +1211,7 @@ function renderSkillGrid(save: PlayerSave, townMode: boolean) {
   return `
     <div class="slot-toolbar">
       <span>스킬 슬롯 3x3 · ${classes[save.classId].name}</span>
-      <em>${townMode ? '슬롯을 누르면 상세/습득 상태를 확인합니다.' : '슬롯을 누르면 상세 팝업이 열립니다.'}</em>
+      <em>클릭하면 상세 정보가 전면 팝업으로 열립니다.</em>
     </div>
     <div class="slot-grid skill-slot-grid compact-slot-grid">${fillSlots(cells, 9, '미개방')}</div>
   `;
@@ -1188,7 +1240,7 @@ function renderItemSlot(save: PlayerSave, def: ItemDefinition, uidValue: string,
   const upgradeDisabled = enhanceLevel >= MAX_ENHANCE_LEVEL ? 'disabled' : '';
   return `
     <article class="slot-cell item-slot ${equipped ? 'equipped' : ''}" data-item-detail="${uidValue}" tabindex="0" role="button" aria-label="${escapeHtml(def.name)} 상세 보기">
-      <span class="slot-art item-art item-art-${def.type} ${equipped ? 'is-equipped' : ''}"><i>${itemIcon(def.type)}</i></span>
+      <span class="slot-art item-art item-art-${def.type} ${equipped ? 'is-equipped' : ''}"><img src="${itemArtUrl(def)}" alt="${escapeHtml(def.name)}" onerror="this.remove()" />${inlineFallbackIcon(itemIcon(def.type))}</span>
       <span class="slot-rarity rarity-${def.rarity.toLowerCase()}">${def.rarity}${canEquip ? ` · +${enhanceLevel}` : ''}</span>
       <b>${escapeHtml(def.name)}${canEquip && enhanceLevel ? ` +${enhanceLevel}` : ''}</b>
       <em>${typeLabel[def.type] || escapeHtml(def.type)} · x${count}${equipped ? ' · 장착' : ''}</em>
@@ -1209,6 +1261,26 @@ function itemIcon(type: string) {
   if (type === 'relic') return '✦';
   if (type === 'skillbook') return '書';
   return '◆';
+}
+
+function runtimeAsset(path: string) {
+  return `./assets/soulpack/${path}`;
+}
+
+function itemArtUrl(def: ItemDefinition) {
+  return runtimeAsset(`items/${def.id}.webp`);
+}
+
+function skillArtUrl(def: SkillDefinition) {
+  return runtimeAsset(`skills/${def.id}.webp`);
+}
+
+function soulArtUrl(def: SoulDefinition) {
+  return runtimeAsset(`souls/${def.id}.webp`);
+}
+
+function inlineFallbackIcon(label: string) {
+  return `<i>${escapeHtml(label)}</i>`;
 }
 
 
@@ -1264,7 +1336,7 @@ function renderSouls(snapshot: Snapshot) {
       const percent = Math.min(100, Math.round((progress / def.requiredKills) * 100));
       return `
         <article class="soul-row soul-slot" data-soul-detail="${def.id}" tabindex="0" role="button" aria-label="${escapeHtml(def.name)} 상세 보기">
-          <span class="slot-art soul-art"><i>${instance?.unlocked ? '魂' : percent}</i></span>
+          <span class="slot-art soul-art"><img src="${soulArtUrl(def)}" alt="${escapeHtml(def.name)}" onerror="this.remove()" />${inlineFallbackIcon(instance?.unlocked ? '魂' : String(percent))}</span>
           <div>
             <div class="pill-row">
               <span class="pill">${instance?.unlocked ? '해방' : `${progress}/${def.requiredKills}`}</span>
@@ -1301,11 +1373,11 @@ function renderAccount(snapshot: Snapshot) {
       </article>
       <article class="account-panel">
         <div class="pill-row">
-          <span class="pill">${snapshot.online ? '온라인' : '로컬'}</span>
+          <span class="pill">환경설정</span><span class="pill">${snapshot.online ? '온라인' : '로컬'}</span>
           <span class="pill">${escapeHtml(snapshot.userLabel)}</span>
           <span class="pill">${escapeHtml(klass.skillName)}</span>
         </div>
-        <p>프로필을 누르면 이 캐릭터 정보 창이 열립니다. Google 또는 게스트 클라우드 저장도 여기서 관리합니다.</p>
+        <p>캐릭터 능력치는 위 카드에서 확인하고, 계정 저장과 사운드 옵션은 환경설정 영역에서 관리합니다.</p>
         <button data-account-action="google">Google 연결</button>
         <button data-account-action="guest">게스트 클라우드</button>
         <button data-account-action="logout">로그아웃</button>
@@ -1488,7 +1560,13 @@ async function continueCurrentQuest(autoStart = true) {
   }
   const progress = storyQuestProgress(save, quest);
   if (progress >= quest.target) {
+    if (game) pendingSave = game.getSave();
     claimStoryQuest(quest.id);
+    if (game && pendingSave) game.replaceSave(pendingSave);
+    const next = pendingSave ? currentStoryQuest(pendingSave) : null;
+    if (next?.unlockZoneId && pendingSave && storyQuestProgress(pendingSave, next) < next.target) {
+      await startField(pendingSave, next.unlockZoneId, autoStart);
+    }
     return;
   }
   if (quest.unlockZoneId) {
@@ -1772,7 +1850,7 @@ function renderTownInventory(save: PlayerSave) {
       <span>ASPD <b>${stats.aspd}</b></span>
       <span>CRIT <b>${Math.round(stats.crit * 100)}%</b></span>
     </div>
-    <div class="slot-toolbar"><span>인벤토리 7x7 · ${save.inventory.length}/49</span><em>슬롯을 눌러 장착/해제합니다.</em></div>
+    <div class="slot-toolbar"><span>가방 7x7 · ${save.inventory.length}/49 · ${formatGold(save.gold)} · ${formatSoul(save.gems)}</span><em>클릭: 상세 · 더블클릭: 장착/해제</em></div>
     <div class="slot-grid inventory-slot-grid town-slot-grid">${fillSlots(cells, 49, '빈 가방')}</div>
   `;
 }
@@ -1822,15 +1900,18 @@ function renderTownShop(save: PlayerSave) {
       return def ? [{ ...entry, def }] : [];
     })
     .map(({ def, price, label }) => {
-      const disabled = save.gold < price ? 'disabled' : '';
+      const soldOut = isSkillBookSoldOut(save, def);
+      const disabled = soldOut || save.gold < price ? 'disabled' : '';
+      const buyLabel = soldOut ? '품절' : save.gold < price ? '골드 부족' : '구매';
       return `
-        <article class="shop-row">
+        <article class="shop-row ${soldOut ? 'sold-out' : ''}">
+          <span class="shop-item-art"><img src="${itemArtUrl(def)}" alt="${escapeHtml(def.name)}" onerror="this.remove()" />${inlineFallbackIcon(itemIcon(def.type))}</span>
           <div>
-            <div class="pill-row"><span class="pill">${def.rarity}</span><span class="pill">${label}</span></div>
+            <div class="pill-row"><span class="pill">${def.rarity}</span><span class="pill">${label}</span>${soldOut ? '<span class="pill">습득 완료</span>' : ''}</div>
             <h3>${escapeHtml(def.name)}</h3>
             <p>${escapeHtml(def.effectText)} · 가격 ${formatGold(price)}</p>
           </div>
-          <button ${disabled} data-town-shop-buy="${def.id}">${save.gold < price ? '골드 부족' : '구매'}</button>
+          <button ${disabled} data-town-shop-buy="${def.id}">${buyLabel}</button>
         </article>
       `;
     })
@@ -1839,6 +1920,12 @@ function renderTownShop(save: PlayerSave) {
     <div class="town-content-note">보유 골드 ${formatGold(save.gold)} · 구매 즉시 로컬 저장됩니다.</div>
     <div class="shop-list">${rows}</div>
   `;
+}
+
+function isSkillBookSoldOut(save: PlayerSave, def: ItemDefinition) {
+  if (def.type !== 'skillbook' || !def.skillId) return false;
+  const id = classSkillId(save, def.skillId);
+  return Boolean(id && save.learnedSkillIds?.includes(id));
 }
 
 function renderTownBoss(save: PlayerSave) {
@@ -2089,20 +2176,34 @@ function buyTownShopItem(itemId: string) {
   const price = stock[itemId];
   const def = items.find((item) => item.id === itemId);
   if (!price || !def) return;
+  if (isSkillBookSoldOut(pendingSave, def)) {
+    audioService.play('error');
+    showToast('이미 배운 스킬입니다. 스킬서는 품절 처리됩니다.');
+    return;
+  }
   if (pendingSave.gold < price) {
+    audioService.play('error');
     showToast('골드가 부족합니다.');
     return;
   }
   pendingSave.gold -= price;
-  if (def.type === 'skillbook' && def.skillId && learnSkillReward(pendingSave, def.skillId)) {
-    audioService.play('reward');
-    persistTownSave();
-    showToast(`${def.name} 구매 · 스킬 습득 완료`);
+  if (def.type === 'skillbook' && def.skillId) {
+    if (learnSkillReward(pendingSave, def.skillId)) {
+      audioService.play('reward');
+      persistTownSave();
+      flashActionFeedback('스킬 습득');
+      showToast(`${def.name} 구매 · 스킬 습득 완료`);
+      return;
+    }
+    pendingSave.gold += price;
+    audioService.play('error');
+    showToast('현재 직업에서 배울 수 없는 스킬서입니다.');
     return;
   }
   addInventoryItem(pendingSave, itemId);
   audioService.play('buy');
   persistTownSave();
+  flashActionFeedback('구매 완료');
   showToast(`${def.name} 구매 완료`);
 }
 
@@ -2413,7 +2514,7 @@ function openItemDetail(uidValue: string, townMode: boolean) {
     eyebrow: `${def.rarity} ${typeLabel[def.type] || def.type} · x${instance.count}`,
     title: `${def.name}${canEquip ? ` +${enhanceLevel}` : ''}`,
     desc: `${def.effectText}${equipped ? '\n현재 장착 중입니다.' : ''}`,
-    visual: `<span class="slot-art item-art item-art-${def.type}"><i>${itemIcon(def.type)}</i></span>`,
+    visual: `<span class="slot-art item-art item-art-${def.type}"><img src="${itemArtUrl(def)}" alt="${escapeHtml(def.name)}" onerror="this.remove()" />${inlineFallbackIcon(itemIcon(def.type))}</span>`,
     stats: statChips(def.bonus) + enhanceInfo,
     actions
   });
@@ -2429,7 +2530,7 @@ function openSkillDetail(skillId: string, townMode: boolean) {
     eyebrow: `${classes[def.classId].name} SKILL · ${learned ? '습득' : '미습득'}`,
     title: def.name,
     desc: def.description,
-    visual: `<span class="slot-art skill-art skill-art-${def.hotkey}"><i>${escapeHtml(def.hotkey)}</i></span>`,
+    visual: `<span class="slot-art skill-art skill-art-${def.hotkey}"><img src="${skillArtUrl(def)}" alt="${escapeHtml(def.name)}" onerror="this.remove()" />${inlineFallbackIcon(def.hotkey)}</span>`,
     stats: `<span><b>MP</b><em>${def.mpCost}</em></span><span><b>쿨타임</b><em>${def.cooldownSec}s</em></span><span><b>사거리</b><em>${def.range}</em></span><span><b>범위</b><em>${def.radius}</em></span><span><b>상태</b><em>${!learned ? '스킬북 필요' : levelReady ? '사용 가능' : `Lv.${def.unlockLevel} 필요`}</em></span>`
   });
 }
@@ -2444,9 +2545,18 @@ function openSoulDetail(soulId: string) {
     eyebrow: `${instance?.unlocked ? '해방 완료' : '영혼 각인'}`,
     title: def.name,
     desc: `${def.effectText}\n해방 조건: ${progress}/${def.requiredKills}`,
-    visual: `<span class="slot-art soul-art"><i>魂</i></span>`,
+    visual: `<span class="slot-art soul-art"><img src="${soulArtUrl(def)}" alt="${escapeHtml(def.name)}" onerror="this.remove()" />${inlineFallbackIcon('魂')}</span>`,
     stats: statChips(def.bonus)
   });
+}
+
+function flashActionFeedback(message: string) {
+  const el = document.createElement('div');
+  el.className = 'action-feedback';
+  el.textContent = message;
+  document.body.appendChild(el);
+  window.setTimeout(() => el.classList.add('show'), 10);
+  window.setTimeout(() => { el.classList.remove('show'); window.setTimeout(() => el.remove(), 220); }, 780);
 }
 
 function showToast(message: string) {

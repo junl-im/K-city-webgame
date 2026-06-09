@@ -32,7 +32,7 @@
             <span class="title-character title-character-visual"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn">게임 시작</button>
-          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.27.0</span></div>
+          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.28.0</span></div>
           <small>전체화면은 브라우저 정책상 버튼 입력 후 시도됩니다.</small>
         </div>
       </section>
@@ -359,6 +359,19 @@
             <p id="itemDetailDesc">선택한 슬롯 정보를 표시합니다.</p>
             <div class="item-detail-stats" id="itemDetailStats"></div>
             <div class="item-detail-actions" id="itemDetailActions"></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="exit-confirm-modal hidden" id="exitConfirmModal" aria-hidden="true">
+        <div class="exit-confirm-backdrop" data-exit-cancel="true"></div>
+        <article class="exit-confirm-card">
+          <span>GAME EXIT</span>
+          <h2>게임을 종료할까요?</h2>
+          <p>현재 진행 상황을 로컬에 저장하고 첫 화면으로 돌아갑니다.</p>
+          <div class="exit-confirm-actions">
+            <button class="wide-action subtle" id="exitCancelBtn" type="button">계속하기</button>
+            <button class="wide-action danger" id="exitConfirmBtn" type="button">저장 후 종료</button>
           </div>
         </article>
       </section>
