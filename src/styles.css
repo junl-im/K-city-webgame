@@ -5753,3 +5753,200 @@ button.pressed-feedback,
   .loot-pop { bottom: 112px; grid-template-columns: 50px minmax(0, 1fr); }
   .loot-art { width: 50px; height: 50px; }
 }
+
+/* 0.31 Field HUD cleanup, minimap removal, and readable slot pass */
+body.field-active .field-minimap,
+body.minimap-compact .field-minimap {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+body.field-active .hud-top {
+  top: max(10px, env(safe-area-inset-top)) !important;
+  left: max(8px, env(safe-area-inset-left)) !important;
+  right: auto !important;
+  width: min(56vw, 360px) !important;
+  min-height: 64px !important;
+  z-index: 44 !important;
+}
+
+body.field-active .target-card {
+  top: max(10px, env(safe-area-inset-top)) !important;
+  left: auto !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  transform: none !important;
+  width: min(38vw, 230px) !important;
+  min-height: 64px !important;
+  z-index: 43 !important;
+  padding: 8px 10px !important;
+}
+
+body.field-active .target-card div:first-child {
+  display: grid !important;
+  gap: 2px !important;
+}
+
+body.field-active .target-card strong,
+body.field-active .target-card span {
+  text-align: left !important;
+}
+
+body.field-active .field-quest-tracker {
+  top: calc(max(10px, env(safe-area-inset-top)) + 84px) !important;
+  left: max(8px, env(safe-area-inset-left)) !important;
+  right: auto !important;
+  width: min(56vw, 360px) !important;
+  z-index: 35 !important;
+}
+
+body.field-active .combat-log-toggle {
+  bottom: calc(154px + env(safe-area-inset-bottom)) !important;
+}
+
+body.field-active .combat-log {
+  bottom: calc(180px + env(safe-area-inset-bottom)) !important;
+}
+
+@media (max-width: 420px) {
+  body.field-active .hud-top {
+    width: min(58vw, 215px) !important;
+    grid-template-columns: 42px minmax(0, 1fr) 34px 34px !important;
+  }
+
+  body.field-active .portrait {
+    width: 42px !important;
+    height: 42px !important;
+  }
+
+  body.field-active .target-card {
+    width: min(36vw, 138px) !important;
+    padding: 7px !important;
+  }
+
+  body.field-active .target-card strong { font-size: 10px !important; }
+  body.field-active .target-card span { font-size: 8.5px !important; }
+  body.field-active .field-quest-tracker { width: min(58vw, 215px) !important; }
+}
+
+/* 슬롯 이미지는 슬롯 안에서 잘리지 않게 더 큰 카드형 레이아웃으로 표시합니다. */
+.sheet,
+.town-drawer {
+  width: min(96vw, 1040px) !important;
+}
+
+.sheet-body,
+.town-drawer-body {
+  overscroll-behavior: contain;
+}
+
+.slot-grid.card-slot-grid,
+.town-slot-grid.card-slot-grid {
+  grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)) !important;
+}
+
+.slot-grid.inventory-slot-grid,
+.town-slot-grid.inventory-slot-grid,
+.slot-grid.skill-slot-grid,
+.town-slot-grid.skill-slot-grid {
+  grid-template-columns: repeat(auto-fill, minmax(144px, 1fr)) !important;
+}
+
+.slot-grid .slot-cell,
+.town-slot-grid .slot-cell {
+  min-height: 184px !important;
+  padding: 10px !important;
+  display: grid !important;
+  grid-template-rows: 98px auto auto auto !important;
+  gap: 6px !important;
+  align-content: start !important;
+}
+
+.slot-art {
+  position: relative;
+  display: grid !important;
+  place-items: center !important;
+  width: 100% !important;
+  height: 98px !important;
+  min-height: 98px !important;
+  overflow: hidden !important;
+  border-radius: 14px !important;
+}
+
+.card-art { height: 112px !important; min-height: 112px !important; }
+.skill-art,
+.item-art,
+.soul-art { background: radial-gradient(circle at 50% 22%, rgba(255,255,255,.14), rgba(0,0,0,.18)) !important; }
+
+.slot-art img,
+.card-slot img,
+.item-art img,
+.skill-art img,
+.soul-art img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  padding: 6px !important;
+}
+
+.card-art img {
+  object-fit: cover !important;
+  padding: 0 !important;
+}
+
+.slot-cell b {
+  font-size: 12px !important;
+  line-height: 1.18 !important;
+  min-height: 28px !important;
+  text-align: left !important;
+  white-space: normal !important;
+}
+
+.slot-cell em,
+.slot-cell .slot-rarity,
+.slot-cell .slot-passive {
+  display: block !important;
+  font-size: 10px !important;
+  line-height: 1.2 !important;
+  min-height: auto !important;
+}
+
+.slot-cell .slot-actions,
+.slot-cell > button {
+  display: grid !important;
+  opacity: 1 !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+.slot-cell .slot-actions {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+.empty-slot-cell {
+  min-height: 142px !important;
+  grid-template-rows: 1fr auto !important;
+  place-items: center !important;
+}
+
+@media (max-width: 560px) {
+  .slot-grid.card-slot-grid,
+  .town-slot-grid.card-slot-grid,
+  .slot-grid.inventory-slot-grid,
+  .town-slot-grid.inventory-slot-grid,
+  .slot-grid.skill-slot-grid,
+  .town-slot-grid.skill-slot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .slot-grid .slot-cell,
+  .town-slot-grid .slot-cell {
+    min-height: 170px !important;
+    grid-template-rows: 86px auto auto auto !important;
+    padding: 8px !important;
+  }
+
+  .slot-art { height: 86px !important; min-height: 86px !important; }
+  .card-art { height: 96px !important; min-height: 96px !important; }
+  .slot-cell b { font-size: 10.5px !important; }
+}

@@ -199,10 +199,7 @@ function bindAudioControls() {
       void button.offsetWidth;
       button.classList.add('pressed-feedback');
       window.setTimeout(() => button.classList.remove('pressed-feedback'), 260);
-      if (button.dataset.townShopBuy) flashActionFeedback('구매 처리');
-      else if (button.dataset.townUpgradeItem || button.dataset.upgradeItem) flashActionFeedback('강화 시도');
-      else if (button.dataset.townEquipItem || button.dataset.equipItem || button.dataset.townEquipCard || button.dataset.equipCard) flashActionFeedback('장착 변경');
-      else if (button.classList.contains('wide-action') || button.classList.contains('dock-btn')) flashActionFeedback('확인');
+      // 0.31: 버튼마다 중앙 확인 팝업이 뜨던 피드백은 제거하고, 실제 결과는 토스트/전리품 연출만 사용합니다.
     }
   }, true);
 }
@@ -2611,13 +2608,8 @@ function openSoulDetail(soulId: string) {
   });
 }
 
-function flashActionFeedback(message: string) {
-  const el = document.createElement('div');
-  el.className = 'action-feedback';
-  el.textContent = message;
-  document.body.appendChild(el);
-  window.setTimeout(() => el.classList.add('show'), 10);
-  window.setTimeout(() => { el.classList.remove('show'); window.setTimeout(() => el.remove(), 220); }, 780);
+function flashActionFeedback(_message: string) {
+  // 0.31: 과한 중앙 확인 팝업 제거. 필요하면 각 기능별 toast/showLootPresentation만 사용합니다.
 }
 
 function showToast(message: string) {

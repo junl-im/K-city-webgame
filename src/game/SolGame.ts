@@ -585,31 +585,56 @@ export class SolGame {
     this.addVillageDecor();
     this.addZoneLandmarks();
 
-    const trees = [
-      [4, 16], [6, 25], [11, 15], [14, 26], [18, 13], [21, 16], [24, 23], [27, 17]
-    ];
-    for (let i = 0; i < trees.length; i += 1) { const [x, y] = trees[i]; this.addProp(this.propVariant('tree', i), x, y, 0.42 + (i % 3) * 0.035); }
-
-    const crystals = [
-      [16, 17], [20, 14], [24, 18], [27.2, 20.4], [23.5, 25.8]
-    ];
-    for (const [x, y] of crystals) this.addProp('propCrystal', x, y, 0.42);
-
-    const rocks = [
-      [5.8, 20.8, 0.382],
-      [13.5, 23.4, 0.34],
-      [20.8, 15.4, 0.38],
-      [25.5, 26.5, 0.42],
-      [27.2, 14.6, 0.36]
-    ];
-    for (let i = 0; i < rocks.length; i += 1) { const [x, y, scale] = rocks[i]; this.addProp(this.propVariant('rock', i), x, y, scale); }
-
-    const chests = [[14.6, 24.8, 0.34], [22.4, 20.6, 0.32], [31.6, 23.8, 0.34]] as Array<[number, number, number]>;
-    for (let i = 0; i < chests.length; i += 1) { const [x, y, scale] = chests[i]; this.addProp(this.propVariant('chest', i), x, y, scale); }
-    const torches = [[9.0, 21.2, 0.34], [18.8, 22.0, 0.32], [27.6, 19.4, 0.32], [34.2, 25.8, 0.34]] as Array<[number, number, number]>;
-    for (let i = 0; i < torches.length; i += 1) { const [x, y, scale] = torches[i]; this.addProp(this.propVariant('torch', i), x, y, scale); }
+    this.addCuratedFieldDecor();
   }
 
+
+
+  private addCuratedFieldDecor() {
+    const zoneId = this.options.zoneId || 'slime-forest';
+    const trees: Array<[number, number, number]> = [
+      [4.6, 16.4, 0.34], [6.2, 25.2, 0.32], [12.8, 15.6, 0.34],
+      [18.6, 12.8, 0.35], [25.8, 22.7, 0.33], [31.6, 26.2, 0.34]
+    ];
+    const rocks: Array<[number, number, number]> = [
+      [5.6, 20.8, 0.25], [14.2, 23.8, 0.24], [20.8, 15.4, 0.26],
+      [25.7, 26.2, 0.27], [32.8, 20.6, 0.25]
+    ];
+    const crystals: Array<[number, number, number]> = [
+      [16.2, 17.4, 0.28], [23.5, 18.2, 0.3], [27.4, 20.4, 0.28]
+    ];
+
+    const zoneExtra: Record<string, { trees?: Array<[number, number, number]>; rocks?: Array<[number, number, number]>; crystals?: Array<[number, number, number]>; ruins?: Array<[number, number, number]>; torches?: Array<[number, number, number]>; chests?: Array<[number, number, number]> }> = {
+      'slime-forest': { trees: [[10.8, 26.2, 0.32], [28.8, 16.4, 0.32]], rocks: [[17.8, 21.2, 0.22]] },
+      'crystal-moss': { crystals: [[20.0, 14.0, 0.33], [24.6, 13.4, 0.31], [31.2, 15.6, 0.28]], rocks: [[18.5, 16.8, 0.22]] },
+      'goblin-road': { ruins: [[18.4, 22.8, 0.25], [25.6, 26.8, 0.26]], torches: [[15.2, 22.4, 0.24], [31.4, 28.0, 0.24]] },
+      'black-cave': { crystals: [[22.8, 28.2, 0.32], [30.8, 30.2, 0.3]], rocks: [[18.6, 26.2, 0.26], [34.2, 29.2, 0.25]] },
+      'ember-ridge': { rocks: [[18.8, 22.0, 0.26], [27.6, 19.4, 0.25]], torches: [[21.8, 20.8, 0.24], [32.6, 18.6, 0.23]] },
+      'moonlit-grove': { trees: [[15.0, 23.4, 0.34], [22.6, 18.6, 0.33], [34.2, 25.2, 0.32]], crystals: [[29.6, 21.8, 0.25]] },
+      'soul-ruins': { ruins: [[16.8, 25.0, 0.26], [23.4, 27.0, 0.27], [31.0, 29.2, 0.25]], torches: [[13.8, 24.2, 0.22], [28.8, 28.8, 0.22]] },
+      'storm-citadel': { ruins: [[20.6, 18.0, 0.25], [30.2, 17.8, 0.25]], crystals: [[25.6, 18.0, 0.24]] },
+      'dragon-nest': { rocks: [[18.0, 23.2, 0.26], [27.8, 20.2, 0.26]], crystals: [[33.2, 18.8, 0.3]], chests: [[24.6, 21.4, 0.24]] },
+      'crystal-raid': { crystals: [[22.0, 22.2, 0.34], [30.2, 19.4, 0.32]], torches: [[18.4, 22.0, 0.24], [33.8, 19.0, 0.24]], chests: [[26.8, 20.2, 0.25]] },
+      'bloodstone-mine': { rocks: [[18.2, 25.6, 0.27], [31.4, 28.2, 0.26]], crystals: [[28.2, 27.0, 0.28]] },
+      'sky-citadel': { ruins: [[21.0, 18.5, 0.25], [29.0, 18.2, 0.25]], crystals: [[25.4, 18.2, 0.24]] },
+      'demon-rift': { crystals: [[23.0, 21.5, 0.32], [31.4, 20.0, 0.31]], ruins: [[27.0, 20.8, 0.26], [35.0, 20.0, 0.25]], torches: [[19.6, 22.4, 0.23]] }
+    };
+
+    const extra = zoneExtra[zoneId] || {};
+    const addTrees = [...trees, ...(extra.trees || [])];
+    const addRocks = [...rocks, ...(extra.rocks || [])];
+    const addCrystals = [...crystals, ...(extra.crystals || [])];
+    const addRuins = extra.ruins || [];
+    const addTorches = extra.torches || [];
+    const addChests = extra.chests || [];
+
+    for (let i = 0; i < addTrees.length; i += 1) { const [x, y, scale] = addTrees[i]; this.addProp(this.propVariant('tree', i), x, y, scale); }
+    for (let i = 0; i < addRocks.length; i += 1) { const [x, y, scale] = addRocks[i]; this.addProp(this.propVariant('rock', i), x, y, scale); }
+    for (const [x, y, scale] of addCrystals) this.addProp('propCrystal', x, y, scale);
+    for (const [x, y, scale] of addRuins) this.addProp('propRuin', x, y, scale);
+    for (let i = 0; i < addTorches.length; i += 1) { const [x, y, scale] = addTorches[i]; this.addProp(this.propVariant('torch', i), x, y, scale); }
+    for (let i = 0; i < addChests.length; i += 1) { const [x, y, scale] = addChests[i]; this.addProp(this.propVariant('chest', i), x, y, scale); }
+  }
 
   private createZoneMap() {
     const zoneId = this.options.zoneId || 'slime-forest';
