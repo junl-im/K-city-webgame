@@ -1933,6 +1933,10 @@ export class SolGame {
     }
   }
 
+  private emitLoot(detail: { type: string; title: string; subtitle?: string; art?: string; rarity?: string; amount?: number }) {
+    window.dispatchEvent(new CustomEvent('soul:loot', { detail }));
+  }
+
   private applyDrop(drop: DropEntry) {
     if (drop.type === 'gold') {
       this.save.gold += drop.amount || 0;
@@ -1941,6 +1945,7 @@ export class SolGame {
     if (drop.type === 'gem') {
       this.save.gems += drop.amount || 0;
       audioService.play('reward');
+      this.emitLoot({ type: 'gem', title: '소울젬', amount: drop.amount || 0, rarity: 'SR' });
       this.pushLog(`소울젬 +${drop.amount || 0}`);
       return;
     }
@@ -1948,6 +1953,7 @@ export class SolGame {
       const item = this.addItem(drop.id);
       if (item) {
         audioService.play('reward');
+        this.emitLoot({ type: 'item', title: item.name, subtitle: `${item.rarity} 장비/재료 획득`, rarity: item.rarity });
         this.pushLog(`${item.name} 획득`);
       }
       return;
@@ -1956,6 +1962,7 @@ export class SolGame {
       const card = this.addCard(drop.id);
       if (card) {
         audioService.play('reward');
+        this.emitLoot({ type: 'card', title: card.name, subtitle: '몬스터 카드 드랍', art: card.art, rarity: card.rarity });
         this.pushLog(`${card.name} 드랍`);
       }
     }

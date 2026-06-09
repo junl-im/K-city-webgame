@@ -144,6 +144,7 @@ async function boot() {
   must('#classPortrait').addEventListener('click', () => openSheet('account'));
   bindBackButtonGuard();
   bindExitConfirmModal();
+  bindLootPresentation();
   renderCharacterSummary();
   renderCharacterSlots();
   updateWorldSummary();
@@ -2192,6 +2193,7 @@ function buyTownShopItem(itemId: string) {
       audioService.play('reward');
       persistTownSave();
       flashActionFeedback('스킬 습득');
+      showLootPresentation({ type: 'skill', title: def.name, subtitle: '스킬 습득 완료', art: itemArtUrl(def), rarity: def.rarity });
       showToast(`${def.name} 구매 · 스킬 습득 완료`);
       return;
     }
@@ -2204,6 +2206,7 @@ function buyTownShopItem(itemId: string) {
   audioService.play('buy');
   persistTownSave();
   flashActionFeedback('구매 완료');
+  showLootPresentation({ type: 'item', title: def.name, subtitle: '가방에 보관됨', art: itemArtUrl(def), rarity: def.rarity });
   showToast(`${def.name} 구매 완료`);
 }
 
@@ -2507,6 +2510,7 @@ function openItemDetail(uidValue: string, townMode: boolean) {
   const enhanceInfo = canEquip && enhanceLevel < MAX_ENHANCE_LEVEL
     ? `<span><b>다음 강화</b><em>+${cost.next} · ${Math.round(cost.successRate * 100)}%</em></span><span><b>비용</b><em>${formatGold(cost.gold)}${cost.shard ? ` · 파편 ${cost.shard}` : ''}${cost.stone ? ` · 강화석 ${cost.stone}` : ''}</em></span>`
     : canEquip ? '<span><b>강화</b><em>최대 강화</em></span>' : '';
+  const compare = canEquip ? renderEquipmentCompare(save, instance.uid, slot, equipped) : '';
   const actions = canEquip
     ? `<button class="wide-action primary" ${actionAttr}="${instance.uid}">${equipped ? '장착 해제' : '장착하기'}</button><button class="wide-action" ${enhanceLevel >= MAX_ENHANCE_LEVEL ? 'disabled' : ''} ${upgradeAttr}="${instance.uid}">강화 ${enhanceLevel >= MAX_ENHANCE_LEVEL ? 'MAX' : `+${cost.next} · ${Math.round(cost.successRate * 100)}%`}</button>`
     : def.type === 'skillbook' ? `<button class="wide-action primary" ${actionAttr}="${instance.uid}">스킬 배우기</button>` : '';
@@ -2515,9 +2519,66 @@ function openItemDetail(uidValue: string, townMode: boolean) {
     title: `${def.name}${canEquip ? ` +${enhanceLevel}` : ''}`,
     desc: `${def.effectText}${equipped ? '\n현재 장착 중입니다.' : ''}`,
     visual: `<span class="slot-art item-art item-art-${def.type}"><img src="${itemArtUrl(def)}" alt="${escapeHtml(def.name)}" onerror="this.remove()" />${inlineFallbackIcon(itemIcon(def.type))}</span>`,
-    stats: statChips(def.bonus) + enhanceInfo,
+    stats: statChips(def.bonus) + enhanceInfo + compare,
     actions
   });
+}
+
+function renderEquipmentCompare(save: PlayerSave, uidValue: string, slot: EquipmentSlot, equipped: boolean) {
+  const item = save.inventory.find((entry) => entry.uid === uidValue);
+  const def = item ? items.find((entry) => entry.id === item.itemId) : null;
+  if (!item || !def) return '';
+  const currentUid = save.equipment?.[slot];
+  const currentItem = currentUid ? save.inventory.find((entry) => entry.uid === currentUid) : null;
+  const currentDef = currentItem ? items.find((entry) => entry.id === currentItem.itemId) : null;
+  const before = calculateStatsFromSave(save);
+  const nextSave = cloneSaveForPreview(save);
+  nextSave.equipment ||= {};
+  if (equipped) delete nextSave.equipment[slot];
+  else nextSave.equipment[slot] = uidValue;
+  const after = calculateStatsFromSave(nextSave);
+  const currentEnhance = currentUid ? (save.enhancements?.[currentUid] || 0) : 0;
+  const nextEnhance = save.enhancements?.[uidValue] || 0;
+  const powerBefore = powerFromStats(before);
+  const powerAfter = powerFromStats(after);
+  const rows: Array<[keyof Stats, string, (value: number) => string]> = [
+    ['hp', 'HP', (value) => `${Math.round(value)}`],
+    ['mp', 'MP', (value) => `${Math.round(value)}`],
+    ['atk', '공격', (value) => `${Math.round(value)}`],
+    ['def', '방어', (value) => `${Math.round(value)}`],
+    ['aspd', '공속', (value) => value.toFixed(2)],
+    ['crit', '치명', (value) => `${Math.round(value * 100)}%`],
+    ['move', '이속', (value) => value.toFixed(2)]
+  ];
+  const statRows = rows.map(([key, label, format]) => {
+    const diff = Number((after[key] - before[key]).toFixed(3));
+    const cls = diff > 0 ? 'up' : diff < 0 ? 'down' : 'same';
+    const sign = diff > 0 ? '+' : '';
+    const diffLabel = key === 'crit' ? `${sign}${Math.round(diff * 100)}%` : key === 'aspd' || key === 'move' ? `${sign}${diff.toFixed(2)}` : `${sign}${Math.round(diff)}`;
+    return `<span class="compare-row ${cls}"><b>${label}</b><em>${format(before[key])} → ${format(after[key])}</em><strong>${diffLabel}</strong></span>`;
+  }).join('');
+  const powerDiff = powerAfter - powerBefore;
+  const currentName = currentDef ? `${currentDef.name} +${currentEnhance}` : '비어 있음';
+  const nextName = equipped ? '장착 해제' : `${def.name} +${nextEnhance}`;
+  return `
+    <div class="item-compare-panel">
+      <h3>${equipped ? '해제 비교' : '장비 비교'}</h3>
+      <div class="compare-summary">
+        <span><b>현재</b><em>${escapeHtml(currentName)}</em></span>
+        <span><b>변경</b><em>${escapeHtml(nextName)}</em></span>
+        <span class="power-diff ${powerDiff >= 0 ? 'up' : 'down'}"><b>전투력</b><em>${formatNumber(powerBefore)} → ${formatNumber(powerAfter)}</em><strong>${powerDiff >= 0 ? '+' : ''}${formatNumber(powerDiff)}</strong></span>
+      </div>
+      <div class="compare-stat-grid">${statRows}</div>
+    </div>
+  `;
+}
+
+function cloneSaveForPreview(save: PlayerSave): PlayerSave {
+  return JSON.parse(JSON.stringify(save)) as PlayerSave;
+}
+
+function powerFromStats(stats: Stats) {
+  return Math.round(stats.hp * 0.42 + stats.mp * 0.12 + stats.atk * 9.5 + stats.def * 6.2 + stats.aspd * 70 + stats.crit * 520);
 }
 
 function openSkillDetail(skillId: string, townMode: boolean) {
@@ -2567,6 +2628,52 @@ function showToast(message: string) {
   toastEl.dataset.timer = String(timer);
 }
 
+
+type LootPresentation = { type: string; title: string; subtitle?: string; art?: string; rarity?: string; amount?: number };
+
+function bindLootPresentation() {
+  document.addEventListener('soul:loot', (event) => {
+    const detail = (event as CustomEvent<LootPresentation>).detail;
+    showLootPresentation(normalizeLootPresentation(detail));
+  });
+}
+
+function normalizeLootPresentation(detail: LootPresentation): LootPresentation {
+  if (!detail) return { type: 'loot', title: '획득', rarity: 'N' };
+  if (detail.type === 'item' && detail.title && !detail.art) {
+    const item = items.find((entry) => entry.name === detail.title || entry.id === detail.title);
+    if (item) return { ...detail, title: item.name, art: itemArtUrl(item), rarity: item.rarity };
+  }
+  if (detail.type === 'card' && detail.title && !detail.art) {
+    const card = cards.find((entry) => entry.name === detail.title || entry.id === detail.title);
+    if (card) return { ...detail, title: card.name, art: card.art, rarity: card.rarity };
+  }
+  return detail;
+}
+
+function showLootPresentation(detail: LootPresentation) {
+  const rarity = (detail.rarity || (detail.type === 'gold' ? 'R' : detail.type === 'gem' ? 'SR' : 'N')).toLowerCase();
+  const el = document.createElement('div');
+  el.className = `loot-pop loot-${rarity}`;
+  const art = detail.art
+    ? `<span class="loot-art"><img src="${detail.art}" alt="${escapeHtml(detail.title)}" onerror="this.remove()" /></span>`
+    : `<span class="loot-art loot-art-fallback">${detail.type === 'gold' ? '金' : detail.type === 'gem' ? '魂' : '★'}</span>`;
+  el.innerHTML = `
+    ${art}
+    <span class="loot-copy"><b>${escapeHtml(detail.title)}</b><em>${escapeHtml(detail.subtitle || lootSubtitle(detail))}</em></span>
+  `;
+  document.body.appendChild(el);
+  window.setTimeout(() => el.classList.add('show'), 20);
+  window.setTimeout(() => { el.classList.remove('show'); window.setTimeout(() => el.remove(), 260); }, 1700);
+}
+
+function lootSubtitle(detail: LootPresentation) {
+  if (detail.type === 'gold') return `${formatGold(detail.amount || 0)} 획득`;
+  if (detail.type === 'gem') return `소울젬 ${formatNumber(detail.amount || 0)} 획득`;
+  if (detail.type === 'card') return '몬스터 카드 드랍';
+  if (detail.type === 'skill') return '스킬 습득 완료';
+  return '가방에 보관됨';
+}
 
 function setClassArt(el: Element, classId: CharacterClassId) {
   el.classList.remove('class-warrior', 'class-taoist', 'class-cleric');

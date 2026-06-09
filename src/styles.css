@@ -5630,3 +5630,126 @@ button.pressed-feedback,
   body.field-active .field-minimap { top: calc(max(10px, env(safe-area-inset-top)) + 82px) !important; width: 112px !important; }
   body.field-active .field-quest-tracker { top: calc(max(10px, env(safe-area-inset-top)) + 202px) !important; width: min(60vw, 250px) !important; }
 }
+
+/* 0.29 Item Compare + Loot Presentation Pass */
+.item-compare-panel {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid rgba(226, 185, 95, .28);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(226,185,95,.15), transparent 40%),
+    linear-gradient(180deg, rgba(18,24,20,.94), rgba(8,10,8,.86));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+.item-compare-panel h3 {
+  margin: 0 0 8px;
+  color: #ffe2a0;
+  font-size: 13px;
+  letter-spacing: .04em;
+}
+.compare-summary,
+.compare-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+.compare-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 8px; }
+.compare-summary span,
+.compare-row {
+  min-width: 0;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.045);
+  display: grid;
+  gap: 2px;
+}
+.compare-summary b,
+.compare-row b {
+  color: rgba(245,241,232,.58);
+  font-size: 10px;
+}
+.compare-summary em,
+.compare-row em {
+  color: #fff8e6;
+  font-size: 11px;
+  font-style: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.compare-row strong,
+.power-diff strong {
+  font-size: 12px;
+  justify-self: start;
+}
+.compare-row.up strong,
+.power-diff.up strong { color: #8dffb3; }
+.compare-row.down strong,
+.power-diff.down strong { color: #ff7b6e; }
+.compare-row.same strong { color: rgba(245,241,232,.52); }
+
+.loot-pop {
+  position: fixed;
+  left: 50%;
+  bottom: 138px;
+  z-index: 13000;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-width: min(360px, calc(100vw - 28px));
+  max-width: calc(100vw - 28px);
+  padding: 10px 14px 10px 10px;
+  border: 1px solid rgba(226,185,95,.38);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(226,185,95,.32), transparent 36%),
+    linear-gradient(135deg, rgba(18,20,18,.96), rgba(37,31,21,.92));
+  box-shadow: 0 22px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08);
+  transform: translate(-50%, 20px) scale(.96);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .25s ease, opacity .25s ease;
+}
+.loot-pop.show { transform: translate(-50%, 0) scale(1); opacity: 1; }
+.loot-pop::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.24), transparent);
+  opacity: .28;
+  animation: loot-sheen 1.4s linear infinite;
+  pointer-events: none;
+}
+@keyframes loot-sheen { from { transform: translateX(-42%); } to { transform: translateX(42%); } }
+.loot-art {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.13);
+  background: radial-gradient(circle at 35% 25%, rgba(255,255,255,.16), rgba(0,0,0,.24));
+  box-shadow: inset 0 -8px 14px rgba(0,0,0,.2), 0 0 20px rgba(226,185,95,.18);
+}
+.loot-art img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+.loot-art-fallback { color: #ffe2a0; font-weight: 950; font-size: 20px; }
+.loot-copy { min-width: 0; display: grid; gap: 2px; }
+.loot-copy b { color: #fff8e6; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.loot-copy em { color: rgba(245,241,232,.68); font-style: normal; font-size: 12px; }
+.loot-r, .loot-sr { border-color: rgba(114,231,255,.48); box-shadow: 0 22px 60px rgba(0,0,0,.55), 0 0 32px rgba(114,231,255,.18); }
+.loot-ssr { border-color: rgba(180,128,255,.56); box-shadow: 0 22px 60px rgba(0,0,0,.55), 0 0 40px rgba(180,128,255,.25); }
+.loot-ur { border-color: rgba(255,103,72,.7); box-shadow: 0 22px 70px rgba(0,0,0,.6), 0 0 52px rgba(255,103,72,.32); }
+.loot-ur .loot-copy b { color: #ffd0b8; }
+
+@media (max-width: 520px) {
+  .compare-summary { grid-template-columns: 1fr; }
+  .compare-stat-grid { grid-template-columns: 1fr 1fr; }
+  .loot-pop { bottom: 112px; grid-template-columns: 50px minmax(0, 1fr); }
+  .loot-art { width: 50px; height: 50px; }
+}
