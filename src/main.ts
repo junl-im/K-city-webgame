@@ -2695,17 +2695,13 @@ function installBrowserCompatibilityMode() {
   const isInApp = isKakao || /(FBAN|FBAV|Instagram|Line\/|NAVER|DaumApps)/i.test(ua);
   document.body.classList.toggle('kakao-inapp', isKakao);
   document.body.classList.toggle('inapp-browser', isInApp);
+  browserSafeTip?.classList.add('hidden');
+  browserSafeTip?.setAttribute('aria-hidden', 'true');
+  if (browserSafeTip) browserSafeTip.textContent = '';
 
   const updateViewportClass = () => {
     const landscape = window.innerWidth > window.innerHeight;
     document.body.classList.toggle('forced-landscape-safe', isKakao && landscape);
-    if (browserSafeTip && isKakao) {
-      browserSafeTip.classList.remove('hidden');
-      browserSafeTip.setAttribute('aria-hidden', 'false');
-      browserSafeTip.textContent = landscape
-        ? '카카오 브라우저가 가로 화면을 강제했습니다. 세로형 HUD를 유지하는 안전 배치로 전환합니다.'
-        : '카카오 브라우저 감지 · 전체화면 제한 시에도 세로형 HUD로 실행합니다.';
-    }
   };
 
   updateViewportClass();
@@ -2757,10 +2753,8 @@ async function ensureFullscreen(forceToast = false) {
   try {
     if (document.fullscreenEnabled && rootEl.requestFullscreen) await rootEl.requestFullscreen();
     else if (rootEl.webkitRequestFullscreen) await rootEl.webkitRequestFullscreen();
-    else if (forceToast) showToast('카카오/인앱 브라우저는 전체화면이 제한될 수 있습니다. 화면은 안전 배치로 유지합니다.');
     void lockPortraitMode();
   } catch (error) {
-    if (forceToast) showToast('브라우저 정책상 전체화면 전환이 막혔습니다. 카카오 브라우저에서는 안전 배치로 계속 실행합니다.');
     console.warn('[Fullscreen]', error);
   }
 }

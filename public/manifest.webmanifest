@@ -1,7 +1,7 @@
 {
   "name": "소울 온라인 Alpha",
   "short_name": "소울 온라인",
-  "description": "소울 온라인 Alpha - mobile 2.5D web MMORPG prototype with Kakao browser safe HUD, compact controls, and potion recovery",
+  "description": "소울 온라인 Alpha - mobile 2.5D web MMORPG prototype with cinematic title art, silent in-app compatibility, compact controls, and potion recovery",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
