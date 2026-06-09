@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 920" role="img" aria-label="Soul Online anime style hero">
+  <defs>
+    <radialGradient id="aura" cx="48%" cy="34%" r="62%">
+      <stop offset="0" stop-color="#fff4b8" stop-opacity="0.95"/>
+      <stop offset="0.28" stop-color="#77e9ff" stop-opacity="0.45"/>
+      <stop offset="0.62" stop-color="#6b42ff" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#03040a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7fbff"/>
+      <stop offset="0.32" stop-color="#bfe8ff"/>
+      <stop offset="0.7" stop-color="#4455a9"/>
+      <stop offset="1" stop-color="#15172f"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe4c9"/>
+      <stop offset="0.55" stop-color="#f6bc94"/>
+      <stop offset="1" stop-color="#d88a68"/>
+    </linearGradient>
+    <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fffff4"/>
+      <stop offset="0.22" stop-color="#8bd9ff"/>
+      <stop offset="0.54" stop-color="#263150"/>
+      <stop offset="0.82" stop-color="#0d1022"/>
+      <stop offset="1" stop-color="#ffc957"/>
+    </linearGradient>
+    <linearGradient id="cloak" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#193b73"/>
+      <stop offset="0.48" stop-color="#211644"/>
+      <stop offset="1" stop-color="#05070f"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.38" stop-color="#aaf5ff"/>
+      <stop offset="0.7" stop-color="#4061ff"/>
+      <stop offset="1" stop-color="#fff0a4"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.44 0 0 0 0 0.92 0 0 0 0 1 0 0 0 0.9 0"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow" x="-40%" y="-30%" width="180%" height="170%"><feDropShadow dx="0" dy="24" stdDeviation="20" flood-color="#000" flood-opacity="0.72"/></filter>
+  </defs>
+  <rect width="760" height="920" fill="none"/>
+  <g opacity="0.96">
+    <ellipse cx="382" cy="385" rx="310" ry="355" fill="url(#aura)"/>
+    <circle cx="604" cy="202" r="44" fill="#fff1a8" opacity="0.28" filter="url(#glow)"/>
+    <circle cx="146" cy="290" r="31" fill="#73e9ff" opacity="0.26" filter="url(#glow)"/>
+    <path d="M128 698 C250 755 512 760 646 694" fill="none" stroke="#ffe7a7" stroke-width="3" opacity="0.34"/>
+    <path d="M104 730 C260 812 496 812 680 724" fill="none" stroke="#70e7ff" stroke-width="2" opacity="0.22"/>
+  </g>
+  <g filter="url(#shadow)">
+    <path d="M214 417 C123 503 99 681 133 870 C247 810 310 739 379 672 C461 746 540 810 652 872 C689 668 637 509 546 418 C466 470 300 470 214 417Z" fill="url(#cloak)"/>
+    <path d="M196 443 C154 521 146 656 167 806 C251 734 303 675 367 626 C293 583 236 525 196 443Z" fill="#0e1326" opacity="0.55"/>
+    <path d="M566 443 C612 525 620 655 596 814 C522 742 463 674 397 626 C471 585 527 526 566 443Z" fill="#090b19" opacity="0.5"/>
+    <path d="M254 348 C212 398 203 507 236 599 C290 653 468 655 526 599 C559 505 549 398 508 348 C454 315 310 315 254 348Z" fill="url(#armor)"/>
+    <path d="M285 570 C332 602 432 604 481 570 L511 758 C466 798 300 798 251 758Z" fill="#151a2e"/>
+    <path d="M319 367 C303 437 307 505 340 561 L421 561 C454 504 456 433 440 367Z" fill="#f4f6ff" opacity="0.92"/>
+    <path d="M326 384 L381 562 L436 384 C415 403 346 403 326 384Z" fill="#62e9ff" opacity="0.58"/>
+    <path d="M259 378 C190 426 155 496 137 574 L210 610 C240 517 284 459 326 432Z" fill="url(#armor)"/>
+    <path d="M501 378 C570 426 605 496 623 574 L550 610 C520 517 476 459 434 432Z" fill="url(#armor)"/>
+    <path d="M188 593 C177 631 193 675 233 687 C260 696 283 682 292 657 C254 632 223 611 188 593Z" fill="url(#skin)"/>
+    <path d="M572 593 C583 631 567 675 527 687 C500 696 477 682 468 657 C506 632 537 611 572 593Z" fill="url(#skin)"/>
+    <path d="M316 224 C278 247 262 286 262 329 C262 400 315 444 381 444 C447 444 499 400 499 329 C499 285 483 247 444 224 C414 207 346 207 316 224Z" fill="url(#skin)"/>
+    <path d="M273 304 C260 228 310 151 381 145 C462 150 506 222 491 306 C475 252 442 213 381 211 C319 213 289 250 273 304Z" fill="url(#hair)"/>
+    <path d="M267 325 C279 251 317 199 381 194 C443 199 481 251 493 325 C465 291 426 283 381 287 C336 283 296 291 267 325Z" fill="#11162c" opacity="0.24"/>
+    <path d="M301 235 C326 155 415 139 467 201 C430 175 386 182 352 222 C334 243 316 251 301 235Z" fill="#eefbff" opacity="0.72"/>
+    <path d="M319 330 C337 319 358 319 374 333 C356 345 337 345 319 330Z" fill="#17213f"/>
+    <path d="M386 333 C404 319 426 319 443 331 C425 345 404 346 386 333Z" fill="#17213f"/>
+    <circle cx="350" cy="330" r="10" fill="#69e9ff"/>
+    <circle cx="414" cy="330" r="10" fill="#ffd86f"/>
+    <circle cx="354" cy="326" r="4" fill="#fff"/>
+    <circle cx="418" cy="326" r="4" fill="#fff"/>
+    <path d="M370 366 C379 371 388 371 397 366" fill="none" stroke="#9c4f5c" stroke-width="5" stroke-linecap="round"/>
+    <path d="M335 407 C365 424 401 424 429 407" fill="none" stroke="#ffe7a7" stroke-width="8" opacity="0.7"/>
+    <path d="M183 155 L230 128 L536 746 L493 770Z" fill="url(#blade)" opacity="0.95" filter="url(#glow)"/>
+    <path d="M202 172 L226 158 L515 744 L492 758Z" fill="#fff" opacity="0.38"/>
+    <path d="M280 608 C333 646 431 646 482 608" fill="none" stroke="#ffe7a7" stroke-width="9" opacity="0.72"/>
+    <path d="M316 458 L381 520 L446 458" fill="none" stroke="#ffe7a7" stroke-width="7" opacity="0.86"/>
+    <path d="M242 348 C288 389 469 388 519 348" fill="none" stroke="#ffe7a7" stroke-width="10" opacity="0.7"/>
+  </g>
+  <g opacity="0.82" filter="url(#glow)">
+    <path d="M89 397 C169 365 224 330 258 270" fill="none" stroke="#78eeff" stroke-width="5" stroke-linecap="round"/>
+    <path d="M671 386 C586 360 540 318 506 260" fill="none" stroke="#ffe28a" stroke-width="5" stroke-linecap="round"/>
+    <path d="M148 242 L171 266 L144 291 L120 266Z" fill="#ffe28a" opacity="0.7"/>
+    <path d="M609 254 L632 278 L605 303 L581 278Z" fill="#78eeff" opacity="0.72"/>
+    <path d="M111 550 L134 574 L107 599 L83 574Z" fill="#78eeff" opacity="0.54"/>
+    <path d="M636 565 L659 589 L632 614 L608 589Z" fill="#ffe28a" opacity="0.54"/>
+  </g>
+</svg>

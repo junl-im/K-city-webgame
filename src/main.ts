@@ -1615,8 +1615,34 @@ function renderTown(save: PlayerSave | null) {
   townGemText.textContent = formatSoul(save.gems);
   townPowerText.textContent = `전투력 ${formatNumber(powerFromSave(save))}`;
   renderTownStorySnapshot(save);
+  renderTownGatePreview(save);
   updateZoneLocks(save);
   if (townContentOpen) renderTownContent();
+}
+
+
+function renderTownGatePreview(save: PlayerSave) {
+  const list = document.querySelector<HTMLElement>('.town-zone-panel .zone-list');
+  if (!list) return;
+  const currentQuest = currentStoryQuest(save);
+  const recommended = currentQuest ? recommendedZoneForQuest(save, currentQuest) : null;
+  list.innerHTML = zones
+    .map((zone) => {
+      const unlocked = isZoneUnlocked(save, zone.id);
+      const active = recommended?.id === zone.id;
+      const monsterText = zone.monsterIds
+        .map((monsterId) => monsters.find((monster) => monster.id === monsterId)?.name || monsterId)
+        .slice(0, 3)
+        .join(' · ');
+      return `
+        <button class="zone-card town-gate-zone ${active ? 'active' : ''} ${unlocked ? '' : 'locked'}" data-zone-id="${zone.id}" data-town-zone-enter="${zone.id}" ${unlocked ? '' : 'disabled'}>
+          <em>${escapeHtml(zone.badge)}</em>
+          <b>${escapeHtml(zone.title)}</b>
+          <span>Lv.${zone.recommendedLevel} · ${escapeHtml(monsterText)} · ${unlocked ? '입장 가능' : '잠김'}</span>
+        </button>
+      `;
+    })
+    .join('');
 }
 
 

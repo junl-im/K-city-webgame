@@ -10068,3 +10068,307 @@ body.field-active #fieldTopMenuBtn[hidden] {
   .auto-ratio-grid > div { align-items: flex-start; flex-direction: column; }
   .auto-ratio-grid span { justify-content: flex-start; }
 }
+
+/* Alpha 0.48: content heaven + anime title + painterly RPG town */
+.title-screen-048 {
+  background-image:
+    radial-gradient(circle at 58% 22%, rgba(255, 226, 126, .28), transparent 24%),
+    radial-gradient(circle at 28% 42%, rgba(112, 231, 255, .22), transparent 30%),
+    linear-gradient(180deg, rgba(2, 4, 12, .12), rgba(2, 4, 12, .72) 66%, #020308 100%),
+    url("./assets/ui/title-bg.webp") !important;
+}
+
+.title-screen-048 .title-stage {
+  width: min(100%, 690px) !important;
+  gap: 6px !important;
+}
+
+.title-screen-048 .title-copy h1 {
+  letter-spacing: -.06em !important;
+  color: #fff5ca !important;
+  text-shadow:
+    0 3px 0 rgba(91, 45, 14, .88),
+    0 12px 24px rgba(0, 0, 0, .82),
+    0 0 28px rgba(255, 213, 105, .34),
+    0 0 62px rgba(111, 228, 255, .18) !important;
+}
+
+.title-screen-048 .title-copy p {
+  max-width: 470px !important;
+  border: 1px solid rgba(255, 231, 167, .14);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(4, 8, 15, .38), rgba(4, 8, 15, .08));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06);
+}
+
+.title-hero-048 {
+  width: min(100%, 610px) !important;
+  height: min(64dvh, 620px) !important;
+  min-height: 350px !important;
+  margin: -4px 0 -34px !important;
+}
+
+.title-hero-048 .title-character-visual {
+  inset: -38px -54px -12px -54px !important;
+  background-image: url("./assets/ui/title-hero-anime.svg") !important;
+  background-size: contain !important;
+  background-position: center bottom !important;
+  filter:
+    drop-shadow(0 38px 46px rgba(0, 0, 0, .86))
+    drop-shadow(0 0 28px rgba(112, 231, 255, .24))
+    drop-shadow(0 0 34px rgba(255, 216, 111, .18)) !important;
+}
+
+.title-screen-048 .start-game-btn {
+  width: min(100%, 372px) !important;
+  min-height: 66px !important;
+  border: 1px solid rgba(255, 247, 198, .52) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 245, 189, .95), rgba(211, 143, 38, .98) 52%, rgba(111, 62, 21, .98)),
+    url("./assets/ui/wenrexa/button-wide.png") center / 100% 100% no-repeat !important;
+  color: #1d1006 !important;
+  font-size: 18px !important;
+  letter-spacing: .12em !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .45) !important;
+}
+
+.title-screen-048 .title-mini-nav {
+  padding: 5px 12px;
+  border: 1px solid rgba(255, 231, 167, .13);
+  border-radius: 999px;
+  background: rgba(5, 8, 13, .42);
+}
+
+body.town-active .town-backdrop {
+  opacity: 1 !important;
+  filter: saturate(1.12) contrast(1.02) !important;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 226, 136, .22), transparent 25%),
+    linear-gradient(180deg, rgba(67, 118, 164, .44) 0%, rgba(109, 151, 154, .22) 33%, rgba(88, 72, 46, .18) 68%, rgba(12, 10, 8, .40) 100%) !important;
+}
+
+body.town-active .town-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 34%;
+  background:
+    radial-gradient(ellipse at 24% 76%, rgba(66, 89, 58, .76), transparent 32%),
+    radial-gradient(ellipse at 74% 76%, rgba(58, 78, 53, .72), transparent 34%),
+    linear-gradient(180deg, rgba(130, 188, 236, .20), rgba(226, 185, 95, .12) 78%, transparent);
+  pointer-events: none;
+}
+
+body.town-active .town-diorama {
+  top: 45% !important;
+  height: min(690px, 78vh) !important;
+  opacity: .98 !important;
+  transform: translateX(-50%) scale(1.04) !important;
+}
+
+body.town-active .town-plaza {
+  bottom: 3% !important;
+  width: 70% !important;
+  height: 31% !important;
+  border: 1px solid rgba(255, 231, 167, .18);
+  background:
+    radial-gradient(ellipse at center, rgba(231, 197, 124, .36), rgba(65, 76, 53, .58) 52%, rgba(12, 12, 10, .18) 78%),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, .08) 0 7px, transparent 7px 19px) !important;
+}
+
+body.town-active .town-road.main-road {
+  top: 58% !important;
+  width: 54% !important;
+  height: 16% !important;
+  background: linear-gradient(90deg, transparent, rgba(233, 198, 123, .34), rgba(116, 79, 48, .28), transparent) !important;
+}
+
+body.town-active .town-road.side-road {
+  top: 66% !important;
+  width: 45% !important;
+  background: linear-gradient(90deg, transparent, rgba(233, 198, 123, .22), transparent) !important;
+}
+
+body.town-active .town-building {
+  overflow: visible;
+  border: 1px solid rgba(255, 232, 166, .16) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 235, 172, .18), transparent 18%),
+    linear-gradient(180deg, #6a4630 0 20%, #38281f 20% 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.16),
+    0 18px 24px rgba(0,0,0,.36),
+    0 0 22px rgba(226,185,95,.08) !important;
+}
+
+body.town-active .town-building::before {
+  background:
+    linear-gradient(135deg, #7f2d2f, #c46b38 52%, #4c1d22) !important;
+  border: 1px solid rgba(255, 236, 169, .18) !important;
+  box-shadow: 0 8px 10px rgba(0,0,0,.30) !important;
+}
+
+body.town-active .town-building::after {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 220, 120, .88) 0 18%, rgba(105, 59, 25, .72) 19% 32%, transparent 34%),
+    linear-gradient(90deg, transparent 32%, rgba(255, 226, 147, .22) 33% 38%, transparent 39% 61%, rgba(255, 226, 147, .22) 62% 67%, transparent 68%) !important;
+  opacity: .95 !important;
+}
+
+body.town-active .town-building.inn { left: 5%; top: 60%; width: 18%; height: 19%; }
+body.town-active .town-building.tower { right: 4%; top: 24%; width: 14%; height: 35%; }
+body.town-active .town-building.cottage-a { left: 3%; top: 35%; width: 15%; height: 17%; }
+body.town-active .town-building.cottage-b { right: 3%; top: 64%; width: 16%; height: 17%; }
+body.town-active .town-building.tower::before { top: -32%; height: 36%; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+body.town-active .town-building.cottage::before { top: -32%; height: 40%; }
+
+.town-market-stall,
+.town-lantern,
+.town-river,
+.town-bridge {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.town-market-stall {
+  z-index: 6;
+  width: 54px;
+  height: 32px;
+  border-radius: 10px 10px 7px 7px;
+  background:
+    repeating-linear-gradient(90deg, #e9cc7a 0 8px, #9e3242 8px 16px),
+    linear-gradient(180deg, #5a351f, #2c1d16);
+  box-shadow: 0 12px 16px rgba(0,0,0,.34);
+}
+.town-market-stall::after {
+  content: "";
+  position: absolute;
+  left: 9px;
+  right: 9px;
+  bottom: -13px;
+  height: 13px;
+  border-radius: 0 0 5px 5px;
+  background: #33251a;
+}
+.town-market-stall.stall-a { left: 36%; top: 69%; transform: rotate(-8deg); }
+.town-market-stall.stall-b { right: 35%; top: 70%; transform: rotate(7deg); }
+
+.town-lantern {
+  z-index: 7;
+  width: 10px;
+  height: 42px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #2a1c12, #120c08);
+}
+.town-lantern::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 22px;
+  height: 22px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff4a8 0 22%, #f0a63e 23% 55%, rgba(240, 166, 62, .08) 57% 100%);
+  box-shadow: 0 0 28px rgba(240, 166, 62, .72);
+}
+.town-lantern.lantern-a { left: 41%; top: 59%; }
+.town-lantern.lantern-b { right: 42%; top: 58%; }
+.town-lantern.lantern-c { right: 20%; top: 54%; transform: scale(.82); }
+
+.town-river {
+  z-index: 1;
+  left: 4%;
+  right: 4%;
+  bottom: -2%;
+  height: 18%;
+  border-radius: 50%;
+  background:
+    linear-gradient(90deg, transparent, rgba(98, 198, 214, .32), rgba(25, 76, 95, .36), transparent);
+  transform: rotate(-5deg);
+  filter: blur(.2px);
+}
+
+.town-bridge {
+  z-index: 8;
+  left: 44%;
+  bottom: 13%;
+  width: 96px;
+  height: 26px;
+  border-radius: 50%;
+  transform: rotate(-7deg);
+  background: repeating-linear-gradient(90deg, #7b5634 0 11px, #4a2f1d 11px 14px);
+  border: 1px solid rgba(255, 226, 160, .18);
+  box-shadow: 0 10px 16px rgba(0,0,0,.34);
+}
+
+body.town-active .town-zone-panel .zone-list-v2 {
+  max-height: min(62vh, 650px) !important;
+  overflow-y: auto !important;
+  padding-right: 4px !important;
+  scrollbar-width: thin;
+}
+
+body.town-active .town-gate-zone {
+  min-height: 50px !important;
+  grid-template-columns: 42px 1fr !important;
+  background: linear-gradient(135deg, rgba(22, 29, 42, .82), rgba(15, 18, 27, .72)) !important;
+}
+
+body.town-active .town-gate-zone.active {
+  border-color: rgba(255, 221, 134, .68) !important;
+  box-shadow: 0 0 24px rgba(226, 185, 95, .18), inset 0 0 18px rgba(226, 185, 95, .12) !important;
+}
+
+body.town-active .town-gate-zone em {
+  width: 34px !important;
+  height: 34px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 12px !important;
+  background: rgba(226, 185, 95, .16) !important;
+  color: #ffe7a7 !important;
+  font-size: 11px !important;
+}
+
+body.town-active .town-section-head h2::after {
+  content: " · 28개 전선";
+  color: rgba(255, 231, 167, .62);
+  font-size: 12px;
+}
+
+.story-list::before,
+.quest-list::before {
+  content: "콘텐츠 천국 패스: 메인 93개 · 의뢰 77개";
+  display: block;
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 231, 167, .16);
+  border-radius: 12px;
+  background: rgba(226, 185, 95, .08);
+  color: #ffe7a7;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+@media (max-width: 430px) {
+  .title-hero-048 {
+    height: min(60dvh, 540px) !important;
+    min-height: 320px !important;
+    margin-bottom: -28px !important;
+  }
+  .title-hero-048 .title-character-visual {
+    inset: -26px -68px -10px -68px !important;
+  }
+  body.town-active .town-diorama {
+    top: 43% !important;
+    transform: translateX(-50%) scale(.92) !important;
+  }
+  body.town-active .town-building i,
+  body.town-active .town-section-head h2::after {
+    display: none !important;
+  }
+  body.town-active .town-zone-panel .zone-list-v2 {
+    max-height: 42vh !important;
+  }
+}
