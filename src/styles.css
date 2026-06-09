@@ -7286,3 +7286,470 @@ body.town-active .town-zone-panel .zone-list {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
+
+/* 0.35 Critical UI Repair: restore modal positioning, sane town scale, and click layers. */
+:root {
+  --repair-town-menu-h: 62px;
+}
+
+body.town-active .town-screen {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: max(10px, env(safe-area-inset-top)) 10px calc(var(--repair-town-menu-h) + env(safe-area-inset-bottom) + 12px) !important;
+}
+
+body.town-active .town-backdrop,
+body.town-active .town-sky,
+body.town-active .town-diorama,
+body.town-active .town-building,
+body.town-active .town-citizen,
+body.town-active .town-plaza,
+body.town-active .town-road {
+  pointer-events: none !important;
+}
+
+body.town-active .town-topbar {
+  position: relative !important;
+  z-index: 20 !important;
+  width: min(1040px, 100%) !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: 0 auto 10px !important;
+}
+
+body.town-active .town-hero-card {
+  min-width: 0 !important;
+  padding: 8px 10px !important;
+  gap: 8px !important;
+  border-radius: 15px !important;
+}
+
+body.town-active .town-portrait {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  font-size: 18px !important;
+}
+
+body.town-active .town-hero-card span,
+body.town-active .town-hero-card p {
+  font-size: 10px !important;
+  line-height: 1.2 !important;
+}
+
+body.town-active .town-hero-card h2 {
+  max-width: 34vw !important;
+  margin: 1px 0 !important;
+  overflow: hidden !important;
+  font-size: clamp(15px, 2.4vw, 20px) !important;
+  line-height: 1.05 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+body.town-active .town-currencies {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, auto)) !important;
+  gap: 5px !important;
+}
+
+body.town-active .town-currencies span {
+  min-width: 0 !important;
+  padding: 5px 7px !important;
+  border-radius: 11px !important;
+  font-size: 10px !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
+}
+
+body.town-active .town-layout-v2 {
+  position: relative !important;
+  z-index: 15 !important;
+  width: min(1040px, 100%) !important;
+  display: grid !important;
+  grid-template-columns: minmax(220px, .9fr) minmax(260px, 1.08fr) minmax(220px, .82fr) !important;
+  gap: 10px !important;
+  align-items: start !important;
+  margin: 0 auto !important;
+  padding-bottom: 4px !important;
+}
+
+body.town-active .town-hero-panel,
+body.town-active .town-zone-panel,
+body.town-active .town-action-panel {
+  position: relative !important;
+  min-width: 0 !important;
+  padding: 11px !important;
+  gap: 8px !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+body.town-active .town-hero-panel h1,
+body.town-active .town-section-head h2 {
+  margin: 0 !important;
+  font-size: clamp(17px, 2.6vw, 22px) !important;
+  line-height: 1.08 !important;
+}
+
+body.town-active .town-hero-panel p,
+body.town-active .story-snapshot em,
+body.town-active .zone-card span,
+body.town-active .content-card span {
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+}
+
+body.town-active .story-snapshot {
+  gap: 5px !important;
+  padding: 9px !important;
+  border-radius: 14px !important;
+}
+
+body.town-active .story-snapshot b {
+  font-size: 13px !important;
+}
+
+body.town-active .town-quick-actions {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 5px !important;
+}
+
+body.town-active .town-quick-actions button,
+body.town-active .story-action-btn {
+  min-height: 34px !important;
+  padding: 6px 8px !important;
+  border-radius: 11px !important;
+  font-size: 11px !important;
+}
+
+body.town-active .zone-list-v2 {
+  gap: 6px !important;
+  max-height: min(46dvh, 430px) !important;
+  overflow: auto !important;
+}
+
+body.town-active .zone-card {
+  min-height: 48px !important;
+  padding: 7px 9px !important;
+  gap: 3px !important;
+  border-radius: 13px !important;
+}
+
+body.town-active .zone-card em {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 10px !important;
+}
+
+body.town-active .zone-card b {
+  font-size: 12px !important;
+  line-height: 1.15 !important;
+}
+
+body.town-active .town-content-grid-v2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+body.town-active .content-card {
+  min-height: 72px !important;
+  padding: 8px 7px !important;
+  border-radius: 14px !important;
+}
+
+body.town-active .content-card i,
+body.town-active .town-bottom-btn span {
+  width: 26px !important;
+  height: 26px !important;
+  margin-bottom: 2px !important;
+  font-size: 15px !important;
+}
+
+body.town-active .content-card b {
+  font-size: 12px !important;
+}
+
+.town-bottom-menu {
+  position: fixed !important;
+  left: max(8px, env(safe-area-inset-left)) !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+  z-index: 180 !important;
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 5px !important;
+  width: auto !important;
+  padding: 6px !important;
+  border-radius: 16px !important;
+}
+
+.town-bottom-btn {
+  min-height: 46px !important;
+  height: 46px !important;
+  padding: 4px 2px !important;
+  border-radius: 12px !important;
+}
+
+.town-bottom-btn b {
+  font-size: 10px !important;
+  line-height: 1 !important;
+}
+
+body:not(.town-active) .town-bottom-menu,
+body.field-active .town-bottom-menu,
+body.field-active .town-more-menu,
+body.field-active .town-drawer {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+.town-more-menu {
+  position: fixed !important;
+  left: max(8px, env(safe-area-inset-left)) !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  bottom: calc(var(--repair-town-menu-h) + env(safe-area-inset-bottom) + 12px) !important;
+  z-index: 181 !important;
+  width: auto !important;
+  max-width: 520px !important;
+  margin-left: auto !important;
+  pointer-events: auto !important;
+}
+
+.town-more-menu.hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(8px) scale(.98) !important;
+}
+
+.town-drawer {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: calc(var(--repair-town-menu-h) + env(safe-area-inset-bottom) + 12px) !important;
+  z-index: 182 !important;
+  width: min(720px, calc(100vw - 20px)) !important;
+  max-height: min(72dvh, 640px) !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  padding: 12px !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateX(-50%) !important;
+}
+
+.town-drawer.hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translate(-50%, 14px) scale(.98) !important;
+}
+
+.town-drawer-head {
+  min-height: 0 !important;
+  padding-bottom: 8px !important;
+}
+
+.town-drawer-head h2 {
+  margin: 0 !important;
+  font-size: clamp(16px, 3.6vw, 22px) !important;
+}
+
+.town-drawer-body {
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: auto !important;
+  padding: 0 2px 8px !important;
+}
+
+body.field-active .sheet {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: 0 !important;
+  z-index: 220 !important;
+  display: grid !important;
+  grid-template-rows: auto auto minmax(0, 1fr) !important;
+  width: min(720px, 100vw) !important;
+  max-height: min(76dvh, 620px) !important;
+  padding: 12px !important;
+  border-radius: 18px 18px 0 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translate(-50%, 112%) !important;
+  transition: transform .2s ease, opacity .16s ease !important;
+}
+
+body.field-active .sheet.open {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translate(-50%, 0) !important;
+}
+
+body:not(.field-active) .sheet {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translate(-50%, 112%) !important;
+}
+
+.sheet-body {
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: auto !important;
+}
+
+body.field-active .field-minimap,
+body.town-active .field-minimap,
+body:not(.field-active) .field-minimap {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+body.town-active .skill-dock,
+body.town-active .action-dock,
+body.town-active .hud-top,
+body.town-active .resource-strip,
+body.town-active .target-card,
+body.town-active .field-quest-tracker,
+body.town-active .combat-log,
+body.town-active .combat-log-toggle,
+body.town-active .joystick {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.town-character-profile-card h3,
+.account-panel.character-stats-card h3 {
+  margin: 2px 0 !important;
+  font-size: 18px !important;
+  line-height: 1.1 !important;
+}
+
+.town-character-profile-card p,
+.account-panel.character-stats-card p {
+  display: block !important;
+  margin: 0 !important;
+  color: #d7d0bf !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+.town-profile-mini-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+}
+
+.town-profile-mini-grid span {
+  display: grid !important;
+  gap: 1px !important;
+  min-width: 0 !important;
+  padding: 6px 4px !important;
+  border: 1px solid rgba(226,185,95,.18) !important;
+  border-radius: 10px !important;
+  background: rgba(0,0,0,.22) !important;
+  text-align: center !important;
+}
+
+.town-profile-mini-grid b {
+  overflow: hidden !important;
+  font-size: 11px !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.town-profile-mini-grid em {
+  color: var(--muted) !important;
+  font-size: 9px !important;
+  font-style: normal !important;
+}
+
+@media (max-width: 860px) {
+  body.town-active .town-topbar {
+    grid-template-columns: 1fr !important;
+  }
+  body.town-active .town-currencies {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    width: 100% !important;
+  }
+  body.town-active .town-layout-v2 {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  body.town-active .town-hero-card h2 {
+    max-width: 68vw !important;
+  }
+  body.town-active .town-zone-panel .zone-list {
+    max-height: 30dvh !important;
+  }
+  body.town-active .town-action-panel {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    display: grid !important;
+    padding: 10px !important;
+    border-radius: 16px !important;
+  }
+  .town-drawer {
+    width: calc(100vw - 16px) !important;
+    bottom: calc(var(--repair-town-menu-h) + env(safe-area-inset-bottom) + 10px) !important;
+    max-height: min(68dvh, 590px) !important;
+  }
+}
+
+@media (max-width: 430px) {
+  body.town-active .town-screen {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  body.town-active .town-hero-card {
+    padding: 7px 8px !important;
+  }
+  body.town-active .town-portrait {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+  }
+  body.town-active .town-layout-v2 {
+    gap: 7px !important;
+  }
+  body.town-active .town-hero-panel,
+  body.town-active .town-zone-panel,
+  body.town-active .town-action-panel {
+    padding: 9px !important;
+  }
+  body.town-active .content-card {
+    min-height: 62px !important;
+  }
+  .town-bottom-menu {
+    gap: 4px !important;
+    padding: 5px !important;
+  }
+  .town-bottom-btn {
+    min-height: 42px !important;
+    height: 42px !important;
+  }
+  .town-bottom-btn span {
+    display: none !important;
+  }
+  .town-bottom-btn b {
+    font-size: 10px !important;
+  }
+  body.field-active .sheet {
+    width: 100vw !important;
+    max-height: 78dvh !important;
+    padding: 10px !important;
+  }
+  .town-profile-mini-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}

@@ -703,6 +703,7 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
       if (autoStart) prepared.autoHunt = true;
       pendingSave = prepared;
       saveService.saveLocal(prepared);
+      closeCurrentSheet();
       townScreen.classList.add('hidden');
       townScreen.setAttribute('aria-hidden', 'true');
       titleScreen.classList.add('hidden');
@@ -2080,16 +2081,41 @@ function todayKey() {
 function renderTownAccount(save: PlayerSave) {
   const online = saveService.isOnline();
   const cloud = saveService.getCloudWriteStatus();
+  const klass = classes[save.classId];
+  const stats = calculateStatsFromSave(save);
+  const expNeed = expToNext(save.level);
+  const expPercent = Math.min(100, Math.round((save.exp / expNeed) * 100));
+  const equippedItems = Object.values(save.equipment || {}).filter(Boolean).length;
+  const equippedCards = save.cards.filter((card) => card.equipped).length;
+  const unlockedSouls = save.souls.filter((soul) => soul.unlocked).length;
   return `
-    <div class="account-box">
-      <article class="account-panel">
+    <div class="account-box town-account-box">
+      <article class="account-panel character-stats-card town-character-profile-card">
+        <div class="pill-row">
+          <span class="pill">${escapeHtml(klass.name)}</span>
+          <span class="pill">Lv.${save.level}</span>
+          <span class="pill">전투력 ${formatNumber(powerFromSave(save))}</span>
+          <span class="pill">${(save.gender || 'male') === 'female' ? '여자' : '남자'}</span>
+        </div>
+        <h3>${escapeHtml(save.name)}</h3>
+        <p>HP ${Math.ceil(save.hp)}/${stats.hp} · MP ${Math.floor(save.mp)}/${stats.mp}</p>
+        <p>공격 ${stats.atk} · 방어 ${stats.def} · 공속 ${stats.aspd} · 치명 ${Math.round(stats.crit * 100)}%</p>
+        <div class="bar exp quest-progress"><i style="width:${expPercent}%"></i><em>EXP ${save.exp}/${expNeed}</em></div>
+        <div class="town-profile-mini-grid">
+          <span><b>${equippedItems}</b><em>장비</em></span>
+          <span><b>${equippedCards}/4</b><em>카드</em></span>
+          <span><b>${unlockedSouls}</b><em>영혼</em></span>
+          <span><b>${formatGold(save.gold)}</b><em>골드</em></span>
+        </div>
+      </article>
+      <article class="account-panel town-account-save-card">
         <div class="pill-row">
           <span class="pill">${online ? '온라인' : '로컬'}</span>
           <span class="pill">${escapeHtml(saveService.userLabel())}</span>
           <span class="pill">슬롯 ${characterRoster.length}/${MAX_CHARACTER_SLOTS}</span>
           ${cloud.paused ? '<span class="pill">클라우드 보류</span>' : ''}
         </div>
-        <p>클라우드 저장이 실패해도 로컬 저장은 계속 유지됩니다. Firestore 규칙/프로젝트 설정이 막혀 있으면 자동 동기화만 조용히 보류됩니다.</p>
+        <p>캐릭터 정보와 저장 상태를 여기서 확인합니다. 클라우드 저장이 실패해도 로컬 저장은 계속 유지됩니다.</p>
         ${cloud.lastError ? `<p>최근 클라우드 오류: ${escapeHtml(cloud.lastError)}</p>` : ''}
         <button data-town-account-action="save">수동 저장</button>
       </article>
@@ -2097,7 +2123,6 @@ function renderTownAccount(save: PlayerSave) {
     </div>
   `;
 }
-
 function toggleTownCard(cardUid: string) {
   if (!pendingSave) return;
   const card = pendingSave.cards.find((item) => item.uid === cardUid);

@@ -2,27 +2,284 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#111827" />
-    <meta name="description" content="SOL Online Alpha - mobile 2.5D web MMORPG prototype" />
-    <title>SOL Online Alpha</title>
-    <script type="module" crossorigin src="./assets/index-BCnlyr8q.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-CO0QIc00.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#10120f" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta name="description" content="소울 온라인 Alpha - 모바일 2.5D 웹 MMORPG 프로토타입" />
+    <title>소울 온라인 Alpha</title>
+    <script type="module" crossorigin src="./assets/index-Mn1p2fUY.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/pixi-engine-C-SW8LSP.js">
+    <link rel="modulepreload" crossorigin href="./assets/game-data-BUSnarRi.js">
+    <link rel="modulepreload" crossorigin href="./assets/firebase-sdk-B8Ih3TGo.js">
+    <link rel="modulepreload" crossorigin href="./assets/field-engine-DUd139ug.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-Blnw8_Q7.css">
   </head>
   <body>
     <div id="app">
       <div id="game-root" class="game-root"></div>
 
+      <section class="title-screen" id="titleScreen">
+        <div class="title-bg title-bg-visual">
+          <span class="title-orb orb-a"></span>
+          <span class="title-orb orb-b"></span>
+          <span class="title-orb orb-c"></span>
+        </div>
+        <div class="title-stage">
+          <div class="title-copy">
+            <span class="title-kicker">SOUL ONLINE · LUMINA CHRONICLE</span>
+            <h1>소울 온라인</h1>
+            <p>어둠의 균열이 열린 루미나 대륙에서 영혼을 각성하고, 장비와 카드를 성장시켜 필드보스와 심연의 군단을 토벌하세요.</p>
+          </div>
+          <div class="title-hero" aria-hidden="true">
+            <span class="title-soul-ring"></span>
+            <span class="title-character title-character-visual"></span>
+          </div>
+          <button id="startGameBtn" class="start-game-btn">게임 시작</button>
+          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.35.0</span></div>
+          <small>전체화면은 브라우저 정책상 버튼 입력 후 시도됩니다.</small>
+        </div>
+      </section>
+
+      <section class="login-screen hidden" id="loginScreen">
+        <div class="login-backdrop">
+          <div class="login-art warrior-art"></div>
+          <div class="login-art mage-art"></div>
+        </div>
+
+        <div class="login-panel login-panel-v3">
+          <aside class="login-lore-card">
+            <span>LUMINA GATE</span>
+            <h2>영혼의 문이 열리고 전장이 시작됩니다</h2>
+            <p>로그인 후 곰같은여우 서버에 접속하고, 소울 바인더를 선택하세요.</p>
+          </aside>
+          <div class="login-flow-card">
+            <div class="brand-block">
+              <span>SOUL ONLINE</span>
+              <h1>접속 준비</h1>
+            </div>
+
+          <p class="login-flow-hint" id="loginFlowHint">접속 방식을 선택하면 다음 단계로 자연스럽게 이동합니다.</p>
+
+          <div class="flow-page active" data-flow-page="login">
+            <div class="account-choice">
+              <button id="guestLoginBtn" class="wide-action primary">게스트 접속</button>
+              <button id="googleLoginBtn" class="wide-action">Google 로그인</button>
+              <button id="localLoginBtn" class="wide-action subtle">로컬 저장으로 계속</button>
+            </div>
+            <p class="login-status" id="loginStatus">접속 방식을 선택하세요.</p>
+          </div>
+
+          <div class="flow-page" data-flow-page="server">
+            <div class="server-list">
+              <button data-server-id="bearfox" class="server-card active">
+                <b>곰같은여우 서버</b>
+                <span>단일 서버 · 캐릭터 최대 4개 · 추천</span>
+              </button>
+            </div>
+            <button id="serverNextBtn" class="wide-action primary">서버 선택</button>
+          </div>
+
+          <div class="flow-page" data-flow-page="character">
+            <div class="slot-headline">
+              <b>캐릭터 선택</b>
+              <span id="characterSlotHelper">캐릭터 슬롯을 불러오는 중입니다.</span>
+            </div>
+            <div class="character-slot-list" id="characterSlotList"></div>
+            <div class="character-actions">
+              <button id="connectCharacterBtn" class="wide-action primary">접속</button>
+              <button id="newCharacterBtn" class="wide-action">캐릭터 생성</button>
+              <button id="deleteCharacterBtn" class="wide-action danger">삭제</button>
+            </div>
+
+            <div class="character-create-panel hidden" id="characterCreatePanel">
+              <label class="field">
+                <span>닉네임</span>
+                <input id="nameInput" maxlength="12" value="솔마스터" />
+              </label>
+              <div class="class-grid">
+                <button data-class="warrior" class="class-card active">
+                  <b>검혼</b>
+                  <span>근접 · 돌격 · 혼월참</span>
+                </button>
+                <button data-class="taoist" class="class-card">
+                  <b>영술사</b>
+                  <span>원거리 · 폭딜 · 소울 탄환</span>
+                </button>
+                <button data-class="cleric" class="class-card">
+                  <b>성휘사</b>
+                  <span>중거리 · 회복 · 성휘</span>
+                </button>
+              </div>
+              <div class="gender-grid">
+                <button data-gender="male" class="class-card compact active">
+                  <b>남자</b>
+                  <span>장신 실루엣 · 중갑/로브 기준</span>
+                </button>
+                <button data-gender="female" class="class-card compact">
+                  <b>여자</b>
+                  <span>슬림 실루엣 · 동일 모션셋</span>
+                </button>
+              </div>
+              <div class="character-summary" id="characterSummary"></div>
+              <div class="character-actions two">
+                <button id="characterNextBtn" class="wide-action primary">캐릭터 생성 완료</button>
+                <button id="cancelCreateBtn" class="wide-action subtle">취소</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-page" data-flow-page="town">
+            <div class="world-card">
+              <span id="worldServerText">곰같은여우 서버</span>
+              <h2 id="worldCharacterText">솔마스터</h2>
+              <p id="worldClassText">검혼 · 근접 브레이커</p>
+            </div>
+            <button id="enterTownBtn" class="wide-action primary">마을 입장</button>
+          </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="town-screen hidden" id="townScreen" aria-hidden="true">
+        <div class="town-backdrop">
+          <div class="town-sky"></div>
+          <div class="town-diorama" aria-hidden="true">
+            <span class="town-plaza"></span>
+            <span class="town-road main-road"></span>
+            <span class="town-road side-road"></span>
+            <span class="town-building gate"><i>필드 게이트</i></span>
+            <span class="town-building hall"><i>의뢰소</i></span>
+            <span class="town-building forge"><i>대장간</i></span>
+            <span class="town-building shrine"><i>소울 성소</i></span>
+            <span class="town-building shop"><i>상점</i></span>
+            <span class="town-citizen citizen-a"></span>
+            <span class="town-citizen citizen-b"></span>
+            <span class="town-citizen citizen-c"></span>
+          </div>
+        </div>
+
+        <div class="town-topbar">
+          <div class="town-hero-card">
+            <div class="town-portrait" id="townHeroGlyph">W</div>
+            <div>
+              <span>SOUL ONLINE · 루미나 허브</span>
+              <h2 id="townHeroName">솔마스터</h2>
+              <p id="townHeroMeta">Lv.1 · 검혼 · 근접 브레이커</p>
+            </div>
+          </div>
+          <div class="town-currencies">
+            <span id="townGoldText">0G</span>
+            <span id="townGemText">0소울</span>
+            <span id="townPowerText">전투력 -</span>
+          </div>
+        </div>
+
+        <main class="town-layout town-layout-v2">
+          <section class="town-hero-panel">
+            <span class="town-eyebrow">LUMINA TOWN</span>
+            <h1>루미나 마을</h1>
+            <p>마을 중앙의 소울 등불을 지키며 스토리, 의뢰, 장비 세팅을 준비하세요.</p>
+            <div class="story-snapshot">
+              <span id="townChapterText">CHAPTER 1</span>
+              <b id="townStoryTitle">꺼져가는 루미나의 등불</b>
+              <em id="townStoryDesc">등불지기 리아와 대화하세요.</em>
+              <div class="bar exp story-progress-bar"><i id="townStoryProgress" style="width:0%"></i><em id="townStoryProgressText">0%</em></div>
+              <button id="townStoryActionBtn" class="story-action-btn">스토리 진행</button>
+            </div>
+            <div class="town-quick-actions">
+              <button id="townFullscreenBtn">전체화면</button>
+              <button id="townSaveBtn">저장</button>
+              <button id="townAudioBtn">BGM ON</button>
+              <button id="townAccountBtn">계정</button>
+            </div>
+          </section>
+
+          <section class="town-zone-panel">
+            <div class="town-section-head">
+              <span class="town-eyebrow">FIELD GATE</span>
+              <h2>사냥터 선택</h2>
+            </div>
+            <div class="zone-list zone-list-v2">
+              <button class="zone-card active" data-zone-id="slime-forest"><em>01</em><b>루미나 숲 초입</b><span>Lv.1 · 젤리/늑대/임프 · 입문 사냥터</span></button>
+              <button class="zone-card" data-zone-id="crystal-moss"><em>02</em><b>청수정 이끼길</b><span>Lv.3 · 늑대/임프/골렘 · +3 권장</span></button>
+              <button class="zone-card" data-zone-id="goblin-road"><em>03</em><b>붉은 깃발 폐허로</b><span>Lv.5 · 폐허 검병/망령 · 장비 드랍</span></button>
+              <button class="zone-card" data-zone-id="black-cave"><em>04</em><b>흑요석 동굴</b><span>Lv.7 · 가디언/골렘 · +5 권장</span></button>
+              <button class="zone-card" data-zone-id="ember-ridge"><em>05</em><b>불씨 능선</b><span>Lv.9 · 화염 드레이크 · 낙하 공격</span></button>
+              <button class="zone-card" data-zone-id="moonlit-grove"><em>06</em><b>달빛 고목숲</b><span>Lv.10 · 하피/늑대 무리 · 자동스킬</span></button>
+              <button class="zone-card" data-zone-id="soul-ruins"><em>07</em><b>망각의 성소 폐허</b><span>Lv.12 · 망령/묘지 기사 · 강화 재료</span></button>
+              <button class="zone-card" data-zone-id="storm-citadel"><em>08</em><b>폭풍 감시초소</b><span>Lv.14 · 폭풍 하피 · 고속 전투</span></button>
+              <button class="zone-card" data-zone-id="dragon-nest"><em>09</em><b>용그림자 둥지</b><span>Lv.16 · 드레이크/심연룡 · 고위험</span></button>
+              <button class="zone-card" data-zone-id="crystal-raid"><em>10</em><b>심연 수정 레이드터</b><span>Lv.18 · 필드보스/심연룡 · 레이드</span></button>
+            </div>
+          </section>
+
+          <section class="town-action-panel" aria-label="마을 빠른 메뉴 안내">
+            <div class="town-section-head">
+              <span class="town-eyebrow">TOWN SYSTEM</span>
+              <h2>마을 기능</h2>
+            </div>
+            <div class="town-content-grid town-content-grid-v2">
+              <button class="content-card featured" data-town-content="hunt"><i>⌁</i><b>사냥터</b><span>지역 선택/입장</span></button>
+              <button class="content-card" data-town-content="inventory"><i>▤</i><b>장비</b><span>장착/강화</span></button>
+              <button class="content-card" data-town-content="skills"><i>✦</i><b>스킬</b><span>습득/확인</span></button>
+              <button class="content-card" data-town-content="cards"><i>◆</i><b>카드</b><span>장착/세트</span></button>
+            </div>
+          </section>
+        </main>
+
+
+        <nav class="town-bottom-menu" aria-label="마을 하단 메뉴">
+          <button class="town-bottom-btn" data-town-content="hunt"><span>⌁</span><b>사냥터</b></button>
+          <button class="town-bottom-btn" data-town-content="inventory"><span>▤</span><b>장비</b></button>
+          <button class="town-bottom-btn" data-town-content="skills"><span>✦</span><b>스킬</b></button>
+          <button class="town-bottom-btn" data-town-content="cards"><span>◆</span><b>카드</b></button>
+          <button class="town-bottom-btn" id="townMoreBtn" aria-expanded="false" aria-controls="townMoreMenu"><span>＋</span><b>더보기</b></button>
+        </nav>
+        <div class="town-more-menu hidden" id="townMoreMenu" aria-hidden="true">
+          <button data-town-more-content="story"><span>★</span><b>스토리</b><em>메인 진행</em></button>
+          <button data-town-more-content="quests"><span>!</span><b>의뢰</b><em>일일/주간</em></button>
+          <button data-town-more-content="shop"><span>◈</span><b>상점</b><em>스킬북/재료</em></button>
+          <button data-town-more-content="boss"><span>♛</span><b>보스</b><em>레이드/필드보스</em></button>
+          <button data-town-more-content="settings"><span>♫</span><b>사운드</b><em>BGM/SFX</em></button>
+          <button data-town-more-content="account"><span>◎</span><b>계정</b><em>저장/동기화</em></button>
+        </div>
+
+        <aside class="town-drawer hidden" id="townContentPanel" aria-hidden="true">
+          <div class="town-drawer-head">
+            <div>
+              <span id="townContentEyebrow">TOWN</span>
+              <h2 id="townContentTitle">마을 컨텐츠</h2>
+            </div>
+            <button class="icon-btn" id="closeTownContent" title="닫기" aria-label="닫기">×</button>
+          </div>
+          <div class="town-drawer-body" id="townContentBody"></div>
+        </aside>
+      </section>
+
+      <div class="orientation-guard" aria-hidden="true"><div><b>세로 모드 전용</b><span>기기를 세로로 돌리면 게임 화면이 다시 표시됩니다.</span></div></div>
+
+      <div class="scene-transition" id="sceneTransition" aria-hidden="true">
+        <div>
+          <span>소울 온라인</span>
+          <strong id="sceneTransitionLabel">로딩 중</strong>
+        </div>
+      </div>
+
       <header class="hud-top">
         <div class="portrait" id="classPortrait">S</div>
         <div class="hero-status">
           <div class="hud-row">
-            <strong id="playerName">SOL 마스터</strong>
+            <strong id="playerName">소울 마스터</strong>
             <span id="levelText">Lv.1</span>
           </div>
           <div class="bar hp"><i id="hpBar"></i><em id="hpText">100/100</em></div>
+          <div class="bar mp"><i id="mpBar"></i><em id="mpText">0/0</em></div>
           <div class="bar exp"><i id="expBar"></i><em id="expText">0%</em></div>
         </div>
+        <button class="icon-btn" id="returnTownBtn" title="마을 복귀" aria-label="마을 복귀">⌂</button>
         <button class="icon-btn" id="openMenu" title="메뉴" aria-label="메뉴">☰</button>
       </header>
 
@@ -40,17 +297,42 @@
         <div class="target-hp"><i id="targetHp"></i></div>
       </section>
 
+
+      <section class="field-quest-tracker" id="fieldQuestTracker" aria-label="진행중 퀘스트">
+        <span>진행중 퀘스트</span>
+        <b id="fieldQuestTitle">스토리 확인</b>
+        <em id="fieldQuestProgress">0/0</em>
+      </section>
+
+      <section class="field-minimap" id="fieldMiniMap" aria-label="미니맵">
+        <div class="minimap-head"><b id="miniZoneName">사냥터</b><span id="miniZoneMeta">Lv.1</span><button id="miniMapToggle" type="button" aria-label="미니맵 축소">−</button></div>
+        <div class="minimap-canvas">
+          <i class="mini-safe"></i>
+          <i class="mini-path"></i>
+          <i class="mini-boss"></i>
+          <i class="mini-player" id="miniPlayerDot"></i>
+        </div>
+      </section>
+
+      <button class="combat-log-toggle" id="combatLogToggle" aria-label="상태 기록 접기">기록 접기</button>
       <div class="combat-log" id="combatLog"></div>
 
       <div class="joystick" id="joystick" aria-label="이동 조이스틱">
         <i id="joystickKnob"></i>
       </div>
 
+      <nav class="skill-dock" aria-label="스킬 단축 버튼">
+        <button class="skill-btn" data-skill-slot="0"><span>1</span><b>스킬1</b><em></em></button>
+        <button class="skill-btn" data-skill-slot="1"><span>2</span><b>스킬2</b><em></em></button>
+        <button class="skill-btn" data-skill-slot="2"><span>3</span><b>스킬3</b><em></em></button>
+      </nav>
+
       <nav class="action-dock" aria-label="전투 행동">
-        <button id="autoHuntBtn" class="dock-btn active"><span>⟳</span><b>자동</b></button>
+        <button id="autoHuntBtn" class="dock-btn"><span>⟳</span><b>자동</b></button>
         <button id="attackBtn" class="dock-btn primary"><span>⚔</span><b>공격</b></button>
         <button id="cardsBtn" class="dock-btn"><span>◆</span><b>카드</b></button>
         <button id="inventoryBtn" class="dock-btn"><span>▤</span><b>가방</b></button>
+        <button id="sleepModeBtn" class="dock-btn"><span>☾</span><b>절전</b></button>
       </nav>
 
       <section class="sheet" id="sheet" aria-hidden="true">
@@ -63,39 +345,43 @@
         </div>
         <div class="tabs">
           <button data-sheet-tab="cards" class="active">카드</button>
-          <button data-sheet-tab="inventory">장비</button>
+          <button data-sheet-tab="inventory">가방</button>
+          <button data-sheet-tab="skills">스킬</button>
           <button data-sheet-tab="souls">영혼</button>
           <button data-sheet-tab="account">계정</button>
         </div>
         <div id="sheetBody" class="sheet-body"></div>
       </section>
 
-      <section class="create-modal" id="createModal" aria-modal="true" role="dialog">
-        <div class="create-panel">
-          <span class="eyebrow">SOL ONLINE ALPHA 0.1</span>
-          <h1>소울 마스터 생성</h1>
-          <label class="field">
-            <span>닉네임</span>
-            <input id="nameInput" maxlength="12" value="솔마스터" />
-          </label>
-          <div class="class-grid">
-            <button data-class="warrior" class="class-card active">
-              <b>전사</b>
-              <span>근접, 높은 생존력</span>
-            </button>
-            <button data-class="taoist" class="class-card">
-              <b>술사</b>
-              <span>원거리, 폭발 피해</span>
-            </button>
-            <button data-class="cleric" class="class-card">
-              <b>성직자</b>
-              <span>회복, 안정 사냥</span>
-            </button>
+
+      <section class="item-detail-modal hidden" id="itemDetailModal" aria-hidden="true">
+        <div class="item-detail-backdrop" data-close-detail="true"></div>
+        <article class="item-detail-card">
+          <button class="icon-btn item-detail-close" id="closeItemDetail" title="닫기" aria-label="닫기">×</button>
+          <div class="item-detail-visual" id="itemDetailVisual"></div>
+          <div class="item-detail-copy">
+            <span id="itemDetailEyebrow">DETAIL</span>
+            <h2 id="itemDetailTitle">상세 정보</h2>
+            <p id="itemDetailDesc">선택한 슬롯 정보를 표시합니다.</p>
+            <div class="item-detail-stats" id="itemDetailStats"></div>
+            <div class="item-detail-actions" id="itemDetailActions"></div>
           </div>
-          <button id="startGameBtn" class="start-btn">접속</button>
-        </div>
+        </article>
       </section>
 
+      <section class="exit-confirm-modal hidden" id="exitConfirmModal" aria-hidden="true">
+        <div class="exit-confirm-backdrop" data-exit-cancel="true"></div>
+        <article class="exit-confirm-card">
+          <span>GAME EXIT</span>
+          <h2>게임을 종료할까요?</h2>
+          <p>현재 진행 상황을 로컬에 저장하고 첫 화면으로 돌아갑니다.</p>
+          <div class="exit-confirm-actions">
+            <button class="wide-action subtle" id="exitCancelBtn" type="button">계속하기</button>
+            <button class="wide-action danger" id="exitConfirmBtn" type="button">저장 후 종료</button>
+          </div>
+        </article>
+      </section>
+      <div class="sleep-overlay" id="sleepOverlay"><div><b>절전 모드</b><span>자동사냥은 유지됩니다. 화면을 터치하면 해제됩니다.</span></div></div>
       <div class="toast" id="toast"></div>
     </div>
 
