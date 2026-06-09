@@ -2,6 +2,7 @@ import './styles.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
+import { applyEquipmentResonance, equipmentResonanceEffects, nextEquipmentResonanceHint, resonanceBonusText } from './game/equipmentResonance';
 import { formatGold, formatNumber, formatSoul, roll, uid } from './game/math';
 import type { CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
@@ -558,6 +559,12 @@ function bindLoginFlow() {
     const upgradeTownSkill = target.closest<HTMLButtonElement>('[data-town-upgrade-skill]');
     if (upgradeTownSkill) {
       trainTownSkill(upgradeTownSkill.dataset.townUpgradeSkill || '');
+      return;
+    }
+
+    const dismantleDuplicates = target.closest<HTMLButtonElement>('[data-town-dismantle-duplicates]');
+    if (dismantleDuplicates) {
+      dismantleTownDuplicateEquipment();
       return;
     }
 
@@ -1233,6 +1240,7 @@ function renderInventory(snapshot: Snapshot) {
     .map(({ def, instance }) => renderItemSlot(snapshot.save, def, instance.uid, instance.count, 'data-equip-item', 'data-upgrade-item'));
 
   return `
+    ${renderEquipmentResonanceSummary(snapshot.save)}
     <div class="slot-toolbar">
       <span>가방 7x7 · ${snapshot.save.inventory.length}/49 · ${formatGold(snapshot.save.gold)} · ${formatSoul(snapshot.save.gems)}</span>
       <em>슬롯 클릭: 상세 · 더블클릭: 장착/해제</em>
@@ -1461,6 +1469,7 @@ function renderAccount(snapshot: Snapshot) {
         <p>HP ${Math.ceil(snapshot.save.hp)}/${stats.hp} · MP ${Math.floor(snapshot.save.mp)}/${stats.mp}</p>
         <p>공격 ${stats.atk} · 방어 ${stats.def} · 공속 ${stats.aspd} · 치명 ${Math.round(stats.crit * 100)}%</p>
         <div class="bar exp quest-progress"><i style="width:${expPercent}%"></i><em>EXP ${snapshot.save.exp}/${expToNext(snapshot.save.level)}</em></div>
+        <div class="account-resonance-mini">${equipmentResonanceEffects(snapshot.save, items).map((effect) => `<span>${escapeHtml(effect.tier)} · ${escapeHtml(effect.title)}</span>`).join('') || '<span>장비 공명 대기</span>'}</div>
         <button data-account-action="save">수동 저장</button>
       </article>
       <article class="account-panel">
@@ -1991,8 +2000,37 @@ function renderTownInventory(save: PlayerSave) {
       <span>ASPD <b>${stats.aspd}</b></span>
       <span>CRIT <b>${Math.round(stats.crit * 100)}%</b></span>
     </div>
+    ${renderEquipmentResonanceSummary(save, true)}
     <div class="slot-toolbar"><span>가방 7x7 · ${save.inventory.length}/49 · ${formatGold(save.gold)} · ${formatSoul(save.gems)}</span><em>클릭: 상세 · 더블클릭: 장착/해제</em></div>
     <div class="slot-grid inventory-slot-grid town-slot-grid">${fillSlots(cells, 49, '빈 가방')}</div>
+  `;
+}
+
+function renderEquipmentResonanceSummary(save: PlayerSave, townMode = false) {
+  const effects = equipmentResonanceEffects(save, items);
+  const gear = ['weapon', 'armor', 'relic'] as EquipmentSlot[];
+  const gearRows = gear.map((slot) => {
+    const uidValue = save.equipment?.[slot];
+    const instance = uidValue ? save.inventory.find((entry) => entry.uid === uidValue) : null;
+    const def = instance ? items.find((item) => item.id === instance.itemId) : null;
+    const enhance = uidValue ? save.enhancements?.[uidValue] || 0 : 0;
+    const label: Record<EquipmentSlot, string> = { weapon: '무기', armor: '방어구', relic: '유물' };
+    return `<span><b>${label[slot]}</b><em>${def ? `${escapeHtml(def.name)} +${enhance}` : '비어 있음'}</em></span>`;
+  }).join('');
+  const effectRows = effects.length
+    ? effects.map((effect) => `<article class="resonance-effect active"><strong>${escapeHtml(effect.tier)}</strong><div><b>${escapeHtml(effect.title)}</b><em>${escapeHtml(resonanceBonusText(effect.bonus))}</em></div></article>`).join('')
+    : '<article class="resonance-effect locked"><strong>LOCK</strong><div><b>장비 공명 대기</b><em>무기·방어구·유물을 모두 장착하세요.</em></div></article>';
+  const action = townMode ? '<button class="resonance-dismantle-btn" data-town-dismantle-duplicates="1">중복 장비 분해</button>' : '';
+  return `
+    <section class="equipment-resonance-panel">
+      <div class="resonance-head">
+        <div><span>GEAR RESONANCE</span><h3>장비 공명</h3></div>
+        ${action}
+      </div>
+      <div class="resonance-gear-row">${gearRows}</div>
+      <div class="resonance-effect-list">${effectRows}</div>
+      <p>${escapeHtml(nextEquipmentResonanceHint(save, items))}</p>
+    </section>
   `;
 }
 
@@ -2407,11 +2445,54 @@ function persistTownSave() {
   renderTownContent();
 }
 
-function addInventoryItem(save: PlayerSave, itemId: string) {
+function addInventoryItem(save: PlayerSave, itemId: string, count = 1) {
+  const amount = Math.max(1, Math.floor(count || 1));
   const found = save.inventory.find((item) => item.itemId === itemId);
-  if (found) found.count += 1;
-  else save.inventory.push({ uid: uid('item'), itemId, count: 1 });
+  if (found) found.count += amount;
+  else save.inventory.push({ uid: uid('item'), itemId, count: amount });
 }
+
+function dismantleTownDuplicateEquipment() {
+  if (!pendingSave) return;
+  const result = dismantleDuplicateEquipment(pendingSave);
+  if (result.count <= 0) {
+    showToast('분해할 중복 장비가 없습니다. 장비는 최소 1개씩 보존됩니다.');
+    return;
+  }
+  if (result.gold) pendingSave.gold += result.gold;
+  if (result.shards) addInventoryItem(pendingSave, 'soul-shard', result.shards);
+  if (result.stones) addInventoryItem(pendingSave, 'enhance-stone', result.stones);
+  audioService.play('reward');
+  showLootPresentation({ type: 'item', title: '중복 장비 분해', subtitle: `장비 ${result.count}개 · 파편 ${result.shards} · 강화석 ${result.stones}`, rarity: result.stones ? 'SR' : 'R' });
+  persistTownSave();
+  showToast(`중복 장비 ${result.count}개 분해 · ${formatGold(result.gold)} · 파편 ${result.shards} · 강화석 ${result.stones}`);
+}
+
+function dismantleDuplicateEquipment(save: PlayerSave) {
+  const reward = { count: 0, gold: 0, shards: 0, stones: 0 };
+  for (const entry of [...save.inventory]) {
+    const def = items.find((item) => item.id === entry.itemId);
+    if (!def || (def.type !== 'weapon' && def.type !== 'armor' && def.type !== 'relic')) continue;
+    if (entry.count <= 1) continue;
+    const extra = entry.count - 1;
+    const value = dismantleRewardForRarity(def.rarity);
+    entry.count = 1;
+    reward.count += extra;
+    reward.gold += value.gold * extra;
+    reward.shards += value.shards * extra;
+    reward.stones += value.stones * extra;
+  }
+  return reward;
+}
+
+function dismantleRewardForRarity(rarity: string) {
+  if (rarity === 'UR') return { gold: 1200, shards: 6, stones: 3 };
+  if (rarity === 'SSR') return { gold: 650, shards: 4, stones: 2 };
+  if (rarity === 'SR') return { gold: 320, shards: 3, stones: 1 };
+  if (rarity === 'R') return { gold: 150, shards: 2, stones: 0 };
+  return { gold: 80, shards: 1, stones: 0 };
+}
+
 
 function materialCount(save: PlayerSave, itemId: string) {
   return save.inventory.filter((entry) => entry.itemId === itemId).reduce((sum, entry) => sum + entry.count, 0);
@@ -2453,6 +2534,7 @@ function calculateStatsFromSave(save: PlayerSave): Stats {
   }
 
   for (const set of activeCardSetEffects(save)) applyTownBonus(stats, set.bonus, 1);
+  applyEquipmentResonance(stats, equipmentResonanceEffects(save, items));
 
   const equippedItemIds = new Set(Object.values(save.equipment || {}));
   for (const entry of save.inventory) {

@@ -8630,3 +8630,174 @@ body.field-active .target-card.elite-target { border-color: rgba(226,185,95,.62)
 .skill-slot.unlocked .slot-rarity {
   color: #ffd15f;
 }
+
+/* 0.40 Gear Resonance Pass */
+.equipment-resonance-panel {
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid rgba(226, 185, 95, 0.28);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(226, 185, 95, 0.16), transparent 38%),
+    linear-gradient(135deg, rgba(24, 18, 12, 0.88), rgba(10, 16, 20, 0.86));
+  box-shadow: inset 0 0 20px rgba(226, 185, 95, 0.06), 0 14px 32px rgba(0, 0, 0, 0.22);
+}
+
+.resonance-head,
+.resonance-gear-row,
+.resonance-effect-list {
+  display: grid;
+  gap: 8px;
+}
+
+.resonance-head {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  margin-bottom: 9px;
+}
+
+.resonance-head span {
+  display: block;
+  color: rgba(226, 185, 95, 0.9);
+  font-size: 0.64rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.resonance-head h3 {
+  margin: 2px 0 0;
+  color: #fff3d2;
+  font-size: 1rem;
+}
+
+.resonance-dismantle-btn {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 11px;
+  border: 1px solid rgba(114, 231, 255, 0.34);
+  background: linear-gradient(180deg, rgba(114, 231, 255, 0.16), rgba(17, 45, 52, 0.78));
+  color: #c9f7ff;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.resonance-gear-row {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 9px;
+}
+
+.resonance-gear-row span {
+  min-width: 0;
+  padding: 8px 9px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.resonance-gear-row b,
+.resonance-gear-row em {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resonance-gear-row b {
+  color: rgba(245, 241, 232, 0.62);
+  font-size: 0.62rem;
+}
+
+.resonance-gear-row em {
+  margin-top: 2px;
+  color: #f8e7ad;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.resonance-effect-list {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.resonance-effect {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 9px;
+  align-items: center;
+  min-height: 52px;
+  padding: 9px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.resonance-effect.active {
+  border-color: rgba(226, 185, 95, 0.28);
+  background: linear-gradient(135deg, rgba(226, 185, 95, 0.13), rgba(255, 255, 255, 0.045));
+}
+
+.resonance-effect.locked {
+  opacity: 0.72;
+}
+
+.resonance-effect strong {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.32);
+  color: #ffd15f;
+  font-size: 0.72rem;
+  font-weight: 950;
+}
+
+.resonance-effect b,
+.resonance-effect em {
+  display: block;
+}
+
+.resonance-effect b {
+  color: #fff3d2;
+  font-size: 0.84rem;
+}
+
+.resonance-effect em {
+  margin-top: 2px;
+  color: rgba(245, 241, 232, 0.66);
+  font-size: 0.68rem;
+  font-style: normal;
+  line-height: 1.25;
+}
+
+.equipment-resonance-panel p {
+  margin: 9px 0 0;
+  color: rgba(245, 241, 232, 0.64);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.account-resonance-mini {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 9px 0;
+}
+
+.account-resonance-mini span {
+  padding: 5px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(226, 185, 95, 0.26);
+  background: rgba(226, 185, 95, 0.08);
+  color: #f8e7ad;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+@media (max-width: 720px) {
+  .equipment-resonance-panel { padding: 10px; }
+  .resonance-head { grid-template-columns: 1fr; }
+  .resonance-dismantle-btn { width: 100%; }
+  .resonance-gear-row { grid-template-columns: 1fr; }
+  .resonance-effect-list { grid-template-columns: 1fr; }
+}

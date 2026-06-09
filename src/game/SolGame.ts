@@ -41,6 +41,7 @@ import { isoToScreen, screenToIso } from './iso';
 import { clamp, distance, formatGold, formatNumber, normalize, roll, uid } from './math';
 import type { SaveService } from './SaveService';
 import { audioService } from './AudioService';
+import { applyEquipmentResonance, equipmentResonanceEffects } from './equipmentResonance';
 import { HUMANOID_SHEET_META, MONSTER_SHEET_META, SpriteSheetAnimator, directionFromIsoVector, type SpriteDirection } from './SpriteSheetAnimator';
 
 type MobView = {
@@ -2555,6 +2556,7 @@ export class SolGame {
     }
 
     for (const set of this.activeCardSetEffects()) this.applyBonus(stats, set.bonus, 1);
+    applyEquipmentResonance(stats, equipmentResonanceEffects(this.save, items));
 
     const equippedItemIds = new Set(Object.values(this.save.equipment || {}));
     for (const entry of this.save.inventory) {
