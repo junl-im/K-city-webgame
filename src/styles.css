@@ -5950,3 +5950,501 @@ body.field-active .combat-log {
   .card-art { height: 96px !important; min-height: 96px !important; }
   .slot-cell b { font-size: 10.5px !important; }
 }
+
+/* Alpha 0.32: Wenrexa graphic UI skin pass */
+:root {
+  --ui-panel-big: url("./assets/ui/wenrexa/panel-big.jpg");
+  --ui-panel-message: url("./assets/ui/wenrexa/panel-message.jpg");
+  --ui-panel-mini-01: url("./assets/ui/wenrexa/panel-mini-01.jpg");
+  --ui-panel-mini-02: url("./assets/ui/wenrexa/panel-mini-02.jpg");
+  --ui-button-dark: url("./assets/ui/wenrexa/button-dark.png");
+  --ui-button-wide: url("./assets/ui/wenrexa/button-wide.png");
+  --ui-button-gold: url("./assets/ui/wenrexa/button-gold.png");
+  --ui-slot-cell: url("./assets/ui/wenrexa/slot-cell.png");
+  --ui-circle-dark: url("./assets/ui/wenrexa/circle-dark.png");
+  --ui-circle-light: url("./assets/ui/wenrexa/circle-light.png");
+  --ui-bar-bg: url("./assets/ui/wenrexa/bar-bg.png");
+  --ui-bar-border: url("./assets/ui/wenrexa/bar-border.png");
+  --ui-close: url("./assets/ui/wenrexa/icon-close.png");
+  --ui-gold-line: rgba(226, 185, 95, 0.42);
+  --ui-cyan-line: rgba(98, 198, 200, 0.32);
+}
+
+.hud-top,
+.target-card,
+.resource-strip span,
+.sheet,
+.town-drawer,
+.create-panel,
+.login-flow-card,
+.login-lore-card,
+.server-card,
+.character-slot,
+.character-create-panel,
+.world-card,
+.town-hero-card,
+.town-currencies span,
+.town-hero-panel,
+.town-zone-panel,
+.town-action-panel,
+.town-content-note,
+.story-brief,
+.story-row,
+.quest-row,
+.set-row,
+.account-panel,
+.item-compare-panel,
+.item-detail-card,
+.exit-confirm-card,
+.town-more-menu,
+.combat-log {
+  border-color: var(--ui-gold-line) !important;
+  background-image:
+    radial-gradient(circle at 18% 0%, rgba(226, 185, 95, 0.12), transparent 38%),
+    linear-gradient(180deg, rgba(11, 19, 21, 0.94), rgba(4, 7, 8, 0.94)),
+    var(--ui-panel-big) !important;
+  background-size: auto, auto, 100% 100% !important;
+  background-position: center !important;
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.52),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 0 0 1px rgba(98, 198, 200, 0.10) !important;
+}
+
+.hud-top,
+.target-card,
+.town-hero-card,
+.resource-strip span,
+.town-currencies span {
+  background-image:
+    linear-gradient(180deg, rgba(13, 24, 26, 0.96), rgba(4, 8, 9, 0.94)),
+    var(--ui-panel-mini-02) !important;
+}
+
+body.field-active .hud-top {
+  grid-template-columns: 58px minmax(0, 1fr) 44px 44px !important;
+  min-height: 76px !important;
+  padding: 8px 10px !important;
+  border-radius: 18px !important;
+}
+
+body.field-active .target-card {
+  min-height: 76px !important;
+  border-radius: 18px !important;
+  padding: 12px !important;
+}
+
+body.field-active .field-quest-tracker {
+  border: 1px solid rgba(226, 185, 95, 0.36) !important;
+  border-radius: 16px !important;
+  background-image:
+    linear-gradient(180deg, rgba(11, 19, 21, 0.92), rgba(3, 6, 7, 0.9)),
+    var(--ui-panel-mini-01) !important;
+  background-size: auto, 100% 100% !important;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+
+.portrait,
+.town-portrait,
+.story-npc-medal {
+  border: 0 !important;
+  border-radius: 50% !important;
+  background-image:
+    radial-gradient(circle, rgba(226, 185, 95, 0.36), rgba(2, 8, 9, 0.68) 62%),
+    var(--ui-circle-light) !important;
+  background-size: cover !important;
+  color: #fff2bb !important;
+  text-shadow: 0 2px 4px #000, 0 0 12px rgba(226,185,95,.7) !important;
+  box-shadow: 0 0 24px rgba(226, 185, 95, 0.18) !important;
+}
+
+.icon-btn,
+#closeSheet,
+#closeTownContent,
+#closeItemDetail,
+.item-detail-close {
+  border: 0 !important;
+  border-radius: 50% !important;
+  background-image:
+    radial-gradient(circle, rgba(226, 185, 95, 0.24), rgba(0,0,0,.42)),
+    var(--ui-circle-dark) !important;
+  background-size: cover !important;
+  color: #fff7d8 !important;
+  text-shadow: 0 1px 3px #000 !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.09) !important;
+}
+
+#closeSheet,
+#closeTownContent,
+#closeItemDetail,
+.item-detail-close {
+  color: transparent !important;
+  font-size: 0 !important;
+  background-image: var(--ui-close), var(--ui-circle-dark) !important;
+  background-size: 54%, cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.wide-action,
+.server-card,
+.class-card,
+.tabs button,
+.dock-btn,
+.skill-btn,
+.town-bottom-btn,
+.content-card,
+.zone-card,
+.slot-cell button,
+.item-row button,
+.codex-card button,
+.account-panel button,
+.story-action-btn,
+.town-quick-actions button,
+.town-more-menu button {
+  border-color: rgba(98, 198, 200, 0.24) !important;
+  background-image:
+    linear-gradient(180deg, rgba(14, 30, 33, 0.72), rgba(5, 9, 10, 0.94)),
+    var(--ui-button-dark) !important;
+  background-size: auto, 100% 100% !important;
+  background-repeat: no-repeat !important;
+  color: #f8f2dc !important;
+  box-shadow: 0 10px 24px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.07) !important;
+}
+
+.wide-action.primary,
+.dock-btn.primary,
+.tabs button.active,
+.town-bottom-btn.active,
+.town-bottom-btn:active,
+.content-card.featured,
+.content-card.active,
+.zone-card.active,
+.zone-card:hover,
+.content-card:hover,
+.class-card.active,
+.server-card.active,
+.story-action-btn,
+.slot-cell.equipped button,
+.skill-slot.unlocked button {
+  border-color: rgba(255, 236, 158, 0.7) !important;
+  background-image:
+    linear-gradient(180deg, rgba(255, 218, 119, 0.92), rgba(135, 85, 37, 0.96)),
+    var(--ui-button-gold) !important;
+  background-size: auto, 100% 100% !important;
+  color: #1d1308 !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.28) !important;
+  box-shadow: 0 0 0 1px rgba(255, 240, 170, 0.22), 0 12px 28px rgba(0,0,0,.42), 0 0 28px rgba(226,185,95,.28) !important;
+}
+
+.wide-action.danger,
+#deleteCharacterBtn,
+.exit-confirm-actions .danger {
+  border-color: rgba(255, 116, 106, 0.52) !important;
+  background-image:
+    linear-gradient(180deg, rgba(111, 30, 29, 0.9), rgba(31, 7, 9, 0.96)),
+    var(--ui-button-wide) !important;
+  color: #ffe2da !important;
+}
+
+.bar,
+.target-hp,
+.quest-progress,
+.story-progress-bar {
+  height: 20px !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  padding: 3px !important;
+  background-image:
+    linear-gradient(180deg, rgba(0,0,0,.34), rgba(255,255,255,.04)),
+    var(--ui-bar-bg) !important;
+  background-size: auto, 100% 100% !important;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.72) !important;
+}
+
+.bar::after,
+.target-hp::after,
+.quest-progress::after,
+.story-progress-bar::after {
+  content: '';
+  position: absolute;
+  inset: -4px -5px;
+  pointer-events: none;
+  background: var(--ui-bar-border) center / 100% 100% no-repeat;
+  opacity: .92;
+}
+
+.bar i,
+.target-hp i,
+.quest-progress i,
+.story-progress-bar i {
+  height: 100% !important;
+  border-radius: 8px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.34), inset 0 -5px 8px rgba(0,0,0,.26), 0 0 12px rgba(255,255,255,.08) !important;
+}
+
+.bar.hp i,
+.target-hp i {
+  background: linear-gradient(90deg, #8d1f1f, #ff5d4c 62%, #ffbd8d) !important;
+}
+
+.bar.mp i {
+  background: linear-gradient(90deg, #1f4fb9, #62e1ff 62%, #c9fbff) !important;
+}
+
+.bar.exp i,
+.quest-progress i,
+.story-progress-bar i {
+  background: linear-gradient(90deg, #2a7457, #53e7b0 62%, #f7e790) !important;
+}
+
+.bar em {
+  font-size: 9px !important;
+  color: #fff7dc !important;
+  text-shadow: 0 1px 2px #000, 0 0 5px rgba(0,0,0,.9) !important;
+}
+
+.slot-grid .slot-cell,
+.town-slot-grid .slot-cell,
+.slot-cell,
+.codex-card,
+.item-row,
+.soul-row,
+.shop-item-card,
+.town-stat-grid span,
+.compare-summary span,
+.compare-row {
+  border-color: rgba(98, 198, 200, 0.24) !important;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(226,185,95,.13), transparent 46%),
+    linear-gradient(180deg, rgba(14, 31, 34, 0.86), rgba(5, 10, 11, 0.94)),
+    var(--ui-slot-cell) !important;
+  background-size: auto, auto, 100% 100% !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -12px 24px rgba(0,0,0,.18), 0 12px 28px rgba(0,0,0,.28) !important;
+}
+
+.slot-grid .slot-cell::before,
+.town-slot-grid .slot-cell::before,
+.codex-card::before,
+.item-row::before,
+.soul-row::before {
+  background: linear-gradient(135deg, rgba(255,255,255,.08), transparent 38%, rgba(98,198,200,.08)) !important;
+  opacity: .55 !important;
+}
+
+.slot-art,
+.item-detail-visual,
+.shop-item-art,
+.loot-art {
+  background-image:
+    radial-gradient(circle at 50% 25%, rgba(255,255,255,.17), rgba(0,0,0,.18) 70%),
+    var(--ui-slot-cell) !important;
+  background-size: auto, 100% 100% !important;
+  border: 1px solid rgba(226, 185, 95, .24) !important;
+  box-shadow: inset 0 0 18px rgba(0,0,0,.34), 0 0 18px rgba(98,198,200,.1) !important;
+}
+
+.slot-rarity,
+.pill,
+.town-eyebrow,
+.sheet-head span,
+.eyebrow,
+.town-drawer-head span,
+.item-detail-copy span,
+.exit-confirm-card span {
+  border: 1px solid rgba(226, 185, 95, .25) !important;
+  border-radius: 999px !important;
+  padding: 4px 8px !important;
+  background: rgba(226, 185, 95, .11) !important;
+  color: #ffe7a2 !important;
+  text-shadow: 0 1px 2px #000 !important;
+}
+
+.skill-dock {
+  gap: 9px !important;
+}
+
+.skill-btn {
+  width: 84px !important;
+  min-height: 86px !important;
+  height: auto !important;
+  grid-template-rows: 42px auto auto !important;
+  align-content: center !important;
+  gap: 4px !important;
+  padding: 7px !important;
+  border-radius: 18px !important;
+}
+
+.skill-dock-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 14px;
+  background-image:
+    radial-gradient(circle at 45% 26%, rgba(255,255,255,.18), rgba(0,0,0,.42)),
+    var(--ui-slot-cell);
+  background-size: auto, 100% 100%;
+  border: 1px solid rgba(226,185,95,.24);
+}
+
+.skill-dock-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.skill-dock-art span {
+  position: absolute !important;
+  right: 2px !important;
+  bottom: 1px !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  background: rgba(0,0,0,.76) !important;
+  color: #ffe7a2 !important;
+  font-size: 9px !important;
+  line-height: 1 !important;
+}
+
+.skill-btn b {
+  max-width: 100% !important;
+  color: #fff2c6 !important;
+  font-size: 10px !important;
+  text-shadow: 0 1px 2px #000 !important;
+}
+
+.skill-btn em {
+  color: rgba(245, 241, 232, .72) !important;
+  font-size: 9px !important;
+}
+
+.dock-btn,
+.town-bottom-btn {
+  border-radius: 18px !important;
+}
+
+.dock-btn span,
+.town-bottom-btn span,
+.content-card i {
+  display: grid !important;
+  place-items: center !important;
+  width: 30px !important;
+  height: 30px !important;
+  margin: 0 auto 3px !important;
+  border-radius: 50% !important;
+  background-image: var(--ui-circle-dark) !important;
+  background-size: cover !important;
+  color: #ffe7a2 !important;
+  text-shadow: 0 1px 2px #000, 0 0 10px rgba(226,185,95,.45) !important;
+}
+
+.sheet,
+.town-drawer {
+  border-radius: 24px 24px 0 0 !important;
+  padding: 16px !important;
+}
+
+.town-drawer {
+  border-radius: 24px !important;
+}
+
+.sheet::before,
+.town-drawer::before,
+.login-flow-card::before,
+.town-hero-panel::before,
+.town-zone-panel::before,
+.town-action-panel::before,
+.item-detail-card::before,
+.exit-confirm-card::before {
+  content: '';
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 8px;
+  height: 4px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(226,185,95,.72), transparent);
+  box-shadow: 0 0 18px rgba(226,185,95,.28);
+  opacity: .75;
+}
+
+.sheet,
+.town-drawer,
+.login-flow-card,
+.town-hero-panel,
+.town-zone-panel,
+.town-action-panel,
+.item-detail-card,
+.exit-confirm-card {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.sheet-body,
+.town-drawer-body {
+  scrollbar-color: rgba(226, 185, 95, .42) rgba(0,0,0,.2);
+}
+
+.toast,
+.loot-pop {
+  background-image:
+    radial-gradient(circle at 12% 0%, rgba(226,185,95,.22), transparent 40%),
+    linear-gradient(180deg, rgba(14, 30, 33, .98), rgba(4, 7, 8, .98)),
+    var(--ui-panel-message) !important;
+  background-size: auto, auto, 100% 100% !important;
+  border: 1px solid rgba(226,185,95,.48) !important;
+  border-radius: 22px !important;
+}
+
+body.field-active .field-minimap,
+body.minimap-compact .field-minimap {
+  display: none !important;
+}
+
+@media (max-width: 560px) {
+  body.field-active .hud-top {
+    width: min(60vw, 236px) !important;
+    grid-template-columns: 44px minmax(0, 1fr) 32px 32px !important;
+    min-height: 68px !important;
+    padding: 7px !important;
+  }
+
+  body.field-active .target-card {
+    width: min(36vw, 148px) !important;
+    min-height: 68px !important;
+    padding: 8px !important;
+  }
+
+  .skill-btn {
+    width: 72px !important;
+    min-height: 78px !important;
+    grid-template-rows: 36px auto auto !important;
+    padding: 6px !important;
+  }
+
+  .skill-dock-art {
+    width: 36px;
+    height: 36px;
+  }
+
+  .dock-btn span,
+  .town-bottom-btn span,
+  .content-card i {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .sheet,
+  .town-drawer {
+    padding: 12px !important;
+    border-radius: 20px 20px 0 0 !important;
+  }
+}

@@ -199,7 +199,7 @@ function bindAudioControls() {
       void button.offsetWidth;
       button.classList.add('pressed-feedback');
       window.setTimeout(() => button.classList.remove('pressed-feedback'), 260);
-      // 0.31: 버튼마다 중앙 확인 팝업이 뜨던 피드백은 제거하고, 실제 결과는 토스트/전리품 연출만 사용합니다.
+      // 0.32: 버튼마다 중앙 확인 팝업이 뜨던 피드백은 제거하고, 그래픽 UI는 CSS 에셋 프레임으로 처리합니다.
     }
   }, true);
 }
@@ -1288,7 +1288,7 @@ function renderSkillDock(snapshot: Snapshot) {
     const skill = snapshot.skills[slot];
     if (!skill) {
       button.disabled = true;
-      button.innerHTML = '<span>-</span><b>빈 슬롯</b><em></em>';
+      button.innerHTML = '<i class="skill-dock-art empty"><span>-</span></i><b>빈 슬롯</b><em></em>';
       continue;
     }
     const cooling = skill.cooldownRemaining > 0;
@@ -1298,7 +1298,7 @@ function renderSkillDock(snapshot: Snapshot) {
     button.classList.toggle('cooling', cooling);
     button.classList.toggle('mp-lack', mpLack && skill.unlocked && !cooling);
     const label = !skill.unlocked ? '잠금' : cooling ? `${skill.cooldownRemaining.toFixed(1)}s` : mpLack ? 'MP' : '준비';
-    button.innerHTML = `<span>${escapeHtml(skill.hotkey)}</span><b>${escapeHtml(skill.name)}</b><em>${label}</em>`;
+    button.innerHTML = `<i class="skill-dock-art"><img src="${runtimeAsset(`skills/${skill.id}.webp`)}" alt="${escapeHtml(skill.name)}" onerror="this.remove()" /><span>${escapeHtml(skill.hotkey)}</span></i><b>${escapeHtml(skill.name)}</b><em>${label}</em>`;
   }
 }
 
@@ -2609,7 +2609,7 @@ function openSoulDetail(soulId: string) {
 }
 
 function flashActionFeedback(_message: string) {
-  // 0.31: 과한 중앙 확인 팝업 제거. 필요하면 각 기능별 toast/showLootPresentation만 사용합니다.
+  // 0.32: 과한 중앙 확인 팝업 제거. 필요하면 각 기능별 toast/showLootPresentation만 사용합니다.
 }
 
 function showToast(message: string) {
