@@ -501,6 +501,7 @@ function bindLoginFlow() {
     townMoreMenu.setAttribute('aria-hidden', visible ? 'false' : 'true');
     townMoreBtn.setAttribute('aria-expanded', visible ? 'true' : 'false');
     townMoreBtn.classList.toggle('active', visible);
+    document.body.classList.toggle('town-more-open', visible);
   });
 
   townMoreMenu.addEventListener('click', (event) => {
@@ -512,6 +513,24 @@ function bindLoginFlow() {
   });
 
   closeTownContent.addEventListener('click', closeTownContentPanel);
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    if (townMoreMenu.classList.contains('hidden')) return;
+    if (target.closest('#townMoreMenu') || target.closest('#townMoreBtn')) return;
+    closeTownMoreMenu();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    if (!townMoreMenu.classList.contains('hidden')) {
+      closeTownMoreMenu();
+      return;
+    }
+    if (townContentOpen) {
+      closeTownContentPanel();
+      return;
+    }
+    if (sheetOpen) closeCurrentSheet();
+  });
   townContentBody.addEventListener('click', async (event) => {
     const target = event.target as HTMLElement;
     const equipCard = target.closest<HTMLButtonElement>('[data-town-equip-card]');
@@ -1484,6 +1503,7 @@ function closeTownMoreMenu() {
   townMoreMenu.setAttribute('aria-hidden', 'true');
   townMoreBtn.setAttribute('aria-expanded', 'false');
   townMoreBtn.classList.remove('active');
+  document.body.classList.remove('town-more-open');
 }
 
 function syncTownMenuState() {
@@ -1504,8 +1524,10 @@ function openTownContent(content: TownContentId) {
     closeTownContentPanel();
     return;
   }
+  closeTownMoreMenu();
   activeTownContent = content;
   townContentOpen = true;
+  document.body.classList.add('town-drawer-open');
   townContentPanel.classList.remove('hidden');
   townContentPanel.setAttribute('aria-hidden', 'false');
   syncTownMenuState();
@@ -1514,6 +1536,7 @@ function openTownContent(content: TownContentId) {
 
 function closeTownContentPanel() {
   townContentOpen = false;
+  document.body.classList.remove('town-drawer-open');
   townContentPanel.classList.add('hidden');
   townContentPanel.setAttribute('aria-hidden', 'true');
   syncTownMenuState();
