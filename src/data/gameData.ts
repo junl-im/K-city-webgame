@@ -1,7 +1,7 @@
 import type { CardDefinition, CardSetDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, SoulDefinition, TileId, ZoneDefinition, SkillDefinition } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 31;
+export const SAVE_VERSION = 32;
 export const MAP_W = 40;
 export const MAP_H = 40;
 
@@ -236,6 +236,7 @@ export const items: ItemDefinition[] = [
   { id: 'mp-potion-high', name: '상급 마나 물약', type: 'consumable', rarity: 'SR', effectText: 'MP 5% 회복. 고숙련 스킬 운용을 오래 유지하기 위한 고급 물약입니다.', bonus: {}, consume: { mpPercent: 0.05 } },
   { id: 'soul-shard', name: '소울 파편', type: 'material', rarity: 'R', effectText: '카드 합성/장비 강화 재료', bonus: {} },
   { id: 'enhance-stone', name: '강화석', type: 'material', rarity: 'SR', effectText: '+10 이후 강화 재료', bonus: {} },
+  { id: 'boss-trophy', name: '균열 토벌 훈장', type: 'material', rarity: 'SSR', effectText: '필드보스와 심연룡을 토벌하면 얻는 훈장. 마을 보스 메뉴에서 보상으로 교환합니다.', bonus: {} },
   { id: 'skillbook-basic', name: '기초 스킬서', type: 'skillbook', rarity: 'R', effectText: '현재 직업의 1번 스킬을 배웁니다.', bonus: {}, skillId: 'class-basic' },
   { id: 'skillbook-second', name: '전문화 스킬서', type: 'skillbook', rarity: 'SR', effectText: '현재 직업의 2번 스킬을 배웁니다.', bonus: {}, skillId: 'class-second' },
   { id: 'skillbook-third', name: '비전 스킬서', type: 'skillbook', rarity: 'SSR', effectText: '현재 직업의 3번 스킬을 배웁니다.', bonus: {}, skillId: 'class-third' }
@@ -271,8 +272,8 @@ export const monsters: MonsterDefinition[] = [
   { id: 'fireDrake', name: '화염 드레이크', level: 10, sprite: textureUrls.bossDragon, stats: { hp: 760, mp: 0, atk: 118, def: 30, aspd: 0.82, crit: 0.14, move: 1.62 }, exp: 168, gold: 135, respawnMs: 8200, drops: [{ type: 'gold', amount: 110, chance: 1 }, { type: 'gem', amount: 3, chance: 0.17 }, { type: 'card', id: 'card-fire-drake', chance: 0.027 }, { type: 'item', id: 'abyss-spear', chance: 0.012 }, { type: 'item', id: 'hp-potion-high', chance: 0.025 }] },
   { id: 'stormHarpy', name: '폭풍 하피', level: 12, sprite: textureUrls.monsterWolf, stats: { hp: 700, mp: 0, atk: 110, def: 26, aspd: 1.28, crit: 0.16, move: 2.35 }, exp: 185, gold: 148, respawnMs: 8200, drops: [{ type: 'gold', amount: 120, chance: 1 }, { type: 'card', id: 'card-storm-harpy', chance: 0.026 }, { type: 'item', id: 'enhance-stone', chance: 0.12 }, { type: 'item', id: 'mp-potion-high', chance: 0.022 }] },
   { id: 'graveKnight', name: '묘지 기사', level: 13, sprite: textureUrls.monsterGoblin, stats: { hp: 1120, mp: 0, atk: 132, def: 52, aspd: 0.86, crit: 0.1, move: 1.55 }, exp: 230, gold: 178, respawnMs: 9200, drops: [{ type: 'gold', amount: 145, chance: 1 }, { type: 'card', id: 'card-grave-knight', chance: 0.023 }, { type: 'item', id: 'abyss-armor', chance: 0.011 }, { type: 'item', id: 'skillbook-third', chance: 0.014 }] },
-  { id: 'fieldBoss', name: '야전 군주 발타르', level: 16, sprite: textureUrls.monsterBear, stats: { hp: 4200, mp: 0, atk: 205, def: 82, aspd: 0.68, crit: 0.12, move: 1.38 }, exp: 660, gold: 620, respawnMs: 45000, drops: [{ type: 'gold', amount: 420, chance: 1 }, { type: 'gem', amount: 10, chance: 0.45 }, { type: 'card', id: 'card-field-boss', chance: 0.08 }, { type: 'item', id: 'dragon-heart', chance: 0.02 }, { type: 'item', id: 'enhance-stone', chance: 0.5 }] },
-  { id: 'dragon', name: '심연룡 아케론', level: 20, sprite: textureUrls.bossDragon, stats: { hp: 7600, mp: 0, atk: 270, def: 118, aspd: 0.62, crit: 0.16, move: 1.18 }, exp: 980, gold: 980, respawnMs: 60000, drops: [{ type: 'gold', amount: 720, chance: 1 }, { type: 'gem', amount: 18, chance: 0.55 }, { type: 'card', id: 'card-dragon', chance: 0.08 }, { type: 'item', id: 'dragon-slayer', chance: 0.012 }, { type: 'item', id: 'dragon-heart', chance: 0.022 }] }
+  { id: 'fieldBoss', name: '야전 군주 발타르', level: 16, sprite: textureUrls.monsterBear, stats: { hp: 4200, mp: 0, atk: 205, def: 82, aspd: 0.68, crit: 0.12, move: 1.38 }, exp: 660, gold: 620, respawnMs: 45000, drops: [{ type: 'gold', amount: 420, chance: 1 }, { type: 'gem', amount: 10, chance: 0.45 }, { type: 'card', id: 'card-field-boss', chance: 0.08 }, { type: 'item', id: 'dragon-heart', chance: 0.02 }, { type: 'item', id: 'enhance-stone', chance: 0.5 }, { type: 'item', id: 'boss-trophy', chance: 0.45 }] },
+  { id: 'dragon', name: '심연룡 아케론', level: 20, sprite: textureUrls.bossDragon, stats: { hp: 7600, mp: 0, atk: 270, def: 118, aspd: 0.62, crit: 0.16, move: 1.18 }, exp: 980, gold: 980, respawnMs: 60000, drops: [{ type: 'gold', amount: 720, chance: 1 }, { type: 'gem', amount: 18, chance: 0.55 }, { type: 'card', id: 'card-dragon', chance: 0.08 }, { type: 'item', id: 'dragon-slayer', chance: 0.012 }, { type: 'item', id: 'dragon-heart', chance: 0.022 }, { type: 'item', id: 'boss-trophy', chance: 0.72 }] }
 ];
 
 const pathTiles = new Set<string>();

@@ -10023,3 +10023,48 @@ body.field-active #fieldTopMenuBtn[hidden] {
     left: calc(50vw + 22px) !important;
   }
 }
+
+/* Alpha 0.46: auto tactics and boss bounty loop */
+.auto-tactics-panel {
+  margin: 10px 0;
+  padding: 12px;
+  border: 1px solid rgba(226, 185, 95, .24);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(18, 20, 24, .92), rgba(43, 31, 21, .82));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 12px 32px rgba(0,0,0,.28);
+}
+.auto-tactics-head span { color: rgba(226,185,95,.86); font-size: 10px; font-weight: 950; letter-spacing: .12em; }
+.auto-tactics-head h3 { margin: 4px 0 3px; font-size: 15px; color: #fff2ca; }
+.auto-tactics-head p { margin: 0 0 10px; color: rgba(255,255,255,.66); font-size: 11px; line-height: 1.35; }
+.auto-toggle-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.auto-setting-toggle {
+  min-height: 58px;
+  padding: 8px 9px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 14px;
+  background: rgba(255,255,255,.055);
+  text-align: left;
+  color: rgba(255,255,255,.86);
+}
+.auto-setting-toggle span { display: inline-block; min-width: 34px; margin-bottom: 3px; padding: 2px 6px; border-radius: 999px; background: rgba(255,255,255,.08); color: rgba(255,255,255,.58); font-size: 9px; font-weight: 950; text-align: center; }
+.auto-setting-toggle b { display: block; color: #fff; font-size: 12px; line-height: 1.15; }
+.auto-setting-toggle em { display: block; margin-top: 2px; color: rgba(255,255,255,.58); font-size: 10px; font-style: normal; line-height: 1.2; }
+.auto-setting-toggle.active { border-color: rgba(114,231,255,.34); background: linear-gradient(145deg, rgba(40,82,91,.50), rgba(226,185,95,.10)); box-shadow: inset 0 0 18px rgba(114,231,255,.08); }
+.auto-setting-toggle.active span { background: rgba(114,231,255,.18); color: #9fedff; }
+.auto-ratio-grid { display: grid; gap: 8px; margin-top: 10px; }
+.auto-ratio-grid > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px; border-radius: 14px; background: rgba(0,0,0,.20); }
+.auto-ratio-grid b { color: rgba(255,246,220,.82); font-size: 11px; white-space: nowrap; }
+.auto-ratio-grid span { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+.auto-ratio-btn { min-width: 42px; padding: 6px 8px; border: 1px solid rgba(255,255,255,.10); border-radius: 999px; background: rgba(255,255,255,.06); color: rgba(255,255,255,.76); font-size: 10px; font-weight: 900; }
+.auto-ratio-btn.active { border-color: rgba(226,185,95,.48); color: #fff1bd; background: rgba(226,185,95,.18); }
+.boss-bounty-panel { margin-bottom: 10px; }
+.boss-bounty-actions { display: grid; gap: 8px; margin-top: 10px; }
+.bounty-reward-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+.bounty-reward-grid article { padding: 10px; border: 1px solid rgba(226,185,95,.18); border-radius: 16px; background: rgba(255,255,255,.055); }
+.bounty-reward-grid b { display: block; color: #fff2c8; font-size: 12px; margin-bottom: 3px; }
+.bounty-reward-grid span { display: block; color: rgba(255,255,255,.62); font-size: 10.5px; line-height: 1.35; }
+@media (max-width: 520px) {
+  .auto-toggle-grid, .bounty-reward-grid { grid-template-columns: 1fr; }
+  .auto-ratio-grid > div { align-items: flex-start; flex-direction: column; }
+  .auto-ratio-grid span { justify-content: flex-start; }
+}

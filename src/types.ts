@@ -182,6 +182,15 @@ export interface StoryProgress {
   claimedQuestIds: string[];
 }
 
+export interface AutoHuntSettings {
+  useSkills: boolean;
+  useHpPotion: boolean;
+  useMpPotion: boolean;
+  hpPotionRatio: number;
+  mpPotionRatio: number;
+  bossPriority: boolean;
+}
+
 export interface PlayerSave {
   version: number;
   saveId: string;
@@ -205,6 +214,7 @@ export interface PlayerSave {
   daily: DailyProgress;
   story: StoryProgress;
   autoHunt: boolean;
+  autoSettings: AutoHuntSettings;
   learnedSkillIds: string[];
   skillLevels: Record<string, number>;
   sleepMode: boolean;

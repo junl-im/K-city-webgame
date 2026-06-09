@@ -21,6 +21,7 @@ import {
 } from '../data/gameData';
 import { runtimeTextureUrls, textureUrls } from '../data/assetManifest';
 import type {
+  AutoHuntSettings,
   CardDefinition,
   CardInstance,
   CombatResult,
@@ -270,9 +271,46 @@ export class SolGame {
     this.markDirty();
   }
 
+  setAutoSettings(partial: Partial<AutoHuntSettings>) {
+    const prev = this.save.autoSettings || this.defaultAutoSettings();
+    this.save.autoSettings = this.normalizeAutoSettings({ ...prev, ...partial });
+    audioService.play('ui');
+    this.pushLog('자동사냥 세부 설정 변경');
+    this.markDirty();
+  }
+
   manualAttack() {
     if (!this.target || !this.target.alive) this.target = this.findNearestMob();
     if (this.target) this.tryPlayerAttack(this.target, true);
+  }
+
+
+  private defaultAutoSettings(): AutoHuntSettings {
+    return { useSkills: true, useHpPotion: true, useMpPotion: true, hpPotionRatio: 0.42, mpPotionRatio: 0.28, bossPriority: false };
+  }
+
+  private normalizeAutoSettings(raw: Partial<AutoHuntSettings> | undefined): AutoHuntSettings {
+    const base = this.defaultAutoSettings();
+    const source = raw || {};
+    return {
+      useSkills: typeof source.useSkills === 'boolean' ? source.useSkills : base.useSkills,
+      useHpPotion: typeof source.useHpPotion === 'boolean' ? source.useHpPotion : base.useHpPotion,
+      useMpPotion: typeof source.useMpPotion === 'boolean' ? source.useMpPotion : base.useMpPotion,
+      hpPotionRatio: this.clampAutoRatio(source.hpPotionRatio, base.hpPotionRatio, 0.18, 0.72),
+      mpPotionRatio: this.clampAutoRatio(source.mpPotionRatio, base.mpPotionRatio, 0.12, 0.62),
+      bossPriority: typeof source.bossPriority === 'boolean' ? source.bossPriority : base.bossPriority
+    };
+  }
+
+  private clampAutoRatio(value: unknown, fallback: number, min: number, max: number) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return fallback;
+    return Math.max(min, Math.min(max, n));
+  }
+
+  private autoSettings() {
+    this.save.autoSettings = this.normalizeAutoSettings(this.save.autoSettings);
+    return this.save.autoSettings;
   }
 
   usePotion(itemId: string, silent = false) {
@@ -1682,19 +1720,21 @@ export class SolGame {
     if (this.save.hp <= 0) return;
     if (this.autoPotionThinkTimer > 0 || this.potionUseCooldown > 0) return;
     this.autoPotionThinkTimer = 0.95;
+    const settings = this.autoSettings();
     const stats = this.calculateStats();
     const hpRatio = this.save.hp / Math.max(1, stats.hp);
     const mpRatio = this.save.mp / Math.max(1, stats.mp);
-    if (hpRatio < 0.42) {
+    if (settings.useHpPotion && hpRatio < settings.hpPotionRatio) {
       this.useBestPotion('hp', true);
       return;
     }
-    if (mpRatio < 0.28) this.useBestPotion('mp', true);
+    if (settings.useMpPotion && mpRatio < settings.mpPotionRatio) this.useBestPotion('mp', true);
   }
 
   private tryAutoSkillUse() {
     this.autoSkillThinkTimer = 0.38;
     if (this.save.hp <= 0) return;
+    if (!this.autoSettings().useSkills) return;
     const stats = this.calculateStats();
     const classSkills = skills.filter((entry) => entry.classId === this.save.classId);
     const hpRatio = this.save.hp / Math.max(1, stats.hp);
@@ -2769,12 +2809,17 @@ export class SolGame {
   private findNearestMob() {
     let nearest: WorldMob | null = null;
     let best = Number.POSITIVE_INFINITY;
+    const settings = this.autoSettings();
+    const bossIds = new Set<MonsterId>(['fieldBoss', 'dragon', 'fireDrake']);
     for (const mob of this.mobs) {
       if (!mob.alive) continue;
       const dist = distance(this.save.x, this.save.y, mob.x, mob.y);
-      if (dist < best) {
+      const priorityBonus = settings.bossPriority && bossIds.has(mob.def.id) ? -2.75 : 0;
+      const eliteBonus = mob.eliteAffix ? -0.42 : 0;
+      const score = dist + priorityBonus + eliteBonus;
+      if (score < best) {
         nearest = mob;
-        best = dist;
+        best = score;
       }
     }
     return nearest;

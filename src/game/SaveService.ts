@@ -13,7 +13,7 @@ import {
 import { doc, getDoc, getFirestore, serverTimestamp, setDoc, type Firestore } from 'firebase/firestore';
 import { firebaseConfig } from '../config/firebase';
 import { SAVE_VERSION, cards, classes, expToNext, items, skills, souls, storyQuests } from '../data/gameData';
-import type { CharacterClassId, CharacterGender, DailyProgress, EquipmentSlot, MonsterId, PlayerSave, SaveRoster, StoryProgress } from '../types';
+import type { AutoHuntSettings, CharacterClassId, CharacterGender, DailyProgress, EquipmentSlot, MonsterId, PlayerSave, SaveRoster, StoryProgress } from '../types';
 import { uid } from './math';
 
 const LEGACY_SAVE_KEY = 'sol-online-alpha-save-v1';
@@ -239,6 +239,7 @@ export class SaveService {
       daily: this.createDailyProgress(),
       story: this.createStoryProgress(),
       autoHunt: false,
+      autoSettings: this.defaultAutoSettings(),
       learnedSkillIds: [],
       skillLevels: {},
       sleepMode: false,
@@ -288,6 +289,7 @@ export class SaveService {
     });
     save.daily = this.normalizeDailyProgress(save.daily);
     save.story = this.normalizeStoryProgress(save.story);
+    save.autoSettings = this.normalizeAutoSettings(save.autoSettings);
     save.learnedSkillIds = this.normalizeLearnedSkills(save.learnedSkillIds, save.classId);
     save.skillLevels = this.normalizeSkillLevels(save.skillLevels, save.learnedSkillIds, save.classId);
     save.sleepMode = Boolean(save.sleepMode);
@@ -367,6 +369,7 @@ export class SaveService {
       enhancements: this.normalizeEnhancements(raw),
       daily: this.normalizeDailyProgress(raw.daily),
       story: this.normalizeStoryProgress(raw.story),
+      autoSettings: this.normalizeAutoSettings(raw.autoSettings),
       learnedSkillIds: this.normalizeLearnedSkills(raw.learnedSkillIds, classId),
       skillLevels: this.normalizeSkillLevels(raw.skillLevels, this.normalizeLearnedSkills(raw.learnedSkillIds, classId), classId),
       sleepMode: Boolean(raw.sleepMode),
@@ -454,6 +457,35 @@ export class SaveService {
     };
   }
 
+
+  private defaultAutoSettings(): AutoHuntSettings {
+    return {
+      useSkills: true,
+      useHpPotion: true,
+      useMpPotion: true,
+      hpPotionRatio: 0.42,
+      mpPotionRatio: 0.28,
+      bossPriority: false
+    };
+  }
+
+  private normalizeAutoSettings(raw: unknown): AutoHuntSettings {
+    const base = this.defaultAutoSettings();
+    const source = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Partial<AutoHuntSettings> : {};
+    return {
+      useSkills: typeof source.useSkills === 'boolean' ? source.useSkills : base.useSkills,
+      useHpPotion: typeof source.useHpPotion === 'boolean' ? source.useHpPotion : base.useHpPotion,
+      useMpPotion: typeof source.useMpPotion === 'boolean' ? source.useMpPotion : base.useMpPotion,
+      hpPotionRatio: this.clampRatio(Number(source.hpPotionRatio), base.hpPotionRatio, 0.18, 0.72),
+      mpPotionRatio: this.clampRatio(Number(source.mpPotionRatio), base.mpPotionRatio, 0.12, 0.62),
+      bossPriority: typeof source.bossPriority === 'boolean' ? source.bossPriority : base.bossPriority
+    };
+  }
+
+  private clampRatio(value: number, fallback: number, min: number, max: number) {
+    if (!Number.isFinite(value)) return fallback;
+    return Math.max(min, Math.min(max, value));
+  }
 
   private normalizeLearnedSkills(raw: unknown, classId: CharacterClassId): string[] {
     const valid = new Set(['warrior-basic', 'warrior-guard', 'warrior-cleave', 'taoist-basic', 'taoist-orb', 'taoist-rain', 'cleric-basic', 'cleric-shield', 'cleric-nova']);

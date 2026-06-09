@@ -4,7 +4,7 @@ import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
 import { applyEquipmentResonance, equipmentResonanceEffects, nextEquipmentResonanceHint, resonanceBonusText } from './game/equipmentResonance';
 import { formatGold, formatNumber, formatSoul, roll, uid } from './game/math';
-import type { CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
+import type { AutoHuntSettings, CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
 type TownContentId = 'hunt' | 'story' | 'cards' | 'inventory' | 'skills' | 'shop' | 'boss' | 'quests' | 'settings' | 'account';
@@ -632,6 +632,18 @@ function bindLoginFlow() {
       return;
     }
 
+    const autoSetting = target.closest<HTMLButtonElement>('[data-auto-setting], [data-auto-ratio]');
+    if (autoSetting) {
+      handleAutoSettingAction(autoSetting);
+      return;
+    }
+
+    const bossExchange = target.closest<HTMLButtonElement>('[data-town-boss-exchange]');
+    if (bossExchange) {
+      exchangeBossTrophy(bossExchange.dataset.townBossExchange || 'supply');
+      return;
+    }
+
     const account = target.closest<HTMLButtonElement>('[data-town-account-action]');
     const settings = target.closest<HTMLButtonElement>('[data-town-settings-action]');
     if (settings) { handleAudioSettingsAction(settings.dataset.townSettingsAction || ''); return; }
@@ -954,6 +966,12 @@ function bindSheet() {
     const upgradeSkill = target.closest<HTMLButtonElement>('[data-upgrade-skill]');
     if (upgradeSkill) {
       game?.upgradeSkill(upgradeSkill.dataset.upgradeSkill || '');
+      return;
+    }
+
+    const autoSetting = target.closest<HTMLButtonElement>('[data-auto-setting], [data-auto-ratio]');
+    if (autoSetting) {
+      handleAutoSettingAction(autoSetting);
       return;
     }
 
@@ -1519,6 +1537,7 @@ function renderAccount(snapshot: Snapshot) {
         <button data-account-action="guest">게스트 클라우드</button>
         <button data-account-action="logout">로그아웃</button>
       </article>
+      ${renderAutoHuntSettingsPanel(snapshot.save)}
       ${renderAudioSettingsPanel('field')}
     </div>
   `;
@@ -1685,7 +1704,7 @@ function renderTownContent() {
   if (activeTownContent === 'shop') townContentBody.innerHTML = renderTownShop(pendingSave);
   if (activeTownContent === 'boss') townContentBody.innerHTML = renderTownBoss(pendingSave);
   if (activeTownContent === 'quests') townContentBody.innerHTML = renderTownQuests(pendingSave);
-  if (activeTownContent === 'settings') townContentBody.innerHTML = renderAudioSettingsPanel('town');
+  if (activeTownContent === 'settings') townContentBody.innerHTML = renderAutoHuntSettingsPanel(pendingSave) + renderAudioSettingsPanel('town');
   if (activeTownContent === 'account') townContentBody.innerHTML = renderTownAccount(pendingSave);
 }
 
@@ -2064,6 +2083,119 @@ function renderPotionBeltSummary(save: PlayerSave) {
   `;
 }
 
+
+function autoSettingsForSave(save: PlayerSave): AutoHuntSettings {
+  const source = save.autoSettings || {} as Partial<AutoHuntSettings>;
+  return {
+    useSkills: typeof source.useSkills === 'boolean' ? source.useSkills : true,
+    useHpPotion: typeof source.useHpPotion === 'boolean' ? source.useHpPotion : true,
+    useMpPotion: typeof source.useMpPotion === 'boolean' ? source.useMpPotion : true,
+    hpPotionRatio: clampRatio(source.hpPotionRatio, 0.42, 0.18, 0.72),
+    mpPotionRatio: clampRatio(source.mpPotionRatio, 0.28, 0.12, 0.62),
+    bossPriority: typeof source.bossPriority === 'boolean' ? source.bossPriority : false
+  };
+}
+
+function clampRatio(value: unknown, fallback: number, min: number, max: number) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
+}
+
+function percentLabel(value: number) {
+  return `${Math.round(value * 100)}%`;
+}
+
+function renderAutoHuntSettingsPanel(save: PlayerSave) {
+  const settings = autoSettingsForSave(save);
+  const toggle = (key: keyof Pick<AutoHuntSettings, 'useSkills' | 'useHpPotion' | 'useMpPotion' | 'bossPriority'>, label: string, desc: string) => `
+    <button class="auto-setting-toggle ${settings[key] ? 'active' : ''}" data-auto-setting="${key}">
+      <span>${settings[key] ? 'ON' : 'OFF'}</span><b>${label}</b><em>${desc}</em>
+    </button>`;
+  const ratioButton = (kind: 'hp' | 'mp', value: number) => {
+    const current = kind === 'hp' ? settings.hpPotionRatio : settings.mpPotionRatio;
+    return `<button class="auto-ratio-btn ${Math.abs(current - value) < 0.001 ? 'active' : ''}" data-auto-ratio="${kind}:${value}">${percentLabel(value)}</button>`;
+  };
+  return `
+    <section class="auto-tactics-panel">
+      <div class="auto-tactics-head">
+        <span>AUTO TACTICS</span>
+        <h3>자동사냥 세부 설정</h3>
+        <p>스킬 사용, 물약 사용 기준, 보스 우선 타겟팅을 조절합니다.</p>
+      </div>
+      <div class="auto-toggle-grid">
+        ${toggle('useSkills', '자동 스킬', '쿨타임/MP 조건 충족 시 사용')}
+        ${toggle('useHpPotion', 'HP 물약', `현재 기준 ${percentLabel(settings.hpPotionRatio)} 이하`)}
+        ${toggle('useMpPotion', 'MP 물약', `현재 기준 ${percentLabel(settings.mpPotionRatio)} 이하`)}
+        ${toggle('bossPriority', '보스 우선', '필드보스/드레이크를 먼저 추적')}
+      </div>
+      <div class="auto-ratio-grid">
+        <div><b>HP 물약 기준</b><span>${[0.30, 0.42, 0.55, 0.65].map((value) => ratioButton('hp', value)).join('')}</span></div>
+        <div><b>MP 물약 기준</b><span>${[0.18, 0.28, 0.40, 0.52].map((value) => ratioButton('mp', value)).join('')}</span></div>
+      </div>
+    </section>
+  `;
+}
+
+function handleAutoSettingAction(button: HTMLButtonElement) {
+  const save = game?.getSave() || pendingSave;
+  if (!save) return;
+  const current = autoSettingsForSave(save);
+  const patch: Partial<AutoHuntSettings> = {};
+  const toggleKey = button.dataset.autoSetting as keyof AutoHuntSettings | undefined;
+  if (toggleKey && toggleKey in current && typeof current[toggleKey] === 'boolean') {
+    (patch as Record<string, boolean>)[toggleKey] = !current[toggleKey as keyof AutoHuntSettings];
+  }
+  const ratio = button.dataset.autoRatio;
+  if (ratio) {
+    const [kind, rawValue] = ratio.split(':');
+    const value = Number(rawValue);
+    if (kind === 'hp') patch.hpPotionRatio = clampRatio(value, current.hpPotionRatio, 0.18, 0.72);
+    if (kind === 'mp') patch.mpPotionRatio = clampRatio(value, current.mpPotionRatio, 0.12, 0.62);
+  }
+  if (!Object.keys(patch).length) return;
+  if (game) {
+    game.setAutoSettings(patch);
+    pendingSave = game.getSave();
+  } else if (pendingSave) {
+    pendingSave.autoSettings = autoSettingsForSave({ ...pendingSave, autoSettings: { ...current, ...patch } });
+    persistTownSave();
+  }
+  if (sheetOpen) renderSheet();
+  if (townContentOpen) renderTownContent();
+  if (pendingSave) renderTown(pendingSave);
+}
+
+function exchangeBossTrophy(kind: string) {
+  if (!pendingSave) return;
+  const isElite = kind === 'elite';
+  const cost = isElite ? 5 : 2;
+  if (materialCount(pendingSave, 'boss-trophy') < cost) {
+    showToast(`균열 토벌 훈장이 부족합니다. 필요 ${cost}개`);
+    return;
+  }
+  consumeMaterial(pendingSave, 'boss-trophy', cost);
+  if (isElite) {
+    pendingSave.gold += 3800;
+    pendingSave.gems += 24;
+    addInventoryItem(pendingSave, 'enhance-stone', 6);
+    addInventoryItem(pendingSave, 'soul-shard', 10);
+    addInventoryItem(pendingSave, 'hp-potion-high', 8);
+    addInventoryItem(pendingSave, 'mp-potion-high', 6);
+  } else {
+    pendingSave.gold += 1200;
+    pendingSave.gems += 8;
+    addInventoryItem(pendingSave, 'enhance-stone', 2);
+    addInventoryItem(pendingSave, 'hp-potion-high', 4);
+    addInventoryItem(pendingSave, 'mp-potion-high', 3);
+  }
+  audioService.play('reward');
+  persistTownSave();
+  flashActionFeedback(isElite ? '정예 보상 교환' : '보급 보상 교환');
+  showLootPresentation({ type: 'item', title: isElite ? '정예 보스 상자' : '보스 보급 상자', subtitle: `훈장 ${cost}개 교환 완료`, art: itemArtUrl(items.find((item) => item.id === 'boss-trophy') || items[0]), rarity: isElite ? 'SSR' : 'SR' });
+  showToast(isElite ? '정예 보스 상자 교환 완료' : '보스 보급 상자 교환 완료');
+}
+
 function renderEquipmentResonanceSummary(save: PlayerSave, townMode = false) {
   const effects = equipmentResonanceEffects(save, items);
   const gear = ['weapon', 'armor', 'relic'] as EquipmentSlot[];
@@ -2179,26 +2311,39 @@ function isSkillBookSoldOut(save: PlayerSave, def: ItemDefinition) {
 
 function renderTownBoss(save: PlayerSave) {
   const dragon = monsters.find((monster) => monster.id === 'dragon');
+  const fieldBoss = monsters.find((monster) => monster.id === 'fieldBoss');
   const bear = monsters.find((monster) => monster.id === 'crystalBear');
+  const trophyCount = materialCount(save, 'boss-trophy');
+  const canSupply = trophyCount >= 2;
+  const canElite = trophyCount >= 5;
   return `
-    <div class="boss-panel">
-      <div class="boss-emblem">DRAGON</div>
+    <div class="boss-panel boss-bounty-panel">
+      <div class="boss-emblem">RAID</div>
       <div>
         <div class="pill-row">
-          <span class="pill">권장 Lv.8+</span>
-          <span class="pill">보스 ${dragon ? `Lv.${dragon.level}` : '준비중'}</span>
+          <span class="pill">권장 Lv.16+</span>
+          <span class="pill">훈장 ${trophyCount}개</span>
           <span class="pill">내 Lv.${save.level}</span>
         </div>
-        <h3>${dragon ? escapeHtml(dragon.name) : '저녁 레이드 드래곤'}</h3>
-        <p>수정 레이드 터에서 드래곤과 흑수정 곰이 등장합니다. 현재는 솔로 입장형 보스 테스트이며, 추후 시간표/기여도/랭킹 보상으로 확장합니다.</p>
-        ${dragon ? `<p>보상: ${formatGold(dragon.gold)}, ${dragon.exp}EXP, 소울젬/SSR 카드 확률 드랍</p>` : ''}
+        <h3>균열 토벌 현상금</h3>
+        <p>필드보스와 심연룡을 토벌해 균열 토벌 훈장을 모으고, 마을에서 보스 보급 상자로 교환하세요.</p>
+        ${fieldBoss ? `<p>필드보스: ${escapeHtml(fieldBoss.name)} · Lv.${fieldBoss.level} · 훈장 드랍</p>` : ''}
+        ${dragon ? `<p>심연룡: ${escapeHtml(dragon.name)} · Lv.${dragon.level} · 훈장 고확률 드랍</p>` : ''}
         ${bear ? `<p>중간 보스: ${escapeHtml(bear.name)} · Lv.${bear.level}</p>` : ''}
-        <button class="wide-action primary" data-town-zone-enter="crystal-raid">수정 레이드 터 입장</button>
+        <div class="boss-bounty-actions">
+          <button class="wide-action primary" data-town-zone-enter="crystal-raid">수정 레이드 터 입장</button>
+          <button class="wide-action" ${canSupply ? '' : 'disabled'} data-town-boss-exchange="supply">훈장 2개 · 보급 상자</button>
+          <button class="wide-action" ${canElite ? '' : 'disabled'} data-town-boss-exchange="elite">훈장 5개 · 정예 상자</button>
+        </div>
       </div>
     </div>
+    <section class="bounty-reward-grid">
+      <article><b>보급 상자</b><span>골드 1,200 · 소울젬 8 · 강화석 2 · 상급 물약 보급</span></article>
+      <article><b>정예 상자</b><span>골드 3,800 · 소울젬 24 · 강화석 6 · 소울 파편 10 · 장비 성장 재료</span></article>
+    </section>
+    ${renderAutoHuntSettingsPanel(save)}
   `;
 }
-
 
 function renderTownQuests(save: PlayerSave) {
   const claimed = new Set(save.daily?.claimedQuestIds || []);
