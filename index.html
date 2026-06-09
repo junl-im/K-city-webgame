@@ -32,7 +32,7 @@
             <span class="title-character title-character-visual"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn">게임 시작</button>
-          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.26.0</span></div>
+          <div class="title-mini-nav"><span>공지 준비중</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.27.0</span></div>
           <small>전체화면은 브라우저 정책상 버튼 입력 후 시도됩니다.</small>
         </div>
       </section>
@@ -347,6 +347,21 @@
         <div id="sheetBody" class="sheet-body"></div>
       </section>
 
+
+      <section class="item-detail-modal hidden" id="itemDetailModal" aria-hidden="true">
+        <div class="item-detail-backdrop" data-close-detail="true"></div>
+        <article class="item-detail-card">
+          <button class="icon-btn item-detail-close" id="closeItemDetail" title="닫기" aria-label="닫기">×</button>
+          <div class="item-detail-visual" id="itemDetailVisual"></div>
+          <div class="item-detail-copy">
+            <span id="itemDetailEyebrow">DETAIL</span>
+            <h2 id="itemDetailTitle">상세 정보</h2>
+            <p id="itemDetailDesc">선택한 슬롯 정보를 표시합니다.</p>
+            <div class="item-detail-stats" id="itemDetailStats"></div>
+            <div class="item-detail-actions" id="itemDetailActions"></div>
+          </div>
+        </article>
+      </section>
       <div class="sleep-overlay" id="sleepOverlay"><div><b>절전 모드</b><span>자동사냥은 유지됩니다. 화면을 터치하면 해제됩니다.</span></div></div>
       <div class="toast" id="toast"></div>
     </div>

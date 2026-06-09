@@ -3,7 +3,7 @@ import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, cardSets, cards, classes, dailyQuests,
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
 import { formatGold, formatNumber, formatSoul, roll, uid } from './game/math';
-import type { CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, ItemDefinition, PlayerSave, SheetTab, Snapshot, Stats } from './types';
+import type { CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
 type TownContentId = 'hunt' | 'story' | 'cards' | 'inventory' | 'skills' | 'shop' | 'boss' | 'quests' | 'settings' | 'account';
@@ -104,6 +104,14 @@ const titleAudioBtn = must<HTMLButtonElement>('#titleAudioBtn');
 const townAudioBtn = must<HTMLButtonElement>('#townAudioBtn');
 const townMoreBtn = must<HTMLButtonElement>('#townMoreBtn');
 const townMoreMenu = must<HTMLElement>('#townMoreMenu');
+const itemDetailModal = must<HTMLElement>('#itemDetailModal');
+const closeItemDetail = must<HTMLButtonElement>('#closeItemDetail');
+const itemDetailVisual = must<HTMLElement>('#itemDetailVisual');
+const itemDetailEyebrow = must<HTMLElement>('#itemDetailEyebrow');
+const itemDetailTitle = must<HTMLElement>('#itemDetailTitle');
+const itemDetailDesc = must<HTMLElement>('#itemDetailDesc');
+const itemDetailStats = must<HTMLElement>('#itemDetailStats');
+const itemDetailActions = must<HTMLElement>('#itemDetailActions');
 
 boot().catch((error) => {
   console.error(error);
@@ -128,6 +136,7 @@ async function boot() {
   bindActions();
   bindJoystick();
   bindSheet();
+  bindDetailModal();
   bindAudioControls();
   must('#classPortrait').addEventListener('click', () => openSheet('account'));
   bindBackButtonGuard();
@@ -541,6 +550,30 @@ function bindLoginFlow() {
       return;
     }
 
+    const detailCard = target.closest<HTMLElement>('[data-card-detail]');
+    if (detailCard) {
+      openCardDetail(detailCard.dataset.cardDetail || '', true);
+      return;
+    }
+
+    const detailItem = target.closest<HTMLElement>('[data-item-detail]');
+    if (detailItem) {
+      openItemDetail(detailItem.dataset.itemDetail || '', true);
+      return;
+    }
+
+    const detailSkill = target.closest<HTMLElement>('[data-skill-detail]');
+    if (detailSkill) {
+      openSkillDetail(detailSkill.dataset.skillDetail || '', true);
+      return;
+    }
+
+    const detailSoul = target.closest<HTMLElement>('[data-soul-detail]');
+    if (detailSoul) {
+      openSoulDetail(detailSoul.dataset.soulDetail || '');
+      return;
+    }
+
     const account = target.closest<HTMLButtonElement>('[data-town-account-action]');
     const settings = target.closest<HTMLButtonElement>('[data-town-settings-action]');
     if (settings) { handleAudioSettingsAction(settings.dataset.townSettingsAction || ''); return; }
@@ -852,6 +885,30 @@ function bindSheet() {
       return;
     }
 
+    const detailCard = target.closest<HTMLElement>('[data-card-detail]');
+    if (detailCard) {
+      openCardDetail(detailCard.dataset.cardDetail || '', false);
+      return;
+    }
+
+    const detailItem = target.closest<HTMLElement>('[data-item-detail]');
+    if (detailItem) {
+      openItemDetail(detailItem.dataset.itemDetail || '', false);
+      return;
+    }
+
+    const detailSkill = target.closest<HTMLElement>('[data-skill-detail]');
+    if (detailSkill) {
+      openSkillDetail(detailSkill.dataset.skillDetail || '', false);
+      return;
+    }
+
+    const detailSoul = target.closest<HTMLElement>('[data-soul-detail]');
+    if (detailSoul) {
+      openSoulDetail(detailSoul.dataset.soulDetail || '');
+      return;
+    }
+
     const action = target.closest<HTMLButtonElement>('[data-account-action]');
     if (!action) return;
     await handleAccountAction(action.dataset.accountAction || '');
@@ -1089,32 +1146,32 @@ function renderSkillGrid(save: PlayerSave, townMode: boolean) {
     const learned = Array.isArray(save.learnedSkillIds) && save.learnedSkillIds.includes(skill.id);
     const levelReady = save.level >= skill.unlockLevel;
     const unlocked = learned && levelReady;
+    const state = !learned ? '미습득' : levelReady ? '사용 가능' : `Lv.${skill.unlockLevel}`;
     return `
-      <article class="slot-cell skill-slot ${unlocked ? 'unlocked' : 'locked'}">
-        <span class="slot-rarity">${escapeHtml(skill.hotkey)}</span>
+      <article class="slot-cell skill-slot ${unlocked ? 'unlocked' : 'locked'}" data-skill-detail="${skill.id}" tabindex="0" role="button" aria-label="${escapeHtml(skill.name)} 상세 보기">
+        <span class="slot-art skill-art skill-art-${skill.hotkey}"><i>${escapeHtml(skill.hotkey)}</i></span>
+        <span class="slot-rarity">${state}</span>
         <b>${escapeHtml(skill.name)}</b>
-        <em>${!learned ? '미습득' : levelReady ? `쿨 ${skill.cooldownSec}s · MP ${skill.mpCost}` : `Lv.${skill.unlockLevel} 필요`}</em>
-        <p>${escapeHtml(skill.description)}</p>
+        <em>MP ${skill.mpCost} · 쿨 ${skill.cooldownSec}s</em>
       </article>
     `;
   });
   return `
     <div class="slot-toolbar">
       <span>스킬 슬롯 3x3 · ${classes[save.classId].name}</span>
-      <em>${townMode ? '전투 화면 우측 스킬 버튼으로 사용합니다.' : '쿨타임/MP 소모/범위 공격이 적용됩니다.'}</em>
+      <em>${townMode ? '슬롯을 누르면 상세/습득 상태를 확인합니다.' : '슬롯을 누르면 상세 팝업이 열립니다.'}</em>
     </div>
-    <div class="slot-grid skill-slot-grid">${fillSlots(cells, 9, '미개방 슬롯')}</div>
+    <div class="slot-grid skill-slot-grid compact-slot-grid">${fillSlots(cells, 9, '미개방')}</div>
   `;
 }
 
 function renderCardSlot(def: CardDefinition, instance: { uid: string; level: number; copies: number; equipped: boolean }, actionAttr: string) {
   return `
-    <article class="slot-cell card-slot ${instance.equipped ? 'equipped' : ''}">
-      <img src="${def.art}" alt="${escapeHtml(def.name)}" />
+    <article class="slot-cell card-slot ${instance.equipped ? 'equipped' : ''}" data-card-detail="${instance.uid}" tabindex="0" role="button" aria-label="${escapeHtml(def.name)} 상세 보기">
+      <span class="slot-art card-art"><img src="${def.art}" alt="${escapeHtml(def.name)}" /></span>
       <span class="slot-rarity rarity-${def.rarity.toLowerCase()}">${def.rarity}</span>
       <b>${escapeHtml(def.name)}</b>
-      <em>Lv.${instance.level} · x${instance.copies}${instance.equipped ? ' · 장착중' : ''}</em>
-      <p>${escapeHtml(def.effectText)}</p>
+      <em>Lv.${instance.level} · x${instance.copies}${instance.equipped ? ' · 장착' : ''}</em>
       <button ${actionAttr}="${instance.uid}">${instance.equipped ? '해제' : '장착'}</button>
     </article>
   `;
@@ -1127,15 +1184,14 @@ function renderItemSlot(save: PlayerSave, def: ItemDefinition, uidValue: string,
   const enhanceLevel = save.enhancements?.[uidValue] || 0;
   const typeLabel: Record<string, string> = { weapon: '무기', armor: '방어구', relic: '유물', material: '재료', skillbook: '스킬서' };
   const cost = enhancementCost(enhanceLevel);
-  const upgradeLabel = enhanceLevel >= MAX_ENHANCE_LEVEL ? 'MAX' : `+${cost.next} (${Math.round(cost.successRate * 100)}%)`;
+  const upgradeLabel = enhanceLevel >= MAX_ENHANCE_LEVEL ? 'MAX' : `+${cost.next} ${Math.round(cost.successRate * 100)}%`;
   const upgradeDisabled = enhanceLevel >= MAX_ENHANCE_LEVEL ? 'disabled' : '';
   return `
-    <article class="slot-cell item-slot ${equipped ? 'equipped' : ''}">
-      <span class="item-icon">${itemIcon(def.type)}</span>
+    <article class="slot-cell item-slot ${equipped ? 'equipped' : ''}" data-item-detail="${uidValue}" tabindex="0" role="button" aria-label="${escapeHtml(def.name)} 상세 보기">
+      <span class="slot-art item-art item-art-${def.type} ${equipped ? 'is-equipped' : ''}"><i>${itemIcon(def.type)}</i></span>
       <span class="slot-rarity rarity-${def.rarity.toLowerCase()}">${def.rarity}${canEquip ? ` · +${enhanceLevel}` : ''}</span>
       <b>${escapeHtml(def.name)}${canEquip && enhanceLevel ? ` +${enhanceLevel}` : ''}</b>
-      <em>${typeLabel[def.type] || escapeHtml(def.type)} · x${count}${equipped ? ' · 장착중' : ''}</em>
-      <p>${escapeHtml(def.effectText)}${canEquip && enhanceLevel < MAX_ENHANCE_LEVEL ? ` · 다음 ${formatGold(cost.gold)} · 성공 ${Math.round(cost.successRate * 100)}%${cost.shard ? ` · 파편 ${cost.shard}` : ''}${cost.stone ? ` · 강화석 ${cost.stone}` : ''}` : ''}</p>
+      <em>${typeLabel[def.type] || escapeHtml(def.type)} · x${count}${equipped ? ' · 장착' : ''}</em>
       ${canEquip ? `<div class="slot-actions"><button ${actionAttr}="${uidValue}">${equipped ? '해제' : '장착'}</button>${upgradeAttr ? `<button ${upgradeDisabled} ${upgradeAttr}="${uidValue}">${upgradeLabel}</button>` : ''}</div>` : def.type === 'skillbook' ? `<button ${actionAttr}="${uidValue}">배우기</button>` : '<span class="slot-passive">재료</span>'}
     </article>
   `;
@@ -1143,7 +1199,7 @@ function renderItemSlot(save: PlayerSave, def: ItemDefinition, uidValue: string,
 
 function fillSlots(cells: string[], total: number, label: string) {
   const next = [...cells];
-  while (next.length < total) next.push(`<article class="slot-cell empty-slot-cell"><span>+</span><b>${escapeHtml(label)}</b></article>`);
+  while (next.length < total) next.push(`<article class="slot-cell empty-slot-cell" aria-label="${escapeHtml(label)}"><span>+</span><b>${escapeHtml(label)}</b></article>`);
   return next.slice(0, total).join('');
 }
 
@@ -1151,8 +1207,10 @@ function itemIcon(type: string) {
   if (type === 'weapon') return '⚔';
   if (type === 'armor') return '▣';
   if (type === 'relic') return '✦';
+  if (type === 'skillbook') return '書';
   return '◆';
 }
+
 
 function renderSkillDock(snapshot: Snapshot) {
   for (const button of skillDockButtons) {
@@ -1205,14 +1263,17 @@ function renderSouls(snapshot: Snapshot) {
       const progress = instance?.progress || snapshot.save.kills[def.monsterId] || 0;
       const percent = Math.min(100, Math.round((progress / def.requiredKills) * 100));
       return `
-        <article class="soul-row">
-          <div class="pill-row">
-            <span class="pill">${instance?.unlocked ? '해방' : `${progress}/${def.requiredKills}`}</span>
-            <span class="pill">${percent}%</span>
+        <article class="soul-row soul-slot" data-soul-detail="${def.id}" tabindex="0" role="button" aria-label="${escapeHtml(def.name)} 상세 보기">
+          <span class="slot-art soul-art"><i>${instance?.unlocked ? '魂' : percent}</i></span>
+          <div>
+            <div class="pill-row">
+              <span class="pill">${instance?.unlocked ? '해방' : `${progress}/${def.requiredKills}`}</span>
+              <span class="pill">${percent}%</span>
+            </div>
+            <h3>${escapeHtml(def.name)}</h3>
+            <p>${escapeHtml(def.effectText)}</p>
+            <div class="bar exp"><i style="width:${percent}%"></i><em>${percent}%</em></div>
           </div>
-          <h3>${escapeHtml(def.name)}</h3>
-          <p>${escapeHtml(def.effectText)}</p>
-          <div class="bar exp"><i style="width:${percent}%"></i><em>${percent}%</em></div>
         </article>
       `;
     })
@@ -1687,7 +1748,7 @@ function renderTownCards(save: PlayerSave) {
     .map(({ def, instance }) => renderCardSlot(def, instance, 'data-town-equip-card'));
 
   return `
-    <div class="town-content-note">카드 보관함 3x3 · 장착 ${equippedCount}/4 · 조합이 맞으면 세트 효과가 자동 발동합니다.</div>
+    <div class="town-content-note">카드 보관함 4x9 · 장착 ${equippedCount}/4 · 조합이 맞으면 세트 효과가 자동 발동합니다.</div>
     <div class="slot-grid card-slot-grid town-slot-grid">${fillSlots(cells, 36, '빈 카드 슬롯')}</div>
     ${renderCardSetSummary(save)}
   `;
@@ -2236,6 +2297,157 @@ function delay(ms: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 }
 
+
+function bindDetailModal() {
+  closeItemDetail.addEventListener('click', closeDetailModal);
+  itemDetailModal.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    if (target.closest('[data-close-detail]')) closeDetailModal();
+
+    const equipCard = target.closest<HTMLButtonElement>('[data-town-equip-card]');
+    if (equipCard) { toggleTownCard(equipCard.dataset.townEquipCard || ''); closeDetailModal(); return; }
+    const equipFieldCard = target.closest<HTMLButtonElement>('[data-equip-card]');
+    if (equipFieldCard) { game?.equipCard(equipFieldCard.dataset.equipCard || ''); closeDetailModal(); return; }
+    const equipItem = target.closest<HTMLButtonElement>('[data-town-equip-item]');
+    if (equipItem) { toggleTownItem(equipItem.dataset.townEquipItem || ''); closeDetailModal(); return; }
+    const equipFieldItem = target.closest<HTMLButtonElement>('[data-equip-item]');
+    if (equipFieldItem) { game?.equipItem(equipFieldItem.dataset.equipItem || ''); closeDetailModal(); return; }
+    const upgradeTown = target.closest<HTMLButtonElement>('[data-town-upgrade-item]');
+    if (upgradeTown) { upgradeTownItem(upgradeTown.dataset.townUpgradeItem || ''); closeDetailModal(); return; }
+    const upgradeField = target.closest<HTMLButtonElement>('[data-upgrade-item]');
+    if (upgradeField) { game?.upgradeItem(upgradeField.dataset.upgradeItem || ''); closeDetailModal(); return; }
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeDetailModal();
+  });
+}
+
+function closeDetailModal() {
+  itemDetailModal.classList.add('hidden');
+  itemDetailModal.setAttribute('aria-hidden', 'true');
+  itemDetailActions.innerHTML = '';
+}
+
+function openDetailModal(options: { eyebrow: string; title: string; desc: string; stats: string; visual: string; actions?: string }) {
+  itemDetailEyebrow.textContent = options.eyebrow;
+  itemDetailTitle.textContent = options.title;
+  itemDetailDesc.textContent = options.desc;
+  itemDetailStats.innerHTML = options.stats;
+  itemDetailVisual.innerHTML = options.visual;
+  itemDetailActions.innerHTML = options.actions || '';
+  itemDetailModal.classList.remove('hidden');
+  itemDetailModal.setAttribute('aria-hidden', 'false');
+}
+
+function findCardByUid(uidValue: string, townMode: boolean) {
+  const save = townMode ? pendingSave : latest?.save;
+  if (!save) return null;
+  const instance = save.cards.find((entry) => entry.uid === uidValue);
+  if (!instance) return null;
+  const def = cards.find((entry) => entry.id === instance.cardId);
+  return def ? { save, instance, def } : null;
+}
+
+function findItemByUid(uidValue: string, townMode: boolean) {
+  const save = townMode ? pendingSave : latest?.save;
+  if (!save) return null;
+  const instance = save.inventory.find((entry) => entry.uid === uidValue);
+  if (!instance) return null;
+  const def = items.find((entry) => entry.id === instance.itemId);
+  return def ? { save, instance, def } : null;
+}
+
+function statChips(bonus: Partial<Stats>) {
+  const labels: Array<[keyof Stats, string, (value: number) => string]> = [
+    ['hp', 'HP', (value) => `+${Math.round(value)}`],
+    ['mp', 'MP', (value) => `+${Math.round(value)}`],
+    ['atk', '공격', (value) => `+${Math.round(value)}`],
+    ['def', '방어', (value) => `+${Math.round(value)}`],
+    ['aspd', '공속', (value) => `+${Math.round(value * 100)}%`],
+    ['crit', '치명', (value) => `+${Math.round(value * 100)}%`],
+    ['move', '이속', (value) => `+${value.toFixed(2)}`]
+  ];
+  const chips = labels
+    .flatMap(([key, label, format]) => {
+      const value = bonus[key];
+      return typeof value === 'number' && value !== 0 ? [`<span><b>${label}</b><em>${format(value)}</em></span>`] : [];
+    })
+    .join('');
+  return chips || '<span><b>효과</b><em>상세 없음</em></span>';
+}
+
+function openCardDetail(uidValue: string, townMode: boolean) {
+  const found = findCardByUid(uidValue, townMode);
+  if (!found) return;
+  const { def, instance } = found;
+  const actionAttr = townMode ? 'data-town-equip-card' : 'data-equip-card';
+  openDetailModal({
+    eyebrow: `${def.rarity} CARD · Lv.${instance.level}`,
+    title: def.name,
+    desc: `${def.effectText}\n보유 수량 x${instance.copies}${instance.equipped ? ' · 현재 장착 중' : ''}`,
+    visual: `<img src="${def.art}" alt="${escapeHtml(def.name)}" />`,
+    stats: statChips(def.bonus),
+    actions: `<button class="wide-action primary" ${actionAttr}="${instance.uid}">${instance.equipped ? '카드 해제' : '카드 장착'}</button>`
+  });
+}
+
+function openItemDetail(uidValue: string, townMode: boolean) {
+  const found = findItemByUid(uidValue, townMode);
+  if (!found) return;
+  const { save, def, instance } = found;
+  const canEquip = def.type === 'weapon' || def.type === 'armor' || def.type === 'relic';
+  const slot = def.type as EquipmentSlot;
+  const equipped = canEquip && save.equipment?.[slot] === instance.uid;
+  const enhanceLevel = save.enhancements?.[instance.uid] || 0;
+  const cost = enhancementCost(enhanceLevel);
+  const actionAttr = townMode ? 'data-town-equip-item' : 'data-equip-item';
+  const upgradeAttr = townMode ? 'data-town-upgrade-item' : 'data-upgrade-item';
+  const typeLabel: Record<string, string> = { weapon: '무기', armor: '방어구', relic: '유물', material: '재료', skillbook: '스킬서' };
+  const enhanceInfo = canEquip && enhanceLevel < MAX_ENHANCE_LEVEL
+    ? `<span><b>다음 강화</b><em>+${cost.next} · ${Math.round(cost.successRate * 100)}%</em></span><span><b>비용</b><em>${formatGold(cost.gold)}${cost.shard ? ` · 파편 ${cost.shard}` : ''}${cost.stone ? ` · 강화석 ${cost.stone}` : ''}</em></span>`
+    : canEquip ? '<span><b>강화</b><em>최대 강화</em></span>' : '';
+  const actions = canEquip
+    ? `<button class="wide-action primary" ${actionAttr}="${instance.uid}">${equipped ? '장착 해제' : '장착하기'}</button><button class="wide-action" ${enhanceLevel >= MAX_ENHANCE_LEVEL ? 'disabled' : ''} ${upgradeAttr}="${instance.uid}">강화 ${enhanceLevel >= MAX_ENHANCE_LEVEL ? 'MAX' : `+${cost.next} · ${Math.round(cost.successRate * 100)}%`}</button>`
+    : def.type === 'skillbook' ? `<button class="wide-action primary" ${actionAttr}="${instance.uid}">스킬 배우기</button>` : '';
+  openDetailModal({
+    eyebrow: `${def.rarity} ${typeLabel[def.type] || def.type} · x${instance.count}`,
+    title: `${def.name}${canEquip ? ` +${enhanceLevel}` : ''}`,
+    desc: `${def.effectText}${equipped ? '\n현재 장착 중입니다.' : ''}`,
+    visual: `<span class="slot-art item-art item-art-${def.type}"><i>${itemIcon(def.type)}</i></span>`,
+    stats: statChips(def.bonus) + enhanceInfo,
+    actions
+  });
+}
+
+function openSkillDetail(skillId: string, townMode: boolean) {
+  const save = townMode ? pendingSave : latest?.save;
+  const def = skills.find((entry) => entry.id === skillId);
+  if (!save || !def) return;
+  const learned = save.learnedSkillIds?.includes(def.id);
+  const levelReady = save.level >= def.unlockLevel;
+  openDetailModal({
+    eyebrow: `${classes[def.classId].name} SKILL · ${learned ? '습득' : '미습득'}`,
+    title: def.name,
+    desc: def.description,
+    visual: `<span class="slot-art skill-art skill-art-${def.hotkey}"><i>${escapeHtml(def.hotkey)}</i></span>`,
+    stats: `<span><b>MP</b><em>${def.mpCost}</em></span><span><b>쿨타임</b><em>${def.cooldownSec}s</em></span><span><b>사거리</b><em>${def.range}</em></span><span><b>범위</b><em>${def.radius}</em></span><span><b>상태</b><em>${!learned ? '스킬북 필요' : levelReady ? '사용 가능' : `Lv.${def.unlockLevel} 필요`}</em></span>`
+  });
+}
+
+function openSoulDetail(soulId: string) {
+  const save = latest?.save || pendingSave;
+  const def = souls.find((entry) => entry.id === soulId);
+  if (!save || !def) return;
+  const instance = save.souls.find((entry) => entry.soulId === soulId);
+  const progress = instance?.progress || save.kills[def.monsterId] || 0;
+  openDetailModal({
+    eyebrow: `${instance?.unlocked ? '해방 완료' : '영혼 각인'}`,
+    title: def.name,
+    desc: `${def.effectText}\n해방 조건: ${progress}/${def.requiredKills}`,
+    visual: `<span class="slot-art soul-art"><i>魂</i></span>`,
+    stats: statChips(def.bonus)
+  });
+}
 
 function showToast(message: string) {
   toastEl.textContent = message;

@@ -4960,3 +4960,413 @@ body.minimap-compact .minimap-head button::before { content: "+"; font-size: 12p
     linear-gradient(180deg, rgba(27,30,26,.9), rgba(9,11,12,.92)),
     radial-gradient(circle at 12% 15%, rgba(226,185,95,.18), transparent 36%) !important;
 }
+
+/* 0.27 Inventory/Card/Skill UI Fix + 2.5D Field Asset Pass */
+.sheet,
+.town-drawer {
+  width: min(96vw, 820px) !important;
+}
+
+.sheet-body,
+.town-drawer-body {
+  overflow-y: auto !important;
+  padding-right: 4px !important;
+}
+
+.slot-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  border-radius: 14px !important;
+  background: linear-gradient(180deg, rgba(27, 30, 26, .94), rgba(12, 14, 13, .92)) !important;
+  backdrop-filter: blur(14px);
+}
+
+.slot-grid,
+.slot-grid.card-slot-grid,
+.slot-grid.inventory-slot-grid,
+.slot-grid.skill-slot-grid,
+.town-slot-grid,
+.town-slot-grid.inventory-slot-grid,
+.town-slot-grid.card-slot-grid,
+.town-slot-grid.skill-slot-grid {
+  display: grid !important;
+  gap: 10px !important;
+  align-items: stretch !important;
+}
+
+.slot-grid.card-slot-grid,
+.town-slot-grid.card-slot-grid {
+  grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)) !important;
+}
+
+.slot-grid.inventory-slot-grid,
+.town-slot-grid.inventory-slot-grid {
+  grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)) !important;
+}
+
+.slot-grid.skill-slot-grid,
+.town-slot-grid.skill-slot-grid {
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)) !important;
+}
+
+.slot-grid .slot-cell,
+.slot-grid.card-slot-grid .slot-cell,
+.slot-grid.inventory-slot-grid .slot-cell,
+.slot-grid.skill-slot-grid .slot-cell,
+.town-slot-grid .slot-cell {
+  position: relative !important;
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) auto auto !important;
+  place-items: stretch !important;
+  aspect-ratio: 1 / 1 !important;
+  min-height: 0 !important;
+  padding: 7px !important;
+  border-radius: 16px !important;
+  cursor: pointer;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.02)),
+    radial-gradient(circle at 50% 8%, rgba(226,185,95,.10), transparent 50%),
+    rgba(10, 12, 12, .66) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -14px 30px rgba(0,0,0,.26),
+    0 12px 24px rgba(0,0,0,.18) !important;
+  overflow: hidden !important;
+  transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease;
+}
+
+.slot-grid .slot-cell:hover,
+.slot-grid .slot-cell:focus-visible,
+.town-slot-grid .slot-cell:hover,
+.town-slot-grid .slot-cell:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(226,185,95,.54) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 16px 34px rgba(0,0,0,.28), 0 0 0 2px rgba(226,185,95,.10) !important;
+  outline: none;
+}
+
+.slot-grid .slot-cell::after {
+  content: "상세";
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  z-index: 3;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.38);
+  color: rgba(255,246,220,.72);
+  font-size: 9px;
+  font-weight: 950;
+  opacity: 0;
+  transition: opacity .14s ease;
+}
+
+.slot-grid .slot-cell:hover::after,
+.slot-grid .slot-cell:focus-visible::after { opacity: 1; }
+.empty-slot-cell::after { display: none; }
+
+.slot-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 0;
+  border-radius: 13px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.10);
+  background:
+    radial-gradient(circle at 50% 25%, rgba(255,255,255,.18), transparent 36%),
+    linear-gradient(145deg, rgba(226,185,95,.20), rgba(37,47,50,.80));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), inset 0 -18px 28px rgba(0,0,0,.32);
+}
+
+.slot-art img {
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: auto !important;
+  object-fit: cover !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+.card-slot img { aspect-ratio: auto !important; }
+.card-art { height: 100%; }
+
+.item-art,
+.skill-art,
+.soul-art {
+  isolation: isolate;
+}
+
+.item-art i,
+.skill-art i,
+.soul-art i {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 62%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  color: #fff6dc;
+  font-size: clamp(18px, 6vw, 32px);
+  font-weight: 950;
+  text-shadow: 0 4px 10px rgba(0,0,0,.5), 0 0 18px rgba(226,185,95,.38);
+  background: radial-gradient(circle at 35% 28%, rgba(255,255,255,.42), rgba(226,185,95,.22) 38%, rgba(0,0,0,.22) 70%);
+  border: 1px solid rgba(255,238,176,.32);
+}
+
+.item-art::before,
+.skill-art::before,
+.soul-art::before {
+  content: "";
+  position: absolute;
+  inset: 12% 18% 24%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(114,231,255,.22), transparent 62%);
+  filter: blur(8px);
+}
+
+.item-art-weapon { background: linear-gradient(145deg, #32251a, #87602d 44%, #1a1e21) !important; }
+.item-art-armor { background: linear-gradient(145deg, #202833, #556574 48%, #151719) !important; }
+.item-art-relic { background: linear-gradient(145deg, #221537, #794ea8 45%, #160e22) !important; }
+.item-art-material { background: linear-gradient(145deg, #12312c, #26907b 42%, #0e1717) !important; }
+.item-art-skillbook { background: linear-gradient(145deg, #332217, #a66e2f 46%, #19100c) !important; }
+.skill-art-1 { background: linear-gradient(145deg, #112a43, #2f84d6 48%, #10151b) !important; }
+.skill-art-2 { background: linear-gradient(145deg, #3a210f, #e57a28 48%, #160f0b) !important; }
+.skill-art-3 { background: linear-gradient(145deg, #2d153e, #a648d8 48%, #100814) !important; }
+.soul-art { background: radial-gradient(circle at 50% 20%, rgba(119,255,224,.32), transparent 36%), linear-gradient(145deg, #0f2c35, #5f3aa2 54%, #07090e) !important; }
+
+.slot-cell b {
+  min-height: 0 !important;
+  margin-top: 5px;
+  color: #fff4d6 !important;
+  font-size: 11px !important;
+  line-height: 1.1 !important;
+  text-align: center !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slot-cell em {
+  min-height: 14px;
+  color: rgba(245,241,232,.62) !important;
+  font-size: 9px !important;
+  line-height: 1.1 !important;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slot-cell p { display: none !important; }
+.slot-cell .slot-rarity {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  z-index: 3;
+  max-width: calc(100% - 12px);
+  padding: 2px 5px !important;
+  font-size: 8px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slot-cell .slot-actions,
+.slot-cell > button,
+.slot-cell .slot-passive {
+  position: absolute !important;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+  z-index: 4;
+  display: none !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.slot-cell:hover .slot-actions,
+.slot-cell:focus-within .slot-actions,
+.slot-cell:hover > button,
+.slot-cell:focus-within > button {
+  display: grid !important;
+}
+
+.slot-cell .slot-actions button,
+.slot-cell > button {
+  min-height: 24px !important;
+  padding: 3px 4px !important;
+  border-radius: 8px !important;
+  font-size: 9px !important;
+  background: rgba(226,185,95,.86) !important;
+  color: #18110a !important;
+}
+
+.empty-slot-cell {
+  opacity: .62;
+  background: rgba(255,255,255,.025) !important;
+  border-style: dashed !important;
+}
+
+.empty-slot-cell span {
+  font-size: 16px !important;
+  opacity: .35;
+}
+
+.empty-slot-cell b {
+  white-space: normal !important;
+  color: rgba(245,241,232,.34) !important;
+}
+
+.item-detail-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: grid;
+  place-items: center;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+}
+
+.item-detail-modal.hidden { display: none !important; }
+.item-detail-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.58);
+  backdrop-filter: blur(8px);
+}
+
+.item-detail-card {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(140px, .85fr) minmax(0, 1.15fr);
+  gap: 14px;
+  width: min(92vw, 620px);
+  max-height: min(82dvh, 680px);
+  padding: 14px;
+  border: 1px solid rgba(226,185,95,.30);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 18% 0, rgba(226,185,95,.18), transparent 40%),
+    linear-gradient(180deg, rgba(29,31,27,.98), rgba(7,9,10,.98));
+  box-shadow: 0 28px 90px rgba(0,0,0,.58), inset 0 1px 0 rgba(255,255,255,.08);
+  overflow: auto;
+}
+
+.item-detail-close {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  z-index: 3;
+}
+
+.item-detail-visual {
+  min-height: 220px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(114,231,255,.14), transparent 42%),
+    linear-gradient(145deg, rgba(226,185,95,.18), rgba(12,16,18,.92));
+  border: 1px solid rgba(255,255,255,.10);
+}
+
+.item-detail-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.item-detail-visual .slot-art {
+  width: min(74%, 190px);
+  aspect-ratio: 1 / 1;
+}
+
+.item-detail-copy {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding-right: 26px;
+}
+
+.item-detail-copy > span {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .14em;
+}
+
+.item-detail-copy h2 {
+  margin: 0;
+  color: #fff6dc;
+  font-size: clamp(22px, 6vw, 34px);
+  line-height: 1;
+  letter-spacing: -.05em;
+}
+
+.item-detail-copy p {
+  margin: 0;
+  color: rgba(245,241,232,.75);
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.item-detail-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.item-detail-stats span {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(245,241,232,.10);
+  border-radius: 12px;
+  background: rgba(255,255,255,.045);
+}
+
+.item-detail-stats b,
+.item-detail-stats em {
+  display: block;
+}
+.item-detail-stats b { color: rgba(245,241,232,.62); font-size: 10px; }
+.item-detail-stats em { color: #fff6dc; font-style: normal; font-size: 12px; font-weight: 950; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-detail-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.item-detail-actions:empty { display: none; }
+.item-detail-actions .wide-action { min-height: 44px; }
+
+.soul-list {
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)) !important;
+}
+
+.soul-row.soul-slot {
+  cursor: pointer;
+  grid-template-columns: 56px minmax(0, 1fr) !important;
+  align-items: center;
+}
+
+@media (max-width: 560px) {
+  .sheet,
+  .town-drawer { width: min(96vw, 440px) !important; }
+  .slot-grid.card-slot-grid,
+  .town-slot-grid.card-slot-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .slot-grid.inventory-slot-grid,
+  .town-slot-grid.inventory-slot-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .slot-grid.skill-slot-grid,
+  .town-slot-grid.skill-slot-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .slot-grid .slot-cell,
+  .slot-grid.card-slot-grid .slot-cell,
+  .slot-grid.inventory-slot-grid .slot-cell,
+  .slot-grid.skill-slot-grid .slot-cell,
+  .town-slot-grid .slot-cell { padding: 6px !important; border-radius: 14px !important; }
+  .slot-cell b { font-size: 9.5px !important; }
+  .slot-cell em { display: none !important; }
+  .item-detail-card { grid-template-columns: 1fr; width: min(94vw, 420px); }
+  .item-detail-visual { min-height: 180px; }
+  .item-detail-copy { padding-right: 0; }
+}
