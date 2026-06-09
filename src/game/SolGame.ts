@@ -197,6 +197,8 @@ export class SolGame {
   private manualMoveLock = 0;
   private time = 0;
   private lastMoving = false;
+  private footstepTimer = 0;
+  private attackSequence = 0;
   private autoStuckTimer = 0;
   private autoLastX = 0;
   private autoLastY = 0;
@@ -802,11 +804,12 @@ export class SolGame {
   private requiredTextureKeys(): TextureKey[] {
     const keys = new Set<TextureKey>([
       'tileGrass', 'tileDirt', 'tileMoss', 'tileStone', 'tileCrystal', 'tileWater', 'tileCliff', 'tilePortal', 'tileInfernus',
-      'propTree', 'propCrystal', 'propRock', 'propRuin',
+      'propTree', 'propCrystal', 'propRock', 'propRuin', 'propBush', 'propMushroom', 'propBanner', 'propBones', 'propOre', 'propRuneStone', 'propStump',
       'infernusRock', 'infernusAltar', 'infernusBrasero', 'infernusHellRocks', 'infernusSkull', 'infernusBurnerColumn', 'infernusColumn', 'infernusPillar',
       'buildingHall', 'buildingForge', 'buildingStorage', 'buildingShop',
       'propChest01', 'propChest02', 'propChest03', 'propChest04', 'propChest05',
-      'propTorch01', 'propTorch02', 'propTorch03', 'propTorch04', 'propTorch05'
+      'propTorch01', 'propTorch02', 'propTorch03', 'propTorch04', 'propTorch05',
+      'effectSoulSlash', 'effectFireball', 'effectHolyNova', 'effectLightning', 'effectDarkRift'
     ]);
 
     for (let i = 1; i <= 10; i += 1) {
@@ -860,7 +863,93 @@ export class SolGame {
     this.addZoneLandmarks();
 
     this.addCuratedFieldDecor();
+    this.addBiomeDecorPass();
     this.addInfernusDecorPass();
+  }
+
+
+  private addBiomeDecorPass() {
+    const zoneId = this.options.zoneId || 'slime-forest';
+    const common: Array<[TextureKey, number, number, number]> = [
+      ['propBanner' as TextureKey, 8.0, 20.6, 0.23],
+      ['propStump' as TextureKey, 13.6, 23.4, 0.28],
+      ['propBush' as TextureKey, 19.0, 19.2, 0.24],
+      ['propBones' as TextureKey, 27.8, 22.9, 0.24]
+    ];
+    const byZone: Record<string, Array<[TextureKey, number, number, number]>> = {
+      'slime-forest': [
+        ['propBush' as TextureKey, 10.2, 24.9, 0.31], ['propBush' as TextureKey, 16.2, 22.9, 0.28],
+        ['propMushroom' as TextureKey, 20.7, 21.4, 0.22], ['propStump' as TextureKey, 28.8, 17.3, 0.24]
+      ],
+      'crystal-moss': [
+        ['propOre' as TextureKey, 19.8, 14.8, 0.25], ['propRuneStone' as TextureKey, 23.6, 18.2, 0.24],
+        ['propMushroom' as TextureKey, 26.0, 20.2, 0.22], ['propBush' as TextureKey, 31.1, 18.4, 0.25]
+      ],
+      'goblin-road': [
+        ['propBanner' as TextureKey, 18.4, 22.4, 0.28], ['propBones' as TextureKey, 22.6, 23.1, 0.28],
+        ['propStump' as TextureKey, 30.4, 20.7, 0.23], ['propRuneStone' as TextureKey, 25.2, 18.1, 0.21]
+      ],
+      'black-cave': [
+        ['propOre' as TextureKey, 21.5, 25.0, 0.3], ['propOre' as TextureKey, 28.6, 24.2, 0.28],
+        ['propRuneStone' as TextureKey, 26.1, 22.6, 0.26], ['propBones' as TextureKey, 31.5, 25.8, 0.25]
+      ],
+      'ember-ridge': [
+        ['propBones' as TextureKey, 24.0, 21.8, 0.3], ['propBanner' as TextureKey, 29.8, 19.8, 0.28],
+        ['propRuneStone' as TextureKey, 33.4, 20.9, 0.24]
+      ],
+      'moonlit-grove': [
+        ['propMushroom' as TextureKey, 22.0, 18.2, 0.28], ['propBush' as TextureKey, 25.4, 17.8, 0.32],
+        ['propStump' as TextureKey, 31.0, 19.0, 0.25], ['propRuneStone' as TextureKey, 28.6, 21.5, 0.22]
+      ],
+      'soul-ruins': [
+        ['propRuneStone' as TextureKey, 24.4, 22.0, 0.28], ['propBones' as TextureKey, 28.2, 23.6, 0.27],
+        ['propBanner' as TextureKey, 31.6, 22.0, 0.26]
+      ],
+      'storm-citadel': [
+        ['propBanner' as TextureKey, 26.8, 18.2, 0.31], ['propRuneStone' as TextureKey, 31.8, 17.4, 0.25],
+        ['propOre' as TextureKey, 34.0, 20.0, 0.24]
+      ],
+      'dragon-nest': [
+        ['propBones' as TextureKey, 31.4, 18.6, 0.33], ['propBanner' as TextureKey, 35.6, 18.3, 0.31],
+        ['propRuneStone' as TextureKey, 29.4, 20.4, 0.27]
+      ],
+      'crystal-raid': [
+        ['propRuneStone' as TextureKey, 25.2, 18.7, 0.31], ['propOre' as TextureKey, 28.8, 18.8, 0.28],
+        ['propBanner' as TextureKey, 23.4, 20.4, 0.26]
+      ],
+      'bloodstone-mine': [
+        ['propOre' as TextureKey, 25.0, 26.2, 0.33], ['propOre' as TextureKey, 31.8, 27.4, 0.29],
+        ['propBones' as TextureKey, 35.0, 28.5, 0.25]
+      ],
+      'sky-citadel': [
+        ['propBanner' as TextureKey, 29.8, 16.4, 0.32], ['propRuneStone' as TextureKey, 33.4, 17.4, 0.26],
+        ['propOre' as TextureKey, 35.8, 18.6, 0.24]
+      ],
+      'demon-rift': [
+        ['propBones' as TextureKey, 22.4, 22.3, 0.34], ['propBanner' as TextureKey, 31.4, 20.3, 0.33],
+        ['propRuneStone' as TextureKey, 34.8, 21.2, 0.29]
+      ]
+    };
+    const placed = [...common, ...(byZone[zoneId] || [])];
+    placed.forEach(([key, x, y, scale], index) => {
+      if (this.isWalkable(x, y)) this.addProp(key, x, y, scale + (index % 3) * 0.01);
+    });
+    this.addBiomeGlowAccents(zoneId);
+  }
+
+  private addBiomeGlowAccents(zoneId: string) {
+    const color = this.isInfernusZone() ? 0xff6b35 : zoneId.includes('crystal') || zoneId === 'black-cave' ? 0x72e7ff : zoneId.includes('soul') || zoneId.includes('demon') ? 0x9c80ff : 0xe2b95f;
+    const motes = new Graphics();
+    for (let i = 0; i < 28; i += 1) {
+      const x = 9 + ((i * 3.77) % 27);
+      const y = 14 + ((i * 5.31) % 16);
+      if (!this.isWalkable(x, y)) continue;
+      const pos = isoToScreen(x, y);
+      const r = 1.6 + (i % 4) * 0.7;
+      motes.circle(pos.x, pos.y - 18 - (i % 5) * 7, r).fill({ color, alpha: 0.08 + (i % 3) * 0.018 });
+      if (i % 6 === 0) motes.circle(pos.x + 12, pos.y - 31, r * 3.3).fill({ color, alpha: 0.018 });
+    }
+    this.ambientLayer.addChild(motes);
   }
 
 
@@ -1823,6 +1912,15 @@ export class SolGame {
     this.playerAnimator.setDirection(this.playerFacing);
     this.playerAnimator.update(dt);
     this.playerBody.y = moving ? Math.sin(this.time * 12) * 1.2 : 0;
+    if (moving) {
+      this.footstepTimer -= dt;
+      if (this.footstepTimer <= 0) {
+        this.footstepTimer = autoRunning ? 0.13 : 0.19;
+        this.spawnRunDust(autoRunning);
+      }
+    } else {
+      this.footstepTimer = 0;
+    }
     if (this.playerShadow) {
       const shadowScale = moving ? 1 + Math.sin(this.time * 14) * 0.05 : 1;
       this.playerShadow.scale.set(shadowScale, 1);
@@ -2487,6 +2585,7 @@ export class SolGame {
     audioService.play(mob.def.id === 'dragon' ? 'boss' : 'reward');
     this.mobViews.get(mob.uid)?.animator?.playOnce('death', 'death');
     this.impactBurst(mob.x, mob.y, 0xe2b95f, true);
+    this.soulReleaseEffect(mob.x, mob.y, mob.eliteAffix ? (mob.eliteColor || 0xffd15f) : 0xe2b95f);
     const chainText = chain.count > 1 ? ` · ${chain.count}연쇄 +${Math.round(chain.bonusRate * 100)}%` : '';
     this.floatText(chain.count > 1 ? `${chain.count} CHAIN` : 'SOUL +', mob.x, mob.y - 0.35, chain.count > 4 ? 0xffd15f : 0xe2b95f);
     if (mob.eliteAffix) this.emitLoot({ type: 'elite', title: `${mob.def.name} 정화`, subtitle: `정예 보너스 +${formatGold(bonusGold)} / +${bonusExp}EXP`, rarity: 'SSR' });
@@ -2949,7 +3048,9 @@ export class SolGame {
   private lungePlayer(mob: WorldMob) {
     if (!this.playerBody) return;
     this.facePlayerTo(mob.x, mob.y);
+    this.attackSequence += 1;
     this.playerAnimator?.playOnce('attack', 'idle');
+    this.playerAfterImage(classes[this.save.classId].accent, 0.34);
     const dir = normalize(mob.x - this.save.x, mob.y - this.save.y);
     const sx = (dir.x - dir.y) * 14;
     const sy = (dir.x + dir.y) * 7;
@@ -2972,6 +3073,7 @@ export class SolGame {
   private castPose() {
     if (!this.playerBody) return;
     this.playerAnimator?.playOnce('skill', 'idle');
+    this.playerAfterImage(classes[this.save.classId].accent, 0.3);
     this.animate(0.22, (t) => {
       const pulse = Math.sin(t * Math.PI);
       if (this.playerBody) {
@@ -2984,6 +3086,64 @@ export class SolGame {
         this.playerBody.rotation = 0;
       }
     });
+  }
+
+
+  private spawnRunDust(fast: boolean) {
+    const pos = isoToScreen(this.save.x, this.save.y);
+    const dust = new Graphics();
+    const count = fast ? 4 : 3;
+    for (let i = 0; i < count; i += 1) {
+      const ox = -14 + i * 9 + (Math.random() - 0.5) * 7;
+      const oy = 5 + Math.random() * 7;
+      dust.ellipse(ox, oy, fast ? 7 : 5, fast ? 3.2 : 2.4).fill({ color: 0xd8c292, alpha: fast ? 0.18 : 0.13 });
+    }
+    dust.position.set(pos.x, pos.y + 9);
+    this.fxLayer.addChild(dust);
+    this.animate(0.38, (t) => {
+      dust.alpha = 1 - t;
+      dust.scale.set(0.8 + t * 0.55, 0.72 + t * 0.35);
+      dust.y += 0.55;
+    }, () => dust.destroy());
+  }
+
+  private playerAfterImage(color: number, alpha = 0.28) {
+    if (!this.playerBody) return;
+    const ghost = new Sprite(this.playerBody.texture);
+    ghost.anchor.copyFrom(this.playerBody.anchor);
+    ghost.position.copyFrom(this.playerRoot.position);
+    ghost.scale.set(this.playerBody.scale.x * 1.02, this.playerBody.scale.y * 1.02);
+    ghost.rotation = this.playerBody.rotation;
+    ghost.tint = color;
+    ghost.alpha = alpha;
+    this.fxLayer.addChild(ghost);
+    this.animate(0.26, (t) => {
+      ghost.alpha = alpha * (1 - t);
+      ghost.scale.set(this.playerBody ? Math.abs(this.playerBody.scale.x) * (1.02 + t * 0.1) * Math.sign(ghost.scale.x || 1) : ghost.scale.x, this.playerBody ? this.playerBody.scale.y * (1.02 + t * 0.1) : ghost.scale.y);
+      ghost.y -= 8 * t;
+    }, () => ghost.destroy());
+  }
+
+  private addFxSprite(key: TextureKey, x: number, y: number, options: { scale?: number; alpha?: number; rotation?: number; anchorY?: number; tint?: number; duration?: number; rise?: number } = {}) {
+    const pos = isoToScreen(x, y);
+    const sprite = new Sprite(this.mustTexture(key));
+    sprite.anchor.set(0.5, options.anchorY ?? 0.5);
+    sprite.position.set(pos.x, pos.y - 28);
+    sprite.scale.set(options.scale ?? 0.34);
+    sprite.alpha = options.alpha ?? 0.9;
+    sprite.rotation = options.rotation ?? 0;
+    if (options.tint !== undefined) sprite.tint = options.tint;
+    this.fxLayer.addChild(sprite);
+    const startAlpha = sprite.alpha;
+    const duration = options.duration ?? 0.34;
+    const rise = options.rise ?? 8;
+    this.animate(duration, (t) => {
+      sprite.alpha = startAlpha * (1 - t);
+      sprite.scale.set((options.scale ?? 0.34) * (1 + t * 0.35));
+      sprite.y -= rise * t;
+      sprite.rotation += 0.012;
+    }, () => sprite.destroy());
+    return sprite;
   }
 
   private slashEffect(mob: WorldMob, crit: boolean) {
@@ -2999,7 +3159,9 @@ export class SolGame {
       .circle(28, -18, crit ? 8 : 5)
       .fill({ color: 0xffffff, alpha: crit ? 0.42 : 0.24 });
     slash.position.set(pos.x, pos.y - 22);
-    slash.rotation = -0.18;
+    slash.rotation = -0.18 + (this.attackSequence % 2 ? 0.28 : -0.12);
+    const slashSprite = this.addFxSprite('effectSoulSlash' as TextureKey, mob.x, mob.y, { scale: crit ? 0.56 : 0.46, alpha: crit ? 0.86 : 0.66, rotation: slash.rotation, tint: crit ? 0xffd15f : color, duration: 0.24, rise: 4 });
+    slashSprite.blendMode = 'add';
     this.fxLayer.addChild(slash);
     this.animate(0.18, (t) => {
       slash.alpha = 1 - t;
@@ -3015,7 +3177,12 @@ export class SolGame {
     const bolt = new Container();
     const glow = new Graphics().circle(0, 0, 12).fill({ color, alpha: 0.28 });
     const core = new Graphics().circle(0, 0, 6).fill({ color: 0xffffff, alpha: 0.94 });
-    bolt.addChild(glow, core);
+    const sprite = new Sprite(this.mustTexture(this.save.classId === 'taoist' ? 'effectFireball' as TextureKey : 'effectLightning' as TextureKey));
+    sprite.anchor.set(0.5);
+    sprite.scale.set(this.save.classId === 'taoist' ? 0.22 : 0.18);
+    sprite.alpha = 0.78;
+    sprite.blendMode = 'add';
+    bolt.addChild(glow, sprite, core);
     bolt.position.set(start.x, start.y - 38);
     this.fxLayer.addChild(bolt);
     this.animate(0.24, (t) => {
@@ -3039,6 +3206,8 @@ export class SolGame {
       .lineTo(end.x, end.y - 34)
       .stroke({ color: 0xffffff, alpha: 0.72, width: 2 });
     this.fxLayer.addChild(beam);
+    const nova = this.addFxSprite('effectHolyNova' as TextureKey, mob.x, mob.y, { scale: 0.32, alpha: hit ? 0.72 : 0.36, duration: 0.36, rise: 5 });
+    nova.blendMode = 'add';
     this.animate(0.24, (t) => {
       beam.alpha = 1 - t;
       beam.scale.set(1 + t * 0.08);
@@ -3063,6 +3232,14 @@ export class SolGame {
     const pos = isoToScreen(x, y);
     const burst = new Container();
     burst.position.set(pos.x, pos.y - 22);
+    const fxKey = skillId.includes('cleric') ? 'effectHolyNova' : skillId.includes('taoist') ? (skillId.includes('rain') ? 'effectLightning' : 'effectFireball') : skillId.includes('warrior') ? 'effectSoulSlash' : 'effectDarkRift';
+    const fxSprite = new Sprite(this.mustTexture(fxKey as TextureKey));
+    fxSprite.anchor.set(0.5);
+    fxSprite.scale.set(skillId.includes('rain') ? 0.32 : radius > 1.1 ? 0.38 : 0.28);
+    fxSprite.alpha = crit ? 0.72 : 0.52;
+    fxSprite.rotation = skillId.includes('warrior') ? -0.45 : 0;
+    fxSprite.blendMode = 'add';
+    burst.addChild(fxSprite);
 
     const ring = new Graphics()
       .circle(0, 0, 13 + radius * 13)
@@ -3129,6 +3306,27 @@ export class SolGame {
       burst.scale.set(0.42 + t * (skillId.includes('rain') ? 1.55 : 1.18));
       burst.rotation = t * (skillId.includes('warrior') ? 1.15 : 0.65);
     }, () => burst.destroy());
+  }
+
+
+  private soulReleaseEffect(x: number, y: number, color: number) {
+    const pos = isoToScreen(x, y);
+    const container = new Container();
+    container.position.set(pos.x, pos.y - 42);
+    for (let i = 0; i < 7; i += 1) {
+      const orb = new Graphics().circle(0, 0, 3 + (i % 3)).fill({ color: i % 2 ? 0xffffff : color, alpha: 0.74 });
+      orb.position.set((i - 3) * 6, 0);
+      container.addChild(orb);
+    }
+    this.fxLayer.addChild(container);
+    this.animate(0.62, (t) => {
+      container.alpha = 1 - t;
+      container.y = pos.y - 42 - t * 58;
+      container.scale.set(0.8 + Math.sin(t * Math.PI) * 0.36);
+      container.children.forEach((child, index) => {
+        child.x += Math.sin(t * Math.PI * 2 + index) * 0.55;
+      });
+    }, () => container.destroy());
   }
 
   private impactBurst(x: number, y: number, color: number, strong: boolean) {
