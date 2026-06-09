@@ -1115,9 +1115,12 @@ function updateCombatChain(snapshot: Snapshot) {
   if (!fieldChainMeter || !fieldChainValue || !fieldChainBonus || !fieldChainTimer) return;
   const chain = snapshot.combatChain;
   const active = chain.count > 1 && chain.timer > 0;
+  const comboTier = chain.count >= 20 ? '폭주' : chain.count >= 10 ? '고조' : chain.count >= 5 ? '가속' : '연계';
   fieldChainMeter.classList.toggle('active', active);
-  fieldChainValue.textContent = active ? `${chain.count}콤보` : '0콤보';
-  fieldChainBonus.textContent = active ? `보너스 +${chain.bonusPercent}% · ${chain.timer.toFixed(1)}s` : '대기';
+  fieldChainValue.textContent = active ? `${chain.count} COMBO` : 'COMBO';
+  fieldChainBonus.textContent = active
+    ? `${comboTier} · EXP/GOLD +${chain.bonusPercent}% · ${chain.timer.toFixed(1)}초 딜타임`
+    : '처치 연계 시 EXP/GOLD 보너스';
   const ratio = chain.maxTimer > 0 ? Math.max(0, Math.min(100, (chain.timer / chain.maxTimer) * 100)) : 0;
   fieldChainTimer.style.width = `${ratio}%`;
 }

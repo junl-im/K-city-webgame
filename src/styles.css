@@ -9875,3 +9875,151 @@ body.field-active .potion-btn {
   .title-screen-044 .title-copy p { max-width: 300px !important; }
   .title-screen-044 .start-game-btn { min-height: 52px !important; }
 }
+
+/* Alpha 0.45: combat HUD separation + character-head combo popup */
+body.field-active .hud-top {
+  top: calc(10px + env(safe-area-inset-top)) !important;
+  min-height: 52px !important;
+  height: 52px !important;
+  padding: 5px 7px !important;
+  z-index: 62 !important;
+}
+
+body.field-active .hud-top .bar.exp {
+  position: fixed !important;
+  top: env(safe-area-inset-top) !important;
+  left: max(8px, env(safe-area-inset-left)) !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  width: auto !important;
+  height: 3px !important;
+  margin: 0 !important;
+  border-radius: 0 0 999px 999px !important;
+  background: rgba(255,255,255,.10) !important;
+  z-index: 61 !important;
+  pointer-events: none !important;
+  box-shadow: 0 0 12px rgba(226,185,95,.20) !important;
+}
+
+body.field-active .hud-top .bar.exp em {
+  display: none !important;
+}
+
+body.field-active .hero-status {
+  grid-template-rows: 16px 8px 8px !important;
+  gap: 3px !important;
+}
+
+body.field-active .target-card {
+  top: calc(70px + env(safe-area-inset-top)) !important;
+  width: min(32vw, 128px) !important;
+  min-width: 108px !important;
+  min-height: 32px !important;
+  padding: 4px 7px !important;
+}
+
+body.field-active .target-card strong {
+  font-size: 8.5px !important;
+}
+
+body.field-active .target-card span {
+  font-size: 7px !important;
+}
+
+body.field-active .field-quest-tracker {
+  top: calc(70px + env(safe-area-inset-top)) !important;
+}
+
+body.field-active .field-chain-meter {
+  position: fixed !important;
+  top: clamp(86px, calc(48dvh - 94px), 39dvh) !important;
+  left: clamp(154px, calc(50vw + 26px), calc(100vw - 172px)) !important;
+  right: auto !important;
+  width: 146px !important;
+  min-height: 44px !important;
+  padding: 6px 8px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(226,185,95,.24) !important;
+  background: rgba(9, 9, 8, .48) !important;
+  backdrop-filter: blur(7px) !important;
+  box-shadow: 0 8px 18px rgba(0,0,0,.24), inset 0 0 10px rgba(226,185,95,.06) !important;
+  z-index: 54 !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  transform: translateY(6px) scale(.94) !important;
+  transition: opacity .16s ease, transform .16s ease !important;
+}
+
+body.field-active .field-chain-meter.active {
+  opacity: 1 !important;
+  transform: translateY(0) scale(1) !important;
+}
+
+body.field-active .field-chain-meter span {
+  display: block !important;
+  color: #f8d98b !important;
+  font-size: 8px !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  letter-spacing: .06em !important;
+}
+
+body.field-active .field-chain-meter b {
+  display: block !important;
+  margin: 2px 0 0 !important;
+  color: #fff5d6 !important;
+  font-size: 12px !important;
+  line-height: 1.05 !important;
+  font-weight: 950 !important;
+}
+
+body.field-active .field-chain-meter em {
+  display: block !important;
+  margin-top: 2px !important;
+  color: rgba(255,246,220,.80) !important;
+  font-size: 7.5px !important;
+  line-height: 1.1 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+body.field-active .field-chain-meter .chain-timer {
+  height: 3px !important;
+  margin-top: 5px !important;
+  background: rgba(255,255,255,.12) !important;
+}
+
+body.field-active #fieldTopMenuBtn,
+body.field-active #fieldTopMenuBtn[hidden] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+@media (max-width: 430px) {
+  body.field-active .hud-top {
+    top: calc(9px + env(safe-area-inset-top)) !important;
+    min-height: 50px !important;
+    height: 50px !important;
+  }
+  body.field-active .target-card,
+  body.field-active .field-quest-tracker {
+    top: calc(66px + env(safe-area-inset-top)) !important;
+  }
+  body.field-active .field-chain-meter {
+    top: clamp(80px, calc(48dvh - 90px), 38dvh) !important;
+    left: clamp(132px, calc(50vw + 20px), calc(100vw - 150px)) !important;
+    width: 132px !important;
+    padding: 5px 7px !important;
+  }
+  body.field-active .field-chain-meter b { font-size: 11px !important; }
+  body.field-active .field-chain-meter em { font-size: 7px !important; }
+}
+
+@media (orientation: landscape) and (max-height: 620px) {
+  body.forced-landscape-safe.field-active .field-chain-meter,
+  body.kakao-inapp.field-active .field-chain-meter {
+    top: clamp(72px, calc(48dvh - 68px), 36dvh) !important;
+    left: calc(50vw + 22px) !important;
+  }
+}
