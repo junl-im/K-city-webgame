@@ -1,7 +1,7 @@
 {
   "name": "소울 온라인 Alpha",
   "short_name": "소울 온라인",
-  "description": "소울 온라인 Alpha - mobile 2.5D web MMORPG prototype with runtime asset pack, OGG BGM loader, and real 2.5D replacement pipeline",
+  "description": "소울 온라인 Alpha - mobile 2.5D web MMORPG prototype with graphic UI, hunt guide, and Infernus field asset pass",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",

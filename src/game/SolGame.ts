@@ -99,6 +99,15 @@ const tileTextureKey: Record<TileId, TextureKey> = {
   portal: 'tilePortal'
 };
 
+const infernusZoneIds = new Set([
+  'ember-ridge',
+  'dragon-nest',
+  'crystal-raid',
+  'bloodstone-mine',
+  'demon-rift'
+]);
+
+
 const FIELD_ZOOM = 0.78;
 const PLAYER_VISUAL_SCALE = 0.335;
 const PLAYER_SHADOW_SCALE = 0.72;
@@ -528,8 +537,9 @@ export class SolGame {
 
   private requiredTextureKeys(): TextureKey[] {
     const keys = new Set<TextureKey>([
-      'tileGrass', 'tileDirt', 'tileMoss', 'tileStone', 'tileCrystal', 'tileWater', 'tileCliff', 'tilePortal',
+      'tileGrass', 'tileDirt', 'tileMoss', 'tileStone', 'tileCrystal', 'tileWater', 'tileCliff', 'tilePortal', 'tileInfernus',
       'propTree', 'propCrystal', 'propRock', 'propRuin',
+      'infernusRock', 'infernusAltar', 'infernusBrasero', 'infernusHellRocks', 'infernusSkull', 'infernusBurnerColumn', 'infernusColumn', 'infernusPillar',
       'buildingHall', 'buildingForge', 'buildingStorage', 'buildingShop',
       'propChest01', 'propChest02', 'propChest03', 'propChest04', 'propChest05',
       'propTorch01', 'propTorch02', 'propTorch03', 'propTorch04', 'propTorch05'
@@ -569,7 +579,7 @@ export class SolGame {
     for (let y = 0; y < MAP_H; y += 1) {
       for (let x = 0; x < MAP_W; x += 1) {
         const tile = this.tileAt(x, y);
-        const sprite = new Sprite(this.mustTexture(tileTextureKey[tile]));
+        const sprite = new Sprite(this.mustTexture(this.textureKeyForTile(tile)));
         const pos = isoToScreen(x, y);
         sprite.anchor.set(0.5, 0.5);
         sprite.position.set(pos.x, pos.y);
@@ -586,9 +596,72 @@ export class SolGame {
     this.addZoneLandmarks();
 
     this.addCuratedFieldDecor();
+    this.addInfernusDecorPass();
   }
 
 
+
+  private addInfernusDecorPass() {
+    if (!this.isInfernusZone()) return;
+    const zoneId = this.options.zoneId || 'ember-ridge';
+    const common: Array<[TextureKey, number, number, number]> = [
+      ['infernusBrasero' as TextureKey, 17.2, 22.4, 0.72],
+      ['infernusBrasero' as TextureKey, 29.0, 19.1, 0.72],
+      ['infernusHellRocks' as TextureKey, 20.4, 24.2, 0.55],
+      ['infernusRock' as TextureKey, 33.0, 20.4, 0.48],
+      ['infernusSkull' as TextureKey, 25.4, 21.4, 1.0]
+    ];
+    const byZone: Record<string, Array<[TextureKey, number, number, number]>> = {
+      'ember-ridge': [
+        ['infernusBurnerColumn' as TextureKey, 23.2, 20.0, 0.62],
+        ['infernusPillar' as TextureKey, 31.6, 18.2, 0.64]
+      ],
+      'dragon-nest': [
+        ['infernusAltar' as TextureKey, 33.8, 18.5, 0.86],
+        ['infernusColumn' as TextureKey, 29.5, 19.8, 0.66],
+        ['infernusBurnerColumn' as TextureKey, 35.4, 19.5, 0.58]
+      ],
+      'crystal-raid': [
+        ['infernusAltar' as TextureKey, 26.4, 18.7, 0.98],
+        ['infernusBurnerColumn' as TextureKey, 24.0, 20.2, 0.66],
+        ['infernusBurnerColumn' as TextureKey, 29.0, 20.1, 0.66],
+        ['infernusPillar' as TextureKey, 31.8, 18.5, 0.58]
+      ],
+      'bloodstone-mine': [
+        ['infernusColumn' as TextureKey, 22.8, 26.2, 0.65],
+        ['infernusPillar' as TextureKey, 30.8, 28.4, 0.62],
+        ['infernusHellRocks' as TextureKey, 34.0, 29.2, 0.6]
+      ],
+      'demon-rift': [
+        ['infernusAltar' as TextureKey, 24.0, 21.0, 1.02],
+        ['infernusBurnerColumn' as TextureKey, 21.7, 22.1, 0.7],
+        ['infernusBurnerColumn' as TextureKey, 30.8, 20.1, 0.7],
+        ['infernusColumn' as TextureKey, 35.4, 20.5, 0.72]
+      ]
+    };
+    const placed = [...common, ...(byZone[zoneId] || [])];
+    for (const [key, x, y, scale] of placed) this.addProp(key, x, y, scale);
+    this.addInfernusHeatHaze();
+  }
+
+  private addInfernusHeatHaze() {
+    const haze = new Graphics();
+    for (let i = 0; i < 22; i += 1) {
+      const x = 13 + ((i * 5.1) % 23);
+      const y = 16 + ((i * 3.7) % 15);
+      const pos = isoToScreen(x, y);
+      haze
+        .ellipse(pos.x, pos.y + 10, 62 + (i % 5) * 11, 16 + (i % 3) * 5)
+        .fill({ color: i % 2 ? 0xff7a35 : 0x8b42ff, alpha: i % 2 ? 0.038 : 0.026 });
+      if (i % 4 === 0) {
+        haze
+          .moveTo(pos.x - 18, pos.y - 4)
+          .quadraticCurveTo(pos.x, pos.y - 18, pos.x + 20, pos.y - 3)
+          .stroke({ color: 0xffb86b, alpha: 0.09, width: 2 });
+      }
+    }
+    this.ambientLayer.addChild(haze);
+  }
 
   private addCuratedFieldDecor() {
     const zoneId = this.options.zoneId || 'slime-forest';
@@ -704,6 +777,15 @@ export class SolGame {
     }
 
     return map;
+  }
+
+  private isInfernusZone() {
+    return infernusZoneIds.has(this.options.zoneId || '');
+  }
+
+  private textureKeyForTile(tile: TileId): TextureKey {
+    if (this.isInfernusZone() && (tile === 'dirt' || tile === 'stone' || tile === 'moss')) return 'tileInfernus' as TextureKey;
+    return tileTextureKey[tile];
   }
 
   private tileAt(x: number, y: number) {
@@ -947,7 +1029,7 @@ export class SolGame {
 
   private addZoneGroundMood() {
     const zoneId = this.options.zoneId || 'slime-forest';
-    const tint = zoneId === 'crystal-raid' ? 0x5b4cff : zoneId === 'black-cave' ? 0x4b5f86 : zoneId === 'goblin-road' ? 0x8f6a3c : zoneId === 'crystal-moss' ? 0x72e7ff : 0xa8d06f;
+    const tint = this.isInfernusZone() ? 0xff6b35 : zoneId === 'crystal-raid' ? 0x5b4cff : zoneId === 'black-cave' ? 0x4b5f86 : zoneId === 'goblin-road' ? 0x8f6a3c : zoneId === 'crystal-moss' ? 0x72e7ff : 0xa8d06f;
     const mist = new Graphics();
     for (let i = 0; i < 18; i += 1) {
       const x = 2 + ((i * 5.7) % 16);

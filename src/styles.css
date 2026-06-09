@@ -6448,3 +6448,94 @@ body.minimap-compact .field-minimap {
     border-radius: 20px 20px 0 0 !important;
   }
 }
+
+/* Alpha 0.33: hunt guide and infernus field readability pass */
+.hunt-recommend-card {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 14px;
+  padding: 16px;
+  border: 1px solid rgba(226, 185, 95, .48);
+  border-radius: 24px;
+  background-image:
+    radial-gradient(circle at 12% 0%, rgba(255, 115, 54, .24), transparent 42%),
+    linear-gradient(135deg, rgba(34, 18, 12, .94), rgba(9, 20, 26, .94)),
+    var(--ui-panel-message);
+  background-size: auto, auto, 100% 100%;
+  box-shadow: 0 22px 58px rgba(0, 0, 0, .38), inset 0 0 0 1px rgba(255, 255, 255, .06);
+  position: relative;
+  overflow: hidden;
+}
+
+.hunt-recommend-card::before {
+  content: '';
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 9px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(226, 185, 95, .78), transparent);
+  box-shadow: 0 0 18px rgba(226, 185, 95, .34);
+  pointer-events: none;
+}
+
+.hunt-recommend-medal {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background-image: var(--ui-circle-light);
+  background-size: cover;
+  color: #fff0b8;
+  font-size: 1.55rem;
+  text-shadow: 0 2px 2px #000, 0 0 18px rgba(226, 185, 95, .62);
+  filter: drop-shadow(0 12px 20px rgba(0, 0, 0, .44));
+}
+
+.hunt-recommend-card h3 {
+  margin: 0 0 4px;
+  color: #ffe7a2;
+  font-size: 1.02rem;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, .74);
+}
+
+.hunt-recommend-card p {
+  margin: 4px 0;
+  color: rgba(243, 231, 203, .82);
+  font-size: .82rem;
+  line-height: 1.45;
+}
+
+.hunt-recommend-card .quest-progress {
+  max-width: 420px;
+  margin: 8px 0 5px;
+}
+
+.hunt-daily-ready {
+  color: #72e7ff !important;
+  font-weight: 800;
+  letter-spacing: -.02em;
+}
+
+@media (max-width: 760px) {
+  .hunt-recommend-card {
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 10px;
+    padding: 13px;
+    border-radius: 20px;
+  }
+
+  .hunt-recommend-medal {
+    width: 50px;
+    height: 50px;
+    font-size: 1.35rem;
+  }
+
+  .hunt-recommend-card .wide-action {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}

@@ -1758,9 +1758,49 @@ function renderTownHunt(save: PlayerSave) {
     })
     .join('');
   return `
-    <div class="town-content-note">필드 게이트에서 사냥터를 선택하세요. 해금 조건을 만족하면 바로 입장할 수 있습니다.</div>
+    ${renderHuntRecommendation(save)}
+    <div class="town-content-note">필드 게이트에서 사냥터를 선택하세요. 추천 사냥터는 현재 스토리/레벨/몬스터 목표를 기준으로 자동 표시됩니다.</div>
     <div class="zone-list zone-list-v2 drawer-zone-list">${rows}</div>
   `;
+}
+
+function renderHuntRecommendation(save: PlayerSave) {
+  const quest = currentStoryQuest(save);
+  const activeZone = quest ? recommendedZoneForQuest(save, quest) : null;
+  const readyDailies = dailyQuests.filter((entry) => !save.daily.claimedQuestIds.includes(entry.id) && questProgress(save, entry.id) >= entry.target).slice(0, 3);
+  const unlockedZones = zones.filter((zone) => isZoneUnlocked(save, zone.id));
+  const highestZone = unlockedZones.at(-1) || zones[0];
+  const zone = activeZone || highestZone;
+  const progress = quest ? Math.min(quest.target, storyQuestProgress(save, quest)) : 0;
+  const percent = quest ? Math.min(100, Math.round((progress / quest.target) * 100)) : 100;
+  const dailyText = readyDailies.length
+    ? readyDailies.map((entry) => escapeHtml(entry.title.replace(/^일일 · |^순환 · /, ''))).join(' · ')
+    : '수령 가능한 의뢰 없음';
+  return `
+    <section class="hunt-recommend-card">
+      <div class="hunt-recommend-medal">${escapeHtml(zone.badge)}</div>
+      <div>
+        <span class="town-eyebrow">AUTO GUIDE</span>
+        <h3>${escapeHtml(zone.title)}</h3>
+        <p>${quest ? `${escapeHtml(quest.title)} · ${escapeHtml(quest.goalText)}` : '현재 해금된 최고 사냥터에서 장비/카드/영혼 파밍을 이어가세요.'}</p>
+        <div class="bar exp quest-progress"><i style="width:${percent}%"></i><em>${quest ? `${progress}/${quest.target}` : '프리 파밍'}</em></div>
+        <p class="hunt-daily-ready">보상 대기: ${dailyText}</p>
+      </div>
+      <button class="wide-action primary" data-town-zone-enter="${zone.id}">추천 사냥터 입장</button>
+    </section>
+  `;
+}
+
+function recommendedZoneForQuest(save: PlayerSave, quest: ReturnType<typeof currentStoryQuest>) {
+  if (!quest) return null;
+  const direct = quest.unlockZoneId ? zones.find((zone) => zone.id === quest.unlockZoneId) : null;
+  if (direct && isZoneUnlocked(save, direct.id)) return direct;
+  if (quest.monsterId) {
+    return [...zones]
+      .reverse()
+      .find((zone) => isZoneUnlocked(save, zone.id) && zone.monsterIds.includes(quest.monsterId || 'slime')) || zones[0];
+  }
+  return zones.find((zone) => isZoneUnlocked(save, zone.id) && zone.recommendedLevel <= save.level) || zones[0];
 }
 
 function renderTownStory(save: PlayerSave) {
