@@ -1,7 +1,7 @@
 import type { CardDefinition, CardSetDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, SoulDefinition, TileId, ZoneDefinition, SkillDefinition } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 21;
+export const SAVE_VERSION = 22;
 export const MAP_W = 40;
 export const MAP_H = 40;
 
@@ -16,7 +16,7 @@ export const classes: Record<string, CharacterClass> = {
     attackStyle: 'melee',
     accent: 0xe2b95f,
     sprite: textureUrls.heroWarrior,
-    baseStats: { hp: 280, mp: 42, atk: 40, def: 24, aspd: 1.12, crit: 0.08, move: 2.62 },
+    baseStats: { hp: 280, mp: 42, atk: 40, def: 24, aspd: 1.12, crit: 0.08, move: 2.36 },
     attackRange: 1.16
   },
   taoist: {
@@ -29,7 +29,7 @@ export const classes: Record<string, CharacterClass> = {
     attackStyle: 'projectile',
     accent: 0x72e7ff,
     sprite: textureUrls.heroTaoist,
-    baseStats: { hp: 178, mp: 132, atk: 52, def: 9, aspd: 0.88, crit: 0.16, move: 2.55 },
+    baseStats: { hp: 178, mp: 132, atk: 52, def: 9, aspd: 0.88, crit: 0.16, move: 2.30 },
     attackRange: 3.35
   },
   cleric: {
@@ -42,7 +42,7 @@ export const classes: Record<string, CharacterClass> = {
     attackStyle: 'holy',
     accent: 0xf2d66c,
     sprite: textureUrls.heroCleric,
-    baseStats: { hp: 226, mp: 118, atk: 31, def: 17, aspd: 0.98, crit: 0.06, move: 2.558 },
+    baseStats: { hp: 226, mp: 118, atk: 31, def: 17, aspd: 0.98, crit: 0.06, move: 2.308 },
     attackRange: 2.25
   }
 };
@@ -186,18 +186,18 @@ export function enhancementCost(level: number) {
 }
 
 export const monsters: MonsterDefinition[] = [
-  { id: 'slime', name: '숲정령 젤리', level: 1, sprite: textureUrls.monsterSlime, stats: { hp: 115, mp: 0, atk: 18, def: 6, aspd: 0.85, crit: 0.03, move: 1.65 }, exp: 22, gold: 16, respawnMs: 3000, drops: [{ type: 'gold', amount: 12, chance: 1 }, { type: 'card', id: 'card-slime', chance: 0.09 }, { type: 'item', id: 'leather-armor', chance: 0.04 }, { type: 'item', id: 'soul-shard', chance: 0.08 }] },
-  { id: 'wolf', name: '청수정 늑대', level: 3, sprite: textureUrls.monsterWolf, stats: { hp: 178, mp: 0, atk: 28, def: 9, aspd: 1.08, crit: 0.08, move: 2.22 }, exp: 40, gold: 28, respawnMs: 3800, drops: [{ type: 'gold', amount: 20, chance: 1 }, { type: 'card', id: 'card-wolf', chance: 0.06 }, { type: 'item', id: 'iron-sword', chance: 0.055 }, { type: 'item', id: 'moon-blade', chance: 0.018 }] },
-  { id: 'shadowImp', name: '그림자 임프', level: 4, sprite: textureUrls.monsterGoblin, stats: { hp: 150, mp: 0, atk: 32, def: 7, aspd: 1.16, crit: 0.12, move: 2.05 }, exp: 46, gold: 30, respawnMs: 4100, drops: [{ type: 'gold', amount: 24, chance: 1 }, { type: 'card', id: 'card-shadow-imp', chance: 0.05 }, { type: 'item', id: 'skillbook-basic', chance: 0.018 }] },
-  { id: 'goblin', name: '폐허 검병', level: 5, sprite: textureUrls.monsterGoblin, stats: { hp: 242, mp: 0, atk: 39, def: 13, aspd: 0.98, crit: 0.06, move: 1.95 }, exp: 62, gold: 42, respawnMs: 4800, drops: [{ type: 'gold', amount: 32, chance: 1 }, { type: 'gem', amount: 1, chance: 0.13 }, { type: 'card', id: 'card-goblin', chance: 0.055 }, { type: 'item', id: 'rune-staff', chance: 0.032 }, { type: 'item', id: 'crystal-mail', chance: 0.025 }] },
-  { id: 'mossGolem', name: '이끼 골렘', level: 6, sprite: textureUrls.monsterBear, stats: { hp: 340, mp: 0, atk: 42, def: 19, aspd: 0.7, crit: 0.04, move: 1.35 }, exp: 82, gold: 58, respawnMs: 5600, drops: [{ type: 'gold', amount: 44, chance: 1 }, { type: 'card', id: 'card-moss-golem', chance: 0.04 }, { type: 'item', id: 'enhance-stone', chance: 0.08 }, { type: 'item', id: 'ruin-plate', chance: 0.018 }] },
-  { id: 'wraith', name: '망령 사제', level: 7, sprite: textureUrls.monsterWolf, stats: { hp: 230, mp: 0, atk: 52, def: 12, aspd: 0.92, crit: 0.1, move: 1.7 }, exp: 92, gold: 66, respawnMs: 6100, drops: [{ type: 'gold', amount: 52, chance: 1 }, { type: 'card', id: 'card-wraith', chance: 0.04 }, { type: 'item', id: 'skillbook-second', chance: 0.018 }, { type: 'item', id: 'ember-orb', chance: 0.014 }] },
-  { id: 'crystalBear', name: '흑요석 가디언', level: 8, sprite: textureUrls.monsterBear, stats: { hp: 560, mp: 0, atk: 60, def: 28, aspd: 0.75, crit: 0.07, move: 1.48 }, exp: 135, gold: 105, respawnMs: 7600, drops: [{ type: 'gold', amount: 82, chance: 1 }, { type: 'gem', amount: 3, chance: 0.16 }, { type: 'card', id: 'card-crystal-bear', chance: 0.03 }, { type: 'item', id: 'soul-shard', chance: 0.2 }, { type: 'item', id: 'soul-core', chance: 0.018 }] },
-  { id: 'fireDrake', name: '화염 드레이크', level: 10, sprite: textureUrls.bossDragon, stats: { hp: 470, mp: 0, atk: 78, def: 20, aspd: 0.82, crit: 0.14, move: 1.62 }, exp: 168, gold: 135, respawnMs: 8200, drops: [{ type: 'gold', amount: 110, chance: 1 }, { type: 'gem', amount: 3, chance: 0.17 }, { type: 'card', id: 'card-fire-drake', chance: 0.027 }, { type: 'item', id: 'abyss-spear', chance: 0.012 }] },
-  { id: 'stormHarpy', name: '폭풍 하피', level: 12, sprite: textureUrls.monsterWolf, stats: { hp: 430, mp: 0, atk: 72, def: 18, aspd: 1.28, crit: 0.16, move: 2.35 }, exp: 185, gold: 148, respawnMs: 8200, drops: [{ type: 'gold', amount: 120, chance: 1 }, { type: 'card', id: 'card-storm-harpy', chance: 0.026 }, { type: 'item', id: 'enhance-stone', chance: 0.12 }] },
-  { id: 'graveKnight', name: '묘지 기사', level: 13, sprite: textureUrls.monsterGoblin, stats: { hp: 690, mp: 0, atk: 86, def: 34, aspd: 0.86, crit: 0.1, move: 1.55 }, exp: 230, gold: 178, respawnMs: 9200, drops: [{ type: 'gold', amount: 145, chance: 1 }, { type: 'card', id: 'card-grave-knight', chance: 0.023 }, { type: 'item', id: 'abyss-armor', chance: 0.011 }, { type: 'item', id: 'skillbook-third', chance: 0.014 }] },
-  { id: 'fieldBoss', name: '야전 군주 발타르', level: 16, sprite: textureUrls.monsterBear, stats: { hp: 2200, mp: 0, atk: 128, def: 52, aspd: 0.68, crit: 0.12, move: 1.38 }, exp: 660, gold: 620, respawnMs: 45000, drops: [{ type: 'gold', amount: 420, chance: 1 }, { type: 'gem', amount: 10, chance: 0.45 }, { type: 'card', id: 'card-field-boss', chance: 0.08 }, { type: 'item', id: 'dragon-heart', chance: 0.02 }, { type: 'item', id: 'enhance-stone', chance: 0.5 }] },
-  { id: 'dragon', name: '심연룡 아케론', level: 20, sprite: textureUrls.bossDragon, stats: { hp: 4200, mp: 0, atk: 168, def: 72, aspd: 0.62, crit: 0.16, move: 1.18 }, exp: 980, gold: 980, respawnMs: 60000, drops: [{ type: 'gold', amount: 720, chance: 1 }, { type: 'gem', amount: 18, chance: 0.55 }, { type: 'card', id: 'card-dragon', chance: 0.08 }, { type: 'item', id: 'dragon-slayer', chance: 0.012 }, { type: 'item', id: 'dragon-heart', chance: 0.022 }] }
+  { id: 'slime', name: '숲정령 젤리', level: 1, sprite: textureUrls.monsterSlime, stats: { hp: 155, mp: 0, atk: 27, def: 8, aspd: 0.85, crit: 0.03, move: 1.65 }, exp: 22, gold: 16, respawnMs: 3000, drops: [{ type: 'gold', amount: 12, chance: 1 }, { type: 'card', id: 'card-slime', chance: 0.09 }, { type: 'item', id: 'leather-armor', chance: 0.04 }, { type: 'item', id: 'soul-shard', chance: 0.08 }] },
+  { id: 'wolf', name: '청수정 늑대', level: 3, sprite: textureUrls.monsterWolf, stats: { hp: 245, mp: 0, atk: 42, def: 12, aspd: 1.08, crit: 0.08, move: 2.22 }, exp: 40, gold: 28, respawnMs: 3800, drops: [{ type: 'gold', amount: 20, chance: 1 }, { type: 'card', id: 'card-wolf', chance: 0.06 }, { type: 'item', id: 'iron-sword', chance: 0.055 }, { type: 'item', id: 'moon-blade', chance: 0.018 }] },
+  { id: 'shadowImp', name: '그림자 임프', level: 4, sprite: textureUrls.monsterGoblin, stats: { hp: 215, mp: 0, atk: 48, def: 10, aspd: 1.16, crit: 0.12, move: 2.05 }, exp: 46, gold: 30, respawnMs: 4100, drops: [{ type: 'gold', amount: 24, chance: 1 }, { type: 'card', id: 'card-shadow-imp', chance: 0.05 }, { type: 'item', id: 'skillbook-basic', chance: 0.018 }] },
+  { id: 'goblin', name: '폐허 검병', level: 5, sprite: textureUrls.monsterGoblin, stats: { hp: 350, mp: 0, atk: 58, def: 18, aspd: 0.98, crit: 0.06, move: 1.95 }, exp: 62, gold: 42, respawnMs: 4800, drops: [{ type: 'gold', amount: 32, chance: 1 }, { type: 'gem', amount: 1, chance: 0.13 }, { type: 'card', id: 'card-goblin', chance: 0.055 }, { type: 'item', id: 'rune-staff', chance: 0.032 }, { type: 'item', id: 'crystal-mail', chance: 0.025 }] },
+  { id: 'mossGolem', name: '이끼 골렘', level: 6, sprite: textureUrls.monsterBear, stats: { hp: 520, mp: 0, atk: 64, def: 27, aspd: 0.7, crit: 0.04, move: 1.35 }, exp: 82, gold: 58, respawnMs: 5600, drops: [{ type: 'gold', amount: 44, chance: 1 }, { type: 'card', id: 'card-moss-golem', chance: 0.04 }, { type: 'item', id: 'enhance-stone', chance: 0.08 }, { type: 'item', id: 'ruin-plate', chance: 0.018 }] },
+  { id: 'wraith', name: '망령 사제', level: 7, sprite: textureUrls.monsterWolf, stats: { hp: 390, mp: 0, atk: 78, def: 19, aspd: 0.92, crit: 0.1, move: 1.7 }, exp: 92, gold: 66, respawnMs: 6100, drops: [{ type: 'gold', amount: 52, chance: 1 }, { type: 'card', id: 'card-wraith', chance: 0.04 }, { type: 'item', id: 'skillbook-second', chance: 0.018 }, { type: 'item', id: 'ember-orb', chance: 0.014 }] },
+  { id: 'crystalBear', name: '흑요석 가디언', level: 8, sprite: textureUrls.monsterBear, stats: { hp: 880, mp: 0, atk: 94, def: 42, aspd: 0.75, crit: 0.07, move: 1.48 }, exp: 135, gold: 105, respawnMs: 7600, drops: [{ type: 'gold', amount: 82, chance: 1 }, { type: 'gem', amount: 3, chance: 0.16 }, { type: 'card', id: 'card-crystal-bear', chance: 0.03 }, { type: 'item', id: 'soul-shard', chance: 0.2 }, { type: 'item', id: 'soul-core', chance: 0.018 }] },
+  { id: 'fireDrake', name: '화염 드레이크', level: 10, sprite: textureUrls.bossDragon, stats: { hp: 760, mp: 0, atk: 118, def: 30, aspd: 0.82, crit: 0.14, move: 1.62 }, exp: 168, gold: 135, respawnMs: 8200, drops: [{ type: 'gold', amount: 110, chance: 1 }, { type: 'gem', amount: 3, chance: 0.17 }, { type: 'card', id: 'card-fire-drake', chance: 0.027 }, { type: 'item', id: 'abyss-spear', chance: 0.012 }] },
+  { id: 'stormHarpy', name: '폭풍 하피', level: 12, sprite: textureUrls.monsterWolf, stats: { hp: 700, mp: 0, atk: 110, def: 26, aspd: 1.28, crit: 0.16, move: 2.35 }, exp: 185, gold: 148, respawnMs: 8200, drops: [{ type: 'gold', amount: 120, chance: 1 }, { type: 'card', id: 'card-storm-harpy', chance: 0.026 }, { type: 'item', id: 'enhance-stone', chance: 0.12 }] },
+  { id: 'graveKnight', name: '묘지 기사', level: 13, sprite: textureUrls.monsterGoblin, stats: { hp: 1120, mp: 0, atk: 132, def: 52, aspd: 0.86, crit: 0.1, move: 1.55 }, exp: 230, gold: 178, respawnMs: 9200, drops: [{ type: 'gold', amount: 145, chance: 1 }, { type: 'card', id: 'card-grave-knight', chance: 0.023 }, { type: 'item', id: 'abyss-armor', chance: 0.011 }, { type: 'item', id: 'skillbook-third', chance: 0.014 }] },
+  { id: 'fieldBoss', name: '야전 군주 발타르', level: 16, sprite: textureUrls.monsterBear, stats: { hp: 4200, mp: 0, atk: 205, def: 82, aspd: 0.68, crit: 0.12, move: 1.38 }, exp: 660, gold: 620, respawnMs: 45000, drops: [{ type: 'gold', amount: 420, chance: 1 }, { type: 'gem', amount: 10, chance: 0.45 }, { type: 'card', id: 'card-field-boss', chance: 0.08 }, { type: 'item', id: 'dragon-heart', chance: 0.02 }, { type: 'item', id: 'enhance-stone', chance: 0.5 }] },
+  { id: 'dragon', name: '심연룡 아케론', level: 20, sprite: textureUrls.bossDragon, stats: { hp: 7600, mp: 0, atk: 270, def: 118, aspd: 0.62, crit: 0.16, move: 1.18 }, exp: 980, gold: 980, respawnMs: 60000, drops: [{ type: 'gold', amount: 720, chance: 1 }, { type: 'gem', amount: 18, chance: 0.55 }, { type: 'card', id: 'card-dragon', chance: 0.08 }, { type: 'item', id: 'dragon-slayer', chance: 0.012 }, { type: 'item', id: 'dragon-heart', chance: 0.022 }] }
 ];
 
 const pathTiles = new Set<string>();

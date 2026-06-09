@@ -1,7 +1,6 @@
 import './styles.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
-import { SolGame } from './game/SolGame';
 import { audioService } from './game/AudioService';
 import { formatGold, formatNumber, formatSoul, roll, uid } from './game/math';
 import type { CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, ItemDefinition, PlayerSave, SheetTab, Snapshot, Stats } from './types';
@@ -10,7 +9,8 @@ type FlowStep = 'login' | 'server' | 'character' | 'town';
 type TownContentId = 'hunt' | 'story' | 'cards' | 'inventory' | 'skills' | 'shop' | 'boss' | 'quests' | 'settings' | 'account';
 
 const saveService = new SaveService();
-let game: SolGame | null = null;
+type SolGameInstance = import('./game/SolGame').SolGame;
+let game: SolGameInstance | null = null;
 let latest: Snapshot | null = null;
 let pendingSave: PlayerSave | null = null;
 let characterRoster: PlayerSave[] = [];
@@ -37,6 +37,8 @@ const loginFlowHint = document.querySelector<HTMLElement>('#loginFlowHint');
 const miniZoneName = document.querySelector<HTMLElement>('#miniZoneName');
 const miniZoneMeta = document.querySelector<HTMLElement>('#miniZoneMeta');
 const miniPlayerDot = document.querySelector<HTMLElement>('#miniPlayerDot');
+const miniMapToggle = document.querySelector<HTMLButtonElement>('#miniMapToggle');
+const fieldQuestTracker = document.querySelector<HTMLElement>('#fieldQuestTracker');
 const fieldQuestTitle = document.querySelector<HTMLElement>('#fieldQuestTitle');
 const fieldQuestProgress = document.querySelector<HTMLElement>('#fieldQuestProgress');
 const guestLoginBtn = must<HTMLButtonElement>('#guestLoginBtn');
@@ -644,7 +646,7 @@ async function enterTown(save: PlayerSave, label = '마을로 이동 중') {
   });
 }
 
-async function startField(save: PlayerSave, zoneId = 'slime-forest') {
+async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart = false) {
   const zone = zones.find((entry) => entry.id === zoneId) || zones[0];
   const zoneName = zone.title;
   try {
@@ -653,6 +655,7 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest') {
       const entry = zone.entry || zones[0].entry;
       prepared.x = entry.x;
       prepared.y = entry.y;
+      if (autoStart) prepared.autoHunt = true;
       pendingSave = prepared;
       saveService.saveLocal(prepared);
       townScreen.classList.add('hidden');
@@ -668,6 +671,7 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest') {
       if (game) game.destroy();
       void requestWakeLock();
       audioService.setScene(zoneId === 'crystal-raid' ? 'boss' : 'field');
+      const { SolGame } = await import('./game/SolGame');
       game = new SolGame(prepared, saveService, {
         zoneId,
         zoneName,
@@ -747,6 +751,12 @@ function bindActions() {
   sleepModeBtn.addEventListener('click', () => toggleSleepMode());
   sleepOverlay.addEventListener('click', () => toggleSleepMode(false));
   openMenu.addEventListener('click', () => openSheet('account'));
+  miniMapToggle?.addEventListener('click', () => {
+    document.body.classList.toggle('minimap-compact');
+  });
+  fieldQuestTracker?.addEventListener('click', () => {
+    void continueCurrentQuest(true);
+  });
   returnTownBtn.addEventListener('click', () => {
     void returnToTown();
   });
@@ -943,7 +953,7 @@ function updateFieldQuestTracker(snapshot: Snapshot) {
   }
   const progress = storyQuestProgress(snapshot.save, quest);
   fieldQuestTitle.textContent = quest.title;
-  fieldQuestProgress.textContent = `${Math.min(progress, quest.target)}/${quest.target} · ${quest.goalText}`;
+  fieldQuestProgress.textContent = `${Math.min(progress, quest.target)}/${quest.target} · ${quest.goalText} · 터치시 이동`;
 }
 
 function updateFieldMiniMap(snapshot: Snapshot) {
@@ -1213,19 +1223,28 @@ function renderSouls(snapshot: Snapshot) {
 function renderAccount(snapshot: Snapshot) {
   const stats = snapshot.stats;
   const klass = classes[snapshot.save.classId];
+  const expPercent = Math.min(100, Math.round((snapshot.save.exp / expToNext(snapshot.save.level)) * 100));
   return `
     <div class="account-box">
+      <article class="account-panel character-stats-card">
+        <div class="pill-row">
+          <span class="pill">${escapeHtml(klass.name)}</span>
+          <span class="pill">Lv.${snapshot.save.level}</span>
+          <span class="pill">전투력 ${formatNumber(snapshot.power)}</span>
+        </div>
+        <h3>${escapeHtml(snapshot.save.name)}</h3>
+        <p>HP ${Math.ceil(snapshot.save.hp)}/${stats.hp} · MP ${Math.floor(snapshot.save.mp)}/${stats.mp}</p>
+        <p>공격 ${stats.atk} · 방어 ${stats.def} · 공속 ${stats.aspd} · 치명 ${Math.round(stats.crit * 100)}%</p>
+        <div class="bar exp quest-progress"><i style="width:${expPercent}%"></i><em>EXP ${snapshot.save.exp}/${expToNext(snapshot.save.level)}</em></div>
+        <button data-account-action="save">수동 저장</button>
+      </article>
       <article class="account-panel">
         <div class="pill-row">
           <span class="pill">${snapshot.online ? '온라인' : '로컬'}</span>
           <span class="pill">${escapeHtml(snapshot.userLabel)}</span>
           <span class="pill">${escapeHtml(klass.skillName)}</span>
         </div>
-        <p>HP ${stats.hp} / MP ${stats.mp} / ATK ${stats.atk} / DEF ${stats.def} / ASPD ${stats.aspd} / CRIT ${Math.round(stats.crit * 100)}%</p>
-        <button data-account-action="save">수동 저장</button>
-      </article>
-      <article class="account-panel">
-        <p>Firebase Auth가 켜져 있으면 Google 또는 게스트 클라우드 저장을 사용할 수 있습니다.</p>
+        <p>프로필을 누르면 이 캐릭터 정보 창이 열립니다. Google 또는 게스트 클라우드 저장도 여기서 관리합니다.</p>
         <button data-account-action="google">Google 연결</button>
         <button data-account-action="guest">게스트 클라우드</button>
         <button data-account-action="logout">로그아웃</button>
@@ -1398,6 +1417,29 @@ function renderTownContent() {
 
 
 
+async function continueCurrentQuest(autoStart = true) {
+  const save = game?.getSave() || pendingSave;
+  if (!save) return;
+  const quest = currentStoryQuest(save);
+  if (!quest) {
+    showToast('현재 준비된 스토리를 모두 완료했습니다.');
+    return;
+  }
+  const progress = storyQuestProgress(save, quest);
+  if (progress >= quest.target) {
+    claimStoryQuest(quest.id);
+    return;
+  }
+  if (quest.unlockZoneId) {
+    const zone = zones.find((entry) => entry.id === quest.unlockZoneId);
+    showToast(zone ? `${quest.title} · ${zone.title}로 이동` : '퀘스트 지역으로 이동');
+    await startField(save, quest.unlockZoneId, autoStart);
+    return;
+  }
+  if (document.body.classList.contains('town-active')) openTownContent('story');
+  else showToast(`${quest.goalText} 진행 중`);
+}
+
 function currentStoryQuest(save: PlayerSave) {
   const claimed = new Set(save.story?.claimedQuestIds || []);
   const activeId = save.story?.activeQuestId;
@@ -1451,7 +1493,7 @@ async function handleStoryAction() {
   if (progress < quest.target) {
     if (quest.unlockZoneId) {
       closeTownContentPanel();
-      await startField(pendingSave, quest.unlockZoneId);
+      await startField(pendingSave, quest.unlockZoneId, true);
       return;
     }
     openTownContent('story');
@@ -1483,7 +1525,7 @@ function claimStoryQuest(questId: string) {
   showToast(`${quest.title} 완료 · 보상 획득`);
   if (next?.unlockZoneId && pendingSave && storyQuestProgress(pendingSave, next) < next.target) {
     window.setTimeout(() => {
-      if (pendingSave && document.body.classList.contains('town-active')) void startField(pendingSave, next.unlockZoneId);
+      if (pendingSave && document.body.classList.contains('town-active')) void startField(pendingSave, next.unlockZoneId, true);
     }, 450);
   }
 }

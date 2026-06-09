@@ -35,7 +35,7 @@ import type {
 } from '../types';
 import { isoToScreen, screenToIso } from './iso';
 import { clamp, distance, formatGold, formatNumber, normalize, roll, uid } from './math';
-import { SaveService } from './SaveService';
+import type { SaveService } from './SaveService';
 import { audioService } from './AudioService';
 import { HUMANOID_SHEET_META, MONSTER_SHEET_META, SpriteSheetAnimator, directionFromIsoVector, type SpriteDirection } from './SpriteSheetAnimator';
 
@@ -100,13 +100,13 @@ const tileTextureKey: Record<TileId, TextureKey> = {
 };
 
 const FIELD_ZOOM = 0.78;
-const PLAYER_VISUAL_SCALE = 0.31;
+const PLAYER_VISUAL_SCALE = 0.335;
 const PLAYER_SHADOW_SCALE = 0.72;
 const MOB_VISUAL_SCALE: Record<MonsterId, number> = {
-  slime: 0.255,
-  wolf: 0.275,
+  slime: 0.295,
+  wolf: 0.2925,
   goblin: 0.27,
-  shadowImp: 0.265,
+  shadowImp: 0.285,
   mossGolem: 0.3,
   wraith: 0.27,
   crystalBear: 0.31,
@@ -596,7 +596,7 @@ export class SolGame {
     for (const [x, y] of crystals) this.addProp('propCrystal', x, y, 0.42);
 
     const rocks = [
-      [5.8, 20.8, 0.36],
+      [5.8, 20.8, 0.382],
       [13.5, 23.4, 0.34],
       [20.8, 15.4, 0.38],
       [25.5, 26.5, 0.42],
@@ -1126,15 +1126,41 @@ export class SolGame {
     return tables[zoneId] || [...spawnTable];
   }
 
+  private mobDensityBoost(zoneId: string) {
+    if (zoneId === 'slime-forest') return 1.35;
+    if (zoneId === 'crystal-moss' || zoneId === 'goblin-road') return 1.55;
+    if (zoneId === 'black-cave' || zoneId === 'moonlit-grove' || zoneId === 'soul-ruins') return 1.7;
+    return 1.85;
+  }
+
+  private expandSpawnCandidates(zoneId: string, seeds: Array<{ monsterId: MonsterId; x: number; y: number }>) {
+    const allowed = zoneMonsterIds[zoneId] || zones.find((entry) => entry.id === zoneId)?.monsterIds || [];
+    const targetTotal = Math.max(seeds.length, Math.ceil(allowed.length * this.mobDensityBoost(zoneId)));
+    if (!allowed.length || seeds.length >= targetTotal) return seeds;
+    const next = [...seeds];
+    let cursor = 0;
+    while (next.length < targetTotal) {
+      const base = seeds[cursor % seeds.length] || { monsterId: allowed[cursor % allowed.length], x: 12, y: 22 };
+      const monsterId = allowed[cursor % allowed.length];
+      const angle = cursor * 2.399963;
+      const ring = 0.72 + (cursor % 4) * 0.42;
+      const x = clamp(base.x + Math.cos(angle) * ring, 2, MAP_W - 3);
+      const y = clamp(base.y + Math.sin(angle) * ring, 2, MAP_H - 3);
+      next.push({ monsterId, x, y });
+      cursor += 1;
+    }
+    return next;
+  }
+
   private spawnMobs() {
     const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest')) || zones[0];
     const allowed = zoneMonsterIds[zone.id] || zone.monsterIds;
-    const candidates = this.spawnCandidatesForZone(zone.id);
+    const candidates = this.expandSpawnCandidates(zone.id, this.spawnCandidatesForZone(zone.id));
     const counters = new Map<MonsterId, number>();
     this.mobs = candidates
       .filter((spawn) => {
         const id = spawn.monsterId as MonsterId;
-        const maxCount = allowed.filter((item) => item === id).length;
+        const maxCount = Math.ceil(allowed.filter((item) => item === id).length * this.mobDensityBoost(zone.id));
         if (!maxCount) return false;
         const count = counters.get(id) || 0;
         if (count >= maxCount) return false;
@@ -1603,7 +1629,7 @@ export class SolGame {
       if (mob.stateTimer <= 0) {
         view.body.tint = 0xffffff;
         mob.state = distance(this.save.x, this.save.y, mob.x, mob.y) <= attackDist * 1.05 ? 'attackWindup' : 'chase';
-        if (mob.state === 'attackWindup') mob.stateTimer = mob.def.id === 'dragon' ? 0.48 : 0.34;
+        if (mob.state === 'attackWindup') mob.stateTimer = mob.def.id === 'dragon' ? 0.505 : 0.34;
       }
     }
   }
@@ -1697,10 +1723,10 @@ export class SolGame {
 
   private maxAggroCount() {
     const zoneId = this.options.zoneId || 'slime-forest';
-    if (zoneId === 'crystal-raid' || zoneId === 'dragon-nest' || zoneId === 'storm-citadel') return 5;
-    if (zoneId === 'black-cave' || zoneId === 'moonlit-grove' || zoneId === 'soul-ruins' || zoneId === 'ember-ridge') return 4;
-    if (zoneId === 'goblin-road' || zoneId === 'crystal-moss') return 3;
-    return 2;
+    if (zoneId === 'crystal-raid' || zoneId === 'dragon-nest' || zoneId === 'storm-citadel' || zoneId === 'demon-rift' || zoneId === 'sky-citadel') return 6;
+    if (zoneId === 'black-cave' || zoneId === 'moonlit-grove' || zoneId === 'soul-ruins' || zoneId === 'ember-ridge' || zoneId === 'bloodstone-mine') return 5;
+    if (zoneId === 'goblin-road' || zoneId === 'crystal-moss') return 4;
+    return 3;
   }
 
   private mobAggroRange(mob: WorldMob) {
@@ -1712,7 +1738,7 @@ export class SolGame {
     return 2.35;
   }
 
-  private callNearbyMobs(source: WorldMob, radius = 2.35) {
+  private callNearbyMobs(source: WorldMob, radius = 3.05) {
     let slots = Math.max(0, this.maxAggroCount() - this.activeAggroCount(source.uid));
     if (slots <= 0) return;
     for (const mob of this.mobs) {
