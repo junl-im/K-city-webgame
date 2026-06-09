@@ -1116,8 +1116,8 @@ function updateCombatChain(snapshot: Snapshot) {
   const chain = snapshot.combatChain;
   const active = chain.count > 1 && chain.timer > 0;
   fieldChainMeter.classList.toggle('active', active);
-  fieldChainValue.textContent = active ? `${chain.count} CHAIN` : '0 CHAIN';
-  fieldChainBonus.textContent = active ? `EXP/GOLD +${chain.bonusPercent}% · ${chain.timer.toFixed(1)}s` : '연속 처치 대기';
+  fieldChainValue.textContent = active ? `${chain.count}콤보` : '0콤보';
+  fieldChainBonus.textContent = active ? `보너스 +${chain.bonusPercent}% · ${chain.timer.toFixed(1)}s` : '대기';
   const ratio = chain.maxTimer > 0 ? Math.max(0, Math.min(100, (chain.timer / chain.maxTimer) * 100)) : 0;
   fieldChainTimer.style.width = `${ratio}%`;
 }
@@ -1301,9 +1301,7 @@ function renderSkillGrid(save: PlayerSave, townMode: boolean) {
     const canUpgrade = canUpgradeSkill(save, skill);
     const cost = level < SKILL_MAX_LEVEL ? skillMasteryCost(level) : null;
     const costText = cost ? `골드 ${formatGold(cost.gold)} · 파편 ${cost.shard}${cost.stone ? ` · 강화석 ${cost.stone}` : ''}` : '최대 숙련';
-    const upgradeButton = learned
-      ? `<button class="skill-train-btn" data-${townMode ? 'town-' : ''}upgrade-skill="${skill.id}" ${canUpgrade ? '' : 'disabled'}>${level >= SKILL_MAX_LEVEL ? 'MAX' : '숙련 강화'}</button>`
-      : '<span class="slot-passive">스킬서 필요</span>';
+    const upgradeButton = `<span class="slot-click-hint">상세</span>`;
     return `
       <article class="slot-cell skill-slot ${unlocked ? 'unlocked' : 'locked'}" data-skill-detail="${skill.id}" tabindex="0" role="button" aria-label="${escapeHtml(skill.name)} 상세 보기">
         <span class="slot-art skill-art skill-art-${skill.hotkey}"><img src="${skillArtUrl(skill)}" alt="${escapeHtml(skill.name)}" onerror="this.remove()" />${inlineFallbackIcon(skill.hotkey)}</span>
@@ -1353,34 +1351,32 @@ function canUpgradeSkill(save: PlayerSave, skill: SkillDefinition) {
     && materialCount(save, 'enhance-stone') >= cost.stone;
 }
 
-function renderCardSlot(def: CardDefinition, instance: { uid: string; level: number; copies: number; equipped: boolean }, actionAttr: string) {
+function renderCardSlot(def: CardDefinition, instance: { uid: string; level: number; copies: number; equipped: boolean }, _actionAttr: string) {
   return `
     <article class="slot-cell card-slot ${instance.equipped ? 'equipped' : ''}" data-card-detail="${instance.uid}" tabindex="0" role="button" aria-label="${escapeHtml(def.name)} 상세 보기">
       <span class="slot-art card-art"><img src="${def.art}" alt="${escapeHtml(def.name)}" /></span>
-      <span class="slot-rarity rarity-${def.rarity.toLowerCase()}">${def.rarity}</span>
+      <span class="slot-rarity rarity-${def.rarity.toLowerCase()}">${def.rarity}${instance.equipped ? ' · 장착' : ''}</span>
       <b>${escapeHtml(def.name)}</b>
-      <em>Lv.${instance.level} · x${instance.copies}${instance.equipped ? ' · 장착' : ''}</em>
-      <button ${actionAttr}="${instance.uid}">${instance.equipped ? '해제' : '장착'}</button>
+      <em>Lv.${instance.level} · x${instance.copies}</em>
+      <span class="slot-click-hint">상세</span>
     </article>
   `;
 }
 
-function renderItemSlot(save: PlayerSave, def: ItemDefinition, uidValue: string, count: number, actionAttr: string, upgradeAttr?: string) {
+function renderItemSlot(save: PlayerSave, def: ItemDefinition, uidValue: string, count: number, _actionAttr: string, _upgradeAttr?: string) {
   const slot = def.type as EquipmentSlot;
   const canEquip = def.type === 'weapon' || def.type === 'armor' || def.type === 'relic';
   const equipped = canEquip && save.equipment?.[slot] === uidValue;
   const enhanceLevel = save.enhancements?.[uidValue] || 0;
   const typeLabel: Record<string, string> = { weapon: '무기', armor: '방어구', relic: '유물', material: '재료', skillbook: '스킬서', consumable: '소모품' };
-  const cost = enhancementCost(enhanceLevel);
-  const upgradeLabel = enhanceLevel >= MAX_ENHANCE_LEVEL ? 'MAX' : `+${cost.next} ${Math.round(cost.successRate * 100)}%`;
-  const upgradeDisabled = enhanceLevel >= MAX_ENHANCE_LEVEL ? 'disabled' : '';
+  const stateText = canEquip ? `${def.rarity} · +${enhanceLevel}${equipped ? ' · 장착' : ''}` : `${def.rarity} · x${count}`;
   return `
     <article class="slot-cell item-slot ${equipped ? 'equipped' : ''}" data-item-detail="${uidValue}" tabindex="0" role="button" aria-label="${escapeHtml(def.name)} 상세 보기">
       <span class="slot-art item-art item-art-${def.type} ${equipped ? 'is-equipped' : ''}"><img src="${itemArtUrl(def)}" alt="${escapeHtml(def.name)}" onerror="this.remove()" />${inlineFallbackIcon(itemIcon(def.type))}</span>
-      <span class="slot-rarity rarity-${def.rarity.toLowerCase()}">${def.rarity}${canEquip ? ` · +${enhanceLevel}` : ''}</span>
+      <span class="slot-rarity rarity-${def.rarity.toLowerCase()}">${stateText}</span>
       <b>${escapeHtml(def.name)}${canEquip && enhanceLevel ? ` +${enhanceLevel}` : ''}</b>
-      <em>${typeLabel[def.type] || escapeHtml(def.type)} · x${count}${equipped ? ' · 장착' : ''}</em>
-      ${canEquip ? `<div class="slot-actions"><button ${actionAttr}="${uidValue}">${equipped ? '해제' : '장착'}</button>${upgradeAttr ? `<button ${upgradeDisabled} ${upgradeAttr}="${uidValue}">${upgradeLabel}</button>` : ''}</div>` : def.type === 'skillbook' ? `<button ${actionAttr}="${uidValue}">배우기</button>` : def.type === 'consumable' ? `<button ${actionAttr}="${uidValue}">사용</button>` : '<span class="slot-passive">재료</span>'}
+      <em>${typeLabel[def.type] || escapeHtml(def.type)}</em>
+      <span class="slot-click-hint">상세</span>
     </article>
   `;
 }
@@ -2122,12 +2118,12 @@ function renderTownSkills(save: PlayerSave) {
 
 function renderTownShop(save: PlayerSave) {
   const stock: Array<{ itemId: string; price: number; label: string }> = [
-    { itemId: 'hp-potion-small', price: 45, label: 'HP 즉시 회복' },
-    { itemId: 'mp-potion-small', price: 55, label: 'MP 즉시 회복' },
-    { itemId: 'hp-potion-mid', price: 160, label: '중급 HP 회복' },
-    { itemId: 'mp-potion-mid', price: 190, label: '중급 MP 회복' },
-    { itemId: 'hp-potion-high', price: 520, label: '상급 HP 회복' },
-    { itemId: 'mp-potion-high', price: 590, label: '상급 MP 회복' },
+    { itemId: 'hp-potion-small', price: 7, label: 'HP 2% 회복' },
+    { itemId: 'mp-potion-small', price: 9, label: 'MP 2% 회복' },
+    { itemId: 'hp-potion-mid', price: 20, label: 'HP 3.5% 회복' },
+    { itemId: 'mp-potion-mid', price: 24, label: 'MP 3.5% 회복' },
+    { itemId: 'hp-potion-high', price: 48, label: 'HP 5% 회복' },
+    { itemId: 'mp-potion-high', price: 56, label: 'MP 5% 회복' },
     { itemId: 'skillbook-basic', price: 180, label: '1번 스킬 습득' },
     { itemId: 'skillbook-second', price: 850, label: '2번 스킬 습득' },
     { itemId: 'skillbook-third', price: 2600, label: '3번 스킬 습득' },
@@ -2456,12 +2452,12 @@ function upgradeTownItem(itemUid: string) {
 function buyTownShopItem(itemId: string, amount = 1) {
   if (!pendingSave) return;
   const stock: Record<string, number> = {
-    'hp-potion-small': 45,
-    'mp-potion-small': 55,
-    'hp-potion-mid': 160,
-    'mp-potion-mid': 190,
-    'hp-potion-high': 520,
-    'mp-potion-high': 590,
+    'hp-potion-small': 7,
+    'mp-potion-small': 9,
+    'hp-potion-mid': 20,
+    'mp-potion-mid': 24,
+    'hp-potion-high': 48,
+    'mp-potion-high': 56,
     'skillbook-basic': 180,
     'skillbook-second': 850,
     'skillbook-third': 2600,
@@ -2812,6 +2808,10 @@ function bindDetailModal() {
     if (upgradeTown) { upgradeTownItem(upgradeTown.dataset.townUpgradeItem || ''); closeDetailModal(); return; }
     const upgradeField = target.closest<HTMLButtonElement>('[data-upgrade-item]');
     if (upgradeField) { game?.upgradeItem(upgradeField.dataset.upgradeItem || ''); closeDetailModal(); return; }
+    const upgradeTownSkill = target.closest<HTMLButtonElement>('[data-town-upgrade-skill]');
+    if (upgradeTownSkill) { trainTownSkill(upgradeTownSkill.dataset.townUpgradeSkill || ''); closeDetailModal(); return; }
+    const upgradeFieldSkill = target.closest<HTMLButtonElement>('[data-upgrade-skill]');
+    if (upgradeFieldSkill) { game?.upgradeSkill(upgradeFieldSkill.dataset.upgradeSkill || ''); closeDetailModal(); return; }
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closeDetailModal();
@@ -2982,13 +2982,18 @@ function openSkillDetail(skillId: string, townMode: boolean) {
   const level = skillLevel(save, def.id);
   const cost = level > 0 && level < SKILL_MAX_LEVEL ? skillMasteryCost(level) : null;
   const costText = cost ? `${formatGold(cost.gold)} · 파편 ${cost.shard}${cost.stone ? ` · 강화석 ${cost.stone}` : ''}` : level >= SKILL_MAX_LEVEL ? '최대 숙련' : '스킬서 필요';
+  const upgradeAttr = townMode ? 'data-town-upgrade-skill' : 'data-upgrade-skill';
+  const upgradeAction = learned
+    ? `<button class="wide-action primary" ${level >= SKILL_MAX_LEVEL ? 'disabled' : ''} ${upgradeAttr}="${def.id}">${level >= SKILL_MAX_LEVEL ? '숙련 MAX' : canUpgradeSkill(save, def) ? '숙련 강화' : '조건 부족'}</button>`
+    : '';
   openDetailModal({
     eyebrow: `${classes[def.classId].name} SKILL · ${learned ? `숙련 Lv.${level}` : '미습득'}`,
     title: def.name,
     desc: `${def.description}
 숙련 효과: Lv마다 피해/회복 +14%, 쿨타임 -3.5%, MP 소모 -4.5%`,
     visual: `<span class="slot-art skill-art skill-art-${def.hotkey}"><img src="${skillArtUrl(def)}" alt="${escapeHtml(def.name)}" onerror="this.remove()" />${inlineFallbackIcon(def.hotkey)}</span>`,
-    stats: `<span><b>숙련</b><em>${level || 0}/${SKILL_MAX_LEVEL}</em></span><span><b>MP</b><em>${effectiveSkillMpCost(def, level)}</em></span><span><b>쿨타임</b><em>${effectiveSkillCooldown(def, level)}s</em></span><span><b>피해/회복</b><em>+${skillMasteryBonusPercent(level)}%</em></span><span><b>범위</b><em>${def.radius}</em></span><span><b>다음 비용</b><em>${costText}</em></span><span><b>상태</b><em>${!learned ? '스킬북 필요' : levelReady ? '사용 가능' : `Lv.${def.unlockLevel} 필요`}</em></span>`
+    stats: `<span><b>숙련</b><em>${level || 0}/${SKILL_MAX_LEVEL}</em></span><span><b>MP</b><em>${effectiveSkillMpCost(def, level)}</em></span><span><b>쿨타임</b><em>${effectiveSkillCooldown(def, level)}s</em></span><span><b>피해/회복</b><em>+${skillMasteryBonusPercent(level)}%</em></span><span><b>범위</b><em>${def.radius}</em></span><span><b>다음 비용</b><em>${costText}</em></span><span><b>상태</b><em>${!learned ? '스킬북 필요' : levelReady ? '사용 가능' : `Lv.${def.unlockLevel} 필요`}</em></span>`,
+    actions: upgradeAction
   });
 }
 

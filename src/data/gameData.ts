@@ -1,7 +1,7 @@
 import type { CardDefinition, CardSetDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, SoulDefinition, TileId, ZoneDefinition, SkillDefinition } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 30;
+export const SAVE_VERSION = 31;
 export const MAP_W = 40;
 export const MAP_H = 40;
 
@@ -228,12 +228,12 @@ export const items: ItemDefinition[] = [
   { id: 'fox-charm', name: '곰같은여우 부적', type: 'relic', rarity: 'SR', effectText: '공격 +6, 방어 +5, 치명 +3%', bonus: { atk: 6, def: 5, crit: 0.03 } },
   { id: 'soul-core', name: '루미나 소울 코어', type: 'relic', rarity: 'SSR', effectText: '체력 +95, 마나 +65, 공격 +12', bonus: { hp: 95, mp: 65, atk: 12 } },
   { id: 'dragon-heart', name: '심연룡의 심장', type: 'relic', rarity: 'UR', effectText: '공격 +28, 방어 +18, 치명 +6%', bonus: { atk: 28, def: 18, crit: 0.06 } },
-  { id: 'hp-potion-small', name: '하급 생명 물약', type: 'consumable', rarity: 'N', effectText: '즉시 HP 35% 회복. 자동사냥 중 HP가 낮으면 자동 사용됩니다.', bonus: {}, consume: { hpPercent: 0.35 } },
-  { id: 'mp-potion-small', name: '하급 마나 물약', type: 'consumable', rarity: 'N', effectText: '즉시 MP 40% 회복. 자동사냥 중 MP가 낮으면 자동 사용됩니다.', bonus: {}, consume: { mpPercent: 0.40 } },
-  { id: 'hp-potion-mid', name: '중급 생명 물약', type: 'consumable', rarity: 'R', effectText: '즉시 HP 55% 회복. 위험한 보스전에서 자동 사용 우선도가 올라갑니다.', bonus: {}, consume: { hpPercent: 0.55 } },
-  { id: 'mp-potion-mid', name: '중급 마나 물약', type: 'consumable', rarity: 'R', effectText: '즉시 MP 60% 회복. 스킬 연속 사용 중 자동 사용 우선도가 올라갑니다.', bonus: {}, consume: { mpPercent: 0.60 } },
-  { id: 'hp-potion-high', name: '상급 생명 물약', type: 'consumable', rarity: 'SR', effectText: '즉시 HP 80% 회복. 긴급 생존 구간에서 자동 물약 벨트가 최우선으로 사용합니다.', bonus: {}, consume: { hpPercent: 0.80 } },
-  { id: 'mp-potion-high', name: '상급 마나 물약', type: 'consumable', rarity: 'SR', effectText: '즉시 MP 85% 회복. 고숙련 스킬 운용을 위한 상급 마나 회복제입니다.', bonus: {}, consume: { mpPercent: 0.85 } },
+  { id: 'hp-potion-small', name: '하급 생명 물약', type: 'consumable', rarity: 'N', effectText: 'HP 2% 회복. 사냥을 오래 하려면 충분한 수량을 준비해야 합니다.', bonus: {}, consume: { hpPercent: 0.02 } },
+  { id: 'mp-potion-small', name: '하급 마나 물약', type: 'consumable', rarity: 'N', effectText: 'MP 2% 회복. 스킬 사냥을 유지하려면 여러 개를 들고 다녀야 합니다.', bonus: {}, consume: { mpPercent: 0.02 } },
+  { id: 'hp-potion-mid', name: '중급 생명 물약', type: 'consumable', rarity: 'R', effectText: 'HP 3.5% 회복. 강한 사냥터에서 꾸준히 소모되는 생존 보급품입니다.', bonus: {}, consume: { hpPercent: 0.035 } },
+  { id: 'mp-potion-mid', name: '중급 마나 물약', type: 'consumable', rarity: 'R', effectText: 'MP 3.5% 회복. 자동사냥 스킬 회전을 위한 마나 보급품입니다.', bonus: {}, consume: { mpPercent: 0.035 } },
+  { id: 'hp-potion-high', name: '상급 생명 물약', type: 'consumable', rarity: 'SR', effectText: 'HP 5% 회복. 보스전에서 더 효율적인 고급 생존 물약입니다.', bonus: {}, consume: { hpPercent: 0.05 } },
+  { id: 'mp-potion-high', name: '상급 마나 물약', type: 'consumable', rarity: 'SR', effectText: 'MP 5% 회복. 고숙련 스킬 운용을 오래 유지하기 위한 고급 물약입니다.', bonus: {}, consume: { mpPercent: 0.05 } },
   { id: 'soul-shard', name: '소울 파편', type: 'material', rarity: 'R', effectText: '카드 합성/장비 강화 재료', bonus: {} },
   { id: 'enhance-stone', name: '강화석', type: 'material', rarity: 'SR', effectText: '+10 이후 강화 재료', bonus: {} },
   { id: 'skillbook-basic', name: '기초 스킬서', type: 'skillbook', rarity: 'R', effectText: '현재 직업의 1번 스킬을 배웁니다.', bonus: {}, skillId: 'class-basic' },

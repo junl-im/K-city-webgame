@@ -201,6 +201,8 @@ export class SolGame {
   private autoLastY = 0;
   private autoRecoveryCooldown = 0;
   private autoSkillThinkTimer = 0;
+  private autoPotionThinkTimer = 0;
+  private potionUseCooldown = 0;
   private hitStopTimer = 0;
   private chainCount = 0;
   private chainTimer = 0;
@@ -299,6 +301,13 @@ export class SolGame {
       }
       return false;
     }
+    if (this.potionUseCooldown > 0) {
+      if (!silent) {
+        this.pushLog('물약 재사용 대기 중입니다.');
+        this.emit();
+      }
+      return false;
+    }
     const stats = this.calculateStats();
     const hpGain = Math.ceil((def.consume.hpPercent || 0) * stats.hp + (def.consume.hpFlat || 0));
     const mpGain = Math.ceil((def.consume.mpPercent || 0) * stats.mp + (def.consume.mpFlat || 0));
@@ -316,6 +325,7 @@ export class SolGame {
     this.save.mp = Math.min(stats.mp, this.save.mp + mpGain);
     entry.count -= 1;
     if (entry.count <= 0) this.save.inventory = this.save.inventory.filter((item) => item.uid !== entry.uid);
+    this.potionUseCooldown = 0.62;
     audioService.play('confirm');
     this.healPulse(this.save.x, this.save.y);
     this.floatText(def.consume.hpPercent ? 'HP POTION' : 'MP POTION', this.save.x, this.save.y - 0.38, def.consume.hpPercent ? 0x66f08a : 0x72b7ff);
@@ -1639,6 +1649,8 @@ export class SolGame {
   private update(dt: number) {
     this.time += dt;
     this.attackCooldown = Math.max(0, this.attackCooldown - dt);
+    this.potionUseCooldown = Math.max(0, this.potionUseCooldown - dt);
+    this.autoPotionThinkTimer = Math.max(0, this.autoPotionThinkTimer - dt);
     this.updateCombatChainTimer(dt);
     this.updateSkillCooldowns(dt);
     this.autoSkillThinkTimer = Math.max(0, this.autoSkillThinkTimer - dt);
@@ -1668,14 +1680,16 @@ export class SolGame {
 
   private tryAutoPotionUse() {
     if (this.save.hp <= 0) return;
+    if (this.autoPotionThinkTimer > 0 || this.potionUseCooldown > 0) return;
+    this.autoPotionThinkTimer = 0.95;
     const stats = this.calculateStats();
     const hpRatio = this.save.hp / Math.max(1, stats.hp);
     const mpRatio = this.save.mp / Math.max(1, stats.mp);
-    if (hpRatio < 0.36) {
+    if (hpRatio < 0.42) {
       this.useBestPotion('hp', true);
       return;
     }
-    if (mpRatio < 0.22) this.useBestPotion('mp', true);
+    if (mpRatio < 0.28) this.useBestPotion('mp', true);
   }
 
   private tryAutoSkillUse() {

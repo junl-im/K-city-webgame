@@ -227,8 +227,8 @@ export class SaveService {
       inventory: [
         { uid: starterWeaponUid, itemId: classId === 'taoist' ? 'rune-staff' : 'iron-sword', count: 1 },
         { uid: starterArmorUid, itemId: 'leather-armor', count: 1 },
-        { uid: uid('item'), itemId: 'hp-potion-small', count: 5 },
-        { uid: uid('item'), itemId: 'mp-potion-small', count: 3 }
+        { uid: uid('item'), itemId: 'hp-potion-small', count: 30 },
+        { uid: uid('item'), itemId: 'mp-potion-small', count: 18 }
       ],
       equipment: {
         weapon: starterWeaponUid,
