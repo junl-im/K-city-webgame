@@ -955,6 +955,7 @@ export class SolGame {
     this.addAlpha062ReferenceFieldPass();
     this.addAlpha063AssetUpgradeFieldPass();
     this.addAlpha066AssetRefinementFieldPass();
+    this.addAlpha069PremiumVisualFieldPass();
   }
 
 
@@ -1620,6 +1621,79 @@ export class SolGame {
         .fill({ color: index % 2 ? 0x2fa0f0 : 0xe2b95f, alpha: 0.135 })
         .stroke({ color: 0xffffff, alpha: 0.14, width: 1 });
     });
+
+    this.ambientLayer.addChild(layer);
+  }
+
+
+  private addAlpha069PremiumVisualFieldPass() {
+    const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest')) || zones[0];
+    const order = zone.order || 1;
+    const bossLike = zone.monsterIds.some((id) => id === 'fieldBoss' || id === 'dragon' || id === 'riftBeast');
+    const waterMood = zone.id.includes('shore') || zone.id.includes('river') || zone.id.includes('crystal') || zone.id.includes('frost');
+    const infernusMood = this.isInfernusZone() || zone.id.includes('molten') || zone.id.includes('dragon');
+    const primary = bossLike ? 0xffd77a : infernusMood ? 0xff8755 : waterMood ? 0x78dbff : order >= 70 ? 0xbba2ff : 0x8df2c9;
+    const secondary = bossLike || infernusMood ? 0xfff0b4 : 0xffffff;
+    const layer = new Graphics();
+
+    // 0.69: low-noise premium readability pass. Keep the actual WebP terrain visible while giving it anime-grade depth.
+    const pockets = this.spawnCandidatesForZone(zone.id).slice(0, 13);
+    pockets.forEach((point, index) => {
+      const pos = isoToScreen(point.x, point.y);
+      const pulse = 1 + (index % 4) * 0.08;
+      layer
+        .ellipse(pos.x, pos.y + 13, (58 + (index % 4) * 12) * pulse, 13 + (index % 3) * 3)
+        .fill({ color: 0x001f4d, alpha: bossLike ? 0.040 : 0.026 })
+        .ellipse(pos.x, pos.y + 10, (42 + (index % 4) * 10) * pulse, 9 + (index % 3) * 2)
+        .fill({ color: 0xffffff, alpha: 0.026 })
+        .ellipse(pos.x, pos.y + 10, (50 + (index % 4) * 11) * pulse, 12 + (index % 3) * 2)
+        .stroke({ color: primary, alpha: bossLike ? 0.100 : 0.070, width: 1.45 });
+
+      if (index % 4 === 0) {
+        layer
+          .circle(pos.x + 18, pos.y - 31, 2.8).fill({ color: secondary, alpha: 0.20 })
+          .moveTo(pos.x + 18, pos.y - 26).lineTo(pos.x + 2, pos.y + 3).stroke({ color: secondary, alpha: 0.050, width: 1.2 });
+      }
+      if (index % 5 === 2) {
+        layer
+          .moveTo(pos.x - 11, pos.y - 25).lineTo(pos.x, pos.y - 46).lineTo(pos.x + 11, pos.y - 25).lineTo(pos.x, pos.y - 12).closePath()
+          .fill({ color: primary, alpha: 0.12 })
+          .stroke({ color: 0xffffff, alpha: 0.16, width: 1.1 });
+      }
+    });
+
+    for (let i = 0; i < pockets.length - 1; i += 1) {
+      const start = isoToScreen(pockets[i].x, pockets[i].y);
+      const end = isoToScreen(pockets[i + 1].x, pockets[i + 1].y);
+      const midX = (start.x + end.x) / 2;
+      const midY = (start.y + end.y) / 2 - 15 - (i % 2) * 5;
+      layer
+        .moveTo(start.x, start.y + 11)
+        .quadraticCurveTo(midX, midY, end.x, end.y + 11)
+        .stroke({ color: 0xffffff, alpha: 0.052, width: 6 })
+        .moveTo(start.x, start.y + 11)
+        .quadraticCurveTo(midX, midY, end.x, end.y + 11)
+        .stroke({ color: primary, alpha: 0.078, width: 2.2 });
+    }
+
+    const entry = zone.entry || zones[0].entry;
+    const entryPos = isoToScreen(entry.x, entry.y);
+    layer
+      .ellipse(entryPos.x, entryPos.y + 10, 156, 44).fill({ color: 0xffffff, alpha: 0.046 })
+      .ellipse(entryPos.x, entryPos.y + 10, 116, 31).stroke({ color: secondary, alpha: 0.26, width: 2.5 })
+      .ellipse(entryPos.x, entryPos.y + 10, 72, 20).stroke({ color: primary, alpha: 0.30, width: 1.8 });
+
+    if (bossLike) {
+      const bossPocket = pockets[pockets.length - 1];
+      if (bossPocket) {
+        const pos = isoToScreen(bossPocket.x, bossPocket.y);
+        layer
+          .ellipse(pos.x, pos.y + 13, 188, 56).fill({ color: primary, alpha: 0.085 })
+          .ellipse(pos.x, pos.y + 13, 138, 40).stroke({ color: 0xffffff, alpha: 0.18, width: 2.3 })
+          .circle(pos.x, pos.y - 64, 4).fill({ color: secondary, alpha: 0.18 })
+          .moveTo(pos.x, pos.y - 58).lineTo(pos.x, pos.y + 10).stroke({ color: secondary, alpha: 0.12, width: 2 });
+      }
+    }
 
     this.ambientLayer.addChild(layer);
   }
