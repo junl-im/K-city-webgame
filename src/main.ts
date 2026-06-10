@@ -480,7 +480,10 @@ function bindLoginFlow() {
   });
 
   document.querySelectorAll<HTMLButtonElement>('[data-zone-id]').forEach((button) => {
-    button.addEventListener('click', async () => {
+    button.addEventListener('click', async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (button.disabled || sceneTransition.classList.contains('show')) return;
       void ensureFullscreen();
       void lockPortraitMode();
       document.querySelectorAll('[data-zone-id]').forEach((item) => item.classList.remove('active'));
@@ -614,6 +617,9 @@ function bindLoginFlow() {
 
     const zone = target.closest<HTMLButtonElement>('[data-town-zone-enter]');
     if (zone && pendingSave) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (zone.disabled || sceneTransition.classList.contains('show')) return;
       const zoneId = zone.dataset.townZoneEnter || 'crystal-raid';
       if (!isZoneUnlocked(pendingSave, zoneId)) {
         showToast('아직 해금되지 않은 사냥터입니다.');
@@ -727,7 +733,7 @@ function goStep(step: FlowStep) {
     login: '접속 방식을 선택하세요.',
     server: '곰같은여우 서버 상태를 확인하고 다음으로 이동합니다.',
     character: '캐릭터를 선택하거나 새 소울 바인더를 생성하세요.',
-    town: '접속 준비가 끝났습니다. 마을 입장을 누르면 루미나로 이동합니다.'
+    town: '캐릭터 선택 후 루미나 마을로 바로 이동합니다.'
   };
   if (loginFlowHint) loginFlowHint.textContent = hintText[step];
   document.querySelectorAll('[data-flow-page]').forEach((page) => {
@@ -824,6 +830,8 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
       setFieldZoneHud(zoneId);
 
       if (game) game.destroy();
+      game = null;
+      root.replaceChildren();
       void requestWakeLock();
       audioService.setScene(zoneId === 'crystal-raid' ? 'boss' : 'field');
       const { SolGame } = await import('./game/SolGame');
@@ -845,10 +853,21 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
     });
   } catch (error) {
     console.error('[Field] enter failed', error);
+    await releaseWakeLock();
+    if (game) {
+      game.destroy();
+      game = null;
+    }
+    root.replaceChildren();
     document.body.classList.remove('field-active');
     document.body.classList.add('town-active');
+    titleScreen.classList.add('hidden');
+    titleScreen.setAttribute('aria-hidden', 'true');
+    loginScreen.classList.add('hidden');
+    loginScreen.setAttribute('aria-hidden', 'true');
     townScreen.classList.remove('hidden');
     townScreen.setAttribute('aria-hidden', 'false');
+    if (pendingSave) renderTown(pendingSave);
     showToast(error instanceof Error ? `사냥터 입장 실패: ${error.message}` : '사냥터 입장 실패');
   }
 }
@@ -1872,8 +1891,15 @@ function updateTownLobby070(save: PlayerSave) {
       button.addEventListener('click', () => openTownContent((button.dataset.townContent || 'story') as TownContentId));
     });
     questList.querySelectorAll<HTMLButtonElement>('[data-zone-id]').forEach((button) => {
-      button.addEventListener('click', async () => {
-        if (!pendingSave) return;
+      button.addEventListener('click', async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (button.disabled || sceneTransition.classList.contains('show')) return;
+        if (!pendingSave) pendingSave = getSelectedCharacter();
+        if (!pendingSave) {
+          showToast('사냥터에 입장할 캐릭터를 선택하세요.');
+          return;
+        }
         await startField(pendingSave, button.dataset.zoneId || 'slime-forest');
       });
     });
