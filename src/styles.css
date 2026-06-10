@@ -18260,3 +18260,510 @@ body.town-active .town-screen-070 {
 .scene-transition.show {
   pointer-events: auto !important;
 }
+
+/* --------------------------------------------------------------------------
+   Alpha 0.72 Premium Town Lobby Recovery
+   목표: 0.70에서 과하게 조립된 로비를 숨기고, 제공된 원화풍 에셋처럼
+   배경 원화가 먼저 보이는 마을 첫 화면 + 깔끔한 글래스 UI로 복구한다.
+   - 캐릭터 선택 후 별도 '마을 입장' 단계 없이 바로 마을 진입
+   - CSS 그림/이모지 펫/가짜 조이스틱/가방 과밀 UI 제거
+   - 기존 기능 버튼은 새 프리미엄 로비 버튼에 다시 연결
+---------------------------------------------------------------------------- */
+:root {
+  --soul-072-ink: #173a5f;
+  --soul-072-blue: #0f88e6;
+  --soul-072-blue-deep: #064982;
+  --soul-072-cyan: #7ce8ff;
+  --soul-072-gold: #e9bf62;
+  --soul-072-gold-deep: #9a661f;
+  --soul-072-cream: #fff9df;
+  --soul-072-panel: rgba(255, 255, 255, .76);
+  --soul-072-glass: rgba(238, 250, 255, .68);
+  --soul-072-shadow: 0 20px 60px rgba(0, 48, 98, .25), inset 0 1px 0 rgba(255,255,255,.72);
+}
+
+.title-screen-072 .title-mini-nav span:last-child { color: #f9feff !important; }
+
+/* 접속 화면: 원화풍 밝은 유리 UI로 정돈 */
+.login-screen-072 {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(10,85,158,.10) 42%, rgba(3,38,92,.28) 100%),
+    url("./assets/ui/title-keyvisual-060-blur.webp") center / cover no-repeat,
+    linear-gradient(180deg, #91e4ff, #237fd9) !important;
+}
+.login-screen-072 .login-panel,
+.login-screen-072 .login-panel-v3 {
+  width: min(91vw, 410px) !important;
+  border-radius: 34px !important;
+  border: 1px solid rgba(255,255,255,.82) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.88), rgba(232,248,255,.72) 62%, rgba(170,226,255,.36)),
+    rgba(255,255,255,.58) !important;
+  box-shadow: 0 28px 74px rgba(0,44,104,.30), inset 0 1px 0 rgba(255,255,255,.86) !important;
+}
+.login-screen-072 .brand-block span { color: #1e8bd4 !important; letter-spacing: .16em !important; }
+.login-screen-072 .brand-block h1 { color: #123d66 !important; font-size: clamp(30px, 8.6vw, 42px) !important; }
+.login-screen-072 .login-flow-hint {
+  border: 1px solid rgba(21,123,195,.20) !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,.58) !important;
+  color: rgba(18,58,98,.82) !important;
+}
+.login-screen-072 .flow-page[data-flow-page="town"] { display: none !important; }
+.login-screen-072 .wide-action,
+.login-screen-072 .server-card,
+.login-screen-072 .class-card {
+  border-radius: 999px !important;
+  min-height: 54px !important;
+  border: 1px solid rgba(232,252,255,.92) !important;
+  background:
+    radial-gradient(120% 92% at 50% 0%, rgba(255,255,255,.46), transparent 58%),
+    linear-gradient(180deg, rgba(93,194,255,.86), rgba(21,124,218,.80) 52%, rgba(5,70,151,.88)) !important;
+  color: #fff !important;
+  text-shadow: 0 2px 12px rgba(0,43,94,.76) !important;
+  box-shadow: 0 15px 32px rgba(0,61,128,.24), 0 0 0 1px rgba(94,210,255,.34) inset !important;
+}
+.login-screen-072 .wide-action.primary,
+.login-screen-072 .server-card.active,
+.login-screen-072 .class-card.active {
+  background:
+    radial-gradient(120% 92% at 50% 0%, rgba(255,255,255,.56), transparent 56%),
+    linear-gradient(180deg, #fff1a7, #e8bd51 54%, #a96f1f) !important;
+  color: #203a52 !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.70) !important;
+  border-color: rgba(255,249,208,.96) !important;
+}
+.login-screen-072 .wide-action::before,
+.login-screen-072 .wide-action::after,
+.login-screen-072 .server-card::before,
+.login-screen-072 .server-card::after,
+.login-screen-072 .class-card::before,
+.login-screen-072 .class-card::after { display: none !important; content: none !important; }
+
+/* 마을: 이전 070 로비를 전부 숨기고 새 프리미엄 로비만 표시 */
+body.town-active .town-screen-072 {
+  display: block !important;
+  overflow: hidden !important;
+  background: #71d9ff !important;
+  color: var(--soul-072-ink) !important;
+  font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif !important;
+}
+.town-screen-072::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,0) 26%, rgba(3,30,73,.28) 100%),
+    radial-gradient(circle at 52% 7%, rgba(255,255,255,.46), transparent 28%),
+    url("./assets/ui/town-firstview-069.webp") center / cover no-repeat !important;
+  filter: saturate(1.06) contrast(1.02);
+}
+.town-screen-072::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(5,33,75,.28), rgba(255,255,255,0) 20%, rgba(255,255,255,0) 66%, rgba(4,35,76,.20)),
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(3,25,66,.30));
+}
+.town-screen-072 .town-game-lobby-070,
+.town-screen-072 .town-topbar,
+.town-screen-072 .town-layout,
+.town-screen-072 .town-layout-v2,
+.town-screen-072 .town-bottom-menu,
+.town-screen-072 .town-more-menu,
+.town-screen-072 .town-backdrop,
+.town-screen-072 .town-npc-spotlight { display: none !important; }
+
+.town-premium-lobby-072 {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  grid-template-rows: 82px 1fr 92px;
+  padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  overflow: hidden;
+  isolation: isolate;
+}
+.town-premium-vignette-072 {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 54%, rgba(255,255,255,.15), transparent 36%),
+    linear-gradient(180deg, transparent 0 62%, rgba(2,29,74,.38));
+}
+.town-premium-header-072 {
+  position: relative;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 48px 1fr 48px 48px 48px;
+  gap: 8px;
+  align-items: start;
+  padding: 4px 6px 0;
+}
+.town-premium-logo-072 {
+  justify-self: center;
+  min-width: 116px;
+  display: grid;
+  justify-items: center;
+  line-height: .94;
+  color: #f2fdff;
+  text-shadow: 0 2px 0 #0b5c9b, 0 0 15px rgba(90,224,255,.70);
+}
+.town-premium-logo-072 i {
+  width: 42px;
+  height: 33px;
+  border-radius: 46% 54% 50% 50%;
+  background: radial-gradient(circle at 42% 34%, #fff 0 8%, #c3f7ff 9% 35%, #35bdf4 36% 100%);
+  box-shadow: 0 0 18px rgba(102,229,255,.74), 0 7px 0 rgba(0,67,125,.16);
+}
+.town-premium-logo-072 b { font-size: 24px; font-weight: 950; letter-spacing: .03em; }
+.town-premium-logo-072 em { font-size: 9px; font-style: normal; font-weight: 950; letter-spacing: .34em; }
+.town-premium-icon-072 {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,246,207,.90);
+  background:
+    radial-gradient(110% 85% at 50% 0%, rgba(255,255,255,.58), transparent 58%),
+    linear-gradient(180deg, #fff1b2, #ddb04d 60%, #9b671e);
+  color: #173a5f;
+  font-size: 0;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 26px rgba(0,46,98,.24), inset 0 1px 0 rgba(255,255,255,.74);
+  position: relative;
+}
+.town-premium-icon-072::before {
+  content: "";
+  width: 22px;
+  height: 22px;
+  background: currentColor;
+  filter: drop-shadow(0 1px 0 rgba(255,255,255,.72));
+  clip-path: polygon(10% 22%, 90% 22%, 90% 80%, 10% 80%);
+}
+.town-premium-icon-072.notice::before { clip-path: polygon(50% 0, 73% 18%, 79% 48%, 96% 71%, 4% 71%, 21% 48%, 27% 18%); }
+.town-premium-icon-072.settings::before { clip-path: polygon(44% 0, 56% 0, 60% 20%, 76% 10%, 86% 20%, 76% 36%, 100% 44%, 100% 56%, 76% 64%, 86% 80%, 76% 90%, 60% 80%, 56% 100%, 44% 100%, 40% 80%, 24% 90%, 14% 80%, 24% 64%, 0 56%, 0 44%, 24% 36%, 14% 20%, 24% 10%, 40% 20%); }
+.town-premium-icon-072.home::before { clip-path: polygon(50% 4%, 94% 42%, 84% 42%, 84% 92%, 62% 92%, 62% 62%, 38% 62%, 38% 92%, 16% 92%, 16% 42%, 6% 42%); }
+.town-premium-icon-072 span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.town-premium-currencies-072 {
+  position: absolute;
+  top: calc(max(10px, env(safe-area-inset-top)) + 82px);
+  left: clamp(118px, 34vw, 320px);
+  right: 12px;
+  z-index: 14;
+  display: grid;
+  grid-template-columns: 1fr 1fr .86fr;
+  gap: 7px;
+}
+.town-premium-currencies-072 button {
+  min-width: 0;
+  min-height: 38px;
+  border: 1px solid rgba(248,235,176,.88);
+  border-radius: 999px 14px 14px 999px;
+  background: linear-gradient(180deg, rgba(15,67,105,.92), rgba(4,35,72,.88));
+  color: #fff9dc;
+  display: grid;
+  grid-template-columns: 28px minmax(0,1fr) 20px;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 7px 4px 5px;
+  font-weight: 950;
+  text-shadow: 0 2px 0 rgba(0,0,0,.32);
+  box-shadow: 0 12px 26px rgba(0,43,91,.23), inset 0 1px 0 rgba(255,255,255,.24);
+}
+.town-premium-currencies-072 b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.town-premium-currencies-072 span { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: #e7bc58; color: #153a5d; }
+.town-premium-currencies-072 i { width: 28px; height: 28px; display: block; box-shadow: 0 0 12px rgba(255,237,136,.44); }
+.town-premium-currencies-072 .coin { border-radius: 50%; background: radial-gradient(circle at 34% 32%, #fff6b2, #edb930 45%, #985b0f 100%); }
+.town-premium-currencies-072 .gem { border-radius: 8px 15px 8px 15px; transform: rotate(45deg) scale(.72); background: linear-gradient(135deg, #effcff, #43d1ff 45%, #2350cd); }
+.town-premium-currencies-072 .wing { border-radius: 50% 18% 50% 18%; background: linear-gradient(135deg, #fff6bf, #fff 34%, #d8b962 70%, #785019); transform: rotate(-18deg); }
+
+.town-premium-stage-072 {
+  position: relative;
+  grid-row: 2;
+  z-index: 8;
+  min-height: 0;
+}
+.town-premium-copy-072 {
+  position: absolute;
+  left: 50%;
+  top: 10%;
+  transform: translateX(-50%);
+  width: min(78vw, 460px);
+  text-align: center;
+  color: #fffbe3;
+  pointer-events: none;
+  text-shadow: 0 3px 12px rgba(6,48,90,.68), 0 0 18px rgba(105,219,255,.42);
+}
+.town-premium-copy-072 span { display: block; font-size: 11px; font-weight: 950; letter-spacing: .22em; color: #e6faff; }
+.town-premium-copy-072 h1 { margin: 4px 0; font-size: clamp(28px, 8vw, 52px); line-height: .98; font-weight: 950; letter-spacing: -.06em; }
+.town-premium-copy-072 p { margin: 0 auto; max-width: 360px; font-size: clamp(11px, 2.8vw, 14px); line-height: 1.38; color: rgba(255,255,255,.92); }
+
+.town-premium-profile-072 {
+  position: absolute;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: 16px;
+  width: min(46vw, 230px);
+  border: 1px solid rgba(255,249,216,.78);
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(223,246,255,.60));
+  box-shadow: var(--soul-072-shadow);
+  backdrop-filter: blur(15px) saturate(1.12);
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+.town-premium-avatar-072 {
+  grid-row: 1 / 3;
+  width: 74px;
+  height: 74px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,244,197,.88);
+  background: rgba(12,67,110,.58) center 30% / cover no-repeat;
+  box-shadow: 0 12px 24px rgba(0,50,100,.24), inset 0 1px 0 rgba(255,255,255,.48);
+}
+.town-premium-avatar-072.class-warrior.gender-male { background-image: url("./assets/ui/portrait-warrior-male.webp"); }
+.town-premium-avatar-072.class-warrior.gender-female { background-image: url("./assets/ui/portrait-warrior-female.webp"); }
+.town-premium-avatar-072.class-taoist.gender-male { background-image: url("./assets/ui/portrait-taoist-male.webp"); }
+.town-premium-avatar-072.class-taoist.gender-female { background-image: url("./assets/ui/portrait-taoist-female.webp"); }
+.town-premium-avatar-072.class-cleric.gender-male { background-image: url("./assets/ui/portrait-cleric-male.webp"); }
+.town-premium-avatar-072.class-cleric.gender-female { background-image: url("./assets/ui/portrait-cleric-female.webp"); }
+.town-premium-identity-072 { min-width: 0; display: grid; gap: 1px; }
+.town-premium-identity-072 span { color: #0a88cf; font-size: 9px; font-weight: 950; letter-spacing: .10em; }
+.town-premium-identity-072 b { color: #123e67; font-size: 18px; line-height: 1.05; font-weight: 950; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.town-premium-identity-072 em { color: rgba(18,58,98,.72); font-size: 11px; font-style: normal; font-weight: 900; }
+.town-premium-bars-072 { grid-column: 2; display: grid; gap: 5px; }
+.town-premium-bars-072 label { display: grid; grid-template-columns: 24px 1fr; align-items: center; gap: 5px; color: #123e67; font-size: 10px; font-weight: 950; }
+.town-premium-bars-072 label span { display: none; }
+.town-premium-bars-072 i { height: 10px; border-radius: 999px; background: rgba(15,70,113,.20); overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,.18); }
+.town-premium-bars-072 em { display: block; height: 100%; border-radius: inherit; }
+.town-premium-bars-072 .hp em { background: linear-gradient(90deg, #ff5f5c, #ff9b89); }
+.town-premium-bars-072 .mp em { background: linear-gradient(90deg, #2fb4ff, #88dcff); }
+
+.town-premium-hotspots-072 {
+  position: absolute;
+  right: max(12px, env(safe-area-inset-right));
+  top: 22%;
+  width: min(42vw, 206px);
+  display: grid;
+  gap: 9px;
+}
+.town-premium-hotspots-072 button {
+  min-height: 54px;
+  border: 1px solid rgba(255,246,211,.84);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(217,243,255,.58));
+  box-shadow: 0 14px 30px rgba(0,45,91,.20), inset 0 1px 0 rgba(255,255,255,.76);
+  color: var(--soul-072-ink);
+  padding: 7px 10px 7px 54px;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px) saturate(1.10);
+}
+.town-premium-hotspots-072 button::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 19px;
+  border: 1px solid rgba(77,182,238,.20);
+  pointer-events: none;
+}
+.town-premium-hotspots-072 i {
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  width: 40px;
+  height: 40px;
+  transform: translateY(-50%);
+  background: center / contain no-repeat;
+  filter: drop-shadow(0 5px 6px rgba(0,48,96,.24));
+}
+.town-premium-hotspots-072 .gate i { background-image: url("./assets/ui/ui-hotspot-gate-069.webp"); }
+.town-premium-hotspots-072 .forge i { background-image: url("./assets/ui/ui-hotspot-forge-069.webp"); }
+.town-premium-hotspots-072 .shop i { background-image: url("./assets/ui/ui-hotspot-shop-069.webp"); }
+.town-premium-hotspots-072 .shrine i { background-image: url("./assets/ui/ui-hotspot-shrine-069.webp"); }
+.town-premium-hotspots-072 .pledge i { background-image: url("./assets/ui/ui-hotspot-pledge-069.webp"); }
+.town-premium-hotspots-072 b { display: block; color: #124469; font-size: 13px; line-height: 1.06; font-weight: 950; letter-spacing: -.04em; }
+.town-premium-hotspots-072 span { display: block; color: rgba(18,58,98,.68); font-size: 10px; font-weight: 900; margin-top: 2px; }
+
+.town-premium-hunt-072 {
+  position: absolute;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: 20px;
+  min-width: min(38vw, 180px);
+  min-height: 58px;
+  padding: 0 18px;
+  border: 1px solid rgba(255,250,214,.95);
+  border-radius: 22px;
+  color: #1c3e5a;
+  font-size: 18px;
+  font-weight: 950;
+  letter-spacing: -.04em;
+  text-shadow: 0 1px 0 rgba(255,255,255,.70);
+  background:
+    radial-gradient(120% 88% at 50% 0%, rgba(255,255,255,.52), transparent 55%),
+    linear-gradient(180deg, #fff2aa, #e6b849 56%, #a0671a);
+  box-shadow: 0 18px 38px rgba(84,54,10,.30), 0 0 0 1px rgba(255,255,255,.42) inset;
+}
+
+.town-premium-bottom-072 {
+  position: relative;
+  z-index: 15;
+  grid-row: 3;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 7px;
+  padding: 8px 4px 4px;
+  border: 1px solid rgba(255,249,216,.78);
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255,255,255,.70), rgba(217,243,255,.56));
+  box-shadow: 0 18px 48px rgba(0,44,98,.22), inset 0 1px 0 rgba(255,255,255,.76);
+  backdrop-filter: blur(16px) saturate(1.15);
+}
+.town-premium-bottom-072 button {
+  min-width: 0;
+  min-height: 62px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,.70);
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255,255,255,.46), transparent 58%),
+    linear-gradient(180deg, rgba(92,190,248,.88), rgba(14,112,205,.84) 54%, rgba(5,67,144,.90));
+  color: #fff;
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  box-shadow: 0 11px 24px rgba(0,53,116,.22), inset 0 1px 0 rgba(255,255,255,.48);
+  text-shadow: 0 2px 10px rgba(0,34,80,.72);
+}
+.town-premium-bottom-072 i {
+  width: 26px;
+  height: 26px;
+  display: block;
+  background: center / contain no-repeat;
+  filter: drop-shadow(0 3px 5px rgba(0,38,83,.28));
+}
+.town-premium-bottom-072 .hunt { background-image: url("./assets/ui/ui-hotspot-gate-069.webp"); }
+.town-premium-bottom-072 .bag { background-image: url("./assets/items/village-contract-box.webp"); }
+.town-premium-bottom-072 .skill { background-image: url("./assets/effects/holy-nova.webp"); }
+.town-premium-bottom-072 .card { background-image: url("./assets/cards/card-warrior.webp"); }
+.town-premium-bottom-072 .more { background-image: url("./assets/ui/ui-hotspot-shrine-069.webp"); }
+.town-premium-bottom-072 b { font-size: 11px; line-height: 1; font-weight: 950; letter-spacing: -.04em; }
+
+.town-screen-072 button { touch-action: manipulation; }
+.town-screen-072 button:active,
+.login-screen-072 button:active {
+  transform: translateY(1px) scale(.985);
+  filter: brightness(1.07) saturate(1.05);
+}
+
+.town-screen-072 .town-drawer {
+  position: fixed !important;
+  left: max(10px, env(safe-area-inset-left)) !important;
+  right: max(10px, env(safe-area-inset-right)) !important;
+  bottom: calc(98px + env(safe-area-inset-bottom)) !important;
+  top: auto !important;
+  z-index: 130 !important;
+  width: auto !important;
+  max-width: 560px !important;
+  max-height: min(74dvh, 720px) !important;
+  margin: 0 auto !important;
+  border-radius: 28px !important;
+  border: 1px solid rgba(255,249,216,.82) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(226,247,255,.88)) !important;
+  color: var(--soul-072-ink) !important;
+  box-shadow: 0 28px 74px rgba(0,35,82,.38), inset 0 1px 0 rgba(255,255,255,.92) !important;
+  overflow: hidden !important;
+}
+.town-screen-072 .town-drawer.hidden { display: none !important; }
+.town-screen-072 .town-drawer-head { background: rgba(255,255,255,.62) !important; border-bottom: 1px solid rgba(42,128,190,.16) !important; }
+.town-screen-072 .town-drawer b,
+.town-screen-072 .town-drawer h2,
+.town-screen-072 .town-drawer h3,
+.town-screen-072 .town-drawer-head span { color: #123e67 !important; text-shadow: 0 1px 0 rgba(255,255,255,.86) !important; }
+.town-screen-072 .town-drawer p,
+.town-screen-072 .town-drawer em,
+.town-screen-072 .zone-card span,
+.town-screen-072 .content-card span { color: rgba(18,58,98,.74) !important; }
+.town-screen-072 .town-drawer-body { max-height: calc(min(74dvh, 720px) - 72px) !important; overflow: auto !important; }
+.town-screen-072 .zone-card,
+.town-screen-072 .content-card,
+.town-screen-072 .item-slot,
+.town-screen-072 .card-slot,
+.town-screen-072 .equipment-card,
+.town-screen-072 .quest-card,
+.town-screen-072 .shop-card,
+.town-screen-072 .skill-card,
+.town-screen-072 .account-panel {
+  background-color: rgba(255,255,255,.74) !important;
+  color: #123e67 !important;
+  border-color: rgba(25,111,178,.18) !important;
+}
+
+@media (min-width: 720px) {
+  .town-premium-lobby-072 {
+    left: 50%;
+    width: min(100vw, 920px);
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 560px) {
+  .town-premium-lobby-072 { grid-template-rows: 76px 1fr 88px; padding-left: max(7px, env(safe-area-inset-left)); padding-right: max(7px, env(safe-area-inset-right)); }
+  .town-premium-header-072 { grid-template-columns: 42px 1fr 42px 42px 42px; gap: 5px; padding: 3px 4px 0; }
+  .town-premium-icon-072 { width: 42px; height: 42px; border-radius: 14px; }
+  .town-premium-logo-072 b { font-size: 21px; }
+  .town-premium-logo-072 em { font-size: 8px; }
+  .town-premium-logo-072 i { width: 38px; height: 30px; }
+  .town-premium-currencies-072 { top: calc(max(10px, env(safe-area-inset-top)) + 76px); left: 26%; right: 8px; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .town-premium-currencies-072 button { min-height: 32px; grid-template-columns: 24px minmax(0,1fr) 18px; padding: 3px 6px 3px 4px; }
+  .town-premium-currencies-072 button:nth-child(3) { grid-column: 1 / 3; justify-self: end; width: min(158px, 44vw); }
+  .town-premium-currencies-072 i { width: 24px; height: 24px; }
+  .town-premium-currencies-072 b { font-size: 12px; }
+  .town-premium-copy-072 { top: 8%; width: 86vw; }
+  .town-premium-copy-072 h1 { font-size: clamp(28px, 10vw, 42px); }
+  .town-premium-copy-072 p { display: none; }
+  .town-premium-profile-072 { bottom: 16px; width: min(58vw, 222px); grid-template-columns: 62px 1fr; border-radius: 21px; padding: 8px; }
+  .town-premium-avatar-072 { width: 62px; height: 62px; border-radius: 17px; }
+  .town-premium-identity-072 b { font-size: 16px; }
+  .town-premium-identity-072 em { font-size: 10px; }
+  .town-premium-bars-072 label { grid-template-columns: 22px 1fr; }
+  .town-premium-hotspots-072 { right: 9px; top: 24%; width: min(44vw, 172px); gap: 7px; }
+  .town-premium-hotspots-072 button { min-height: 48px; border-radius: 17px; padding: 6px 8px 6px 47px; }
+  .town-premium-hotspots-072 i { width: 35px; height: 35px; left: 6px; }
+  .town-premium-hotspots-072 b { font-size: 12px; }
+  .town-premium-hotspots-072 span { font-size: 9px; }
+  .town-premium-hunt-072 { right: 10px; bottom: 18px; min-width: min(39vw, 150px); min-height: 52px; border-radius: 19px; font-size: 16px; }
+  .town-premium-bottom-072 { min-height: 76px; padding: 7px 5px 4px; border-radius: 25px; gap: 5px; }
+  .town-premium-bottom-072 button { min-height: 58px; border-radius: 18px; }
+  .town-premium-bottom-072 i { width: 23px; height: 23px; }
+  .town-premium-bottom-072 b { font-size: 10px; }
+  .town-screen-072 .town-drawer { bottom: calc(94px + env(safe-area-inset-bottom)) !important; max-height: min(72dvh, 650px) !important; }
+}
+
+@media (max-width: 390px) {
+  .town-premium-hotspots-072 { width: 43vw; }
+  .town-premium-hotspots-072 button { min-height: 44px; padding-left: 42px; }
+  .town-premium-hotspots-072 i { width: 32px; height: 32px; }
+  .town-premium-hotspots-072 span { display: none; }
+  .town-premium-profile-072 { width: min(60vw, 210px); }
+  .town-premium-hunt-072 { min-width: 132px; }
+}
+
+@media (max-height: 720px) {
+  .town-premium-copy-072 { top: 4%; }
+  .town-premium-hotspots-072 { top: 20%; gap: 6px; }
+  .town-premium-hotspots-072 button { min-height: 42px; }
+  .town-premium-hotspots-072 button:nth-child(n+5) { display: none; }
+  .town-premium-profile-072 { bottom: 8px; }
+  .town-premium-hunt-072 { bottom: 8px; }
+}

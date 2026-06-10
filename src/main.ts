@@ -22,7 +22,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '0.71.0';
+const ALPHA_VERSION = '0.72.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -359,7 +359,7 @@ function bindLoginFlow() {
     updateWorldSummary();
   });
 
-  connectCharacterBtn.addEventListener('click', () => {
+  connectCharacterBtn.addEventListener('click', async () => {
     const selected = getSelectedCharacter();
     if (!selected) {
       showToast('접속할 캐릭터를 선택하세요.');
@@ -373,8 +373,8 @@ function bindLoginFlow() {
     saveService.saveLocal(pendingSave);
     renderCharacterSlots();
     updateWorldSummary();
-    loginStatus.textContent = `${pendingSave.name} 캐릭터가 준비되었습니다.`;
-    goStep('town');
+    loginStatus.textContent = `${pendingSave.name} 캐릭터로 루미나 마을에 접속합니다.`;
+    await safeEnterTownFromLogin(pendingSave, '루미나 마을 접속 중');
   });
 
   newCharacterBtn.addEventListener('click', () => {
@@ -427,7 +427,7 @@ function bindLoginFlow() {
 
   nameInput.addEventListener('input', updateWorldSummary);
 
-  characterNextBtn.addEventListener('click', () => {
+  characterNextBtn.addEventListener('click', async () => {
     if (characterRoster.length >= MAX_CHARACTER_SLOTS) {
       showToast('캐릭터는 최대 4개까지 생성할 수 있습니다.');
       return;
@@ -444,9 +444,9 @@ function bindLoginFlow() {
     creatingCharacter = false;
     renderCharacterSummary();
     updateWorldSummary();
-    loginStatus.textContent = `${prepared.name} 캐릭터가 생성되었습니다.`;
+    loginStatus.textContent = `${prepared.name} 캐릭터로 루미나 마을에 접속합니다.`;
     showToast(`${prepared.name} 캐릭터 생성 완료`);
-    goStep('town');
+    await safeEnterTownFromLogin(prepared, '루미나 마을 접속 중');
   });
 
   enterTownBtn.addEventListener('click', async () => {
@@ -692,7 +692,7 @@ async function safeEnterTownFromLogin(save: PlayerSave, label = '루미나 마�
     titleScreen.classList.add('hidden');
     loginScreen.classList.remove('hidden');
     loginScreen.setAttribute('aria-hidden', 'false');
-    goStep('town');
+    goStep('character');
     const message = error instanceof Error ? error.message : '알 수 없는 오류';
     loginStatus.textContent = `마을 입장 실패: ${message}`;
     showToast('마을 입장에 실패했습니다. 다시 눌러주세요.');
