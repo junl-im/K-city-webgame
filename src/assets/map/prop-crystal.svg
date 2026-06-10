@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 96">
-  <ellipse cx="40" cy="83" rx="24" ry="10" fill="#000" opacity=".28"/>
+  <ellipse cx="40" cy="83" rx="24" ry="10" fill="#000" opacity=".16"/>
   <path d="M40 4 58 37 47 83H30L20 36Z" fill="#61d7e7" stroke="#2b3356" stroke-width="3"/>
   <path d="M40 4v79l18-46Z" fill="#816ee1" opacity=".58"/>
   <path d="M40 4 31 38l9 45 7-46Z" fill="#d5ffff" opacity=".55"/>

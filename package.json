@@ -1,11 +1,11 @@
 {
   "name": "soul-online-alpha",
-  "version": "0.73.0",
+  "version": "0.77.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "tsc --noEmit && vite build",
+    "build": "node scripts/cleanupLegacySvg.mjs && tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {

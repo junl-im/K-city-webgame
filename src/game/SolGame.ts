@@ -956,6 +956,42 @@ export class SolGame {
     this.addAlpha063AssetUpgradeFieldPass();
     this.addAlpha066AssetRefinementFieldPass();
     this.addAlpha069PremiumVisualFieldPass();
+    this.addAlpha076ObjectBlendFieldPass();
+    this.addAlpha077RasterObjectPolishPass();
+  }
+
+
+  private addAlpha076ObjectBlendFieldPass() {
+    const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest'));
+    const order = zone?.order || 1;
+    const accent = order >= 70 ? 0xc7b0ff : order >= 35 ? 0x8fe8ff : 0xb9ffd6;
+    const wash = new Graphics();
+    for (let i = 0; i < 9; i += 1) {
+      const x = 9 + ((i * 3.9 + order * 0.13) % 27);
+      const y = 18 + ((i * 2.7 + order * 0.09) % 10);
+      if (!this.isWalkable(x, y)) continue;
+      const pos = isoToScreen(x, y);
+      wash.ellipse(pos.x, pos.y + 13, 30 + (i % 3) * 8, 7 + (i % 2) * 2).fill({ color: accent, alpha: 0.018 });
+    }
+    this.ambientLayer.addChild(wash);
+  }
+
+
+  private addAlpha077RasterObjectPolishPass() {
+    // Raster-only visual pass: softens asset edges and anchors props to the isometric ground.
+    const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest'));
+    const order = zone?.order || 1;
+    const accent = order >= 70 ? 0xbda6ff : order >= 35 ? 0x8fe8ff : 0xa6f3c4;
+    const veil = new Graphics();
+    for (let i = 0; i < 14; i += 1) {
+      const x = 7 + ((i * 3.2 + order * 0.19) % 31);
+      const y = 16 + ((i * 2.15 + order * 0.11) % 12);
+      if (!this.isWalkable(x, y)) continue;
+      const pos = isoToScreen(x, y);
+      veil.ellipse(pos.x, pos.y + 15, 34 + (i % 4) * 7, 7 + (i % 3) * 2).fill({ color: accent, alpha: 0.014 });
+      if (i % 3 === 0) veil.ellipse(pos.x - 4, pos.y + 9, 18, 5).fill({ color: 0xffffff, alpha: 0.012 });
+    }
+    this.ambientLayer.addChild(veil);
   }
 
 
@@ -2152,23 +2188,36 @@ export class SolGame {
   private addProp(textureKey: TextureKey, x: number, y: number, scale: number) {
     const sprite = new Sprite(this.mustTexture(textureKey));
     const pos = isoToScreen(x, y);
-    const isOrganic = String(textureKey).includes('Tree') || String(textureKey).includes('Bush') || String(textureKey).includes('Mushroom') || String(textureKey).includes('Stump') || String(textureKey).includes('Flower');
-    const isTreasure = String(textureKey).includes('Chest') || String(textureKey).includes('Rune') || String(textureKey).includes('Ore') || String(textureKey).includes('Crystal') || String(textureKey).includes('Brazier') || String(textureKey).includes('Altar') || String(textureKey).includes('Lantern');
+    const keyName = String(textureKey);
+    const flatDecal = new Set([
+      'propManaFog', 'propMoonPuddle', 'propRuneFloor', 'propMarbleCrack',
+      'propBattleScar', 'propWaterReflection', 'propCandleCircle'
+    ]);
+    if (flatDecal.has(keyName)) {
+      sprite.anchor.set(0.5, 0.55);
+      sprite.scale.set(scale * 0.74);
+      sprite.position.set(pos.x, pos.y + 12);
+      sprite.alpha = keyName === 'propManaFog' ? 0.42 : 0.58;
+      this.ambientLayer.addChild(sprite);
+      return;
+    }
+    const isOrganic = keyName.includes('Tree') || keyName.includes('Bush') || keyName.includes('Mushroom') || keyName.includes('Stump') || keyName.includes('Flower');
+    const isTreasure = keyName.includes('Chest') || keyName.includes('Rune') || keyName.includes('Ore') || keyName.includes('Crystal') || keyName.includes('Brazier') || keyName.includes('Altar') || keyName.includes('Lantern');
     sprite.anchor.set(0.5, 0.92);
-    sprite.scale.set(scale * (isOrganic ? 1.08 : 1));
-    sprite.position.set(pos.x, pos.y + 14);
-    sprite.alpha = isOrganic ? 0.96 : 0.98;
+    sprite.scale.set(scale * (isOrganic ? 1.02 : 0.96));
+    sprite.position.set(pos.x, pos.y + 15);
+    sprite.alpha = isOrganic ? 0.95 : 0.96;
     if (isTreasure) sprite.tint = 0xfff4c6;
 
     const shadow = new Graphics()
       .ellipse(pos.x + 4, pos.y + 18, (isOrganic ? 42 : 34) * scale, (isOrganic ? 12 : 10) * scale)
-      .fill({ color: 0x000000, alpha: isOrganic ? 0.18 : 0.14 });
+      .fill({ color: 0x000000, alpha: isOrganic ? 0.12 : 0.095 });
     this.ambientLayer.addChild(shadow);
 
     if (isTreasure) {
       const glow = new Graphics()
         .ellipse(pos.x, pos.y + 5, 28 * scale, 14 * scale)
-        .fill({ color: 0xe2b95f, alpha: 0.055 });
+        .fill({ color: 0xe2b95f, alpha: 0.045 });
       this.ambientLayer.addChild(glow);
     }
 

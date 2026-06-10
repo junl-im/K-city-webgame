@@ -6,7 +6,7 @@
   </defs>
   <path d="M64 4 124 34 64 66 4 34Z" fill="url(#top)" stroke="#171a35" stroke-width="1.7"/>
   <path d="M4 34 64 66 64 55 4 24Z" fill="#17132c" opacity=".78"/>
-  <path d="M124 34 64 66 64 55 124 24Z" fill="#0d1024" opacity=".72"/>
+  <path d="M124 34 64 66 64 55 124 24Z" fill="#102a42" opacity=".14"/>
   <path d="M64 4 89 34 64 66 38 34Z" fill="url(#shine)"/>
   <path d="M28 35 44 23 61 32 47 45Z" fill="#bdf9ff" opacity=".16"/>
   <path d="M77 24 98 33 82 48 61 38Z" fill="#9777ff" opacity=".18"/>

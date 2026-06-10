@@ -22,7 +22,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '0.72.0';
+const ALPHA_VERSION = '0.77.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -148,6 +148,7 @@ async function boot() {
 
   bindTitleFlow();
   bindLoginFlow();
+  bindTownSafeRouting();
   bindActions();
   bindJoystick();
   bindSheet();
@@ -725,6 +726,55 @@ function setLoginButtons(enabled: boolean) {
   guestLoginBtn.disabled = !enabled;
   googleLoginBtn.disabled = !enabled;
   localLoginBtn.disabled = !enabled;
+}
+
+
+function bindTownSafeRouting() {
+  townScreen.addEventListener('click', (event) => {
+    if (!document.body.classList.contains('town-active')) return;
+    const target = event.target as HTMLElement;
+    const button = target.closest<HTMLButtonElement>('button');
+    if (!button || !townScreen.contains(button) || button.disabled) return;
+    if (sceneTransition.classList.contains('show')) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    const zoneId = button.dataset.townZoneEnter || button.dataset.zoneId || '';
+    if (zoneId) {
+      event.preventDefault();
+      event.stopPropagation();
+      void routeTownZoneEnter(zoneId);
+      return;
+    }
+
+    const content = button.dataset.townContent || button.dataset.townMoreContent || '';
+    if (content) {
+      event.preventDefault();
+      event.stopPropagation();
+      openTownContent(content as TownContentId);
+    }
+  }, true);
+}
+
+async function routeTownZoneEnter(zoneId: string) {
+  if (!pendingSave) pendingSave = getSelectedCharacter();
+  if (!pendingSave) {
+    showToast('사냥터에 입장할 캐릭터를 선택하세요.');
+    goStep('character');
+    return;
+  }
+  const save = saveService.validateSave(pendingSave);
+  pendingSave = save;
+  if (!isZoneUnlocked(save, zoneId)) {
+    showToast('아직 해금되지 않은 사냥터입니다. 스토리 또는 레벨 조건을 확인하세요.');
+    updateZoneLocks(save);
+    openTownContent('hunt');
+    return;
+  }
+  closeTownContentPanel();
+  await startField(save, zoneId);
 }
 
 function goStep(step: FlowStep) {
@@ -1876,12 +1926,11 @@ function updateTownLobby070(save: PlayerSave) {
     setClassPortraitArt(node, save.classId, save.gender || 'male');
   });
 
-  const questList = document.querySelector<HTMLElement>('[data-town-lobby-quest-list]');
-  if (questList) {
-    const story = currentStoryQuest(save);
-    const progress = story ? storyQuestProgress(save, story) : 0;
-    const recommended = story ? recommendedZoneForQuest(save, story) : zones[0];
-    const daily = dailyQuests[0];
+  const story = currentStoryQuest(save);
+  const progress = story ? storyQuestProgress(save, story) : 0;
+  const recommended = story ? recommendedZoneForQuest(save, story) : zones[0];
+  const daily = dailyQuests[0];
+  document.querySelectorAll<HTMLElement>('[data-town-lobby-quest-list]').forEach((questList) => {
     questList.innerHTML = `
       <button data-town-content="story" type="button"><b>${story ? escapeHtml(story.title) : '메인 스토리'}</b><span>${story ? `${Math.min(progress, story.target)}/${story.target} · ${escapeHtml(story.goalText)}` : '루미나 등불을 확인하세요.'}</span></button>
       <button data-town-content="quests" type="button"><b>${escapeHtml(daily?.title || '일일 의뢰')}</b><span>${escapeHtml(daily?.description || '오늘의 사냥 보상을 챙기세요.')}</span></button>
@@ -1903,27 +1952,25 @@ function updateTownLobby070(save: PlayerSave) {
         await startField(pendingSave, button.dataset.zoneId || 'slime-forest');
       });
     });
-  }
+  });
 
-  const bag = document.querySelector<HTMLElement>('[data-town-lobby-bag]');
-  const bagCount = document.querySelector<HTMLElement>('[data-town-lobby-bag-count]');
-  if (bag) {
-    const described = save.inventory.flatMap((instance) => {
-      const def = items.find((entry) => entry.id === instance.itemId);
-      return def ? [{ def, instance }] : [];
-    });
-    const sorted = sortedInventoryEntries(save, described).slice(0, 24);
-    const cells = sorted.map(({ def, instance }) => {
-      const equipped = (def.type === 'weapon' || def.type === 'armor' || def.type === 'relic') && save.equipment?.[def.type as EquipmentSlot] === instance.uid;
-      return `<button class="town-lobby-item-070 rarity-${def.rarity.toLowerCase()} ${equipped ? 'equipped' : ''}" data-town-content="inventory" type="button" title="${escapeHtml(def.name)}"><img src="${itemArtUrl(def)}" alt=""/><span>${instance.count > 1 ? formatNumber(instance.count) : ''}</span></button>`;
-    });
-    while (cells.length < 24) cells.push('<button class="town-lobby-item-070 empty" data-town-content="inventory" type="button" aria-label="빈 슬롯"></button>');
+  const described = save.inventory.flatMap((instance) => {
+    const def = items.find((entry) => entry.id === instance.itemId);
+    return def ? [{ def, instance }] : [];
+  });
+  const sorted = sortedInventoryEntries(save, described).slice(0, 24);
+  const cells = sorted.map(({ def, instance }) => {
+    const equipped = (def.type === 'weapon' || def.type === 'armor' || def.type === 'relic') && save.equipment?.[def.type as EquipmentSlot] === instance.uid;
+    return `<button class="town-lobby-item-070 rarity-${def.rarity.toLowerCase()} ${equipped ? 'equipped' : ''}" data-town-content="inventory" type="button" title="${escapeHtml(def.name)}"><img src="${itemArtUrl(def)}" alt=""/><span>${instance.count > 1 ? formatNumber(instance.count) : ''}</span></button>`;
+  });
+  while (cells.length < 24) cells.push('<button class="town-lobby-item-070 empty" data-town-content="inventory" type="button" aria-label="빈 슬롯"></button>');
+  document.querySelectorAll<HTMLElement>('[data-town-lobby-bag]').forEach((bag) => {
     bag.innerHTML = cells.join('');
     bag.querySelectorAll<HTMLButtonElement>('[data-town-content]').forEach((button) => {
       button.addEventListener('click', () => openTownContent((button.dataset.townContent || 'inventory') as TownContentId));
     });
-  }
-  if (bagCount) bagCount.textContent = `${save.inventory.length}/64`;
+  });
+  document.querySelectorAll<HTMLElement>('[data-town-lobby-bag-count]').forEach((bagCount) => { bagCount.textContent = `${save.inventory.length}/64`; });
 }
 
 
@@ -1998,6 +2045,7 @@ function openTownContent(content: TownContentId) {
   activeTownContent = content;
   townContentOpen = true;
   document.body.classList.add('town-drawer-open');
+  townScreen.classList.add('town-drawer-open');
   townContentPanel.classList.remove('hidden');
   townContentPanel.setAttribute('aria-hidden', 'false');
   syncTownMenuState();
@@ -2007,6 +2055,7 @@ function openTownContent(content: TownContentId) {
 function closeTownContentPanel() {
   townContentOpen = false;
   document.body.classList.remove('town-drawer-open');
+  townScreen.classList.remove('town-drawer-open');
   townContentPanel.classList.add('hidden');
   townContentPanel.setAttribute('aria-hidden', 'true');
   syncTownMenuState();
