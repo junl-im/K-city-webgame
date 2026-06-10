@@ -172,7 +172,7 @@ const infernusZoneIds = new Set([
 
 
 const FIELD_ZOOM = 0.78;
-const PLAYER_VISUAL_SCALE = 0.335;
+const PLAYER_VISUAL_SCALE = 0.355;
 const PLAYER_SHADOW_SCALE = 0.72;
 const MOB_VISUAL_SCALE: Record<MonsterId, number> = {
   slime: 0.295,
@@ -881,7 +881,7 @@ export class SolGame {
   private requiredTextureKeys(): TextureKey[] {
     const keys = new Set<TextureKey>([
       'tileGrass', 'tileDirt', 'tileMoss', 'tileStone', 'tileCrystal', 'tileWater', 'tileCliff', 'tilePortal', 'tileInfernus',
-      'propTree', 'propCrystal', 'propRock', 'propRuin', 'propBush', 'propMushroom', 'propBanner', 'propBones', 'propOre', 'propRuneStone', 'propStump', 'propGrassClump', 'propBrokenCart', 'propAncientGate', 'propBloodBanner', 'propFlowerPatch', 'propRoadSign', 'propCrystalBrazier', 'propRiftAltar', 'propCampLantern', 'propStoneSteps', 'propPetalTree', 'propMarketCrate', 'propSoulFlowers', 'propHeroStatue', 'propBossTotem', 'propWaterReflection', 'propPathTorch', 'propSilkBanner', 'propMoonPuddle', 'propRuneFloor', 'propAncientRoot', 'propBattleScar', 'propHoloBanner', 'propBossGate', 'propLanternArch', 'propTreasureGlow', 'propManaFog', 'propStoneLamp',
+      'propTree', 'propCrystal', 'propRock', 'propRuin', 'propBush', 'propMushroom', 'propBanner', 'propBones', 'propOre', 'propRuneStone', 'propStump', 'propGrassClump', 'propBrokenCart', 'propAncientGate', 'propBloodBanner', 'propFlowerPatch', 'propRoadSign', 'propCrystalBrazier', 'propRiftAltar', 'propCampLantern', 'propStoneSteps', 'propPetalTree', 'propMarketCrate', 'propSoulFlowers', 'propHeroStatue', 'propBossTotem', 'propWaterReflection', 'propPathTorch', 'propSilkBanner', 'propMoonPuddle', 'propRuneFloor', 'propAncientRoot', 'propBattleScar', 'propHoloBanner', 'propBossGate', 'propLanternArch', 'propTreasureGlow', 'propManaFog', 'propStoneLamp', 'propRoyalArch', 'propGoldWarBanner', 'propCandleCircle', 'propMarbleCrack', 'propSoulFountain', 'propHuntMarker',
       'infernusRock', 'infernusAltar', 'infernusBrasero', 'infernusHellRocks', 'infernusSkull', 'infernusBurnerColumn', 'infernusColumn', 'infernusPillar',
       'buildingHall', 'buildingForge', 'buildingStorage', 'buildingShop',
       'propChest01', 'propChest02', 'propChest03', 'propChest04', 'propChest05',
@@ -948,6 +948,8 @@ export class SolGame {
     this.addAlpha056ImmersionFieldPass();
     this.addAlpha057VisualSetDressingPass();
     this.addAlpha058ImmersiveSetDressingPass();
+    this.addAlpha059DeepPolishFieldPass();
+    this.addAlpha062ReferenceFieldPass();
   }
 
 
@@ -1380,6 +1382,124 @@ export class SolGame {
       }
     }
     this.ambientLayer.addChild(layer);
+  }
+
+
+
+  private addAlpha059DeepPolishFieldPass() {
+    const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest'));
+    const order = zone?.order || 1;
+    const bossLike = Boolean(zone?.monsterIds.some((id) => id === 'fieldBoss' || id === 'dragon' || id === 'riftBeast'));
+    const townLike = (zone?.id || '').includes('market') || (zone?.id || '').includes('yard') || order < 28;
+    const table: Array<[TextureKey, number, number, number]> = bossLike
+      ? [
+          ['propRoyalArch' as TextureKey, 14.2, 22.6, 0.38],
+          ['propGoldWarBanner' as TextureKey, 20.2, 20.6, 0.35],
+          ['propCandleCircle' as TextureKey, 26.6, 21.2, 0.42],
+          ['propMarbleCrack' as TextureKey, 33.0, 23.6, 0.48]
+        ]
+      : townLike
+        ? [
+            ['propSoulFountain' as TextureKey, 11.2, 23.6, 0.34],
+            ['propHuntMarker' as TextureKey, 18.4, 22.8, 0.30],
+            ['propCandleCircle' as TextureKey, 25.2, 24.0, 0.36],
+            ['propGoldWarBanner' as TextureKey, 32.4, 19.6, 0.30]
+          ]
+        : [
+            ['propHuntMarker' as TextureKey, 12.0, 23.4, 0.32],
+            ['propMarbleCrack' as TextureKey, 19.4, 21.8, 0.44],
+            ['propSoulFountain' as TextureKey, 27.0, 23.0, 0.34],
+            ['propRoyalArch' as TextureKey, 35.0, 20.4, 0.36]
+          ];
+    for (const [key, x, y, scale] of table) {
+      if (this.isWalkable(x, y)) this.addProp(key, x, y, scale);
+    }
+    this.addAlpha059PremiumGroundWash(order, bossLike);
+  }
+
+  private addAlpha059PremiumGroundWash(order: number, bossLike: boolean) {
+    const color = bossLike ? 0xffd15f : order >= 80 ? 0xb794ff : order >= 45 ? 0x72e7ff : 0x8fffd2;
+    const layer = new Graphics();
+    for (let i = 0; i < 16; i += 1) {
+      const x = 7.8 + ((i * 2.35 + order * 0.17) % 30);
+      const y = 17.2 + ((i * 3.45 + order * 0.13) % 11.5);
+      if (!this.isWalkable(x, y)) continue;
+      const pos = isoToScreen(x, y);
+      layer.ellipse(pos.x, pos.y + 11, 24 + (i % 4) * 10, 5 + (i % 3) * 2).fill({ color, alpha: bossLike ? 0.04 : 0.026 });
+      if (i % 5 === 2) {
+        layer.circle(pos.x + 14, pos.y - 24, 2.2).fill({ color: 0xffffff, alpha: 0.1 });
+        layer.moveTo(pos.x + 14, pos.y - 20).lineTo(pos.x + 2, pos.y + 6).stroke({ color: 0xffffff, alpha: 0.032, width: 1.2 });
+      }
+    }
+    this.ambientLayer.addChild(layer);
+  }
+
+
+  private addAlpha062ReferenceFieldPass() {
+    const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest')) || zones[0];
+    const order = zone.order || 1;
+    const bossLike = zone.monsterIds.some((id) => id === 'fieldBoss' || id === 'dragon' || id === 'riftBeast');
+    const isEarlyAdventure = order < 30;
+    const primary = bossLike ? 0xffd15f : order >= 80 ? 0xb794ff : order >= 45 ? 0x72e7ff : 0x79d9ff;
+    const secondary = isEarlyAdventure ? 0x8fffd2 : bossLike ? 0xff8d5d : 0xffffff;
+    const layer = new Graphics();
+
+    // Reference-grade anime field mood: soft sky reflection, royal path trims, and reward-like sparkles.
+    for (let i = 0; i < 22; i += 1) {
+      const x = 6.5 + ((i * 2.73 + order * 0.31) % 32);
+      const y = 15.0 + ((i * 4.17 + order * 0.19) % 16);
+      if (!this.isWalkable(x, y)) continue;
+      const pos = isoToScreen(x, y);
+      const wide = 34 + (i % 5) * 11;
+      const tall = 7 + (i % 4) * 2;
+      layer.ellipse(pos.x, pos.y + 12, wide, tall).fill({ color: primary, alpha: bossLike ? 0.046 : 0.032 });
+      if (i % 4 === 0) {
+        layer.circle(pos.x + 16, pos.y - 24, 2.4 + (i % 3) * 0.7).fill({ color: 0xffffff, alpha: 0.14 });
+        layer.moveTo(pos.x + 16, pos.y - 18).lineTo(pos.x - 2, pos.y + 6).stroke({ color: 0xffffff, alpha: 0.038, width: 1.25 });
+      }
+      if (i % 6 === 3) {
+        layer.moveTo(pos.x - 10, pos.y + 2).lineTo(pos.x, pos.y - 7).lineTo(pos.x + 10, pos.y + 2).lineTo(pos.x, pos.y + 10).closePath()
+          .stroke({ color: secondary, alpha: 0.12, width: 1.4 });
+      }
+    }
+
+    const entry = zone.entry || zones[0].entry;
+    const entryPos = isoToScreen(entry.x, entry.y);
+    layer
+      .ellipse(entryPos.x, entryPos.y + 10, 116, 32).fill({ color: 0xffffff, alpha: 0.036 })
+      .ellipse(entryPos.x, entryPos.y + 10, 88, 22).stroke({ color: 0xffe5a2, alpha: 0.16, width: 2.4 })
+      .ellipse(entryPos.x, entryPos.y + 10, 58, 15).stroke({ color: primary, alpha: 0.18, width: 1.8 });
+
+    const targetPocket = this.spawnCandidatesForZone(zone.id).slice(-1)[0];
+    if (targetPocket) {
+      const bossPos = isoToScreen(targetPocket.x, targetPocket.y);
+      layer
+        .ellipse(bossPos.x, bossPos.y + 12, bossLike ? 150 : 108, bossLike ? 44 : 30).fill({ color: primary, alpha: bossLike ? 0.058 : 0.035 })
+        .ellipse(bossPos.x, bossPos.y + 10, bossLike ? 116 : 78, bossLike ? 32 : 22).stroke({ color: 0xffffff, alpha: bossLike ? 0.14 : 0.08, width: 2 });
+    }
+
+    this.ambientLayer.addChild(layer);
+    this.addAlpha062PathRibbon(zone.id, primary);
+  }
+
+  private addAlpha062PathRibbon(zoneId: string, color: number) {
+    const seeds = this.spawnCandidatesForZone(zoneId).slice(0, 8);
+    if (seeds.length < 2) return;
+    const ribbon = new Graphics();
+    for (let i = 0; i < seeds.length - 1; i += 1) {
+      const start = isoToScreen(seeds[i].x, seeds[i].y);
+      const end = isoToScreen(seeds[i + 1].x, seeds[i + 1].y);
+      const midX = (start.x + end.x) / 2;
+      const midY = (start.y + end.y) / 2 - 10;
+      ribbon
+        .moveTo(start.x, start.y + 10)
+        .quadraticCurveTo(midX, midY, end.x, end.y + 10)
+        .stroke({ color: 0xffffff, alpha: 0.035, width: 5 })
+        .moveTo(start.x, start.y + 10)
+        .quadraticCurveTo(midX, midY, end.x, end.y + 10)
+        .stroke({ color, alpha: 0.045, width: 2 });
+    }
+    this.ambientLayer.addChild(ribbon);
   }
 
   private addAlpha056CinematicGround(order: number, bossLike: boolean) {
@@ -2064,29 +2184,36 @@ export class SolGame {
     const klass = classes[this.save.classId];
     this.playerRoot.removeChildren();
 
-    this.playerShadow = new Graphics().ellipse(0, 0, 18 * PLAYER_SHADOW_SCALE, 6 * PLAYER_SHADOW_SCALE).fill({ color: 0x000000, alpha: 0.28 });
-    this.playerAnimator = new SpriteSheetAnimator(this.mustTexture(this.classSheetTextureKey()), HUMANOID_SHEET_META, 0.94);
+    const pedestal = new Graphics()
+      .ellipse(0, 1, 28, 9).fill({ color: 0x79d9ff, alpha: 0.075 })
+      .ellipse(0, 1, 31, 10).stroke({ color: 0xffe5a2, alpha: 0.22, width: 1.8 })
+      .ellipse(0, 1, 21, 6).stroke({ color: klass.accent, alpha: 0.22, width: 1.2 });
+    this.playerShadow = new Graphics().ellipse(0, 2, 19 * PLAYER_SHADOW_SCALE, 6.5 * PLAYER_SHADOW_SCALE).fill({ color: 0x000000, alpha: 0.24 });
+    this.playerAnimator = new SpriteSheetAnimator(this.mustTexture(this.classSheetTextureKey()), HUMANOID_SHEET_META, 0.98);
     this.playerBody = this.playerAnimator.sprite;
     this.playerBody.scale.set(PLAYER_VISUAL_SCALE);
+    this.playerBody.position.y = -2;
 
     const aura = new Graphics()
-      .circle(0, -18, 15)
-      .stroke({ color: klass.accent, alpha: 0.24, width: 1.5 })
-      .circle(0, -18, 10)
-      .stroke({ color: 0xffffff, alpha: 0.08, width: 1 });
+      .circle(0, -20, 18)
+      .stroke({ color: klass.accent, alpha: 0.28, width: 1.7 })
+      .circle(0, -20, 11)
+      .stroke({ color: 0xffffff, alpha: 0.12, width: 1 })
+      .moveTo(-20, -20).lineTo(-12, -20).stroke({ color: 0xffe5a2, alpha: 0.26, width: 1.4 })
+      .moveTo(12, -20).lineTo(20, -20).stroke({ color: 0xffe5a2, alpha: 0.26, width: 1.4 });
 
     const name = new Text({
       text: this.save.name,
       style: {
-        fill: 0xf5f1e8,
+        fill: 0xffffff,
         fontFamily: 'Arial',
         fontSize: 11,
-        fontWeight: '800',
-        stroke: { color: 0x111111, width: 3 }
+        fontWeight: '900',
+        stroke: { color: 0x0b315f, width: 4 }
       }
     });
     name.anchor.set(0.5, 1);
-    name.position.y = -43;
+    name.position.y = -47;
 
     const badge = new Text({
       text: `${klass.name}`,
@@ -2095,13 +2222,13 @@ export class SolGame {
         fontFamily: 'Arial',
         fontSize: 8,
         fontWeight: '900',
-        stroke: { color: 0x111111, width: 3 }
+        stroke: { color: 0x0b315f, width: 3 }
       }
     });
     badge.anchor.set(0.5, 1);
-    badge.position.y = -55;
+    badge.position.y = -60;
 
-    this.playerRoot.addChild(this.playerShadow, aura, this.playerBody, name, badge);
+    this.playerRoot.addChild(pedestal, this.playerShadow, aura, this.playerBody, name, badge);
     if (!this.entityLayer.children.includes(this.playerRoot)) this.entityLayer.addChild(this.playerRoot);
     this.placeEntity(this.playerRoot, this.save.x, this.save.y);
   }
@@ -2111,20 +2238,26 @@ export class SolGame {
     const isDragon = mob.def.id === 'dragon' || mob.def.id === 'riftBeast';
     const isLarge = mob.def.id === 'crystalBear' || mob.def.id === 'lavaGolem' || mob.def.id === 'royalGuard' || isDragon;
     const eliteColor = mob.eliteColor || 0xff5d5d;
-    const shadow = new Graphics().ellipse(0, 0, isDragon ? 24 : isLarge ? 18 : 12, isDragon ? 6 : 4).fill({ color: 0x000000, alpha: 0.3 });
-    const aggroRing = new Graphics().ellipse(0, 0, isDragon ? 27 : isLarge ? 19 : 15, isDragon ? 9 : 5).stroke({ color: mob.eliteAffix ? eliteColor : 0xff5d5d, alpha: mob.eliteAffix ? 0.42 : 0, width: mob.eliteAffix ? 2.4 : 1.5 });
+    const basePlate = new Graphics()
+      .ellipse(0, 1, isDragon ? 36 : isLarge ? 27 : 19, isDragon ? 11 : isLarge ? 8 : 6)
+      .fill({ color: mob.eliteAffix ? eliteColor : isDragon ? 0xffd15f : 0x79d9ff, alpha: mob.eliteAffix || isDragon ? 0.065 : 0.035 })
+      .ellipse(0, 1, isDragon ? 39 : isLarge ? 30 : 22, isDragon ? 12 : isLarge ? 9 : 7)
+      .stroke({ color: mob.eliteAffix ? eliteColor : isDragon ? 0xffd15f : 0xffffff, alpha: mob.eliteAffix || isDragon ? 0.20 : 0.075, width: 1.4 });
+    const shadow = new Graphics().ellipse(0, 2, isDragon ? 26 : isLarge ? 20 : 13, isDragon ? 6.5 : 4.5).fill({ color: 0x000000, alpha: 0.26 });
+    const aggroRing = new Graphics().ellipse(0, 0, isDragon ? 30 : isLarge ? 22 : 16, isDragon ? 10 : 6).stroke({ color: mob.eliteAffix ? eliteColor : 0xff5d5d, alpha: mob.eliteAffix ? 0.46 : 0, width: mob.eliteAffix ? 2.6 : 1.5 });
     const eliteHalo = mob.eliteAffix ? new Graphics()
       .ellipse(0, -6, isDragon ? 33 : isLarge ? 25 : 20, isDragon ? 12 : 8)
       .stroke({ color: eliteColor, alpha: 0.32, width: 2 })
       .ellipse(0, -6, isDragon ? 24 : isLarge ? 18 : 14, isDragon ? 8 : 5)
       .fill({ color: eliteColor, alpha: 0.035 }) : null;
-    const animator = new SpriteSheetAnimator(this.mustTexture(this.monsterSheetTextureKey(mob.def.id)), MONSTER_SHEET_META, 0.92);
+    const animator = new SpriteSheetAnimator(this.mustTexture(this.monsterSheetTextureKey(mob.def.id)), MONSTER_SHEET_META, 0.96);
     const body = animator.sprite;
-    const baseScale = MOB_VISUAL_SCALE[mob.def.id] * (mob.eliteAffix ? 1.08 : 1);
+    const baseScale = MOB_VISUAL_SCALE[mob.def.id] * (mob.eliteAffix ? 1.1 : isDragon ? 1.03 : 1);
     body.scale.set(baseScale);
+    body.position.y = isDragon ? -3 : -1;
 
-    const hpBack = new Graphics().roundRect(-18, -39, 36, 4, 2).fill({ color: 0x151515, alpha: 0.72 });
-    const hpFill = new Graphics().roundRect(-18, -39, 36, 4, 2).fill({ color: 0xd95757, alpha: 0.95 });
+    const hpBack = new Graphics().roundRect(-20, -42, 40, 4, 2).fill({ color: 0x0b315f, alpha: 0.58 });
+    const hpFill = new Graphics().roundRect(-20, -42, 40, 4, 2).fill({ color: 0xff6b6b, alpha: 0.95 });
 
     const name = new Text({
       text: mob.def.name,
@@ -2133,13 +2266,13 @@ export class SolGame {
         fontFamily: 'Arial',
         fontSize: isDragon ? 9 : 8,
         fontWeight: '800',
-        stroke: { color: 0x111111, width: 3 }
+        stroke: { color: 0x0b315f, width: 3 }
       }
     });
     name.anchor.set(0.5, 1);
-    name.position.y = -42;
+    name.position.y = -46;
 
-    root.addChild(shadow);
+    root.addChild(basePlate, shadow);
     if (eliteHalo) root.addChild(eliteHalo);
     root.addChild(aggroRing, body, hpBack, hpFill, name);
     this.entityLayer.addChild(root);

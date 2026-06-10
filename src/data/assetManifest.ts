@@ -126,7 +126,13 @@ export const textureUrls = {
   propLanternArch: new URL('../assets/map/decor/prop-lantern-arch.svg', import.meta.url).href,
   propTreasureGlow: new URL('../assets/map/decor/prop-treasure-glow.svg', import.meta.url).href,
   propManaFog: new URL('../assets/map/decor/prop-mana-fog.svg', import.meta.url).href,
-  propStoneLamp: new URL('../assets/map/decor/prop-stone-lamp.svg', import.meta.url).href
+  propStoneLamp: new URL('../assets/map/decor/prop-stone-lamp.svg', import.meta.url).href,
+  propRoyalArch: new URL('../assets/map/decor/prop-royal-arch.svg', import.meta.url).href,
+  propGoldWarBanner: new URL('../assets/map/decor/prop-gold-war-banner.svg', import.meta.url).href,
+  propCandleCircle: new URL('../assets/map/decor/prop-candle-circle.svg', import.meta.url).href,
+  propMarbleCrack: new URL('../assets/map/decor/prop-marble-crack.svg', import.meta.url).href,
+  propSoulFountain: new URL('../assets/map/decor/prop-soul-fountain.svg', import.meta.url).href,
+  propHuntMarker: new URL('../assets/map/decor/prop-hunt-marker.svg', import.meta.url).href
 } as const;
 
 export const runtimeTextureUrls: Partial<Record<keyof typeof textureUrls, string>> = {
@@ -219,7 +225,13 @@ export const runtimeTextureUrls: Partial<Record<keyof typeof textureUrls, string
   propLanternArch: './assets/soulpack/props/prop-lantern-arch.svg',
   propTreasureGlow: './assets/soulpack/props/prop-treasure-glow.svg',
   propManaFog: './assets/soulpack/props/prop-mana-fog.svg',
-  propStoneLamp: './assets/soulpack/props/prop-stone-lamp.svg'
+  propStoneLamp: './assets/soulpack/props/prop-stone-lamp.svg',
+  propRoyalArch: './assets/soulpack/props/prop-royal-arch.svg',
+  propGoldWarBanner: './assets/soulpack/props/prop-gold-war-banner.svg',
+  propCandleCircle: './assets/soulpack/props/prop-candle-circle.svg',
+  propMarbleCrack: './assets/soulpack/props/prop-marble-crack.svg',
+  propSoulFountain: './assets/soulpack/props/prop-soul-fountain.svg',
+  propHuntMarker: './assets/soulpack/props/prop-hunt-marker.svg'
 } as const;
 
 export const audioTrackUrls = {

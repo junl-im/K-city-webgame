@@ -1332,7 +1332,7 @@ for (const monster of monsters) {
 }
 
 
-// Alpha 0.61: raster visual pipeline pass - active title/town/UI visuals use WebP texture assets instead of SVG placeholders.
+// Alpha 0.61-0.62: raster visual pipeline and reference-grade visual direction pass.
 const alpha059Items: ItemDefinition[] = [
   { id: 'luminous-hunt-pass', name: '루미나 사냥 허가증', type: 'material', rarity: 'R', effectText: '마을 의뢰소와 고레벨 전선 사이를 잇는 사냥 허가 증표입니다. 반복 의뢰 납품에 쓰입니다.', bonus: {} },
   { id: 'royal-impact-oil', name: '왕실 타격 연마유', type: 'consumable', rarity: 'SR', effectText: '무기의 타격감을 높이는 연마유입니다. 사용하면 강화 재료와 골드를 소량 회수합니다.', bonus: {} },
