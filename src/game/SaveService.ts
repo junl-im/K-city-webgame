@@ -12,8 +12,8 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, getFirestore, serverTimestamp, setDoc, type Firestore } from 'firebase/firestore';
 import { firebaseConfig } from '../config/firebase';
-import { SAVE_VERSION, cards, classes, expToNext, items, skills, souls, storyQuests } from '../data/gameData';
-import type { AutoHuntSettings, CharacterClassId, CharacterGender, DailyProgress, EquipmentSlot, MonsterId, PlayerSave, SaveRoster, StoryProgress } from '../types';
+import { SAVE_VERSION, cards, classes, expToNext, items, pledgeExpToNext, skills, souls, storyQuests } from '../data/gameData';
+import type { AutoHuntSettings, CharacterClassId, CharacterGender, DailyProgress, EquipmentSlot, MonsterId, PlayerSave, PledgeState, SaveRoster, StoryProgress } from '../types';
 import { uid } from './math';
 
 const LEGACY_SAVE_KEY = 'sol-online-alpha-save-v1';
@@ -243,6 +243,8 @@ export class SaveService {
       learnedSkillIds: [],
       skillLevels: {},
       sleepMode: false,
+      lawful: 0,
+      pledge: this.defaultPledgeState(),
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
@@ -257,7 +259,7 @@ export class SaveService {
     save.name = (save.name || '솔마스터').trim().slice(0, 12) || '솔마스터';
     save.hp = Math.max(1, Math.min(save.hp || classes[classId].baseStats.hp, 999999));
     save.mp = Math.max(0, Math.min(save.mp || classes[classId].baseStats.mp, 999999));
-    save.level = Math.max(1, Math.min(save.level || 1, 99));
+    save.level = Math.max(1, Math.min(save.level || 1, 160));
     save.gold = Math.max(0, save.gold || 0);
     save.gems = Math.max(0, save.gems || 0);
     save.x = Number.isFinite(save.x) ? save.x : 8.0;
@@ -277,7 +279,13 @@ export class SaveService {
       fireDrake: kills.fireDrake || 0,
       stormHarpy: kills.stormHarpy || 0,
       graveKnight: kills.graveKnight || 0,
-      fieldBoss: kills.fieldBoss || 0
+      fieldBoss: kills.fieldBoss || 0,
+      orcBerserker: kills.orcBerserker || 0,
+      nightmareBat: kills.nightmareBat || 0,
+      lavaGolem: kills.lavaGolem || 0,
+      iceWitch: kills.iceWitch || 0,
+      royalGuard: kills.royalGuard || 0,
+      riftBeast: kills.riftBeast || 0
     };
     save.cards = Array.isArray(save.cards) ? save.cards : [];
     save.inventory = Array.isArray(save.inventory) ? save.inventory : [];
@@ -293,6 +301,8 @@ export class SaveService {
     save.learnedSkillIds = this.normalizeLearnedSkills(save.learnedSkillIds, save.classId);
     save.skillLevels = this.normalizeSkillLevels(save.skillLevels, save.learnedSkillIds, save.classId);
     save.sleepMode = Boolean(save.sleepMode);
+    save.lawful = Math.max(-32768, Math.min(32767, Math.round(Number(save.lawful ?? 0))));
+    save.pledge = this.normalizePledgeState(save.pledge);
     while (save.exp >= expToNext(save.level)) {
       save.exp -= expToNext(save.level);
       save.level += 1;
@@ -373,6 +383,7 @@ export class SaveService {
       learnedSkillIds: this.normalizeLearnedSkills(raw.learnedSkillIds, classId),
       skillLevels: this.normalizeSkillLevels(raw.skillLevels, this.normalizeLearnedSkills(raw.learnedSkillIds, classId), classId),
       sleepMode: Boolean(raw.sleepMode),
+      pledge: this.normalizePledgeState(raw.pledge),
       souls: souls.map((soul) => {
         const old = raw.souls?.find((entry) => entry.soulId === soul.id);
         return old || { soulId: soul.id, unlocked: false, progress: raw.kills?.[soul.monsterId as MonsterId] || 0 };
@@ -453,8 +464,47 @@ export class SaveService {
       fireDrake: 0,
       stormHarpy: 0,
       graveKnight: 0,
-      fieldBoss: 0
+      fieldBoss: 0,
+      orcBerserker: 0,
+      nightmareBat: 0,
+      lavaGolem: 0,
+      iceWitch: 0,
+      royalGuard: 0,
+      riftBeast: 0
     };
+  }
+
+
+  private defaultPledgeState(): PledgeState {
+    return {
+      name: '루미나 혈맹',
+      level: 1,
+      exp: 0,
+      contribution: 0,
+      crest: 'lion',
+      donatedGold: 0,
+      claimedTaskIds: []
+    };
+  }
+
+  private normalizePledgeState(raw?: Partial<PledgeState>): PledgeState {
+    const base = this.defaultPledgeState();
+    const source = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+    const crest = source.crest === 'dragon' || source.crest === 'moon' || source.crest === 'lion' ? source.crest : base.crest;
+    const next: PledgeState = {
+      name: String(source.name || base.name).trim().slice(0, 14) || base.name,
+      level: Math.max(1, Math.min(20, Math.floor(Number(source.level || base.level)))),
+      exp: Math.max(0, Math.floor(Number(source.exp || 0))),
+      contribution: Math.max(0, Math.floor(Number(source.contribution || 0))),
+      crest,
+      donatedGold: Math.max(0, Math.floor(Number(source.donatedGold || 0))),
+      claimedTaskIds: Array.isArray(source.claimedTaskIds) ? Array.from(new Set(source.claimedTaskIds.filter((id): id is string => typeof id === 'string'))) : []
+    };
+    while (next.level < 20 && next.exp >= pledgeExpToNext(next.level)) {
+      next.exp -= pledgeExpToNext(next.level);
+      next.level += 1;
+    }
+    return next;
   }
 
 

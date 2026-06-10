@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#171a43"/><stop offset=".46" stop-color="#354a7d"/><stop offset="1" stop-color="#f2b866"/></linearGradient>
+    <linearGradient id="hill" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#234a6b"/><stop offset="1" stop-color="#12243d"/></linearGradient>
+    <linearGradient id="roof" x1="0" x2="1"><stop stop-color="#732d40"/><stop offset="1" stop-color="#d07a46"/></linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="8"/></filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <g opacity=".42" filter="url(#soft)">
+    <circle cx="1240" cy="130" r="90" fill="#ffe29a"/>
+    <circle cx="320" cy="170" r="50" fill="#9cf7ff"/>
+  </g>
+  <path d="M0 420C180 290 360 330 520 430c140-120 320-155 520 6 180-110 350-140 560 10v454H0z" fill="url(#hill)"/>
+  <path d="M0 520c220-80 420-45 600 35 260-105 540-105 1000 20v325H0z" fill="#18304f" opacity=".88"/>
+  <path d="M0 662c155-80 285-77 420-18 178-74 326-58 480 17 250-100 475-82 700 20v219H0z" fill="#0d1c31" opacity=".93"/>
+  <g transform="translate(70 445)">
+    <rect x="0" y="170" width="1460" height="230" rx="38" fill="#332725" opacity=".58"/>
+    <path d="M80 330c180-80 340-70 520-10 255-92 505-70 790 12v85H80z" fill="#18201e"/>
+    <g fill="#412c29" stroke="#e9b86b" stroke-width="5">
+      <path d="M110 185h140v150H110z"/><path d="M85 185l95-78 96 78z" fill="url(#roof)"/>
+      <path d="M300 145h180v190H300z"/><path d="M270 145l120-88 120 88z" fill="url(#roof)"/>
+      <path d="M550 190h150v145H550z"/><path d="M525 190l100-70 100 70z" fill="url(#roof)"/>
+      <path d="M760 120h230v215H760z"/><path d="M728 120l146-100 148 100z" fill="url(#roof)"/>
+      <path d="M1070 170h170v165h-170z"/><path d="M1042 170l114-82 112 82z" fill="url(#roof)"/>
+      <path d="M1300 190h110v145h-110z"/><path d="M1278 190l78-70 78 70z" fill="url(#roof)"/>
+    </g>
+    <g fill="#ffd777" opacity=".9">
+      <circle cx="156" cy="255" r="9"/><circle cx="218" cy="260" r="8"/><circle cx="360" cy="235" r="10"/><circle cx="440" cy="240" r="9"/><circle cx="816" cy="230" r="12"/><circle cx="932" cy="230" r="12"/><circle cx="1120" cy="252" r="9"/><circle cx="1200" cy="252" r="9"/>
+    </g>
+    <path d="M600 364c220-55 430-52 650 10" fill="none" stroke="#88efff" stroke-width="18" opacity=".48"/>
+  </g>
+  <g opacity=".8">
+    <path d="M1220 278c78-70 155-70 230 0l-28 28c-55-42-112-43-172 0z" fill="#d5edf7" opacity=".5"/>
+    <rect x="1302" y="220" width="62" height="26" rx="13" fill="#6b4b75"/>
+  </g>
+</svg>

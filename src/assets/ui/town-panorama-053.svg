@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620">
+  <defs>
+    <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#24365d"/><stop offset=".55" stop-color="#7d4f78"/><stop offset="1" stop-color="#f0b66c"/></linearGradient>
+    <linearGradient id="roof" x1="0" x2="1"><stop stop-color="#421d39"/><stop offset="1" stop-color="#8b3e45"/></linearGradient>
+    <filter id="g"><feGaussianBlur stdDeviation="5"/></filter>
+  </defs>
+  <rect width="1200" height="620" fill="url(#sky)"/>
+  <circle cx="900" cy="96" r="72" fill="#fff0b0" opacity=".88"/>
+  <g opacity=".32"><path d="M0 292c155-150 247-133 394 0s246 123 395 4 239-144 411 13v311H0z" fill="#18233d"/></g>
+  <g opacity=".56"><path d="M0 355c130-92 271-94 410-10 122 74 260 79 412-14 141-86 253-58 378 16v273H0z" fill="#142031"/></g>
+  <path d="M0 438c110-44 197-57 289-31 126 36 211 28 339-18 138-50 275-54 397-14 72 24 126 43 175 45v200H0z" fill="#1e382f"/>
+  <g transform="translate(80 265)">
+    <rect x="0" y="120" width="190" height="125" rx="8" fill="#433247"/><path d="M-22 122L92 34l122 88z" fill="url(#roof)" stroke="#e2b95f" stroke-width="5"/><rect x="70" y="162" width="42" height="83" fill="#201428"/><circle cx="92" cy="192" r="12" fill="#ffd66b"/>
+  </g>
+  <g transform="translate(334 220)">
+    <rect x="0" y="126" width="250" height="165" rx="10" fill="#36434f"/><path d="M-36 126L126 20l166 106z" fill="#74394d" stroke="#f2d66c" stroke-width="6"/><rect x="96" y="186" width="60" height="105" fill="#1c1d32"/><path d="M32 164h56v42H32zm136 0h56v42h-56z" fill="#ffd66b" opacity=".68"/>
+  </g>
+  <g transform="translate(674 260)">
+    <rect x="0" y="90" width="200" height="130" rx="10" fill="#3d3d52"/><path d="M-26 92L94 10l135 82z" fill="#283f63" stroke="#8ceeff" stroke-width="5"/><rect x="72" y="142" width="52" height="78" fill="#17172a"/>
+  </g>
+  <g transform="translate(954 235)">
+    <rect x="0" y="72" width="58" height="210" fill="#29364f"/><path d="M-26 75L30 0l56 75z" fill="#8b3e45"/><circle cx="29" cy="110" r="18" fill="#8ceeff" opacity=".72"/>
+  </g>
+  <path d="M0 500c130-30 250-25 366 12 104 33 237 37 366 2 195-53 326-36 468 11v95H0z" fill="#223f36"/>
+  <path d="M0 548c205-12 376 18 521 42 184 30 412-12 679-20v50H0z" fill="#4a6b63" opacity=".72"/>
+  <g filter="url(#g)" opacity=".55"><path d="M130 440c70-35 170-35 240 0M738 430c96-44 219-39 295 7" stroke="#ffd66b" stroke-width="7" fill="none"/></g>
+</svg>

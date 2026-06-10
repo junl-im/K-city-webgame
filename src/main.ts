@@ -1,5 +1,5 @@
 import './styles.css';
-import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
+import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
 import { applyEquipmentResonance, equipmentResonanceEffects, nextEquipmentResonanceHint, resonanceBonusText } from './game/equipmentResonance';
@@ -7,7 +7,7 @@ import { formatGold, formatNumber, formatSoul, roll, uid } from './game/math';
 import type { AutoHuntSettings, CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
-type TownContentId = 'hunt' | 'story' | 'cards' | 'inventory' | 'skills' | 'shop' | 'boss' | 'quests' | 'settings' | 'account';
+type TownContentId = 'hunt' | 'story' | 'cards' | 'inventory' | 'skills' | 'shop' | 'boss' | 'quests' | 'pledge' | 'settings' | 'account';
 
 const saveService = new SaveService();
 type SolGameInstance = import('./game/SolGame').SolGame;
@@ -497,6 +497,17 @@ function bindLoginFlow() {
     });
   });
 
+  document.querySelectorAll<HTMLButtonElement>('[data-town-npc]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.dataset.townNpc || '';
+      if (id === 'smith') openTownContent('inventory');
+      else if (id === 'oracle') openTownContent('story');
+      else if (id === 'captain') openTownContent('pledge');
+      else openTownContent('quests');
+      showToast(id === 'smith' ? '브람: 장비와 강화를 점검하겠습니다.' : id === 'oracle' ? '미온: 다음 메인 흐름을 보여드릴게요.' : '세이라: 혈맹 지휘소로 안내합니다.');
+    });
+  });
+
   document.querySelectorAll<HTMLButtonElement>('[data-town-content]').forEach((button) => {
     button.addEventListener('click', () => {
       closeTownMoreMenu();
@@ -641,6 +652,12 @@ function bindLoginFlow() {
     const bossExchange = target.closest<HTMLButtonElement>('[data-town-boss-exchange]');
     if (bossExchange) {
       exchangeBossTrophy(bossExchange.dataset.townBossExchange || 'supply');
+      return;
+    }
+
+    const pledgeAction = target.closest<HTMLButtonElement>('[data-town-pledge-action]');
+    if (pledgeAction) {
+      handleTownPledgeAction(pledgeAction.dataset.townPledgeAction || '');
       return;
     }
 
@@ -1135,10 +1152,10 @@ function updateCombatChain(snapshot: Snapshot) {
   const active = chain.count > 1 && chain.timer > 0;
   const comboTier = chain.count >= 20 ? '폭주' : chain.count >= 10 ? '고조' : chain.count >= 5 ? '가속' : '연계';
   fieldChainMeter.classList.toggle('active', active);
-  fieldChainValue.textContent = active ? `${chain.count} COMBO` : 'COMBO';
+  fieldChainValue.textContent = active ? `${chain.count} CHAIN` : 'CHAIN BONUS';
   fieldChainBonus.textContent = active
     ? `${comboTier} · EXP/GOLD +${chain.bonusPercent}% · ${chain.timer.toFixed(1)}초 딜타임`
-    : '처치 연계 시 EXP/GOLD 보너스';
+    : 'CHAIN BONUS · 연속 처치 보너스';
   const ratio = chain.maxTimer > 0 ? Math.max(0, Math.min(100, (chain.timer / chain.maxTimer) * 100)) : 0;
   fieldChainTimer.style.width = `${ratio}%`;
 }
@@ -1288,21 +1305,11 @@ function renderCards(snapshot: Snapshot) {
 
 function renderInventory(snapshot: Snapshot) {
   if (!game) return '';
-  const itemCells = snapshot.save.inventory
-    .flatMap((instance) => {
-      const described = game?.describeItem(instance);
-      return described ? [described] : [];
-    })
-    .map(({ def, instance }) => renderItemSlot(snapshot.save, def, instance.uid, instance.count, 'data-equip-item', 'data-upgrade-item'));
-
   return `
     ${renderEquipmentResonanceSummary(snapshot.save)}
+    ${renderEnhancementWorkbench(snapshot.save)}
     ${renderPotionBeltSummary(snapshot.save)}
-    <div class="slot-toolbar">
-      <span>가방 7x7 · ${snapshot.save.inventory.length}/49 · ${formatGold(snapshot.save.gold)} · ${formatSoul(snapshot.save.gems)}</span>
-      <em>슬롯 클릭: 상세 · 더블클릭: 장착/해제</em>
-    </div>
-    <div class="slot-grid inventory-slot-grid">${fillSlots(itemCells, 49, '빈 가방')}</div>
+    ${renderCategorizedInventory(snapshot.save, false)}
   `;
 }
 
@@ -1322,7 +1329,7 @@ function renderSkillGrid(save: PlayerSave, townMode: boolean) {
     const canUpgrade = canUpgradeSkill(save, skill);
     const cost = level < SKILL_MAX_LEVEL ? skillMasteryCost(level) : null;
     const costText = cost ? `골드 ${formatGold(cost.gold)} · 파편 ${cost.shard}${cost.stone ? ` · 강화석 ${cost.stone}` : ''}` : '최대 숙련';
-    const upgradeButton = `<span class="slot-click-hint">상세</span>`;
+    const upgradeButton = `<span class="slot-click-hint">터치 상세</span>`;
     return `
       <article class="slot-cell skill-slot ${unlocked ? 'unlocked' : 'locked'}" data-skill-detail="${skill.id}" tabindex="0" role="button" aria-label="${escapeHtml(skill.name)} 상세 보기">
         <span class="slot-art skill-art skill-art-${skill.hotkey}"><img src="${skillArtUrl(skill)}" alt="${escapeHtml(skill.name)}" onerror="this.remove()" />${inlineFallbackIcon(skill.hotkey)}</span>
@@ -1379,7 +1386,7 @@ function renderCardSlot(def: CardDefinition, instance: { uid: string; level: num
       <span class="slot-rarity rarity-${def.rarity.toLowerCase()}">${def.rarity}${instance.equipped ? ' · 장착' : ''}</span>
       <b>${escapeHtml(def.name)}</b>
       <em>Lv.${instance.level} · x${instance.copies}</em>
-      <span class="slot-click-hint">상세</span>
+      <span class="slot-click-hint">터치 상세</span>
     </article>
   `;
 }
@@ -1390,14 +1397,15 @@ function renderItemSlot(save: PlayerSave, def: ItemDefinition, uidValue: string,
   const equipped = canEquip && save.equipment?.[slot] === uidValue;
   const enhanceLevel = save.enhancements?.[uidValue] || 0;
   const typeLabel: Record<string, string> = { weapon: '무기', armor: '방어구', relic: '유물', material: '재료', skillbook: '스킬서', consumable: '소모품' };
+  const category = inventoryCategoryInfo(def.type);
   const stateText = canEquip ? `${def.rarity} · +${enhanceLevel}${equipped ? ' · 장착' : ''}` : `${def.rarity} · x${count}`;
   return `
     <article class="slot-cell item-slot ${equipped ? 'equipped' : ''}" data-item-detail="${uidValue}" tabindex="0" role="button" aria-label="${escapeHtml(def.name)} 상세 보기">
       <span class="slot-art item-art item-art-${def.type} ${equipped ? 'is-equipped' : ''}"><img src="${itemArtUrl(def)}" alt="${escapeHtml(def.name)}" onerror="this.remove()" />${inlineFallbackIcon(itemIcon(def.type))}</span>
       <span class="slot-rarity rarity-${def.rarity.toLowerCase()}">${stateText}</span>
       <b>${escapeHtml(def.name)}${canEquip && enhanceLevel ? ` +${enhanceLevel}` : ''}</b>
-      <em>${typeLabel[def.type] || escapeHtml(def.type)}</em>
-      <span class="slot-click-hint">상세</span>
+      <em>${category.title} · ${typeLabel[def.type] || escapeHtml(def.type)}</em>
+      <span class="slot-click-hint">터치 상세</span>
     </article>
   `;
 }
@@ -1409,12 +1417,13 @@ function fillSlots(cells: string[], total: number, label: string) {
 }
 
 function itemIcon(type: string) {
-  if (type === 'weapon') return '⚔';
-  if (type === 'armor') return '▣';
-  if (type === 'relic') return '✦';
-  if (type === 'skillbook') return '書';
-  if (type === 'consumable') return '✚';
-  return '◆';
+  if (type === 'weapon') return 'WPN';
+  if (type === 'armor') return 'ARM';
+  if (type === 'relic') return 'REL';
+  if (type === 'skillbook') return 'BOOK';
+  if (type === 'consumable') return 'POT';
+  if (type === 'material') return 'MAT';
+  return 'ITEM';
 }
 
 function runtimeAsset(path: string) {
@@ -1422,7 +1431,7 @@ function runtimeAsset(path: string) {
 }
 
 function itemArtUrl(def: ItemDefinition) {
-  return runtimeAsset(`items/${def.id}.webp`);
+  return runtimeAsset(`items/${def.id}.webp?v=057`);
 }
 
 function skillArtUrl(def: SkillDefinition) {
@@ -1482,6 +1491,180 @@ function activeCardSetEffects(save: PlayerSave) {
   return cardSets.filter((set) => set.requiredCardIds.every((id) => equippedIds.has(id)));
 }
 
+
+function lawfulInfo(save: PlayerSave) {
+  const value = Math.max(-32768, Math.min(32767, Math.round(Number(save.lawful ?? 0))));
+  const tier = value >= 24000 ? '로우풀 기사' : value >= 14000 ? '로우풀' : value >= 6000 ? '질서' : value <= -18000 ? '카오틱' : value <= -4000 ? '혼돈' : '중립';
+  const desc = value >= 24000 ? '수호 보너스 최고 단계' : value >= 14000 ? '라우풀 보너스 발동' : value >= 6000 ? '질서 성향 보너스' : value <= -18000 ? '카오틱 패널티 심화' : value <= -4000 ? '혼돈 패널티 주의' : '성향 효과 없음';
+  const percent = value >= 0 ? Math.round((value / 32767) * 100) : Math.round((Math.abs(value) / 32768) * 100);
+  const bonusText = value >= 24000 ? 'HP/방어/드랍 보너스 대폭 증가' : value >= 14000 ? 'HP/방어/드랍 보너스' : value >= 6000 ? '소량 생존 보너스' : value <= -18000 ? '방어/드랍 패널티, 기절 페널티 증가' : value <= -4000 ? '드랍/방어 소폭 패널티' : '중립';
+  return { value, tier, desc, percent, bonusText };
+}
+
+function lawfulStatBonus(save: PlayerSave): Partial<Stats> {
+  const value = Math.round(Number(save.lawful ?? 0));
+  if (value >= 24000) return { hp: 160, mp: 50, def: 22, atk: 10, crit: 0.012 };
+  if (value >= 14000) return { hp: 95, mp: 28, def: 14, atk: 6, crit: 0.006 };
+  if (value >= 6000) return { hp: 45, def: 7 };
+  if (value <= -18000) return { hp: -90, def: -18, atk: -8, crit: -0.018 };
+  if (value <= -4000) return { hp: -35, def: -8, atk: -3 };
+  return {};
+}
+
+function renderLawfulSystemPanel(save: PlayerSave) {
+  const info = lawfulInfo(save);
+  const purity = materialCount(save, 'purity-mark');
+  return `
+    <section class="lawful-system-panel ${info.value < 0 ? 'chaotic' : info.value >= 6000 ? 'lawful' : 'neutral'}">
+      <div class="lawful-orb"><i>${info.value < 0 ? 'CHAOS' : info.value >= 6000 ? 'LAW' : 'NEUTRAL'}</i></div>
+      <div>
+        <span class="panel-kicker">ALIGNMENT</span>
+        <h3>${escapeHtml(info.tier)} · ${info.value}</h3>
+        <p>${escapeHtml(info.desc)} · ${escapeHtml(info.bonusText)}</p>
+        <div class="lawful-meter"><i style="width:${Math.max(5, info.percent)}%"></i></div>
+        <div class="pill-row"><span class="pill">정화의 표식 ${purity}개</span><span class="pill">보스/정예 처치 시 성향 상승</span></div>
+      </div>
+    </section>
+  `;
+}
+
+function renderLawfulBadge(save: PlayerSave, compact = false) {
+  const info = lawfulInfo(save);
+  return `<span class="lawful-badge ${info.value < 0 ? 'chaotic' : info.value >= 8000 ? 'lawful' : 'neutral'}"><b>${escapeHtml(info.tier)}</b>${compact ? '' : `<em>${info.value} · ${escapeHtml(info.desc)}</em>`}</span>`;
+}
+
+function inventoryCategoryInfo(type: ItemDefinition['type']) {
+  const labels: Record<ItemDefinition['type'], { key: string; title: string; sub: string }> = {
+    weapon: { key: 'gear', title: '장비', sub: '무기' },
+    armor: { key: 'gear', title: '장비', sub: '방어구' },
+    relic: { key: 'gear', title: '장비', sub: '유물' },
+    consumable: { key: 'consumable', title: '소모품', sub: '물약/사용' },
+    material: { key: 'material', title: '재료', sub: '강화/교환' },
+    skillbook: { key: 'skillbook', title: '스킬서', sub: '습득' }
+  };
+  return labels[type] || { key: 'etc', title: '기타', sub: '기타' };
+}
+
+function renderEnhancementWorkbench(save: PlayerSave) {
+  const equipped = ['weapon', 'armor', 'relic'].map((slot) => {
+    const uidValue = save.equipment?.[slot as EquipmentSlot];
+    const instance = uidValue ? save.inventory.find((entry) => entry.uid === uidValue) : null;
+    const def = instance ? items.find((item) => item.id === instance.itemId) : null;
+    const level = uidValue ? save.enhancements?.[uidValue] || 0 : 0;
+    return `<span><b>${slot === 'weapon' ? '무기' : slot === 'armor' ? '방어구' : '유물'}</b><em>${def ? `${escapeHtml(def.name)} +${level}` : '비어 있음'}</em></span>`;
+  }).join('');
+  return `
+    <section class="enhance-workbench-panel">
+      <div>
+        <span class="panel-kicker">BLACKSMITH</span>
+        <h3>강화 공방</h3>
+        <p>강화 시스템은 유지됩니다. 장비 슬롯을 클릭해 상세창에서 장착/강화를 진행하세요.</p>
+      </div>
+      <div class="enhance-workbench-grid">${equipped}</div>
+      <div class="enhance-material-row">
+        <span>소울 파편 <b>${materialCount(save, 'soul-shard')}</b></span>
+        <span>강화석 <b>${materialCount(save, 'enhance-stone')}</b></span>
+        <span>성운광 <b>${materialCount(save, 'radiant-ore')}</b></span>
+      </div>
+    </section>
+  `;
+}
+
+
+function rarityRank(rarity: ItemDefinition['rarity']) {
+  const rank: Record<ItemDefinition['rarity'], number> = { N: 1, R: 2, SR: 3, SSR: 4, UR: 5 };
+  return rank[rarity] || 0;
+}
+
+function sortedInventoryEntries(save: PlayerSave, entries: Array<{ def: ItemDefinition; instance: { uid: string; itemId: string; count: number } }>) {
+  return [...entries].sort((a, b) => {
+    const aEquipped = (a.def.type === 'weapon' || a.def.type === 'armor' || a.def.type === 'relic') && save.equipment?.[a.def.type as EquipmentSlot] === a.instance.uid;
+    const bEquipped = (b.def.type === 'weapon' || b.def.type === 'armor' || b.def.type === 'relic') && save.equipment?.[b.def.type as EquipmentSlot] === b.instance.uid;
+    if (aEquipped !== bEquipped) return aEquipped ? -1 : 1;
+    const aEnhance = save.enhancements?.[a.instance.uid] || 0;
+    const bEnhance = save.enhancements?.[b.instance.uid] || 0;
+    if (rarityRank(a.def.rarity) !== rarityRank(b.def.rarity)) return rarityRank(b.def.rarity) - rarityRank(a.def.rarity);
+    if (aEnhance !== bEnhance) return bEnhance - aEnhance;
+    if (a.def.type !== b.def.type) return a.def.type.localeCompare(b.def.type);
+    return a.def.name.localeCompare(b.def.name, 'ko');
+  });
+}
+
+function renderInventoryQualityBoard(save: PlayerSave, described: Array<{ def: ItemDefinition; instance: { uid: string; itemId: string; count: number } }>, bagLimit: number) {
+  const gear = described.filter(({ def }) => def.type === 'weapon' || def.type === 'armor' || def.type === 'relic');
+  const equipped = gear.filter(({ def, instance }) => save.equipment?.[def.type as EquipmentSlot] === instance.uid).length;
+  const enhanceReady = gear.filter(({ instance }) => canUpgradeItemInstance(save, instance.uid)).length;
+  const potionStock = described.filter(({ def }) => def.type === 'consumable').reduce((sum, { instance }) => sum + instance.count, 0);
+  const rareMats = described.filter(({ def }) => def.type === 'material' && rarityRank(def.rarity) >= 3).reduce((sum, { instance }) => sum + instance.count, 0);
+  const used = save.inventory.length;
+  const fullness = Math.round(Math.min(100, (used / bagLimit) * 100));
+  return `
+    <section class="inventory-quality-board">
+      <div><span>BAG QA</span><h3>가방 품질 점검</h3><p>장비·소모품·재료를 희귀도/강화 상태 기준으로 정렬했습니다.</p></div>
+      <div class="inventory-quality-grid">
+        <article><b>${equipped}/3</b><em>장착 슬롯</em></article>
+        <article><b>${enhanceReady}</b><em>강화 가능</em></article>
+        <article><b>${potionStock}</b><em>물약 재고</em></article>
+        <article><b>${rareMats}</b><em>SR+ 재료</em></article>
+      </div>
+      <div class="inventory-fill-meter"><i style="width:${fullness}%"></i><span>${used}/${bagLimit}</span></div>
+    </section>
+  `;
+}
+
+function canUpgradeItemInstance(save: PlayerSave, itemUid: string) {
+  const entry = save.inventory.find((item) => item.uid === itemUid);
+  if (!entry) return false;
+  const def = items.find((item) => item.id === entry.itemId);
+  if (!def || (def.type !== 'weapon' && def.type !== 'armor' && def.type !== 'relic')) return false;
+  const level = save.enhancements?.[itemUid] || 0;
+  if (level >= MAX_ENHANCE_LEVEL) return false;
+  const cost = enhancementCost(level);
+  return save.gold >= cost.gold && materialCount(save, 'soul-shard') >= cost.shard && materialCount(save, 'enhance-stone') >= cost.stone;
+}
+
+function renderInventoryCategoryGrid(save: PlayerSave, entries: Array<{ def: ItemDefinition; instance: { uid: string; itemId: string; count: number } }>, title: string, subtitle: string, total = 12) {
+  const sorted = sortedInventoryEntries(save, entries);
+  const cells = sorted.map(({ def, instance }) => renderItemSlot(save, def, instance.uid, instance.count, 'data-equip-item', 'data-upgrade-item'));
+  const equippedCount = entries.filter(({ def, instance }) => (def.type === 'weapon' || def.type === 'armor' || def.type === 'relic') && save.equipment?.[def.type as EquipmentSlot] === instance.uid).length;
+  return `
+    <section class="inventory-category-section">
+      <div class="inventory-category-head">
+        <div><span>${escapeHtml(subtitle)}</span><h3>${escapeHtml(title)}</h3></div>
+        <em>${sorted.length}개${equippedCount ? ` · 장착 ${equippedCount}` : ''}</em>
+      </div>
+      <div class="slot-grid inventory-slot-grid inventory-category-grid">${fillSlots(cells, Math.max(total, Math.min(24, Math.ceil(Math.max(entries.length, 1) / 4) * 4)), '빈 슬롯')}</div>
+    </section>
+  `;
+}
+
+function renderCategorizedInventory(save: PlayerSave, townMode: boolean) {
+  const described = save.inventory.flatMap((instance) => {
+    const def = items.find((item) => item.id === instance.itemId);
+    return def ? [{ def, instance }] : [];
+  });
+  const gear = described.filter(({ def }) => def.type === 'weapon' || def.type === 'armor' || def.type === 'relic');
+  const consumable = described.filter(({ def }) => def.type === 'consumable');
+  const material = described.filter(({ def }) => def.type === 'material');
+  const skillbook = described.filter(({ def }) => def.type === 'skillbook');
+  const bagLimit = 64;
+  const modeHint = townMode ? '마을 가방' : '필드 가방';
+  return `
+    ${renderInventoryQualityBoard(save, described, bagLimit)}
+    <div class="inventory-category-toolbar">
+      <span>${modeHint} · ${save.inventory.length}/${bagLimit}</span>
+      <em>장비/소모품/재료/스킬서를 분리했습니다. 클릭하면 상세 정보가 열립니다.</em>
+    </div>
+    <div class="inventory-category-nav inventory-category-tabs">
+      <span>장비 ${gear.length}</span><span>소모품 ${consumable.length}</span><span>재료 ${material.length}</span><span>스킬서 ${skillbook.length}</span>
+    </div>
+    ${renderInventoryCategoryGrid(save, gear, '장비', 'WEAPON · ARMOR · RELIC', 12)}
+    ${renderInventoryCategoryGrid(save, consumable, '소모품', 'POTION · USE', 8)}
+    ${renderInventoryCategoryGrid(save, material, '재료', 'MATERIAL · CRAFT', 12)}
+    ${renderInventoryCategoryGrid(save, skillbook, '스킬서', 'SKILL BOOK', 8)}
+  `;
+}
+
 function renderSouls(snapshot: Snapshot) {
   const rows = souls
     .map((def) => {
@@ -1518,12 +1701,14 @@ function renderAccount(snapshot: Snapshot) {
           <span class="pill">${escapeHtml(klass.name)}</span>
           <span class="pill">Lv.${snapshot.save.level}</span>
           <span class="pill">전투력 ${formatNumber(snapshot.power)}</span>
+          ${renderLawfulBadge(snapshot.save, true)}
         </div>
         <h3>${escapeHtml(snapshot.save.name)}</h3>
         <p>HP ${Math.ceil(snapshot.save.hp)}/${stats.hp} · MP ${Math.floor(snapshot.save.mp)}/${stats.mp}</p>
         <p>공격 ${stats.atk} · 방어 ${stats.def} · 공속 ${stats.aspd} · 치명 ${Math.round(stats.crit * 100)}%</p>
         <div class="bar exp quest-progress"><i style="width:${expPercent}%"></i><em>EXP ${snapshot.save.exp}/${expToNext(snapshot.save.level)}</em></div>
         <div class="account-resonance-mini">${equipmentResonanceEffects(snapshot.save, items).map((effect) => `<span>${escapeHtml(effect.tier)} · ${escapeHtml(effect.title)}</span>`).join('') || '<span>장비 공명 대기</span>'}</div>
+        <div class="account-resonance-mini"><span>원정 지원 Lv.${expeditionSupportTier(snapshot.save)} · 메인/보스/영혼 진행 보너스</span></div>
         <button data-account-action="save">수동 저장</button>
       </article>
       <article class="account-panel">
@@ -1576,7 +1761,7 @@ function renderCharacterSlots() {
               <span class="slot-glyph">${escapeHtml(klass.glyph)}</span>
               <span class="slot-main">
                 <b>${escapeHtml(save.name)}</b>
-                <em>Lv.${save.level} · ${escapeHtml(klass.name)} · ${(save.gender || 'male') === 'female' ? '여자' : '남자'} · ${formatGold(save.gold)}</em>
+                <em>Lv.${save.level} · ${escapeHtml(klass.name)} · ${lawfulInfo(save).tier} · ${formatGold(save.gold)}</em>
               </span>
               <span class="slot-date">${date}</span>
             </button>
@@ -1717,6 +1902,7 @@ function renderTownContent() {
     shop: ['MERCHANT', '루미나 상점'],
     boss: ['RAID', '월드 보스'],
     quests: ['DAILY REQUEST', '일일 의뢰'],
+    pledge: ['BLOOD PLEDGE', '혈맹 지휘소'],
     settings: ['AUDIO MIXER', '사운드 설정'],
     account: ['ACCOUNT', '계정/저장']
   };
@@ -1730,6 +1916,7 @@ function renderTownContent() {
   if (activeTownContent === 'shop') townContentBody.innerHTML = renderTownShop(pendingSave);
   if (activeTownContent === 'boss') townContentBody.innerHTML = renderTownBoss(pendingSave);
   if (activeTownContent === 'quests') townContentBody.innerHTML = renderTownQuests(pendingSave);
+  if (activeTownContent === 'pledge') townContentBody.innerHTML = renderTownPledge(pendingSave);
   if (activeTownContent === 'settings') townContentBody.innerHTML = renderAutoHuntSettingsPanel(pendingSave) + renderAudioSettingsPanel('town');
   if (activeTownContent === 'account') townContentBody.innerHTML = renderTownAccount(pendingSave);
 }
@@ -1932,6 +2119,262 @@ function updateZoneLocks(save: PlayerSave) {
   });
 }
 
+
+
+function expeditionSupportTier(save: PlayerSave) {
+  const clearedStory = save.story?.claimedQuestIds?.length || 0;
+  const bossKills = (save.kills?.fieldBoss || 0) + (save.kills?.dragon || 0);
+  const soulCount = save.souls?.filter((soul) => soul.unlocked).length || 0;
+  return Math.max(0, Math.min(8, Math.floor(clearedStory / 35) + Math.floor(bossKills / 45) + Math.floor(soulCount / 4)));
+}
+
+function expeditionSupportBonus(save: PlayerSave): Partial<Stats> {
+  const tier = expeditionSupportTier(save);
+  return {
+    hp: tier * 95,
+    mp: tier * 28,
+    atk: tier * 9,
+    def: tier * 6,
+    crit: tier * 0.004
+  };
+}
+
+function pledgeInfo(save: PlayerSave) {
+  const pledge = save.pledge ||= { name: '루미나 혈맹', level: 1, exp: 0, contribution: 0, crest: 'lion', donatedGold: 0, claimedTaskIds: [] };
+  const need = pledge.level >= 20 ? 0 : pledgeExpToNext(pledge.level);
+  const percent = pledge.level >= 20 ? 100 : Math.min(100, Math.round((pledge.exp / Math.max(1, need)) * 100));
+  const crestLabel = pledge.crest === 'dragon' ? '용문장' : pledge.crest === 'moon' ? '월광문장' : '사자문장';
+  return { pledge, need, percent, crestLabel };
+}
+
+function pledgeStatBonus(save: PlayerSave): Partial<Stats> {
+  const level = Math.max(1, Math.min(20, Math.floor(Number(save.pledge?.level || 1))));
+  return {
+    hp: level * 18,
+    mp: level * 5,
+    atk: Math.floor(level * 1.7),
+    def: Math.floor(level * 1.25),
+    crit: level >= 10 ? 0.006 : 0
+  };
+}
+
+function addPledgeExp(save: PlayerSave, amount: number) {
+  const info = pledgeInfo(save);
+  const pledge = info.pledge;
+  pledge.exp += Math.max(0, Math.floor(amount));
+  pledge.contribution += Math.max(0, Math.floor(amount));
+  let leveled = false;
+  while (pledge.level < 20 && pledge.exp >= pledgeExpToNext(pledge.level)) {
+    pledge.exp -= pledgeExpToNext(pledge.level);
+    pledge.level += 1;
+    leveled = true;
+  }
+  return leveled;
+}
+
+function renderTownPledge(save: PlayerSave) {
+  const { pledge, need, percent, crestLabel } = pledgeInfo(save);
+  const bonus = pledgeStatBonus(save);
+  const bossKills = (save.kills.fieldBoss || 0) + (save.kills.dragon || 0);
+  const tasks = [
+    { id: 'smith-contract', npc: '브람', title: '대장장이 보급 계약', desc: '강화석 20개 납품', ready: materialCount(save, 'enhance-stone') >= 20, done: pledge.claimedTaskIds.includes('smith-contract'), reward: '공헌 320 · 보급함' },
+    { id: 'oracle-contract', npc: '미온', title: '예언자의 망령 기록', desc: '망령 사제 누적 100마리', ready: (save.kills.wraith || 0) >= 100, done: pledge.claimedTaskIds.includes('oracle-contract'), reward: '공헌 360 · 평판 증서' },
+    { id: 'captain-contract', npc: '세이라', title: '지휘관 보스 기록', desc: '보스/용 누적 10마리', ready: bossKills >= 10, done: pledge.claimedTaskIds.includes('captain-contract'), reward: '공헌 520 · 군주의 인장' }
+  ];
+  const taskRows = tasks.map((task) => `
+    <article class="pledge-task ${task.ready && !task.done ? 'ready' : task.done ? 'done' : ''}">
+      <span>${escapeHtml(task.npc)}</span><h4>${escapeHtml(task.title)}</h4><p>${escapeHtml(task.desc)}</p><em>${escapeHtml(task.reward)}</em>
+      <button data-town-pledge-action="claim:${task.id}" ${task.ready && !task.done ? '' : 'disabled'}>${task.done ? '완료' : task.ready ? '수령' : '진행중'}</button>
+    </article>
+  `).join('');
+  return `
+    <section class="pledge-command-panel pledge-crest-${pledge.crest}">
+      <div class="pledge-hero">
+        <div class="pledge-crest"><span>${pledge.crest === 'dragon' ? '龍' : pledge.crest === 'moon' ? '月' : '獅'}</span></div>
+        <div>
+          <span class="town-eyebrow">BLOOD PLEDGE HQ</span>
+          <h3>${escapeHtml(pledge.name)} Lv.${pledge.level}</h3>
+          <p>${crestLabel} · 공헌 ${formatNumber(pledge.contribution)} · 누적 기부 ${formatGold(pledge.donatedGold)}</p>
+          <div class="bar exp pledge-exp"><i style="width:${percent}%"></i><em>${pledge.level >= 20 ? 'MAX' : `${formatNumber(pledge.exp)} / ${formatNumber(need)}`}</em></div>
+        </div>
+      </div>
+      <div class="pledge-bonus-grid">
+        <article><b>HP +${Math.round(bonus.hp || 0)}</b><span>혈맹 체력 훈련</span></article>
+        <article><b>ATK +${Math.round(bonus.atk || 0)}</b><span>전투 지휘</span></article>
+        <article><b>DEF +${Math.round(bonus.def || 0)}</b><span>성채 방어술</span></article>
+        <article><b>DROP +${Math.min(10, Math.max(0, pledge.level - 1) * 0.6).toFixed(1)}%</b><span>전리품 수색대</span></article>
+      </div>
+      <div class="pledge-action-row">
+        <button data-town-pledge-action="donate-gold">골드 50,000 기부</button>
+        <button data-town-pledge-action="donate-coin">공헌 주화 10개 납품</button>
+        <button data-town-pledge-action="donate-royal">군주의 인장 납품</button>
+        <button data-town-pledge-action="exchange-cache">혈맹 전쟁 궤짝 교환</button>
+      </div>
+    </section>
+    <section class="pledge-npc-board">
+      <div class="town-section-head"><span class="town-eyebrow">NPC CONTRACT</span><h3>마을 NPC 계약 의뢰</h3></div>
+      <div class="pledge-task-grid">${taskRows}</div>
+    </section>
+  `;
+}
+
+function handleTownPledgeAction(action: string) {
+  if (!pendingSave) return;
+  const save = pendingSave;
+  const pledge = pledgeInfo(save).pledge;
+  const fail = (message: string) => { showToast(message); audioService.play('error'); };
+  if (action === 'donate-gold') {
+    if (save.gold < 50000) return fail('기부할 골드가 부족합니다.');
+    save.gold -= 50000;
+    pledge.donatedGold += 50000;
+    addPledgeExp(save, 260);
+    showToast('혈맹에 50,000골드를 기부했습니다.');
+  } else if (action === 'donate-coin') {
+    if (materialCount(save, 'pledge-coin') < 10) return fail('혈맹 공헌 주화가 부족합니다.');
+    consumeMaterial(save, 'pledge-coin', 10);
+    addPledgeExp(save, 520);
+    showToast('공헌 주화 10개를 납품했습니다.');
+  } else if (action === 'donate-royal') {
+    if (materialCount(save, 'royal-seal') < 1) return fail('군주의 인장이 부족합니다.');
+    consumeMaterial(save, 'royal-seal', 1);
+    addPledgeExp(save, 1250);
+    showToast('군주의 인장을 혈맹에 봉납했습니다.');
+  } else if (action === 'exchange-cache') {
+    if (pledge.contribution < 600) return fail('혈맹 공헌이 부족합니다. 필요 600');
+    if (materialCount(save, 'royal-seal') < 1) return fail('군주의 인장이 부족합니다.');
+    pledge.contribution -= 600;
+    consumeMaterial(save, 'royal-seal', 1);
+    addInventoryItem(save, 'pledge-war-cache', 1);
+    showLootPresentation({ type: 'item', title: '혈맹 전쟁 궤짝', subtitle: '가방에서 개봉 가능', art: itemArtUrl(items.find((item) => item.id === 'pledge-war-cache') || items[0]), rarity: 'SSR' });
+  } else if (action.startsWith('claim:')) {
+    const id = action.split(':')[1] || '';
+    if (pledge.claimedTaskIds.includes(id)) return fail('이미 완료한 NPC 계약입니다.');
+    if (id === 'smith-contract') {
+      if (materialCount(save, 'enhance-stone') < 20) return fail('강화석 20개가 필요합니다.');
+      consumeMaterial(save, 'enhance-stone', 20);
+      addInventoryItem(save, 'village-contract-box', 1);
+      addPledgeExp(save, 320);
+    } else if (id === 'oracle-contract') {
+      if ((save.kills.wraith || 0) < 100) return fail('망령 사제 누적 100마리 처치가 필요합니다.');
+      addInventoryItem(save, 'npc-favor', 5);
+      addPledgeExp(save, 360);
+    } else if (id === 'captain-contract') {
+      const bossKills = (save.kills.fieldBoss || 0) + (save.kills.dragon || 0);
+      if (bossKills < 10) return fail('보스/용 누적 10마리 처치가 필요합니다.');
+      addInventoryItem(save, 'royal-seal', 1);
+      addPledgeExp(save, 520);
+    } else return;
+    pledge.claimedTaskIds.push(id);
+    showToast('NPC 계약 의뢰 보상을 받았습니다.');
+  }
+  audioService.play('reward');
+  persistTownSave();
+}
+
+
+
+function renderVisualImmersionBoard(save: PlayerSave) {
+  const unlocked = zones.filter((zone) => isZoneUnlocked(save, zone.id)).length;
+  const highRank = save.inventory.filter((entry) => {
+    const def = items.find((item) => item.id === entry.itemId);
+    return def && (def.rarity === 'SSR' || def.rarity === 'UR');
+  }).reduce((sum, entry) => sum + entry.count, 0);
+  const chainHint = save.level >= 20 ? '희귀 드랍 플레어 · 타격 궤적 강화' : '초반 숲 광원 · 캐릭터 실루엣 강화';
+  const titleGrade = save.level >= 80 ? 'OMEGA' : save.level >= 30 ? 'HERO' : 'ADVENTURE';
+  return `
+    <section class="visual-immersion-board">
+      <div class="visual-board-title">
+        <span>VISUAL QA 0.57</span>
+        <h3>${titleGrade} 무드 보드</h3>
+        <p>첫 화면, 마을 NPC, 전투 타격, 필드 바닥 장식을 모바일 RPG식으로 더 읽기 쉽고 몰입감 있게 재정리했습니다.</p>
+      </div>
+      <div class="visual-board-grid">
+        <article><b>타이틀</b><span>0.57 히어로 스테이지</span><em>빛/검/파노라마 재정돈</em></article>
+        <article><b>마을</b><span>NPC 클릭 상호작용</span><em>브람·미온·세이라 연결</em></article>
+        <article><b>필드</b><span>${unlocked}/${zones.length} 전선</span><em>바닥 심도 · 장식 밀도 보정</em></article>
+        <article><b>전투</b><span>SSR/UR ${highRank}개 보유</span><em>타격 이펙트 과밀도 조절</em></article>
+      </div>
+    </section>
+  `;
+}
+
+function renderOmegaCommandBoard(save: PlayerSave) {
+  const clearedStory = save.story?.claimedQuestIds?.length || 0;
+  const nextOmegaZone = zones.find((zone) => zone.order >= 49 && !isZoneUnlocked(save, zone.id));
+  const unlockedOmega = zones.filter((zone) => zone.order >= 49 && isZoneUnlocked(save, zone.id)).length;
+  const totalOmega = zones.filter((zone) => zone.order >= 49).length;
+  const dailyReady = dailyQuests.filter((quest) => !save.daily.claimedQuestIds.includes(quest.id) && questProgress(save, quest.id) >= quest.target).length;
+  const tier = expeditionSupportTier(save);
+  const bonus = expeditionSupportBonus(save);
+  return `
+    <section class="omega-command-board">
+      <div class="omega-command-hero">
+        <span class="town-eyebrow">OMEGA OVERDRIVE</span>
+        <h3>루미나 원정 지휘소</h3>
+        <p>${nextOmegaZone ? `${escapeHtml(nextOmegaZone.title)}까지 Lv.${nextOmegaZone.unlockLevel || nextOmegaZone.recommendedLevel} 목표` : '오메가 최종 전선까지 개방되었습니다. 반복 토벌과 보스 보상을 이어가세요.'}</p>
+      </div>
+      <div class="omega-command-grid">
+        <article><b>${unlockedOmega}/${totalOmega}</b><span>오메가 전선</span><em>Lv.114 이후 초월 루트</em></article>
+        <article><b>${clearedStory}</b><span>메인 완료</span><em>스토리 누적 진행도</em></article>
+        <article><b>${dailyReady}</b><span>보상 대기 의뢰</span><em>즉시 수령 가능</em></article>
+        <article><b>지원 ${tier}</b><span>동료 지휘 보너스</span><em>HP +${Math.round(bonus.hp || 0)} · ATK +${Math.round(bonus.atk || 0)}</em></article>
+      </div>
+      <div class="omega-npc-strip">
+        <span>세이라: 전선은 넓어졌고, 원정대는 당신의 기록을 따라 움직입니다.</span>
+        <span>브람: 새 유물과 재료가 모이면 장비 공명을 다시 점검하세요.</span>
+      </div>
+    </section>
+  `;
+}
+
+function renderMegaProgressDashboard(save: PlayerSave) {
+  const clearedStory = save.story?.claimedQuestIds?.length || 0;
+  const totalStory = storyQuests.length;
+  const unlockedZoneCount = zones.filter((zone) => isZoneUnlocked(save, zone.id)).length;
+  const totalDaily = dailyQuests.length;
+  const cardsOwned = save.cards.length;
+  const soulsUnlocked = save.souls.filter((soul) => soul.unlocked).length;
+  const nextZone = zones.find((zone) => !isZoneUnlocked(save, zone.id));
+  const activeQuest = currentStoryQuest(save);
+  const nextText = nextZone ? `${nextZone.title} · Lv.${nextZone.unlockLevel || nextZone.recommendedLevel}` : '모든 전선 개방';
+  const questText = activeQuest ? `${activeQuest.title} · ${activeQuest.goalText}` : '메인 스토리 전체 완료';
+  const percent = totalStory ? Math.round((clearedStory / totalStory) * 100) : 100;
+  return `
+    <section class="mega-progress-dashboard">
+      <div class="mega-dashboard-head">
+        <span>ALPHA 0.50 OMEGA OVERDRIVE</span>
+        <h3>콘텐츠 진행 보드</h3>
+        <p>${escapeHtml(questText)}</p>
+        <div class="bar exp quest-progress"><i style="width:${Math.min(100, percent)}%"></i><em>${clearedStory}/${totalStory}</em></div>
+      </div>
+      ${renderVisualImmersionBoard(save)}
+      ${renderOmegaCommandBoard(save)}
+      <div class="mega-dashboard-grid">
+        <article><b>${unlockedZoneCount}/${zones.length}</b><span>전선 개방</span><em>${escapeHtml(nextText)}</em></article>
+        <article><b>${totalStory}</b><span>메인 퀘스트</span><em>장기 챕터 루트</em></article>
+        <article><b>${totalDaily}</b><span>일일/순환 의뢰</span><em>반복 파밍 루프</em></article>
+        <article><b>${cardsOwned}</b><span>보유 카드</span><em>세트/도감 성장</em></article>
+        <article><b>${soulsUnlocked}/${souls.length}</b><span>영혼 해방</span><em>누적 토벌 성장</em></article>
+      </div>
+    </section>
+  `;
+}
+
+function renderChapterCompass(save: PlayerSave) {
+  const active = currentStoryQuest(save);
+  const chapters = Array.from(new Set(storyQuests.map((quest) => quest.chapter))).sort((a, b) => a - b);
+  const currentChapter = active?.chapter || chapters.at(-1) || 1;
+  const selected = chapters.filter((chapter) => chapter === 1 || chapter === currentChapter || chapter % 5 === 0 || (chapter >= currentChapter - 1 && chapter <= currentChapter + 2)).slice(-18);
+  return `
+    <section class="chapter-compass">
+      <div><span>CHAPTER COMPASS</span><h3>챕터 항해도</h3><p>전체 ${chapters.length}개 챕터 · 현재 CH.${currentChapter}</p></div>
+      <div class="chapter-compass-line">
+        ${selected.map((chapter) => `<span class="${chapter === currentChapter ? 'active' : chapter < currentChapter ? 'cleared' : ''}">CH.${chapter}</span>`).join('')}
+      </div>
+    </section>
+  `;
+}
+
 function renderTownHunt(save: PlayerSave) {
   const rows = zones
     .map((zone, index) => {
@@ -1951,6 +2394,7 @@ function renderTownHunt(save: PlayerSave) {
     })
     .join('');
   return `
+    ${renderMegaProgressDashboard(save)}
     ${renderHuntRecommendation(save)}
     <div class="town-content-note">필드 게이트에서 사냥터를 선택하세요. 추천 사냥터는 현재 스토리/레벨/몬스터 목표를 기준으로 자동 표시됩니다.</div>
     <div class="zone-list zone-list-v2 drawer-zone-list">${rows}</div>
@@ -2033,6 +2477,8 @@ function renderTownStory(save: PlayerSave) {
   const progress = storyQuestProgress(save, quest);
   const ready = progress >= quest.target;
   return `
+    ${renderMegaProgressDashboard(save)}
+    ${renderChapterCompass(save)}
     <section class="story-brief">
       <div class="story-npc-medal">${escapeHtml(quest.npc.slice(0, 1))}</div>
       <div>
@@ -2065,13 +2511,6 @@ function renderTownCards(save: PlayerSave) {
 
 function renderTownInventory(save: PlayerSave) {
   const stats = calculateStatsFromSave(save);
-  const cells = save.inventory
-    .flatMap((instance) => {
-      const def = items.find((item) => item.id === instance.itemId);
-      return def ? [{ def, instance }] : [];
-    })
-    .map(({ def, instance }) => renderItemSlot(save, def, instance.uid, instance.count, 'data-town-equip-item', 'data-town-upgrade-item'));
-
   return `
     <div class="town-stat-grid">
       <span>HP <b>${stats.hp}</b></span>
@@ -2082,9 +2521,9 @@ function renderTownInventory(save: PlayerSave) {
       <span>CRIT <b>${Math.round(stats.crit * 100)}%</b></span>
     </div>
     ${renderEquipmentResonanceSummary(save, true)}
+    ${renderEnhancementWorkbench(save)}
     ${renderPotionBeltSummary(save)}
-    <div class="slot-toolbar"><span>가방 7x7 · ${save.inventory.length}/49 · ${formatGold(save.gold)} · ${formatSoul(save.gems)}</span><em>클릭: 상세 · 더블클릭: 장착/해제</em></div>
-    <div class="slot-grid inventory-slot-grid town-slot-grid">${fillSlots(cells, 49, '빈 가방')}</div>
+    ${renderCategorizedInventory(save, true)}
   `;
 }
 
@@ -2194,32 +2633,27 @@ function handleAutoSettingAction(button: HTMLButtonElement) {
 
 function exchangeBossTrophy(kind: string) {
   if (!pendingSave) return;
-  const isElite = kind === 'elite';
-  const cost = isElite ? 5 : 2;
-  if (materialCount(pendingSave, 'boss-trophy') < cost) {
-    showToast(`균열 토벌 훈장이 부족합니다. 필요 ${cost}개`);
-    return;
-  }
-  consumeMaterial(pendingSave, 'boss-trophy', cost);
-  if (isElite) {
-    pendingSave.gold += 3800;
-    pendingSave.gems += 24;
-    addInventoryItem(pendingSave, 'enhance-stone', 6);
-    addInventoryItem(pendingSave, 'soul-shard', 10);
-    addInventoryItem(pendingSave, 'hp-potion-high', 8);
-    addInventoryItem(pendingSave, 'mp-potion-high', 6);
-  } else {
-    pendingSave.gold += 1200;
-    pendingSave.gems += 8;
-    addInventoryItem(pendingSave, 'enhance-stone', 2);
-    addInventoryItem(pendingSave, 'hp-potion-high', 4);
-    addInventoryItem(pendingSave, 'mp-potion-high', 3);
-  }
+  const config = {
+    supply: { trophy: 2, purity: 0, blood: 0, itemId: 'boss-supply-box', title: '보스 보급 상자', rarity: 'SR' },
+    elite: { trophy: 5, purity: 0, blood: 0, itemId: 'elite-boss-box', title: '정예 보스 상자', rarity: 'SSR' },
+    ancient: { trophy: 10, purity: 0, blood: 2, itemId: 'ancient-boss-cache', title: '고대 보스 전리품', rarity: 'UR' },
+    lawful: { trophy: 0, purity: 8, blood: 0, itemId: 'lawful-supply-crate', title: '라우풀 보급 궤짝', rarity: 'SSR' }
+  } as const;
+  const entry = config[(kind as keyof typeof config)] || config.supply;
+  if (entry.trophy && materialCount(pendingSave, 'boss-trophy') < entry.trophy) { showToast(`균열 토벌 훈장이 부족합니다. 필요 ${entry.trophy}개`); return; }
+  if (entry.blood && materialCount(pendingSave, 'blood-crystal') < entry.blood) { showToast(`혈맹 결정이 부족합니다. 필요 ${entry.blood}개`); return; }
+  if (entry.purity && materialCount(pendingSave, 'purity-mark') < entry.purity) { showToast(`정화의 표식이 부족합니다. 필요 ${entry.purity}개`); return; }
+  if (kind === 'lawful' && lawfulInfo(pendingSave).value < 6000) { showToast('질서 이상 성향에서만 라우풀 보급을 받을 수 있습니다.'); return; }
+  if (entry.trophy) consumeMaterial(pendingSave, 'boss-trophy', entry.trophy);
+  if (entry.blood) consumeMaterial(pendingSave, 'blood-crystal', entry.blood);
+  if (entry.purity) consumeMaterial(pendingSave, 'purity-mark', entry.purity);
+  addInventoryItem(pendingSave, entry.itemId, 1);
   audioService.play('reward');
   persistTownSave();
-  flashActionFeedback(isElite ? '정예 보상 교환' : '보급 보상 교환');
-  showLootPresentation({ type: 'item', title: isElite ? '정예 보스 상자' : '보스 보급 상자', subtitle: `훈장 ${cost}개 교환 완료`, art: itemArtUrl(items.find((item) => item.id === 'boss-trophy') || items[0]), rarity: isElite ? 'SSR' : 'SR' });
-  showToast(isElite ? '정예 보스 상자 교환 완료' : '보스 보급 상자 교환 완료');
+  flashActionFeedback(`${entry.title} 교환`);
+  const def = items.find((item) => item.id === entry.itemId) || items[0];
+  showLootPresentation({ type: 'item', title: def.name, subtitle: '가방에서 열 수 있습니다', art: itemArtUrl(def), rarity: entry.rarity });
+  showToast(`${entry.title} 교환 완료`);
 }
 
 function renderEquipmentResonanceSummary(save: PlayerSave, townMode = false) {
@@ -2293,7 +2727,9 @@ function renderTownShop(save: PlayerSave) {
     { itemId: 'crystal-mail', price: 620, label: 'R 방어구' },
     { itemId: 'fox-charm', price: 900, label: '유물 슬롯' },
     { itemId: 'soul-shard', price: 120, label: '강화 재료' },
-    { itemId: 'enhance-stone', price: 420, label: '+10 이후 재료' }
+    { itemId: 'enhance-stone', price: 420, label: '+10 이후 재료' },
+    { itemId: 'lumina-seal', price: 1200, label: '후반 전선 인장' },
+    { itemId: 'radiant-ore', price: 3600, label: '최상급 강화 재료' }
   ];
   const rows = stock
     .flatMap((entry) => {
@@ -2340,33 +2776,45 @@ function renderTownBoss(save: PlayerSave) {
   const fieldBoss = monsters.find((monster) => monster.id === 'fieldBoss');
   const bear = monsters.find((monster) => monster.id === 'crystalBear');
   const trophyCount = materialCount(save, 'boss-trophy');
+  const purity = materialCount(save, 'purity-mark');
+  const blood = materialCount(save, 'blood-crystal');
   const canSupply = trophyCount >= 2;
   const canElite = trophyCount >= 5;
+  const canAncient = trophyCount >= 10 && blood >= 2;
+  const canLawful = purity >= 8 && lawfulInfo(save).value >= 6000;
   return `
-    <div class="boss-panel boss-bounty-panel">
+    <div class="boss-panel boss-bounty-panel boss-bounty-panel-052">
       <div class="boss-emblem">RAID</div>
       <div>
         <div class="pill-row">
           <span class="pill">권장 Lv.16+</span>
           <span class="pill">훈장 ${trophyCount}개</span>
+          <span class="pill">정화 ${purity}개</span>
+          <span class="pill">혈맹결정 ${blood}개</span>
           <span class="pill">내 Lv.${save.level}</span>
         </div>
-        <h3>균열 토벌 현상금</h3>
-        <p>필드보스와 심연룡을 토벌해 균열 토벌 훈장을 모으고, 마을에서 보스 보급 상자로 교환하세요.</p>
-        ${fieldBoss ? `<p>필드보스: ${escapeHtml(fieldBoss.name)} · Lv.${fieldBoss.level} · 훈장 드랍</p>` : ''}
-        ${dragon ? `<p>심연룡: ${escapeHtml(dragon.name)} · Lv.${dragon.level} · 훈장 고확률 드랍</p>` : ''}
-        ${bear ? `<p>중간 보스: ${escapeHtml(bear.name)} · Lv.${bear.level}</p>` : ''}
-        <div class="boss-bounty-actions">
+        <h3>보스 현상금 · 성향 보급소</h3>
+        <p>필드보스와 심연룡을 토벌해 훈장/상자/혈맹 결정을 모으세요. 라우풀 성향은 드랍 안정성을 높이고 카오틱은 패널티가 적용됩니다.</p>
+        ${fieldBoss ? `<p>필드보스: ${escapeHtml(fieldBoss.name)} · Lv.${fieldBoss.level} · 정예/고대 상자 드랍</p>` : ''}
+        ${dragon ? `<p>심연룡: ${escapeHtml(dragon.name)} · Lv.${dragon.level} · 고대 전리품 고확률</p>` : ''}
+        ${bear ? `<p>중간 보스: ${escapeHtml(bear.name)} · Lv.${bear.level} · 정예 상자 낮은 확률</p>` : ''}
+        <div class="boss-bounty-actions boss-bounty-actions-052">
           <button class="wide-action primary" data-town-zone-enter="crystal-raid">수정 레이드 터 입장</button>
           <button class="wide-action" ${canSupply ? '' : 'disabled'} data-town-boss-exchange="supply">훈장 2개 · 보급 상자</button>
           <button class="wide-action" ${canElite ? '' : 'disabled'} data-town-boss-exchange="elite">훈장 5개 · 정예 상자</button>
+          <button class="wide-action" ${canAncient ? '' : 'disabled'} data-town-boss-exchange="ancient">훈장 10 + 혈맹결정 2 · 고대 전리품</button>
+          <button class="wide-action" ${canLawful ? '' : 'disabled'} data-town-boss-exchange="lawful">정화 8 + 질서 성향 · 라우풀 보급</button>
         </div>
       </div>
     </div>
-    <section class="bounty-reward-grid">
-      <article><b>보급 상자</b><span>골드 1,200 · 소울젬 8 · 강화석 2 · 상급 물약 보급</span></article>
-      <article><b>정예 상자</b><span>골드 3,800 · 소울젬 24 · 강화석 6 · 소울 파편 10 · 장비 성장 재료</span></article>
+    ${renderLawfulSystemPanel(save)}
+    <section class="bounty-reward-grid bounty-reward-grid-052">
+      <article><b>보급 상자</b><span>강화석/파편/물약 · 사냥 유지용</span></article>
+      <article><b>정예 상자</b><span>고급 재료 + SSR 장비 낮은 확률</span></article>
+      <article><b>고대 전리품</b><span>UR 장비, 성흔 유물, 오메가 재료 기회</span></article>
+      <article><b>라우풀 보급</b><span>성향 수호자용 안정 보급 + 정화 재료</span></article>
     </section>
+    <section class="safe-zone-guide"><b>안전지대</b><span>필드 진입로 근처에서는 몬스터 선공/패턴이 해제되고 체력 재정비가 가능합니다.</span></section>
     ${renderAutoHuntSettingsPanel(save)}
   `;
 }
@@ -2480,6 +2928,7 @@ function renderTownAccount(save: PlayerSave) {
               <span class="pill">Lv.${save.level}</span>
               <span class="pill">전투력 ${formatNumber(powerFromSave(save))}</span>
               <span class="pill">${(save.gender || 'male') === 'female' ? '여자' : '남자'}</span>
+              ${renderLawfulBadge(save, true)}
             </div>
             <h3>${escapeHtml(save.name)}</h3>
             <p>HP ${Math.ceil(save.hp)}/${stats.hp} · MP ${Math.floor(save.mp)}/${stats.mp}</p>
@@ -2492,6 +2941,7 @@ function renderTownAccount(save: PlayerSave) {
           <span><b>${equippedCards}/4</b><em>카드</em></span>
           <span><b>${unlockedSouls}</b><em>영혼</em></span>
           <span><b>${formatGold(save.gold)}</b><em>골드</em></span>
+          <span><b>${lawfulInfo(save).tier}</b><em>성향</em></span>
         </div>
       </article>
       <article class="account-panel town-account-save-card">
@@ -2505,6 +2955,7 @@ function renderTownAccount(save: PlayerSave) {
         ${cloud.lastError ? `<p>최근 클라우드 오류: ${escapeHtml(cloud.lastError)}</p>` : ''}
         <button data-town-account-action="save">수동 저장</button>
       </article>
+      ${renderLawfulSystemPanel(save)}
       ${renderAudioSettingsPanel('town')}
     </div>
   `;
@@ -2531,6 +2982,45 @@ function toggleTownCard(cardUid: string) {
   showToast(card.equipped ? '카드를 장착했습니다.' : '카드를 해제했습니다.');
 }
 
+
+function openRewardBox(save: PlayerSave, entry: { uid: string; itemId: string; count: number }) {
+  const def = items.find((item) => item.id === entry.itemId);
+  if (!def) return false;
+  const rewardMap: Record<string, Array<{ itemId?: string; count?: number; gold?: number; gems?: number; chance?: number }>> = {
+    'boss-supply-box': [
+      { gold: 1800 }, { gems: 10 }, { itemId: 'enhance-stone', count: 3 }, { itemId: 'soul-shard', count: 8 }, { itemId: 'hp-potion-high', count: 10 }, { itemId: 'mp-potion-high', count: 8 }
+    ],
+    'elite-boss-box': [
+      { gold: 5200 }, { gems: 32 }, { itemId: 'enhance-stone', count: 8 }, { itemId: 'blood-crystal', count: 1 }, { itemId: 'guardian-aegis', chance: 0.18 }, { itemId: 'lawful-blade', chance: 0.14 }, { itemId: 'nightmare-robe', chance: 0.14 }
+    ],
+    'ancient-boss-cache': [
+      { gold: 16000 }, { gems: 90 }, { itemId: 'blood-crystal', count: 3 }, { itemId: 'radiant-ore', count: 3 }, { itemId: 'celestial-sigil', chance: 0.28 }, { itemId: 'chaos-reaver', chance: 0.22 }, { itemId: 'omega-blade', chance: 0.18 }
+    ],
+    'lawful-supply-crate': [
+      { gold: 7200 }, { gems: 42 }, { itemId: 'purity-mark', count: 2 }, { itemId: 'enhance-stone', count: 8 }, { itemId: 'lawful-blade', chance: 0.12 }, { itemId: 'guardian-aegis', chance: 0.12 }
+    ]
+  };
+  const table = rewardMap[entry.itemId];
+  if (!table) return false;
+  const gained: string[] = [];
+  for (const reward of table) {
+    if (reward.chance && !roll(reward.chance)) continue;
+    if (reward.gold) { save.gold += reward.gold; gained.push(formatGold(reward.gold)); }
+    if (reward.gems) { save.gems += reward.gems; gained.push(`소울젬 ${reward.gems}`); }
+    if (reward.itemId) {
+      addInventoryItem(save, reward.itemId, reward.count || 1);
+      const item = items.find((candidate) => candidate.id === reward.itemId);
+      gained.push(`${item?.name || reward.itemId} x${reward.count || 1}`);
+    }
+  }
+  entry.count -= 1;
+  if (entry.count <= 0) save.inventory = save.inventory.filter((item) => item.uid !== entry.uid);
+  audioService.play('reward');
+  showLootPresentation({ type: 'item', title: def.name, subtitle: gained.slice(0, 4).join(' · ') || '보상 획득', art: itemArtUrl(def), rarity: def.rarity });
+  showToast(`${def.name} 개봉 · ${gained.slice(0, 3).join(' · ')}`);
+  return true;
+}
+
 function toggleTownItem(itemUid: string) {
   if (!pendingSave) return;
   const entry = pendingSave.inventory.find((item) => item.uid === itemUid);
@@ -2549,6 +3039,7 @@ function toggleTownItem(itemUid: string) {
     return;
   }
   if (def.type === 'consumable') {
+    if (!def.consume && openRewardBox(pendingSave, entry)) { persistTownSave(); return; }
     const stats = calculateStatsFromSave(pendingSave);
     const healedHp = Math.ceil((def.consume?.hpPercent || 0) * stats.hp + (def.consume?.hpFlat || 0));
     const healedMp = Math.ceil((def.consume?.mpPercent || 0) * stats.mp + (def.consume?.mpFlat || 0));
@@ -2820,8 +3311,12 @@ function calculateStatsFromSave(save: PlayerSave): Stats {
     applyTownBonus(stats, def.bonus, 1);
   }
 
-  stats.hp = Math.round(stats.hp);
-  stats.mp = Math.round(stats.mp);
+  applyTownBonus(stats, expeditionSupportBonus(save), 1);
+  applyTownBonus(stats, lawfulStatBonus(save), 1);
+  applyTownBonus(stats, pledgeStatBonus(save), 1);
+
+  stats.hp = Math.max(1, Math.round(stats.hp));
+  stats.mp = Math.max(0, Math.round(stats.mp));
   stats.atk = Math.round(stats.atk);
   stats.def = Math.round(stats.def);
   stats.aspd = Number(stats.aspd.toFixed(2));
@@ -3073,7 +3568,7 @@ function openItemDetail(uidValue: string, townMode: boolean) {
   const compare = canEquip ? renderEquipmentCompare(save, instance.uid, slot, equipped) : '';
   const actions = canEquip
     ? `<button class="wide-action primary" ${actionAttr}="${instance.uid}">${equipped ? '장착 해제' : '장착하기'}</button><button class="wide-action" ${enhanceLevel >= MAX_ENHANCE_LEVEL ? 'disabled' : ''} ${upgradeAttr}="${instance.uid}">강화 ${enhanceLevel >= MAX_ENHANCE_LEVEL ? 'MAX' : `+${cost.next} · ${Math.round(cost.successRate * 100)}%`}</button>`
-    : def.type === 'skillbook' ? `<button class="wide-action primary" ${actionAttr}="${instance.uid}">스킬 배우기</button>` : def.type === 'consumable' ? `<button class="wide-action primary" ${actionAttr}="${instance.uid}">사용하기</button>` : '';
+    : def.type === 'skillbook' ? `<button class="wide-action primary" ${actionAttr}="${instance.uid}">스킬 배우기</button>` : def.type === 'consumable' ? `<button class="wide-action primary" ${actionAttr}="${instance.uid}">${def.consume ? '사용하기' : '상자 열기'}</button>` : '';
   openDetailModal({
     eyebrow: `${def.rarity} ${typeLabel[def.type] || def.type} · x${instance.count}`,
     title: `${def.name}${canEquip ? ` +${enhanceLevel}` : ''}`,

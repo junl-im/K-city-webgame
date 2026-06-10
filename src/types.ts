@@ -1,6 +1,6 @@
 export type CharacterClassId = 'warrior' | 'taoist' | 'cleric';
 export type CharacterGender = 'male' | 'female';
-export type MonsterId = 'slime' | 'wolf' | 'goblin' | 'crystalBear' | 'dragon' | 'shadowImp' | 'mossGolem' | 'wraith' | 'fireDrake' | 'stormHarpy' | 'graveKnight' | 'fieldBoss';
+export type MonsterId = 'slime' | 'wolf' | 'goblin' | 'crystalBear' | 'dragon' | 'shadowImp' | 'mossGolem' | 'wraith' | 'fireDrake' | 'stormHarpy' | 'graveKnight' | 'fieldBoss' | 'orcBerserker' | 'nightmareBat' | 'lavaGolem' | 'iceWitch' | 'royalGuard' | 'riftBeast';
 export type TileId = 'grass' | 'dirt' | 'moss' | 'stone' | 'crystal' | 'water' | 'cliff' | 'portal';
 export type CardRarity = 'N' | 'R' | 'SR' | 'SSR' | 'UR';
 export type SheetTab = 'cards' | 'inventory' | 'skills' | 'souls' | 'account';
@@ -191,6 +191,16 @@ export interface AutoHuntSettings {
   bossPriority: boolean;
 }
 
+export interface PledgeState {
+  name: string;
+  level: number;
+  exp: number;
+  contribution: number;
+  crest: 'lion' | 'dragon' | 'moon';
+  donatedGold: number;
+  claimedTaskIds: string[];
+}
+
 export interface PlayerSave {
   version: number;
   saveId: string;
@@ -218,6 +228,8 @@ export interface PlayerSave {
   learnedSkillIds: string[];
   skillLevels: Record<string, number>;
   sleepMode: boolean;
+  lawful: number;
+  pledge: PledgeState;
   createdAt: number;
   updatedAt: number;
 }

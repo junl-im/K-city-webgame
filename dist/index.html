@@ -10,19 +10,19 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="description" content="소울 온라인 Alpha - 모바일 2.5D 웹 MMORPG 프로토타입" />
     <title>소울 온라인 Alpha</title>
-    <script type="module" crossorigin src="./assets/index-DM4BXH4a.js"></script>
+    <script type="module" crossorigin src="./assets/index-C152990t.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/pixi-engine-C-SW8LSP.js">
-    <link rel="modulepreload" crossorigin href="./assets/game-data-CZ9AOOGX.js">
+    <link rel="modulepreload" crossorigin href="./assets/game-data-BBmt57N5.js">
     <link rel="modulepreload" crossorigin href="./assets/firebase-sdk-B8Ih3TGo.js">
-    <link rel="modulepreload" crossorigin href="./assets/field-engine-CW9z6hkC.js">
-    <link rel="stylesheet" crossorigin href="./assets/index-D0ULrl4w.css">
+    <link rel="modulepreload" crossorigin href="./assets/field-engine-CzckwvzW.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-xuAgj5gZ.css">
   </head>
   <body>
     <div id="app">
       <div id="game-root" class="game-root"></div>
 
-      <section class="title-screen title-screen-044 title-screen-048" id="titleScreen">
-        <div class="title-bg title-bg-visual">
+      <section class="title-screen title-screen-044 title-screen-048 title-screen-049 title-screen-050 title-screen-052 title-screen-053 title-screen-056 title-screen-057" id="titleScreen">
+        <div class="title-bg title-bg-visual title-bg-049 title-bg-050 title-bg-052 title-bg-053 title-bg-056 title-bg-057">
           <span class="title-orb orb-a"></span>
           <span class="title-orb orb-b"></span>
           <span class="title-orb orb-c"></span>
@@ -33,15 +33,15 @@
             <h1>소울 온라인</h1>
             <p>어둠의 균열이 열린 루미나 대륙에서 영혼을 각성하고, 장비와 카드를 성장시켜 필드보스와 심연의 군단을 토벌하세요.</p>
           </div>
-          <div class="title-hero title-hero-044 title-hero-048" aria-hidden="true">
+          <div class="title-hero title-hero-044 title-hero-048 title-hero-049 title-hero-050 title-hero-052 title-hero-053 title-hero-056 title-hero-057" aria-hidden="true">
             <span class="title-soul-ring"></span>
-            <span class="title-character title-character-visual"></span>
+            <span class="title-character title-character-visual title-character-049 title-character-050 title-character-052 title-character-053 title-character-056 title-character-057"></span><span class="title-character-companion companion-left"></span><span class="title-character-companion companion-right"></span>
             <span class="title-hero-glow"></span>
             <span class="title-hero-rune rune-a"></span>
             <span class="title-hero-rune rune-b"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn">게임 시작</button>
-          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.48.0</span></div>
+          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.57.0</span></div>
           <small>영혼을 깨우고 루미나의 균열을 봉인하세요.</small>
         </div>
       </section>
@@ -146,9 +146,9 @@
         </div>
       </section>
 
-      <section class="town-screen hidden" id="townScreen" aria-hidden="true">
+      <section class="town-screen town-screen-049 town-screen-050 town-screen-052 town-screen-053 town-screen-056 town-screen-057 hidden" id="townScreen" aria-hidden="true">
         <div class="town-backdrop">
-          <div class="town-sky"></div>
+          <div class="town-sky"></div><div class="town-panorama-049 town-panorama-050 town-panorama-052 town-panorama-053 town-panorama-056 town-panorama-057" aria-hidden="true"></div>
           <div class="town-diorama" aria-hidden="true">
             <span class="town-plaza"></span>
             <span class="town-road main-road"></span>
@@ -172,6 +172,15 @@
             <span class="town-citizen citizen-a"></span>
             <span class="town-citizen citizen-b"></span>
             <span class="town-citizen citizen-c"></span>
+            <span class="town-airship airship-a"></span>
+            <span class="town-airship airship-b"></span>
+            <span class="town-waterfall waterfall-a"></span>
+            <span class="town-banner-line"></span>
+            <span class="town-omega-crystal crystal-a"></span>
+            <span class="town-omega-crystal crystal-b"></span>
+            <button class="town-npc npc-smith" data-town-npc="smith" type="button">브람</button>
+            <button class="town-npc npc-oracle" data-town-npc="oracle" type="button">미온</button>
+            <button class="town-npc npc-captain" data-town-npc="captain" type="button">세이라</button>
           </div>
         </div>
 
@@ -240,6 +249,7 @@
               <button class="content-card" data-town-content="inventory"><i>▤</i><b>장비</b><span>장착/강화</span></button>
               <button class="content-card" data-town-content="skills"><i>✦</i><b>스킬</b><span>습득/확인</span></button>
               <button class="content-card" data-town-content="cards"><i>◆</i><b>카드</b><span>장착/세트</span></button>
+              <button class="content-card" data-town-content="pledge"><i>⚑</i><b>혈맹</b><span>공헌/NPC</span></button>
             </div>
           </section>
         </main>
@@ -257,6 +267,7 @@
           <button data-town-more-content="quests"><span>!</span><b>의뢰</b><em>일일/주간</em></button>
           <button data-town-more-content="shop"><span>◈</span><b>상점</b><em>스킬북/재료</em></button>
           <button data-town-more-content="boss"><span>♛</span><b>보스</b><em>레이드/필드보스</em></button>
+          <button data-town-more-content="pledge"><span>⚑</span><b>혈맹</b><em>공헌/NPC</em></button>
           <button data-town-more-content="settings"><span>♫</span><b>사운드</b><em>BGM/SFX</em></button>
           <button data-town-more-content="account"><span>◎</span><b>계정</b><em>저장/동기화</em></button>
         </div>

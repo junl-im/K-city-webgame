@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 980">
+  <defs>
+    <radialGradient id="aura" cx="50%" cy="38%" r="58%"><stop offset="0" stop-color="#fff6ce" stop-opacity=".95"/><stop offset=".38" stop-color="#81f5ff" stop-opacity=".38"/><stop offset="1" stop-color="#151126" stop-opacity="0"/></radialGradient>
+    <linearGradient id="hair" x1="0" x2="1"><stop offset="0" stop-color="#fff7d8"/><stop offset=".48" stop-color="#f2c671"/><stop offset="1" stop-color="#8b4a24"/></linearGradient>
+    <linearGradient id="cloth" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#1b2c57"/><stop offset=".45" stop-color="#273c78"/><stop offset="1" stop-color="#0a1028"/></linearGradient>
+    <linearGradient id="blade" x1="0" x2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".42" stop-color="#8df6ff"/><stop offset="1" stop-color="#516dff"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="720" height="980" fill="none"/>
+  <ellipse cx="360" cy="385" rx="310" ry="360" fill="url(#aura)"/>
+  <g opacity=".92" filter="url(#glow)">
+    <circle cx="360" cy="355" r="245" fill="none" stroke="#d9b96a" stroke-width="7" stroke-dasharray="34 18"/>
+    <circle cx="360" cy="355" r="198" fill="none" stroke="#79f4ff" stroke-width="3" stroke-dasharray="14 18" opacity=".74"/>
+  </g>
+  <g transform="translate(0 12)">
+    <path d="M220 470 C175 565 146 710 169 899 C245 824 296 748 360 690 C429 751 504 826 583 904 C604 730 556 565 506 469 C470 544 251 548 220 470Z" fill="url(#cloth)"/>
+    <path d="M216 482 C171 600 157 751 178 906 C222 826 267 758 334 696 C285 642 244 574 216 482Z" fill="#10182d" opacity=".82"/>
+    <path d="M504 482 C552 605 579 760 563 914 C514 824 461 756 389 694 C440 637 480 570 504 482Z" fill="#12182d" opacity=".82"/>
+    <path d="M274 396 C246 444 239 528 257 590 C300 636 421 636 464 590 C484 525 475 444 446 396 C408 433 312 432 274 396Z" fill="#f3c4a0"/>
+    <path d="M294 596 C318 642 405 642 430 596 L452 710 C403 758 312 758 268 710Z" fill="#e9ad86"/>
+    <path d="M227 358 C224 238 287 132 371 125 C464 126 528 234 506 360 C501 430 471 486 448 506 C461 420 446 355 409 309 C380 370 313 402 244 407 C236 393 229 378 227 358Z" fill="url(#hair)"/>
+    <path d="M272 310 C306 225 392 177 466 234 C448 171 402 124 349 126 C289 136 247 197 232 283Z" fill="#fff4ce" opacity=".75"/>
+    <path d="M284 365 C303 404 333 422 363 422 C398 422 430 401 447 361 C439 444 412 490 363 493 C317 491 290 446 284 365Z" fill="#f4c59f"/>
+    <ellipse cx="326" cy="379" rx="13" ry="17" fill="#15213c"/><ellipse cx="409" cy="379" rx="13" ry="17" fill="#15213c"/>
+    <circle cx="331" cy="372" r="4" fill="#fff"/><circle cx="414" cy="372" r="4" fill="#fff"/>
+    <path d="M334 449 C352 464 383 464 402 448" fill="none" stroke="#8c4b4b" stroke-width="5" stroke-linecap="round"/>
+    <path d="M267 538 C310 574 417 574 459 538" fill="none" stroke="#e2b95f" stroke-width="8" opacity=".88"/>
+    <path d="M218 642 C304 679 423 680 512 642 L536 716 C433 787 280 785 188 716Z" fill="#151b34" opacity=".9"/>
+    <path d="M360 580 L402 697 L360 820 L318 697Z" fill="#72e7ff" opacity=".28" filter="url(#glow)"/>
+    <path d="M558 215 L602 246 L409 738 L366 735 Z" fill="url(#blade)" filter="url(#glow)"/>
+    <path d="M401 700 L454 720 L436 762 L365 735Z" fill="#d8a24e"/>
+    <path d="M178 733 C224 782 295 821 359 821 C431 821 501 783 548 732" fill="none" stroke="#d6b167" stroke-width="9" opacity=".72"/>
+  </g>
+  <g opacity=".78" filter="url(#glow)">
+    <circle cx="142" cy="226" r="10" fill="#f8d978"/><circle cx="608" cy="322" r="8" fill="#72e7ff"/><circle cx="130" cy="542" r="7" fill="#9c80ff"/><circle cx="580" cy="596" r="11" fill="#ffdc89"/>
+    <path d="M92 424 C170 374 224 340 276 278" fill="none" stroke="#72e7ff" stroke-width="4" stroke-linecap="round" opacity=".42"/>
+    <path d="M632 516 C546 460 506 421 462 354" fill="none" stroke="#e2b95f" stroke-width="4" stroke-linecap="round" opacity=".46"/>
+  </g>
+</svg>

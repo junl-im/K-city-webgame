@@ -92,7 +92,35 @@ export const textureUrls = {
   monsterFireDrakeSheet: new URL('../assets/2p5d/monsters/monster-firedrake-sheet.webp', import.meta.url).href,
   monsterHarpySheet: new URL('../assets/2p5d/monsters/monster-harpy-sheet.webp', import.meta.url).href,
   monsterGraveKnightSheet: new URL('../assets/2p5d/monsters/monster-grave-knight-sheet.webp', import.meta.url).href,
-  monsterFieldBossSheet: new URL('../assets/2p5d/monsters/monster-fieldboss-sheet.webp', import.meta.url).href
+  monsterFieldBossSheet: new URL('../assets/2p5d/monsters/monster-fieldboss-sheet.webp', import.meta.url).href,
+  monsterOrcSheet: new URL('../assets/2p5d/monsters/monster-orc-berserker-sheet.webp', import.meta.url).href,
+  monsterBatSheet: new URL('../assets/2p5d/monsters/monster-nightmare-bat-sheet.webp', import.meta.url).href,
+  monsterLavaGolemSheet: new URL('../assets/2p5d/monsters/monster-lava-golem-sheet.webp', import.meta.url).href,
+  monsterIceWitchSheet: new URL('../assets/2p5d/monsters/monster-ice-witch-sheet.webp', import.meta.url).href,
+  monsterRoyalGuardSheet: new URL('../assets/2p5d/monsters/monster-royal-guard-sheet.webp', import.meta.url).href,
+  monsterRiftBeastSheet: new URL('../assets/2p5d/monsters/monster-rift-beast-sheet.webp', import.meta.url).href,
+  propGrassClump: new URL('../assets/map/decor/prop-grass-clump.svg', import.meta.url).href,
+  propBrokenCart: new URL('../assets/map/decor/prop-broken-cart.svg', import.meta.url).href,
+  propAncientGate: new URL('../assets/map/decor/prop-ancient-gate.svg', import.meta.url).href,
+  propBloodBanner: new URL('../assets/map/decor/prop-blood-banner.svg', import.meta.url).href,
+  propFlowerPatch: new URL('../assets/map/decor/prop-flower-patch.svg', import.meta.url).href,
+  propRoadSign: new URL('../assets/map/decor/prop-road-sign.svg', import.meta.url).href,
+  propCrystalBrazier: new URL('../assets/map/decor/prop-crystal-brazier.svg', import.meta.url).href,
+  propRiftAltar: new URL('../assets/map/decor/prop-rift-altar.svg', import.meta.url).href,
+  propCampLantern: new URL('../assets/map/decor/prop-camp-lantern.svg', import.meta.url).href,
+  propStoneSteps: new URL('../assets/map/decor/prop-stone-steps.svg', import.meta.url).href,
+  propPetalTree: new URL('../assets/map/decor/prop-petal-tree.svg', import.meta.url).href,
+  propMarketCrate: new URL('../assets/map/decor/prop-market-crate.svg', import.meta.url).href,
+  propSoulFlowers: new URL('../assets/map/decor/prop-soul-flowers.svg', import.meta.url).href,
+  propHeroStatue: new URL('../assets/map/decor/prop-hero-statue.svg', import.meta.url).href,
+  propBossTotem: new URL('../assets/map/decor/prop-boss-totem.svg', import.meta.url).href,
+  propWaterReflection: new URL('../assets/map/decor/prop-water-reflection.svg', import.meta.url).href,
+  propPathTorch: new URL('../assets/map/decor/prop-path-torch.svg', import.meta.url).href,
+  propSilkBanner: new URL('../assets/map/decor/prop-silk-banner.svg', import.meta.url).href,
+  propMoonPuddle: new URL('../assets/map/decor/prop-moon-puddle.svg', import.meta.url).href,
+  propRuneFloor: new URL('../assets/map/decor/prop-rune-floor.svg', import.meta.url).href,
+  propAncientRoot: new URL('../assets/map/decor/prop-ancient-root.svg', import.meta.url).href,
+  propBattleScar: new URL('../assets/map/decor/prop-battle-scar.svg', import.meta.url).href
 } as const;
 
 export const runtimeTextureUrls: Partial<Record<keyof typeof textureUrls, string>> = {
@@ -169,7 +197,17 @@ export const runtimeTextureUrls: Partial<Record<keyof typeof textureUrls, string
   monsterFireDrakeSheet: './assets/soulpack/monsters/monster-firedrake-sheet.webp',
   monsterHarpySheet: './assets/soulpack/monsters/monster-harpy-sheet.webp',
   monsterGraveKnightSheet: './assets/soulpack/monsters/monster-grave-knight-sheet.webp',
-  monsterFieldBossSheet: './assets/soulpack/monsters/monster-fieldboss-sheet.webp'
+  monsterFieldBossSheet: './assets/soulpack/monsters/monster-fieldboss-sheet.webp',
+  monsterOrcSheet: './assets/soulpack/monsters/monster-orc-berserker-sheet.webp',
+  monsterBatSheet: './assets/soulpack/monsters/monster-nightmare-bat-sheet.webp',
+  monsterLavaGolemSheet: './assets/soulpack/monsters/monster-lava-golem-sheet.webp',
+  monsterIceWitchSheet: './assets/soulpack/monsters/monster-ice-witch-sheet.webp',
+  monsterRoyalGuardSheet: './assets/soulpack/monsters/monster-royal-guard-sheet.webp',
+  monsterRiftBeastSheet: './assets/soulpack/monsters/monster-rift-beast-sheet.webp',
+  propGrassClump: './assets/soulpack/props/prop-grass-clump.svg',
+  propBrokenCart: './assets/soulpack/props/prop-broken-cart.svg',
+  propAncientGate: './assets/soulpack/props/prop-ancient-gate.svg',
+  propBloodBanner: './assets/soulpack/props/prop-blood-banner.svg'
 } as const;
 
 export const audioTrackUrls = {
@@ -222,7 +260,7 @@ export const highQualityAssetSlots = {
   ],
   monsters: [
     'monsters/monster-slime-sheet.webp', 'monsters/monster-wolf-sheet.webp', 'monsters/monster-goblin-sheet.webp',
-    'monsters/monster-bear-sheet.webp', 'monsters/boss-dragon-sheet.webp', 'monsters/monster-imp-sheet.webp', 'monsters/monster-golem-sheet.webp', 'monsters/monster-wraith-sheet.webp', 'monsters/monster-firedrake-sheet.webp', 'monsters/monster-harpy-sheet.webp', 'monsters/monster-grave-knight-sheet.webp', 'monsters/monster-fieldboss-sheet.webp'
+    'monsters/monster-bear-sheet.webp', 'monsters/boss-dragon-sheet.webp', 'monsters/monster-imp-sheet.webp', 'monsters/monster-golem-sheet.webp', 'monsters/monster-wraith-sheet.webp', 'monsters/monster-firedrake-sheet.webp', 'monsters/monster-harpy-sheet.webp', 'monsters/monster-grave-knight-sheet.webp', 'monsters/monster-fieldboss-sheet.webp', 'monsters/monster-orc-berserker-sheet.webp', 'monsters/monster-nightmare-bat-sheet.webp', 'monsters/monster-lava-golem-sheet.webp', 'monsters/monster-ice-witch-sheet.webp', 'monsters/monster-royal-guard-sheet.webp', 'monsters/monster-rift-beast-sheet.webp'
   ],
   tiles: [
     'tiles/tile-grass.webp', 'tiles/tile-dirt.webp', 'tiles/tile-moss.webp', 'tiles/tile-stone.webp',

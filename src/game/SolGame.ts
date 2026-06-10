@@ -11,6 +11,7 @@ import {
   expToNext,
   items,
   monsters,
+  pledgeExpToNext,
   skillMasteryCost,
   skills,
   souls,
@@ -77,6 +78,8 @@ type EliteAffixDefinition = {
 const CHAIN_MAX_TIMER = 9.5;
 const CHAIN_BONUS_STEP = 0.02;
 const CHAIN_BONUS_CAP = 0.28;
+const LAWFUL_MAX = 32767;
+const LAWFUL_MIN = -32768;
 
 const BOSS_PATTERN_MOBS = new Set<MonsterId>(['fireDrake', 'stormHarpy', 'graveKnight', 'fieldBoss', 'dragon', 'wraith', 'crystalBear']);
 
@@ -112,7 +115,13 @@ const zoneMonsterIds: Record<string, MonsterId[]> = {
   'crystal-raid': ['fieldBoss', 'graveKnight', 'fireDrake', 'dragon', 'fieldBoss', 'graveKnight', 'fireDrake'],
   'bloodstone-mine': ['crystalBear', 'crystalBear', 'graveKnight', 'graveKnight', 'graveKnight', 'fieldBoss', 'crystalBear', 'graveKnight'],
   'sky-citadel': ['stormHarpy', 'stormHarpy', 'stormHarpy', 'fireDrake', 'fireDrake', 'dragon', 'stormHarpy', 'fireDrake'],
-  'demon-rift': ['fieldBoss', 'fieldBoss', 'dragon', 'dragon', 'graveKnight', 'graveKnight', 'fireDrake', 'fireDrake']
+  'demon-rift': ['fieldBoss', 'fieldBoss', 'dragon', 'dragon', 'graveKnight', 'graveKnight', 'fireDrake', 'fireDrake'],
+  'orc-battlefield': ['orcBerserker', 'orcBerserker', 'orcBerserker', 'graveKnight', 'fieldBoss', 'nightmareBat', 'orcBerserker', 'fieldBoss'],
+  'nightmare-roost': ['nightmareBat', 'nightmareBat', 'nightmareBat', 'wraith', 'stormHarpy', 'iceWitch', 'nightmareBat', 'iceWitch'],
+  'molten-core-works': ['lavaGolem', 'lavaGolem', 'fireDrake', 'crystalBear', 'fieldBoss', 'lavaGolem', 'fireDrake'],
+  'frost-oracle-court': ['iceWitch', 'iceWitch', 'royalGuard', 'wraith', 'dragon', 'iceWitch', 'royalGuard'],
+  'royal-blood-keep': ['royalGuard', 'royalGuard', 'orcBerserker', 'fieldBoss', 'dragon', 'royalGuard', 'orcBerserker'],
+  'behemoth-rift': ['riftBeast', 'royalGuard', 'lavaGolem', 'dragon', 'riftBeast', 'royalGuard']
 };
 
 const mobHomeRadius: Partial<Record<MonsterId, number>> = {
@@ -127,7 +136,13 @@ const mobHomeRadius: Partial<Record<MonsterId, number>> = {
   stormHarpy: 3.2,
   graveKnight: 2.9,
   fieldBoss: 4.2,
-  dragon: 3.8
+  dragon: 3.8,
+  orcBerserker: 2.9,
+  nightmareBat: 3.35,
+  lavaGolem: 3.3,
+  iceWitch: 3.0,
+  royalGuard: 3.5,
+  riftBeast: 4.5
 };
 
 const tileTextureKey: Record<TileId, TextureKey> = {
@@ -146,7 +161,13 @@ const infernusZoneIds = new Set([
   'dragon-nest',
   'crystal-raid',
   'bloodstone-mine',
-  'demon-rift'
+  'demon-rift',
+  'ruby-canyon',
+  'ash-rain-shrine',
+  'dragonbone-desert',
+  'red-moon-keep',
+  'abyssal-throne',
+  'genesis-rift'
 ]);
 
 
@@ -165,7 +186,13 @@ const MOB_VISUAL_SCALE: Record<MonsterId, number> = {
   stormHarpy: 0.28,
   graveKnight: 0.29,
   fieldBoss: 0.38,
-  dragon: 0.4
+  dragon: 0.4,
+  orcBerserker: 0.32,
+  nightmareBat: 0.29,
+  lavaGolem: 0.36,
+  iceWitch: 0.31,
+  royalGuard: 0.37,
+  riftBeast: 0.46
 };
 
 
@@ -210,6 +237,7 @@ export class SolGame {
   private chainCount = 0;
   private chainTimer = 0;
   private chainBest = 0;
+  private lastMinorImpactAt = -999;
   private listeners = new Set<(snapshot: Snapshot) => void>();
   private log: string[] = ['마을에서 사냥터로 이동했습니다.'];
 
@@ -318,7 +346,54 @@ export class SolGame {
   usePotion(itemId: string, silent = false) {
     const entry = this.save.inventory.find((item) => item.itemId === itemId && item.count > 0);
     const def = items.find((item) => item.id === itemId && item.type === 'consumable');
+    if (entry && def && !def.consume) return this.openRewardBox(entry, silent);
     return this.consumePotionEntry(entry, def, silent);
+  }
+
+
+  private openRewardBox(entry: InventoryItem, silent = false) {
+    const def = items.find((item) => item.id === entry.itemId);
+    if (!def) return false;
+    const table: Record<string, Array<{ itemId?: string; count?: number; gold?: number; gems?: number; chance?: number }>> = {
+      'boss-supply-box': [
+        { gold: 1800 }, { gems: 10 }, { itemId: 'enhance-stone', count: 3 }, { itemId: 'soul-shard', count: 8 }, { itemId: 'hp-potion-high', count: 10 }, { itemId: 'mp-potion-high', count: 8 }
+      ],
+      'elite-boss-box': [
+        { gold: 5200 }, { gems: 32 }, { itemId: 'enhance-stone', count: 8 }, { itemId: 'blood-crystal', count: 1 }, { itemId: 'guardian-aegis', chance: 0.18 }, { itemId: 'lawful-blade', chance: 0.14 }, { itemId: 'nightmare-robe', chance: 0.14 }
+      ],
+      'ancient-boss-cache': [
+        { gold: 16000 }, { gems: 90 }, { itemId: 'blood-crystal', count: 3 }, { itemId: 'radiant-ore', count: 3 }, { itemId: 'celestial-sigil', chance: 0.28 }, { itemId: 'chaos-reaver', chance: 0.22 }, { itemId: 'omega-blade', chance: 0.18 }
+      ],
+      'lawful-supply-crate': [
+        { gold: 7200 }, { gems: 42 }, { itemId: 'purity-mark', count: 2 }, { itemId: 'enhance-stone', count: 8 }, { itemId: 'lawful-blade', chance: 0.12 }, { itemId: 'guardian-aegis', chance: 0.12 }
+      ],
+      'village-contract-box': [
+        { gold: 4200 }, { gems: 18 }, { itemId: 'npc-favor', count: 3 }, { itemId: 'pledge-coin', count: 2 }, { itemId: 'enhance-stone', count: 4 }
+      ],
+      'pledge-war-cache': [
+        { gold: 18000 }, { gems: 95 }, { itemId: 'pledge-coin', count: 12 }, { itemId: 'royal-seal', count: 1 }, { itemId: 'royal-commander-sword', chance: 0.16 }, { itemId: 'sentinel-plate', chance: 0.16 }, { itemId: 'pledge-banner', chance: 0.25 }
+      ]
+    };
+    const rewards = table[entry.itemId];
+    if (!rewards) return false;
+    const gained: string[] = [];
+    for (const reward of rewards) {
+      if (reward.chance && !roll(reward.chance)) continue;
+      if (reward.gold) { this.save.gold += reward.gold; gained.push(formatGold(reward.gold)); }
+      if (reward.gems) { this.save.gems += reward.gems; gained.push(`소울젬 ${reward.gems}`); }
+      if (reward.itemId) {
+        const item = this.addItem(reward.itemId, reward.count || 1);
+        if (item) gained.push(`${item.name} x${reward.count || 1}`);
+      }
+    }
+    entry.count -= 1;
+    if (entry.count <= 0) this.save.inventory = this.save.inventory.filter((item) => item.uid !== entry.uid);
+    audioService.play('reward');
+    this.emitLoot({ type: 'item', title: def.name, subtitle: gained.slice(0, 4).join(' · ') || '보상 획득', rarity: def.rarity });
+    this.pushLog(`${def.name} 개봉 · ${gained.slice(0, 3).join(' · ')}`);
+    this.markDirty();
+    if (!silent) this.emit();
+    return true;
   }
 
   useBestPotion(kind: 'hp' | 'mp', silent = false) {
@@ -576,6 +651,7 @@ export class SolGame {
       audioService.play('hit');
       this.floatText(`${result.crit ? 'CRIT ' : ''}${result.damage}`, mob.x, mob.y, result.crit ? 0xffd15f : 0xf5f1e8);
       this.animateMobHit(mob);
+      this.impactBurst(mob.x, mob.y, result.crit ? 0xffd15f : classes[this.save.classId].accent, result.crit);
       this.skillBurstEffect(mob.x, mob.y, classes[this.save.classId].accent, skill.radius, result.crit, skill.id);
       if (mob.hp <= 0) {
         killed += 1;
@@ -709,6 +785,7 @@ export class SolGame {
       return;
     }
     if (def.type === 'consumable') {
+      if (!def.consume && this.openRewardBox(entry)) return;
       this.usePotion(def.id);
       return;
     }
@@ -804,7 +881,7 @@ export class SolGame {
   private requiredTextureKeys(): TextureKey[] {
     const keys = new Set<TextureKey>([
       'tileGrass', 'tileDirt', 'tileMoss', 'tileStone', 'tileCrystal', 'tileWater', 'tileCliff', 'tilePortal', 'tileInfernus',
-      'propTree', 'propCrystal', 'propRock', 'propRuin', 'propBush', 'propMushroom', 'propBanner', 'propBones', 'propOre', 'propRuneStone', 'propStump',
+      'propTree', 'propCrystal', 'propRock', 'propRuin', 'propBush', 'propMushroom', 'propBanner', 'propBones', 'propOre', 'propRuneStone', 'propStump', 'propGrassClump', 'propBrokenCart', 'propAncientGate', 'propBloodBanner', 'propFlowerPatch', 'propRoadSign', 'propCrystalBrazier', 'propRiftAltar', 'propCampLantern', 'propStoneSteps', 'propPetalTree', 'propMarketCrate', 'propSoulFlowers', 'propHeroStatue', 'propBossTotem', 'propWaterReflection', 'propPathTorch', 'propSilkBanner', 'propMoonPuddle', 'propRuneFloor', 'propAncientRoot', 'propBattleScar',
       'infernusRock', 'infernusAltar', 'infernusBrasero', 'infernusHellRocks', 'infernusSkull', 'infernusBurnerColumn', 'infernusColumn', 'infernusPillar',
       'buildingHall', 'buildingForge', 'buildingStorage', 'buildingShop',
       'propChest01', 'propChest02', 'propChest03', 'propChest04', 'propChest05',
@@ -820,7 +897,7 @@ export class SolGame {
 
     keys.add(this.classSheetTextureKey());
     const zoneId = this.options.zoneId || 'slime-forest';
-    const monsterIds = zoneMonsterIds[zoneId] || zoneMonsterIds['slime-forest'];
+    const monsterIds = zoneMonsterIds[zoneId] || zones.find((zone) => zone.id === zoneId)?.monsterIds || zoneMonsterIds['slime-forest'];
     for (const monsterId of monsterIds) keys.add(this.monsterSheetTextureKey(monsterId));
     return [...keys];
   }
@@ -864,7 +941,12 @@ export class SolGame {
 
     this.addCuratedFieldDecor();
     this.addBiomeDecorPass();
+    this.addMegaFieldObjectPass();
     this.addInfernusDecorPass();
+    this.addPledgeCitadelDecorPass();
+    this.addAlpha055SetDressingPass();
+    this.addAlpha056ImmersionFieldPass();
+    this.addAlpha057VisualSetDressingPass();
   }
 
 
@@ -935,6 +1017,63 @@ export class SolGame {
       if (this.isWalkable(x, y)) this.addProp(key, x, y, scale + (index % 3) * 0.01);
     });
     this.addBiomeGlowAccents(zoneId);
+  }
+
+
+  private addMegaFieldObjectPass() {
+    const zoneId = this.options.zoneId || 'slime-forest';
+    const zone = zones.find((entry) => entry.id === zoneId);
+    const level = zone?.recommendedLevel || 1;
+    const high = level >= 70;
+    const palette: TextureKey[] = high
+      ? ['propRuneStone' as TextureKey, 'propOre' as TextureKey, 'propBanner' as TextureKey, 'propBones' as TextureKey, 'propChest03' as TextureKey, 'propTorch04' as TextureKey]
+      : ['propBush' as TextureKey, 'propMushroom' as TextureKey, 'propStump' as TextureKey, 'propOre' as TextureKey, 'propRuneStone' as TextureKey];
+    const count = high ? 18 : 10;
+    for (let i = 0; i < count; i += 1) {
+      const x = 7 + ((i * 5.73 + level * 0.31) % 29);
+      const y = 13 + ((i * 4.21 + level * 0.17) % 18);
+      if (!this.isWalkable(x, y)) continue;
+      const key = palette[(i + level) % palette.length];
+      const scale = (high ? 0.22 : 0.18) + (i % 5) * 0.028;
+      this.addProp(key, x, y, scale);
+    }
+    if (high) this.addHighZoneAtmosphere(level);
+  }
+
+  private addPledgeCitadelDecorPass() {
+    const zone = zones.find((entry) => entry.id === (this.options.zoneId || ''));
+    if (!zone || zone.order < 73) return;
+    const palette: TextureKey[] = ['propBanner' as TextureKey, 'propTorch05' as TextureKey, 'propChest05' as TextureKey, 'propRuneStone' as TextureKey, 'propOre' as TextureKey, 'propBones' as TextureKey];
+    const anchors: Array<[number, number]> = [[9, 24], [13, 21], [17, 25], [22, 20], [26, 23], [31, 21], [35, 26], [28, 29]];
+    anchors.forEach(([x, y], index) => {
+      if (!this.isWalkable(x, y)) return;
+      this.addProp(palette[(index + zone.order) % palette.length], x + (index % 2) * 0.35, y, 0.25 + (index % 3) * 0.035);
+      const pos = isoToScreen(x, y);
+      const aura = new Graphics().ellipse(pos.x, pos.y + 6, 36, 12).fill({ color: index % 2 ? 0xffd15f : 0x72e7ff, alpha: 0.045 });
+      this.ambientLayer.addChild(aura);
+    });
+    const gate = new Graphics()
+      .moveTo(-70, 0).lineTo(-38, -42).lineTo(-18, -18).lineTo(0, -58).lineTo(18, -18).lineTo(38, -42).lineTo(70, 0)
+      .stroke({ color: 0xffd15f, alpha: 0.28, width: 5 })
+      .moveTo(-55, 8).lineTo(55, 8).stroke({ color: 0x72e7ff, alpha: 0.22, width: 3 });
+    const center = isoToScreen(zone.entry.x + 2.2, zone.entry.y - 1.6);
+    gate.position.set(center.x, center.y - 18);
+    this.ambientLayer.addChild(gate);
+  }
+
+
+  private addHighZoneAtmosphere(level: number) {
+    const color = level >= 100 ? 0xff6ab7 : level >= 90 ? 0x9c80ff : 0x72e7ff;
+    const lines = new Graphics();
+    for (let i = 0; i < 16; i += 1) {
+      const x = 8 + ((i * 6.11) % 28);
+      const y = 14 + ((i * 4.97) % 17);
+      const pos = isoToScreen(x, y);
+      lines.moveTo(pos.x - 34, pos.y - 26).quadraticCurveTo(pos.x, pos.y - 52 - (i % 3) * 7, pos.x + 40, pos.y - 28)
+        .stroke({ color, alpha: 0.07 + (i % 3) * 0.012, width: 2 + (i % 2) });
+      if (i % 4 === 0) lines.circle(pos.x + 6, pos.y - 48, 7 + (i % 5)).fill({ color, alpha: 0.045 });
+    }
+    this.ambientLayer.addChild(lines);
   }
 
   private addBiomeGlowAccents(zoneId: string) {
@@ -1060,6 +1199,177 @@ export class SolGame {
     for (const [x, y, scale] of addRuins) this.addProp('propRuin', x, y, scale);
     for (let i = 0; i < addTorches.length; i += 1) { const [x, y, scale] = addTorches[i]; this.addProp(this.propVariant('torch', i), x, y, scale); }
     for (let i = 0; i < addChests.length; i += 1) { const [x, y, scale] = addChests[i]; this.addProp(this.propVariant('chest', i), x, y, scale); }
+    this.addAlpha054PremiumFieldDecor(zoneId);
+  }
+
+
+  private addAlpha055SetDressingPass() {
+    const zoneId = this.options.zoneId || 'slime-forest';
+    const zone = zones.find((entry) => entry.id === zoneId);
+    const order = zone?.order || 1;
+    const low: Array<[TextureKey, number, number, number]> = [
+      ['propFlowerPatch' as TextureKey, 11.4, 23.8, 0.34],
+      ['propRoadSign' as TextureKey, 15.6, 21.6, 0.28],
+      ['propCampLantern' as TextureKey, 23.2, 22.5, 0.24],
+      ['propStoneSteps' as TextureKey, 27.8, 19.6, 0.30]
+    ];
+    const high: Array<[TextureKey, number, number, number]> = [
+      ['propCrystalBrazier' as TextureKey, 18.4, 21.0, 0.28],
+      ['propRiftAltar' as TextureKey, 25.8, 20.7, 0.30],
+      ['propCampLantern' as TextureKey, 31.2, 22.4, 0.25],
+      ['propStoneSteps' as TextureKey, 34.2, 25.0, 0.32]
+    ];
+    const pledge: Array<[TextureKey, number, number, number]> = [
+      ['propRoadSign' as TextureKey, 10.8, 25.0, 0.30],
+      ['propCampLantern' as TextureKey, 16.7, 23.1, 0.28],
+      ['propCrystalBrazier' as TextureKey, 22.4, 22.0, 0.30],
+      ['propRiftAltar' as TextureKey, 30.0, 21.8, 0.32]
+    ];
+    const table = order >= 73 ? pledge : order >= 55 ? high : low;
+    table.forEach(([key, x, y, scale], index) => {
+      if (!this.isWalkable(x, y)) return;
+      this.addProp(key, x + ((order + index) % 3) * 0.18, y + (index % 2) * 0.16, scale);
+    });
+    if (order >= 55) this.addQualityLightPath(order);
+  }
+
+  private addQualityLightPath(order: number) {
+    const color = order >= 73 ? 0xffd15f : order >= 60 ? 0x9c80ff : 0x72e7ff;
+    const path = new Graphics();
+    for (let i = 0; i < 9; i += 1) {
+      const x = 10 + i * 2.9;
+      const y = 24 - Math.sin((i + order) * 0.75) * 1.2;
+      const pos = isoToScreen(x, y);
+      path.ellipse(pos.x, pos.y + 10, 28, 7).fill({ color, alpha: 0.035 + (i % 3) * 0.006 });
+      if (i > 0) {
+        const prev = isoToScreen(10 + (i - 1) * 2.9, 24 - Math.sin((i - 1 + order) * 0.75) * 1.2);
+        path.moveTo(prev.x, prev.y + 10).lineTo(pos.x, pos.y + 10).stroke({ color, alpha: 0.055, width: 2 });
+      }
+    }
+    this.ambientLayer.addChild(path);
+  }
+
+
+  private addAlpha056ImmersionFieldPass() {
+    const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest'));
+    const order = zone?.order || 1;
+    const bossLike = Boolean(zone?.monsterIds.some((id) => id === 'fieldBoss' || id === 'dragon' || id === 'riftBeast'));
+    const scenic: Array<[TextureKey, number, number, number]> = order < 20
+      ? [
+          ['propPetalTree' as TextureKey, 8.9, 21.8, 0.42],
+          ['propSoulFlowers' as TextureKey, 14.8, 24.6, 0.34],
+          ['propMarketCrate' as TextureKey, 20.4, 22.4, 0.28],
+          ['propWaterReflection' as TextureKey, 28.8, 24.8, 0.34]
+        ]
+      : order < 65
+        ? [
+            ['propHeroStatue' as TextureKey, 13.6, 23.6, 0.34],
+            ['propSoulFlowers' as TextureKey, 19.2, 21.0, 0.28],
+            ['propMarketCrate' as TextureKey, 25.7, 22.7, 0.25],
+            ['propWaterReflection' as TextureKey, 33.0, 24.4, 0.31]
+          ]
+        : [
+            ['propHeroStatue' as TextureKey, 11.2, 24.1, 0.38],
+            ['propBossTotem' as TextureKey, 21.8, 20.4, 0.36],
+            ['propCrystalBrazier' as TextureKey, 28.6, 21.7, 0.32],
+            ['propRiftAltar' as TextureKey, 34.2, 23.2, 0.36]
+          ];
+    const bossSet: Array<[TextureKey, number, number, number]> = bossLike
+      ? [['propBossTotem' as TextureKey, 30.8, 18.6, 0.40], ['propHeroStatue' as TextureKey, 24.8, 20.1, 0.34]]
+      : [];
+    for (const [key, x, y, scale] of [...scenic, ...bossSet]) {
+      if (this.isWalkable(x, y)) this.addProp(key, x, y, scale);
+    }
+    this.addAlpha056CinematicGround(order, bossLike);
+  }
+
+
+  private addAlpha057VisualSetDressingPass() {
+    const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest'));
+    const order = zone?.order || 1;
+    const bossLike = Boolean(zone?.monsterIds.some((id) => id === 'fieldBoss' || id === 'dragon' || id === 'riftBeast'));
+    const base: Array<[TextureKey, number, number, number]> = order < 18
+      ? [
+          ['propPathTorch' as TextureKey, 9.8, 22.4, 0.30],
+          ['propMoonPuddle' as TextureKey, 16.8, 24.2, 0.36],
+          ['propAncientRoot' as TextureKey, 23.4, 20.8, 0.34],
+          ['propSilkBanner' as TextureKey, 31.6, 18.9, 0.31]
+        ]
+      : order < 60
+        ? [
+            ['propRuneFloor' as TextureKey, 12.6, 23.2, 0.34],
+            ['propPathTorch' as TextureKey, 19.8, 21.4, 0.30],
+            ['propBattleScar' as TextureKey, 28.4, 22.6, 0.38],
+            ['propSilkBanner' as TextureKey, 34.2, 19.8, 0.33]
+          ]
+        : [
+            ['propRuneFloor' as TextureKey, 11.8, 24.1, 0.40],
+            ['propBattleScar' as TextureKey, 20.4, 21.8, 0.45],
+            ['propPathTorch' as TextureKey, 29.6, 22.1, 0.34],
+            ['propMoonPuddle' as TextureKey, 35.2, 24.9, 0.38]
+          ];
+    const bossProps: Array<[TextureKey, number, number, number]> = bossLike
+      ? [['propRuneFloor' as TextureKey, 25.2, 19.8, 0.48], ['propBattleScar' as TextureKey, 31.4, 21.2, 0.46]]
+      : [];
+    for (const [key, x, y, scale] of [...base, ...bossProps]) {
+      if (this.isWalkable(x, y)) this.addProp(key, x, y, scale);
+    }
+    this.addAlpha057DepthWash(order, bossLike);
+  }
+
+  private addAlpha057DepthWash(order: number, bossLike: boolean) {
+    const accent = bossLike ? 0xff8a3d : order >= 60 ? 0x9c80ff : order >= 18 ? 0x72e7ff : 0xe2b95f;
+    const layer = new Graphics();
+    for (let i = 0; i < 11; i += 1) {
+      const x = 8 + i * 2.7;
+      const y = 24 - Math.sin(i * 0.72 + order * 0.08) * 1.3;
+      if (!this.isWalkable(x, y)) continue;
+      const pos = isoToScreen(x, y);
+      layer.ellipse(pos.x, pos.y + 12, 22 + (i % 3) * 10, 5 + (i % 2) * 3).fill({ color: accent, alpha: bossLike ? 0.034 : 0.024 });
+      if (i % 3 === 1) layer.circle(pos.x + 9, pos.y - 12, 2.2).fill({ color: 0xffffff, alpha: 0.08 });
+    }
+    this.ambientLayer.addChild(layer);
+  }
+
+  private addAlpha056CinematicGround(order: number, bossLike: boolean) {
+    const primary = bossLike ? 0xff6b36 : order >= 65 ? 0x9c80ff : order >= 20 ? 0x72e7ff : 0xe2b95f;
+    const wash = new Graphics();
+    for (let i = 0; i < 16; i += 1) {
+      const x = 8 + ((i * 4.31 + order * 0.23) % 28);
+      const y = 15 + ((i * 3.73 + order * 0.17) % 15);
+      if (!this.isWalkable(x, y)) continue;
+      const pos = isoToScreen(x, y);
+      wash.ellipse(pos.x, pos.y + 8, 46 + (i % 4) * 12, 10 + (i % 3) * 4).fill({ color: primary, alpha: bossLike ? 0.042 : 0.03 });
+      if (i % 5 === 0) {
+        wash.circle(pos.x + 8, pos.y - 20, 3 + (i % 3)).fill({ color: primary, alpha: 0.14 });
+      }
+    }
+    const entry = zones.find((zone) => zone.id === (this.options.zoneId || 'slime-forest'))?.entry || zones[0].entry;
+    const start = isoToScreen(entry.x, entry.y);
+    wash.ellipse(start.x, start.y + 10, 92, 18).fill({ color: 0xe2b95f, alpha: 0.045 });
+    wash.moveTo(start.x - 90, start.y + 4).lineTo(start.x + 88, start.y + 4).stroke({ color: 0xffffff, alpha: 0.07, width: 3 });
+    this.ambientLayer.addChild(wash);
+  }
+
+  private addAlpha054PremiumFieldDecor(zoneId: string) {
+    const level = zones.find((zone) => zone.id === zoneId)?.recommendedLevel || 1;
+    const scenic: Array<[TextureKey, number, number, number]> = [
+      ['propGrassClump' as TextureKey, 7.4, 22.6, 0.34], ['propGrassClump' as TextureKey, 12.8, 24.1, 0.28],
+      ['propGrassClump' as TextureKey, 22.4, 18.8, 0.30], ['propBrokenCart' as TextureKey, 18.4, 23.8, 0.28]
+    ];
+    const high: Array<[TextureKey, number, number, number]> = level >= 70 ? [
+      ['propAncientGate' as TextureKey, 25.6, 20.2, 0.34], ['propBloodBanner' as TextureKey, 29.8, 21.1, 0.32],
+      ['propBrokenCart' as TextureKey, 33.2, 23.6, 0.30]
+    ] : [];
+    const newFront: Record<string, Array<[TextureKey, number, number, number]>> = {
+      'orc-battlefield': [['propBloodBanner' as TextureKey, 16.0, 23.0, 0.38], ['propBrokenCart' as TextureKey, 23.6, 25.2, 0.36], ['propAncientGate' as TextureKey, 31.2, 25.8, 0.34]],
+      'nightmare-roost': [['propAncientGate' as TextureKey, 18.2, 20.4, 0.34], ['propBloodBanner' as TextureKey, 27.4, 20.0, 0.30]],
+      'molten-core-works': [['propAncientGate' as TextureKey, 21.5, 23.7, 0.36], ['propBrokenCart' as TextureKey, 30.6, 24.8, 0.32]],
+      'frost-oracle-court': [['propAncientGate' as TextureKey, 22.4, 18.8, 0.40], ['propGrassClump' as TextureKey, 28.8, 19.6, 0.24]],
+      'royal-blood-keep': [['propBloodBanner' as TextureKey, 20.4, 24.0, 0.42], ['propAncientGate' as TextureKey, 28.6, 23.4, 0.42]],
+      'behemoth-rift': [['propAncientGate' as TextureKey, 27.0, 20.8, 0.46], ['propBloodBanner' as TextureKey, 33.6, 22.4, 0.40]]
+    };
+    for (const [key, x, y, scale] of [...scenic, ...high, ...(newFront[zoneId] || [])]) this.addProp(key, x, y, scale);
   }
 
   private createZoneMap() {
@@ -1121,6 +1431,15 @@ export class SolGame {
       brush(31, 19, 3.6, 'crystal');
       brush(35, 18, 2.0, 'stone');
       road([[entry.x, entry.y], [14, 24], [19, 22], [25, 20], [31, 19], [35, 18]], 'stone', 1.16);
+    } else if ((zones.find((zone) => zone.id === zoneId)?.recommendedLevel || 0) >= 70) {
+      const recommendedLevel = zones.find((zone) => zone.id === zoneId)?.recommendedLevel || 70;
+      const coreTile: TileId = recommendedLevel >= 100 ? 'crystal' : recommendedLevel >= 90 ? 'stone' : recommendedLevel >= 80 ? 'moss' : 'dirt';
+      road([[entry.x, entry.y], [12, 24], [17, 21], [23, 20], [29, 22], [35, 25]], coreTile, 1.25);
+      brush(14, 24, 3.3, coreTile);
+      brush(22, 20, 3.8, recommendedLevel >= 90 ? 'crystal' : 'moss');
+      brush(30, 22, 3.4, recommendedLevel >= 100 ? 'crystal' : 'stone');
+      brush(35, 25, 2.8, recommendedLevel >= 96 ? 'crystal' : 'dirt');
+      for (const [x, y] of [[9, 18], [13, 13], [20, 15], [28, 15], [35, 18], [24, 29], [31, 31]]) brush(x, y, 1.0, recommendedLevel >= 90 ? 'crystal' : 'moss');
     } else {
       road([[entry.x, entry.y], [10, 23], [14, 24], [18, 22], [22, 19], [28, 17], [34, 18]], 'dirt', 0.98);
       brush(11, 24, 3.0, 'grass');
@@ -1406,14 +1725,24 @@ export class SolGame {
   }
 
   private addVillageDecor() {
+    const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest')) || zones[0];
+    const entryPos = isoToScreen(zone.entry.x, zone.entry.y);
     const ring = new Graphics()
-      .ellipse(0, 0, 168, 70)
-      .fill({ color: 0x1f2c2c, alpha: 0.26 })
-      .ellipse(0, 0, 118, 48)
-      .stroke({ color: 0xe2b95f, alpha: 0.22, width: 3 });
-    const center = isoToScreen(8, 19);
-    ring.position.set(center.x, center.y + 8);
+      .ellipse(0, 0, 184, 78)
+      .fill({ color: 0x1f2c2c, alpha: 0.22 })
+      .ellipse(0, 0, 132, 54)
+      .stroke({ color: 0x8dffb3, alpha: 0.24, width: 4 })
+      .ellipse(0, 0, 98, 40)
+      .stroke({ color: 0xe2b95f, alpha: 0.18, width: 2 });
+    ring.position.set(entryPos.x, entryPos.y + 8);
     this.mapLayer.addChild(ring);
+
+    const safeGlow = new Graphics()
+      .ellipse(entryPos.x, entryPos.y + 8, 210, 84)
+      .fill({ color: 0x72e7ff, alpha: 0.035 })
+      .ellipse(entryPos.x, entryPos.y + 8, 164, 62)
+      .fill({ color: 0xe2b95f, alpha: 0.025 });
+    this.ambientLayer.addChild(safeGlow);
     this.addProp('buildingHall', 6.0, 16.7, 0.32);
     this.addProp('buildingForge', 11.6, 17.4, 0.29);
     this.addProp('buildingStorage', 5.6, 23.2, 0.28);
@@ -1424,7 +1753,6 @@ export class SolGame {
       this.addProp(key, prop.x, prop.y, prop.scale);
     }
 
-    const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest')) || zones[0];
     const labels = [
       { text: '안전 진입로', x: zone.entry.x, y: zone.entry.y - 0.55, color: 0xe2b95f },
       { text: zone.title, x: Math.min(MAP_W - 4, zone.entry.x + 5.2), y: Math.max(5, zone.entry.y - 2.8), color: zone.id === 'crystal-raid' ? 0xff8dd6 : zone.id === 'black-cave' ? 0x9c80ff : zone.id === 'crystal-moss' ? 0x72e7ff : 0xf5d18a }
@@ -1457,11 +1785,26 @@ export class SolGame {
   private addProp(textureKey: TextureKey, x: number, y: number, scale: number) {
     const sprite = new Sprite(this.mustTexture(textureKey));
     const pos = isoToScreen(x, y);
+    const isOrganic = String(textureKey).includes('Tree') || String(textureKey).includes('Bush') || String(textureKey).includes('Mushroom') || String(textureKey).includes('Stump') || String(textureKey).includes('Flower');
+    const isTreasure = String(textureKey).includes('Chest') || String(textureKey).includes('Rune') || String(textureKey).includes('Ore') || String(textureKey).includes('Crystal') || String(textureKey).includes('Brazier') || String(textureKey).includes('Altar') || String(textureKey).includes('Lantern');
     sprite.anchor.set(0.5, 0.92);
-    sprite.scale.set(scale);
+    sprite.scale.set(scale * (isOrganic ? 1.08 : 1));
     sprite.position.set(pos.x, pos.y + 14);
-    const shadow = new Graphics().ellipse(pos.x + 4, pos.y + 18, 34 * scale, 10 * scale).fill({ color: 0x000000, alpha: 0.16 });
+    sprite.alpha = isOrganic ? 0.96 : 0.98;
+    if (isTreasure) sprite.tint = 0xfff4c6;
+
+    const shadow = new Graphics()
+      .ellipse(pos.x + 4, pos.y + 18, (isOrganic ? 42 : 34) * scale, (isOrganic ? 12 : 10) * scale)
+      .fill({ color: 0x000000, alpha: isOrganic ? 0.18 : 0.14 });
     this.ambientLayer.addChild(shadow);
+
+    if (isTreasure) {
+      const glow = new Graphics()
+        .ellipse(pos.x, pos.y + 5, 28 * scale, 14 * scale)
+        .fill({ color: 0xe2b95f, alpha: 0.055 });
+      this.ambientLayer.addChild(glow);
+    }
+
     this.propLayer.addChild(sprite);
   }
 
@@ -1590,6 +1933,8 @@ export class SolGame {
     if (zoneId === 'slime-forest') return 1.35;
     if (zoneId === 'crystal-moss' || zoneId === 'goblin-road') return 1.55;
     if (zoneId === 'black-cave' || zoneId === 'moonlit-grove' || zoneId === 'soul-ruins') return 1.7;
+    const zoneLevel = zones.find((zone) => zone.id === zoneId)?.recommendedLevel || 1;
+    if (zoneLevel >= 70) return 2.05;
     return 1.85;
   }
 
@@ -1712,8 +2057,8 @@ export class SolGame {
 
   private buildMobView(mob: WorldMob) {
     const root = new Container();
-    const isDragon = mob.def.id === 'dragon';
-    const isLarge = mob.def.id === 'crystalBear' || isDragon;
+    const isDragon = mob.def.id === 'dragon' || mob.def.id === 'riftBeast';
+    const isLarge = mob.def.id === 'crystalBear' || mob.def.id === 'lavaGolem' || mob.def.id === 'royalGuard' || isDragon;
     const eliteColor = mob.eliteColor || 0xff5d5d;
     const shadow = new Graphics().ellipse(0, 0, isDragon ? 24 : isLarge ? 18 : 12, isDragon ? 6 : 4).fill({ color: 0x000000, alpha: 0.3 });
     const aggroRing = new Graphics().ellipse(0, 0, isDragon ? 27 : isLarge ? 19 : 15, isDragon ? 9 : 5).stroke({ color: mob.eliteAffix ? eliteColor : 0xff5d5d, alpha: mob.eliteAffix ? 0.42 : 0, width: mob.eliteAffix ? 2.4 : 1.5 });
@@ -2103,7 +2448,7 @@ export class SolGame {
 
   private performMobPattern(mob: WorldMob, view: MobView, playerStats: Stats) {
     const kind = mob.patternKind;
-    if (!kind || this.save.hp <= 0) return;
+    if (!kind || this.save.hp <= 0 || this.isPlayerInSafeZone()) return;
     const hit = this.isPlayerInsidePattern(mob, kind);
     this.animateMobAttack(view);
     if (!hit) {
@@ -2201,6 +2546,16 @@ export class SolGame {
     }, () => ring.destroy());
   }
 
+
+  private currentZoneEntry() {
+    return zones.find((zone) => zone.id === (this.options.zoneId || 'slime-forest'))?.entry || zones[0].entry;
+  }
+
+  private isPlayerInSafeZone() {
+    const entry = this.currentZoneEntry();
+    return distance(this.save.x, this.save.y, entry.x, entry.y) <= 2.35;
+  }
+
   private updateMobAi(mob: WorldMob, view: MobView, playerStats: Stats, dt: number) {
     const dist = distance(this.save.x, this.save.y, mob.x, mob.y);
     const homeDist = distance(mob.spawnX, mob.spawnY, mob.x, mob.y);
@@ -2208,6 +2563,17 @@ export class SolGame {
     const attackDist = mob.def.id === 'dragon' ? 1.58 : 1.12;
     const canJoinAggro = this.activeAggroCount(mob.uid) < this.maxAggroCount();
     const playerPulled = this.target?.uid === mob.uid;
+    if (this.isPlayerInSafeZone()) {
+      if (playerPulled) this.target = null;
+      mob.aggroUntil = 0;
+      if (mob.state !== 'idle' && mob.state !== 'return') {
+        mob.state = 'return';
+        mob.stateTimer = 0;
+        view.body.tint = 0x8dffb3;
+      }
+      if (mob.state === 'idle') this.updateMobIdleMovement(mob, dt);
+      return;
+    }
 
     if ((playerPulled || dist < this.mobAggroRange(mob)) && canJoinAggro && mob.state === 'idle') {
       mob.state = 'alert';
@@ -2354,7 +2720,7 @@ export class SolGame {
   }
 
   private performMobAttack(mob: WorldMob, view: MobView, playerStats: Stats) {
-    if (mob.attackCooldown > 0 || this.save.hp <= 0) return;
+    if (mob.attackCooldown > 0 || this.save.hp <= 0 || this.isPlayerInSafeZone()) return;
     const mobStats = this.mobCombatStats(mob);
     mob.attackCooldown = 1 / mobStats.aspd + 0.65;
     const result = this.resolveDamage(mobStats, playerStats, mob.def.level - this.save.level);
@@ -2403,6 +2769,9 @@ export class SolGame {
 
   private maxAggroCount() {
     const zoneId = this.options.zoneId || 'slime-forest';
+    const zoneLevel = zones.find((zone) => zone.id === zoneId)?.recommendedLevel || 1;
+    if (zoneLevel >= 114) return 8;
+    if (zoneLevel >= 70) return 7;
     if (zoneId === 'crystal-raid' || zoneId === 'dragon-nest' || zoneId === 'storm-citadel' || zoneId === 'demon-rift' || zoneId === 'sky-citadel') return 6;
     if (zoneId === 'black-cave' || zoneId === 'moonlit-grove' || zoneId === 'soul-ruins' || zoneId === 'ember-ridge' || zoneId === 'bloodstone-mine') return 5;
     if (zoneId === 'goblin-road' || zoneId === 'crystal-moss') return 4;
@@ -2505,6 +2874,7 @@ export class SolGame {
 
     mob.hp = Math.max(0, mob.hp - result.damage);
     this.animateMobHit(mob);
+    this.impactBurst(mob.x, mob.y, result.crit ? 0xffd15f : classes[this.save.classId].accent, result.crit);
     audioService.play('hit');
     this.hitStop(result.crit ? 0.07 : 0.04);
     this.floatText(`${result.crit ? 'CRIT ' : ''}${result.damage}`, mob.x, mob.y, result.crit ? 0xffd15f : 0xf5f1e8);
@@ -2530,15 +2900,18 @@ export class SolGame {
     if (klass.attackStyle === 'melee') {
       this.slashEffect(mob, result.crit);
       this.lungePlayer(mob);
+      this.combatMotionAccent(mob, result.crit ? 0xffd15f : klass.accent, result.crit);
       if (result.hit) this.screenShake();
       return;
     }
     if (klass.attackStyle === 'projectile') {
       this.projectileEffect(mob, klass.accent, result.hit);
+      this.combatMotionAccent(mob, klass.accent, result.crit);
       this.castPose();
       return;
     }
     this.holyEffect(mob, result.hit);
+    this.combatMotionAccent(mob, 0xf2d66c, result.crit);
     this.castPose();
   }
 
@@ -2578,7 +2951,10 @@ export class SolGame {
     this.save.gold += mob.def.gold + bonusGold;
     this.save.exp += mob.def.exp + bonusExp;
     this.save.kills[mob.def.id] = (this.save.kills[mob.def.id] || 0) + 1;
+    this.applyLawfulHuntReward(mob);
+    this.applyPledgeHuntReward(mob);
     this.addDailyKill(mob.def.id);
+    this.maybeGrantOmegaMilestone(mob.def.id);
     this.updateSoulProgress(mob.def.id);
     this.checkLevelUp();
     this.rollDrops(mob.def);
@@ -2586,11 +2962,22 @@ export class SolGame {
     this.mobViews.get(mob.uid)?.animator?.playOnce('death', 'death');
     this.impactBurst(mob.x, mob.y, 0xe2b95f, true);
     this.soulReleaseEffect(mob.x, mob.y, mob.eliteAffix ? (mob.eliteColor || 0xffd15f) : 0xe2b95f);
-    const chainText = chain.count > 1 ? ` · ${chain.count}연쇄 +${Math.round(chain.bonusRate * 100)}%` : '';
+    const chainText = chain.count > 1 ? ` · CHAIN BONUS ${chain.count} +${Math.round(chain.bonusRate * 100)}%` : '';
     this.floatText(chain.count > 1 ? `${chain.count} CHAIN` : 'SOUL +', mob.x, mob.y - 0.35, chain.count > 4 ? 0xffd15f : 0xe2b95f);
     if (mob.eliteAffix) this.emitLoot({ type: 'elite', title: `${mob.def.name} 정화`, subtitle: `정예 보너스 +${formatGold(bonusGold)} / +${bonusExp}EXP`, rarity: 'SSR' });
     this.pushLog(`${mob.def.name} 정화 +${mob.def.exp + bonusExp}EXP +${formatGold(mob.def.gold + bonusGold)}${chainText}`);
     this.markDirty();
+  }
+
+
+  private applyLawfulHuntReward(mob: WorldMob) {
+    const boss = mob.def.id === 'dragon' || mob.def.id === 'fieldBoss';
+    const gain = boss ? 25 : mob.eliteAffix ? 12 : 4;
+    const before = Math.round(Number(this.save.lawful ?? 0));
+    const after = clamp(before + gain, LAWFUL_MIN, LAWFUL_MAX);
+    this.save.lawful = Math.round(after);
+    if (before < 8000 && after >= 8000) this.floatText('LAWFUL', this.save.x, this.save.y - 0.55, 0x72e7ff);
+    if (before < 20000 && after >= 20000) this.floatText('ROYAL LAWFUL', this.save.x, this.save.y - 0.65, 0xffd15f);
   }
 
 
@@ -2667,7 +3054,7 @@ export class SolGame {
   }
 
   private emptyKillRecord(): Record<MonsterId, number> {
-    return { slime: 0, wolf: 0, goblin: 0, crystalBear: 0, dragon: 0, shadowImp: 0, mossGolem: 0, wraith: 0, fireDrake: 0, stormHarpy: 0, graveKnight: 0, fieldBoss: 0 };
+    return { slime: 0, wolf: 0, goblin: 0, crystalBear: 0, dragon: 0, shadowImp: 0, mossGolem: 0, wraith: 0, fireDrake: 0, stormHarpy: 0, graveKnight: 0, fieldBoss: 0, orcBerserker: 0, nightmareBat: 0, lavaGolem: 0, iceWitch: 0, royalGuard: 0, riftBeast: 0 };
   }
 
   private todayKey() {
@@ -2679,8 +3066,10 @@ export class SolGame {
   }
 
   private rollDrops(def: MonsterDefinition) {
+    const multiplier = this.lawfulDropMultiplier() * this.pledgeDropMultiplier();
     for (const drop of def.drops) {
-      if (!roll(drop.chance)) continue;
+      const adjustedChance = drop.type === 'gold' ? drop.chance : Math.min(0.98, drop.chance * multiplier);
+      if (!roll(adjustedChance)) continue;
       this.applyDrop(drop);
     }
   }
@@ -2705,7 +3094,10 @@ export class SolGame {
       const item = this.addItem(drop.id);
       if (item) {
         audioService.play('reward');
-        this.emitLoot({ type: 'item', title: item.name, subtitle: `${item.rarity} 장비/재료 획득`, rarity: item.rarity });
+        const typeLabel = item.type === 'weapon' || item.type === 'armor' || item.type === 'relic' ? '장비 드랍' : item.type === 'consumable' ? '소모품 드랍' : item.type === 'material' ? '재료 드랍' : '아이템 드랍';
+        const gradeTitle = item.rarity === 'UR' ? `전설 장비 · ${item.name}` : item.rarity === 'SSR' ? `희귀 전리품 · ${item.name}` : item.name;
+        this.emitLoot({ type: item.type, title: gradeTitle, subtitle: `${item.rarity} · ${typeLabel}`, art: `./assets/soulpack/items/${item.id}.webp?v=055`, rarity: item.rarity });
+        if (item.rarity === 'SSR' || item.rarity === 'UR') this.rareDropFlare(this.save.x, this.save.y, item.rarity);
         this.pushLog(`${item.name} 획득`);
       }
       return;
@@ -2720,12 +3112,13 @@ export class SolGame {
     }
   }
 
-  private addItem(itemId: string) {
+  private addItem(itemId: string, count = 1) {
     const def = items.find((item) => item.id === itemId);
     if (!def) return null;
+    const amount = Math.max(1, Math.floor(count || 1));
     const found = this.save.inventory.find((item) => item.itemId === itemId);
-    if (found) found.count += 1;
-    else this.save.inventory.push({ uid: uid('item'), itemId, count: 1 });
+    if (found) found.count += amount;
+    else this.save.inventory.push({ uid: uid('item'), itemId, count: amount });
     return def;
   }
 
@@ -2787,7 +3180,9 @@ export class SolGame {
   private playerKnockout() {
     this.playerAnimator?.playOnce('death', 'idle');
     audioService.play('error');
-    this.pushLog('기절했습니다. 마을 포탈에서 재정비합니다.');
+    const chaotic = Math.round(Number(this.save.lawful ?? 0)) <= -4000;
+    if (chaotic) this.save.gold = Math.max(0, this.save.gold - Math.max(120, Math.floor(this.save.gold * 0.015)));
+    this.pushLog(chaotic ? '카오틱 성향으로 기절 패널티가 적용되었습니다.' : '기절했습니다. 마을 포탈에서 재정비합니다.');
     this.save.x = 8.0;
     this.save.y = 8.2;
     this.save.autoHunt = false;
@@ -2797,6 +3192,84 @@ export class SolGame {
       this.save.mp = Math.ceil(stats.mp * 0.72);
       this.markDirty();
     }, 1200);
+  }
+
+
+  private expeditionSupportTier() {
+    const clearedStory = this.save.story?.claimedQuestIds?.length || 0;
+    const bossKills = (this.save.kills?.fieldBoss || 0) + (this.save.kills?.dragon || 0);
+    const soulCount = this.save.souls?.filter((soul) => soul.unlocked).length || 0;
+    return Math.max(0, Math.min(8, Math.floor(clearedStory / 35) + Math.floor(bossKills / 45) + Math.floor(soulCount / 4)));
+  }
+
+  private applyExpeditionSupport(stats: Stats) {
+    const tier = this.expeditionSupportTier();
+    if (tier <= 0) return;
+    this.applyBonus(stats, { hp: tier * 95, mp: tier * 28, atk: tier * 9, def: tier * 6, crit: tier * 0.004 }, 1);
+  }
+
+  private maybeGrantOmegaMilestone(monsterId: MonsterId) {
+    const totalKills = Object.values(this.save.kills || {}).reduce((sum, value) => sum + (Number(value) || 0), 0);
+    if (totalKills <= 0 || totalKills % 50 !== 0) return;
+    const itemId = totalKills % 250 === 0 ? 'void-memory' : totalKills % 100 === 0 ? 'omega-token' : 'starlight-thread';
+    const def = this.addItem(itemId);
+    if (!def) return;
+    this.save.gems += totalKills % 250 === 0 ? 15 : 5;
+    this.emitLoot({ type: 'omega', title: '원정 마일스톤', subtitle: `${totalKills}회 토벌 · ${def.name} 획득`, rarity: totalKills % 250 === 0 ? 'UR' : 'SSR' });
+    this.pushLog(`원정 마일스톤 ${totalKills}회 · ${def.name} 획득`);
+    if (monsterId === 'dragon' || monsterId === 'fieldBoss') this.screenShake();
+  }
+
+
+  private applyPledgeHuntReward(mob: WorldMob) {
+    const pledge = this.save.pledge ||= { name: '루미나 혈맹', level: 1, exp: 0, contribution: 0, crest: 'lion', donatedGold: 0, claimedTaskIds: [] };
+    const boss = mob.def.id === 'dragon' || mob.def.id === 'fieldBoss';
+    const gain = boss ? 28 : mob.eliteAffix ? 12 : 5;
+    pledge.contribution = Math.max(0, Math.floor((pledge.contribution || 0) + gain));
+    pledge.exp = Math.max(0, Math.floor((pledge.exp || 0) + gain));
+    while (pledge.level < 20 && pledge.exp >= pledgeExpToNext(pledge.level)) {
+      pledge.exp -= pledgeExpToNext(pledge.level);
+      pledge.level += 1;
+      this.emitLoot({ type: 'pledge', title: '혈맹 레벨 상승', subtitle: `${pledge.name} Lv.${pledge.level}`, rarity: pledge.level >= 15 ? 'UR' : 'SSR' });
+      this.floatText(`PLEDGE Lv.${pledge.level}`, this.save.x, this.save.y - 0.75, 0xffd15f);
+    }
+  }
+
+  private pledgeStatBonus(): Partial<Stats> {
+    const level = Math.max(1, Math.min(20, Math.floor(Number(this.save.pledge?.level || 1))));
+    return {
+      hp: level * 18,
+      mp: level * 5,
+      atk: Math.floor(level * 1.7),
+      def: Math.floor(level * 1.25),
+      crit: level >= 10 ? 0.006 : 0
+    };
+  }
+
+  private pledgeDropMultiplier() {
+    const level = Math.max(1, Math.min(20, Math.floor(Number(this.save.pledge?.level || 1))));
+    return 1 + Math.min(0.10, Math.max(0, level - 1) * 0.006);
+  }
+
+
+  private lawfulStatBonus(): Partial<Stats> {
+    const value = Math.round(Number(this.save.lawful ?? 0));
+    if (value >= 24000) return { hp: 160, mp: 50, def: 22, atk: 10, crit: 0.012 };
+    if (value >= 14000) return { hp: 95, mp: 28, def: 14, atk: 6, crit: 0.006 };
+    if (value >= 6000) return { hp: 45, def: 7 };
+    if (value <= -18000) return { hp: -90, def: -18, atk: -8, crit: -0.018 };
+    if (value <= -4000) return { hp: -35, def: -8, atk: -3 };
+    return {};
+  }
+
+  private lawfulDropMultiplier() {
+    const value = Math.round(Number(this.save.lawful ?? 0));
+    if (value >= 24000) return 1.12;
+    if (value >= 14000) return 1.08;
+    if (value >= 6000) return 1.03;
+    if (value <= -18000) return 0.78;
+    if (value <= -4000) return 0.9;
+    return 1;
   }
 
   private calculateStats(): Stats {
@@ -2837,8 +3310,12 @@ export class SolGame {
       this.applyBonus(stats, def.bonus, 1);
     }
 
-    stats.hp = Math.round(stats.hp);
-    stats.mp = Math.round(stats.mp);
+    this.applyExpeditionSupport(stats);
+    this.applyBonus(stats, this.lawfulStatBonus(), 1);
+    this.applyBonus(stats, this.pledgeStatBonus(), 1);
+
+    stats.hp = Math.max(1, Math.round(stats.hp));
+    stats.mp = Math.max(0, Math.round(stats.mp));
     stats.atk = Math.round(stats.atk);
     stats.def = Math.round(stats.def);
     stats.aspd = Number(stats.aspd.toFixed(2));
@@ -3309,6 +3786,53 @@ export class SolGame {
   }
 
 
+
+  private combatMotionAccent(mob: WorldMob, color: number, strong: boolean) {
+    const start = isoToScreen(this.save.x, this.save.y);
+    const end = isoToScreen(mob.x, mob.y);
+    const streak = new Graphics()
+      .moveTo(start.x, start.y - 38)
+      .lineTo(end.x, end.y - 34)
+      .stroke({ color, alpha: strong ? 0.55 : 0.32, width: strong ? 6 : 4 })
+      .moveTo(start.x, start.y - 44)
+      .lineTo(end.x, end.y - 42)
+      .stroke({ color: 0xffffff, alpha: strong ? 0.36 : 0.18, width: strong ? 2.5 : 1.5 });
+    streak.blendMode = 'add';
+    this.fxLayer.addChild(streak);
+    this.animate(0.18, (t) => {
+      streak.alpha = 1 - t;
+      streak.scale.set(1 + t * 0.04);
+    }, () => streak.destroy());
+    if (strong) this.hitStop(0.09);
+  }
+
+  private rareDropFlare(x: number, y: number, rarity: string) {
+    const color = rarity === 'UR' ? 0xffd15f : 0x9c80ff;
+    const pos = isoToScreen(x, y);
+    const flare = new Container();
+    flare.position.set(pos.x, pos.y - 70);
+    const ring = new Graphics()
+      .circle(0, 0, rarity === 'UR' ? 30 : 24)
+      .stroke({ color, alpha: 0.82, width: 4 })
+      .circle(0, 0, rarity === 'UR' ? 13 : 10)
+      .fill({ color, alpha: 0.12 });
+    const text = new Text({
+      text: rarity === 'UR' ? 'LEGEND DROP' : 'RARE DROP',
+      style: { fill: rarity === 'UR' ? 0xfff2a8 : 0xd8c7ff, fontFamily: 'Arial', fontSize: 13, fontWeight: '900', stroke: { color: 0x111111, width: 4 } }
+    });
+    text.anchor.set(0.5, 1);
+    text.position.y = -28;
+    flare.addChild(ring, text);
+    flare.blendMode = 'add';
+    this.fxLayer.addChild(flare);
+    this.animate(0.9, (t) => {
+      flare.alpha = 1 - t;
+      flare.y = pos.y - 70 - t * 28;
+      flare.scale.set(0.65 + Math.sin(t * Math.PI) * 0.6);
+      ring.rotation = t * Math.PI * 2;
+    }, () => flare.destroy());
+  }
+
   private soulReleaseEffect(x: number, y: number, color: number) {
     const pos = isoToScreen(x, y);
     const container = new Container();
@@ -3330,29 +3854,51 @@ export class SolGame {
   }
 
   private impactBurst(x: number, y: number, color: number, strong: boolean) {
+    if (!strong && this.time - this.lastMinorImpactAt < 0.07) return;
+    if (!strong) this.lastMinorImpactAt = this.time;
     const pos = isoToScreen(x, y);
     const container = new Container();
     container.position.set(pos.x, pos.y - 32);
-    const ring = new Graphics().circle(0, 0, strong ? 20 : 14).stroke({ color, alpha: 0.78, width: strong ? 4 : 3 });
-    container.addChild(ring);
-    const count = strong ? 10 : 6;
+    container.blendMode = 'add';
+    const ring = new Graphics()
+      .circle(0, 0, strong ? 22 : 13)
+      .stroke({ color, alpha: strong ? 0.86 : 0.52, width: strong ? 4 : 2.5 });
+    const core = new Graphics()
+      .ellipse(0, 0, strong ? 18 : 11, strong ? 6 : 4)
+      .fill({ color: 0xffffff, alpha: strong ? 0.26 : 0.13 });
+    container.addChild(core, ring);
+    const count = strong ? 12 : 5;
     const sparks: Graphics[] = [];
     for (let i = 0; i < count; i += 1) {
-      const spark = new Graphics().circle(0, 0, strong ? 3 : 2).fill({ color: i % 2 ? 0xffffff : color, alpha: 0.92 });
+      const spark = new Graphics()
+        .roundRect(-1.5, -1.5, strong ? 8 : 5, strong ? 3 : 2, 2)
+        .fill({ color: i % 2 ? 0xffffff : color, alpha: strong ? 0.9 : 0.62 });
       spark.rotation = (Math.PI * 2 * i) / count;
       sparks.push(spark);
       container.addChild(spark);
     }
+    if (strong) {
+      const slash = new Graphics()
+        .moveTo(-38, -4).quadraticCurveTo(0, -22, 42, -2)
+        .stroke({ color: 0xffffff, alpha: 0.38, width: 3 })
+        .moveTo(-34, 4).quadraticCurveTo(0, 18, 36, 6)
+        .stroke({ color, alpha: 0.42, width: 4 });
+      container.addChild(slash);
+    }
     this.fxLayer.addChild(container);
-    this.animate(strong ? 0.46 : 0.32, (t) => {
-      ring.alpha = 1 - t;
-      ring.scale.set(0.55 + t * 1.4);
+    this.animate(strong ? 0.42 : 0.26, (t) => {
+      const ease = Math.sin(t * Math.PI);
+      ring.alpha = (strong ? 0.86 : 0.52) * (1 - t);
+      ring.scale.set(0.62 + t * (strong ? 1.55 : 1.05));
+      core.alpha = (strong ? 0.28 : 0.13) * (1 - t);
+      core.scale.set(0.75 + ease * 0.44, 0.65 + ease * 0.22);
       sparks.forEach((spark, index) => {
         const angle = (Math.PI * 2 * index) / count;
-        const dist = (strong ? 42 : 28) * t;
-        spark.position.set(Math.cos(angle) * dist, Math.sin(angle) * dist);
-        spark.alpha = 1 - t;
+        const dist = (strong ? 46 : 22) * t;
+        spark.position.set(Math.cos(angle) * dist, Math.sin(angle) * dist * 0.72);
+        spark.alpha = (strong ? 0.9 : 0.62) * (1 - t);
       });
+      container.scale.set(1 + ease * (strong ? 0.12 : 0.06));
     }, () => container.destroy());
   }
 
@@ -3478,6 +4024,12 @@ export class SolGame {
     if (monsterId === 'fieldBoss') return 'monsterFieldBossSheet';
     if (monsterId === 'crystalBear') return 'monsterBearSheet';
     if (monsterId === 'dragon') return 'bossDragonSheet';
+    if (monsterId === 'orcBerserker') return 'monsterOrcSheet';
+    if (monsterId === 'nightmareBat') return 'monsterBatSheet';
+    if (monsterId === 'lavaGolem') return 'monsterLavaGolemSheet';
+    if (monsterId === 'iceWitch') return 'monsterIceWitchSheet';
+    if (monsterId === 'royalGuard') return 'monsterRoyalGuardSheet';
+    if (monsterId === 'riftBeast') return 'monsterRiftBeastSheet';
     return 'monsterSlimeSheet';
   }
 
