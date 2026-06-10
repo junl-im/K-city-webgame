@@ -1,7 +1,7 @@
 import type { CardDefinition, CardSetDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, MonsterId, SoulDefinition, TileId, ZoneDefinition, SkillDefinition, DropEntry } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 42;
+export const SAVE_VERSION = 44;
 export const MAP_W = 40;
 export const MAP_H = 40;
 
@@ -1324,6 +1324,77 @@ const alpha058DropOverlay: Partial<Record<MonsterId, DropEntry[]>> = {
 };
 for (const monster of monsters) {
   const extraDrops = alpha058DropOverlay[monster.id] || [];
+  const existing = new Set(monster.drops.map((drop) => `${drop.type}:${drop.id || ''}:${drop.amount || 0}`));
+  for (const drop of extraDrops) {
+    const key = `${drop.type}:${drop.id || ''}:${drop.amount || 0}`;
+    if (!existing.has(key)) monster.drops.push(drop);
+  }
+}
+
+
+// Alpha 0.60: visual reboot pass - real key visual title art, readable fantasy UI, and a constructed town scene layer.
+const alpha059Items: ItemDefinition[] = [
+  { id: 'luminous-hunt-pass', name: '루미나 사냥 허가증', type: 'material', rarity: 'R', effectText: '마을 의뢰소와 고레벨 전선 사이를 잇는 사냥 허가 증표입니다. 반복 의뢰 납품에 쓰입니다.', bonus: {} },
+  { id: 'royal-impact-oil', name: '왕실 타격 연마유', type: 'consumable', rarity: 'SR', effectText: '무기의 타격감을 높이는 연마유입니다. 사용하면 강화 재료와 골드를 소량 회수합니다.', bonus: {} },
+  { id: 'moonlit-repair-thread', name: '월광 수선실', type: 'material', rarity: 'SR', effectText: '방어구 강화와 수리 의뢰에 쓰이는 푸른 실입니다.', bonus: {} },
+  { id: 'ancient-polish-stone', name: '고대 광택석', type: 'material', rarity: 'SSR', effectText: '장비 아이콘의 고급감을 상징하는 광택석. 장비 강화와 보급 교환 재료입니다.', bonus: {} },
+  { id: 'soulbound-starter-cache', name: '영혼 귀속 보급함', type: 'consumable', rarity: 'SSR', effectText: '장비, 재료, 물약을 함께 노리는 시각 품질 검수용 보급함입니다.', bonus: {} },
+  { id: 'duelist-crimson-blade', name: '결투가의 적광검', type: 'weapon', rarity: 'UR', effectText: '공격 +118, 치명 +14%, 공속 +7%. 타격감 검수 전선에서 얻을 수 있는 적광검', bonus: { atk: 118, crit: 0.14, aspd: 0.07 } },
+  { id: 'luminous-warden-plate', name: '루미나 수호 판금갑', type: 'armor', rarity: 'SSR', effectText: 'HP +360, 방어 +44, MP +80. 필드 생존과 자동사냥 안정성을 높이는 갑주', bonus: { hp: 360, def: 44, mp: 80 } },
+  { id: 'hunter-focus-charm', name: '사냥꾼 집중 부적', type: 'relic', rarity: 'SSR', effectText: '공격 +34, 치명 +8%, 이동 +0.10. 사냥 루프와 전선 이동을 보조하는 부적', bonus: { atk: 34, crit: 0.08, move: 0.10 } }
+];
+for (const item of alpha059Items) {
+  if (!items.some((old) => old.id === item.id)) items.push(item);
+}
+
+const alpha059Zones: ZoneDefinition[] = [
+  { id: 'luminous-hunt-yard', order: 89, title: '루미나 사냥 연무장', subtitle: '타격감과 보상 루프를 검수하는 전초 연무장', description: '짧은 이동, 선명한 타격 이펙트, 다양한 재료 드랍을 함께 확인하는 품질 점검형 전선입니다.', recommendedLevel: 166, monsterIds: ['royalGuard', 'orcBerserker', 'fieldBoss', 'nightmareBat'], entry: { x: 11.0, y: 23.0 }, unlockLevel: 166, badge: '89' },
+  { id: 'moon-market-canal', order: 90, title: '월광 시장 수로', subtitle: '마을 풍경과 필드 사냥이 이어지는 야시장 수로', description: '마을과 사냥터가 그림처럼 이어지는 지역입니다. 소모품, 수선실, 허가증 파밍에 좋습니다.', recommendedLevel: 168, monsterIds: ['nightmareBat', 'wraith', 'stormHarpy', 'royalGuard'], entry: { x: 14.4, y: 22.2 }, unlockLevel: 168, badge: '90' },
+  { id: 'crimson-duel-road', order: 91, title: '적광 결투로', subtitle: '검격 잔상과 강타 연출을 확인하는 붉은 길', description: '고공격 몬스터가 등장하는 전선입니다. 물약 설정과 강화 상태를 함께 점검하세요.', recommendedLevel: 170, monsterIds: ['orcBerserker', 'graveKnight', 'fieldBoss', 'lavaGolem'], entry: { x: 18.0, y: 24.0 }, unlockLevel: 170, badge: '91' },
+  { id: 'sovereign-gallery-field', order: 92, title: '소버린 회랑 전장', subtitle: '보스 게이트와 왕실 장식이 늘어선 최상급 회랑', description: '상급 장비, 고급 재료, 보스 상자, 라우풀 보너스를 함께 노리는 최종급 반복 전선입니다.', recommendedLevel: 172, monsterIds: ['riftBeast', 'dragon', 'fieldBoss', 'royalGuard'], entry: { x: 22.4, y: 21.8 }, unlockLevel: 172, badge: '92' }
+];
+for (const zone of alpha059Zones) {
+  if (!zones.some((old) => old.id === zone.id)) zones.push(zone);
+}
+
+for (const [index, zone] of alpha059Zones.entries()) {
+  const chapter = 32 + index;
+  const first = zone.monsterIds[0];
+  const second = zone.monsterIds[1];
+  const story: StoryQuestDefinition[] = [
+    { id: `story-059-${zone.id}-arrival`, chapter, title: `${zone.title} 진입`, subtitle: '시각 품질 전선', npc: '예언자 미온', dialogue: '마을, 전장, 전리품이 하나의 그림처럼 이어져야 합니다. 이번 전선의 첫 흐름을 확인해 주세요.', goalText: `${monsterName(first)} 누적 ${230 + index * 40}마리 처치`, goalType: 'kill', monsterId: first, target: 230 + index * 40, unlockZoneId: zone.id, reward: { gold: 1720000 + index * 180000, gems: 6800 + index * 520, itemId: 'luminous-hunt-pass', itemCount: 5 + index, exp: 1280000 + index * 90000 } },
+    { id: `story-059-${zone.id}-impact`, chapter, title: `${zone.title} 타격 검수`, subtitle: '전투 손맛 강화', npc: '무기교관 세이라', dialogue: '보기 좋은 전투는 맞는 순간의 무게가 달라야 합니다. 크리티컬, 강타, 드랍 타이밍을 같이 보겠습니다.', goalText: `${monsterName(second)} 누적 ${210 + index * 36}마리 처치`, goalType: 'kill', monsterId: second, target: 210 + index * 36, unlockZoneId: zone.id, reward: { gold: 1840000 + index * 195000, gems: 7300 + index * 560, itemId: 'royal-impact-oil', itemCount: 2 + index, exp: 1360000 + index * 96000 } },
+    { id: `story-059-${zone.id}-dressing`, chapter, title: `${zone.title} 장식 보강`, subtitle: '바닥·오브젝트 점검', npc: '대장장이 브람', dialogue: '좋은 필드는 바닥부터 다릅니다. 길, 깃발, 등불, 균열 장식이 몬스터와 어울리는지 확인합시다.', goalText: `${zone.title} 전선 Lv.${zone.recommendedLevel + 1} 달성`, goalType: 'level', target: zone.recommendedLevel + 1, unlockZoneId: zone.id, reward: { gold: 1980000 + index * 210000, gems: 7900 + index * 600, itemId: index >= 2 ? 'ancient-polish-stone' : 'moonlit-repair-thread', itemCount: 3 + index, exp: 1480000 + index * 104000 } },
+    { id: `story-059-${zone.id}-trophy`, chapter, title: `${zone.title} 전리품 완성`, subtitle: '희귀 드랍 목표', npc: '혈맹 지휘관 아렌', dialogue: '전리품이 다양해야 사냥을 멈추지 않습니다. 상자, 장비, 재료, 성향 보상을 모두 회수하세요.', goalText: `보스 계열 누적 ${100 + index * 14}마리 처치`, goalType: 'kill', monsterId: zone.monsterIds.includes('riftBeast') ? 'riftBeast' : 'fieldBoss', target: 100 + index * 14, unlockZoneId: zone.id, reward: { gold: 2150000 + index * 225000, gems: 8600 + index * 660, itemId: index >= 2 ? 'soulbound-starter-cache' : 'hunter-focus-charm', itemCount: index >= 2 ? 1 : 1, exp: 1600000 + index * 118000 } }
+  ];
+  for (const quest of story) {
+    if (!storyQuests.some((old) => old.id === quest.id)) storyQuests.push(quest);
+  }
+}
+
+const alpha059Dailies: DailyQuestDefinition[] = [
+  { id: 'daily-059-hunt-pass', title: '일일 · 사냥 허가증 회수', description: '루미나 후반 전선에서 사냥 허가증을 회수하세요.', goalType: 'kill', monsterId: 'royalGuard', target: 180, reward: { gold: 320000, gems: 520, itemId: 'luminous-hunt-pass', itemCount: 10 } },
+  { id: 'daily-059-impact-oil', title: '일일 · 타격 연마유 보급', description: '강타 연출이 뚜렷한 전선에서 타격 연마유를 확보하세요.', goalType: 'kill', monsterId: 'orcBerserker', target: 150, reward: { gold: 360000, gems: 580, itemId: 'royal-impact-oil', itemCount: 2 } },
+  { id: 'daily-059-repair-thread', title: '일일 · 월광 수선실 납품', description: '마을 수선공에게 전달할 월광 수선실을 모으세요.', goalType: 'kill', monsterId: 'wraith', target: 180, reward: { gold: 340000, gems: 540, itemId: 'moonlit-repair-thread', itemCount: 5 } },
+  { id: 'daily-059-polish-stone', title: '주간 · 고대 광택석 탐사', description: '최상급 전선에서 고대 광택석을 찾아 장비 품질 루프를 보강하세요.', goalType: 'kill', monsterId: 'riftBeast', target: 20, reward: { gold: 960000, gems: 1500, itemId: 'ancient-polish-stone', itemCount: 2 } },
+  { id: 'daily-059-crimson-blade', title: '주간 · 적광검 추적', description: '보스 계열을 반복 토벌해 결투가의 적광검을 노려보세요.', goalType: 'kill', monsterId: 'fieldBoss', target: 32, reward: { gold: 1180000, gems: 1800, itemId: 'soulbound-starter-cache', itemCount: 1 } }
+];
+for (const quest of alpha059Dailies) {
+  if (!dailyQuests.some((old) => old.id === quest.id)) dailyQuests.push(quest);
+}
+
+const alpha059DropOverlay: Partial<Record<MonsterId, DropEntry[]>> = {
+  wraith: [{ type: 'item', id: 'moonlit-repair-thread', chance: 0.035 }, { type: 'item', id: 'luminous-hunt-pass', chance: 0.025 }],
+  stormHarpy: [{ type: 'item', id: 'moonlit-repair-thread', chance: 0.04 }, { type: 'item', id: 'hunter-focus-charm', chance: 0.006 }],
+  royalGuard: [{ type: 'item', id: 'luminous-hunt-pass', chance: 0.09 }, { type: 'item', id: 'luminous-warden-plate', chance: 0.008 }, { type: 'item', id: 'soulbound-starter-cache', chance: 0.018 }],
+  orcBerserker: [{ type: 'item', id: 'royal-impact-oil', chance: 0.055 }, { type: 'item', id: 'duelist-crimson-blade', chance: 0.004 }],
+  lavaGolem: [{ type: 'item', id: 'ancient-polish-stone', chance: 0.03 }, { type: 'item', id: 'royal-impact-oil', chance: 0.045 }],
+  fieldBoss: [{ type: 'item', id: 'soulbound-starter-cache', chance: 0.03 }, { type: 'item', id: 'duelist-crimson-blade', chance: 0.012 }, { type: 'item', id: 'ancient-polish-stone', chance: 0.08 }],
+  dragon: [{ type: 'item', id: 'soulbound-starter-cache', chance: 0.035 }, { type: 'item', id: 'luminous-warden-plate', chance: 0.014 }, { type: 'item', id: 'ancient-polish-stone', chance: 0.1 }],
+  riftBeast: [{ type: 'item', id: 'soulbound-starter-cache', chance: 0.08 }, { type: 'item', id: 'duelist-crimson-blade', chance: 0.02 }, { type: 'item', id: 'hunter-focus-charm', chance: 0.03 }]
+};
+for (const monster of monsters) {
+  const extraDrops = alpha059DropOverlay[monster.id] || [];
   const existing = new Set(monster.drops.map((drop) => `${drop.type}:${drop.id || ''}:${drop.amount || 0}`));
   for (const drop of extraDrops) {
     const key = `${drop.type}:${drop.id || ''}:${drop.amount || 0}`;

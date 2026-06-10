@@ -1435,7 +1435,7 @@ function runtimeAsset(path: string) {
 }
 
 function itemArtUrl(def: ItemDefinition) {
-  return runtimeAsset(`items/${def.id}.webp?v=058`);
+  return runtimeAsset(`items/${def.id}.webp?v=059`);
 }
 
 function skillArtUrl(def: SkillDefinition) {
@@ -2304,19 +2304,21 @@ function renderVisualImmersionBoard(save: PlayerSave) {
     return def && (def.rarity === 'SSR' || def.rarity === 'UR');
   }).reduce((sum, entry) => sum + entry.count, 0);
   const chainHint = save.level >= 20 ? '희귀 드랍 플레어 · 타격 궤적 강화' : '초반 숲 광원 · 캐릭터 실루엣 강화';
+  const polishItems = ['luminous-hunt-pass', 'royal-impact-oil', 'moonlit-repair-thread', 'ancient-polish-stone'].reduce((sum, id) => sum + materialCount(save, id), 0);
   const titleGrade = save.level >= 80 ? 'OMEGA' : save.level >= 30 ? 'HERO' : 'ADVENTURE';
   return `
     <section class="visual-immersion-board">
       <div class="visual-board-title">
-        <span>VISUAL QA 0.58</span>
+        <span>VISUAL REBOOT 0.60</span>
         <h3>${titleGrade} 무드 보드</h3>
-        <p>첫 화면, 마을 NPC 대화, 보스 예고, 전리품 팝업, 필드 조명까지 모바일 RPG식 몰입 흐름으로 재정리했습니다.</p>
+        <p>타이틀, 마을, 필드, 타격감, 드랍 연출, 슬롯 가독성을 모바일 RPG식으로 한 번 더 다듬었습니다.</p>
       </div>
       <div class="visual-board-grid">
-        <article><b>타이틀</b><span>0.58 히어로 스테이지</span><em>빛/검/파노라마 재정돈</em></article>
+        <article><b>타이틀</b><span>0.60 키비주얼 타이틀</span><em>실제 키비주얼/마을 풍경 리부트</em></article>
         <article><b>마을</b><span>NPC 대화 카드</span><em>상호작용 후 기능 이동</em></article>
         <article><b>필드</b><span>${unlocked}/${zones.length} 전선</span><em>전장 조명 · 보스 게이트</em></article>
         <article><b>전투</b><span>SSR/UR ${highRank}개 보유</span><em>강타/희귀 드랍 집중 연출</em></article>
+        <article><b>품질 재료</b><span>${polishItems}개 보유</span><em>허가증/연마유/광택석</em></article>
       </div>
     </section>
   `;
