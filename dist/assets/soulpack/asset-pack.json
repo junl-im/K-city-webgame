@@ -1,6 +1,6 @@
 {
-  "version": "0.62.0",
-  "style": "reference-grade bright anime fantasy 2.5D",
+  "version": "0.61.0",
+  "style": "sample-inspired dark fantasy 2.5D",
   "characters": 6,
   "directions": 8,
   "motions": [
@@ -100,7 +100,7 @@
     "ui/icons/icon-59.webp",
     "ui/icons/icon-60.webp"
   ],
-  "notes": "0.62 레퍼런스 비주얼 방향에 맞춰 UI/필드 표시를 강화한 리소스팩. 저급 임시 이미지는 추가하지 않고, 같은 파일명으로 검수된 고품질 원본을 교체할 수 있습니다.",
+  "notes": "오리지널 생성형 2.5D 리소스팩. 상용 원화와 동일하지 않으며, 같은 파일명으로 외주/AI 프리렌더 원본을 교체할 수 있습니다.",
   "infernus": {
     "tiles": [
       "tile-infernus.png",

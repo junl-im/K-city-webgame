@@ -2309,12 +2309,12 @@ function renderVisualImmersionBoard(save: PlayerSave) {
   return `
     <section class="visual-immersion-board">
       <div class="visual-board-title">
-        <span>REFERENCE VISUAL 0.62</span>
+        <span>RASTER VISUAL 0.61</span>
         <h3>${titleGrade} 무드 보드</h3>
         <p>타이틀, 마을, 필드, 타격감, 드랍 연출, 슬롯 가독성을 모바일 RPG식으로 한 번 더 다듬었습니다.</p>
       </div>
       <div class="visual-board-grid">
-        <article><b>타이틀</b><span>0.62 레퍼런스 스킨</span><em>아이보리 패널 · 블루 버튼 · 금장 프레임</em></article>
+        <article><b>타이틀</b><span>0.61 WebP 키비주얼</span><em>SVG 없는 래스터 비주얼 파이프라인</em></article>
         <article><b>마을</b><span>NPC 대화 카드</span><em>상호작용 후 기능 이동</em></article>
         <article><b>필드</b><span>${unlocked}/${zones.length} 전선</span><em>전장 조명 · 보스 게이트</em></article>
         <article><b>전투</b><span>SSR/UR ${highRank}개 보유</span><em>강타/희귀 드랍 집중 연출</em></article>
