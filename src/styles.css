@@ -12305,3 +12305,270 @@ body.field-active .field-chain-meter {
   .town-screen-060 .town-main-grid { margin-top: 310px !important; }
   .title-screen-060 .start-game-btn { margin-bottom: 24px !important; min-height: 52px !important; }
 }
+
+/* Alpha 0.61 Visual Asset Pipeline Reboot: active title/town/UI visuals use WebP/PNG raster assets, not SVG illustration placeholders. */
+:root {
+  --soul-raster-panel-061: url("./assets/ui/ui-panel-glass-061.webp");
+  --soul-raster-button-061: url("./assets/ui/ui-button-sky-061.webp");
+  --soul-raster-slot-061: url("./assets/ui/ui-slot-sky-061.webp");
+  --soul-raster-pin-061: url("./assets/ui/ui-location-pin-061.webp");
+}
+
+.title-screen-061 {
+  background: #55bcff !important;
+}
+.title-screen-061::before {
+  background: url("./assets/ui/title-keyvisual-061-blur.webp") center / cover no-repeat !important;
+  filter: blur(20px) saturate(1.24) brightness(.94) !important;
+}
+.title-screen-061 .title-bg-061 {
+  position: absolute !important;
+  inset: 0 !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.02), rgba(8, 42, 83, .04) 55%, rgba(0, 22, 50, .48)),
+    url("./assets/ui/title-keyvisual-061.webp") center / contain no-repeat !important;
+  z-index: -2 !important;
+}
+@media (min-aspect-ratio: 4 / 3) {
+  .title-screen-061 .title-bg-061 {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.04), rgba(7, 51, 101, .05) 54%, rgba(0, 20, 50, .46)),
+      url("./assets/ui/title-landscape-061.webp") center / cover no-repeat !important;
+  }
+}
+@media (max-aspect-ratio: 3 / 4) {
+  .title-screen-061 .title-bg-061 {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.01), rgba(3, 25, 61, .04) 58%, rgba(3, 20, 43, .43)),
+      url("./assets/ui/title-keyvisual-061.webp") center / cover no-repeat !important;
+  }
+}
+.title-screen-061 .title-bg-061::before {
+  background:
+    radial-gradient(circle at 50% 26%, rgba(255,255,255,.18), transparent 30%),
+    radial-gradient(circle at 49% 91%, rgba(99, 214, 255, .24), transparent 34%),
+    linear-gradient(90deg, rgba(0,22,44,.30), transparent 24%, transparent 75%, rgba(0,22,44,.20)) !important;
+}
+.title-screen-061 .title-stage {
+  grid-template-rows: 1fr auto auto !important;
+  padding-bottom: max(30px, env(safe-area-inset-bottom)) !important;
+}
+.title-screen-061 .start-game-btn {
+  width: min(72vw, 430px) !important;
+  min-height: 62px !important;
+  margin-bottom: clamp(18px, 4.5vh, 64px) !important;
+  border: 0 !important;
+  background:
+    linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent) 50% 47% / 78% 1px no-repeat,
+    var(--soul-raster-button-061) center / 100% 100% no-repeat !important;
+  box-shadow:
+    0 18px 44px rgba(0, 54, 108, .34),
+    0 0 32px rgba(117, 224, 255, .48) !important;
+  backdrop-filter: none !important;
+}
+.title-screen-061 .title-mini-nav {
+  background: rgba(7, 58, 108, .26) !important;
+  border-color: rgba(240, 253, 255, .50) !important;
+  box-shadow: 0 12px 28px rgba(0, 46, 96, .20) !important;
+}
+.title-screen-061 .title-copy,
+.title-screen-061 .title-hero,
+.title-screen-061 .title-hero-061,
+.title-screen-061 .title-character-061,
+.title-screen-061 .title-soul-ring,
+.title-screen-061 .title-hero-glow,
+.title-screen-061 .title-hero-rune,
+.title-screen-061 .title-character-companion,
+.title-screen-061 small {
+  display: none !important;
+  background-image: none !important;
+}
+
+.town-screen-061 .town-backdrop {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.07), rgba(31, 122, 159, .06) 38%, rgba(2, 20, 42, .67) 100%),
+    url("./assets/ui/town-keyvisual-061.webp") center / cover no-repeat !important;
+}
+.town-screen-061 .town-backdrop::before {
+  background:
+    radial-gradient(circle at 73% 17%, rgba(255,255,255,.26), transparent 25%),
+    radial-gradient(circle at 52% 58%, rgba(117, 216, 255, .16), transparent 31%),
+    linear-gradient(90deg, rgba(0,28,58,.38), transparent 22%, transparent 72%, rgba(0,25,58,.22)) !important;
+}
+.town-screen-061 .town-backdrop::after {
+  height: 47% !important;
+  background:
+    linear-gradient(180deg, transparent, rgba(5, 30, 48, .72)),
+    radial-gradient(ellipse at 50% 100%, rgba(30, 88, 62, .56), transparent 66%) !important;
+}
+/* The old constructed SVG/CSS village is intentionally hidden; the active village is raster keyvisual + raster hotspots. */
+.town-screen-061 .town-sky,
+.town-screen-061 .town-panorama-061,
+.town-screen-061 .town-waterfall,
+.town-screen-061 .town-airship,
+.town-screen-061 .town-banner-line,
+.town-screen-061 .town-omega-crystal,
+.town-screen-061 .town-building,
+.town-screen-061 .town-road,
+.town-screen-061 .town-market-stall,
+.town-screen-061 .town-lantern,
+.town-screen-061 .town-river,
+.town-screen-061 .town-bridge,
+.town-screen-061 .town-citizen {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  background-image: none !important;
+}
+.town-screen-061 .town-main-grid {
+  margin-top: clamp(260px, 47vh, 470px) !important;
+  gap: 12px !important;
+}
+.town-hotspot-layer-061 {
+  z-index: 9 !important;
+}
+.town-hotspot-061 {
+  min-width: 126px !important;
+  padding: 10px 13px 10px 48px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(239, 253, 255, .78) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.20), rgba(80, 180, 238, .16) 42%, rgba(6, 47, 91, .52)),
+    var(--soul-raster-panel-061) center / 100% 100% no-repeat !important;
+  box-shadow:
+    0 0 0 1px rgba(105, 207, 255, .20) inset,
+    0 12px 28px rgba(0, 42, 92, .32),
+    0 0 24px rgba(107, 218, 255, .26) !important;
+  backdrop-filter: blur(8px) saturate(1.1) !important;
+}
+.town-hotspot-061::before {
+  left: 10px !important;
+  bottom: auto !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 32px !important;
+  height: 42px !important;
+  border-radius: 0 !important;
+  background: var(--soul-raster-pin-061) center / contain no-repeat !important;
+  box-shadow: none !important;
+}
+.town-hotspot-061::after {
+  left: 29px !important;
+  bottom: -34px !important;
+  height: 30px !important;
+  width: 2px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.84), rgba(92,205,255,.05)) !important;
+}
+.town-hotspot-061 b { font-size: 13px !important; }
+.town-hotspot-061 span { font-size: 10px !important; }
+.town-hotspot-061.gate { left: 58% !important; top: 39% !important; }
+.town-hotspot-061.forge { left: 34% !important; top: 60% !important; }
+.town-hotspot-061.shop { left: 67% !important; top: 58% !important; }
+.town-hotspot-061.shrine { left: 48% !important; top: 49% !important; }
+.town-hotspot-061.pledge { right: 7% !important; top: 22% !important; }
+.town-screen-061 .town-npc {
+  border-radius: 999px !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.35), rgba(61, 171, 248, .24) 45%, rgba(8, 57, 104, .72)),
+    var(--soul-raster-button-061) center / 100% 100% no-repeat !important;
+  border-color: rgba(246, 254, 255, .78) !important;
+}
+.town-screen-061 .npc-smith { left: 36% !important; top: 69% !important; }
+.town-screen-061 .npc-oracle { left: 56% !important; top: 64% !important; }
+.town-screen-061 .npc-captain { left: 73% !important; top: 54% !important; }
+
+.town-screen-061 .town-topbar,
+.town-screen-061 .town-story-panel,
+.town-screen-061 .town-zone-panel,
+.town-screen-061 .town-action-panel,
+.town-screen-061 .town-drawer,
+.town-screen-061 .town-more-menu,
+.town-screen-061 .town-bottom-menu,
+.sheet,
+.item-detail-card,
+.visual-immersion-board,
+.omega-command-board,
+.pledge-panel,
+.shop-card,
+.inventory-quality-board,
+.gear-resonance-panel,
+.npc-contract-board {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.14), rgba(27, 111, 171, .12) 40%, rgba(5, 29, 61, .64)),
+    var(--soul-raster-panel-061) center / 100% 100% no-repeat !important;
+  border-color: rgba(229, 250, 255, .38) !important;
+  box-shadow: 0 16px 44px rgba(0, 39, 88, .26), 0 0 0 1px rgba(122, 218, 255, .12) inset !important;
+}
+.town-screen-061 .content-card,
+.town-screen-061 .town-bottom-btn,
+.town-screen-061 .zone-card,
+.town-screen-061 .wide-action,
+.town-screen-061 .town-more-menu button,
+.wide-action,
+.primary,
+.story-action-btn,
+.detail-action,
+.shop-buy-btn,
+.enhance-action,
+.field-action-dock button,
+.skill-dock button {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.12), rgba(26, 133, 216, .13) 48%, rgba(5, 49, 99, .45)),
+    var(--soul-raster-button-061) center / 100% 100% no-repeat !important;
+  border-color: rgba(238, 253, 255, .42) !important;
+  box-shadow: 0 10px 24px rgba(0, 44, 94, .22), 0 0 0 1px rgba(142, 224, 255, .12) inset !important;
+}
+.inventory-slot,
+.card-slot,
+.skill-card,
+.item-slot,
+.inventory-item-card,
+.card-item,
+.soul-card,
+.equipment-slot,
+.skill-dock button,
+.potion-quick-btn {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.10), rgba(30, 131, 207, .10) 45%, rgba(5, 38, 81, .45)),
+    var(--soul-raster-slot-061) center / 100% 100% no-repeat !important;
+  border-color: rgba(233, 252, 255, .36) !important;
+}
+.inventory-slot img,
+.card-slot img,
+.inventory-item-card img,
+.card-item img,
+.soul-card img,
+.item-detail-visual img {
+  filter: drop-shadow(0 8px 14px rgba(0, 33, 74, .34)) saturate(1.08) !important;
+}
+.item-detail-card {
+  max-width: min(94vw, 560px) !important;
+}
+.item-detail-visual {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(153, 229, 255, .34), transparent 56%),
+    var(--soul-raster-slot-061) center / 100% 100% no-repeat !important;
+}
+@media (max-width: 720px) {
+  .town-screen-061 .town-main-grid {
+    margin-top: clamp(355px, 58vh, 560px) !important;
+  }
+  .town-hotspot-061 {
+    min-width: 78px !important;
+    padding: 7px 9px 7px 38px !important;
+    border-radius: 14px !important;
+  }
+  .town-hotspot-061::before { width: 24px !important; height: 34px !important; left: 8px !important; }
+  .town-hotspot-061 b { font-size: 10px !important; }
+  .town-hotspot-061 span { display: none !important; }
+  .town-hotspot-061.gate { left: 54% !important; top: 42% !important; }
+  .town-hotspot-061.forge { left: 18% !important; top: 62% !important; }
+  .town-hotspot-061.shop { left: 61% !important; top: 63% !important; }
+  .town-hotspot-061.shrine { left: 42% !important; top: 53% !important; }
+  .town-hotspot-061.pledge { right: 3% !important; top: 29% !important; }
+  .town-screen-061 .npc-smith { left: 19% !important; top: 72% !important; }
+  .town-screen-061 .npc-oracle { left: 53% !important; top: 69% !important; }
+  .town-screen-061 .npc-captain { left: 76% !important; top: 60% !important; }
+}
+@media (max-height: 760px) {
+  .town-screen-061 .town-main-grid { margin-top: 340px !important; }
+}
