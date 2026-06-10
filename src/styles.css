@@ -14507,3 +14507,777 @@ body.field-active .attack-btn { animation: actionBreath066 2.7s ease-in-out infi
     transform: none !important;
   }
 }
+
+
+/* ----------------------------------------------------------------------------
+   Alpha 0.67 Clean Visual Repair Pass
+   목적: 0.66까지 누적된 어두운 구형 스킨 충돌을 마지막 레이어에서 정리하고,
+   타이틀/로그인/마을을 레퍼런스의 밝은 하늘, 아이보리 패널, 블루 글래스,
+   금장 포인트 기준으로 재정렬한다. 이 블록은 기능보다 앞서는 장식 레이어를
+   누르지 않도록 pointer/z-index를 보수적으로 고정한다.
+---------------------------------------------------------------------------- */
+:root {
+  --soul-067-ink: #12345f;
+  --soul-067-ink-strong: #08264b;
+  --soul-067-ink-soft: rgba(18, 52, 95, .76);
+  --soul-067-blue: #1779d7;
+  --soul-067-blue-deep: #0759b5;
+  --soul-067-sky: #79d7ff;
+  --soul-067-gold: #d6a34b;
+  --soul-067-gold-soft: #ffe7aa;
+  --soul-067-panel: rgba(255, 253, 244, .92);
+  --soul-067-panel-soft: rgba(255, 254, 249, .78);
+  --soul-067-line: rgba(35, 119, 199, .30);
+  --soul-067-shadow: 0 20px 54px rgba(24, 92, 165, .20), inset 0 1px 0 rgba(255,255,255,.88);
+  --soul-067-panel-asset: url("./assets/ui/ui-panel-glass-066.webp");
+  --soul-067-button-asset: url("./assets/ui/ui-button-sky-066.webp");
+  --soul-067-slot-asset: url("./assets/ui/ui-slot-sky-066.webp");
+}
+
+html,
+body,
+button,
+input,
+.town-screen-067,
+.login-screen-067,
+.sheet,
+.item-detail-card {
+  font-family: Pretendard, Apple SD Gothic Neo, Noto Sans KR, Segoe UI, system-ui, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+/* Title: 0.60 만족 시안 유지 + TOUCH TO START 중앙 배치 */
+.title-screen-067 {
+  position: fixed !important;
+  inset: 0 !important;
+  overflow: hidden !important;
+  background: linear-gradient(180deg, #89ddff 0%, #44a9ee 62%, #0e4f93 100%) !important;
+  color: #fff !important;
+  isolation: isolate !important;
+}
+.title-screen-067::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: -22px !important;
+  z-index: -5 !important;
+  pointer-events: none !important;
+  background: url("./assets/ui/title-keyvisual-060-blur.webp") center / cover no-repeat !important;
+  filter: blur(16px) saturate(1.16) brightness(1.02) !important;
+  transform: scale(1.06) !important;
+  opacity: 1 !important;
+}
+.title-screen-067 .title-bg-067,
+.title-screen-067 .title-bg-066,
+.title-screen-067 .title-bg-065,
+.title-screen-067 .title-bg-064,
+.title-screen-067 .title-bg-060 {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: -4 !important;
+  pointer-events: none !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.00) 0%, rgba(12, 67, 132, .06) 52%, rgba(1, 20, 44, .34) 100%),
+    url("./assets/ui/title-keyvisual-060.webp") center center / cover no-repeat !important;
+  filter: saturate(1.06) contrast(1.015) brightness(1.02) !important;
+}
+.title-screen-067::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
+  background:
+    linear-gradient(90deg, rgba(0, 24, 62, .18), transparent 24%, transparent 76%, rgba(0, 24, 62, .13)),
+    radial-gradient(ellipse at 50% 94%, rgba(0, 18, 44, .30), transparent 58%) !important;
+}
+.title-screen-067 .title-stage {
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  padding: 0 !important;
+  pointer-events: none !important;
+  z-index: 2 !important;
+}
+.title-screen-067 .title-copy,
+.title-screen-067 .title-hero,
+.title-screen-067 .title-character,
+.title-screen-067 .title-character-companion,
+.title-screen-067 .title-soul-ring,
+.title-screen-067 .title-hero-glow,
+.title-screen-067 .title-hero-rune,
+.title-screen-067 .title-stage small {
+  display: none !important;
+}
+.title-screen-067 .title-mini-nav {
+  position: absolute !important;
+  top: max(12px, env(safe-area-inset-top)) !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translateX(-50%) !important;
+  width: min(88vw, 356px) !important;
+  min-height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 7px !important;
+  padding: 7px 10px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(236, 251, 255, .58) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(7, 67, 139, .32)), rgba(7, 49, 102, .28) !important;
+  color: rgba(250, 254, 255, .98) !important;
+  box-shadow: 0 12px 30px rgba(0, 41, 94, .22), inset 0 1px 0 rgba(255,255,255,.28) !important;
+  text-shadow: 0 2px 10px rgba(0, 32, 76, .80) !important;
+  backdrop-filter: blur(14px) saturate(1.16) !important;
+  pointer-events: auto !important;
+}
+.title-screen-067 .title-mini-nav span,
+.title-screen-067 .title-mini-nav button {
+  min-height: 30px !important;
+  color: #fff !important;
+  font-size: 10.5px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+.title-screen-067 .title-mini-nav button {
+  border: 1px solid rgba(255,255,255,.40) !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.24), rgba(44, 145, 229, .28)) !important;
+}
+.title-screen-067 .start-game-btn {
+  position: absolute !important;
+  left: 50% !important;
+  top: 58dvh !important;
+  transform: translate(-50%, -50%) !important;
+  width: min(86vw, 372px) !important;
+  min-height: clamp(54px, 7.4vh, 62px) !important;
+  margin: 0 !important;
+  border: 1px solid rgba(239, 253, 255, .92) !important;
+  border-radius: 999px !important;
+  color: #fbfeff !important;
+  font-size: clamp(15px, 4.05vw, 22px) !important;
+  font-weight: 950 !important;
+  letter-spacing: .20em !important;
+  text-shadow: 0 3px 14px rgba(1, 34, 76, .96), 0 0 24px rgba(126, 225, 255, .88) !important;
+  background:
+    linear-gradient(90deg, transparent, rgba(255,255,255,.74), transparent) 50% 48% / 82% 1px no-repeat,
+    var(--soul-067-button-asset) center / 100% 100% no-repeat,
+    linear-gradient(180deg, rgba(255,255,255,.22), rgba(28, 139, 220, .40) 55%, rgba(4, 61, 126, .55)) !important;
+  box-shadow: 0 0 0 1px rgba(82, 204, 255, .55) inset, 0 16px 42px rgba(0, 45, 102, .36), 0 0 36px rgba(94, 209, 255, .55) !important;
+  backdrop-filter: blur(10px) saturate(1.18) !important;
+  animation: titleStartPulse067 2.1s ease-in-out infinite !important;
+  pointer-events: auto !important;
+  z-index: 4 !important;
+}
+.title-screen-067 .start-game-btn::before,
+.title-screen-067 .start-game-btn::after { display: none !important; }
+@keyframes titleStartPulse067 {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0) scale(1); filter: brightness(1); }
+  50% { transform: translate(-50%, -50%) translateY(-2px) scale(1.014); filter: brightness(1.12); }
+}
+
+/* Login / server / character: 기존 어두운 금색 스킨을 밝은 판타지 UI로 덮어씀 */
+.login-screen-067 {
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.64), rgba(255,255,255,.24) 42%, rgba(5, 62, 132, .20)),
+    url("./assets/ui/title-landscape-063.webp") center / cover no-repeat,
+    linear-gradient(180deg, #a7e8ff, #55b9ff) !important;
+  color: var(--soul-067-ink) !important;
+}
+.login-screen-067 .login-backdrop,
+.login-screen-067 .login-art { pointer-events: none !important; }
+.login-screen-067 .login-panel,
+.login-screen-067 .login-panel-v3 {
+  width: min(100% - 24px, 980px) !important;
+  max-height: calc(100dvh - max(24px, env(safe-area-inset-top)) - max(24px, env(safe-area-inset-bottom))) !important;
+  overflow: hidden auto !important;
+  display: grid !important;
+  grid-template-columns: minmax(230px, .86fr) minmax(300px, 1fr) !important;
+  gap: 16px !important;
+  padding: 18px !important;
+  border-radius: 30px !important;
+  border: 1px solid rgba(255,255,255,.76) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,253,244,.64) 55%, rgba(23, 132, 218, .16)), var(--soul-067-panel-asset) center / 100% 100% no-repeat !important;
+  box-shadow: 0 28px 78px rgba(0, 58, 125, .28), inset 0 1px 0 rgba(255,255,255,.86), 0 0 0 1px rgba(255,231,170,.36) inset !important;
+  backdrop-filter: blur(16px) saturate(1.16) !important;
+}
+.login-screen-067 .login-lore-card,
+.login-screen-067 .login-flow-card,
+.login-screen-067 .world-card,
+.login-screen-067 .character-create-panel,
+.login-screen-067 .server-card,
+.login-screen-067 .class-card,
+.login-screen-067 .character-slot-card {
+  border: 1px solid var(--soul-067-line) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(242,249,255,.66)), rgba(255,255,255,.74) !important;
+  color: var(--soul-067-ink) !important;
+  box-shadow: 0 12px 30px rgba(0, 70, 145, .13), inset 0 1px 0 rgba(255,255,255,.75) !important;
+}
+.login-screen-067 .brand-block span,
+.login-screen-067 .login-lore-card span,
+.login-screen-067 .login-status,
+.login-screen-067 .slot-headline span,
+.login-screen-067 .server-card span,
+.login-screen-067 .class-card span {
+  color: var(--soul-067-blue) !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.88) !important;
+}
+.login-screen-067 h1,
+.login-screen-067 h2,
+.login-screen-067 b,
+.login-screen-067 .brand-block h1,
+.login-screen-067 .slot-headline b {
+  color: var(--soul-067-ink-strong) !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.90) !important;
+  letter-spacing: -.035em !important;
+}
+.login-screen-067 .login-flow-hint,
+.login-screen-067 p,
+.login-screen-067 label,
+.login-screen-067 input {
+  color: var(--soul-067-ink-soft) !important;
+  line-height: 1.5 !important;
+}
+.login-screen-067 .wide-action,
+.login-screen-067 .character-actions .wide-action,
+.login-screen-067 .server-card,
+.login-screen-067 .class-card {
+  min-height: 48px !important;
+  border: 1px solid rgba(38, 125, 207, .32) !important;
+  border-radius: 16px !important;
+  color: var(--soul-067-ink-strong) !important;
+  background: var(--soul-067-button-asset) center / 100% 100% no-repeat, linear-gradient(180deg, rgba(255,255,255,.86), rgba(220,240,255,.70)) !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.86) !important;
+  box-shadow: 0 10px 24px rgba(13, 86, 170, .15), inset 0 1px 0 rgba(255,255,255,.68) !important;
+}
+.login-screen-067 .wide-action.primary,
+.login-screen-067 .server-card.active,
+.login-screen-067 .class-card.active {
+  color: #fff !important;
+  border-color: rgba(235,250,255,.82) !important;
+  background: var(--soul-067-button-asset) center / 100% 100% no-repeat, linear-gradient(180deg, #55c4ff, #0867ce) !important;
+  text-shadow: 0 2px 10px rgba(0, 37, 89, .82) !important;
+  box-shadow: 0 14px 32px rgba(9, 86, 181, .24), 0 0 25px rgba(117, 221, 255, .30), inset 0 1px 0 rgba(255,255,255,.38) !important;
+}
+.login-screen-067 .wide-action.primary *,
+.login-screen-067 .server-card.active *,
+.login-screen-067 .class-card.active * { color: #fff !important; text-shadow: inherit !important; }
+.login-screen-067 .wide-action.danger {
+  color: #fff !important;
+  background: linear-gradient(180deg, #c35a58, #6d2222) !important;
+  text-shadow: 0 2px 9px rgba(0,0,0,.42) !important;
+}
+.login-screen-067 input {
+  border: 1px solid rgba(33, 121, 206, .34) !important;
+  background: rgba(255,255,255,.92) !important;
+  color: var(--soul-067-ink-strong) !important;
+}
+@media (max-width: 720px) {
+  .login-screen-067 .login-panel,
+  .login-screen-067 .login-panel-v3 {
+    width: min(100% - 20px, 390px) !important;
+    grid-template-columns: 1fr !important;
+    padding: 16px !important;
+    border-radius: 26px !important;
+  }
+  .login-screen-067 .login-lore-card { display: none !important; }
+  .login-screen-067 .brand-block h1 { font-size: clamp(32px, 8vw, 44px) !important; }
+}
+
+/* Town: 실제 그래픽 마을 배경을 먼저 보이게 하고, 패널은 아래로 내려 가독성 확보 */
+body.town-active .town-screen-067,
+.town-screen-067 {
+  padding: 0 !important;
+  overflow: hidden auto !important;
+  background: linear-gradient(180deg, #93e2ff 0%, #65c8ff 34%, #2f8ed9 100%) !important;
+  color: var(--soul-067-ink) !important;
+  -webkit-overflow-scrolling: touch;
+}
+.town-screen-067 .town-backdrop {
+  position: absolute !important;
+  inset: 0 0 auto 0 !important;
+  height: min(66dvh, 560px) !important;
+  min-height: 430px !important;
+  overflow: hidden !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02) 55%, rgba(14, 68, 129, .38) 100%),
+    url("./assets/ui/town-keyvisual-063.webp") center top / cover no-repeat !important;
+  filter: none !important;
+  pointer-events: none !important;
+}
+.town-screen-067 .town-backdrop::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 66% 22%, rgba(255,255,255,.30), transparent 25%),
+    linear-gradient(90deg, rgba(3, 38, 88, .20), transparent 28%, transparent 74%, rgba(3, 38, 88, .13)) !important;
+}
+.town-screen-067 .town-backdrop::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: auto 0 0 0 !important;
+  height: 38% !important;
+  pointer-events: none !important;
+  background: linear-gradient(180deg, transparent, rgba(244, 250, 255, .70) 76%, rgba(255,255,255,.88)) !important;
+}
+.town-screen-067 .town-sky,
+.town-screen-067 .town-diorama,
+.town-screen-067 .town-panorama-067,
+.town-screen-067 .town-panorama-066,
+.town-screen-067 .town-panorama-065,
+.town-screen-067 .town-panorama-064,
+.town-screen-067 .town-building,
+.town-screen-067 .town-road,
+.town-screen-067 .town-market-stall,
+.town-screen-067 .town-lantern,
+.town-screen-067 .town-river,
+.town-screen-067 .town-bridge,
+.town-screen-067 .town-citizen,
+.town-screen-067 .town-waterfall,
+.town-screen-067 .town-airship,
+.town-screen-067 .town-banner-line,
+.town-screen-067 .town-omega-crystal {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.town-screen-067 .town-topbar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 40 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  padding: max(10px, env(safe-area-inset-top)) 12px 10px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.74), rgba(255,255,255,.30)) !important;
+  border-bottom: 1px solid rgba(255,255,255,.62) !important;
+  box-shadow: 0 12px 34px rgba(22, 86, 154, .16) !important;
+  backdrop-filter: blur(16px) saturate(1.16) !important;
+}
+.town-screen-067 .town-hero-card {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  border: 1px solid rgba(255,255,255,.62) !important;
+  border-radius: 20px !important;
+  padding: 8px 10px !important;
+  background: rgba(255,255,255,.62) !important;
+  color: var(--soul-067-ink) !important;
+  box-shadow: 0 8px 18px rgba(16, 83, 159, .12) !important;
+}
+.town-screen-067 .town-currencies {
+  flex: 0 0 auto !important;
+  display: grid !important;
+  grid-auto-flow: column !important;
+  gap: 6px !important;
+}
+.town-screen-067 .town-currencies span {
+  color: var(--soul-067-ink-strong) !important;
+  border: 1px solid rgba(255,255,255,.62) !important;
+  background: rgba(255,255,255,.70) !important;
+  box-shadow: 0 8px 18px rgba(16, 83, 159, .10) !important;
+}
+.town-screen-067 .town-hotspot-layer-067,
+.town-screen-067 .town-hotspot-layer-066,
+.town-screen-067 .town-hotspot-layer-065,
+.town-screen-067 .town-hotspot-layer-064,
+.town-screen-067 .town-hotspot-layer-063,
+.town-screen-067 .town-hotspot-layer-062,
+.town-screen-067 .town-hotspot-layer-061,
+.town-screen-067 .town-hotspot-layer-060 {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 9 !important;
+  pointer-events: none !important;
+}
+.town-screen-067 .town-hotspot-067,
+.town-screen-067 .town-hotspot-066,
+.town-screen-067 .town-hotspot-065,
+.town-screen-067 .town-hotspot-064,
+.town-screen-067 .town-hotspot-063,
+.town-screen-067 .town-hotspot-062,
+.town-screen-067 .town-hotspot-061,
+.town-screen-067 .town-hotspot-060 {
+  pointer-events: auto !important;
+  min-width: 112px !important;
+  padding: 9px 12px 9px 42px !important;
+  border: 1px solid rgba(240, 253, 255, .80) !important;
+  border-radius: 18px !important;
+  color: #fff !important;
+  text-align: left !important;
+  background: var(--soul-067-button-asset) center / 100% 100% no-repeat, linear-gradient(180deg, rgba(75, 185, 255, .96), rgba(7, 91, 184, .94)) !important;
+  text-shadow: 0 2px 10px rgba(0, 35, 84, .86) !important;
+  box-shadow: 0 14px 30px rgba(0, 49, 113, .28), 0 0 26px rgba(113, 222, 255, .30), inset 0 1px 0 rgba(255,255,255,.36) !important;
+  backdrop-filter: blur(10px) saturate(1.12) !important;
+  animation: hotspotFloat067 3.4s ease-in-out infinite !important;
+}
+.town-screen-067 .town-hotspot-067::before,
+.town-screen-067 .town-hotspot-066::before,
+.town-screen-067 .town-hotspot-065::before,
+.town-screen-067 .town-hotspot-064::before,
+.town-screen-067 .town-hotspot-063::before,
+.town-screen-067 .town-hotspot-062::before,
+.town-screen-067 .town-hotspot-061::before,
+.town-screen-067 .town-hotspot-060::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 9px !important;
+  top: 50% !important;
+  bottom: auto !important;
+  width: 26px !important;
+  height: 34px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: url("./assets/ui/ui-location-pin-063.webp") center / contain no-repeat !important;
+  box-shadow: none !important;
+  transform: translateY(-50%) !important;
+  filter: drop-shadow(0 6px 10px rgba(0, 45, 104, .28)) !important;
+}
+.town-screen-067 .town-hotspot-067::after,
+.town-screen-067 .town-hotspot-066::after,
+.town-screen-067 .town-hotspot-065::after,
+.town-screen-067 .town-hotspot-064::after,
+.town-screen-067 .town-hotspot-063::after,
+.town-screen-067 .town-hotspot-062::after,
+.town-screen-067 .town-hotspot-061::after,
+.town-screen-067 .town-hotspot-060::after { display: none !important; }
+.town-screen-067 .town-hotspot-067 b,
+.town-screen-067 .town-hotspot-066 b,
+.town-screen-067 .town-hotspot-065 b,
+.town-screen-067 .town-hotspot-064 b,
+.town-screen-067 .town-hotspot-063 b,
+.town-screen-067 .town-hotspot-062 b,
+.town-screen-067 .town-hotspot-061 b,
+.town-screen-067 .town-hotspot-060 b { display: block !important; color: #fff !important; font-size: 12px !important; }
+.town-screen-067 .town-hotspot-067 span,
+.town-screen-067 .town-hotspot-066 span,
+.town-screen-067 .town-hotspot-065 span,
+.town-screen-067 .town-hotspot-064 span,
+.town-screen-067 .town-hotspot-063 span,
+.town-screen-067 .town-hotspot-062 span,
+.town-screen-067 .town-hotspot-061 span,
+.town-screen-067 .town-hotspot-060 span { display: block !important; color: rgba(239,250,255,.88) !important; font-size: 10px !important; }
+.town-screen-067 .town-hotspot-067.gate,
+.town-screen-067 .town-hotspot-066.gate,
+.town-screen-067 .town-hotspot-065.gate,
+.town-screen-067 .town-hotspot-064.gate,
+.town-screen-067 .town-hotspot-063.gate,
+.town-screen-067 .town-hotspot-062.gate,
+.town-screen-067 .town-hotspot-061.gate,
+.town-screen-067 .town-hotspot-060.gate { left: 58% !important; top: 42% !important; }
+.town-screen-067 .town-hotspot-067.forge,
+.town-screen-067 .town-hotspot-066.forge,
+.town-screen-067 .town-hotspot-065.forge,
+.town-screen-067 .town-hotspot-064.forge,
+.town-screen-067 .town-hotspot-063.forge,
+.town-screen-067 .town-hotspot-062.forge,
+.town-screen-067 .town-hotspot-061.forge,
+.town-screen-067 .town-hotspot-060.forge { left: 25% !important; top: 58% !important; }
+.town-screen-067 .town-hotspot-067.shop,
+.town-screen-067 .town-hotspot-066.shop,
+.town-screen-067 .town-hotspot-065.shop,
+.town-screen-067 .town-hotspot-064.shop,
+.town-screen-067 .town-hotspot-063.shop,
+.town-screen-067 .town-hotspot-062.shop,
+.town-screen-067 .town-hotspot-061.shop,
+.town-screen-067 .town-hotspot-060.shop { left: 63% !important; top: 60% !important; }
+.town-screen-067 .town-hotspot-067.shrine,
+.town-screen-067 .town-hotspot-066.shrine,
+.town-screen-067 .town-hotspot-065.shrine,
+.town-screen-067 .town-hotspot-064.shrine,
+.town-screen-067 .town-hotspot-063.shrine,
+.town-screen-067 .town-hotspot-062.shrine,
+.town-screen-067 .town-hotspot-061.shrine,
+.town-screen-067 .town-hotspot-060.shrine { left: 47% !important; top: 50% !important; }
+.town-screen-067 .town-hotspot-067.pledge,
+.town-screen-067 .town-hotspot-066.pledge,
+.town-screen-067 .town-hotspot-065.pledge,
+.town-screen-067 .town-hotspot-064.pledge,
+.town-screen-067 .town-hotspot-063.pledge,
+.town-screen-067 .town-hotspot-062.pledge,
+.town-screen-067 .town-hotspot-061.pledge,
+.town-screen-067 .town-hotspot-060.pledge { right: 7% !important; top: 25% !important; }
+@keyframes hotspotFloat067 {
+  0%, 100% { transform: translateY(0); filter: brightness(1); }
+  50% { transform: translateY(-3px); filter: brightness(1.07); }
+}
+
+body.town-active .town-screen-067 .town-layout,
+body.town-active .town-screen-067 .town-layout-v2,
+.town-screen-067 .town-layout,
+.town-screen-067 .town-layout-v2 {
+  position: relative !important;
+  z-index: 12 !important;
+  width: min(calc(100% - 24px), 1120px) !important;
+  margin: clamp(390px, 58dvh, 540px) auto 110px !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(260px, .86fr) minmax(300px, 1.14fr) minmax(240px, .78fr) !important;
+  gap: 12px !important;
+  align-items: start !important;
+}
+.town-screen-067 .town-hero-panel,
+.town-screen-067 .town-zone-panel,
+.town-screen-067 .town-action-panel,
+.town-screen-067 .town-drawer,
+.town-screen-067 .town-more-menu,
+.town-screen-067 .town-npc-spotlight,
+.sheet,
+.item-detail-card,
+.exit-confirm-card,
+body.field-active .hud-top,
+body.field-active .resource-strip,
+body.field-active .field-quest-tracker,
+body.field-active .field-chain-meter {
+  border: 1px solid rgba(255,255,255,.72) !important;
+  border-radius: 26px !important;
+  color: var(--soul-067-ink) !important;
+  background: var(--soul-067-panel-asset) center / 100% 100% no-repeat, linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,252,241,.72) 52%, rgba(65, 171, 239, .18)) !important;
+  box-shadow: var(--soul-067-shadow), 0 0 0 1px rgba(255,231,170,.28) inset !important;
+  backdrop-filter: blur(15px) saturate(1.14) !important;
+}
+.town-screen-067 .town-hero-panel { min-height: 240px !important; }
+.town-screen-067 .town-zone-panel { max-height: min(48dvh, 470px) !important; overflow: hidden !important; }
+.town-screen-067 .zone-list,
+.town-screen-067 .zone-list-v2 { max-height: min(36dvh, 360px) !important; overflow: auto !important; padding-right: 4px !important; }
+.town-screen-067 h1,
+.town-screen-067 h2,
+.town-screen-067 h3,
+.town-screen-067 b,
+.town-screen-067 .town-hero-card h2,
+.sheet h1,
+.sheet h2,
+.sheet h3,
+.sheet b,
+.item-detail-card h1,
+.item-detail-card h2,
+.item-detail-card b {
+  color: var(--soul-067-ink-strong) !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.92) !important;
+  letter-spacing: -.03em !important;
+}
+.town-screen-067 p,
+.town-screen-067 em,
+.town-screen-067 span,
+.sheet p,
+.sheet em,
+.sheet span,
+.item-detail-card p,
+.item-detail-card em {
+  color: var(--soul-067-ink-soft) !important;
+  line-height: 1.52 !important;
+}
+.town-screen-067 .town-eyebrow,
+.town-screen-067 .town-section-head span,
+.sheet-head span,
+.item-detail-card span:first-child {
+  color: var(--soul-067-blue) !important;
+  font-weight: 950 !important;
+  letter-spacing: .055em !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.88) !important;
+}
+.town-screen-067 .content-card,
+.town-screen-067 .zone-card,
+.town-screen-067 .story-action-btn,
+.town-screen-067 .town-quick-actions button,
+.town-screen-067 .town-bottom-btn,
+.town-screen-067 .town-more-menu button,
+.sheet button,
+.item-detail-card button,
+.exit-confirm-card button,
+body.field-active .dock-btn,
+body.field-active .skill-btn,
+body.field-active .potion-btn {
+  border: 1px solid rgba(40, 130, 212, .30) !important;
+  border-radius: 17px !important;
+  color: var(--soul-067-ink-strong) !important;
+  background: var(--soul-067-button-asset) center / 100% 100% no-repeat, linear-gradient(180deg, rgba(255,255,255,.86), rgba(218, 240, 255, .68)) !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.88) !important;
+  box-shadow: 0 10px 24px rgba(13, 86, 170, .14), inset 0 1px 0 rgba(255,255,255,.66) !important;
+}
+.town-screen-067 .content-card.featured,
+.town-screen-067 .zone-card.active,
+.town-screen-067 .story-action-btn,
+.town-screen-067 .town-bottom-btn.active,
+body.field-active .attack-btn,
+body.field-active .auto-btn.active,
+body.field-active .skill-btn.active {
+  color: #fff !important;
+  border-color: rgba(238, 251, 255, .82) !important;
+  background: var(--soul-067-button-asset) center / 100% 100% no-repeat, linear-gradient(180deg, #55c4ff, #0867ce) !important;
+  text-shadow: 0 2px 10px rgba(0, 36, 88, .82) !important;
+  box-shadow: 0 14px 32px rgba(9, 86, 181, .24), 0 0 25px rgba(117, 221, 255, .30), inset 0 1px 0 rgba(255,255,255,.36) !important;
+}
+.town-screen-067 .content-card.featured *,
+.town-screen-067 .zone-card.active *,
+.town-screen-067 .story-action-btn *,
+.town-screen-067 .town-bottom-btn.active * { color: #fff !important; text-shadow: inherit !important; }
+.town-screen-067 .town-bottom-menu {
+  position: fixed !important;
+  left: max(8px, env(safe-area-inset-left)) !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  bottom: max(8px, env(safe-area-inset-bottom)) !important;
+  z-index: 70 !important;
+  height: 72px !important;
+  border: 1px solid rgba(255,255,255,.72) !important;
+  border-radius: 24px !important;
+  background: var(--soul-067-panel-asset) center / 100% 100% no-repeat, linear-gradient(180deg, rgba(255,255,255,.80), rgba(220,240,255,.68)) !important;
+  box-shadow: 0 18px 42px rgba(13, 75, 150, .24), inset 0 1px 0 rgba(255,255,255,.76) !important;
+  backdrop-filter: blur(16px) saturate(1.16) !important;
+  pointer-events: auto !important;
+}
+.town-screen-067 .town-drawer:not(.hidden),
+.sheet:not(.hidden),
+.item-detail-modal:not(.hidden),
+.exit-confirm-modal:not(.hidden) { z-index: 120 !important; }
+.title-screen-067 button,
+.login-screen-067 button,
+.login-screen-067 input,
+.town-screen-067 button,
+.town-screen-067 input,
+.town-screen-067 [data-zone-id],
+.town-screen-067 [data-town-content],
+.town-screen-067 [data-town-more-content],
+body.field-active button,
+.sheet button,
+.item-detail-card button,
+.exit-confirm-card button {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  user-select: none !important;
+}
+@media (max-width: 760px) {
+  .town-screen-067 .town-backdrop {
+    height: min(63dvh, 520px) !important;
+    min-height: 390px !important;
+    background-position: center top !important;
+  }
+  .town-screen-067 .town-topbar {
+    align-items: flex-start !important;
+    gap: 6px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  .town-screen-067 .town-hero-card { padding: 7px 8px !important; }
+  .town-screen-067 .town-hero-card span { font-size: 9px !important; }
+  .town-screen-067 .town-hero-card h2 { font-size: 18px !important; }
+  .town-screen-067 .town-hero-card p { font-size: 10px !important; }
+  .town-screen-067 .town-currencies {
+    grid-auto-flow: row !important;
+    gap: 4px !important;
+  }
+  .town-screen-067 .town-currencies span {
+    min-width: 72px !important;
+    padding: 6px 8px !important;
+    font-size: 10px !important;
+    border-radius: 999px !important;
+  }
+  .town-screen-067 .town-hotspot-067,
+  .town-screen-067 .town-hotspot-066,
+  .town-screen-067 .town-hotspot-065,
+  .town-screen-067 .town-hotspot-064,
+  .town-screen-067 .town-hotspot-063,
+  .town-screen-067 .town-hotspot-062,
+  .town-screen-067 .town-hotspot-061,
+  .town-screen-067 .town-hotspot-060 {
+    min-width: 82px !important;
+    padding: 7px 8px 7px 32px !important;
+    border-radius: 14px !important;
+  }
+  .town-screen-067 .town-hotspot-067::before,
+  .town-screen-067 .town-hotspot-066::before,
+  .town-screen-067 .town-hotspot-065::before,
+  .town-screen-067 .town-hotspot-064::before,
+  .town-screen-067 .town-hotspot-063::before,
+  .town-screen-067 .town-hotspot-062::before,
+  .town-screen-067 .town-hotspot-061::before,
+  .town-screen-067 .town-hotspot-060::before { width: 21px !important; height: 29px !important; left: 7px !important; }
+  .town-screen-067 .town-hotspot-067 b,
+  .town-screen-067 .town-hotspot-066 b,
+  .town-screen-067 .town-hotspot-065 b,
+  .town-screen-067 .town-hotspot-064 b,
+  .town-screen-067 .town-hotspot-063 b,
+  .town-screen-067 .town-hotspot-062 b,
+  .town-screen-067 .town-hotspot-061 b,
+  .town-screen-067 .town-hotspot-060 b { font-size: 10px !important; }
+  .town-screen-067 .town-hotspot-067 span,
+  .town-screen-067 .town-hotspot-066 span,
+  .town-screen-067 .town-hotspot-065 span,
+  .town-screen-067 .town-hotspot-064 span,
+  .town-screen-067 .town-hotspot-063 span,
+  .town-screen-067 .town-hotspot-062 span,
+  .town-screen-067 .town-hotspot-061 span,
+  .town-screen-067 .town-hotspot-060 span { display: none !important; }
+  .town-screen-067 .town-hotspot-067.gate,
+  .town-screen-067 .town-hotspot-066.gate,
+  .town-screen-067 .town-hotspot-065.gate,
+  .town-screen-067 .town-hotspot-064.gate,
+  .town-screen-067 .town-hotspot-063.gate,
+  .town-screen-067 .town-hotspot-062.gate,
+  .town-screen-067 .town-hotspot-061.gate,
+  .town-screen-067 .town-hotspot-060.gate { left: 55% !important; top: 43% !important; }
+  .town-screen-067 .town-hotspot-067.forge,
+  .town-screen-067 .town-hotspot-066.forge,
+  .town-screen-067 .town-hotspot-065.forge,
+  .town-screen-067 .town-hotspot-064.forge,
+  .town-screen-067 .town-hotspot-063.forge,
+  .town-screen-067 .town-hotspot-062.forge,
+  .town-screen-067 .town-hotspot-061.forge,
+  .town-screen-067 .town-hotspot-060.forge { left: 12% !important; top: 61% !important; }
+  .town-screen-067 .town-hotspot-067.shop,
+  .town-screen-067 .town-hotspot-066.shop,
+  .town-screen-067 .town-hotspot-065.shop,
+  .town-screen-067 .town-hotspot-064.shop,
+  .town-screen-067 .town-hotspot-063.shop,
+  .town-screen-067 .town-hotspot-062.shop,
+  .town-screen-067 .town-hotspot-061.shop,
+  .town-screen-067 .town-hotspot-060.shop { left: 62% !important; top: 62% !important; }
+  .town-screen-067 .town-hotspot-067.shrine,
+  .town-screen-067 .town-hotspot-066.shrine,
+  .town-screen-067 .town-hotspot-065.shrine,
+  .town-screen-067 .town-hotspot-064.shrine,
+  .town-screen-067 .town-hotspot-063.shrine,
+  .town-screen-067 .town-hotspot-062.shrine,
+  .town-screen-067 .town-hotspot-061.shrine,
+  .town-screen-067 .town-hotspot-060.shrine { left: 42% !important; top: 51% !important; }
+  .town-screen-067 .town-hotspot-067.pledge,
+  .town-screen-067 .town-hotspot-066.pledge,
+  .town-screen-067 .town-hotspot-065.pledge,
+  .town-screen-067 .town-hotspot-064.pledge,
+  .town-screen-067 .town-hotspot-063.pledge,
+  .town-screen-067 .town-hotspot-062.pledge,
+  .town-screen-067 .town-hotspot-061.pledge,
+  .town-screen-067 .town-hotspot-060.pledge { right: 2% !important; top: 30% !important; }
+  body.town-active .town-screen-067 .town-layout,
+  body.town-active .town-screen-067 .town-layout-v2,
+  .town-screen-067 .town-layout,
+  .town-screen-067 .town-layout-v2 {
+    grid-template-columns: 1fr !important;
+    width: min(calc(100% - 18px), 420px) !important;
+    margin-top: clamp(410px, 59dvh, 500px) !important;
+    gap: 10px !important;
+    padding-bottom: 92px !important;
+  }
+  .town-screen-067 .town-hero-panel { min-height: 210px !important; }
+  .town-screen-067 .town-zone-panel { max-height: none !important; }
+  .town-screen-067 .zone-list,
+  .town-screen-067 .zone-list-v2 { max-height: 350px !important; }
+}
+@media (max-height: 720px) {
+  .title-screen-067 .start-game-btn { top: 60dvh !important; }
+  .town-screen-067 .town-backdrop { min-height: 340px !important; height: 58dvh !important; }
+  body.town-active .town-screen-067 .town-layout,
+  body.town-active .town-screen-067 .town-layout-v2,
+  .town-screen-067 .town-layout,
+  .town-screen-067 .town-layout-v2 { margin-top: 350px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .title-screen-067 .start-game-btn,
+  .town-screen-067 .town-hotspot-067,
+  .town-screen-067 .town-hotspot-066,
+  body.field-active .attack-btn { animation: none !important; }
+}
