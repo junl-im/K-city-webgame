@@ -112,6 +112,9 @@ const titleAudioBtn = must<HTMLButtonElement>('#titleAudioBtn');
 const townAudioBtn = must<HTMLButtonElement>('#townAudioBtn');
 const townMoreBtn = must<HTMLButtonElement>('#townMoreBtn');
 const townMoreMenu = must<HTMLElement>('#townMoreMenu');
+const townNpcSpotlight = document.querySelector<HTMLElement>('#townNpcSpotlight');
+const townNpcSpotlightName = document.querySelector<HTMLElement>('#townNpcSpotlightName');
+const townNpcSpotlightLine = document.querySelector<HTMLElement>('#townNpcSpotlightLine');
 const itemDetailModal = must<HTMLElement>('#itemDetailModal');
 const closeItemDetail = must<HTMLButtonElement>('#closeItemDetail');
 const itemDetailVisual = must<HTMLElement>('#itemDetailVisual');
@@ -500,6 +503,7 @@ function bindLoginFlow() {
   document.querySelectorAll<HTMLButtonElement>('[data-town-npc]').forEach((button) => {
     button.addEventListener('click', () => {
       const id = button.dataset.townNpc || '';
+      showTownNpcSpotlight(id);
       if (id === 'smith') openTownContent('inventory');
       else if (id === 'oracle') openTownContent('story');
       else if (id === 'captain') openTownContent('pledge');
@@ -1431,7 +1435,7 @@ function runtimeAsset(path: string) {
 }
 
 function itemArtUrl(def: ItemDefinition) {
-  return runtimeAsset(`items/${def.id}.webp?v=057`);
+  return runtimeAsset(`items/${def.id}.webp?v=058`);
 }
 
 function skillArtUrl(def: SkillDefinition) {
@@ -2273,6 +2277,26 @@ function handleTownPledgeAction(action: string) {
 
 
 
+
+function showTownNpcSpotlight(id: string) {
+  if (!townNpcSpotlight || !townNpcSpotlightName || !townNpcSpotlightLine) return;
+  const lines: Record<string, { name: string; line: string; tone: string }> = {
+    smith: { name: '대장장이 브람', line: '아이템은 보이는 순간부터 설득력이 있어야 합니다. 장비와 강화 흐름을 같이 보겠습니다.', tone: 'smith' },
+    oracle: { name: '예언자 미온', line: '다음 전선의 빛과 이야기를 이어 보겠습니다. 막히지 않게 길을 보여드릴게요.', tone: 'oracle' },
+    captain: { name: '지휘관 세이라', line: '혈맹과 보스 전선은 전장의 중심입니다. 보상, 성향, 루트를 함께 점검하죠.', tone: 'captain' }
+  };
+  const picked = lines[id] || { name: '루미나 주민', line: '마을과 전장이 자연스럽게 이어지도록 도와드릴게요.', tone: 'common' };
+  townNpcSpotlight.dataset.tone = picked.tone;
+  townNpcSpotlightName.textContent = picked.name;
+  townNpcSpotlightLine.textContent = picked.line;
+  townNpcSpotlight.classList.remove('hidden', 'show');
+  void townNpcSpotlight.offsetWidth;
+  townNpcSpotlight.classList.add('show');
+  window.clearTimeout(Number(townNpcSpotlight.dataset.timer || 0));
+  const timer = window.setTimeout(() => townNpcSpotlight.classList.remove('show'), 3600);
+  townNpcSpotlight.dataset.timer = String(timer);
+}
+
 function renderVisualImmersionBoard(save: PlayerSave) {
   const unlocked = zones.filter((zone) => isZoneUnlocked(save, zone.id)).length;
   const highRank = save.inventory.filter((entry) => {
@@ -2284,15 +2308,15 @@ function renderVisualImmersionBoard(save: PlayerSave) {
   return `
     <section class="visual-immersion-board">
       <div class="visual-board-title">
-        <span>VISUAL QA 0.57</span>
+        <span>VISUAL QA 0.58</span>
         <h3>${titleGrade} 무드 보드</h3>
-        <p>첫 화면, 마을 NPC, 전투 타격, 필드 바닥 장식을 모바일 RPG식으로 더 읽기 쉽고 몰입감 있게 재정리했습니다.</p>
+        <p>첫 화면, 마을 NPC 대화, 보스 예고, 전리품 팝업, 필드 조명까지 모바일 RPG식 몰입 흐름으로 재정리했습니다.</p>
       </div>
       <div class="visual-board-grid">
-        <article><b>타이틀</b><span>0.57 히어로 스테이지</span><em>빛/검/파노라마 재정돈</em></article>
-        <article><b>마을</b><span>NPC 클릭 상호작용</span><em>브람·미온·세이라 연결</em></article>
-        <article><b>필드</b><span>${unlocked}/${zones.length} 전선</span><em>바닥 심도 · 장식 밀도 보정</em></article>
-        <article><b>전투</b><span>SSR/UR ${highRank}개 보유</span><em>타격 이펙트 과밀도 조절</em></article>
+        <article><b>타이틀</b><span>0.58 히어로 스테이지</span><em>빛/검/파노라마 재정돈</em></article>
+        <article><b>마을</b><span>NPC 대화 카드</span><em>상호작용 후 기능 이동</em></article>
+        <article><b>필드</b><span>${unlocked}/${zones.length} 전선</span><em>전장 조명 · 보스 게이트</em></article>
+        <article><b>전투</b><span>SSR/UR ${highRank}개 보유</span><em>강타/희귀 드랍 집중 연출</em></article>
       </div>
     </section>
   `;

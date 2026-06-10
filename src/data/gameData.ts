@@ -1,7 +1,7 @@
 import type { CardDefinition, CardSetDefinition, CharacterClass, DailyQuestDefinition, ItemDefinition, StoryQuestDefinition, MonsterDefinition, MonsterId, SoulDefinition, TileId, ZoneDefinition, SkillDefinition, DropEntry } from '../types';
 import { cardArtUrls, textureUrls } from './assetManifest';
 
-export const SAVE_VERSION = 41;
+export const SAVE_VERSION = 42;
 export const MAP_W = 40;
 export const MAP_H = 40;
 
@@ -1258,4 +1258,75 @@ for (const quest of alpha056Daily) {
 
 function monsterName(id: MonsterId) {
   return monsters.find((monster) => monster.id === id)?.name || id;
+}
+
+
+// Alpha 0.58: immersive refinement pass - cinematic NPC touchpoints, premium loot pacing, and late-field visual goals.
+const alpha058Items: ItemDefinition[] = [
+  { id: 'cinematic-raid-contract', name: '시네마틱 레이드 계약서', type: 'consumable', rarity: 'SSR', effectText: '마을 NPC와 보스 전선을 잇는 특수 계약 보급품입니다. 사용하면 보스 보급 재료를 얻습니다.', bonus: {} },
+  { id: 'boss-omen-stone', name: '보스 예고석', type: 'material', rarity: 'SR', effectText: '강력한 몬스터 출현을 예고하는 붉은 예언석. 보스 보상 교환과 의뢰 납품에 쓰입니다.', bonus: {} },
+  { id: 'npc-affinity-token', name: 'NPC 인연 토큰', type: 'material', rarity: 'R', effectText: '마을 인물들과의 계약 의뢰를 진행하며 쌓이는 인연 증표입니다.', bonus: {} },
+  { id: 'field-light-core', name: '전장 조명핵', type: 'material', rarity: 'SR', effectText: '필드 장식과 전장 광원 연출을 강화하는 마력 코어입니다.', bonus: {} },
+  { id: 'impact-rune', name: '타격 각인 룬', type: 'relic', rarity: 'SSR', effectText: '공격 +22, 치명 +6%, 타격 순간의 영혼 반동을 증폭시키는 룬', bonus: { atk: 22, crit: 0.06 } },
+  { id: 'royal-gold-blade', name: '왕가 황금검', type: 'weapon', rarity: 'UR', effectText: '공격 +92, 치명 +12%, 방어 +10. 왕실 파수 전선에서 발견되는 의장검', bonus: { atk: 92, crit: 0.12, def: 10 } },
+  { id: 'aurora-battlecoat', name: '오로라 전투 코트', type: 'armor', rarity: 'SSR', effectText: 'HP +260, MP +110, 공속 +5%. 시각 몰입 전선을 상징하는 전투복', bonus: { hp: 260, mp: 110, aspd: 0.05 } },
+  { id: 'sovereign-visual-cache', name: '소버린 비주얼 궤짝', type: 'consumable', rarity: 'UR', effectText: '고급 장비, 조명핵, 보스 예고석을 노릴 수 있는 최상급 전리품 상자입니다.', bonus: {} }
+];
+for (const item of alpha058Items) {
+  if (!items.some((old) => old.id === item.id)) items.push(item);
+}
+
+const alpha058Zones: ZoneDefinition[] = [
+  { id: 'cinematic-raid-gate', order: 85, title: '시네마틱 레이드 관문', subtitle: '보스 등장 연출과 전장 조명이 교차하는 관문', description: '보스 전리품과 NPC 계약 보상을 동시에 노리는 0.58 몰입형 전선입니다.', recommendedLevel: 158, monsterIds: ['royalGuard', 'fieldBoss', 'dragon', 'iceWitch'], entry: { x: 10.4, y: 23.8 }, unlockLevel: 158, badge: '85' },
+  { id: 'aurora-market-road', order: 86, title: '오로라 시장길', subtitle: '무너진 시장과 오로라 광원이 남은 전장', description: '마을에서 이어지는 듯한 시장형 필드입니다. 물약, 조명핵, 인연 토큰 파밍을 병행합니다.', recommendedLevel: 160, monsterIds: ['nightmareBat', 'stormHarpy', 'royalGuard', 'wraith'], entry: { x: 13.2, y: 22.4 }, unlockLevel: 160, badge: '86' },
+  { id: 'sovereign-boss-yard', order: 87, title: '소버린 보스 마당', subtitle: '거대한 보스 토템과 붉은 깃발이 둘러싼 전장', description: '보스 상자, 라우풀 보급, 고급 장비 드랍을 모두 노리는 상위 전선입니다.', recommendedLevel: 162, monsterIds: ['fieldBoss', 'dragon', 'riftBeast', 'lavaGolem'], entry: { x: 17.8, y: 24.6 }, unlockLevel: 162, badge: '87' },
+  { id: 'hero-stage-approach', order: 88, title: '영웅 무대 진입로', subtitle: '타이틀 히어로가 바라보던 최전선의 길', description: '0.58의 시각 완성도를 검수하는 최고 난도 장기 사냥터입니다.', recommendedLevel: 165, monsterIds: ['riftBeast', 'royalGuard', 'dragon', 'fieldBoss'], entry: { x: 22.0, y: 22.0 }, unlockLevel: 165, badge: '88' }
+];
+for (const zone of alpha058Zones) {
+  if (!zones.some((old) => old.id === zone.id)) zones.push(zone);
+}
+
+for (const [index, zone] of alpha058Zones.entries()) {
+  const chapter = 28 + index;
+  const first = zone.monsterIds[0];
+  const second = zone.monsterIds[1];
+  const quests: StoryQuestDefinition[] = [
+    { id: `story-058-${zone.id}-scout`, chapter, title: `${zone.title} 정찰`, subtitle: '몰입형 전선 개방', npc: '예언자 미온', dialogue: '이번 전선은 눈으로 먼저 기억될 겁니다. 빛, 소리, 전리품의 흐름까지 모두 기록해 주세요.', goalText: `${monsterName(first)} 누적 ${190 + index * 35}마리 처치`, goalType: 'kill', monsterId: first, target: 190 + index * 35, unlockZoneId: zone.id, reward: { gold: 1280000 + index * 115000, gems: 4600 + index * 380, itemId: 'field-light-core', itemCount: 3 + index, exp: 920000 + index * 68000 } },
+    { id: `story-058-${zone.id}-contract`, chapter, title: `${zone.title} NPC 계약`, subtitle: '마을과 전장의 연결', npc: '대장장이 브람', dialogue: '마을이 살아 있으려면 전장에서 돌아오는 손맛도 살아 있어야 합니다. 이번엔 장비와 연출을 함께 보겠습니다.', goalText: `${monsterName(second)} 누적 ${160 + index * 28}마리 처치`, goalType: 'kill', monsterId: second, target: 160 + index * 28, unlockZoneId: zone.id, reward: { gold: 1320000 + index * 125000, gems: 5000 + index * 420, itemId: 'npc-affinity-token', itemCount: 6 + index, exp: 980000 + index * 72000 } },
+    { id: `story-058-${zone.id}-omen`, chapter, title: `${zone.title} 보스 예고`, subtitle: '보스 연출 검수', npc: '혈맹 지휘관 아렌', dialogue: '진짜 보스전은 등장 전부터 긴장감이 있어야 합니다. 깃발, 바닥, 보상까지 모두 지휘하겠습니다.', goalText: `보스 계열 누적 ${85 + index * 12}마리 처치`, goalType: 'kill', monsterId: zone.monsterIds.includes('riftBeast') ? 'riftBeast' : 'fieldBoss', target: 85 + index * 12, unlockZoneId: zone.id, reward: { gold: 1460000 + index * 148000, gems: 5600 + index * 460, itemId: 'boss-omen-stone', itemCount: 3 + index, exp: 1060000 + index * 82000 } },
+    { id: `story-058-${zone.id}-cache`, chapter, title: `${zone.title} 전리품 회수`, subtitle: '희귀 드랍 루프', npc: '무기교관 세이라', dialogue: '좋은 전투는 마지막 전리품 팝업까지 기억에 남아야 합니다. 소버린 궤짝을 회수하세요.', goalText: `${zone.title} 전선 Lv.${zone.recommendedLevel + 1} 달성`, goalType: 'level', target: zone.recommendedLevel + 1, unlockZoneId: zone.id, reward: { gold: 1580000 + index * 150000, gems: 6200 + index * 520, itemId: index >= 2 ? 'sovereign-visual-cache' : 'cinematic-raid-contract', itemCount: index >= 2 ? 1 : 2, exp: 1140000 + index * 90000 } }
+  ];
+  for (const quest of quests) {
+    if (!storyQuests.some((old) => old.id === quest.id)) storyQuests.push(quest);
+  }
+}
+
+const alpha058Dailies: DailyQuestDefinition[] = [
+  { id: 'daily-058-npc-affinity', title: '일일 · NPC 인연 보급', description: '마을 NPC 계약 전선을 순찰하고 인연 토큰을 회수하세요.', goalType: 'kill', monsterId: 'royalGuard', target: 120, reward: { gold: 210000, gems: 340, itemId: 'npc-affinity-token', itemCount: 8 } },
+  { id: 'daily-058-light-core', title: '일일 · 전장 조명핵 수집', description: '고레벨 전선에서 전장 조명핵을 모아 필드 연출을 보강하세요.', goalType: 'kill', monsterId: 'nightmareBat', target: 160, reward: { gold: 230000, gems: 360, itemId: 'field-light-core', itemCount: 4 } },
+  { id: 'daily-058-boss-omen', title: '주간 · 보스 예고석 회수', description: '보스 계열 몬스터를 처치하고 붉은 예고석을 회수하세요.', goalType: 'kill', monsterId: 'fieldBoss', target: 24, reward: { gold: 560000, gems: 900, itemId: 'boss-omen-stone', itemCount: 5 } },
+  { id: 'daily-058-sovereign-cache', title: '주간 · 소버린 궤짝 추적', description: '심연룡과 균열수 계열을 추적해 최상급 전리품 루프를 완성하세요.', goalType: 'kill', monsterId: 'dragon', target: 24, reward: { gold: 720000, gems: 1200, itemId: 'sovereign-visual-cache', itemCount: 1 } },
+  { id: 'daily-058-impact-rune', title: '주간 · 타격 각인 실험', description: '강타 이펙트가 잘 보이는 전선에서 전투 데이터를 모으세요.', goalType: 'kill', monsterId: 'riftBeast', target: 14, reward: { gold: 780000, gems: 1360, itemId: 'impact-rune', itemCount: 1 } }
+];
+for (const quest of alpha058Dailies) {
+  if (!dailyQuests.some((old) => old.id === quest.id)) dailyQuests.push(quest);
+}
+
+const alpha058DropOverlay: Partial<Record<MonsterId, DropEntry[]>> = {
+  wolf: [{ type: 'item', id: 'npc-affinity-token', chance: 0.018 }],
+  goblin: [{ type: 'item', id: 'npc-affinity-token', chance: 0.026 }, { type: 'item', id: 'field-light-core', chance: 0.012 }],
+  stormHarpy: [{ type: 'item', id: 'field-light-core', chance: 0.035 }, { type: 'item', id: 'aurora-battlecoat', chance: 0.004 }],
+  nightmareBat: [{ type: 'item', id: 'field-light-core', chance: 0.05 }, { type: 'item', id: 'cinematic-raid-contract', chance: 0.014 }],
+  royalGuard: [{ type: 'item', id: 'boss-omen-stone', chance: 0.065 }, { type: 'item', id: 'royal-gold-blade', chance: 0.006 }],
+  fieldBoss: [{ type: 'item', id: 'boss-omen-stone', chance: 0.18 }, { type: 'item', id: 'impact-rune', chance: 0.018 }, { type: 'item', id: 'sovereign-visual-cache', chance: 0.018 }],
+  dragon: [{ type: 'item', id: 'boss-omen-stone', chance: 0.22 }, { type: 'item', id: 'royal-gold-blade', chance: 0.011 }, { type: 'item', id: 'sovereign-visual-cache', chance: 0.024 }],
+  riftBeast: [{ type: 'item', id: 'sovereign-visual-cache', chance: 0.065 }, { type: 'item', id: 'royal-gold-blade', chance: 0.018 }, { type: 'item', id: 'impact-rune', chance: 0.045 }]
+};
+for (const monster of monsters) {
+  const extraDrops = alpha058DropOverlay[monster.id] || [];
+  const existing = new Set(monster.drops.map((drop) => `${drop.type}:${drop.id || ''}:${drop.amount || 0}`));
+  for (const drop of extraDrops) {
+    const key = `${drop.type}:${drop.id || ''}:${drop.amount || 0}`;
+    if (!existing.has(key)) monster.drops.push(drop);
+  }
 }

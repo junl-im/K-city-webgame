@@ -16,7 +16,7 @@
       <div id="game-root" class="game-root"></div>
 
       <section class="title-screen title-screen-044 title-screen-048 title-screen-049 title-screen-050 title-screen-052 title-screen-053 title-screen-056 title-screen-057" id="titleScreen">
-        <div class="title-bg title-bg-visual title-bg-049 title-bg-050 title-bg-052 title-bg-053 title-bg-056 title-bg-057">
+        <div class="title-bg title-bg-visual title-bg-049 title-bg-050 title-bg-052 title-bg-053 title-bg-056 title-bg-057 title-bg-058">
           <span class="title-orb orb-a"></span>
           <span class="title-orb orb-b"></span>
           <span class="title-orb orb-c"></span>
@@ -27,15 +27,15 @@
             <h1>소울 온라인</h1>
             <p>어둠의 균열이 열린 루미나 대륙에서 영혼을 각성하고, 장비와 카드를 성장시켜 필드보스와 심연의 군단을 토벌하세요.</p>
           </div>
-          <div class="title-hero title-hero-044 title-hero-048 title-hero-049 title-hero-050 title-hero-052 title-hero-053 title-hero-056 title-hero-057" aria-hidden="true">
+          <div class="title-hero title-hero-044 title-hero-048 title-hero-049 title-hero-050 title-hero-052 title-hero-053 title-hero-056 title-hero-057 title-hero-058" aria-hidden="true">
             <span class="title-soul-ring"></span>
-            <span class="title-character title-character-visual title-character-049 title-character-050 title-character-052 title-character-053 title-character-056 title-character-057"></span><span class="title-character-companion companion-left"></span><span class="title-character-companion companion-right"></span>
+            <span class="title-character title-character-visual title-character-049 title-character-050 title-character-052 title-character-053 title-character-056 title-character-057 title-character-058"></span><span class="title-character-companion companion-left"></span><span class="title-character-companion companion-right"></span>
             <span class="title-hero-glow"></span>
             <span class="title-hero-rune rune-a"></span>
             <span class="title-hero-rune rune-b"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn">게임 시작</button>
-          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.57.0</span></div>
+          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v0.58.0</span></div>
           <small>영혼을 깨우고 루미나의 균열을 봉인하세요.</small>
         </div>
       </section>
@@ -142,7 +142,7 @@
 
       <section class="town-screen town-screen-049 town-screen-050 town-screen-052 town-screen-053 town-screen-056 town-screen-057 hidden" id="townScreen" aria-hidden="true">
         <div class="town-backdrop">
-          <div class="town-sky"></div><div class="town-panorama-049 town-panorama-050 town-panorama-052 town-panorama-053 town-panorama-056 town-panorama-057" aria-hidden="true"></div>
+          <div class="town-sky"></div><div class="town-panorama-049 town-panorama-050 town-panorama-052 town-panorama-053 town-panorama-056 town-panorama-057 town-panorama-058" aria-hidden="true"></div>
           <div class="town-diorama" aria-hidden="true">
             <span class="town-plaza"></span>
             <span class="town-road main-road"></span>
@@ -175,6 +175,10 @@
             <button class="town-npc npc-smith" data-town-npc="smith" type="button">브람</button>
             <button class="town-npc npc-oracle" data-town-npc="oracle" type="button">미온</button>
             <button class="town-npc npc-captain" data-town-npc="captain" type="button">세이라</button>
+          </div>
+          <div class="town-npc-spotlight hidden" id="townNpcSpotlight" aria-live="polite">
+            <span class="npc-spotlight-portrait">NPC</span>
+            <div><b id="townNpcSpotlightName">루미나 주민</b><p id="townNpcSpotlightLine">어서 오세요.</p></div>
           </div>
         </div>
 

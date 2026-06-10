@@ -120,7 +120,13 @@ export const textureUrls = {
   propMoonPuddle: new URL('../assets/map/decor/prop-moon-puddle.svg', import.meta.url).href,
   propRuneFloor: new URL('../assets/map/decor/prop-rune-floor.svg', import.meta.url).href,
   propAncientRoot: new URL('../assets/map/decor/prop-ancient-root.svg', import.meta.url).href,
-  propBattleScar: new URL('../assets/map/decor/prop-battle-scar.svg', import.meta.url).href
+  propBattleScar: new URL('../assets/map/decor/prop-battle-scar.svg', import.meta.url).href,
+  propHoloBanner: new URL('../assets/map/decor/prop-holo-banner.svg', import.meta.url).href,
+  propBossGate: new URL('../assets/map/decor/prop-boss-gate.svg', import.meta.url).href,
+  propLanternArch: new URL('../assets/map/decor/prop-lantern-arch.svg', import.meta.url).href,
+  propTreasureGlow: new URL('../assets/map/decor/prop-treasure-glow.svg', import.meta.url).href,
+  propManaFog: new URL('../assets/map/decor/prop-mana-fog.svg', import.meta.url).href,
+  propStoneLamp: new URL('../assets/map/decor/prop-stone-lamp.svg', import.meta.url).href
 } as const;
 
 export const runtimeTextureUrls: Partial<Record<keyof typeof textureUrls, string>> = {
@@ -207,7 +213,13 @@ export const runtimeTextureUrls: Partial<Record<keyof typeof textureUrls, string
   propGrassClump: './assets/soulpack/props/prop-grass-clump.svg',
   propBrokenCart: './assets/soulpack/props/prop-broken-cart.svg',
   propAncientGate: './assets/soulpack/props/prop-ancient-gate.svg',
-  propBloodBanner: './assets/soulpack/props/prop-blood-banner.svg'
+  propBloodBanner: './assets/soulpack/props/prop-blood-banner.svg',
+  propHoloBanner: './assets/soulpack/props/prop-holo-banner.svg',
+  propBossGate: './assets/soulpack/props/prop-boss-gate.svg',
+  propLanternArch: './assets/soulpack/props/prop-lantern-arch.svg',
+  propTreasureGlow: './assets/soulpack/props/prop-treasure-glow.svg',
+  propManaFog: './assets/soulpack/props/prop-mana-fog.svg',
+  propStoneLamp: './assets/soulpack/props/prop-stone-lamp.svg'
 } as const;
 
 export const audioTrackUrls = {

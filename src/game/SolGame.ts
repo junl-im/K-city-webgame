@@ -881,7 +881,7 @@ export class SolGame {
   private requiredTextureKeys(): TextureKey[] {
     const keys = new Set<TextureKey>([
       'tileGrass', 'tileDirt', 'tileMoss', 'tileStone', 'tileCrystal', 'tileWater', 'tileCliff', 'tilePortal', 'tileInfernus',
-      'propTree', 'propCrystal', 'propRock', 'propRuin', 'propBush', 'propMushroom', 'propBanner', 'propBones', 'propOre', 'propRuneStone', 'propStump', 'propGrassClump', 'propBrokenCart', 'propAncientGate', 'propBloodBanner', 'propFlowerPatch', 'propRoadSign', 'propCrystalBrazier', 'propRiftAltar', 'propCampLantern', 'propStoneSteps', 'propPetalTree', 'propMarketCrate', 'propSoulFlowers', 'propHeroStatue', 'propBossTotem', 'propWaterReflection', 'propPathTorch', 'propSilkBanner', 'propMoonPuddle', 'propRuneFloor', 'propAncientRoot', 'propBattleScar',
+      'propTree', 'propCrystal', 'propRock', 'propRuin', 'propBush', 'propMushroom', 'propBanner', 'propBones', 'propOre', 'propRuneStone', 'propStump', 'propGrassClump', 'propBrokenCart', 'propAncientGate', 'propBloodBanner', 'propFlowerPatch', 'propRoadSign', 'propCrystalBrazier', 'propRiftAltar', 'propCampLantern', 'propStoneSteps', 'propPetalTree', 'propMarketCrate', 'propSoulFlowers', 'propHeroStatue', 'propBossTotem', 'propWaterReflection', 'propPathTorch', 'propSilkBanner', 'propMoonPuddle', 'propRuneFloor', 'propAncientRoot', 'propBattleScar', 'propHoloBanner', 'propBossGate', 'propLanternArch', 'propTreasureGlow', 'propManaFog', 'propStoneLamp',
       'infernusRock', 'infernusAltar', 'infernusBrasero', 'infernusHellRocks', 'infernusSkull', 'infernusBurnerColumn', 'infernusColumn', 'infernusPillar',
       'buildingHall', 'buildingForge', 'buildingStorage', 'buildingShop',
       'propChest01', 'propChest02', 'propChest03', 'propChest04', 'propChest05',
@@ -947,6 +947,7 @@ export class SolGame {
     this.addAlpha055SetDressingPass();
     this.addAlpha056ImmersionFieldPass();
     this.addAlpha057VisualSetDressingPass();
+    this.addAlpha058ImmersiveSetDressingPass();
   }
 
 
@@ -1327,6 +1328,56 @@ export class SolGame {
       const pos = isoToScreen(x, y);
       layer.ellipse(pos.x, pos.y + 12, 22 + (i % 3) * 10, 5 + (i % 2) * 3).fill({ color: accent, alpha: bossLike ? 0.034 : 0.024 });
       if (i % 3 === 1) layer.circle(pos.x + 9, pos.y - 12, 2.2).fill({ color: 0xffffff, alpha: 0.08 });
+    }
+    this.ambientLayer.addChild(layer);
+  }
+
+
+
+  private addAlpha058ImmersiveSetDressingPass() {
+    const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest'));
+    const order = zone?.order || 1;
+    const bossLike = Boolean(zone?.monsterIds.some((id) => id === 'fieldBoss' || id === 'dragon' || id === 'riftBeast'));
+    const marketLike = (zone?.id || '').includes('market') || order < 25;
+    const table: Array<[TextureKey, number, number, number]> = bossLike
+      ? [
+          ['propBossGate' as TextureKey, 18.4, 21.0, 0.42],
+          ['propTreasureGlow' as TextureKey, 25.8, 21.4, 0.38],
+          ['propHoloBanner' as TextureKey, 31.4, 19.8, 0.34],
+          ['propStoneLamp' as TextureKey, 34.8, 23.0, 0.30]
+        ]
+      : marketLike
+        ? [
+            ['propLanternArch' as TextureKey, 10.8, 23.4, 0.34],
+            ['propTreasureGlow' as TextureKey, 17.2, 24.2, 0.30],
+            ['propManaFog' as TextureKey, 24.6, 22.6, 0.38],
+            ['propStoneLamp' as TextureKey, 30.8, 19.6, 0.30]
+          ]
+        : [
+            ['propManaFog' as TextureKey, 12.0, 23.8, 0.42],
+            ['propHoloBanner' as TextureKey, 20.6, 20.8, 0.32],
+            ['propLanternArch' as TextureKey, 28.4, 22.8, 0.34],
+            ['propTreasureGlow' as TextureKey, 34.2, 24.2, 0.36]
+          ];
+    for (const [key, x, y, scale] of table) {
+      if (this.isWalkable(x, y)) this.addProp(key, x, y, scale);
+    }
+    this.addAlpha058CinematicLightWash(order, bossLike);
+  }
+
+  private addAlpha058CinematicLightWash(order: number, bossLike: boolean) {
+    const accent = bossLike ? 0xffb34a : order >= 80 ? 0xb794ff : order >= 45 ? 0x73e7ff : 0xe2b95f;
+    const layer = new Graphics();
+    for (let i = 0; i < 14; i += 1) {
+      const x = 7.5 + ((i * 2.6 + order * 0.19) % 30);
+      const y = 17 + ((i * 3.1 + order * 0.11) % 11);
+      if (!this.isWalkable(x, y)) continue;
+      const pos = isoToScreen(x, y);
+      layer.ellipse(pos.x, pos.y + 12, 28 + (i % 4) * 13, 7 + (i % 3) * 2).fill({ color: accent, alpha: bossLike ? 0.038 : 0.026 });
+      if (i % 4 === 0) {
+        layer.circle(pos.x + 18, pos.y - 28, 2.8).fill({ color: 0xffffff, alpha: 0.11 });
+        layer.moveTo(pos.x + 18, pos.y - 22).lineTo(pos.x + 10, pos.y + 6).stroke({ color: 0xffffff, alpha: 0.035, width: 1.5 });
+      }
     }
     this.ambientLayer.addChild(layer);
   }
@@ -3817,7 +3868,7 @@ export class SolGame {
       .circle(0, 0, rarity === 'UR' ? 13 : 10)
       .fill({ color, alpha: 0.12 });
     const text = new Text({
-      text: rarity === 'UR' ? 'LEGEND DROP' : 'RARE DROP',
+      text: rarity === 'UR' ? 'SOVEREIGN DROP' : 'RARE DROP',
       style: { fill: rarity === 'UR' ? 0xfff2a8 : 0xd8c7ff, fontFamily: 'Arial', fontSize: 13, fontWeight: '900', stroke: { color: 0x111111, width: 4 } }
     });
     text.anchor.set(0.5, 1);
@@ -3854,7 +3905,7 @@ export class SolGame {
   }
 
   private impactBurst(x: number, y: number, color: number, strong: boolean) {
-    if (!strong && this.time - this.lastMinorImpactAt < 0.07) return;
+    if (!strong && this.time - this.lastMinorImpactAt < 0.10) return;
     if (!strong) this.lastMinorImpactAt = this.time;
     const pos = isoToScreen(x, y);
     const container = new Container();

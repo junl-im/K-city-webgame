@@ -11742,3 +11742,114 @@ body.field-active .dock-btn:active,
   .slot-cell.card-slot b,
   .slot-cell.skill-slot b { font-size: 10px !important; }
 }
+
+
+/* Alpha 0.58: immersive refinement - NPC dialogue cards, title spectacle, field light language, and touch polish. */
+.title-hero-058 .title-character-visual {
+  background: url('./assets/ui/title-hero-anime-058.svg') center bottom / contain no-repeat !important;
+  width: min(68vw, 520px) !important;
+  height: min(70vh, 680px) !important;
+  filter: drop-shadow(0 30px 40px rgba(0,0,0,.62)) drop-shadow(0 0 34px rgba(255,211,112,.22));
+}
+.title-bg-058::after {
+  content:'';
+  position:absolute;
+  inset:auto -8% 0;
+  height:52%;
+  background: url('./assets/ui/town-panorama-058.svg') center bottom / cover no-repeat;
+  opacity:.74;
+  pointer-events:none;
+  filter:saturate(1.12) contrast(1.05);
+}
+.title-hero-058 .title-soul-ring {
+  box-shadow: 0 0 72px rgba(255,214,105,.28), inset 0 0 55px rgba(94,231,255,.15);
+}
+.title-hero-058 .start-primary,
+.title-hero-058 #startGameBtn {
+  letter-spacing:.12em;
+  text-shadow:0 0 14px rgba(255,239,174,.45);
+}
+.town-panorama-058 {
+  background: url('./assets/ui/town-panorama-058.svg') center bottom / cover no-repeat;
+  opacity:.94;
+  mix-blend-mode:screen;
+}
+.town-npc-spotlight {
+  position:absolute;
+  left:50%;
+  bottom:23%;
+  transform:translate(-50%, 12px) scale(.96);
+  z-index:6;
+  width:min(560px, calc(100vw - 36px));
+  display:grid;
+  grid-template-columns:62px minmax(0, 1fr);
+  gap:12px;
+  align-items:center;
+  padding:12px 14px;
+  border:1px solid rgba(255,218,136,.34);
+  border-radius:20px;
+  background:linear-gradient(135deg, rgba(18,18,30,.88), rgba(55,31,63,.72));
+  box-shadow:0 18px 50px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.12);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .22s ease, transform .22s ease;
+  backdrop-filter:blur(10px);
+}
+.town-npc-spotlight.show { opacity:1; transform:translate(-50%, 0) scale(1); }
+.npc-spotlight-portrait {
+  width:58px;
+  height:58px;
+  display:grid;
+  place-items:center;
+  border-radius:18px;
+  color:#190f10;
+  font-size:12px;
+  font-weight:1000;
+  background:radial-gradient(circle at 45% 24%, #fff1c0 0 20%, #e2b95f 21% 48%, #6c341f 49% 100%);
+  box-shadow:inset 0 -10px 18px rgba(0,0,0,.22), 0 0 22px rgba(226,185,95,.22);
+}
+.town-npc-spotlight[data-tone="oracle"] .npc-spotlight-portrait { background:radial-gradient(circle at 45% 24%, #fff7ff 0 18%, #c9a7ff 19% 50%, #3d2462 51% 100%); color:#120d24; }
+.town-npc-spotlight[data-tone="captain"] .npc-spotlight-portrait { background:radial-gradient(circle at 45% 24%, #fff0d6 0 18%, #d85b63 19% 48%, #5a1920 49% 100%); color:#fff7df; }
+.town-npc-spotlight b { display:block; color:#ffe9b8; font-size:14px; letter-spacing:.04em; }
+.town-npc-spotlight p { margin:4px 0 0; color:rgba(255,246,220,.82); font-size:12px; line-height:1.45; }
+.visual-immersion-board {
+  border-color:rgba(255,214,122,.24) !important;
+  box-shadow:0 20px 60px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.10) !important;
+}
+.visual-board-grid article {
+  background:linear-gradient(145deg, rgba(255,255,255,.095), rgba(255,255,255,.035)) !important;
+}
+.slot-cell,
+.detail-modal,
+.item-detail-card {
+  image-rendering:auto;
+}
+.slot-cell:active {
+  transform:translateY(1px) scale(.985);
+  filter:brightness(1.08);
+}
+.loot-pop.loot-ur {
+  border-color:rgba(255,232,140,.7);
+  box-shadow:0 20px 66px rgba(255,181,50,.22), 0 0 0 1px rgba(255,255,255,.08) inset;
+}
+.loot-pop.loot-ssr {
+  box-shadow:0 18px 56px rgba(159,128,255,.20), 0 0 0 1px rgba(255,255,255,.07) inset;
+}
+body::after {
+  content:'';
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:radial-gradient(circle at 50% 32%, transparent 0 42%, rgba(0,0,0,.12) 82%, rgba(0,0,0,.30) 100%);
+  opacity:.42;
+  z-index:1;
+  mix-blend-mode:multiply;
+}
+#game-root, .screen, .field-screen, .town-screen { position:relative; z-index:2; }
+@media (max-width: 560px) {
+  .title-hero-058 .title-character-visual { width: min(86vw, 420px) !important; height: min(62vh, 560px) !important; }
+  .town-npc-spotlight { bottom:18%; grid-template-columns:50px minmax(0,1fr); padding:10px 12px; }
+  .npc-spotlight-portrait { width:48px; height:48px; border-radius:15px; }
+  .town-npc-spotlight b { font-size:13px; }
+  .town-npc-spotlight p { font-size:11px; }
+}
