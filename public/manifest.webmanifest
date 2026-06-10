@@ -1,7 +1,7 @@
 {
   "name": "소울 온라인 Alpha",
   "short_name": "소울 온라인",
-  "description": "소울 온라인 Alpha - visual mobile MMORPG prototype with refined title art, richer town staging, tactile combat feedback, organized loot, and reference-grade anime UI, brighter field art direction, expanded character/monster presentation, premium field set dressing, and a cleaned single-layer reference-art town lobby with refined premium town UI polish, strict viewport-safe UI, checked button routing, cleaner field object blending, and lifted combo popup placement",
+  "description": "소울 온라인 Alpha - visual mobile MMORPG prototype with refined title art, richer town staging, tactile combat feedback, organized loot, and reference-grade anime UI, brighter field art direction, expanded character/monster presentation, premium field set dressing, and a cleaned single-layer reference-art town lobby with refined premium town UI polish, strict viewport-safe UI, checked button routing, cleaner field object blending, and lifted combo popup placement, raster-only premium UI, safe-area-locked town layouts, refined art panels, and cleaned field-object alpha blending",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",

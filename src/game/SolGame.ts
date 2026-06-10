@@ -2191,27 +2191,32 @@ export class SolGame {
     const keyName = String(textureKey);
     const flatDecal = new Set([
       'propManaFog', 'propMoonPuddle', 'propRuneFloor', 'propMarbleCrack',
-      'propBattleScar', 'propWaterReflection', 'propCandleCircle'
+      'propBattleScar', 'propWaterReflection', 'propCandleCircle', 'propTreasureGlow', 'propHuntMarker'
     ]);
+    const softBackdropProp = new Set(['propHoloBanner', 'propBossGate', 'propRiftAltar', 'propSoulFountain']);
     if (flatDecal.has(keyName)) {
-      sprite.anchor.set(0.5, 0.55);
-      sprite.scale.set(scale * 0.74);
-      sprite.position.set(pos.x, pos.y + 12);
-      sprite.alpha = keyName === 'propManaFog' ? 0.42 : 0.58;
+      // Alpha 0.78: keep suspicious background-like objects as floor decals, not upright props.
+      sprite.anchor.set(0.5, 0.58);
+      const decalScale = keyName === 'propHuntMarker' ? 0.58 : keyName === 'propTreasureGlow' ? 0.62 : 0.72;
+      sprite.scale.set(scale * decalScale);
+      sprite.position.set(pos.x, pos.y + 13);
+      sprite.alpha = keyName === 'propManaFog' ? 0.34 : keyName === 'propHuntMarker' ? 0.54 : 0.50;
+      sprite.rotation = (keyName === 'propRuneFloor' || keyName === 'propCandleCircle') ? -0.08 : 0;
       this.ambientLayer.addChild(sprite);
       return;
     }
     const isOrganic = keyName.includes('Tree') || keyName.includes('Bush') || keyName.includes('Mushroom') || keyName.includes('Stump') || keyName.includes('Flower');
     const isTreasure = keyName.includes('Chest') || keyName.includes('Rune') || keyName.includes('Ore') || keyName.includes('Crystal') || keyName.includes('Brazier') || keyName.includes('Altar') || keyName.includes('Lantern');
-    sprite.anchor.set(0.5, 0.92);
-    sprite.scale.set(scale * (isOrganic ? 1.02 : 0.96));
-    sprite.position.set(pos.x, pos.y + 15);
-    sprite.alpha = isOrganic ? 0.95 : 0.96;
+    const softBackdrop = softBackdropProp.has(keyName);
+    sprite.anchor.set(0.5, softBackdrop ? 0.86 : 0.92);
+    sprite.scale.set(scale * (isOrganic ? 1.02 : softBackdrop ? 0.84 : 0.96));
+    sprite.position.set(pos.x, pos.y + (softBackdrop ? 13 : 15));
+    sprite.alpha = isOrganic ? 0.95 : softBackdrop ? 0.86 : 0.96;
     if (isTreasure) sprite.tint = 0xfff4c6;
 
     const shadow = new Graphics()
-      .ellipse(pos.x + 4, pos.y + 18, (isOrganic ? 42 : 34) * scale, (isOrganic ? 12 : 10) * scale)
-      .fill({ color: 0x000000, alpha: isOrganic ? 0.12 : 0.095 });
+      .ellipse(pos.x + 4, pos.y + 18, (isOrganic ? 42 : softBackdrop ? 30 : 34) * scale, (isOrganic ? 12 : softBackdrop ? 8 : 10) * scale)
+      .fill({ color: 0x17365f, alpha: isOrganic ? 0.10 : softBackdrop ? 0.045 : 0.078 });
     this.ambientLayer.addChild(shadow);
 
     if (isTreasure) {
