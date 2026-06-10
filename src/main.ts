@@ -22,6 +22,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
+const ALPHA_VERSION = '0.71.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -358,7 +359,7 @@ function bindLoginFlow() {
     updateWorldSummary();
   });
 
-  connectCharacterBtn.addEventListener('click', async () => {
+  connectCharacterBtn.addEventListener('click', () => {
     const selected = getSelectedCharacter();
     if (!selected) {
       showToast('접속할 캐릭터를 선택하세요.');
@@ -369,9 +370,11 @@ function bindLoginFlow() {
     selectedGender = pendingSave.gender || 'male';
     nameInput.value = pendingSave.name;
     saveService.setActiveSave(pendingSave.saveId);
+    saveService.saveLocal(pendingSave);
     renderCharacterSlots();
     updateWorldSummary();
-    await quickEnterTown(pendingSave, '캐릭터 접속 중');
+    loginStatus.textContent = `${pendingSave.name} 캐릭터가 준비되었습니다.`;
+    goStep('town');
   });
 
   newCharacterBtn.addEventListener('click', () => {
@@ -441,8 +444,9 @@ function bindLoginFlow() {
     creatingCharacter = false;
     renderCharacterSummary();
     updateWorldSummary();
+    loginStatus.textContent = `${prepared.name} 캐릭터가 생성되었습니다.`;
     showToast(`${prepared.name} 캐릭터 생성 완료`);
-    void quickEnterTown(prepared, '캐릭터 생성 후 접속 중');
+    goStep('town');
   });
 
   enterTownBtn.addEventListener('click', async () => {
@@ -454,10 +458,7 @@ function bindLoginFlow() {
       goStep('character');
       return;
     }
-    pendingSave = saveService.validateSave(pendingSave);
-    saveService.saveLocal(pendingSave);
-    await enterTown(pendingSave, '루미나 마을로 이동 중');
-    await saveCloudIfAvailable(pendingSave, latest?.power || powerFromSave(pendingSave), false);
+    await safeEnterTownFromLogin(pendingSave, '루미나 마을로 이동 중');
   });
 
   townFullscreenBtn.addEventListener('click', () => {
@@ -673,13 +674,33 @@ function bindLoginFlow() {
   });
 }
 
+async function safeEnterTownFromLogin(save: PlayerSave, label = '루미나 마을로 이동 중') {
+  try {
+    void ensureFullscreen();
+    void lockPortraitMode();
+    pendingSave = saveService.validateSave(save);
+    repairTownVitals(pendingSave);
+    saveService.saveLocal(pendingSave);
+    await enterTown(pendingSave, label);
+    await saveCloudIfAvailable(pendingSave, latest?.power || powerFromSave(pendingSave), false);
+  } catch (error) {
+    console.error('[Town] login entry failed', error);
+    sceneTransition.classList.remove('show');
+    document.body.classList.remove('field-active', 'town-active');
+    townScreen.classList.add('hidden');
+    townScreen.setAttribute('aria-hidden', 'true');
+    titleScreen.classList.add('hidden');
+    loginScreen.classList.remove('hidden');
+    loginScreen.setAttribute('aria-hidden', 'false');
+    goStep('town');
+    const message = error instanceof Error ? error.message : '알 수 없는 오류';
+    loginStatus.textContent = `마을 입장 실패: ${message}`;
+    showToast('마을 입장에 실패했습니다. 다시 눌러주세요.');
+  }
+}
+
 async function quickEnterTown(save: PlayerSave, label = '루미나 마을로 이동 중') {
-  void ensureFullscreen();
-  void lockPortraitMode();
-  pendingSave = saveService.validateSave(save);
-  saveService.saveLocal(pendingSave);
-  await enterTown(pendingSave, label);
-  await saveCloudIfAvailable(pendingSave, latest?.power || powerFromSave(pendingSave), false);
+  await safeEnterTownFromLogin(save, label);
 }
 
 async function runLoginAction(action: () => Promise<void>) {
@@ -3538,10 +3559,15 @@ async function lockPortraitMode() {
 async function withSceneTransition(label: string, action: () => Promise<void> | void) {
   sceneTransitionLabel.textContent = label;
   sceneTransition.classList.add('show');
-  await delay(140);
-  await action();
-  await delay(220);
-  sceneTransition.classList.remove('show');
+  sceneTransition.setAttribute('aria-hidden', 'false');
+  try {
+    await delay(120);
+    await action();
+    await delay(180);
+  } finally {
+    sceneTransition.classList.remove('show');
+    sceneTransition.setAttribute('aria-hidden', 'true');
+  }
 }
 
 function delay(ms: number) {

@@ -17885,3 +17885,378 @@ body.town-active .town-screen-070 {
   .town-lobby-pet-070 { animation: none !important; }
   .town-screen-070 button { transition: none !important; }
 }
+
+
+/* --------------------------------------------------------------------------
+   Alpha 0.71 Critical Entry + Start/Login UI Repair
+   목표: 0.60 시작 화면 감성을 복원하고, 접속 플로우를 안정화한다.
+   - TOUCH TO START: 사용자가 만족한 푸른 글래스 캡슐 스타일 복원, 중앙선 제거, 수평 중앙 고정
+   - 접속 UI: 동일한 버튼 톤으로 통일하고 터치 가능한 레이어 우선순위 보정
+   - 게임 진입: 캐릭터 선택 후 바로 실패하지 않도록 마을 입장 확인 단계로 복구
+---------------------------------------------------------------------------- */
+:root {
+  --soul-071-blue: #118eef;
+  --soul-071-blue-deep: #064a9d;
+  --soul-071-cyan: #76dcff;
+  --soul-071-ink: #123a62;
+  --soul-071-gold: #e2b95b;
+  --soul-071-gold-deep: #9c6c20;
+  --soul-071-white: rgba(255,255,255,.94);
+}
+
+.title-screen-071 .title-bg,
+.title-screen-070 .title-bg {
+  pointer-events: none !important;
+}
+
+.title-screen-071 .title-stage,
+.title-screen-070 .title-stage {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  pointer-events: none !important;
+  padding: 0 !important;
+}
+
+.title-screen-071 .title-copy,
+.title-screen-071 .title-hero,
+.title-screen-071 .title-character,
+.title-screen-071 .title-character-companion,
+.title-screen-071 .title-soul-ring,
+.title-screen-071 .title-hero-glow,
+.title-screen-071 .title-hero-rune,
+.title-screen-071 .title-stage small,
+.title-screen-070 .title-copy,
+.title-screen-070 .title-hero,
+.title-screen-070 .title-character,
+.title-screen-070 .title-character-companion,
+.title-screen-070 .title-soul-ring,
+.title-screen-070 .title-hero-glow,
+.title-screen-070 .title-hero-rune,
+.title-screen-070 .title-stage small {
+  display: none !important;
+}
+
+.title-screen-071 .title-mini-nav,
+.title-screen-070 .title-mini-nav {
+  position: absolute !important;
+  top: max(12px, env(safe-area-inset-top)) !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translateX(-50%) !important;
+  width: min(86vw, 340px) !important;
+  min-height: 42px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  padding: 7px 10px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(229, 249, 255, .54) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.22), rgba(22, 112, 190, .28)),
+    rgba(3, 49, 99, .34) !important;
+  box-shadow: 0 12px 30px rgba(0, 38, 90, .22), inset 0 1px 0 rgba(255,255,255,.26) !important;
+  backdrop-filter: blur(13px) saturate(1.14) !important;
+  pointer-events: auto !important;
+  z-index: 10 !important;
+}
+
+.title-screen-071 .title-mini-nav span,
+.title-screen-071 .title-mini-nav button,
+.title-screen-070 .title-mini-nav span,
+.title-screen-070 .title-mini-nav button {
+  min-height: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 12px !important;
+  border-radius: 999px !important;
+  color: #f9feff !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  text-shadow: 0 2px 10px rgba(0, 32, 72, .86) !important;
+}
+
+.title-screen-071 .title-mini-nav button,
+.title-screen-070 .title-mini-nav button {
+  border: 1px solid rgba(255,255,255,.38) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.24), rgba(35, 132, 220, .32)) !important;
+}
+
+.title-screen-071 .start-game-btn,
+.title-screen-070 .start-game-btn {
+  position: absolute !important;
+  left: 50% !important;
+  top: clamp(430px, 74dvh, 560px) !important;
+  transform: translateX(-50%) !important;
+  width: min(82vw, 340px) !important;
+  min-height: clamp(54px, 8vh, 66px) !important;
+  margin: 0 !important;
+  padding: 0 22px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(232, 252, 255, .90) !important;
+  color: #fbfeff !important;
+  font-size: clamp(15px, 4.25vw, 22px) !important;
+  font-weight: 950 !important;
+  letter-spacing: .22em !important;
+  text-align: center !important;
+  text-shadow: 0 3px 14px rgba(0, 32, 78, .96), 0 0 22px rgba(102, 216, 255, .82) !important;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255,255,255,.42), transparent 55%),
+    linear-gradient(180deg, rgba(85, 192, 255, .62) 0%, rgba(20, 125, 215, .50) 48%, rgba(5, 66, 142, .66) 100%) !important;
+  box-shadow:
+    0 0 0 1px rgba(89, 212, 255, .48) inset,
+    0 18px 42px rgba(0, 48, 110, .36),
+    0 0 34px rgba(88, 205, 255, .52) !important;
+  backdrop-filter: blur(11px) saturate(1.16) !important;
+  overflow: hidden !important;
+  animation: soulStartPulse071 2.2s ease-in-out infinite !important;
+  pointer-events: auto !important;
+  z-index: 11 !important;
+}
+
+.title-screen-071 .start-game-btn::before,
+.title-screen-070 .start-game-btn::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 8px !important;
+  right: 8px !important;
+  top: 6px !important;
+  height: 45% !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.42), rgba(255,255,255,.06)) !important;
+  pointer-events: none !important;
+}
+
+.title-screen-071 .start-game-btn::after,
+.title-screen-070 .start-game-btn::after {
+  display: none !important;
+  content: none !important;
+}
+
+@keyframes soulStartPulse071 {
+  0%, 100% { filter: brightness(1); transform: translateX(-50%) translateY(0) scale(1); }
+  50% { filter: brightness(1.10); transform: translateX(-50%) translateY(-2px) scale(1.012); }
+}
+
+@media (max-height: 680px) {
+  .title-screen-071 .start-game-btn,
+  .title-screen-070 .start-game-btn { top: 75.5dvh !important; }
+}
+
+.login-screen-071,
+.login-screen-070 {
+  background:
+    linear-gradient(180deg, rgba(5, 39, 85, .10), rgba(255,255,255,.12) 30%, rgba(5, 58, 118, .22) 100%),
+    url("./assets/ui/title-keyvisual-060-blur.webp") center / cover no-repeat,
+    linear-gradient(180deg, #7fdcff, #267dd3) !important;
+  color: var(--soul-071-ink) !important;
+  overflow: hidden !important;
+}
+
+.login-screen-071::before,
+.login-screen-070::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 4%, rgba(255,255,255,.40), transparent 30%), linear-gradient(180deg, rgba(0, 44, 96, .06), rgba(0, 18, 44, .20));
+  z-index: 0;
+}
+
+.login-screen-071 .login-backdrop,
+.login-screen-071 .login-art,
+.login-screen-070 .login-backdrop,
+.login-screen-070 .login-art {
+  pointer-events: none !important;
+}
+
+.login-screen-071 .login-panel,
+.login-screen-071 .login-panel-v3,
+.login-screen-070 .login-panel,
+.login-screen-070 .login-panel-v3 {
+  position: relative !important;
+  z-index: 2 !important;
+  width: min(92vw, 430px) !important;
+  max-height: calc(100dvh - max(24px, env(safe-area-inset-top)) - max(24px, env(safe-area-inset-bottom))) !important;
+  overflow: hidden auto !important;
+  display: block !important;
+  padding: clamp(14px, 4vw, 18px) !important;
+  border-radius: 30px !important;
+  border: 1px solid rgba(236, 251, 255, .78) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.82), rgba(226,245,255,.66) 58%, rgba(133, 212, 255, .26)),
+    rgba(255,255,255,.68) !important;
+  box-shadow: 0 26px 72px rgba(0, 45, 104, .32), inset 0 1px 0 rgba(255,255,255,.82), 0 0 0 1px rgba(255, 233, 170, .28) inset !important;
+  backdrop-filter: blur(18px) saturate(1.18) !important;
+}
+
+.login-screen-071 .login-lore-card,
+.login-screen-070 .login-lore-card {
+  display: none !important;
+}
+
+.login-screen-071 .login-flow-card,
+.login-screen-071 .world-card,
+.login-screen-071 .server-card,
+.login-screen-071 .class-card,
+.login-screen-071 .character-slot,
+.login-screen-071 .character-slot-card,
+.login-screen-071 .character-create-panel,
+.login-screen-070 .login-flow-card,
+.login-screen-070 .world-card,
+.login-screen-070 .server-card,
+.login-screen-070 .class-card,
+.login-screen-070 .character-slot,
+.login-screen-070 .character-slot-card,
+.login-screen-070 .character-create-panel {
+  border: 1px solid rgba(255,255,255,.74) !important;
+  border-radius: 22px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.80), rgba(231,246,255,.62)) !important;
+  color: var(--soul-071-ink) !important;
+  box-shadow: 0 12px 30px rgba(0, 63, 135, .16), inset 0 1px 0 rgba(255,255,255,.78) !important;
+}
+
+.login-screen-071 .brand-block span,
+.login-screen-071 .login-status,
+.login-screen-071 .slot-headline span,
+.login-screen-071 .server-card span,
+.login-screen-071 .class-card span,
+.login-screen-070 .brand-block span,
+.login-screen-070 .login-status,
+.login-screen-070 .slot-headline span,
+.login-screen-070 .server-card span,
+.login-screen-070 .class-card span {
+  color: #176bad !important;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.86) !important;
+}
+
+.login-screen-071 .brand-block h1,
+.login-screen-071 h1,
+.login-screen-071 h2,
+.login-screen-071 b,
+.login-screen-071 .world-card h2,
+.login-screen-070 .brand-block h1,
+.login-screen-070 h1,
+.login-screen-070 h2,
+.login-screen-070 b,
+.login-screen-070 .world-card h2 {
+  color: #12365c !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.92) !important;
+  letter-spacing: -.04em !important;
+}
+
+.login-screen-071 .login-flow-hint,
+.login-screen-071 p,
+.login-screen-071 em,
+.login-screen-071 label,
+.login-screen-071 input,
+.login-screen-070 .login-flow-hint,
+.login-screen-070 p,
+.login-screen-070 em,
+.login-screen-070 label,
+.login-screen-070 input {
+  color: rgba(18, 58, 98, .78) !important;
+  line-height: 1.45 !important;
+}
+
+.login-screen-071 .wide-action,
+.login-screen-071 .server-card,
+.login-screen-071 .class-card,
+.login-screen-070 .wide-action,
+.login-screen-070 .server-card,
+.login-screen-070 .class-card {
+  position: relative !important;
+  min-height: 52px !important;
+  border: 1px solid rgba(231, 252, 255, .86) !important;
+  border-radius: 999px !important;
+  color: #fbfeff !important;
+  font-size: 15px !important;
+  font-weight: 950 !important;
+  text-shadow: 0 2px 12px rgba(0, 42, 94, .74) !important;
+  background:
+    radial-gradient(110% 80% at 50% 0%, rgba(255,255,255,.42), transparent 58%),
+    linear-gradient(180deg, rgba(90, 186, 242, .82), rgba(22, 111, 198, .80) 52%, rgba(6, 62, 134, .86)) !important;
+  box-shadow: 0 14px 30px rgba(0, 54, 118, .24), 0 0 0 1px rgba(74, 201, 255, .32) inset !important;
+  overflow: hidden !important;
+}
+
+.login-screen-071 .wide-action::before,
+.login-screen-071 .wide-action::after,
+.login-screen-071 .server-card::before,
+.login-screen-071 .server-card::after,
+.login-screen-071 .class-card::before,
+.login-screen-071 .class-card::after,
+.login-screen-070 .wide-action::before,
+.login-screen-070 .wide-action::after,
+.login-screen-070 .server-card::before,
+.login-screen-070 .server-card::after,
+.login-screen-070 .class-card::before,
+.login-screen-070 .class-card::after {
+  display: none !important;
+  content: none !important;
+}
+
+.login-screen-071 .wide-action.primary,
+.login-screen-071 .server-card.active,
+.login-screen-071 .class-card.active,
+.login-screen-070 .wide-action.primary,
+.login-screen-070 .server-card.active,
+.login-screen-070 .class-card.active {
+  color: #1a3550 !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.62) !important;
+  border-color: rgba(255, 247, 204, .94) !important;
+  background:
+    radial-gradient(110% 80% at 50% 0%, rgba(255,255,255,.52), transparent 55%),
+    linear-gradient(180deg, #ffeaa2 0%, #e5b849 54%, #a66d1e 100%) !important;
+  box-shadow: 0 16px 34px rgba(92, 55, 6, .24), 0 0 0 1px rgba(255,255,255,.44) inset !important;
+}
+
+.login-screen-071 .wide-action.subtle,
+.login-screen-070 .wide-action.subtle {
+  background:
+    radial-gradient(110% 80% at 50% 0%, rgba(255,255,255,.36), transparent 58%),
+    linear-gradient(180deg, rgba(110, 184, 230, .74), rgba(42, 100, 158, .80)) !important;
+}
+
+.login-screen-071 .wide-action.danger,
+.login-screen-070 .wide-action.danger {
+  color: #fff !important;
+  background: linear-gradient(180deg, #ff8178, #8f2428) !important;
+  border-radius: 999px !important;
+}
+
+.login-screen-071 .flow-page,
+.login-screen-070 .flow-page {
+  pointer-events: none !important;
+}
+
+.login-screen-071 .flow-page.active,
+.login-screen-070 .flow-page.active {
+  pointer-events: auto !important;
+}
+
+.login-screen-071 .character-actions,
+.login-screen-070 .character-actions {
+  gap: 8px !important;
+}
+
+.login-screen-071 .character-actions .wide-action,
+.login-screen-070 .character-actions .wide-action {
+  min-width: 0 !important;
+  padding-inline: 12px !important;
+  letter-spacing: -.02em !important;
+}
+
+.scene-transition {
+  pointer-events: none !important;
+}
+
+.scene-transition.show {
+  pointer-events: auto !important;
+}
