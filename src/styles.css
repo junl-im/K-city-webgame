@@ -17076,3 +17076,812 @@ body.town-active .town-screen-069 .town-layout-v2,
     transition: none !important;
   }
 }
+
+
+/* --------------------------------------------------------------------------
+   Alpha 0.70 Playable Town Lobby Patch
+   목표: 제공된 세로형 모바일 MMORPG 레퍼런스처럼 마을 첫 화면을 "플레이 가능한 로비"로 재구성한다.
+   기존 리스트 중심 UI 대신 캐릭터, NPC, 펫, 가방, 퀘스트, 조작부가 한 화면에서 게임처럼 보이도록 고정.
+---------------------------------------------------------------------------- */
+:root {
+  --soul-070-ink: #102a3f;
+  --soul-070-text: #fff9d4;
+  --soul-070-deep: #0a345c;
+  --soul-070-blue: #12a5ff;
+  --soul-070-sky: #6ee7ff;
+  --soul-070-gold: #e6bf64;
+  --soul-070-bronze: #8c652e;
+  --soul-070-panel: rgba(8, 33, 50, .72);
+  --soul-070-panel-soft: rgba(13, 61, 92, .60);
+  --soul-070-border: rgba(255, 231, 156, .72);
+  --soul-070-shadow: 0 18px 42px rgba(0, 23, 48, .34), inset 0 1px 0 rgba(255,255,255,.28);
+}
+
+.title-screen-070 .title-mini-nav span:last-child { color: #eefbff !important; }
+
+body.town-active .town-screen-070 {
+  display: block !important;
+  background: #074879 !important;
+  overflow: hidden !important;
+  font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif !important;
+}
+
+.town-screen-070 .town-backdrop,
+.town-screen-070 .town-sky,
+.town-screen-070 .town-panorama-070,
+.town-screen-070 .town-panorama-069,
+.town-screen-070 .town-diorama,
+.town-screen-070 .town-hotspot-layer-070,
+.town-screen-070 .town-hotspot-layer-069,
+.town-screen-070 .town-npc-spotlight,
+.town-screen-070 .town-topbar,
+.town-screen-070 .town-layout,
+.town-screen-070 .town-layout-v2,
+.town-screen-070 .town-bottom-menu,
+.town-screen-070 .town-more-menu {
+  display: none !important;
+}
+
+.town-screen-070::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(180deg, rgba(2,26,60,.36), rgba(8,87,147,.08) 22%, rgba(3,32,54,.26) 100%),
+    url("./assets/ui/town-lobby-stage-070.webp") center / cover no-repeat;
+  filter: saturate(1.08) contrast(1.02);
+}
+
+.town-screen-070::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(255,255,255,.36), transparent 18%),
+    radial-gradient(circle at 75% 55%, rgba(88,220,255,.22), transparent 30%),
+    linear-gradient(90deg, rgba(2,16,35,.34), transparent 22%, transparent 72%, rgba(2,16,35,.28));
+}
+
+.town-game-lobby-070 {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  grid-template-rows: 92px minmax(0, 1fr) 106px;
+  padding: max(10px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  color: #fff;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.town-lobby-frame-070,
+.town-lobby-frame-070 span {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+.town-lobby-frame-070::before,
+.town-lobby-frame-070::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 14px;
+  background: linear-gradient(90deg, #765021, #f5d98b 14%, #8a632c 30%, #f6e0a7 50%, #8a632c 70%, #f5d98b 86%, #765021);
+  box-shadow: 0 2px 0 rgba(255,255,255,.45) inset, 0 8px 20px rgba(0,0,0,.20);
+}
+.town-lobby-frame-070::before { top: 0; }
+.town-lobby-frame-070::after { bottom: 0; }
+.town-lobby-frame-070 span:nth-child(1),
+.town-lobby-frame-070 span:nth-child(2) {
+  width: 14px;
+  height: auto;
+  background: linear-gradient(180deg, #765021, #f5d98b 14%, #8a632c 30%, #f6e0a7 50%, #8a632c 70%, #f5d98b 86%, #765021);
+}
+.town-lobby-frame-070 span:nth-child(1) { right: auto; }
+.town-lobby-frame-070 span:nth-child(2) { left: auto; }
+.town-lobby-frame-070 span:nth-child(3),
+.town-lobby-frame-070 span:nth-child(4) {
+  width: 62px;
+  height: 62px;
+  border: 5px solid #e5c26f;
+  transform: rotate(45deg);
+  border-radius: 14px;
+  background: radial-gradient(circle, #39ddff 0 24%, #0d8dce 25% 43%, #f7e4a3 44% 52%, transparent 53%);
+  box-shadow: 0 0 18px rgba(96,222,255,.45), inset 0 0 12px rgba(255,255,255,.35);
+}
+.town-lobby-frame-070 span:nth-child(3) { left: -28px; top: -28px; }
+.town-lobby-frame-070 span:nth-child(4) { right: -28px; top: -28px; left: auto; }
+
+.town-lobby-header-070 {
+  position: relative;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: 46px 1fr 46px 46px 46px;
+  gap: 8px;
+  align-items: start;
+  padding: 10px 12px 0;
+}
+
+.town-lobby-logo-070 {
+  justify-self: center;
+  min-width: 116px;
+  display: grid;
+  justify-items: center;
+  line-height: 1;
+  padding-top: 2px;
+  color: #dff8ff;
+  text-shadow: 0 2px 0 #0b5489, 0 0 14px rgba(105,232,255,.64);
+}
+.town-lobby-logo-070 i {
+  width: 44px;
+  height: 34px;
+  border-radius: 45% 55% 50% 50%;
+  background: radial-gradient(circle at 42% 38%, #ffffff 0 8%, #bcf6ff 9% 36%, #42baf2 37% 100%);
+  box-shadow: 0 0 18px rgba(100,230,255,.72), 0 6px 0 rgba(0,57,108,.18);
+  position: relative;
+}
+.town-lobby-logo-070 i::before,
+.town-lobby-logo-070 i::after {
+  content: "";
+  position: absolute;
+  top: 14px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #07598e;
+}
+.town-lobby-logo-070 i::before { left: 15px; }
+.town-lobby-logo-070 i::after { right: 15px; }
+.town-lobby-logo-070 b { font-size: 25px; letter-spacing: .03em; font-weight: 950; }
+.town-lobby-logo-070 em { font-size: 10px; letter-spacing: .32em; font-style: normal; font-weight: 950; }
+
+.town-lobby-icon-070 {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  border: 2px solid rgba(255,239,179,.76);
+  background: linear-gradient(180deg, rgba(255,251,223,.96), rgba(209,173,94,.92));
+  color: #123450;
+  font-size: 21px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 18px rgba(3,28,56,.30), inset 0 2px 0 rgba(255,255,255,.68);
+  position: relative;
+  text-shadow: 0 1px 0 rgba(255,255,255,.72);
+}
+.town-lobby-icon-070.has-badge::after {
+  content: "1";
+  position: absolute;
+  right: -5px;
+  top: -6px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f04c47;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 950;
+  border: 2px solid #fff0bf;
+}
+
+.town-lobby-currency-070 {
+  position: absolute;
+  z-index: 9;
+  left: 43%;
+  right: 16px;
+  top: 94px;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr .88fr;
+  gap: 6px;
+}
+.town-lobby-currency-070 button {
+  min-width: 0;
+  height: 36px;
+  border: 2px solid rgba(255,236,174,.80);
+  border-radius: 999px 13px 13px 999px;
+  background: linear-gradient(180deg, rgba(18,64,92,.96), rgba(7,33,53,.92));
+  color: #fff8cf;
+  display: grid;
+  grid-template-columns: 27px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 6px 3px 4px;
+  box-shadow: 0 8px 16px rgba(0,23,48,.25), inset 0 1px 0 rgba(255,255,255,.32);
+  font-weight: 950;
+  text-shadow: 0 2px 0 rgba(0,0,0,.35);
+}
+.town-lobby-currency-070 b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.town-lobby-currency-070 span { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #e5bd63; color: #173956; }
+.town-lobby-currency-070 i { width: 27px; height: 27px; border-radius: 50%; display: block; box-shadow: 0 0 12px rgba(255,236,133,.42); }
+.town-lobby-currency-070 .coin { background: radial-gradient(circle at 35% 32%, #fff6b0, #e9b531 45%, #9b5d0e 100%); }
+.town-lobby-currency-070 .gem { border-radius: 7px 14px 7px 14px; transform: rotate(45deg) scale(.74); background: linear-gradient(135deg, #e7fbff, #46ceff 45%, #244bcf); }
+.town-lobby-currency-070 .wing { border-radius: 50% 18% 50% 18%; background: linear-gradient(135deg, #fff7bd, #fff 30%, #d8b964 70%, #744d17); transform: rotate(-18deg); }
+
+.town-lobby-side-070 {
+  position: absolute;
+  z-index: 12;
+  left: 18px;
+  top: 130px;
+  bottom: 170px;
+  width: 74px;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+}
+.town-lobby-side-070 button {
+  min-height: 60px;
+  border: 2px solid rgba(255,230,160,.72);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(15,60,86,.90), rgba(4,28,48,.86));
+  color: #fff4c6;
+  display: grid;
+  place-items: center;
+  gap: 1px;
+  box-shadow: 0 8px 18px rgba(0,18,40,.25), inset 0 1px 0 rgba(255,255,255,.23);
+  text-shadow: 0 2px 0 rgba(0,0,0,.44);
+  font-weight: 950;
+}
+.town-lobby-side-070 span { font-size: 22px; filter: drop-shadow(0 2px 0 rgba(0,0,0,.30)); }
+.town-lobby-side-070 b { font-size: 10px; line-height: 1; }
+
+.town-lobby-main-070 {
+  position: relative;
+  z-index: 7;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: minmax(180px, 36%) minmax(160px, 1fr) minmax(186px, 37%);
+  gap: 12px;
+  padding: 38px 18px 0 100px;
+  min-height: 0;
+}
+
+.town-lobby-profile-070,
+.town-lobby-bag-070 {
+  min-height: 0;
+  align-self: stretch;
+  display: grid;
+  align-content: start;
+  gap: 9px;
+}
+
+.town-lobby-avatar-070 {
+  width: 100%;
+  aspect-ratio: 1.28 / 1;
+  min-height: 124px;
+  border: 3px solid rgba(255,236,168,.78);
+  border-radius: 22px;
+  background: rgba(8,42,68,.78) center 30% / cover no-repeat;
+  box-shadow: var(--soul-070-shadow);
+  position: relative;
+  overflow: hidden;
+}
+.town-lobby-avatar-070::before {
+  content: "Ⅱ";
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: rgba(1,18,34,.66);
+  color: #fff4bc;
+  font-weight: 950;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
+}
+.town-lobby-avatar-070.class-warrior.gender-male { background-image: url("./assets/ui/portrait-warrior-male.webp"); }
+.town-lobby-avatar-070.class-warrior.gender-female { background-image: url("./assets/ui/portrait-warrior-female.webp"); }
+.town-lobby-avatar-070.class-taoist.gender-male { background-image: url("./assets/ui/portrait-taoist-male.webp"); }
+.town-lobby-avatar-070.class-taoist.gender-female { background-image: url("./assets/ui/portrait-taoist-female.webp"); }
+.town-lobby-avatar-070.class-cleric.gender-male { background-image: url("./assets/ui/portrait-cleric-male.webp"); }
+.town-lobby-avatar-070.class-cleric.gender-female { background-image: url("./assets/ui/portrait-cleric-female.webp"); }
+
+.town-lobby-nameplate-070 {
+  margin-top: -4px;
+  padding: 8px 11px;
+  border-radius: 16px;
+  border: 2px solid rgba(255,236,168,.62);
+  background: rgba(6,35,55,.74);
+  box-shadow: 0 9px 22px rgba(0,24,48,.24);
+  color: #fff7ca;
+  text-shadow: 0 2px 0 rgba(0,0,0,.42);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.town-lobby-nameplate-070 b { font-size: 18px; font-weight: 950; letter-spacing: -.03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.town-lobby-nameplate-070 span { font-size: 26px; font-weight: 950; color: #fff; }
+.town-lobby-nameplate-070 i { font-style: normal; }
+
+.town-lobby-bars-070 {
+  display: grid;
+  gap: 3px;
+  margin-top: -6px;
+}
+.town-lobby-bars-070 label,
+.town-lobby-status-070 label {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: center;
+  gap: 4px;
+  color: #fff4c6;
+  font-size: 18px;
+  font-weight: 950;
+  text-shadow: 0 2px 0 rgba(0,0,0,.46);
+}
+.town-lobby-bars-070 span { display: none; }
+.town-lobby-bars-070 i,
+.town-lobby-status-070 i {
+  height: 20px;
+  border: 2px solid rgba(22,56,73,.84);
+  border-radius: 999px;
+  background: rgba(255,255,255,.48);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.22), 0 1px 0 rgba(255,255,255,.32);
+  overflow: hidden;
+}
+.town-lobby-bars-070 em,
+.town-lobby-status-070 em { display: block; height: 100%; border-radius: inherit; }
+.town-lobby-bars-070 .hp em,
+.town-lobby-status-070 label:nth-child(1) em { background: linear-gradient(90deg, #ff5a58, #ff9085); }
+.town-lobby-bars-070 .mp em,
+.town-lobby-status-070 label:nth-child(2) em { background: linear-gradient(90deg, #36b9ff, #86dcff); }
+.town-lobby-status-070 label:nth-child(3) em { background: linear-gradient(90deg, #77df63, #d3f264); }
+
+.town-lobby-quest-stack-070 { display: grid; gap: 8px; }
+.town-lobby-quest-stack-070 button,
+.town-lobby-level-card-070,
+.town-lobby-bag-title-070 {
+  border: 2px solid rgba(255,230,160,.58);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(12,59,86,.80), rgba(5,34,55,.68));
+  color: #fff4c3;
+  box-shadow: 0 10px 22px rgba(0,26,48,.20), inset 0 1px 0 rgba(255,255,255,.18);
+  text-shadow: 0 2px 0 rgba(0,0,0,.42);
+}
+.town-lobby-quest-stack-070 button {
+  min-height: 62px;
+  text-align: left;
+  padding: 8px 11px;
+  display: grid;
+  gap: 3px;
+}
+.town-lobby-quest-stack-070 b { font-size: 15px; line-height: 1.05; color: #fff5b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.town-lobby-quest-stack-070 span { font-size: 10.5px; line-height: 1.25; color: rgba(255,255,255,.86); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.town-lobby-level-card-070 {
+  min-height: 74px;
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  grid-template-rows: 1fr 1fr;
+  align-items: center;
+  text-align: left;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(34,110,149,.70), rgba(5,36,57,.72));
+}
+.town-lobby-level-card-070 strong { grid-row: 1 / 3; font-size: 40px; color: #fff; line-height: 1; text-align: center; text-shadow: 0 3px 0 rgba(0,0,0,.42), 0 0 12px rgba(255,246,172,.60); }
+.town-lobby-level-card-070 span { font-size: 17px; font-weight: 950; color: #fff6b8; }
+.town-lobby-level-card-070 em { font-style: normal; font-size: 12px; color: rgba(255,255,255,.88); }
+
+.town-lobby-stage-070 {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+  border-radius: 34px;
+  background: radial-gradient(ellipse at 50% 74%, rgba(74,191,99,.70), rgba(72,169,55,.18) 30%, transparent 42%);
+  overflow: visible;
+}
+.town-lobby-stage-070::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  width: min(370px, 92%);
+  height: 106px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(55,176,76,.64), rgba(45,128,60,.16) 70%, transparent 71%);
+  filter: blur(.2px);
+  box-shadow: 0 22px 45px rgba(0,38,22,.24);
+}
+.town-lobby-stage-title-070 {
+  position: absolute;
+  right: 2%;
+  top: 12%;
+  max-width: 92%;
+  margin: 0;
+  color: #fff7ba;
+  font-size: clamp(22px, 5vw, 39px);
+  font-weight: 950;
+  line-height: 1.08;
+  text-align: center;
+  letter-spacing: -.045em;
+  text-shadow: 0 3px 0 #223b28, 0 0 14px rgba(255,255,255,.66), 0 0 22px rgba(59,188,255,.44);
+}
+
+.town-lobby-companion-070,
+.town-lobby-pet-070 {
+  position: absolute;
+  border: 0;
+  background: transparent center / contain no-repeat;
+  filter: drop-shadow(0 12px 8px rgba(0,31,38,.28));
+  animation: townLobbyBreathe070 3.4s ease-in-out infinite;
+  touch-action: manipulation;
+}
+.town-lobby-companion-070.fairy {
+  left: 10%;
+  bottom: 24%;
+  width: min(170px, 34vw);
+  height: min(230px, 34vh);
+  background-image: url("./assets/ui/portrait-cleric-female.webp");
+  background-size: 138% auto;
+  background-position: center 6%;
+}
+.town-lobby-companion-070.ranger {
+  right: 7%;
+  bottom: 25%;
+  width: min(170px, 34vw);
+  height: min(228px, 34vh);
+  background-image: url("./assets/ui/portrait-taoist-male.webp");
+  background-size: 138% auto;
+  background-position: center 6%;
+  animation-delay: .32s;
+}
+.town-lobby-pet-070.slime {
+  left: 34%;
+  bottom: 19%;
+  width: min(116px, 24vw);
+  height: min(92px, 15vh);
+  border-radius: 50% 50% 42% 42%;
+  background: radial-gradient(circle at 36% 35%, #fff 0 4%, transparent 5%), radial-gradient(circle at 64% 35%, #fff 0 4%, transparent 5%), radial-gradient(ellipse at 50% 58%, #36dbff 0 22%, #05a5e7 55%, #0178c7 100%);
+  box-shadow: inset 0 10px 20px rgba(255,255,255,.42), 0 12px 20px rgba(0,54,82,.28);
+  animation-delay: .55s;
+}
+.town-lobby-pet-070.slime::before,
+.town-lobby-pet-070.skull::before {
+  content: "";
+  position: absolute;
+  left: 35%;
+  top: 46%;
+  width: 30%;
+  height: 12%;
+  border-radius: 0 0 999px 999px;
+  border-bottom: 5px solid #c91525;
+}
+.town-lobby-pet-070.skull {
+  right: 0;
+  bottom: 20%;
+  width: min(98px, 21vw);
+  height: min(106px, 16vh);
+  border-radius: 48% 48% 40% 40%;
+  background: radial-gradient(circle at 36% 38%, #111 0 10%, transparent 11%), radial-gradient(circle at 64% 38%, #111 0 10%, transparent 11%), radial-gradient(circle at 50% 60%, #111 0 5%, transparent 6%), linear-gradient(180deg, #fff, #ddd 72%, #bfc2c8);
+  box-shadow: inset 0 -9px 13px rgba(91,91,100,.20), 0 12px 20px rgba(0,54,82,.28);
+  animation-delay: .82s;
+}
+.town-lobby-pet-070.skull::before { display: none; }
+.town-lobby-hunt-cta-070 {
+  position: absolute;
+  right: 2%;
+  bottom: 14%;
+  min-width: 116px;
+  min-height: 50px;
+  padding: 8px 14px;
+  border-radius: 18px;
+  border: 2px solid #fff0b0;
+  background: linear-gradient(180deg, #fff0a6, #d99425 68%, #9c5f12);
+  color: #173449;
+  font-size: 16px;
+  font-weight: 950;
+  box-shadow: 0 12px 22px rgba(0,32,61,.25), inset 0 2px 0 rgba(255,255,255,.62);
+  text-shadow: 0 1px 0 rgba(255,255,255,.62);
+}
+
+@keyframes townLobbyBreathe070 {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-5px) scale(1.015); }
+}
+
+.town-lobby-bag-070 { align-self: end; padding-bottom: 28px; }
+.town-lobby-skillrow-070 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+}
+.town-lobby-skillrow-070 button,
+.town-lobby-action-070 {
+  aspect-ratio: 1;
+  border-radius: 18px;
+  border: 2px solid rgba(255,232,163,.76);
+  color: transparent;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 9px 18px rgba(0,19,43,.28), inset 0 1px 0 rgba(255,255,255,.42);
+}
+.town-lobby-skillrow-070 button::before,
+.town-lobby-action-070::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 38%;
+  filter: drop-shadow(0 0 9px rgba(255,255,255,.50));
+}
+.town-lobby-skillrow-070 .fire { background: radial-gradient(circle, #ffec9e, #ef2c35 58%, #6d0a21); }
+.town-lobby-skillrow-070 .fire::before { background: url("./assets/effects/fireball.webp") center / contain no-repeat; }
+.town-lobby-skillrow-070 .wind { background: radial-gradient(circle, #dffff2, #19bd72 58%, #075834); }
+.town-lobby-skillrow-070 .wind::before { background: url("./assets/effects/soul-slash.webp") center / contain no-repeat; }
+.town-lobby-skillrow-070 .nova { background: radial-gradient(circle, #fff, #883cff 58%, #3b136d); }
+.town-lobby-skillrow-070 .nova::before { background: url("./assets/effects/holy-nova.webp") center / contain no-repeat; }
+.town-lobby-skillrow-070 .gold { background: radial-gradient(circle, #fff6bd, #e39b2b 58%, #744a0f); }
+.town-lobby-skillrow-070 .gold::before { background: url("./assets/items/village-contract-box.webp") center / contain no-repeat; }
+
+.town-lobby-bag-title-070 {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 11px;
+  background: linear-gradient(180deg, rgba(15,55,80,.86), rgba(5,31,48,.78));
+}
+.town-lobby-bag-title-070 b { font-size: 14px; color: #fff5bd; }
+.town-lobby-bag-title-070 span { font-size: 11px; color: rgba(255,255,255,.86); }
+
+.town-lobby-bag-grid-070 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  padding: 7px;
+  border: 2px solid rgba(255,232,163,.70);
+  border-radius: 18px;
+  background: rgba(3,15,25,.58);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 13px 28px rgba(0,19,43,.28);
+  backdrop-filter: blur(10px) saturate(1.08);
+}
+.town-lobby-item-070 {
+  aspect-ratio: 1;
+  min-width: 0;
+  border: 1px solid rgba(255,255,255,.20);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(57,65,71,.70), rgba(5,11,20,.82));
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+  padding: 0;
+}
+.town-lobby-item-070 img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 3px 5px rgba(0,0,0,.35)); }
+.town-lobby-item-070 span {
+  position: absolute;
+  right: 3px;
+  bottom: 1px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 950;
+  text-shadow: 0 2px 0 rgba(0,0,0,.76);
+}
+.town-lobby-item-070.rarity-sr,
+.town-lobby-item-070.rarity-ssr,
+.town-lobby-item-070.rarity-ur { border-color: rgba(255,213,91,.72); box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 0 12px rgba(255,207,87,.30); }
+.town-lobby-item-070.empty { opacity: .48; }
+
+.town-lobby-controls-070 {
+  position: relative;
+  z-index: 12;
+  grid-row: 3;
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 96px minmax(130px, 190px) 58px 58px 58px;
+  gap: 8px;
+  align-items: end;
+  padding: 0 18px 14px;
+}
+.town-lobby-status-070 { display: grid; gap: 3px; padding-bottom: 4px; }
+.town-lobby-status-070 label { grid-template-columns: 38px 1fr; font-size: 18px; }
+.town-lobby-status-070 i { height: 18px; }
+.town-lobby-stick-070 {
+  width: 94px;
+  height: 94px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,232,163,.76);
+  background: radial-gradient(circle, rgba(255,255,255,.88) 0 24%, rgba(126,142,83,.85) 25% 31%, rgba(56,75,39,.72) 32% 100%);
+  box-shadow: 0 12px 22px rgba(0,20,38,.26), inset 0 2px 0 rgba(255,255,255,.62);
+  position: relative;
+}
+.town-lobby-stick-070::before,
+.town-lobby-stick-070::after,
+.town-lobby-stick-070 span::before,
+.town-lobby-stick-070 span::after {
+  content: "";
+  position: absolute;
+  border: 7px solid transparent;
+}
+.town-lobby-stick-070::before { top: 5px; left: 40px; border-bottom-color: #fff6c9; }
+.town-lobby-stick-070::after { bottom: 5px; left: 40px; border-top-color: #fff6c9; }
+.town-lobby-stick-070 span::before { left: 7px; top: 40px; border-right-color: #fff6c9; }
+.town-lobby-stick-070 span::after { right: 7px; top: 40px; border-left-color: #fff6c9; }
+.town-lobby-auto-070 {
+  height: 72px;
+  border-radius: 20px;
+  border: 3px solid #fff0b0;
+  background: linear-gradient(180deg, #2cf5ff, #0698f0 50%, #004da9);
+  color: #fff;
+  font-size: 31px;
+  font-weight: 950;
+  letter-spacing: -.04em;
+  text-shadow: 0 3px 0 #003d7f, 0 0 10px rgba(255,255,255,.64);
+  box-shadow: 0 15px 24px rgba(0,21,52,.30), inset 0 2px 0 rgba(255,255,255,.52);
+}
+.town-lobby-action-070 {
+  width: 58px;
+  height: 58px;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 950;
+  display: grid;
+  place-items: center;
+  text-shadow: 0 2px 0 rgba(0,0,0,.38);
+}
+.town-lobby-action-070.purple { background: radial-gradient(circle, #fff 0 10%, #a353ff 48%, #4b198b); }
+.town-lobby-action-070.green { background: radial-gradient(circle, #fff 0 10%, #3ce280 48%, #087c40); }
+.town-lobby-action-070.pink { background: radial-gradient(circle, #fff 0 10%, #ff58c7 48%, #9d136d); }
+
+.town-screen-070 button:active {
+  transform: translateY(1px) scale(.985);
+  filter: brightness(1.08) saturate(1.05);
+}
+
+.town-screen-070 .town-drawer {
+  position: fixed !important;
+  left: max(10px, env(safe-area-inset-left)) !important;
+  right: max(10px, env(safe-area-inset-right)) !important;
+  bottom: calc(108px + env(safe-area-inset-bottom)) !important;
+  top: auto !important;
+  z-index: 120 !important;
+  width: auto !important;
+  max-width: 560px !important;
+  max-height: min(76dvh, 760px) !important;
+  margin: 0 auto !important;
+  border: 2px solid rgba(255,232,163,.82) !important;
+  border-radius: 28px !important;
+  background: linear-gradient(180deg, rgba(255,253,235,.95), rgba(218,244,255,.89)) !important;
+  color: #123450 !important;
+  box-shadow: 0 24px 72px rgba(0,21,48,.42), inset 0 1px 0 rgba(255,255,255,.92) !important;
+  overflow: hidden !important;
+}
+.town-screen-070 .town-drawer.hidden { display: none !important; }
+.town-screen-070 .town-drawer-head { background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.48)) !important; border-bottom: 1px solid rgba(43,122,181,.18) !important; }
+.town-screen-070 .town-drawer-head span,
+.town-screen-070 .town-drawer-head h2,
+.town-screen-070 .town-drawer b,
+.town-screen-070 .town-drawer h3 { color: #103d66 !important; text-shadow: 0 1px 0 rgba(255,255,255,.90) !important; }
+.town-screen-070 .town-drawer p,
+.town-screen-070 .town-drawer em,
+.town-screen-070 .zone-card span,
+.town-screen-070 .content-card span { color: rgba(16,61,102,.76) !important; }
+.town-screen-070 .town-drawer-body { max-height: calc(min(76dvh, 760px) - 72px) !important; overflow: auto !important; }
+.town-screen-070 .zone-card,
+.town-screen-070 .content-card,
+.town-screen-070 .item-slot,
+.town-screen-070 .card-slot,
+.town-screen-070 .equipment-card,
+.town-screen-070 .quest-card,
+.town-screen-070 .shop-card,
+.town-screen-070 .skill-card,
+.town-screen-070 .account-panel {
+  background-color: rgba(255,255,255,.72) !important;
+  color: #123450 !important;
+  border-color: rgba(26,103,169,.22) !important;
+}
+
+@media (min-width: 720px) {
+  .town-game-lobby-070 {
+    left: 50%;
+    width: min(100vw, 920px);
+    transform: translateX(-50%);
+    border-left: 1px solid rgba(255,235,174,.48);
+    border-right: 1px solid rgba(255,235,174,.48);
+  }
+}
+
+@media (max-width: 560px) {
+  .town-game-lobby-070 {
+    grid-template-rows: 92px minmax(0, 1fr) 124px;
+    padding-left: max(6px, env(safe-area-inset-left));
+    padding-right: max(6px, env(safe-area-inset-right));
+  }
+  .town-lobby-header-070 {
+    grid-template-columns: 42px 1fr 42px 42px 42px;
+    gap: 6px;
+    padding: 10px 16px 0;
+  }
+  .town-lobby-icon-070 { width: 42px; height: 42px; border-radius: 13px; font-size: 18px; }
+  .town-lobby-logo-070 b { font-size: 21px; }
+  .town-lobby-logo-070 em { font-size: 8px; }
+  .town-lobby-logo-070 i { width: 38px; height: 30px; }
+  .town-lobby-currency-070 { left: 37%; right: 14px; top: 92px; grid-template-columns: 1fr 1fr; }
+  .town-lobby-currency-070 button { height: 33px; grid-template-columns: 24px minmax(0,1fr) 18px; font-size: 12px; }
+  .town-lobby-currency-070 i { width: 24px; height: 24px; }
+  .town-lobby-currency-070 button:nth-child(3) { grid-column: 1 / 3; justify-self: end; width: min(158px, 44vw); }
+  .town-lobby-side-070 { left: 15px; top: 142px; width: 58px; gap: 6px; bottom: 154px; }
+  .town-lobby-side-070 button { min-height: 50px; border-radius: 15px; }
+  .town-lobby-side-070 span { font-size: 18px; }
+  .town-lobby-side-070 b { font-size: 9px; }
+  .town-lobby-main-070 {
+    grid-template-columns: minmax(116px, 34%) minmax(120px, 1fr) minmax(118px, 33%);
+    gap: 7px;
+    padding: 54px 12px 0 78px;
+  }
+  .town-lobby-avatar-070 { min-height: 92px; border-radius: 18px; }
+  .town-lobby-nameplate-070 { padding: 6px 8px; border-radius: 14px; }
+  .town-lobby-nameplate-070 b { font-size: 13px; }
+  .town-lobby-nameplate-070 span { font-size: 20px; }
+  .town-lobby-bars-070 label { font-size: 14px; grid-template-columns: 24px 1fr; }
+  .town-lobby-bars-070 i { height: 16px; }
+  .town-lobby-quest-stack-070 { gap: 6px; }
+  .town-lobby-quest-stack-070 button { min-height: 52px; padding: 7px 8px; border-radius: 14px; }
+  .town-lobby-quest-stack-070 b { font-size: 12px; }
+  .town-lobby-quest-stack-070 span { font-size: 9px; }
+  .town-lobby-level-card-070 { min-height: 58px; grid-template-columns: 42px 1fr; padding: 7px 8px; border-radius: 14px; }
+  .town-lobby-level-card-070 strong { font-size: 30px; }
+  .town-lobby-level-card-070 span { font-size: 12px; }
+  .town-lobby-level-card-070 em { font-size: 9px; }
+  .town-lobby-stage-title-070 { top: 14%; right: -3%; font-size: clamp(17px, 6vw, 26px); max-width: 110%; }
+  .town-lobby-companion-070.fairy { left: -3%; bottom: 27%; width: 95px; height: 145px; }
+  .town-lobby-companion-070.ranger { right: -11%; bottom: 27%; width: 98px; height: 145px; }
+  .town-lobby-pet-070.slime { left: 28%; bottom: 23%; width: 70px; height: 54px; }
+  .town-lobby-pet-070.skull { right: -16%; bottom: 23%; width: 61px; height: 66px; }
+  .town-lobby-hunt-cta-070 { right: -14%; bottom: 12%; min-width: 92px; min-height: 42px; font-size: 13px; border-radius: 15px; }
+  .town-lobby-bag-070 { padding-bottom: 24px; gap: 6px; }
+  .town-lobby-skillrow-070 { gap: 4px; }
+  .town-lobby-skillrow-070 button { border-radius: 13px; }
+  .town-lobby-bag-title-070 { min-height: 32px; padding: 4px 8px; border-radius: 13px; }
+  .town-lobby-bag-title-070 b { font-size: 11px; }
+  .town-lobby-bag-title-070 span { font-size: 9px; }
+  .town-lobby-bag-grid-070 { gap: 3px; padding: 5px; border-radius: 13px; grid-template-columns: repeat(4, minmax(0,1fr)); }
+  .town-lobby-item-070 { border-radius: 6px; }
+  .town-lobby-item-070 span { font-size: 8px; }
+  .town-lobby-controls-070 {
+    grid-template-columns: minmax(112px, 1fr) 82px minmax(100px, 150px) 50px 50px 50px;
+    gap: 5px;
+    padding: 0 12px 16px;
+  }
+  .town-lobby-status-070 label { grid-template-columns: 34px 1fr; font-size: 16px; }
+  .town-lobby-status-070 i { height: 16px; }
+  .town-lobby-stick-070 { width: 78px; height: 78px; }
+  .town-lobby-auto-070 { height: 62px; border-radius: 18px; font-size: 26px; }
+  .town-lobby-action-070 { width: 50px; height: 50px; font-size: 22px; border-radius: 17px; }
+  .town-screen-070 .town-drawer { bottom: calc(130px + env(safe-area-inset-bottom)) !important; max-height: min(72dvh, 650px) !important; }
+}
+
+@media (max-width: 390px) {
+  .town-lobby-main-070 { grid-template-columns: 1fr 1.06fr; padding-right: 10px; }
+  .town-lobby-stage-070 { grid-column: 2; grid-row: 1; }
+  .town-lobby-bag-070 { grid-column: 2; grid-row: 1; align-self: end; opacity: .96; }
+  .town-lobby-profile-070 { grid-column: 1; }
+  .town-lobby-skillrow-070 { grid-template-columns: repeat(4, 1fr); }
+  .town-lobby-bag-grid-070 { grid-template-columns: repeat(3, minmax(0,1fr)); max-height: 260px; overflow: hidden; }
+  .town-lobby-bag-grid-070 .town-lobby-item-070:nth-child(n+19) { display: none; }
+  .town-lobby-controls-070 { grid-template-columns: minmax(110px, 1fr) 74px 96px 46px 46px 46px; }
+  .town-lobby-stick-070 { width: 70px; height: 70px; }
+  .town-lobby-auto-070 { height: 56px; font-size: 23px; }
+  .town-lobby-action-070 { width: 46px; height: 46px; }
+}
+
+@media (max-height: 720px) {
+  .town-lobby-side-070 button:nth-child(n+6) { display: none; }
+  .town-lobby-quest-stack-070 button { min-height: 46px; }
+  .town-lobby-level-card-070 { display: none; }
+  .town-lobby-bag-grid-070 .town-lobby-item-070:nth-child(n+17) { display: none; }
+  .town-lobby-controls-070 { padding-bottom: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .town-lobby-companion-070,
+  .town-lobby-pet-070 { animation: none !important; }
+  .town-screen-070 button { transition: none !important; }
+}

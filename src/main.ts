@@ -1804,9 +1804,79 @@ function renderTown(save: PlayerSave | null) {
   townGemText.textContent = formatSoul(save.gems);
   townPowerText.textContent = `전투력 ${formatNumber(powerFromSave(save))}`;
   renderTownStorySnapshot(save);
+  updateTownLobby070(save);
   renderTownGatePreview(save);
   updateZoneLocks(save);
   if (townContentOpen) renderTownContent();
+}
+
+function updateTownLobby070(save: PlayerSave) {
+  const stats = calculateStatsFromSave(save);
+  const klass = classes[save.classId];
+  const maxHp = Math.max(1, Math.round(stats.hp));
+  const maxMp = Math.max(1, Math.round(stats.mp));
+  const hpPct = Math.max(0, Math.min(100, Math.round((save.hp / maxHp) * 100)));
+  const mpPct = Math.max(0, Math.min(100, Math.round((save.mp / maxMp) * 100)));
+  const expGoal = Math.max(1, expToNext(save.level));
+  const expPct = Math.max(0, Math.min(100, Math.round((save.exp / expGoal) * 100)));
+
+  document.querySelectorAll<HTMLElement>('[data-town-lobby-name]').forEach((node) => { node.textContent = save.name; });
+  document.querySelectorAll<HTMLElement>('[data-town-lobby-level]').forEach((node) => { node.textContent = `${save.level}`; });
+  document.querySelectorAll<HTMLElement>('[data-town-lobby-level-card]').forEach((node) => { node.textContent = `${save.level}`; });
+  document.querySelectorAll<HTMLElement>('[data-town-lobby-gold]').forEach((node) => { node.textContent = formatGold(save.gold); });
+  document.querySelectorAll<HTMLElement>('[data-town-lobby-gems]').forEach((node) => { node.textContent = formatSoul(save.gems); });
+  document.querySelectorAll<HTMLElement>('[data-town-lobby-stamina]').forEach((node) => { node.textContent = '120/120'; });
+  document.querySelectorAll<HTMLElement>('[data-town-lobby-hp-text]').forEach((node) => { node.textContent = `${formatNumber(save.hp)}/${formatNumber(maxHp)}`; });
+  document.querySelectorAll<HTMLElement>('[data-town-lobby-mp-text]').forEach((node) => { node.textContent = `${formatNumber(save.mp)}/${formatNumber(maxMp)}`; });
+  document.querySelectorAll<HTMLElement>('[data-town-lobby-hp], [data-town-lobby-hp-mini]').forEach((node) => { node.style.width = `${hpPct}%`; });
+  document.querySelectorAll<HTMLElement>('[data-town-lobby-mp], [data-town-lobby-mp-mini]').forEach((node) => { node.style.width = `${mpPct}%`; });
+  document.querySelectorAll<HTMLElement>('[data-town-lobby-exp-mini]').forEach((node) => { node.style.width = `${expPct}%`; });
+  document.querySelectorAll<HTMLElement>('[data-town-lobby-portrait]').forEach((node) => {
+    node.setAttribute('aria-label', `${save.name} · ${klass.name}`);
+    setClassPortraitArt(node, save.classId, save.gender || 'male');
+  });
+
+  const questList = document.querySelector<HTMLElement>('[data-town-lobby-quest-list]');
+  if (questList) {
+    const story = currentStoryQuest(save);
+    const progress = story ? storyQuestProgress(save, story) : 0;
+    const recommended = story ? recommendedZoneForQuest(save, story) : zones[0];
+    const daily = dailyQuests[0];
+    questList.innerHTML = `
+      <button data-town-content="story" type="button"><b>${story ? escapeHtml(story.title) : '메인 스토리'}</b><span>${story ? `${Math.min(progress, story.target)}/${story.target} · ${escapeHtml(story.goalText)}` : '루미나 등불을 확인하세요.'}</span></button>
+      <button data-town-content="quests" type="button"><b>${escapeHtml(daily?.title || '일일 의뢰')}</b><span>${escapeHtml(daily?.description || '오늘의 사냥 보상을 챙기세요.')}</span></button>
+      <button data-zone-id="${escapeHtml(recommended?.id || 'slime-forest')}" type="button"><b>${escapeHtml(recommended?.title || '루미나 숲 초입')}</b><span>Lv.${recommended?.recommendedLevel || 1} · 바로 사냥 시작</span></button>
+    `;
+    questList.querySelectorAll<HTMLButtonElement>('[data-town-content]').forEach((button) => {
+      button.addEventListener('click', () => openTownContent((button.dataset.townContent || 'story') as TownContentId));
+    });
+    questList.querySelectorAll<HTMLButtonElement>('[data-zone-id]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        if (!pendingSave) return;
+        await startField(pendingSave, button.dataset.zoneId || 'slime-forest');
+      });
+    });
+  }
+
+  const bag = document.querySelector<HTMLElement>('[data-town-lobby-bag]');
+  const bagCount = document.querySelector<HTMLElement>('[data-town-lobby-bag-count]');
+  if (bag) {
+    const described = save.inventory.flatMap((instance) => {
+      const def = items.find((entry) => entry.id === instance.itemId);
+      return def ? [{ def, instance }] : [];
+    });
+    const sorted = sortedInventoryEntries(save, described).slice(0, 24);
+    const cells = sorted.map(({ def, instance }) => {
+      const equipped = (def.type === 'weapon' || def.type === 'armor' || def.type === 'relic') && save.equipment?.[def.type as EquipmentSlot] === instance.uid;
+      return `<button class="town-lobby-item-070 rarity-${def.rarity.toLowerCase()} ${equipped ? 'equipped' : ''}" data-town-content="inventory" type="button" title="${escapeHtml(def.name)}"><img src="${itemArtUrl(def)}" alt=""/><span>${instance.count > 1 ? formatNumber(instance.count) : ''}</span></button>`;
+    });
+    while (cells.length < 24) cells.push('<button class="town-lobby-item-070 empty" data-town-content="inventory" type="button" aria-label="빈 슬롯"></button>');
+    bag.innerHTML = cells.join('');
+    bag.querySelectorAll<HTMLButtonElement>('[data-town-content]').forEach((button) => {
+      button.addEventListener('click', () => openTownContent((button.dataset.townContent || 'inventory') as TownContentId));
+    });
+  }
+  if (bagCount) bagCount.textContent = `${save.inventory.length}/64`;
 }
 
 
@@ -2309,13 +2379,13 @@ function renderVisualImmersionBoard(save: PlayerSave) {
   return `
     <section class="visual-immersion-board">
       <div class="visual-board-title">
-        <span>RASTER VISUAL 0.61</span>
+        <span>ASSET UPGRADE 0.63</span>
         <h3>${titleGrade} 무드 보드</h3>
-        <p>타이틀, 마을, 필드, 타격감, 드랍 연출, 슬롯 가독성을 모바일 RPG식으로 한 번 더 다듬었습니다.</p>
+        <p>캐릭터·몬스터·지형·UI 자산을 레퍼런스 톤에 맞춰 대규모로 재가공하고 펫 동행/필드 소재감을 강화했습니다.</p>
       </div>
       <div class="visual-board-grid">
-        <article><b>타이틀</b><span>0.61 WebP 키비주얼</span><em>SVG 없는 래스터 비주얼 파이프라인</em></article>
-        <article><b>마을</b><span>NPC 대화 카드</span><em>상호작용 후 기능 이동</em></article>
+        <article><b>자산</b><span>0.63 대규모 패스</span><em>영웅/몬스터/타일 WebP 재가공</em></article>
+        <article><b>펫</b><span>동행 실루엣</span><em>필드 플레이어 곁 미니 소울</em></article>
         <article><b>필드</b><span>${unlocked}/${zones.length} 전선</span><em>전장 조명 · 보스 게이트</em></article>
         <article><b>전투</b><span>SSR/UR ${highRank}개 보유</span><em>강타/희귀 드랍 집중 연출</em></article>
         <article><b>품질 재료</b><span>${polishItems}개 보유</span><em>허가증/연마유/광택석</em></article>
