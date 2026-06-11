@@ -242,6 +242,11 @@ export class SolGame {
   private lastMinorImpactAt = -999;
   private listeners = new Set<(snapshot: Snapshot) => void>();
   private log: string[] = ['마을에서 사냥터로 이동했습니다.'];
+  private sortTimer101 = 0;
+  private emitTimer101 = 0;
+  private fxBudgetWindow101 = 0;
+  private fxBudgetCount101 = 0;
+  private hiddenMobFrame101 = 0;
 
   constructor(
     private save: PlayerSave,
@@ -889,20 +894,35 @@ export class SolGame {
 
   private renderProfile099() {
     const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+    const tier = this.performanceTier101();
+    return {
+      // Alpha 1.01: mobile stability first. A slightly lower canvas resolution prevents
+      // large sprite sheets and full-screen HUD filters from competing for GPU memory.
+      resolution: Math.min(dpr, tier === 'lite' ? 0.85 : tier === 'balanced' ? 1.05 : 1.42),
+      antialias: tier === 'quality' && dpr <= 2,
+      maxFPS: tier === 'lite' ? 34 : tier === 'balanced' ? 45 : 60
+    };
+  }
+
+  private performanceTier101(): 'lite' | 'balanced' | 'quality' {
     const nav = typeof navigator !== 'undefined' ? navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean; effectiveType?: string } } : null;
     const memory = nav?.deviceMemory || 4;
     const cores = nav?.hardwareConcurrency || 4;
     const saveData = Boolean(nav?.connection?.saveData);
     const network = nav?.connection?.effectiveType || '';
-    const forcedLite = this.localStorageFlag099('soul-online-lite-render-091') || this.localStorageFlag099('soul-online-field-lite-100');
-    const lowEnd = forcedLite || saveData || memory <= 2 || cores <= 2 || /2g|slow-2g/.test(network);
-    const mid = !lowEnd && (memory <= 4 || cores <= 4);
-    return {
-      // Alpha 1.00: prefer stable input and frame pacing over raw resolution on mobile.
-      resolution: Math.min(dpr, lowEnd ? 1.0 : mid ? 1.2 : 1.55),
-      antialias: !lowEnd && !mid,
-      maxFPS: lowEnd ? 40 : mid ? 50 : 60
-    };
+    const forcedLite = this.localStorageFlag099('soul-online-lite-render-091') || this.localStorageFlag099('soul-online-field-lite-100') || this.localStorageFlag099('soul-online-perf-lite-101');
+    const forcedQuality = this.localStorageFlag099('soul-online-perf-quality-101');
+    if (!forcedQuality && (forcedLite || saveData || memory <= 2 || cores <= 2 || /2g|slow-2g/.test(network))) return 'lite';
+    if (!forcedQuality && (memory <= 4 || cores <= 4 || /3g/.test(network))) return 'balanced';
+    return 'quality';
+  }
+
+  private isFieldLite101() {
+    return this.performanceTier101() === 'lite';
+  }
+
+  private isFieldBalanced101() {
+    return this.performanceTier101() !== 'quality';
   }
 
   private localStorageFlag099(key: string) {
@@ -910,15 +930,10 @@ export class SolGame {
   }
 
   private textureLoadConcurrency099(requiredCount: number) {
-    const nav = typeof navigator !== 'undefined' ? navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean; effectiveType?: string } } : null;
-    const hardware = nav?.hardwareConcurrency || 4;
-    const memory = nav?.deviceMemory || 4;
-    const saveData = Boolean(nav?.connection?.saveData);
-    const forcedLite = this.localStorageFlag099('soul-online-lite-render-091') || this.localStorageFlag099('soul-online-field-lite-100');
-    if (forcedLite || saveData || memory <= 2 || hardware <= 2) return 1;
-    if (requiredCount >= 90 || hardware <= 4 || memory <= 4) return 2;
-    if (requiredCount >= 60) return 3;
-    return 4;
+    const tier = this.performanceTier101();
+    if (tier === 'lite') return 1;
+    if (tier === 'balanced' || requiredCount >= 80) return 2;
+    return 3;
   }
 
   private requiredTextureKeys(): TextureKey[] {
@@ -983,22 +998,30 @@ export class SolGame {
     this.addVillageDecor();
     this.addZoneLandmarks();
 
-    this.addCuratedFieldDecor();
-    this.addBiomeDecorPass();
-    this.addMegaFieldObjectPass();
-    this.addInfernusDecorPass();
-    this.addPledgeCitadelDecorPass();
-    this.addAlpha055SetDressingPass();
-    this.addAlpha056ImmersionFieldPass();
-    this.addAlpha057VisualSetDressingPass();
-    this.addAlpha058ImmersiveSetDressingPass();
-    this.addAlpha059DeepPolishFieldPass();
-    this.addAlpha062ReferenceFieldPass();
-    this.addAlpha063AssetUpgradeFieldPass();
-    this.addAlpha066AssetRefinementFieldPass();
-    this.addAlpha069PremiumVisualFieldPass();
-    this.addAlpha076ObjectBlendFieldPass();
-    this.addAlpha077RasterObjectPolishPass();
+    const fieldTier101 = this.performanceTier101();
+    // Alpha 1.01: field decoration is now budgeted. The base terrain and landmarks stay,
+    // but older layered ambience passes are skipped on mobile-lite profiles to reduce
+    // hundreds of Graphics/Sprite nodes and first-frame jank.
+    if (fieldTier101 !== 'lite') {
+      this.addCuratedFieldDecor();
+      this.addBiomeDecorPass();
+      this.addInfernusDecorPass();
+      this.addPledgeCitadelDecorPass();
+      this.addAlpha055SetDressingPass();
+      this.addAlpha058ImmersiveSetDressingPass();
+      this.addAlpha062ReferenceFieldPass();
+      this.addAlpha063AssetUpgradeFieldPass();
+      this.addAlpha076ObjectBlendFieldPass();
+    }
+    if (fieldTier101 === 'quality') {
+      this.addMegaFieldObjectPass();
+      this.addAlpha056ImmersionFieldPass();
+      this.addAlpha057VisualSetDressingPass();
+      this.addAlpha059DeepPolishFieldPass();
+      this.addAlpha066AssetRefinementFieldPass();
+      this.addAlpha069PremiumVisualFieldPass();
+      this.addAlpha077RasterObjectPolishPass();
+    }
   }
 
 
@@ -2654,7 +2677,12 @@ export class SolGame {
     this.updatePlayer(dt);
     this.updateMobs(dt);
     this.updateCamera();
-    this.sortEntities();
+    this.sortTimer101 += dt;
+    const sortInterval101 = this.isFieldLite101() ? 0.18 : this.isFieldBalanced101() ? 0.11 : 0.06;
+    if (this.sortTimer101 >= sortInterval101) {
+      this.sortTimer101 = 0;
+      this.sortEntities();
+    }
 
     this.dirtyTimer += dt;
     if (this.dirtyTimer >= 1.4) {
@@ -2662,7 +2690,12 @@ export class SolGame {
       this.saveService.saveLocal(this.save);
     }
 
-    this.emit();
+    this.emitTimer101 += dt;
+    const emitInterval101 = this.isFieldLite101() ? 0.18 : this.isFieldBalanced101() ? 0.12 : 0.075;
+    if (this.emitTimer101 >= emitInterval101) {
+      this.emitTimer101 = 0;
+      this.emit();
+    }
   }
 
   private tryAutoPotionUse() {
@@ -2879,12 +2912,24 @@ export class SolGame {
       if (!view) continue;
 
       if (!mob.alive) {
-        view.root.visible = performance.now() < (mob.deathVisibleUntil || 0);
-        view.animator?.update(dt);
+        view.root.visible = performance.now() < (mob.deathVisibleUntil || 0) && this.isEntityNearViewport101(mob.x, mob.y, 140);
+        if (view.root.visible) view.animator?.update(dt);
         continue;
       }
 
-      view.root.visible = true;
+      const nearViewport101 = this.isEntityNearViewport101(mob.x, mob.y, this.isFieldLite101() ? 90 : 220);
+      view.root.visible = nearViewport101;
+      if (!nearViewport101 && this.isFieldBalanced101()) {
+        this.hiddenMobFrame101 += 1;
+        if (this.hiddenMobFrame101 % (this.isFieldLite101() ? 4 : 2) !== 0) {
+          mob.attackCooldown = Math.max(0, mob.attackCooldown - dt);
+          mob.wanderCooldown = Math.max(0, mob.wanderCooldown - dt);
+          mob.stateTimer = Math.max(0, mob.stateTimer - dt);
+          mob.patternCooldown = Math.max(0, (mob.patternCooldown || 0) - dt);
+          continue;
+        }
+      }
+
       mob.attackCooldown = Math.max(0, mob.attackCooldown - dt);
       mob.wanderCooldown = Math.max(0, mob.wanderCooldown - dt);
       mob.stateTimer = Math.max(0, mob.stateTimer - dt);
@@ -3998,6 +4043,30 @@ export class SolGame {
     return tile !== 'water' && tile !== 'cliff';
   }
 
+  private isEntityNearViewport101(x: number, y: number, pad = 180) {
+    if (!this.app) return true;
+    const pos = isoToScreen(x, y);
+    const sx = pos.x * FIELD_ZOOM + this.world.x;
+    const sy = (pos.y + 6) * FIELD_ZOOM + this.world.y;
+    return sx > -pad && sx < this.app.screen.width + pad && sy > -pad && sy < this.app.screen.height + pad;
+  }
+
+  private shouldSpawnFx101(weight = 1, important = false) {
+    if (!this.app) return false;
+    const tier = this.performanceTier101();
+    const maxChildren = tier === 'lite' ? 24 : tier === 'balanced' ? 44 : 78;
+    if (!important && this.fxLayer.children.length >= maxChildren) return false;
+    const now = performance.now();
+    if (now - this.fxBudgetWindow101 > 520) {
+      this.fxBudgetWindow101 = now;
+      this.fxBudgetCount101 = 0;
+    }
+    const maxBurst = tier === 'lite' ? 9 : tier === 'balanced' ? 17 : 32;
+    if (!important && this.fxBudgetCount101 + weight > maxBurst) return false;
+    this.fxBudgetCount101 += weight;
+    return true;
+  }
+
   private placeEntity(entity: Container, x: number, y: number) {
     const pos = isoToScreen(x, y);
     entity.position.set(pos.x, pos.y + 6);
@@ -4092,6 +4161,7 @@ export class SolGame {
 
 
   private spawnRunDust(fast: boolean) {
+    if (!this.shouldSpawnFx101(1, false)) return;
     const pos = isoToScreen(this.save.x, this.save.y);
     const dust = new Graphics();
     const count = fast ? 4 : 3;
@@ -4220,6 +4290,7 @@ export class SolGame {
   }
 
   private healPulse(x: number, y: number) {
+    if (!this.shouldSpawnFx101(2, true)) return;
     const pos = isoToScreen(x, y);
     const pulse = new Graphics().circle(0, 0, 20).stroke({ color: 0x8dffb3, alpha: 0.8, width: 3 });
     pulse.position.set(pos.x, pos.y - 34);
@@ -4231,6 +4302,7 @@ export class SolGame {
   }
 
   private skillBurstEffect(x: number, y: number, color: number, radius: number, crit: boolean, skillId = '') {
+    if (!this.shouldSpawnFx101(crit ? 5 : 4, crit)) return;
     const pos = isoToScreen(x, y);
     const burst = new Container();
     burst.position.set(pos.x, pos.y - 22);
@@ -4313,6 +4385,7 @@ export class SolGame {
 
 
   private combatMotionAccent(mob: WorldMob, color: number, strong: boolean) {
+    if (!this.shouldSpawnFx101(strong ? 3 : 2, strong)) return;
     const start = isoToScreen(this.save.x, this.save.y);
     const end = isoToScreen(mob.x, mob.y);
     const streak = new Graphics()
@@ -4332,6 +4405,7 @@ export class SolGame {
   }
 
   private rareDropFlare(x: number, y: number, rarity: string) {
+    if (!this.shouldSpawnFx101(4, true)) return;
     const color = rarity === 'UR' ? 0xffd15f : 0x9c80ff;
     const pos = isoToScreen(x, y);
     const flare = new Container();
@@ -4359,6 +4433,7 @@ export class SolGame {
   }
 
   private soulReleaseEffect(x: number, y: number, color: number) {
+    if (!this.shouldSpawnFx101(3, false)) return;
     const pos = isoToScreen(x, y);
     const container = new Container();
     container.position.set(pos.x, pos.y - 42);
@@ -4380,6 +4455,7 @@ export class SolGame {
 
   private impactBurst(x: number, y: number, color: number, strong: boolean) {
     if (!strong && this.time - this.lastMinorImpactAt < 0.10) return;
+    if (!this.shouldSpawnFx101(strong ? 4 : 2, strong)) return;
     if (!strong) this.lastMinorImpactAt = this.time;
     const pos = isoToScreen(x, y);
     const container = new Container();
@@ -4429,7 +4505,9 @@ export class SolGame {
 
   private floatText(text: string, x: number, y: number, color: number) {
     if (!this.app) return;
-    if (this.localStorageFlag099('soul-online-field-lite-100') && this.fxLayer.children.length > 34 && !text.includes('CRIT')) return;
+    const important101 = text.includes('CRIT') || text.includes('MISS') || text.includes('회피');
+    if (this.localStorageFlag099('soul-online-field-lite-100') && this.fxLayer.children.length > 34 && !important101) return;
+    if (!this.shouldSpawnFx101(1, important101)) return;
     const pos = isoToScreen(x, y);
     const label = new Text({
       text,
@@ -4452,6 +4530,7 @@ export class SolGame {
   }
 
   private screenShake() {
+    if (this.isFieldLite101()) return;
     document.body.classList.remove('screen-shake');
     void document.body.offsetWidth;
     document.body.classList.add('screen-shake');
@@ -4459,7 +4538,7 @@ export class SolGame {
   }
 
   private hitStop(duration: number) {
-    if (!this.app) return;
+    if (!this.app || this.isFieldLite101()) return;
     window.clearTimeout(this.hitStopTimer);
     this.app.ticker.speed = 0.18;
     this.hitStopTimer = window.setTimeout(() => {
@@ -4469,7 +4548,7 @@ export class SolGame {
 
   private animate(duration: number, onUpdate: (t: number) => void, onDone?: () => void) {
     if (!this.app) return;
-    if (this.localStorageFlag099('soul-online-field-lite-100')) duration = Math.max(0.08, duration * 0.82);
+    if (this.isFieldLite101()) duration = Math.max(0.07, duration * 0.72);
     let elapsed = 0;
     const tick = (ticker: { deltaMS: number }) => {
       elapsed += ticker.deltaMS / 1000;

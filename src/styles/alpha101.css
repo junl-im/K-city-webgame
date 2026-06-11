@@ -1,0 +1,151 @@
+:root {
+  --so-panel-blur-101: 10px;
+  --so-field-fx-scale: 1;
+  --so-ink-deep-101: #10264a;
+  --so-ink-soft-101: #eaf6ff;
+  --so-hud-dark-101: rgba(10, 22, 44, 0.78);
+  --so-hud-gold-101: #ffe4a0;
+  --so-hud-aqua-101: #8ee8ff;
+  --so-hud-rose-101: #ff9fbc;
+}
+
+body.fantasy-ui-101 {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+body.fantasy-ui-101 .field-hud-shell-100,
+body.fantasy-ui-101 .target-card,
+body.fantasy-ui-101 .field-quest-tracker,
+body.fantasy-ui-101 .combat-log,
+body.fantasy-ui-101 .field-minimap,
+body.fantasy-ui-101 .potion-dock,
+body.fantasy-ui-101 .skill-dock,
+body.fantasy-ui-101 .attack-button,
+body.fantasy-ui-101 .joystick {
+  contain: layout paint style;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+body.fantasy-ui-101 .field-hud-shell-100 {
+  color: var(--so-ink-soft-101);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+}
+
+body.fantasy-ui-101 .field-quest-tracker,
+body.fantasy-ui-101 .target-card,
+body.fantasy-ui-101 .combat-log,
+body.fantasy-ui-101 .field-minimap {
+  background: linear-gradient(145deg, rgba(9, 25, 55, 0.84), rgba(16, 55, 92, 0.66) 52%, rgba(39, 31, 74, 0.70));
+  border: 1px solid rgba(255, 228, 160, 0.48);
+  box-shadow: 0 14px 34px rgba(0, 12, 30, 0.36), inset 0 1px 0 rgba(255,255,255,.18);
+  backdrop-filter: blur(var(--so-panel-blur-101));
+}
+
+body.fantasy-ui-101 .field-quest-tracker b,
+body.fantasy-ui-101 .target-card b,
+body.fantasy-ui-101 .combat-log b {
+  color: #ffffff;
+}
+
+body.fantasy-ui-101 .field-quest-tracker span,
+body.fantasy-ui-101 .target-card span,
+body.fantasy-ui-101 .combat-log p {
+  color: rgba(234, 246, 255, 0.9);
+}
+
+body.fantasy-ui-101 .attack-button {
+  background-image: url('/assets/ui/fantasy/101/attack-prism-101.webp'), radial-gradient(circle at 35% 28%, #fff8d6 0%, #9deaff 24%, #2368c8 58%, #12295b 100%) !important;
+  background-size: cover !important;
+  border-color: rgba(255, 231, 165, 0.72) !important;
+  box-shadow: 0 18px 36px rgba(0, 28, 74, 0.44), 0 0 0 5px rgba(142, 232, 255, 0.12) !important;
+}
+
+body.fantasy-ui-101 .skill-dock button,
+body.fantasy-ui-101 .potion-dock button {
+  background-image: url('/assets/ui/fantasy/101/skill-gem-101.webp'), radial-gradient(circle at 38% 30%, rgba(255,255,255,.92), rgba(142,232,255,.62) 31%, rgba(89,54,177,.76) 72%) !important;
+  background-size: cover !important;
+  border: 1px solid rgba(255, 228, 160, 0.58) !important;
+  box-shadow: 0 12px 24px rgba(0, 20, 50, 0.32) !important;
+}
+
+body.fantasy-ui-101 .joystick {
+  background-image: url('/assets/ui/fantasy/101/joystick-soft-101.webp'), radial-gradient(circle, rgba(255,255,255,.28), rgba(45,90,145,.34) 52%, rgba(9,22,44,.58)) !important;
+  background-size: cover !important;
+}
+
+body.perf-lite-101 .title-orb,
+body.perf-lite-101 .title-hero-rune,
+body.perf-lite-101 .town-art-bloom-081,
+body.perf-lite-101 .town-clean-hub-098::before,
+body.perf-lite-101 .field-vignette-100,
+body.perf-lite-101 .field-combo-ribbon-100 {
+  display: none !important;
+}
+
+body.perf-lite-101 *,
+body.perf-balanced-101 * {
+  animation-duration: calc(var(--so-field-fx-scale) * 1s) !important;
+  scroll-behavior: auto !important;
+}
+
+body.perf-lite-101 .field-hud-shell-100,
+body.perf-lite-101 .target-card,
+body.perf-lite-101 .field-quest-tracker,
+body.perf-lite-101 .combat-log,
+body.perf-lite-101 .field-minimap,
+body.perf-lite-101 .town-clean-hub-098,
+body.perf-lite-101 .sheet-panel,
+body.perf-lite-101 .town-content-panel {
+  backdrop-filter: none !important;
+  box-shadow: 0 8px 20px rgba(0, 12, 28, 0.28) !important;
+}
+
+body.perf-lite-101 .combat-log {
+  max-height: 72px !important;
+  opacity: 0.86;
+}
+
+body.perf-lite-101 .field-quest-tracker {
+  max-width: min(46vw, 210px) !important;
+}
+
+body.perf-lite-101 .skill-dock {
+  gap: 6px !important;
+}
+
+body.perf-lite-101 .skill-dock button {
+  width: clamp(44px, 12vw, 54px) !important;
+  height: clamp(44px, 12vw, 54px) !important;
+}
+
+body.perf-lite-101 .attack-button {
+  width: clamp(74px, 20vw, 92px) !important;
+  height: clamp(74px, 20vw, 92px) !important;
+}
+
+body.field-input-overlap-risk-101 .field-quest-tracker,
+body.field-input-overlap-risk-101 .combat-log {
+  transform: scale(0.92) translateZ(0) !important;
+  transform-origin: top right !important;
+}
+
+@media (max-width: 420px), (max-height: 760px) {
+  body.fantasy-ui-101 .field-quest-tracker {
+    top: calc(env(safe-area-inset-top) + 104px) !important;
+    right: calc(env(safe-area-inset-right) + 10px) !important;
+    max-width: 48vw !important;
+  }
+  body.fantasy-ui-101 .combat-log {
+    left: calc(env(safe-area-inset-left) + 10px) !important;
+    right: auto !important;
+    bottom: calc(env(safe-area-inset-bottom) + 114px) !important;
+    max-width: 46vw !important;
+  }
+  body.fantasy-ui-101 .field-minimap {
+    width: 92px !important;
+    height: 92px !important;
+  }
+}
