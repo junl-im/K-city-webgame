@@ -38,7 +38,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '0.82.0';
+const ALPHA_VERSION = '0.84.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -46,6 +46,16 @@ let townContentOpen = false;
 let townRouteBusy = false;
 type WakeLockHandle = { release: () => Promise<void>; addEventListener?: (type: 'release', listener: () => void) => void };
 let wakeLockHandle: WakeLockHandle | null = null;
+
+
+type ClientIssue = { time: number; type: 'error' | 'promise' | 'ui'; message: string };
+const clientIssues: ClientIssue[] = [];
+let measuredFps = 60;
+let lastFrameMs = performance.now();
+let fpsFrames = 0;
+let fpsWindowMs = performance.now();
+let uiAuditPending = false;
+let lastUiAuditMessage = 'UI 안전 영역 정상';
 
 const root = must('#game-root');
 const titleScreen = must('#titleScreen');
@@ -151,7 +161,7 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-081', 'fantasy-ui-082');
+  document.body.classList.add('fantasy-ui-081', 'fantasy-ui-082', 'fantasy-ui-083', 'fantasy-ui-084');
   await saveService.init();
   await mergeCloudRosterToLocal();
   pendingSave = saveService.loadLocal();
@@ -177,6 +187,7 @@ async function boot() {
   bindExitConfirmModal();
   bindLootPresentation();
   installBrowserCompatibilityMode();
+  installClientDiagnostics();
   renderCharacterSummary();
   renderCharacterSlots();
   updateWorldSummary();
@@ -1374,6 +1385,7 @@ function openSheet(tab: SheetTab) {
     item.classList.toggle('active', (item as HTMLElement).dataset.sheetTab === tab);
   });
   renderSheet();
+  scheduleUiSafetyAudit();
 }
 
 function closeCurrentSheet() {
@@ -1381,6 +1393,7 @@ function closeCurrentSheet() {
   document.body.classList.remove('sheet-open');
   sheet.classList.remove('open');
   sheet.setAttribute('aria-hidden', 'true');
+  scheduleUiSafetyAudit();
 }
 
 function renderSheet() {
@@ -1436,6 +1449,31 @@ function renderSkills(snapshot: Snapshot) {
   return renderSkillGrid(snapshot.save, false);
 }
 
+
+function renderSkillTrainingBoard083(save: PlayerSave, classSkills: SkillDefinition[], townMode: boolean) {
+  const learned = classSkills.filter((skill) => save.learnedSkillIds?.includes(skill.id));
+  const ready = learned.filter((skill) => save.level >= skill.unlockLevel);
+  const upgradeReady = learned.filter((skill) => canUpgradeSkill(save, skill));
+  const totalLevel = learned.reduce((sum, skill) => sum + skillLevel(save, skill.id), 0);
+  const coreSkill = ready[0] || learned[0] || classSkills[0];
+  const shopButton = townMode ? '<button class="wide-action" data-town-content="shop" type="button">스킬북 보러가기</button>' : '';
+  return `
+    <section class="skill-training-board-083" aria-label="스킬 성장 요약">
+      <div class="skill-orb-083"><img src="${skillArtUrl(coreSkill)}" alt="${escapeHtml(coreSkill.name)}" onerror="this.remove()" />${inlineFallbackIcon(coreSkill.hotkey)}</div>
+      <div class="skill-training-copy-083">
+        <span class="panel-kicker">SOUL SKILL TREE</span>
+        <h3>${escapeHtml(classes[save.classId].name)} 스킬 성장</h3>
+        <p>습득 ${learned.length}/${classSkills.length} · 사용 가능 ${ready.length}개 · 숙련 합계 Lv.${totalLevel}</p>
+        <div class="skill-training-meter-083"><i style="width:${Math.min(100, Math.round((learned.length / Math.max(1, classSkills.length)) * 100))}%"></i><em>${upgradeReady.length ? `강화 가능 ${upgradeReady.length}개` : '스킬북/재료 확인'}</em></div>
+      </div>
+      <div class="skill-training-actions-083">
+        ${shopButton}
+        <button class="wide-action primary" ${upgradeReady[0] ? `data-town-upgrade-skill="${upgradeReady[0].id}"` : 'disabled'} type="button">추천 숙련 강화</button>
+      </div>
+    </section>
+  `;
+}
+
 function renderSkillGrid(save: PlayerSave, townMode: boolean) {
   const classSkills = skills.filter((skill) => skill.classId === save.classId);
   const cells = classSkills.map((skill) => {
@@ -1460,7 +1498,8 @@ function renderSkillGrid(save: PlayerSave, townMode: boolean) {
     `;
   });
   return `
-    <div class="slot-toolbar">
+    ${renderSkillTrainingBoard083(save, classSkills, townMode)}
+    <div class="slot-toolbar slot-toolbar-083">
       <span>스킬 슬롯 3x3 · ${classes[save.classId].name}</span>
       <em>숙련 강화로 피해/회복, 쿨타임, MP 효율이 성장합니다.</em>
     </div>
@@ -1922,6 +1961,7 @@ function renderTown(save: PlayerSave | null) {
   renderTownGatePreview(save);
   updateZoneLocks(save);
   if (townContentOpen) renderTownContent();
+  scheduleUiSafetyAudit();
 }
 
 function updateTownLobby070(save: PlayerSave) {
@@ -2078,6 +2118,7 @@ function openTownContent(content: TownContentId) {
   townContentPanel.setAttribute('aria-hidden', 'false');
   syncTownMenuState();
   renderTownContent();
+  scheduleUiSafetyAudit();
 }
 
 function closeTownContentPanel() {
@@ -2087,6 +2128,7 @@ function closeTownContentPanel() {
   townContentPanel.classList.add('hidden');
   townContentPanel.setAttribute('aria-hidden', 'true');
   syncTownMenuState();
+  scheduleUiSafetyAudit();
 }
 
 function renderTownContent() {
@@ -2105,7 +2147,7 @@ function renderTownContent() {
     boss: () => renderTownBoss(pendingSave as PlayerSave),
     quests: () => renderTownQuests(pendingSave as PlayerSave),
     pledge: () => renderTownPledge(pendingSave as PlayerSave),
-    settings: () => renderAutoHuntSettingsPanel(pendingSave as PlayerSave) + renderAudioSettingsPanel('town'),
+    settings: () => renderTechnicalHealthPanel(pendingSave as PlayerSave, 'town') + renderAutoHuntSettingsPanel(pendingSave as PlayerSave) + renderAudioSettingsPanel('town'),
     account: () => renderTownAccount(pendingSave as PlayerSave)
   };
 
@@ -2116,10 +2158,10 @@ function renderTownDrawerNav(active: TownContentId) {
   const buttons = townDrawerOrder
     .map((id) => {
       const meta = townContentMeta[id];
-      return `<button class="town-drawer-tab-080 town-drawer-tab-081 town-drawer-tab-082 ${id === active ? 'active' : ''} ${meta.core ? 'core' : 'more'}" data-town-content="${id}" type="button" aria-pressed="${id === active ? 'true' : 'false'}"><i>${meta.icon}</i><b>${escapeHtml(meta.label)}</b></button>`;
+      return `<button class="town-drawer-tab-080 town-drawer-tab-081 town-drawer-tab-082 town-drawer-tab-083 ${id === active ? 'active' : ''} ${meta.core ? 'core' : 'more'}" data-town-content="${id}" type="button" aria-pressed="${id === active ? 'true' : 'false'}"><i>${meta.icon}</i><b>${escapeHtml(meta.label)}</b></button>`;
     })
     .join('');
-  return `<nav class="town-drawer-tabs-080 town-drawer-tabs-081 town-drawer-tabs-082" aria-label="마을 메뉴 빠른 이동">${buttons}</nav>`;
+  return `<nav class="town-drawer-tabs-080 town-drawer-tabs-081 town-drawer-tabs-082 town-drawer-tabs-083" aria-label="마을 메뉴 빠른 이동">${buttons}</nav>`;
 }
 
 function renderTownFlowAdvisor082(save: PlayerSave, active: TownContentId) {
@@ -2136,20 +2178,20 @@ function renderTownFlowAdvisor082(save: PlayerSave, active: TownContentId) {
     ? `<button class="town-advisor-cta primary" data-town-zone-enter="${zone.id}" type="button">추천 사냥터</button>`
     : `<button class="town-advisor-cta" data-town-content="hunt" type="button">사냥터 보기</button>`;
   return `
-    <section class="town-flow-advisor-082" aria-label="현재 진행 가이드">
-      <div class="town-flow-main-082">
-        <span class="town-flow-eyebrow-082">SOUL ONLINE · v${ALPHA_VERSION}</span>
+    <section class="town-flow-advisor-082 town-flow-advisor-083" aria-label="현재 진행 가이드">
+      <div class="town-flow-main-082 town-flow-main-083">
+        <span class="town-flow-eyebrow-082 town-flow-eyebrow-083">SOUL ONLINE · v${ALPHA_VERSION}</span>
         <h3>${escapeHtml(activeMeta.title)}</h3>
         <p>${quest ? `${escapeHtml(quest.title)} · ${escapeHtml(quest.goalText)}` : '현재 준비된 스토리를 모두 완료했습니다. 카드/장비/보스 루프를 강화하세요.'}</p>
-        <div class="town-flow-progress-082"><i style="width:${percent}%"></i><em>${quest ? `${progress}/${quest.target}` : 'CLEAR'}</em></div>
+        <div class="town-flow-progress-082 town-flow-progress-083"><i style="width:${percent}%"></i><em>${quest ? `${progress}/${quest.target}` : 'CLEAR'}</em></div>
       </div>
-      <div class="town-flow-stats-082">
+      <div class="town-flow-stats-082 town-flow-stats-083">
         <span><b>Lv.${save.level}</b><em>${escapeHtml(classInfo?.name || save.classId)}</em></span>
         <span><b>${formatNumber(powerFromSave(save))}</b><em>전투력</em></span>
         <span><b>${dailyReady}</b><em>보상대기</em></span>
         <span><b>${inventoryUsed}/${inventoryCap}</b><em>가방</em></span>
       </div>
-      <div class="town-flow-actions-082">
+      <div class="town-flow-actions-082 town-flow-actions-083">
         ${zoneAction}
         <button class="town-advisor-cta" data-town-content="story" type="button">스토리</button>
         <button class="town-advisor-cta" data-town-content="inventory" type="button">정비</button>
@@ -2208,7 +2250,7 @@ function renderTownStorySnapshot(save: PlayerSave) {
   if (!quest) {
     townChapterText.textContent = 'STORY CLEAR';
     townStoryTitle.textContent = '현재 챕터 완료';
-    townStoryDesc.textContent = 'Alpha 0.82 스토리를 모두 완료했습니다.';
+    townStoryDesc.textContent = 'Alpha 0.84 스토리를 모두 완료했습니다.';
     townStoryProgress.style.width = '100%';
     townStoryProgressText.textContent = '완료';
     townStoryActionBtn.textContent = '스토리 보기';
@@ -2768,6 +2810,41 @@ function renderTownCards(save: PlayerSave) {
   `;
 }
 
+
+function renderTownLoadoutBoard083(save: PlayerSave) {
+  const slots: EquipmentSlot[] = ['weapon', 'armor', 'relic'];
+  const rows = slots.map((slot) => {
+    const uidValue = save.equipment?.[slot];
+    const instance = uidValue ? save.inventory.find((entry) => entry.uid === uidValue) : null;
+    const def = instance ? items.find((item) => item.id === instance.itemId) : null;
+    const level = uidValue ? save.enhancements?.[uidValue] || 0 : 0;
+    const label = slot === 'weapon' ? '무기' : slot === 'armor' ? '방어구' : '유물';
+    return `<article class="loadout-slot-083 ${def ? `rarity-${def.rarity.toLowerCase()}` : 'empty'}"><span>${label}</span><b>${def ? escapeHtml(def.name) : '비어 있음'}</b><em>${def ? `${def.rarity} · +${level}` : '장착 필요'}</em></article>`;
+  }).join('');
+  const stats = calculateStatsFromSave(save);
+  const equipped = slots.filter((slot) => Boolean(save.equipment?.[slot])).length;
+  const enhanceReady = save.inventory.filter((entry) => canUpgradeItemInstance(save, entry.uid)).length;
+  const shard = materialCount(save, 'soul-shard');
+  const stone = materialCount(save, 'enhance-stone');
+  return `
+    <section class="town-loadout-board-083" aria-label="장비 정비 요약">
+      <div class="loadout-hero-083">
+        <span class="panel-kicker">LOADOUT READY</span>
+        <h3>전투 준비도 ${formatNumber(powerFromSave(save))}</h3>
+        <p>장착 ${equipped}/3 · 강화 가능 ${enhanceReady}개 · 파편 ${shard} · 강화석 ${stone}</p>
+        <div class="loadout-stat-strip-083">
+          <span>HP <b>${stats.hp}</b></span><span>ATK <b>${stats.atk}</b></span><span>DEF <b>${stats.def}</b></span><span>CRIT <b>${Math.round(stats.crit * 100)}%</b></span>
+        </div>
+      </div>
+      <div class="loadout-slots-083">${rows}</div>
+      <div class="loadout-actions-083">
+        <button class="wide-action primary" data-town-content="shop" type="button">상점 보급</button>
+        <button class="wide-action" ${enhanceReady ? '' : 'disabled'} data-town-dismantle-duplicates="true" type="button">중복 분해</button>
+      </div>
+    </section>
+  `;
+}
+
 function renderTownInventory(save: PlayerSave) {
   const stats = calculateStatsFromSave(save);
   return `
@@ -2779,6 +2856,7 @@ function renderTownInventory(save: PlayerSave) {
       <span>ASPD <b>${stats.aspd}</b></span>
       <span>CRIT <b>${Math.round(stats.crit * 100)}%</b></span>
     </div>
+    ${renderTownLoadoutBoard083(save)}
     ${renderEquipmentResonanceSummary(save, true)}
     ${renderEnhancementWorkbench(save)}
     ${renderPotionBeltSummary(save)}
@@ -2970,6 +3048,35 @@ function renderTownSkills(save: PlayerSave) {
   return renderSkillGrid(save, true);
 }
 
+
+function renderShopHero083(save: PlayerSave) {
+  const hp = materialCount(save, 'hp-potion-small') + materialCount(save, 'hp-potion-mid') + materialCount(save, 'hp-potion-high');
+  const mp = materialCount(save, 'mp-potion-small') + materialCount(save, 'mp-potion-mid') + materialCount(save, 'mp-potion-high');
+  const learnedCount = skills.filter((skill) => skill.classId === save.classId && save.learnedSkillIds?.includes(skill.id)).length;
+  return `
+    <section class="shop-hero-083" aria-label="상점 추천 보급">
+      <div>
+        <span class="panel-kicker">LUMINA MARKET</span>
+        <h3>오늘의 전투 보급</h3>
+        <p>보유 골드 ${formatGold(save.gold)} · HP 물약 ${hp}개 · MP 물약 ${mp}개 · 스킬 ${learnedCount}/3</p>
+      </div>
+      <div class="shop-recommend-grid-083">
+        <button ${save.gold < 35 ? 'disabled' : ''} data-town-shop-buy-bulk="hp-potion-small" data-town-shop-count="5" type="button"><b>HP 묶음</b><em>5개 ${formatGold(35)}</em></button>
+        <button ${save.gold < 45 ? 'disabled' : ''} data-town-shop-buy-bulk="mp-potion-small" data-town-shop-count="5" type="button"><b>MP 묶음</b><em>5개 ${formatGold(45)}</em></button>
+        <button data-town-content="inventory" type="button"><b>가방 점검</b><em>장비/강화</em></button>
+      </div>
+    </section>
+  `;
+}
+
+function shopCategory083(def: ItemDefinition) {
+  if (def.type === 'consumable') return '소모품';
+  if (def.type === 'skillbook') return '스킬북';
+  if (def.type === 'material') return '재료';
+  if (def.type === 'weapon' || def.type === 'armor' || def.type === 'relic') return '장비';
+  return '기타';
+}
+
 function renderTownShop(save: PlayerSave) {
   const stock: Array<{ itemId: string; price: number; label: string }> = [
     { itemId: 'hp-potion-small', price: 7, label: 'HP 2% 회복' },
@@ -3002,10 +3109,10 @@ function renderTownShop(save: PlayerSave) {
       const buyLabel = soldOut ? '품절' : save.gold < price ? '골드 부족' : '구매';
       const bulkLabel = def.type === 'skillbook' ? '1회 한정' : `5개 ${formatGold(price * 5)}`;
       return `
-        <article class="shop-row ${soldOut ? 'sold-out' : ''}">
+        <article class="shop-row shop-row-083 ${soldOut ? 'sold-out' : ''} rarity-${def.rarity.toLowerCase()}" data-shop-category="${shopCategory083(def)}">
           <span class="shop-item-art"><img src="${itemArtUrl(def)}" alt="${escapeHtml(def.name)}" onerror="this.remove()" />${inlineFallbackIcon(itemIcon(def.type))}</span>
           <div>
-            <div class="pill-row"><span class="pill">${def.rarity}</span><span class="pill">${label}</span>${soldOut ? '<span class="pill">습득 완료</span>' : ''}</div>
+            <div class="pill-row"><span class="pill">${shopCategory083(def)}</span><span class="pill">${def.rarity}</span><span class="pill">${label}</span>${soldOut ? '<span class="pill">습득 완료</span>' : ''}</div>
             <h3>${escapeHtml(def.name)}</h3>
             <p>${escapeHtml(def.effectText)} · 가격 ${formatGold(price)}</p>
           </div>
@@ -3018,9 +3125,10 @@ function renderTownShop(save: PlayerSave) {
     })
     .join('');
   return `
-    <div class="town-content-note">보유 골드 ${formatGold(save.gold)} · 소모품/재료는 5개 묶음 구매를 지원합니다.</div>
+    ${renderShopHero083(save)}
+    <div class="town-content-note town-content-note-083">보유 골드 ${formatGold(save.gold)} · 소모품/재료는 5개 묶음 구매를 지원합니다.</div>
     ${renderPotionBeltSummary(save)}
-    <div class="shop-list">${rows}</div>
+    <div class="shop-list shop-list-083">${rows}</div>
   `;
 }
 
@@ -3215,6 +3323,7 @@ function renderTownAccount(save: PlayerSave) {
         <button data-town-account-action="save">수동 저장</button>
       </article>
       ${renderLawfulSystemPanel(save)}
+      ${renderTechnicalHealthPanel(save, 'account')}
       ${renderAudioSettingsPanel('town')}
     </div>
   `;
@@ -3461,6 +3570,7 @@ function persistTownSave() {
   refreshCharacterRoster(pendingSave.saveId);
   renderTown(pendingSave);
   renderTownContent();
+  scheduleUiSafetyAudit();
 }
 
 function addInventoryItem(save: PlayerSave, itemId: string, count = 1) {
@@ -3717,6 +3827,116 @@ function delay(ms: number) {
 }
 
 
+
+function installClientDiagnostics() {
+  window.addEventListener('error', (event) => {
+    recordClientIssue('error', event.message || '알 수 없는 런타임 오류');
+  });
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason;
+    recordClientIssue('promise', reason instanceof Error ? reason.message : String(reason || 'Promise 처리 오류'));
+  });
+
+  const tick = (now: number) => {
+    fpsFrames += 1;
+    if (now - fpsWindowMs >= 1000) {
+      measuredFps = Math.max(1, Math.round((fpsFrames * 1000) / Math.max(1, now - fpsWindowMs)));
+      fpsFrames = 0;
+      fpsWindowMs = now;
+      document.body.dataset.fpsState = measuredFps >= 50 ? 'good' : measuredFps >= 32 ? 'watch' : 'low';
+    }
+    lastFrameMs = now;
+    window.requestAnimationFrame(tick);
+  };
+  window.requestAnimationFrame(tick);
+  window.addEventListener('resize', scheduleUiSafetyAudit);
+  window.addEventListener('orientationchange', scheduleUiSafetyAudit);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) scheduleUiSafetyAudit();
+  });
+}
+
+function recordClientIssue(type: ClientIssue['type'], message: string) {
+  const text = String(message || '').slice(0, 180);
+  if (!text) return;
+  clientIssues.unshift({ time: Date.now(), type, message: text });
+  clientIssues.splice(5);
+}
+
+function scheduleUiSafetyAudit() {
+  if (uiAuditPending) return;
+  uiAuditPending = true;
+  window.requestAnimationFrame(() => {
+    uiAuditPending = false;
+    runUiSafetyAudit();
+  });
+}
+
+function runUiSafetyAudit() {
+  const width = window.innerWidth || document.documentElement.clientWidth || 0;
+  const height = window.innerHeight || document.documentElement.clientHeight || 0;
+  if (!width || !height) return;
+  const targets = Array.from(document.querySelectorAll<HTMLElement>([
+    '.town-master-lobby-074',
+    '.town-drawer:not(.hidden)',
+    '.sheet.open',
+    '.hud-top',
+    '.resource-strip',
+    '.field-minimap',
+    '.field-quest-tracker',
+    '.combat-log',
+    '.action-dock',
+    '.joystick',
+    '.item-detail-modal:not(.hidden) .item-detail-card'
+  ].join(',')));
+  const visibleTargets = targets.filter((node) => {
+    const style = window.getComputedStyle(node);
+    const rect = node.getBoundingClientRect();
+    return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 2 && rect.height > 2;
+  });
+  const overflow = visibleTargets.find((node) => {
+    const rect = node.getBoundingClientRect();
+    return rect.left < -2 || rect.top < -2 || rect.right > width + 2 || rect.bottom > height + 2;
+  });
+  const hasOverflow = Boolean(overflow);
+  document.body.classList.toggle('ui-overflow-risk', hasOverflow);
+  lastUiAuditMessage = hasOverflow ? `화면 이탈 감지: ${overflow?.className.toString().slice(0, 48) || 'UI'}` : 'UI 안전 영역 정상';
+  if (hasOverflow) recordClientIssue('ui', lastUiAuditMessage);
+}
+
+function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') {
+  const cloud = saveService.getCloudWriteStatus();
+  const fpsState = measuredFps >= 50 ? '양호' : measuredFps >= 32 ? '주의' : '낮음';
+  const viewport = `${window.innerWidth || 0}×${window.innerHeight || 0}`;
+  const memoryInfo = (performance as Performance & { memory?: { usedJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
+  const memoryText = memoryInfo ? `${Math.round(memoryInfo.usedJSHeapSize / 1048576)}MB / ${Math.round(memoryInfo.jsHeapSizeLimit / 1048576)}MB` : '브라우저 미지원';
+  const issueRows = clientIssues.length
+    ? clientIssues.map((issue) => `<li><b>${issue.type.toUpperCase()}</b><span>${escapeHtml(issue.message)}</span></li>`).join('')
+    : '<li><b>OK</b><span>이번 세션에서 감지된 런타임 오류 없음</span></li>';
+  const inventoryPressure = save.inventory.length >= 60 ? '주의' : '정상';
+  const cloudState = cloud.paused ? '보류' : saveService.isOnline() ? '온라인' : '로컬';
+  return `
+    <section class="tech-health-panel-084 ${mode}" aria-label="기술 상태 점검">
+      <div class="tech-health-head-084">
+        <span class="panel-kicker">TECH HEALTH · v${ALPHA_VERSION}</span>
+        <h3>연결성·성능·UI 안전 점검</h3>
+        <p>모바일 웹/PWA에서 화면 이탈, 프레임 저하, 저장 상태를 계속 확인합니다.</p>
+      </div>
+      <div class="tech-health-grid-084">
+        <article class="${measuredFps < 32 ? 'danger' : measuredFps < 50 ? 'warn' : 'ok'}"><b>${measuredFps}</b><em>FPS ${fpsState}</em></article>
+        <article class="${cloud.paused ? 'warn' : 'ok'}"><b>${escapeHtml(cloudState)}</b><em>저장 연결</em></article>
+        <article class="${document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok'}"><b>${document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상'}</b><em>${escapeHtml(lastUiAuditMessage)}</em></article>
+        <article class="${save.inventory.length >= 60 ? 'warn' : 'ok'}"><b>${save.inventory.length}/64</b><em>가방 ${inventoryPressure}</em></article>
+      </div>
+      <div class="tech-health-meta-084">
+        <span>화면 ${viewport}</span><span>메모리 ${escapeHtml(memoryText)}</span><span>캐릭터 ${escapeHtml(save.saveId.slice(-6))}</span>
+      </div>
+      ${cloud.lastError ? `<p class="tech-health-error-084">최근 클라우드 오류: ${escapeHtml(cloud.lastError)}</p>` : ''}
+      <ul class="tech-health-issues-084">${issueRows}</ul>
+    </section>
+  `;
+}
+
 function bindDetailModal() {
   closeItemDetail.addEventListener('click', closeDetailModal);
   itemDetailModal.addEventListener('click', (event) => {
@@ -3758,6 +3978,7 @@ function openDetailModal(options: { eyebrow: string; title: string; desc: string
   itemDetailStats.innerHTML = options.stats;
   itemDetailVisual.innerHTML = options.visual;
   itemDetailActions.innerHTML = options.actions || '';
+  itemDetailModal.classList.add('item-detail-modal-083');
   itemDetailModal.classList.remove('hidden');
   itemDetailModal.setAttribute('aria-hidden', 'false');
 }
@@ -3977,13 +4198,14 @@ function normalizeLootPresentation(detail: LootPresentation): LootPresentation {
 function showLootPresentation(detail: LootPresentation) {
   const rarity = (detail.rarity || (detail.type === 'gold' ? 'R' : detail.type === 'gem' ? 'SR' : 'N')).toLowerCase();
   const el = document.createElement('div');
-  el.className = `loot-pop loot-${rarity}`;
+  el.className = `loot-pop loot-pop-083 loot-${rarity}`;
   const art = detail.art
     ? `<span class="loot-art"><img src="${detail.art}" alt="${escapeHtml(detail.title)}" onerror="this.remove()" /></span>`
     : `<span class="loot-art loot-art-fallback">${detail.type === 'gold' ? '金' : detail.type === 'gem' ? '魂' : '★'}</span>`;
   el.innerHTML = `
+    <span class="loot-rune-083"></span>
     ${art}
-    <span class="loot-copy"><b>${escapeHtml(detail.title)}</b><em>${escapeHtml(detail.subtitle || lootSubtitle(detail))}</em></span>
+    <span class="loot-copy"><b>${escapeHtml(detail.title)}${detail.amount ? ` x${formatNumber(detail.amount)}` : ''}</b><em>${escapeHtml(detail.subtitle || lootSubtitle(detail))}</em></span>
   `;
   document.body.appendChild(el);
   window.setTimeout(() => el.classList.add('show'), 20);

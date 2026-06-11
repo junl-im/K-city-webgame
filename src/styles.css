@@ -24049,7 +24049,7 @@ body.field-active.fantasy-ui-081 button:active {
   }
 }
 
-/* Alpha 0.82: Soul Online brand cleanup, fantasy UI polish, and strict mobile safe-frame pass. */
+/* Alpha 0.83: Soul Online brand cleanup, fantasy UI polish, and strict mobile safe-frame pass. */
 :root {
   --soul-082-safe-t: var(--soul-081-safe-t, max(10px, env(safe-area-inset-top)));
   --soul-082-safe-r: var(--soul-081-safe-r, max(10px, env(safe-area-inset-right)));
@@ -24913,5 +24913,845 @@ body.fantasy-ui-082 .sheet-body {
   body.fantasy-ui-082 #game-root {
     height: 100svh !important;
     max-height: 100svh !important;
+  }
+}
+
+/* Alpha 0.83: inner menu unification, reward presentation, and mobile overflow hardening. */
+body.fantasy-ui-083 {
+  --soul-083-safe-t: var(--soul-082-safe-t, max(10px, env(safe-area-inset-top)));
+  --soul-083-safe-r: var(--soul-082-safe-r, max(10px, env(safe-area-inset-right)));
+  --soul-083-safe-b: var(--soul-082-safe-b, max(10px, env(safe-area-inset-bottom)));
+  --soul-083-safe-l: var(--soul-082-safe-l, max(10px, env(safe-area-inset-left)));
+  --soul-083-ink: #082452;
+  --soul-083-ink-soft: rgba(8, 36, 82, .72);
+  --soul-083-blue: #0f6fdc;
+  --soul-083-blue-deep: #073d91;
+  --soul-083-sky: #58dcff;
+  --soul-083-gold: #ffe7a8;
+  --soul-083-gold-deep: #ad711f;
+  --soul-083-card: rgba(255,255,255,.91);
+  --soul-083-card-soft: rgba(226,247,255,.76);
+  --soul-083-line: rgba(255,231,168,.72);
+  --soul-083-line-blue: rgba(61,148,230,.25);
+  --soul-083-shadow: 0 20px 48px rgba(0, 58, 128, .18), inset 0 1px 0 rgba(255,255,255,.88);
+}
+
+body.fantasy-ui-083,
+body.fantasy-ui-083 #app,
+body.fantasy-ui-083 #game-root {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  overflow: hidden !important;
+}
+
+body.fantasy-ui-083 * { box-sizing: border-box !important; }
+
+.title-screen-083 .title-mini-nav span:last-child::after {
+  content: ' · UI kit 083';
+  opacity: .78;
+}
+
+body.fantasy-ui-083 .town-drawer:not(.hidden),
+body.fantasy-ui-083 .sheet.open,
+body.fantasy-ui-083 .item-detail-card {
+  outline: 1px solid rgba(255,255,255,.44) !important;
+  outline-offset: -3px !important;
+}
+
+body.fantasy-ui-083 .town-drawer:not(.hidden) {
+  border-radius: 28px !important;
+  background:
+    radial-gradient(circle at 16% 0%, rgba(88,220,255,.22), transparent 36%),
+    linear-gradient(180deg, rgba(255,255,255,.94), rgba(226,247,255,.82)) !important;
+}
+
+body.fantasy-ui-083 .town-drawer-body {
+  display: grid !important;
+  gap: 12px !important;
+  padding-bottom: calc(var(--soul-083-safe-b) + 10px) !important;
+  overflow-x: hidden !important;
+}
+
+body.fantasy-ui-083 .town-drawer-tab-083 {
+  min-height: 48px !important;
+  border-radius: 17px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(218,243,255,.78)) !important;
+}
+
+body.fantasy-ui-083 .town-drawer-tab-083.active {
+  color: #fff !important;
+  background: linear-gradient(180deg, var(--soul-083-sky), var(--soul-083-blue) 58%, var(--soul-083-blue-deep)) !important;
+  box-shadow: 0 10px 24px rgba(15,111,220,.28), inset 0 1px 0 rgba(255,255,255,.42) !important;
+}
+
+body.fantasy-ui-083 .town-flow-advisor-083 {
+  border-radius: 24px !important;
+  border: 1px solid var(--soul-083-line) !important;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.95), rgba(225,247,255,.80)),
+    url('/assets/ui/fantasy/frames/banner-reference-081.webp') center/cover no-repeat !important;
+  box-shadow: var(--soul-083-shadow) !important;
+}
+
+body.fantasy-ui-083 .town-flow-eyebrow-083 { color: var(--soul-083-blue) !important; }
+body.fantasy-ui-083 .town-flow-main-083 h3,
+body.fantasy-ui-083 .town-flow-main-083 p { color: var(--soul-083-ink) !important; }
+
+body.fantasy-ui-083 .town-flow-progress-083 {
+  background: rgba(8,36,82,.12) !important;
+  border: 1px solid rgba(255,255,255,.72) !important;
+}
+
+body.fantasy-ui-083 .town-flow-progress-083 i {
+  background: linear-gradient(90deg, var(--soul-083-sky), var(--soul-083-blue), var(--soul-083-gold)) !important;
+}
+
+.town-loadout-board-083,
+.skill-training-board-083,
+.shop-hero-083 {
+  position: relative !important;
+  display: grid !important;
+  gap: 12px !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  padding: 14px !important;
+  border-radius: 24px !important;
+  border: 1px solid var(--soul-083-line) !important;
+  background:
+    radial-gradient(circle at 96% 6%, rgba(255,231,168,.42), transparent 26%),
+    linear-gradient(180deg, var(--soul-083-card), var(--soul-083-card-soft)) !important;
+  box-shadow: var(--soul-083-shadow) !important;
+  overflow: hidden !important;
+}
+
+.town-loadout-board-083::before,
+.skill-training-board-083::before,
+.shop-hero-083::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.42), transparent) !important;
+  transform: translateX(-80%) skewX(-18deg) !important;
+  opacity: .42 !important;
+}
+
+.loadout-hero-083,
+.skill-training-copy-083,
+.shop-hero-083 > div:first-child {
+  position: relative !important;
+  z-index: 1 !important;
+  min-width: 0 !important;
+}
+
+.loadout-hero-083 h3,
+.skill-training-copy-083 h3,
+.shop-hero-083 h3 {
+  margin: 2px 0 4px !important;
+  color: var(--soul-083-ink) !important;
+  font-size: clamp(18px, 4.8vw, 24px) !important;
+  letter-spacing: -.02em !important;
+}
+
+.loadout-hero-083 p,
+.skill-training-copy-083 p,
+.shop-hero-083 p {
+  margin: 0 !important;
+  color: var(--soul-083-ink-soft) !important;
+  line-height: 1.35 !important;
+}
+
+.loadout-stat-strip-083,
+.loadout-slots-083,
+.loadout-actions-083,
+.skill-training-actions-083,
+.shop-recommend-grid-083 {
+  position: relative !important;
+  z-index: 1 !important;
+  min-width: 0 !important;
+}
+
+.loadout-stat-strip-083 {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+  margin-top: 10px !important;
+}
+
+.loadout-stat-strip-083 span,
+.loadout-slot-083,
+.shop-recommend-grid-083 button {
+  min-width: 0 !important;
+  padding: 9px !important;
+  border-radius: 17px !important;
+  border: 1px solid rgba(73,152,228,.20) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(222,244,255,.66)) !important;
+  color: var(--soul-083-ink-soft) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8) !important;
+}
+
+.loadout-stat-strip-083 span,
+.loadout-slot-083 b,
+.loadout-slot-083 em,
+.shop-recommend-grid-083 b,
+.shop-recommend-grid-083 em {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.loadout-stat-strip-083 b,
+.loadout-slot-083 b,
+.shop-recommend-grid-083 b {
+  display: block !important;
+  color: var(--soul-083-ink) !important;
+}
+
+.loadout-slots-083 {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.loadout-slot-083 {
+  display: grid !important;
+  gap: 2px !important;
+  text-align: left !important;
+}
+
+.loadout-slot-083 span,
+.loadout-slot-083 em,
+.shop-recommend-grid-083 em {
+  display: block !important;
+  font-size: 11px !important;
+  font-style: normal !important;
+  color: var(--soul-083-ink-soft) !important;
+}
+
+.loadout-slot-083.rarity-sr,
+.loadout-slot-083.rarity-ssr,
+.loadout-slot-083.rarity-ur {
+  border-color: rgba(255,205,103,.58) !important;
+  background: linear-gradient(180deg, rgba(255,247,220,.95), rgba(226,244,255,.74)) !important;
+}
+
+.loadout-actions-083,
+.skill-training-actions-083 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+}
+
+.skill-training-board-083 {
+  grid-template-columns: auto minmax(0, 1fr) minmax(120px, .42fr) !important;
+  align-items: center !important;
+}
+
+.skill-orb-083 {
+  position: relative !important;
+  z-index: 1 !important;
+  display: grid !important;
+  place-items: center !important;
+  width: clamp(72px, 19vw, 92px) !important;
+  height: clamp(72px, 19vw, 92px) !important;
+  border-radius: 50% !important;
+  border: 2px solid var(--soul-083-line) !important;
+  background: radial-gradient(circle at 35% 20%, #fff, #8fe9ff 35%, #0f6fdc 74%) !important;
+  box-shadow: 0 12px 26px rgba(15,111,220,.28), inset 0 2px 0 rgba(255,255,255,.72) !important;
+  overflow: hidden !important;
+}
+
+.skill-orb-083 img {
+  width: 78% !important;
+  height: 78% !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 8px 10px rgba(0,0,0,.22)) !important;
+}
+
+.skill-training-meter-083 {
+  position: relative !important;
+  height: 20px !important;
+  margin-top: 8px !important;
+  border-radius: 999px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255,255,255,.78) !important;
+  background: rgba(8,36,82,.12) !important;
+}
+
+.skill-training-meter-083 i {
+  position: absolute !important;
+  inset: 0 auto 0 0 !important;
+  border-radius: inherit !important;
+  background: linear-gradient(90deg, #68e5ff, #1275dc, #ffe7a8) !important;
+}
+
+.skill-training-meter-083 em {
+  position: relative !important;
+  z-index: 1 !important;
+  display: block !important;
+  padding: 2px 8px !important;
+  color: #fff !important;
+  font-size: 11px !important;
+  font-style: normal !important;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 4px rgba(0,0,0,.36) !important;
+}
+
+.shop-hero-083 {
+  grid-template-columns: minmax(0, 1fr) minmax(180px, .72fr) !important;
+  align-items: center !important;
+}
+
+.shop-recommend-grid-083 {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.shop-recommend-grid-083 button {
+  border-color: rgba(255,231,168,.62) !important;
+  cursor: pointer !important;
+}
+
+.shop-recommend-grid-083 button:not(:disabled):active {
+  transform: translateY(1px) scale(.99) !important;
+}
+
+body.fantasy-ui-083 .shop-list-083 {
+  display: grid !important;
+  gap: 10px !important;
+  max-width: 100% !important;
+}
+
+body.fantasy-ui-083 .shop-row-083 {
+  position: relative !important;
+  border-radius: 22px !important;
+  border-color: rgba(255,231,168,.64) !important;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255,231,168,.28), transparent 26%),
+    linear-gradient(180deg, rgba(255,255,255,.92), rgba(225,246,255,.76)) !important;
+}
+
+body.fantasy-ui-083 .shop-row-083::before {
+  content: attr(data-shop-category) !important;
+  position: absolute !important;
+  top: 8px !important;
+  right: 9px !important;
+  padding: 2px 7px !important;
+  border-radius: 999px !important;
+  color: var(--soul-083-blue-deep) !important;
+  background: rgba(255,255,255,.66) !important;
+  border: 1px solid rgba(61,148,230,.20) !important;
+  font-size: 9px !important;
+  font-weight: 900 !important;
+}
+
+body.fantasy-ui-083 .shop-row-083 .shop-item-art,
+body.fantasy-ui-083 .item-art,
+body.fantasy-ui-083 .skill-art,
+body.fantasy-ui-083 .card-art {
+  border-radius: 18px !important;
+  border: 1px solid rgba(255,231,168,.66) !important;
+  background: radial-gradient(circle at 35% 25%, rgba(255,255,255,.96), rgba(99,208,255,.38) 50%, rgba(9,70,158,.28)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72), 0 10px 22px rgba(0,66,144,.14) !important;
+}
+
+body.fantasy-ui-083 .inventory-category-section,
+body.fantasy-ui-083 .inventory-quality-board,
+body.fantasy-ui-083 .enhance-workbench-panel,
+body.fantasy-ui-083 .potion-belt-summary,
+body.fantasy-ui-083 .equipment-resonance-panel,
+body.fantasy-ui-083 .slot-cell {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+body.fantasy-ui-083 .inventory-category-head {
+  gap: 8px !important;
+}
+
+body.fantasy-ui-083 .inventory-category-head h3,
+body.fantasy-ui-083 .inventory-category-head span,
+body.fantasy-ui-083 .inventory-category-head em,
+body.fantasy-ui-083 .slot-cell b,
+body.fantasy-ui-083 .slot-cell em,
+body.fantasy-ui-083 .slot-cell small {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+body.fantasy-ui-083 .inventory-category-grid,
+body.fantasy-ui-083 .skill-slot-grid,
+body.fantasy-ui-083 .card-slot-grid {
+  grid-template-columns: repeat(auto-fill, minmax(clamp(88px, 27vw, 126px), 1fr)) !important;
+  gap: 8px !important;
+}
+
+body.fantasy-ui-083 .slot-cell {
+  min-height: 148px !important;
+  padding: 9px !important;
+}
+
+body.fantasy-ui-083 .slot-art {
+  width: clamp(48px, 15vw, 64px) !important;
+  height: clamp(48px, 15vw, 64px) !important;
+  margin-inline: auto !important;
+}
+
+body.fantasy-ui-083 .item-detail-modal:not(.hidden) {
+  display: grid !important;
+  place-items: center !important;
+  padding: calc(var(--soul-083-safe-t) + 10px) var(--soul-083-safe-r) calc(var(--soul-083-safe-b) + 10px) var(--soul-083-safe-l) !important;
+}
+
+body.fantasy-ui-083 .item-detail-card {
+  width: min(94vw, 620px) !important;
+  max-height: min(88dvh, 720px) !important;
+  overflow: auto !important;
+  border-radius: 30px !important;
+  border: 1px solid var(--soul-083-line) !important;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(88,220,255,.30), transparent 32%),
+    linear-gradient(180deg, rgba(255,255,255,.96), rgba(224,246,255,.88)) !important;
+  color: var(--soul-083-ink) !important;
+}
+
+body.fantasy-ui-083 .item-detail-visual {
+  display: grid !important;
+  place-items: center !important;
+  min-height: 160px !important;
+}
+
+body.fantasy-ui-083 .item-detail-copy,
+body.fantasy-ui-083 .item-detail-copy p,
+body.fantasy-ui-083 .item-detail-copy h2 {
+  color: var(--soul-083-ink) !important;
+  max-width: 100% !important;
+}
+
+body.fantasy-ui-083 .item-detail-stats {
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)) !important;
+  max-width: 100% !important;
+}
+
+body.fantasy-ui-083 .item-detail-actions {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(126px, 1fr)) !important;
+  gap: 8px !important;
+}
+
+body.fantasy-ui-083 .loot-pop-083 {
+  left: 50% !important;
+  right: auto !important;
+  bottom: calc(var(--soul-083-safe-b) + 88px) !important;
+  transform: translate(-50%, 24px) scale(.96) !important;
+  width: min(92vw, 430px) !important;
+  min-height: 76px !important;
+  border-radius: 24px !important;
+  border: 1px solid var(--soul-083-line) !important;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(255,255,255,.92), transparent 28%),
+    linear-gradient(135deg, rgba(7, 48, 111, .96), rgba(12, 112, 210, .88)) !important;
+  box-shadow: 0 22px 56px rgba(0, 28, 82, .38), inset 0 1px 0 rgba(255,255,255,.28) !important;
+  color: #fff !important;
+  overflow: hidden !important;
+}
+
+body.fantasy-ui-083 .loot-pop-083.show {
+  transform: translate(-50%, 0) scale(1) !important;
+}
+
+body.fantasy-ui-083 .loot-rune-083 {
+  position: absolute !important;
+  inset: -28px auto auto -20px !important;
+  width: 118px !important;
+  height: 118px !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(255,231,168,.42) !important;
+  opacity: .46 !important;
+  background: repeating-conic-gradient(from 0deg, rgba(255,231,168,.9) 0 8deg, transparent 8deg 16deg) !important;
+  animation: soul-rune-spin-083 5.4s linear infinite !important;
+}
+
+@keyframes soul-rune-spin-083 {
+  to { transform: rotate(360deg); }
+}
+
+body.fantasy-ui-083 .loot-pop-083 .loot-art {
+  position: relative !important;
+  z-index: 1 !important;
+  width: 58px !important;
+  height: 58px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255,231,168,.68) !important;
+  background: radial-gradient(circle at 35% 25%, #fff, rgba(120,220,255,.62), rgba(9,64,142,.52)) !important;
+}
+
+body.fantasy-ui-083 .loot-pop-083 .loot-copy {
+  position: relative !important;
+  z-index: 1 !important;
+  min-width: 0 !important;
+}
+
+body.fantasy-ui-083 .loot-pop-083 .loot-copy b,
+body.fantasy-ui-083 .loot-pop-083 .loot-copy em {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+body.fantasy-ui-083 .loot-pop-083.loot-ssr,
+body.fantasy-ui-083 .loot-pop-083.loot-ur {
+  background:
+    radial-gradient(circle at 84% 16%, rgba(255,235,153,.82), transparent 24%),
+    linear-gradient(135deg, rgba(47,30,117,.96), rgba(13,113,215,.90)) !important;
+}
+
+body.field-active.fantasy-ui-083 .sheet.open {
+  left: var(--soul-083-safe-l) !important;
+  right: var(--soul-083-safe-r) !important;
+  bottom: var(--soul-083-safe-b) !important;
+  width: auto !important;
+  max-width: calc(100vw - var(--soul-083-safe-l) - var(--soul-083-safe-r)) !important;
+}
+
+@media (max-width: 640px) {
+  .skill-training-board-083,
+  .shop-hero-083 {
+    grid-template-columns: 1fr !important;
+  }
+  .skill-orb-083 {
+    justify-self: center !important;
+  }
+  .skill-training-actions-083,
+  .shop-recommend-grid-083,
+  .loadout-actions-083 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 430px) {
+  body.fantasy-ui-083 .town-drawer:not(.hidden) {
+    left: var(--soul-083-safe-l) !important;
+    right: var(--soul-083-safe-r) !important;
+    width: auto !important;
+    max-width: calc(100vw - var(--soul-083-safe-l) - var(--soul-083-safe-r)) !important;
+  }
+  .loadout-stat-strip-083,
+  .loadout-slots-083 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .loadout-slot-083:nth-child(3) {
+    grid-column: 1 / -1 !important;
+  }
+  body.fantasy-ui-083 .inventory-category-grid,
+  body.fantasy-ui-083 .skill-slot-grid,
+  body.fantasy-ui-083 .card-slot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  body.fantasy-ui-083 .slot-cell {
+    min-height: 136px !important;
+  }
+  body.fantasy-ui-083 .shop-row-083 {
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    padding-right: 10px !important;
+  }
+  body.fantasy-ui-083 .shop-row-083::before {
+    display: none !important;
+  }
+}
+
+@media (max-height: 660px) {
+  body.fantasy-ui-083 .town-flow-advisor-083 {
+    padding: 10px !important;
+  }
+  .town-loadout-board-083,
+  .skill-training-board-083,
+  .shop-hero-083 {
+    padding: 10px !important;
+  }
+  body.fantasy-ui-083 .item-detail-card {
+    max-height: min(92dvh, 600px) !important;
+  }
+}
+
+/* Alpha 0.84: technical health, connection safety, and overflow guard pass. */
+:root {
+  --soul-084-safe-t: var(--soul-083-safe-t, var(--soul-082-safe-t, max(10px, env(safe-area-inset-top))));
+  --soul-084-safe-r: var(--soul-083-safe-r, var(--soul-082-safe-r, max(10px, env(safe-area-inset-right))));
+  --soul-084-safe-b: var(--soul-083-safe-b, var(--soul-082-safe-b, max(10px, env(safe-area-inset-bottom))));
+  --soul-084-safe-l: var(--soul-083-safe-l, var(--soul-082-safe-l, max(10px, env(safe-area-inset-left))));
+  --soul-084-ink: #082a58;
+  --soul-084-blue: #126ed7;
+  --soul-084-gold: #ffe7a3;
+  --soul-084-line: rgba(255, 232, 156, .78);
+  --soul-084-panel: rgba(248, 253, 255, .94);
+  --soul-084-shadow: 0 22px 58px rgba(0, 37, 96, .26), inset 0 1px 0 rgba(255,255,255,.82);
+}
+
+body.fantasy-ui-084,
+body.fantasy-ui-084 #app,
+body.fantasy-ui-084 #game-root {
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+body.fantasy-ui-084 * {
+  box-sizing: border-box !important;
+}
+
+body.town-active.fantasy-ui-084 #townScreen > .town-game-lobby-070,
+body.town-active.fantasy-ui-084 #townScreen > .town-premium-lobby-072,
+body.town-active.fantasy-ui-084 #townScreen > .town-topbar,
+body.town-active.fantasy-ui-084 #townScreen > .town-layout,
+body.town-active.fantasy-ui-084 #townScreen > .town-bottom-menu,
+body.town-active.fantasy-ui-084 #townScreen > .town-more-menu.hidden,
+body.town-active.fantasy-ui-084 #townScreen > .town-backdrop .town-hotspot-layer-060 {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  contain: strict !important;
+}
+
+body.fantasy-ui-084 .title-screen-084,
+body.fantasy-ui-084 .login-screen-084,
+body.fantasy-ui-084 .town-screen-084,
+body.fantasy-ui-084 .town-master-lobby-074,
+body.fantasy-ui-084 .town-drawer,
+body.fantasy-ui-084 .sheet.open,
+body.fantasy-ui-084 .item-detail-card {
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+}
+
+body.town-active.fantasy-ui-084 .town-master-lobby-074 {
+  width: min(100vw, 760px) !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  padding: var(--soul-084-safe-t) var(--soul-084-safe-r) var(--soul-084-safe-b) var(--soul-084-safe-l) !important;
+  contain: layout paint style !important;
+}
+
+body.town-active.fantasy-ui-084 .town-master-wallet-074 {
+  left: max(8px, var(--soul-084-safe-l)) !important;
+  right: max(8px, var(--soul-084-safe-r)) !important;
+  max-width: calc(100vw - var(--soul-084-safe-l) - var(--soul-084-safe-r) - 16px) !important;
+}
+
+body.town-active.fantasy-ui-084 .town-master-player-074,
+body.town-active.fantasy-ui-084 .town-master-title-074,
+body.town-active.fantasy-ui-084 .town-master-hotspots-074,
+body.town-active.fantasy-ui-084 .town-master-quest-074,
+body.town-active.fantasy-ui-084 .town-master-hunt-074,
+body.town-active.fantasy-ui-084 .town-master-bottom-074 {
+  max-width: calc(100vw - var(--soul-084-safe-l) - var(--soul-084-safe-r) - 12px) !important;
+}
+
+body.fantasy-ui-084 .town-drawer:not(.hidden) {
+  left: max(10px, var(--soul-084-safe-l)) !important;
+  right: max(10px, var(--soul-084-safe-r)) !important;
+  bottom: max(10px, var(--soul-084-safe-b)) !important;
+  width: auto !important;
+  max-width: calc(100vw - var(--soul-084-safe-l) - var(--soul-084-safe-r) - 20px) !important;
+  max-height: calc(100dvh - var(--soul-084-safe-t) - var(--soul-084-safe-b) - 24px) !important;
+  overflow: hidden !important;
+  contain: layout paint style !important;
+}
+
+body.fantasy-ui-084 .town-drawer-body {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+body.field-active.fantasy-ui-084 .hud-top,
+body.field-active.fantasy-ui-084 .resource-strip,
+body.field-active.fantasy-ui-084 .field-minimap,
+body.field-active.fantasy-ui-084 .field-quest-tracker,
+body.field-active.fantasy-ui-084 .combat-log,
+body.field-active.fantasy-ui-084 .action-dock,
+body.field-active.fantasy-ui-084 .joystick {
+  max-width: calc(100vw - var(--soul-084-safe-l) - var(--soul-084-safe-r)) !important;
+  max-height: calc(100dvh - var(--soul-084-safe-t) - var(--soul-084-safe-b)) !important;
+}
+
+body.fantasy-ui-084.ui-overflow-risk::after {
+  content: "UI SAFE CHECK";
+  position: fixed;
+  z-index: 9999;
+  top: calc(var(--soul-084-safe-t) + 4px);
+  right: calc(var(--soul-084-safe-r) + 6px);
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 221, 133, .9);
+  background: rgba(138, 53, 11, .82);
+  color: #fff7d4;
+  font-size: 10px;
+  font-weight: 900;
+  pointer-events: none;
+  box-shadow: 0 10px 22px rgba(0,0,0,.22);
+}
+
+.tech-health-panel-084 {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  padding: clamp(14px, 3vw, 18px);
+  border: 1px solid var(--soul-084-line);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(116, 224, 255, .32), transparent 28%),
+    linear-gradient(180deg, rgba(255,255,255,.96), rgba(224,246,255,.88));
+  color: var(--soul-084-ink);
+  box-shadow: var(--soul-084-shadow);
+  overflow: hidden;
+}
+
+.tech-health-head-084 h3 {
+  margin: 4px 0 4px;
+  font-size: clamp(18px, 4.6vw, 24px);
+  color: var(--soul-084-ink);
+}
+
+.tech-health-head-084 p,
+.tech-health-meta-084,
+.tech-health-issues-084,
+.tech-health-error-084 {
+  color: rgba(8, 42, 88, .72);
+}
+
+.tech-health-grid-084 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tech-health-grid-084 article {
+  min-width: 0;
+  padding: 10px 8px;
+  border-radius: 18px;
+  border: 1px solid rgba(50, 139, 224, .18);
+  background: rgba(255,255,255,.72);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+.tech-health-grid-084 article.ok { border-color: rgba(80, 194, 137, .35); }
+.tech-health-grid-084 article.warn { border-color: rgba(238, 169, 65, .55); background: rgba(255, 244, 217, .82); }
+.tech-health-grid-084 article.danger { border-color: rgba(231, 86, 86, .58); background: rgba(255, 232, 232, .86); }
+.tech-health-grid-084 b {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: clamp(16px, 4.2vw, 22px);
+  color: #064c9f;
+}
+.tech-health-grid-084 em {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.tech-health-meta-084 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+}
+.tech-health-meta-084 span {
+  max-width: 100%;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(18, 110, 215, .08);
+}
+
+.tech-health-error-084 {
+  margin: 0;
+  padding: 9px 10px;
+  border-radius: 14px;
+  background: rgba(255, 232, 217, .76);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.tech-health-issues-084 {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tech-health-issues-084 li {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 7px 9px;
+  border-radius: 14px;
+  background: rgba(6, 76, 159, .06);
+}
+.tech-health-issues-084 li b {
+  color: #0a64c2;
+  font-size: 11px;
+}
+.tech-health-issues-084 li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+@media (max-width: 540px) {
+  .tech-health-grid-084 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 390px) {
+  body.town-active.fantasy-ui-084 .town-master-wallet-074 {
+    grid-template-columns: 1fr 1fr;
+  }
+  body.town-active.fantasy-ui-084 .town-master-wallet-074 button:nth-child(3) {
+    display: none !important;
+  }
+  .tech-health-panel-084 {
+    padding: 11px;
+    border-radius: 22px;
+  }
+}
+
+@media (max-height: 640px) {
+  body.town-active.fantasy-ui-084 .town-master-title-074 p,
+  body.town-active.fantasy-ui-084 .town-master-quest-074 span,
+  body.town-active.fantasy-ui-084 .town-master-hotspots-074 span {
+    display: none !important;
+  }
+  body.fantasy-ui-084 .town-drawer:not(.hidden) {
+    max-height: calc(100dvh - var(--soul-084-safe-t) - var(--soul-084-safe-b) - 14px) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.fantasy-ui-084 *,
+  body.fantasy-ui-084 *::before,
+  body.fantasy-ui-084 *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
   }
 }
