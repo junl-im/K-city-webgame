@@ -5,6 +5,10 @@ import './styles/alpha089.css';
 import './styles/alpha090.css';
 import './styles/alpha091.css';
 import './styles/alpha092.css';
+import './styles/alpha093.css';
+import './styles/alpha094.css';
+import './styles/alpha095.css';
+import './styles/alpha096.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
@@ -20,6 +24,10 @@ import { ensureTitleEntry090, inspectTitleEntry090, markTitleEntryTransition090,
 import { applyResourceBudgetState091, formatBudgetDelta091, inspectResourceBudget091, installDomImageBudgetPolicy091, shouldUseLiteRender091 } from './ui/assetBudget091';
 import { applyCssBudgetState092, inspectCssBudget092, summarizeCssBudget092 } from './ui/cssBudget092';
 import { inspectEntryRegression092, repairEntryRegressionClasses092 } from './ui/entryRegression092';
+import { installVisualRescue093, syncVisualRoute093 } from './ui/visualRescue093';
+import { installVisualConsolidation094 } from './ui/visualConsolidation094';
+import { installVisualOverhaul095, syncVisualOverhaul095 } from './ui/visualOverhaul095';
+import { installVisualStability096, syncVisualStability096, inspectVisualStability096 } from './ui/visualStability096';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
 import type { AutoHuntSettings, CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
@@ -76,7 +84,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '0.92.0';
+const ALPHA_VERSION = '0.96.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -224,11 +232,15 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-081', 'fantasy-ui-082', 'fantasy-ui-083', 'fantasy-ui-084', 'fantasy-ui-085', 'fantasy-ui-086', 'fantasy-ui-087', 'fantasy-ui-088', 'fantasy-ui-089', 'fantasy-ui-090', 'entry-flow-ready-090');
-  titleScreen.classList.add('title-screen-090');
-  loginScreen.classList.add('login-screen-090');
-  townScreen.classList.add('town-screen-090');
+  document.body.classList.add('fantasy-ui-095', 'visual-overhaul-095', 'visual-overhaul-096', 'entry-flow-ready-090');
+  titleScreen.classList.add('title-screen-095', 'entry-clean-096');
+  loginScreen.classList.add('login-screen-095', 'login-clean-096');
+  townScreen.classList.add('town-screen-095', 'town-clean-096');
   ensureTitleEntry090({ titleScreen, startButton: startGameBtn, loginScreen });
+  installVisualRescue093({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  installVisualConsolidation094({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  installVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  installVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   await saveService.init();
   await mergeCloudRosterToLocal();
   pendingSave = saveService.loadLocal();
@@ -262,6 +274,9 @@ async function boot() {
   renderCharacterSlots();
   updateWorldSummary();
   goStep('login');
+  syncVisualRoute093({ titleScreen, loginScreen, townScreen, gameRoot: root });
+  syncVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  syncVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   ensureTitleEntry090({ titleScreen, startButton: startGameBtn, loginScreen });
   installEntryRegressionGuards092();
   titleEntryLastReport090 = titleEntryHealthLabel090(inspectTitleEntry090(titleScreen, startGameBtn)).label;
@@ -283,6 +298,9 @@ function bindTitleFlow() {
     await withSceneTransition('접속 화면 준비 중', async () => {
       markTitleEntryTransition090({ titleScreen, startButton: startGameBtn, loginScreen });
       goStep('login');
+      syncVisualRoute093({ titleScreen, loginScreen, townScreen, gameRoot: root });
+  syncVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  syncVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
     });
     titleStartBusy090 = false;
   };
@@ -1030,6 +1048,9 @@ async function enterTown(save: PlayerSave, label = '마을로 이동 중') {
     audioService.setScene('town');
     closeTownMoreMenu();
     renderTown(pendingSave);
+    syncVisualRoute093({ titleScreen, loginScreen, townScreen, gameRoot: root });
+  syncVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  syncVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   });
 }
 
@@ -1054,6 +1075,9 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
       closeTownMoreMenu();
       document.body.classList.remove('town-active');
       document.body.classList.add('field-active');
+      syncVisualRoute093({ titleScreen, loginScreen, townScreen, gameRoot: root });
+  syncVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  syncVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
       setFieldZoneHud(zoneId);
 
       if (game) game.destroy();
@@ -1095,6 +1119,9 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
     townScreen.classList.remove('hidden');
     townScreen.setAttribute('aria-hidden', 'false');
     if (pendingSave) renderTown(pendingSave);
+    syncVisualRoute093({ titleScreen, loginScreen, townScreen, gameRoot: root });
+  syncVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  syncVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
     showToast(error instanceof Error ? `사냥터 입장 실패: ${error.message}` : '사냥터 입장 실패');
   }
 }
@@ -4354,6 +4381,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     canUpgradeSkill: (skill) => canUpgradeSkill(save, skill)
   });
   const titleHealth090 = titleEntryHealthLabel090(inspectTitleEntry090(titleScreen, startGameBtn));
+  const visual096 = inspectVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   titleEntryLastReport090 = titleHealth090.label;
   const rows: HealthTile087[] = [
     { label: '브랜드', value: 'Soul Online 고정', level: 'ok' },
@@ -4362,6 +4390,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
     { label: '성능', value: perfHealth.label, level: perfHealth.level },
     { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },
+    { label: '시각 안정화', value: visual096.message, level: visual096.startVisible && visual096.fieldOverflow === 0 ? 'ok' : 'warn', hint: `route ${visual096.route}` },
     { label: '에셋', value: assetHealth.message, level: assetHealth.level },
     { label: '세이브', value: saveHealth.message, level: saveHealth.level },
     { label: '콘텐츠', value: contentHealth.message, level: contentHealth.level, hint: lastContentGraphMessage087 },

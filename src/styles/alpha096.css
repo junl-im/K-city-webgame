@@ -1,0 +1,1003 @@
+:root {
+  --soul-safe-top-096: max(12px, env(safe-area-inset-top));
+  --soul-safe-right-096: max(12px, env(safe-area-inset-right));
+  --soul-safe-bottom-096: max(14px, env(safe-area-inset-bottom));
+  --soul-safe-left-096: max(12px, env(safe-area-inset-left));
+  --soul-ink-096: #09294f;
+  --soul-text-096: #173d68;
+  --soul-muted-096: #5d7493;
+  --soul-blue-096: #0f69bd;
+  --soul-blue-deep-096: #073b73;
+  --soul-blue-dark-096: #051b38;
+  --soul-sky-096: #dff6ff;
+  --soul-gold-096: #dfb45e;
+  --soul-gold-dark-096: #8f6424;
+  --soul-panel-096: rgba(250, 253, 255, 0.94);
+  --soul-panel-soft-096: rgba(236, 249, 255, 0.9);
+  --soul-field-glass-096: rgba(4, 20, 44, 0.82);
+  --soul-line-096: rgba(38, 110, 183, 0.23);
+  --soul-gold-line-096: rgba(224, 179, 92, 0.76);
+  --soul-shadow-096: 0 18px 46px rgba(5, 25, 62, 0.28);
+  --soul-card-shadow-096: 0 10px 26px rgba(8, 41, 86, 0.18);
+  --soul-radius-xl-096: 28px;
+  --soul-radius-lg-096: 20px;
+  --soul-radius-md-096: 14px;
+}
+
+body.visual-overhaul-096,
+body.visual-overhaul-096 #app {
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden !important;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  background: #071b37;
+}
+
+body.visual-overhaul-096 * {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.visual-overhaul-096 #app {
+  position: fixed;
+  inset: 0;
+  max-width: 100vw;
+  max-height: 100dvh;
+  isolation: isolate;
+}
+
+body.visual-overhaul-096 .hidden,
+body.visual-overhaul-096 [inert] {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+body.visual-overhaul-096 .title-screen,
+body.visual-overhaul-096 .login-screen,
+body.visual-overhaul-096 .town-screen {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  padding: var(--soul-safe-top-096) var(--soul-safe-right-096) var(--soul-safe-bottom-096) var(--soul-safe-left-096) !important;
+}
+
+body.visual-overhaul-096:not(.route-title-096) .title-screen,
+body.visual-overhaul-096:not(.route-login-096) .login-screen,
+body.visual-overhaul-096:not(.route-town-096) .town-screen {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+body.visual-overhaul-096.route-title-096 .title-screen,
+body.visual-overhaul-096.route-login-096 .login-screen,
+body.visual-overhaul-096.route-town-096 .town-screen {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: 30 !important;
+}
+
+/* 0.96 title: pure key art, no accidental inventory/town UI behind it. */
+body.visual-overhaul-096 .entry-clean-096 {
+  display: grid !important;
+  place-items: center !important;
+  background:
+    radial-gradient(circle at 50% 52%, rgba(255, 255, 255, 0.08), transparent 36%),
+    linear-gradient(180deg, rgba(10, 78, 144, 0.06), rgba(2, 13, 31, 0.58)),
+    url('/assets/ui/fantasy/096/title-clean-096.webp') center top / cover no-repeat !important;
+  color: #fff !important;
+}
+
+body.visual-overhaul-096 .entry-clean-096::before,
+body.visual-overhaul-096 .entry-clean-096::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+body.visual-overhaul-096 .entry-clean-096::before {
+  background: linear-gradient(180deg, rgba(3, 30, 68, 0.02) 0%, rgba(3, 25, 56, 0.02) 48%, rgba(2, 14, 34, 0.76) 100%);
+}
+
+body.visual-overhaul-096 .entry-clean-096::after {
+  inset: auto 0 0 0;
+  height: 34dvh;
+  background: radial-gradient(ellipse at center, rgba(92, 199, 255, 0.18), transparent 54%);
+}
+
+body.visual-overhaul-096 .entry-clean-096 .title-bg,
+body.visual-overhaul-096 .entry-clean-096 .title-hero,
+body.visual-overhaul-096 .entry-clean-096 .title-copy,
+body.visual-overhaul-096 .entry-clean-096 small {
+  display: none !important;
+}
+
+body.visual-overhaul-096 .entry-clean-096 .title-stage {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  pointer-events: none;
+}
+
+body.visual-overhaul-096 .entry-clean-096 .start-cta-clean-096 {
+  position: absolute !important;
+  left: 50% !important;
+  bottom: max(78px, calc(var(--soul-safe-bottom-096) + 9dvh)) !important;
+  translate: -50% 0 !important;
+  width: min(78vw, 360px) !important;
+  min-height: 62px !important;
+  padding: 0 26px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid rgba(255, 236, 177, 0.98) !important;
+  border-radius: 999px !important;
+  color: #fff !important;
+  font-size: clamp(19px, 5.4vw, 25px) !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.065em !important;
+  text-shadow: 0 2px 8px rgba(0, 30, 74, 0.72) !important;
+  background:
+    linear-gradient(180deg, rgba(124, 224, 255, 0.48), rgba(16, 127, 223, 0.94) 52%, rgba(5, 67, 143, 0.98)),
+    url('/assets/ui/fantasy/096/button-blue-096.webp') center / cover no-repeat !important;
+  box-shadow:
+    0 18px 38px rgba(0, 38, 98, 0.52),
+    0 0 0 5px rgba(75, 187, 255, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -4px 14px rgba(2, 28, 92, 0.36) !important;
+  pointer-events: auto !important;
+  z-index: 3 !important;
+  animation: soulStartPulse096 1.8s ease-in-out infinite;
+}
+
+@keyframes soulStartPulse096 {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.026); filter: brightness(1.12); }
+}
+
+body.visual-overhaul-096 .entry-clean-096 .title-mini-nav {
+  position: absolute !important;
+  left: 50% !important;
+  bottom: max(18px, var(--soul-safe-bottom-096)) !important;
+  translate: -50% 0 !important;
+  width: min(86vw, 390px) !important;
+  min-height: 40px !important;
+  padding: 7px 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  border-radius: 999px !important;
+  color: rgba(244, 252, 255, 0.94) !important;
+  background: rgba(4, 24, 54, 0.62) !important;
+  border: 1px solid rgba(255, 231, 160, 0.42) !important;
+  backdrop-filter: blur(10px) saturate(1.05) !important;
+  box-shadow: 0 12px 30px rgba(0, 17, 48, 0.28) !important;
+  font-size: 11px !important;
+  pointer-events: auto;
+  z-index: 4;
+}
+
+body.visual-overhaul-096 .entry-clean-096 .title-mini-nav button {
+  min-width: 78px !important;
+  min-height: 28px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 239, 180, 0.48) !important;
+  color: #ffffff !important;
+  background: rgba(8, 76, 143, 0.62) !important;
+}
+
+/* Login/server/character: card stack that stays inside mobile viewport. */
+body.visual-overhaul-096 .login-clean-096 {
+  display: grid !important;
+  place-items: center !important;
+  background:
+    linear-gradient(180deg, rgba(237, 249, 255, 0.78), rgba(191, 224, 255, 0.42)),
+    url('/assets/ui/fantasy/096/title-clean-096.webp') center top / cover no-repeat !important;
+}
+
+body.visual-overhaul-096 .login-clean-096 .login-backdrop,
+body.visual-overhaul-096 .login-clean-096 .login-art {
+  display: none !important;
+}
+
+body.visual-overhaul-096 .login-clean-096 .login-panel {
+  width: min(100%, 520px) !important;
+  max-height: calc(100dvh - var(--soul-safe-top-096) - var(--soul-safe-bottom-096) - 18px) !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+  overflow: hidden !important;
+  color: var(--soul-ink-096) !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+body.visual-overhaul-096 .login-clean-096 .login-lore-card,
+body.visual-overhaul-096 .login-clean-096 .login-flow-card {
+  border-radius: 24px !important;
+  border: 1px solid var(--soul-gold-line-096) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(234, 248, 255, 0.92)),
+    url('/assets/ui/fantasy/096/panel-surface-096.webp') center / cover no-repeat !important;
+  box-shadow: var(--soul-card-shadow-096) !important;
+  color: var(--soul-ink-096) !important;
+}
+
+body.visual-overhaul-096 .login-clean-096 .login-lore-card {
+  padding: 16px 18px !important;
+}
+
+body.visual-overhaul-096 .login-clean-096 .login-lore-card h2 {
+  margin: 4px 0 6px !important;
+  color: var(--soul-ink-096) !important;
+  font-size: clamp(20px, 5vw, 28px) !important;
+}
+
+body.visual-overhaul-096 .login-clean-096 .login-lore-card p,
+body.visual-overhaul-096 .login-clean-096 .login-flow-hint,
+body.visual-overhaul-096 .login-clean-096 .login-status {
+  color: var(--soul-text-096) !important;
+}
+
+body.visual-overhaul-096 .login-clean-096 .login-flow-card {
+  padding: 16px !important;
+  max-height: 62dvh !important;
+  overflow: auto !important;
+  overscroll-behavior: contain !important;
+}
+
+body.visual-overhaul-096 .wide-action,
+body.visual-overhaul-096 .story-action-btn,
+body.visual-overhaul-096 .shop-buy-btn,
+body.visual-overhaul-096 .detail-action,
+body.visual-overhaul-096 .enhance-action {
+  min-height: 44px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(214, 170, 82, 0.74) !important;
+  color: #0b315f !important;
+  background: linear-gradient(180deg, #ffffff, #e7f5ff) !important;
+  box-shadow: 0 7px 16px rgba(11, 61, 112, 0.12) !important;
+  font-weight: 850 !important;
+}
+
+body.visual-overhaul-096 .wide-action.primary,
+body.visual-overhaul-096 .story-action-btn,
+body.visual-overhaul-096 .shop-buy-btn.primary,
+body.visual-overhaul-096 .detail-action.primary,
+body.visual-overhaul-096 .enhance-action.primary {
+  color: #ffffff !important;
+  background:
+    linear-gradient(180deg, rgba(76, 190, 255, 0.94), rgba(10, 101, 194, 0.98)),
+    url('/assets/ui/fantasy/096/button-blue-096.webp') center / cover no-repeat !important;
+  text-shadow: 0 2px 5px rgba(0, 30, 76, 0.55) !important;
+}
+
+/* Town: only the 0.74 master lobby is allowed to be the visible mobile lobby. */
+body.visual-overhaul-096 .town-clean-096 {
+  display: block !important;
+  background:
+    linear-gradient(180deg, rgba(235, 249, 255, 0.18), rgba(5, 23, 52, 0.46)),
+    url('/assets/ui/fantasy/096/town-clean-096.webp') center / cover no-repeat !important;
+  color: var(--soul-ink-096) !important;
+}
+
+body.visual-overhaul-096 .town-clean-096 .town-backdrop,
+body.visual-overhaul-096 .town-clean-096 .town-game-lobby-070,
+body.visual-overhaul-096 .town-clean-096 .town-premium-lobby-072,
+body.visual-overhaul-096 .town-clean-096 .town-topbar,
+body.visual-overhaul-096 .town-clean-096 .town-layout,
+body.visual-overhaul-096 .town-clean-096 .town-bottom-menu,
+body.visual-overhaul-096 .town-clean-096 .town-more-menu {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+body.visual-overhaul-096 .town-clean-096 .town-master-lobby-074 {
+  position: absolute !important;
+  inset: var(--soul-safe-top-096) var(--soul-safe-right-096) var(--soul-safe-bottom-096) var(--soul-safe-left-096) !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: calc(100vw - var(--soul-safe-left-096) - var(--soul-safe-right-096)) !important;
+  max-height: calc(100dvh - var(--soul-safe-top-096) - var(--soul-safe-bottom-096)) !important;
+  display: grid !important;
+  grid-template-rows: auto auto 1fr auto !important;
+  gap: 10px !important;
+  overflow: hidden !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+body.visual-overhaul-096 .town-master-header-074,
+body.visual-overhaul-096 .town-master-wallet-074,
+body.visual-overhaul-096 .town-master-stage-074,
+body.visual-overhaul-096 .town-master-bottom-074 {
+  position: relative !important;
+  inset: auto !important;
+  transform: none !important;
+  max-width: 100% !important;
+}
+
+body.visual-overhaul-096 .town-master-header-074 {
+  min-height: 52px !important;
+  padding: 6px 8px !important;
+  display: grid !important;
+  grid-template-columns: 44px 1fr repeat(3, 44px) !important;
+  align-items: center !important;
+  gap: 6px !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(229, 190, 96, 0.68) !important;
+  background: rgba(244, 252, 255, 0.82) !important;
+  backdrop-filter: blur(12px) saturate(1.08) !important;
+  box-shadow: var(--soul-card-shadow-096) !important;
+}
+
+body.visual-overhaul-096 .town-master-brand-074 {
+  min-width: 0 !important;
+  color: var(--soul-blue-deep-096) !important;
+  text-align: center !important;
+}
+
+body.visual-overhaul-096 .town-master-brand-074 b {
+  display: block !important;
+  font-size: 18px !important;
+  letter-spacing: 0.02em !important;
+}
+
+body.visual-overhaul-096 .town-master-brand-074 em {
+  display: block !important;
+  color: var(--soul-muted-096) !important;
+  font-size: 10px !important;
+  font-style: normal !important;
+  letter-spacing: 0.18em !important;
+}
+
+body.visual-overhaul-096 .town-master-icon-074,
+body.visual-overhaul-096 .town-master-wallet-074 button,
+body.visual-overhaul-096 .town-master-bottom-074 button,
+body.visual-overhaul-096 .town-master-hotspots-074 button,
+body.visual-overhaul-096 .town-master-quest-074 button,
+body.visual-overhaul-096 .town-master-hunt-074 {
+  color: var(--soul-ink-096) !important;
+  text-shadow: none !important;
+}
+
+body.visual-overhaul-096 .town-master-icon-074 {
+  width: 44px !important;
+  height: 40px !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(33, 104, 177, 0.2) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(221,242,255,0.84)) !important;
+  box-shadow: 0 6px 14px rgba(12, 62, 111, 0.12) !important;
+}
+
+body.visual-overhaul-096 .town-master-icon-074 span {
+  display: none !important;
+}
+
+body.visual-overhaul-096 .town-master-wallet-074 {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+body.visual-overhaul-096 .town-master-wallet-074 button {
+  min-width: 0 !important;
+  min-height: 38px !important;
+  padding: 6px 8px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(225, 179, 82, 0.72) !important;
+  background: rgba(250, 253, 255, 0.88) !important;
+  box-shadow: 0 8px 18px rgba(10, 54, 106, 0.12) !important;
+  overflow: hidden !important;
+}
+
+body.visual-overhaul-096 .town-master-wallet-074 b {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 12px !important;
+}
+
+body.visual-overhaul-096 .town-master-stage-074 {
+  min-height: 0 !important;
+  padding: 10px !important;
+  display: grid !important;
+  grid-template-rows: auto auto auto 1fr auto !important;
+  gap: 9px !important;
+  overflow: hidden !important;
+  border-radius: 26px !important;
+  border: 1px solid rgba(228, 186, 94, 0.72) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.84), rgba(231,247,255,0.58)),
+    url('/assets/ui/fantasy/096/panel-surface-096.webp') center / cover no-repeat !important;
+  box-shadow: var(--soul-shadow-096) !important;
+  backdrop-filter: blur(10px) saturate(1.08) !important;
+}
+
+body.visual-overhaul-096 .town-master-player-074 {
+  display: grid !important;
+  grid-template-columns: 58px 1fr !important;
+  grid-template-rows: auto auto !important;
+  gap: 6px 10px !important;
+  align-items: center !important;
+  padding: 8px !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,0.7) !important;
+  border: 1px solid rgba(38, 112, 184, 0.18) !important;
+}
+
+body.visual-overhaul-096 .town-master-portrait-074 {
+  grid-row: 1 / span 2 !important;
+  width: 58px !important;
+  height: 58px !important;
+  border-radius: 18px !important;
+  border: 2px solid rgba(224, 178, 84, 0.86) !important;
+  overflow: hidden !important;
+}
+
+body.visual-overhaul-096 .town-master-player-copy-074 b,
+body.visual-overhaul-096 .town-master-title-074 h1 {
+  color: var(--soul-ink-096) !important;
+}
+
+body.visual-overhaul-096 .town-master-player-copy-074 span,
+body.visual-overhaul-096 .town-master-player-copy-074 em,
+body.visual-overhaul-096 .town-master-title-074 p,
+body.visual-overhaul-096 .town-master-hotspots-074 span,
+body.visual-overhaul-096 .town-master-quest-074 span {
+  color: var(--soul-text-096) !important;
+}
+
+body.visual-overhaul-096 .town-master-bars-074 {
+  grid-column: 2 !important;
+  display: grid !important;
+  gap: 4px !important;
+}
+
+body.visual-overhaul-096 .town-master-bars-074 label {
+  display: grid !important;
+  grid-template-columns: 34px 1fr !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: var(--soul-ink-096) !important;
+  font-size: 11px !important;
+}
+
+body.visual-overhaul-096 .town-master-bars-074 span {
+  display: none !important;
+}
+
+body.visual-overhaul-096 .town-master-title-074 {
+  padding: 4px 6px 2px !important;
+}
+
+body.visual-overhaul-096 .town-master-title-074 h1 {
+  margin: 2px 0 2px !important;
+  font-size: clamp(22px, 6vw, 32px) !important;
+}
+
+body.visual-overhaul-096 .town-master-title-074 p {
+  margin: 0 !important;
+  font-size: 12px !important;
+  line-height: 1.42 !important;
+}
+
+body.visual-overhaul-096 .town-master-hotspots-074 {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+  min-height: 0 !important;
+}
+
+body.visual-overhaul-096 .town-master-hotspots-074 button,
+body.visual-overhaul-096 .town-master-quest-074 button {
+  min-width: 0 !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(34, 105, 177, 0.2) !important;
+  background: rgba(255,255,255,0.72) !important;
+  box-shadow: 0 6px 14px rgba(10, 48, 98, 0.1) !important;
+}
+
+body.visual-overhaul-096 .town-master-hotspots-074 button {
+  min-height: 66px !important;
+  padding: 8px 4px !important;
+}
+
+body.visual-overhaul-096 .town-master-hotspots-074 b {
+  display: block !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  color: var(--soul-ink-096) !important;
+  font-size: 12px !important;
+}
+
+body.visual-overhaul-096 .town-master-hotspots-074 span {
+  display: none !important;
+}
+
+body.visual-overhaul-096 .town-master-quest-074 {
+  min-height: 0 !important;
+  display: grid !important;
+  gap: 7px !important;
+  overflow: auto !important;
+  overscroll-behavior: contain !important;
+}
+
+body.visual-overhaul-096 .town-master-quest-074 button {
+  min-height: 48px !important;
+  padding: 9px 12px !important;
+  text-align: left !important;
+}
+
+body.visual-overhaul-096 .town-master-hunt-074 {
+  min-height: 54px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255, 234, 172, 0.92) !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.04em !important;
+  text-shadow: 0 2px 8px rgba(0, 28, 70, 0.62) !important;
+  background:
+    linear-gradient(180deg, rgba(85, 203, 255, 0.94), rgba(8, 100, 194, 0.98)),
+    url('/assets/ui/fantasy/096/button-blue-096.webp') center / cover no-repeat !important;
+  box-shadow: 0 14px 28px rgba(0, 50, 116, 0.28) !important;
+}
+
+body.visual-overhaul-096 .town-master-bottom-074 {
+  height: 62px !important;
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+body.visual-overhaul-096 .town-master-bottom-074 button {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 6px 2px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(226, 180, 88, 0.7) !important;
+  background: rgba(252, 254, 255, 0.9) !important;
+  box-shadow: 0 8px 18px rgba(9, 47, 92, 0.13) !important;
+}
+
+body.visual-overhaul-096 .town-master-bottom-074 b {
+  font-size: 11px !important;
+  color: var(--soul-ink-096) !important;
+}
+
+body.visual-overhaul-096 .town-drawer {
+  position: fixed !important;
+  left: var(--soul-safe-left-096) !important;
+  right: var(--soul-safe-right-096) !important;
+  bottom: var(--soul-safe-bottom-096) !important;
+  top: auto !important;
+  width: auto !important;
+  max-width: 720px !important;
+  max-height: min(74dvh, 680px) !important;
+  margin: 0 auto !important;
+  display: grid !important;
+  grid-template-rows: auto 1fr !important;
+  overflow: hidden !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(225, 180, 86, 0.8) !important;
+  background: rgba(248, 253, 255, 0.96) !important;
+  color: var(--soul-ink-096) !important;
+  box-shadow: 0 22px 60px rgba(2, 20, 55, 0.38) !important;
+  z-index: 80 !important;
+}
+
+body.visual-overhaul-096 .town-drawer.hidden {
+  display: none !important;
+}
+
+body.visual-overhaul-096 .town-drawer-head {
+  min-height: 56px !important;
+  padding: 10px 12px 8px 16px !important;
+  display: grid !important;
+  grid-template-columns: 1fr 44px !important;
+  align-items: center !important;
+  border-bottom: 1px solid rgba(33, 105, 179, 0.16) !important;
+}
+
+body.visual-overhaul-096 .town-drawer-body {
+  min-height: 0 !important;
+  overflow: auto !important;
+  padding: 12px !important;
+  overscroll-behavior: contain !important;
+  color: var(--soul-ink-096) !important;
+}
+
+/* Field combat HUD: never outside screen. */
+body.visual-overhaul-096:not(.route-field-096) .hud-top,
+body.visual-overhaul-096:not(.route-field-096) .resource-strip,
+body.visual-overhaul-096:not(.route-field-096) .target-card,
+body.visual-overhaul-096:not(.route-field-096) .field-quest-tracker,
+body.visual-overhaul-096:not(.route-field-096) .field-chain-meter,
+body.visual-overhaul-096:not(.route-field-096) .field-minimap,
+body.visual-overhaul-096:not(.route-field-096) .combat-log,
+body.visual-overhaul-096:not(.route-field-096) .combat-log-toggle,
+body.visual-overhaul-096:not(.route-field-096) .joystick,
+body.visual-overhaul-096:not(.route-field-096) .potion-dock,
+body.visual-overhaul-096:not(.route-field-096) .skill-dock,
+body.visual-overhaul-096:not(.route-field-096) .action-dock,
+body.visual-overhaul-096:not(.route-field-096) .sheet {
+  display: none !important;
+}
+
+body.visual-overhaul-096.route-field-096 #game-root {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+  z-index: 1 !important;
+  background: #061525 !important;
+}
+
+body.visual-overhaul-096.route-field-096 :is(.hud-top,.resource-strip,.target-card,.field-quest-tracker,.field-chain-meter,.field-minimap,.combat-log,.combat-log-toggle,.joystick,.potion-dock,.skill-dock,.action-dock) {
+  position: fixed !important;
+  z-index: 45 !important;
+  max-width: calc(100vw - var(--soul-safe-left-096) - var(--soul-safe-right-096)) !important;
+  color: #f2fbff !important;
+  border-color: rgba(228, 186, 94, 0.58) !important;
+  background:
+    linear-gradient(180deg, rgba(8, 38, 77, 0.88), rgba(3, 18, 42, 0.82)),
+    url('/assets/ui/fantasy/096/field-hud-glass-096.webp') center / cover no-repeat !important;
+  box-shadow: 0 12px 30px rgba(0, 11, 30, 0.32) !important;
+  backdrop-filter: blur(10px) saturate(1.05) !important;
+}
+
+body.visual-overhaul-096.route-field-096 .hud-top {
+  top: var(--soul-safe-top-096) !important;
+  left: var(--soul-safe-left-096) !important;
+  right: auto !important;
+  width: min(58vw, 330px) !important;
+  min-height: 74px !important;
+  padding: 8px !important;
+  display: grid !important;
+  grid-template-columns: 54px 1fr 38px !important;
+  gap: 8px !important;
+  border-radius: 18px !important;
+}
+
+body.visual-overhaul-096.route-field-096 .hud-top .portrait {
+  width: 54px !important;
+  height: 54px !important;
+}
+
+body.visual-overhaul-096.route-field-096 .resource-strip {
+  top: var(--soul-safe-top-096) !important;
+  right: var(--soul-safe-right-096) !important;
+  left: auto !important;
+  width: min(36vw, 220px) !important;
+  min-height: 42px !important;
+  padding: 7px !important;
+  display: grid !important;
+  gap: 5px !important;
+  border-radius: 16px !important;
+  font-size: 11px !important;
+}
+
+body.visual-overhaul-096.route-field-096 .target-card {
+  top: calc(var(--soul-safe-top-096) + 82px) !important;
+  left: var(--soul-safe-left-096) !important;
+  width: min(54vw, 290px) !important;
+  min-height: 54px !important;
+  padding: 9px 11px !important;
+  border-radius: 16px !important;
+}
+
+body.visual-overhaul-096.route-field-096 .field-minimap {
+  top: calc(var(--soul-safe-top-096) + 58px) !important;
+  right: var(--soul-safe-right-096) !important;
+  width: min(37vw, 176px) !important;
+  height: min(28vw, 150px) !important;
+  min-height: 124px !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+}
+
+body.visual-overhaul-096.route-field-096 .field-quest-tracker {
+  top: calc(var(--soul-safe-top-096) + 216px) !important;
+  right: var(--soul-safe-right-096) !important;
+  width: min(42vw, 210px) !important;
+  min-height: 72px !important;
+  padding: 10px !important;
+  border-radius: 17px !important;
+}
+
+body.visual-overhaul-096.route-field-096 .field-chain-meter {
+  top: calc(var(--soul-safe-top-096) + 146px) !important;
+  left: var(--soul-safe-left-096) !important;
+  width: min(44vw, 220px) !important;
+  min-height: 54px !important;
+  padding: 8px !important;
+  border-radius: 16px !important;
+}
+
+body.visual-overhaul-096.route-field-096 .combat-log {
+  left: var(--soul-safe-left-096) !important;
+  bottom: calc(var(--soul-safe-bottom-096) + 118px) !important;
+  width: min(56vw, 300px) !important;
+  height: min(22dvh, 142px) !important;
+  padding: 10px !important;
+  border-radius: 18px !important;
+  overflow: auto !important;
+}
+
+body.visual-overhaul-096.route-field-096 .combat-log-toggle {
+  left: var(--soul-safe-left-096) !important;
+  bottom: calc(var(--soul-safe-bottom-096) + 268px) !important;
+  width: auto !important;
+  min-height: 34px !important;
+  padding: 0 12px !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+}
+
+body.visual-overhaul-096.route-field-096 .joystick {
+  left: var(--soul-safe-left-096) !important;
+  bottom: calc(var(--soul-safe-bottom-096) + 14px) !important;
+  width: clamp(92px, 25vw, 126px) !important;
+  height: clamp(92px, 25vw, 126px) !important;
+  border-radius: 50% !important;
+}
+
+body.visual-overhaul-096.route-field-096 .potion-dock {
+  left: calc(var(--soul-safe-left-096) + clamp(102px, 28vw, 140px)) !important;
+  bottom: calc(var(--soul-safe-bottom-096) + 22px) !important;
+  width: auto !important;
+  display: grid !important;
+  grid-auto-flow: column !important;
+  gap: 7px !important;
+  padding: 6px !important;
+  border-radius: 999px !important;
+}
+
+body.visual-overhaul-096.route-field-096 .potion-btn,
+body.visual-overhaul-096.route-field-096 .skill-btn,
+body.visual-overhaul-096.route-field-096 .dock-btn {
+  width: clamp(52px, 14.5vw, 66px) !important;
+  height: clamp(52px, 14.5vw, 66px) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(255, 232, 160, 0.76) !important;
+  color: #fff !important;
+  background: linear-gradient(180deg, rgba(35, 132, 217, 0.9), rgba(5, 56, 126, 0.92)) !important;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.42) !important;
+}
+
+body.visual-overhaul-096.route-field-096 .skill-dock {
+  left: 50% !important;
+  right: auto !important;
+  bottom: calc(var(--soul-safe-bottom-096) + 22px) !important;
+  translate: -50% 0 !important;
+  width: auto !important;
+  display: grid !important;
+  grid-auto-flow: column !important;
+  gap: 7px !important;
+  padding: 6px !important;
+  border-radius: 999px !important;
+}
+
+body.visual-overhaul-096.route-field-096 .action-dock {
+  right: var(--soul-safe-right-096) !important;
+  bottom: calc(var(--soul-safe-bottom-096) + 16px) !important;
+  left: auto !important;
+  width: min(32vw, 154px) !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+  padding: 7px !important;
+  border-radius: 20px !important;
+}
+
+body.visual-overhaul-096.route-field-096 .action-dock .primary {
+  grid-row: span 2 !important;
+  width: clamp(72px, 20vw, 94px) !important;
+  height: clamp(72px, 20vw, 94px) !important;
+  background: linear-gradient(180deg, rgba(95, 202, 255, 0.96), rgba(8, 98, 190, 0.98)) !important;
+}
+
+body.visual-overhaul-096.route-field-096 .sheet.open,
+body.visual-overhaul-096.route-field-096 .sheet {
+  position: fixed !important;
+  left: var(--soul-safe-left-096) !important;
+  right: var(--soul-safe-right-096) !important;
+  bottom: var(--soul-safe-bottom-096) !important;
+  top: auto !important;
+  width: auto !important;
+  max-height: min(74dvh, 650px) !important;
+  display: grid !important;
+  grid-template-rows: auto auto 1fr !important;
+  overflow: hidden !important;
+  border-radius: 24px !important;
+  background: rgba(248, 253, 255, 0.96) !important;
+  color: var(--soul-ink-096) !important;
+  z-index: 85 !important;
+}
+
+body.visual-overhaul-096 .sheet:not(.open) {
+  display: none !important;
+}
+
+body.visual-overhaul-096 .sheet-body,
+body.visual-overhaul-096 .item-detail-card,
+body.visual-overhaul-096 .exit-confirm-card {
+  color: var(--soul-ink-096) !important;
+}
+
+body.visual-overhaul-096 .sheet-body {
+  min-height: 0 !important;
+  overflow: auto !important;
+  overscroll-behavior: contain !important;
+}
+
+body.visual-overhaul-096 .item-detail-modal:not(.hidden),
+body.visual-overhaul-096 .exit-confirm-modal:not(.hidden) {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 120 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: var(--soul-safe-top-096) var(--soul-safe-right-096) var(--soul-safe-bottom-096) var(--soul-safe-left-096) !important;
+}
+
+body.visual-overhaul-096 .item-detail-card,
+body.visual-overhaul-096 .exit-confirm-card {
+  width: min(100%, 520px) !important;
+  max-height: calc(100dvh - var(--soul-safe-top-096) - var(--soul-safe-bottom-096) - 18px) !important;
+  overflow: auto !important;
+  border-radius: 24px !important;
+  background: rgba(250, 253, 255, 0.97) !important;
+  border: 1px solid rgba(225, 179, 82, 0.82) !important;
+  box-shadow: 0 24px 70px rgba(0, 14, 42, 0.46) !important;
+}
+
+body.visual-overhaul-096 .close-crystal-096 {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  min-height: 42px !important;
+  padding: 0 !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  color: #0b3767 !important;
+  background: url('/assets/ui/fantasy/096/close-crystal-clean-096.webp') center / contain no-repeat !important;
+  box-shadow: 0 8px 18px rgba(7, 43, 90, 0.18) !important;
+}
+
+body.visual-overhaul-096 .close-crystal-096 .close-crystal-mark-096 {
+  display: grid !important;
+  place-items: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  font-size: 26px !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  color: #0a3768 !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.72) !important;
+}
+
+body.visual-overhaul-096 :is(.town-drawer-body,.sheet-body,.item-detail-card,.exit-confirm-card) :is(h1,h2,h3,b,strong) {
+  color: var(--soul-ink-096) !important;
+}
+
+body.visual-overhaul-096 :is(.town-drawer-body,.sheet-body,.item-detail-card,.exit-confirm-card) :is(p,span,em,small,label) {
+  color: var(--soul-text-096);
+}
+
+@media (max-width: 430px) {
+  body.visual-overhaul-096 .entry-clean-096 .start-cta-clean-096 {
+    width: min(84vw, 330px) !important;
+    min-height: 58px !important;
+    bottom: max(72px, calc(var(--soul-safe-bottom-096) + 8dvh)) !important;
+  }
+  body.visual-overhaul-096 .town-master-header-074 {
+    grid-template-columns: 40px 1fr repeat(3, 40px) !important;
+    min-height: 48px !important;
+  }
+  body.visual-overhaul-096 .town-master-icon-074 {
+    width: 40px !important;
+    height: 38px !important;
+  }
+  body.visual-overhaul-096 .town-master-hotspots-074 {
+    grid-template-columns: repeat(5, minmax(52px, 1fr)) !important;
+    overflow-x: auto !important;
+    padding-bottom: 3px !important;
+  }
+  body.visual-overhaul-096 .town-master-hotspots-074 button {
+    min-width: 58px !important;
+  }
+  body.visual-overhaul-096.route-field-096 .field-quest-tracker {
+    top: calc(var(--soul-safe-top-096) + 182px) !important;
+    right: var(--soul-safe-right-096) !important;
+    width: min(45vw, 168px) !important;
+    min-height: 64px !important;
+  }
+  body.visual-overhaul-096.route-field-096 .combat-log,
+  body.visual-overhaul-096.route-field-096 .combat-log-toggle {
+    display: none !important;
+  }
+  body.visual-overhaul-096.route-field-096 .action-dock {
+    width: min(34vw, 136px) !important;
+  }
+}
+
+@media (max-height: 720px) {
+  body.visual-overhaul-096 .login-clean-096 .login-lore-card {
+    display: none !important;
+  }
+  body.visual-overhaul-096 .town-master-title-074 p,
+  body.visual-overhaul-096 .town-master-quest-074 button:nth-child(n+3) {
+    display: none !important;
+  }
+  body.visual-overhaul-096 .town-master-stage-074 {
+    grid-template-rows: auto auto auto 1fr auto !important;
+    gap: 6px !important;
+  }
+  body.visual-overhaul-096 .town-master-bottom-074 {
+    height: 54px !important;
+  }
+  body.visual-overhaul-096.route-field-096 .target-card,
+  body.visual-overhaul-096.route-field-096 .field-chain-meter {
+    display: none !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 620px) {
+  body.visual-overhaul-096 .entry-clean-096 .start-cta-clean-096 {
+    bottom: max(48px, calc(var(--soul-safe-bottom-096) + 5dvh)) !important;
+  }
+  body.visual-overhaul-096 .town-master-lobby-074 {
+    grid-template-columns: minmax(260px, 0.8fr) minmax(360px, 1.2fr) !important;
+    grid-template-rows: auto 1fr auto !important;
+  }
+  body.visual-overhaul-096 .town-master-wallet-074 {
+    grid-column: 1 !important;
+  }
+  body.visual-overhaul-096 .town-master-stage-074 {
+    grid-column: 2 !important;
+    grid-row: 1 / span 3 !important;
+  }
+  body.visual-overhaul-096 .town-master-bottom-074 {
+    grid-column: 1 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.visual-overhaul-096 .entry-clean-096 .start-cta-clean-096 {
+    animation: none !important;
+  }
+}

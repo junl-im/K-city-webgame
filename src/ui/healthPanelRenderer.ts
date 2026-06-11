@@ -23,9 +23,9 @@ export function renderSystemDoctor087(params: {
   rows: HealthTile087[];
 }) {
   return `
-    <section class="system-doctor-085 system-doctor-086 system-doctor-087 system-doctor-091 system-doctor-092 ${escapeAttr087(params.mode)}" aria-label="0.92 시스템 닥터">
+    <section class="system-doctor-085 system-doctor-086 system-doctor-087 system-doctor-091 system-doctor-092 ${escapeAttr087(params.mode)}" aria-label="0.93 시스템 닥터">
       <div class="system-doctor-head-085">
-        <span class="panel-kicker">SYSTEM DOCTOR · 0.92</span>
+        <span class="panel-kicker">SYSTEM DOCTOR · 0.93</span>
         <h3>문제점·연결성·성능 빠른 점검</h3>
         <p>v${escapeHtml087(params.version)} 기준으로 UI 안전 영역, 세이브, 에셋, 콘텐츠 연결 그래프, 렌더 예산, 스킬 성장 UX, 리소스 예산, CSS 예산, 첫 진입 회귀를 함께 점검합니다.</p>
       </div>

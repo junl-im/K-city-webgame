@@ -1,27 +1,30 @@
-# Soul Online Alpha 0.91 덮어쓰기 패치
+# Soul Online Alpha 0.96
 
-Soul Online 0.91은 첫 화면 안정성을 유지하면서 리소스 예산, 라이트 렌더 모드, PWA 런타임 캐시 정책을 보강하는 성능 안정화 패치입니다.
+모바일 2.5D 웹 MMORPG 프로토타입입니다. 0.96는 UI 진단을 더 붙이는 패치가 아니라, 실제로 보이는 첫 화면/로그인/마을/사냥터 인터페이스를 대규모로 정상화하는 패치입니다.
 
 ## 적용 방법
 
-1. GitHub Desktop에서 현재 상태를 먼저 커밋합니다.
-2. 이 패치 ZIP을 프로젝트 루트에 압축 해제해 덮어씁니다.
-3. `npm install`을 실행합니다.
-4. `npm run build`를 실행합니다.
-5. Firebase Hosting 사용 시 `firebase deploy --only hosting`으로 배포합니다.
+```bash
+npm install
+npm run build
+```
 
-## 0.91 핵심
+Firebase Hosting 배포 시:
 
-- 버전을 `0.91.0`으로 갱신했습니다.
-- PWA 캐시를 `soul-online-alpha-v0-90`으로 갱신했습니다.
-- `src/ui/titleEntry090.ts`를 추가해 첫 화면 표시 상태를 런타임에서 복구/진단합니다.
-- `src/styles/alpha090.css`를 추가해 `TOUCH TO START` 버튼이 화면 밖으로 나가거나 다른 레이어에 가려지지 않도록 보정했습니다.
-- 타이틀 화면 빈 영역 터치도 시작 입력으로 처리하는 fallback을 추가했습니다.
-- System Doctor / Tech Health에 첫 화면 표시 진단을 추가했습니다.
-- 저성능 상태에서 0.91 타이틀 애니메이션을 줄이는 성능 가드를 추가했습니다.
+```bash
+firebase deploy --only hosting
+```
 
-## 검증
+## 0.96 핵심
 
-- `npm run build` 성공
-- TypeScript 검사 통과
-- Vite 빌드 성공
+- 첫 화면: 원화 배경 + 중앙 `TOUCH TO START` 버튼으로 고정
+- 로그인: 서버/캐릭터 선택 플로우를 카드형 모바일 레이아웃으로 재정리
+- 마을: 구형 로비 레이어 차단, 0.74 마스터 로비 기준으로 통합
+- 사냥터: HUD/퀘스트/미니맵/조이스틱/스킬/공격 버튼 safe-area 재배치
+- 닫기 버튼: 크리스탈 이미지 에셋 적용
+- 색 대비: 밝은 UI는 네이비, 어두운 필드 HUD는 흰색/금색 기준
+- PWA 캐시: `soul-online-alpha-v0-96`
+
+## 주의
+
+이 패치는 구형 UI를 완전히 삭제한 것이 아니라, 실제 화면에서 보이지 않게 강하게 정리한 대형 복구 패치입니다. 다음 단계는 CSS/HTML의 구형 레이어를 실제로 제거하는 구조 정리입니다.

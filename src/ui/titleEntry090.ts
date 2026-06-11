@@ -12,11 +12,11 @@ type TitleEntryElements090 = {
 };
 
 export function ensureTitleEntry090({ titleScreen, startButton, loginScreen }: TitleEntryElements090): TitleEntryState090 {
-  titleScreen.classList.add('title-screen-090');
+  titleScreen.classList.add('title-screen-095');
   titleScreen.classList.remove('hidden');
   titleScreen.setAttribute('aria-hidden', 'false');
   titleScreen.dataset.entryReady090 = 'true';
-  startButton.classList.add('start-game-btn-090');
+  startButton.classList.add('start-game-btn-095');
   startButton.type = 'button';
   startButton.disabled = false;
   startButton.removeAttribute('aria-hidden');
