@@ -9,6 +9,22 @@ import type { AutoHuntSettings, CardDefinition, CharacterClassId, CharacterGende
 type FlowStep = 'login' | 'server' | 'character' | 'town';
 type TownContentId = 'hunt' | 'story' | 'cards' | 'inventory' | 'skills' | 'shop' | 'boss' | 'quests' | 'pledge' | 'settings' | 'account';
 
+const townContentMeta: Record<TownContentId, { eyebrow: string; title: string; label: string; icon: string; core?: boolean }> = {
+  hunt: { eyebrow: 'FIELD GATE', title: '사냥터 선택', label: '사냥', icon: '⌁', core: true },
+  inventory: { eyebrow: 'BAG', title: '장비 가방', label: '가방', icon: '▤', core: true },
+  skills: { eyebrow: 'SOUL SKILL', title: '스킬 슬롯', label: '스킬', icon: '✦', core: true },
+  cards: { eyebrow: 'SOUL CODEX', title: '카드 도감', label: '카드', icon: '◆', core: true },
+  story: { eyebrow: 'MAIN STORY', title: '스토리 퀘스트', label: '스토리', icon: '★' },
+  quests: { eyebrow: 'DAILY REQUEST', title: '일일 의뢰', label: '의뢰', icon: '!' },
+  shop: { eyebrow: 'MERCHANT', title: '루미나 상점', label: '상점', icon: '◈' },
+  boss: { eyebrow: 'RAID', title: '월드 보스', label: '보스', icon: '♛' },
+  pledge: { eyebrow: 'BLOOD PLEDGE', title: '혈맹 지휘소', label: '혈맹', icon: '⚑' },
+  settings: { eyebrow: 'AUDIO MIXER', title: '사운드 설정', label: '설정', icon: '♫' },
+  account: { eyebrow: 'ACCOUNT', title: '계정/저장', label: '계정', icon: '◎' }
+};
+
+const townDrawerOrder: TownContentId[] = ['hunt', 'inventory', 'skills', 'cards', 'story', 'quests', 'shop', 'boss', 'pledge', 'settings', 'account'];
+
 const saveService = new SaveService();
 type SolGameInstance = import('./game/SolGame').SolGame;
 let game: SolGameInstance | null = null;
@@ -22,11 +38,12 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '0.78.0';
+const ALPHA_VERSION = '0.82.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
 let townContentOpen = false;
+let townRouteBusy = false;
 type WakeLockHandle = { release: () => Promise<void>; addEventListener?: (type: 'release', listener: () => void) => void };
 let wakeLockHandle: WakeLockHandle | null = null;
 
@@ -134,6 +151,7 @@ boot().catch((error) => {
 });
 
 async function boot() {
+  document.body.classList.add('fantasy-ui-081', 'fantasy-ui-082');
   await saveService.init();
   await mergeCloudRosterToLocal();
   pendingSave = saveService.loadLocal();
@@ -240,7 +258,7 @@ function handleAudioSettingsAction(action: string) {
     void audioService.unlock().then((ok) => showToast(ok ? '오디오 준비 완료' : '이 브라우저는 오디오 잠금 해제가 제한됩니다.'));
   }
   updateAudioButtons();
-  if (townContentOpen && activeTownContent === 'settings') townContentBody.innerHTML = renderAudioSettingsPanel('town');
+  if (townContentOpen && activeTownContent === 'settings') renderTownContent();
   if (sheetOpen && activeSheetTab === 'account') renderSheet();
 }
 
@@ -759,22 +777,28 @@ function bindTownSafeRouting() {
 }
 
 async function routeTownZoneEnter(zoneId: string) {
-  if (!pendingSave) pendingSave = getSelectedCharacter();
-  if (!pendingSave) {
-    showToast('사냥터에 입장할 캐릭터를 선택하세요.');
-    goStep('character');
-    return;
+  if (townRouteBusy || sceneTransition.classList.contains('show')) return;
+  townRouteBusy = true;
+  try {
+    if (!pendingSave) pendingSave = getSelectedCharacter();
+    if (!pendingSave) {
+      showToast('사냥터에 입장할 캐릭터를 선택하세요.');
+      goStep('character');
+      return;
+    }
+    const save = saveService.validateSave(pendingSave);
+    pendingSave = save;
+    if (!isZoneUnlocked(save, zoneId)) {
+      showToast('아직 해금되지 않은 사냥터입니다. 스토리 또는 레벨 조건을 확인하세요.');
+      updateZoneLocks(save);
+      openTownContent('hunt');
+      return;
+    }
+    closeTownContentPanel();
+    await startField(save, zoneId);
+  } finally {
+    townRouteBusy = false;
   }
-  const save = saveService.validateSave(pendingSave);
-  pendingSave = save;
-  if (!isZoneUnlocked(save, zoneId)) {
-    showToast('아직 해금되지 않은 사냥터입니다. 스토리 또는 레벨 조건을 확인하세요.');
-    updateZoneLocks(save);
-    openTownContent('hunt');
-    return;
-  }
-  closeTownContentPanel();
-  await startField(save, zoneId);
 }
 
 function goStep(step: FlowStep) {
@@ -1930,11 +1954,13 @@ function updateTownLobby070(save: PlayerSave) {
   const progress = story ? storyQuestProgress(save, story) : 0;
   const recommended = story ? recommendedZoneForQuest(save, story) : zones[0];
   const daily = dailyQuests[0];
+  const storyReady = Boolean(story && progress >= story.target);
+  const dailyReady = Boolean(daily && questProgress(save, daily.id) >= daily.target && !save.daily.claimedQuestIds.includes(daily.id));
   document.querySelectorAll<HTMLElement>('[data-town-lobby-quest-list]').forEach((questList) => {
     questList.innerHTML = `
-      <button data-town-content="story" type="button"><b>${story ? escapeHtml(story.title) : '메인 스토리'}</b><span>${story ? `${Math.min(progress, story.target)}/${story.target} · ${escapeHtml(story.goalText)}` : '루미나 등불을 확인하세요.'}</span></button>
-      <button data-town-content="quests" type="button"><b>${escapeHtml(daily?.title || '일일 의뢰')}</b><span>${escapeHtml(daily?.description || '오늘의 사냥 보상을 챙기세요.')}</span></button>
-      <button data-zone-id="${escapeHtml(recommended?.id || 'slime-forest')}" type="button"><b>${escapeHtml(recommended?.title || '루미나 숲 초입')}</b><span>Lv.${recommended?.recommendedLevel || 1} · 바로 사냥 시작</span></button>
+      <button class="${storyReady ? 'ready' : 'active'}" data-town-content="story" type="button"><b>${story ? escapeHtml(story.title) : '메인 스토리'}</b><span>${story ? `${Math.min(progress, story.target)}/${story.target} · ${escapeHtml(story.goalText)}` : '루미나 등불을 확인하세요.'}</span></button>
+      <button class="${dailyReady ? 'ready' : ''}" data-town-content="quests" type="button"><b>${escapeHtml(daily?.title || '일일 의뢰')}</b><span>${dailyReady ? '보상 수령 가능' : escapeHtml(daily?.description || '오늘의 사냥 보상을 챙기세요.')}</span></button>
+      <button class="recommended" data-zone-id="${escapeHtml(recommended?.id || 'slime-forest')}" type="button"><b>${escapeHtml(recommended?.title || '루미나 숲 초입')}</b><span>Lv.${recommended?.recommendedLevel || 1} · 바로 사냥 시작</span></button>
     `;
     questList.querySelectorAll<HTMLButtonElement>('[data-town-content]').forEach((button) => {
       button.addEventListener('click', () => openTownContent((button.dataset.townContent || 'story') as TownContentId));
@@ -2025,6 +2051,8 @@ function closeTownMoreMenu() {
 
 function syncTownMenuState() {
   const visible = townContentOpen ? activeTownContent : '';
+  document.body.dataset.townContent = visible;
+  townScreen.dataset.townContent = visible;
   document.querySelectorAll<HTMLElement>('[data-town-content]').forEach((button) => {
     button.classList.toggle('active', button.dataset.townContent === visible);
   });
@@ -2063,32 +2091,71 @@ function closeTownContentPanel() {
 
 function renderTownContent() {
   if (!pendingSave) return;
-  const titles: Record<TownContentId, [string, string]> = {
-    hunt: ['FIELD GATE', '사냥터 선택'],
-    story: ['MAIN STORY', '스토리 퀘스트'],
-    cards: ['SOUL CODEX', '카드 도감'],
-    inventory: ['BAG', '장비 가방'],
-    skills: ['SOUL SKILL', '스킬 슬롯'],
-    shop: ['MERCHANT', '루미나 상점'],
-    boss: ['RAID', '월드 보스'],
-    quests: ['DAILY REQUEST', '일일 의뢰'],
-    pledge: ['BLOOD PLEDGE', '혈맹 지휘소'],
-    settings: ['AUDIO MIXER', '사운드 설정'],
-    account: ['ACCOUNT', '계정/저장']
+  const meta = townContentMeta[activeTownContent];
+  townContentEyebrow.textContent = meta.eyebrow;
+  townContentTitle.textContent = meta.title;
+
+  const contentMap: Record<TownContentId, () => string> = {
+    hunt: () => renderTownHunt(pendingSave as PlayerSave),
+    story: () => renderTownStory(pendingSave as PlayerSave),
+    cards: () => renderTownCards(pendingSave as PlayerSave),
+    inventory: () => renderTownInventory(pendingSave as PlayerSave),
+    skills: () => renderTownSkills(pendingSave as PlayerSave),
+    shop: () => renderTownShop(pendingSave as PlayerSave),
+    boss: () => renderTownBoss(pendingSave as PlayerSave),
+    quests: () => renderTownQuests(pendingSave as PlayerSave),
+    pledge: () => renderTownPledge(pendingSave as PlayerSave),
+    settings: () => renderAutoHuntSettingsPanel(pendingSave as PlayerSave) + renderAudioSettingsPanel('town'),
+    account: () => renderTownAccount(pendingSave as PlayerSave)
   };
-  townContentEyebrow.textContent = titles[activeTownContent][0];
-  townContentTitle.textContent = titles[activeTownContent][1];
-  if (activeTownContent === 'hunt') townContentBody.innerHTML = renderTownHunt(pendingSave);
-  if (activeTownContent === 'story') townContentBody.innerHTML = renderTownStory(pendingSave);
-  if (activeTownContent === 'cards') townContentBody.innerHTML = renderTownCards(pendingSave);
-  if (activeTownContent === 'inventory') townContentBody.innerHTML = renderTownInventory(pendingSave);
-  if (activeTownContent === 'skills') townContentBody.innerHTML = renderTownSkills(pendingSave);
-  if (activeTownContent === 'shop') townContentBody.innerHTML = renderTownShop(pendingSave);
-  if (activeTownContent === 'boss') townContentBody.innerHTML = renderTownBoss(pendingSave);
-  if (activeTownContent === 'quests') townContentBody.innerHTML = renderTownQuests(pendingSave);
-  if (activeTownContent === 'pledge') townContentBody.innerHTML = renderTownPledge(pendingSave);
-  if (activeTownContent === 'settings') townContentBody.innerHTML = renderAutoHuntSettingsPanel(pendingSave) + renderAudioSettingsPanel('town');
-  if (activeTownContent === 'account') townContentBody.innerHTML = renderTownAccount(pendingSave);
+
+  townContentBody.innerHTML = `${renderTownDrawerNav(activeTownContent)}${renderTownFlowAdvisor082(pendingSave as PlayerSave, activeTownContent)}${contentMap[activeTownContent]()}`;
+}
+
+function renderTownDrawerNav(active: TownContentId) {
+  const buttons = townDrawerOrder
+    .map((id) => {
+      const meta = townContentMeta[id];
+      return `<button class="town-drawer-tab-080 town-drawer-tab-081 town-drawer-tab-082 ${id === active ? 'active' : ''} ${meta.core ? 'core' : 'more'}" data-town-content="${id}" type="button" aria-pressed="${id === active ? 'true' : 'false'}"><i>${meta.icon}</i><b>${escapeHtml(meta.label)}</b></button>`;
+    })
+    .join('');
+  return `<nav class="town-drawer-tabs-080 town-drawer-tabs-081 town-drawer-tabs-082" aria-label="마을 메뉴 빠른 이동">${buttons}</nav>`;
+}
+
+function renderTownFlowAdvisor082(save: PlayerSave, active: TownContentId) {
+  const quest = currentStoryQuest(save);
+  const progress = quest ? Math.min(quest.target, storyQuestProgress(save, quest)) : 0;
+  const percent = quest ? Math.min(100, Math.round((progress / Math.max(1, quest.target)) * 100)) : 100;
+  const zone = quest ? recommendedZoneForQuest(save, quest) : zones.find((entry) => isZoneUnlocked(save, entry.id) && entry.recommendedLevel <= save.level) || zones[0];
+  const dailyReady = dailyQuests.filter((entry) => !save.daily.claimedQuestIds.includes(entry.id) && questProgress(save, entry.id) >= entry.target).length;
+  const classInfo = classes[save.classId];
+  const inventoryUsed = save.inventory.length;
+  const inventoryCap = 200;
+  const activeMeta = townContentMeta[active];
+  const zoneAction = zone && isZoneUnlocked(save, zone.id)
+    ? `<button class="town-advisor-cta primary" data-town-zone-enter="${zone.id}" type="button">추천 사냥터</button>`
+    : `<button class="town-advisor-cta" data-town-content="hunt" type="button">사냥터 보기</button>`;
+  return `
+    <section class="town-flow-advisor-082" aria-label="현재 진행 가이드">
+      <div class="town-flow-main-082">
+        <span class="town-flow-eyebrow-082">SOUL ONLINE · v${ALPHA_VERSION}</span>
+        <h3>${escapeHtml(activeMeta.title)}</h3>
+        <p>${quest ? `${escapeHtml(quest.title)} · ${escapeHtml(quest.goalText)}` : '현재 준비된 스토리를 모두 완료했습니다. 카드/장비/보스 루프를 강화하세요.'}</p>
+        <div class="town-flow-progress-082"><i style="width:${percent}%"></i><em>${quest ? `${progress}/${quest.target}` : 'CLEAR'}</em></div>
+      </div>
+      <div class="town-flow-stats-082">
+        <span><b>Lv.${save.level}</b><em>${escapeHtml(classInfo?.name || save.classId)}</em></span>
+        <span><b>${formatNumber(powerFromSave(save))}</b><em>전투력</em></span>
+        <span><b>${dailyReady}</b><em>보상대기</em></span>
+        <span><b>${inventoryUsed}/${inventoryCap}</b><em>가방</em></span>
+      </div>
+      <div class="town-flow-actions-082">
+        ${zoneAction}
+        <button class="town-advisor-cta" data-town-content="story" type="button">스토리</button>
+        <button class="town-advisor-cta" data-town-content="inventory" type="button">정비</button>
+      </div>
+    </section>
+  `;
 }
 
 
@@ -2141,7 +2208,7 @@ function renderTownStorySnapshot(save: PlayerSave) {
   if (!quest) {
     townChapterText.textContent = 'STORY CLEAR';
     townStoryTitle.textContent = '현재 챕터 완료';
-    townStoryDesc.textContent = 'Alpha 0.8 스토리를 모두 완료했습니다.';
+    townStoryDesc.textContent = 'Alpha 0.82 스토리를 모두 완료했습니다.';
     townStoryProgress.style.width = '100%';
     townStoryProgressText.textContent = '완료';
     townStoryActionBtn.textContent = '스토리 보기';

@@ -21818,3 +21818,3100 @@ body.field-active .field-chain-meter.active { transform: translateY(-12px) scale
   .login-screen-078 *,
   .title-screen-078 * { animation: none !important; transition: none !important; }
 }
+
+/* Alpha 0.79: mobile UX reset and single-lobby stabilization.
+   This block intentionally lives at the end of the file so it can neutralize
+   the accumulated 0.4x-0.78 visual passes without deleting older work yet. */
+:root {
+  --soul-079-safe-t: max(10px, env(safe-area-inset-top));
+  --soul-079-safe-r: max(10px, env(safe-area-inset-right));
+  --soul-079-safe-b: max(10px, env(safe-area-inset-bottom));
+  --soul-079-safe-l: max(10px, env(safe-area-inset-left));
+  --soul-079-ink: #0f2e54;
+  --soul-079-muted: rgba(15, 46, 84, .70);
+  --soul-079-line: rgba(255, 244, 194, .72);
+  --soul-079-blue: #1576d7;
+  --soul-079-gold: #ffe694;
+  --soul-079-glass: rgba(238, 250, 255, .78);
+  --soul-079-shadow: 0 18px 44px rgba(0, 48, 105, .25), inset 0 1px 0 rgba(255,255,255,.82);
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+}
+
+button,
+[role="button"],
+input {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible {
+  outline: 2px solid rgba(255, 231, 148, .95) !important;
+  outline-offset: 2px !important;
+}
+
+.title-screen-079,
+.login-screen-079,
+.town-screen-079,
+body.field-active {
+  color: var(--soul-079-ink);
+  background: #07142c;
+}
+
+.title-screen-079 .title-stage {
+  width: min(100%, 860px) !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  margin: 0 auto !important;
+  padding: calc(var(--soul-079-safe-t) + 14px) var(--soul-079-safe-r) calc(var(--soul-079-safe-b) + 20px) var(--soul-079-safe-l) !important;
+  display: grid !important;
+  grid-template-rows: minmax(82px, .65fr) minmax(260px, 1.3fr) auto auto !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: clamp(10px, 2dvh, 18px) !important;
+  align-items: center !important;
+  justify-items: center !important;
+  overflow: hidden !important;
+}
+
+.title-screen-079 .title-copy {
+  max-width: min(92vw, 560px) !important;
+  padding: clamp(14px, 4vw, 22px) !important;
+  border-radius: 30px !important;
+  text-align: center !important;
+  color: #fff !important;
+  background: linear-gradient(180deg, rgba(11, 29, 61, .60), rgba(11, 29, 61, .18)) !important;
+  border: 1px solid rgba(255, 235, 171, .28) !important;
+  box-shadow: 0 18px 46px rgba(0, 12, 36, .32) !important;
+  backdrop-filter: blur(8px);
+}
+
+.title-screen-079 .title-copy h1 {
+  margin: 4px 0 6px !important;
+  font-size: clamp(42px, 13vw, 76px) !important;
+  line-height: .92 !important;
+  letter-spacing: -.08em !important;
+}
+
+.title-screen-079 .title-copy p {
+  margin: 0 auto !important;
+  max-width: 40em !important;
+  font-size: clamp(12px, 3.3vw, 15px) !important;
+  line-height: 1.5 !important;
+  color: rgba(255,255,255,.88) !important;
+}
+
+.title-screen-079 .title-hero {
+  position: relative !important;
+  width: min(96vw, 680px) !important;
+  height: min(54dvh, 520px) !important;
+  min-height: 260px !important;
+  transform: none !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+}
+
+.title-screen-079 #startGameBtn {
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  width: min(84vw, 420px) !important;
+  min-height: 62px !important;
+  border-radius: 999px !important;
+  font-size: clamp(15px, 4vw, 19px) !important;
+  letter-spacing: .12em !important;
+  color: #132b52 !important;
+  background: linear-gradient(180deg, #fff8c9, #ffcf56 54%, #e69d1d) !important;
+  border: 1px solid rgba(255, 250, 207, .92) !important;
+  box-shadow: 0 16px 34px rgba(2, 24, 68, .34), 0 0 34px rgba(255, 218, 104, .32), inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+
+.title-screen-079 .title-mini-nav,
+.title-screen-079 small {
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  max-width: min(92vw, 430px) !important;
+}
+
+.login-screen-079 {
+  min-height: 100dvh !important;
+  padding: calc(var(--soul-079-safe-t) + 12px) var(--soul-079-safe-r) calc(var(--soul-079-safe-b) + 12px) var(--soul-079-safe-l) !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+}
+
+.login-screen-079.hidden { display: none !important; }
+
+.login-screen-079 .login-panel {
+  width: min(100%, 880px) !important;
+  max-height: calc(100dvh - var(--soul-079-safe-t) - var(--soul-079-safe-b) - 24px) !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr) !important;
+  gap: 12px !important;
+  overflow: hidden !important;
+}
+
+.login-screen-079 .login-lore-card,
+.login-screen-079 .login-flow-card {
+  min-width: 0 !important;
+  border-radius: 30px !important;
+  border: 1px solid rgba(255, 239, 176, .52) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.80), rgba(220,244,255,.52)) !important;
+  color: var(--soul-079-ink) !important;
+  box-shadow: var(--soul-079-shadow) !important;
+  overflow: hidden !important;
+}
+
+.login-screen-079 .flow-page.active {
+  display: grid !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+}
+
+.login-screen-079 .wide-action,
+.town-screen-079 .wide-action,
+.sheet .wide-action,
+.detail-action,
+.shop-buy-btn,
+.enhance-action {
+  min-height: 48px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255, 244, 194, .75) !important;
+  color: var(--soul-079-ink) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(208,242,255,.72)) !important;
+  box-shadow: 0 9px 20px rgba(0, 71, 145, .14), inset 0 1px 0 rgba(255,255,255,.86) !important;
+}
+
+.login-screen-079 .wide-action.primary,
+.town-screen-079 .wide-action.primary,
+.detail-action.primary,
+.shop-buy-btn.primary,
+.enhance-action.primary {
+  color: #fff !important;
+  background: linear-gradient(180deg, #45c1ff, #146fda 58%, #0b4fa6) !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,.28) !important;
+}
+
+body.town-active .town-screen-079 {
+  display: block !important;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+  background: #8dd7ff !important;
+}
+
+.town-screen-079 .town-backdrop,
+.town-screen-079 .town-diorama,
+.town-screen-079 .town-game-lobby-070,
+.town-screen-079 .town-premium-lobby-072,
+.town-screen-079 .town-topbar,
+.town-screen-079 .town-layout,
+.town-screen-079 .town-layout-v2,
+.town-screen-079 .town-bottom-menu,
+.town-screen-079 .town-more-menu,
+.town-screen-079 [class^="town-hotspot-layer"],
+.town-screen-079 [class*=" town-hotspot-layer"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.town-screen-079 .town-master-lobby-074 {
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 50% 24%, rgba(255,255,255,.22), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,60,130,.12) 52%, rgba(0,30,72,.32)),
+    url("./assets/ui/town-lobby-stage-078.webp") center / cover no-repeat !important;
+}
+
+.town-screen-079 .town-master-lobby-074 > * {
+  position: absolute !important;
+  z-index: 2 !important;
+}
+
+.town-screen-079 .town-master-header-074 {
+  top: var(--soul-079-safe-t) !important;
+  left: var(--soul-079-safe-l) !important;
+  right: var(--soul-079-safe-r) !important;
+  width: auto !important;
+  min-height: 54px !important;
+  padding: 6px !important;
+  display: grid !important;
+  grid-template-columns: 44px minmax(0, 1fr) repeat(3, 44px) !important;
+  gap: 6px !important;
+  align-items: center !important;
+  border-radius: 24px !important;
+  border: 1px solid var(--soul-079-line) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.74), rgba(83,184,244,.44)) !important;
+  box-shadow: var(--soul-079-shadow) !important;
+  backdrop-filter: blur(9px);
+}
+
+.town-screen-079 .town-master-brand-074 {
+  position: static !important;
+  display: grid !important;
+  place-items: center !important;
+  min-width: 0 !important;
+  color: #fff !important;
+  line-height: 1 !important;
+  text-shadow: 0 2px 8px rgba(0, 63, 122, .42) !important;
+}
+
+.town-screen-079 .town-master-brand-074 b { font-size: clamp(18px, 5.2vw, 24px) !important; }
+.town-screen-079 .town-master-brand-074 em { margin-top: -3px !important; font-size: clamp(8px, 2.6vw, 11px) !important; }
+.town-screen-079 .town-master-brand-074 i { display: none !important; }
+
+.town-screen-079 .town-master-icon-074 {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 0 !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(255,255,255,.72) !important;
+  background: url("./assets/ui/ui-slot-sky-078.webp") center / 100% 100% no-repeat !important;
+  box-shadow: 0 7px 14px rgba(0,74,148,.16), inset 0 1px 0 rgba(255,255,255,.84) !important;
+}
+
+.town-screen-079 .town-master-wallet-074 {
+  top: calc(var(--soul-079-safe-t) + 62px) !important;
+  left: var(--soul-079-safe-l) !important;
+  right: var(--soul-079-safe-r) !important;
+  width: auto !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr .92fr !important;
+  gap: 6px !important;
+  overflow: hidden !important;
+}
+
+.town-screen-079 .town-master-wallet-074 button {
+  min-width: 0 !important;
+  height: 38px !important;
+  padding: 4px 8px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255,244,194,.74) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(136,210,249,.48)) !important;
+  color: var(--soul-079-ink) !important;
+  box-shadow: 0 8px 18px rgba(0,74,148,.15), inset 0 1px 0 rgba(255,255,255,.82) !important;
+}
+
+.town-screen-079 .town-master-stage-074 {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none !important;
+}
+
+.town-screen-079 .town-master-stage-074 button,
+.town-screen-079 .town-master-stage-074 section,
+.town-screen-079 .town-master-stage-074 nav,
+.town-screen-079 .town-master-bottom-074 {
+  pointer-events: auto !important;
+}
+
+.town-screen-079 .town-master-title-074 {
+  top: calc(var(--soul-079-safe-t) + 116px) !important;
+  left: var(--soul-079-safe-l) !important;
+  right: var(--soul-079-safe-r) !important;
+  width: auto !important;
+  max-width: none !important;
+  text-align: center !important;
+  color: #fff !important;
+  text-shadow: 0 3px 14px rgba(0, 31, 79, .42) !important;
+}
+
+.town-screen-079 .town-master-title-074 h1 {
+  margin: 2px 0 !important;
+  font-size: clamp(34px, 10vw, 58px) !important;
+  line-height: .95 !important;
+  letter-spacing: -.08em !important;
+}
+
+.town-screen-079 .town-master-title-074 p {
+  margin: 0 auto !important;
+  max-width: 360px !important;
+  font-size: clamp(10px, 2.9vw, 12px) !important;
+  color: rgba(255,255,255,.90) !important;
+}
+
+.town-screen-079 .town-master-hotspots-074,
+.town-screen-079 .town-master-quest-074 {
+  top: calc(var(--soul-079-safe-t) + clamp(178px, 29dvh, 236px)) !important;
+  width: min(43vw, 176px) !important;
+  display: grid !important;
+  gap: 7px !important;
+  max-height: 40dvh !important;
+  overflow: hidden !important;
+}
+
+.town-screen-079 .town-master-hotspots-074 { left: var(--soul-079-safe-l) !important; }
+.town-screen-079 .town-master-quest-074 { right: var(--soul-079-safe-r) !important; }
+
+.town-screen-079 .town-master-hotspots-074 button,
+.town-screen-079 .town-master-quest-074 button {
+  position: relative !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 48px !important;
+  padding: 8px 9px 8px 43px !important;
+  border-radius: 19px !important;
+  border: 1px solid rgba(255,244,194,.78) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(216,245,255,.72)) !important;
+  color: var(--soul-079-ink) !important;
+  box-shadow: 0 10px 23px rgba(0,54,117,.18), inset 0 1px 0 rgba(255,255,255,.86) !important;
+  text-align: left !important;
+  overflow: hidden !important;
+}
+
+.town-screen-079 .town-master-quest-074 button {
+  padding-left: 12px !important;
+  background: linear-gradient(180deg, rgba(24,93,159,.84), rgba(20,65,136,.78)) !important;
+  color: #fff !important;
+}
+
+.town-screen-079 .town-master-hotspots-074 b,
+.town-screen-079 .town-master-quest-074 b {
+  display: block !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: clamp(11px, 3vw, 13px) !important;
+  line-height: 1.1 !important;
+}
+
+.town-screen-079 .town-master-hotspots-074 span,
+.town-screen-079 .town-master-quest-074 span {
+  display: block !important;
+  min-width: 0 !important;
+  margin-top: 2px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: clamp(8px, 2.35vw, 10px) !important;
+  line-height: 1.1 !important;
+}
+
+.town-screen-079 .town-master-player-074 {
+  left: var(--soul-079-safe-l) !important;
+  bottom: calc(var(--soul-079-safe-b) + 84px) !important;
+  width: min(57vw, 232px) !important;
+  max-width: calc(100vw - var(--soul-079-safe-l) - var(--soul-079-safe-r) - 158px) !important;
+  min-height: 94px !important;
+  padding: 9px !important;
+  display: grid !important;
+  grid-template-columns: 58px minmax(0, 1fr) !important;
+  gap: 8px !important;
+  border-radius: 25px !important;
+  border: 1px solid var(--soul-079-line) !important;
+  background: url("./assets/ui/ui-panel-glass-078.webp") center / 100% 100% no-repeat !important;
+  box-shadow: var(--soul-079-shadow) !important;
+  overflow: hidden !important;
+}
+
+.town-screen-079 .town-master-portrait-074 {
+  width: 58px !important;
+  height: 58px !important;
+  border-radius: 19px !important;
+  border: 1px solid rgba(255,244,194,.86) !important;
+}
+
+.town-screen-079 .town-master-bars-074 {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  gap: 4px !important;
+}
+
+.town-screen-079 .town-master-hunt-074 {
+  right: var(--soul-079-safe-r) !important;
+  bottom: calc(var(--soul-079-safe-b) + 91px) !important;
+  width: min(38vw, 156px) !important;
+  min-width: 118px !important;
+  max-width: calc(100vw - var(--soul-079-safe-l) - var(--soul-079-safe-r) - 226px) !important;
+  min-height: 54px !important;
+  border-radius: 26px !important;
+  border: 1px solid rgba(255,241,178,.92) !important;
+  color: #fff !important;
+  background: linear-gradient(180deg, #ffdf86, #ff9f2e 44%, #e95e20) !important;
+  text-shadow: 0 2px 8px rgba(87,19,0,.32) !important;
+  box-shadow: 0 16px 34px rgba(107,48,0,.26), 0 0 24px rgba(255,194,70,.35), inset 0 1px 0 rgba(255,255,255,.82) !important;
+}
+
+.town-screen-079 .town-master-bottom-074 {
+  left: var(--soul-079-safe-l) !important;
+  right: var(--soul-079-safe-r) !important;
+  bottom: 0 !important;
+  width: auto !important;
+  min-height: calc(70px + var(--soul-079-safe-b)) !important;
+  padding: 7px 6px calc(7px + var(--soul-079-safe-b)) !important;
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 5px !important;
+  border-radius: 25px 25px 0 0 !important;
+  border: 1px solid rgba(255,244,194,.78) !important;
+  border-bottom: 0 !important;
+  background: url("./assets/ui/ui-panel-glass-078.webp") center / 100% 100% no-repeat !important;
+  box-shadow: 0 -14px 32px rgba(0,55,115,.22), inset 0 1px 0 rgba(255,255,255,.74) !important;
+  z-index: 16 !important;
+}
+
+.town-screen-079 .town-master-bottom-074 button {
+  min-width: 0 !important;
+  min-height: 52px !important;
+  padding: 4px 2px !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+}
+
+.town-screen-079 .town-master-bottom-074 b {
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: clamp(9px, 2.7vw, 11px) !important;
+  line-height: 1 !important;
+  color: #fff !important;
+}
+
+.town-screen-079 .town-drawer:not(.hidden),
+.sheet.open,
+.item-detail-card,
+.exit-confirm-card {
+  border-radius: 28px !important;
+  border: 1px solid rgba(255,244,194,.86) !important;
+  background: url("./assets/ui/ui-panel-glass-078.webp") center / 100% 100% no-repeat !important;
+  color: var(--soul-079-ink) !important;
+  box-shadow: 0 22px 52px rgba(0,50,110,.34), inset 0 1px 0 rgba(255,255,255,.86) !important;
+}
+
+.town-screen-079 .town-drawer:not(.hidden) {
+  position: fixed !important;
+  left: var(--soul-079-safe-l) !important;
+  right: var(--soul-079-safe-r) !important;
+  bottom: calc(76px + var(--soul-079-safe-b)) !important;
+  top: auto !important;
+  width: auto !important;
+  max-width: none !important;
+  max-height: min(66dvh, 580px) !important;
+  overflow: hidden !important;
+  z-index: 30 !important;
+}
+
+.sheet.open {
+  position: fixed !important;
+  left: var(--soul-079-safe-l) !important;
+  right: var(--soul-079-safe-r) !important;
+  bottom: calc(10px + var(--soul-079-safe-b)) !important;
+  top: auto !important;
+  width: auto !important;
+  max-width: 720px !important;
+  margin: 0 auto !important;
+  max-height: min(82dvh, 720px) !important;
+  overflow: hidden !important;
+}
+
+.town-screen-079 .town-drawer-body,
+.sheet-body {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sheet .slot-grid,
+.town-screen-079 .slot-grid,
+.town-screen-079 .town-zone-grid,
+.town-screen-079 .town-content-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.sheet .slot-cell,
+.town-screen-079 .slot-cell,
+.town-screen-079 .zone-card,
+.town-screen-079 .content-card,
+.town-screen-079 .quest-card,
+.town-screen-079 .shop-card,
+.town-screen-079 .skill-card,
+.town-screen-079 .equipment-card,
+.item-detail-stats,
+.item-detail-actions {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  border-radius: 20px !important;
+  border-color: rgba(31,121,188,.20) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(226,246,254,.78)) !important;
+  color: var(--soul-079-ink) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.88), 0 7px 16px rgba(0,78,152,.10) !important;
+  overflow: hidden !important;
+}
+
+.sheet .slot-cell b,
+.town-screen-079 .slot-cell b,
+.town-screen-079 .zone-card b,
+.town-screen-079 .content-card b,
+.town-screen-079 .quest-card b,
+.town-screen-079 .shop-card b,
+.town-screen-079 .skill-card b,
+.town-screen-079 .equipment-card b {
+  color: var(--soul-079-ink) !important;
+}
+
+body.field-active .hud-top {
+  top: var(--soul-079-safe-t) !important;
+  left: var(--soul-079-safe-l) !important;
+  width: min(74vw, 368px) !important;
+  min-width: 0 !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(255,244,194,.72) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(213,244,255,.70)) !important;
+  color: var(--soul-079-ink) !important;
+  box-shadow: var(--soul-079-shadow) !important;
+}
+
+body.field-active .resource-strip {
+  top: calc(var(--soul-079-safe-t) + 90px) !important;
+  left: var(--soul-079-safe-l) !important;
+  right: auto !important;
+  max-width: min(68vw, 330px) !important;
+  border-radius: 20px !important;
+}
+
+body.field-active .target-card,
+body.field-active .field-quest-tracker,
+body.field-active .field-chain-meter,
+body.field-active .field-minimap,
+body.field-active .combat-log {
+  border-radius: 20px !important;
+  border: 1px solid rgba(255,244,194,.62) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(219,244,255,.68)) !important;
+  color: var(--soul-079-ink) !important;
+  box-shadow: 0 10px 24px rgba(0, 48, 105, .18), inset 0 1px 0 rgba(255,255,255,.80) !important;
+}
+
+body.field-active .action-dock {
+  left: auto !important;
+  right: var(--soul-079-safe-r) !important;
+  bottom: calc(var(--soul-079-safe-b) + 8px) !important;
+  width: min(64vw, 300px) !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+body.field-active .action-dock .dock-btn,
+body.field-active .skill-dock button,
+body.field-active .potion-dock button {
+  min-width: 0 !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(255,244,194,.72) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(201,238,255,.70)) !important;
+  color: var(--soul-079-ink) !important;
+  box-shadow: 0 9px 20px rgba(0, 55, 120, .16), inset 0 1px 0 rgba(255,255,255,.84) !important;
+}
+
+body.field-active #attackBtn,
+body.field-active .action-dock .dock-btn.primary {
+  color: #fff !important;
+  background: linear-gradient(180deg, #ffdd80, #ff8e27 46%, #de4f20) !important;
+  text-shadow: 0 2px 8px rgba(92, 23, 0, .34) !important;
+}
+
+body.field-active .joystick {
+  left: var(--soul-079-safe-l) !important;
+  bottom: calc(var(--soul-079-safe-b) + 18px) !important;
+  width: clamp(108px, 28vw, 136px) !important;
+  height: clamp(108px, 28vw, 136px) !important;
+}
+
+body.field-active .skill-dock {
+  right: var(--soul-079-safe-r) !important;
+  bottom: calc(var(--soul-079-safe-b) + 92px) !important;
+  width: min(62vw, 292px) !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+body.field-active .potion-dock {
+  left: calc(var(--soul-079-safe-l) + clamp(112px, 30vw, 146px)) !important;
+  bottom: calc(var(--soul-079-safe-b) + 22px) !important;
+}
+
+.toast {
+  left: 50% !important;
+  right: auto !important;
+  bottom: calc(var(--soul-079-safe-b) + 92px) !important;
+  max-width: min(88vw, 460px) !important;
+  transform: translateX(-50%) !important;
+  border-radius: 18px !important;
+}
+
+@media (max-width: 720px) {
+  .login-screen-079 .login-panel {
+    grid-template-columns: 1fr !important;
+    width: min(100%, 520px) !important;
+  }
+  .login-screen-079 .login-lore-card { display: none !important; }
+  .sheet .slot-grid,
+  .town-screen-079 .slot-grid,
+  .town-screen-079 .town-zone-grid,
+  .town-screen-079 .town-content-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+
+@media (max-width: 390px) {
+  .town-screen-079 .town-master-header-074 { grid-template-columns: 40px minmax(0, 1fr) repeat(3, 40px) !important; gap: 4px !important; }
+  .town-screen-079 .town-master-icon-074 { width: 38px !important; height: 38px !important; }
+  .town-screen-079 .town-master-wallet-074 button { padding: 3px 5px !important; }
+  .town-screen-079 .town-master-hotspots-074,
+  .town-screen-079 .town-master-quest-074 { width: min(44vw, 158px) !important; gap: 5px !important; }
+  .town-screen-079 .town-master-hotspots-074 button,
+  .town-screen-079 .town-master-quest-074 button { min-height: 42px !important; }
+  .town-screen-079 .town-master-hotspots-074 span,
+  .town-screen-079 .town-master-quest-074 span { display: none !important; }
+  .town-screen-079 .town-master-hotspots-074 button:nth-child(5),
+  .town-screen-079 .town-master-quest-074 button:nth-child(2) { display: none !important; }
+  .sheet .slot-grid,
+  .town-screen-079 .slot-grid,
+  .town-screen-079 .town-zone-grid,
+  .town-screen-079 .town-content-grid { gap: 8px !important; }
+}
+
+@media (max-height: 700px) {
+  .title-screen-079 .title-copy p,
+  .town-screen-079 .town-master-title-074 p,
+  .town-screen-079 .town-master-hotspots-074 span,
+  .town-screen-079 .town-master-quest-074 span { display: none !important; }
+  .title-screen-079 .title-stage { grid-template-rows: minmax(64px, .55fr) minmax(220px, 1.2fr) auto auto !important; }
+  .town-screen-079 .town-master-title-074 { top: calc(var(--soul-079-safe-t) + 104px) !important; }
+  .town-screen-079 .town-master-hotspots-074,
+  .town-screen-079 .town-master-quest-074 { top: calc(var(--soul-079-safe-t) + 154px) !important; max-height: 35dvh !important; }
+  .town-screen-079 .town-master-player-074 { min-height: 82px !important; bottom: calc(var(--soul-079-safe-b) + 78px) !important; }
+  .town-screen-079 .town-master-hunt-074 { bottom: calc(var(--soul-079-safe-b) + 84px) !important; }
+}
+
+@media (max-height: 620px) {
+  .town-screen-079 .town-master-title-074 { display: none !important; }
+  .town-screen-079 .town-master-hotspots-074,
+  .town-screen-079 .town-master-quest-074 { top: calc(var(--soul-079-safe-t) + 110px) !important; }
+  .town-screen-079 .town-master-hotspots-074 button:nth-child(n+4),
+  .town-screen-079 .town-master-quest-074 button:nth-child(n+3) { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-screen-079 *,
+  .login-screen-079 *,
+  .town-screen-079 *,
+  body.field-active * {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
+
+/* Alpha 0.80: town drawer navigation, active-state clarity, and field HUD collision pass.
+   This is still an end-of-file stabilization layer while the legacy 0.4x-0.78 CSS blocks are being retired. */
+:root {
+  --soul-080-safe-t: var(--soul-079-safe-t, max(10px, env(safe-area-inset-top)));
+  --soul-080-safe-r: var(--soul-079-safe-r, max(10px, env(safe-area-inset-right)));
+  --soul-080-safe-b: var(--soul-079-safe-b, max(10px, env(safe-area-inset-bottom)));
+  --soul-080-safe-l: var(--soul-079-safe-l, max(10px, env(safe-area-inset-left)));
+  --soul-080-ink: var(--soul-079-ink, #0f2e54);
+  --soul-080-blue: #116fda;
+  --soul-080-cyan: #49c8ff;
+  --soul-080-gold: #ffe48e;
+  --soul-080-card: rgba(243, 252, 255, .88);
+  --soul-080-deep: rgba(8, 36, 84, .82);
+  --soul-080-shadow: 0 18px 42px rgba(0, 46, 104, .26), inset 0 1px 0 rgba(255,255,255,.86);
+}
+
+.title-screen-080,
+.login-screen-080,
+.town-screen-080,
+body.field-active {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.town-screen-080 .town-master-icon-074,
+.town-screen-080 .town-master-wallet-074 button,
+.town-screen-080 .town-master-hotspots-074 button,
+.town-screen-080 .town-master-quest-074 button,
+.town-screen-080 .town-master-bottom-074 button,
+.town-screen-080 .town-master-hunt-074,
+.town-screen-080 .town-drawer-tab-080,
+body.field-active .dock-btn,
+body.field-active .skill-btn,
+body.field-active .potion-btn {
+  min-height: 44px !important;
+  touch-action: manipulation !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.town-screen-080 .town-master-icon-074:active,
+.town-screen-080 .town-master-wallet-074 button:active,
+.town-screen-080 .town-master-hotspots-074 button:active,
+.town-screen-080 .town-master-quest-074 button:active,
+.town-screen-080 .town-master-bottom-074 button:active,
+.town-screen-080 .town-master-hunt-074:active,
+.town-screen-080 .town-drawer-tab-080:active,
+body.field-active .dock-btn:active,
+body.field-active .skill-btn:active,
+body.field-active .potion-btn:active {
+  transform: translateY(1px) scale(.985) !important;
+  filter: brightness(1.05) saturate(1.08) !important;
+}
+
+.town-screen-080 .town-master-bottom-074 button.active,
+.town-screen-080 .town-master-hotspots-074 button.active,
+.town-screen-080 .town-master-icon-074.active,
+.town-screen-080 .town-master-wallet-074 button.active {
+  border-color: rgba(255, 239, 151, .98) !important;
+  color: #fff !important;
+  background: linear-gradient(180deg, rgba(72, 200, 255, .96), rgba(18, 105, 216, .88) 58%, rgba(9, 65, 158, .90)) !important;
+  text-shadow: 0 2px 8px rgba(0, 29, 85, .45) !important;
+  box-shadow: 0 13px 28px rgba(0, 82, 172, .30), 0 0 22px rgba(100, 215, 255, .28), inset 0 1px 0 rgba(255,255,255,.88) !important;
+}
+
+.town-screen-080 .town-master-bottom-074 button.active b,
+.town-screen-080 .town-master-hotspots-074 button.active b,
+.town-screen-080 .town-master-hotspots-074 button.active span {
+  color: #fff !important;
+}
+
+.town-screen-080 .town-master-hotspots-074 button::after,
+.town-screen-080 .town-master-quest-074 button::after,
+.town-screen-080 .town-master-bottom-074 button::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent, rgba(255,255,255,.28), transparent);
+  opacity: .46;
+  transform: translateX(-46%);
+}
+
+.town-screen-080 .town-master-quest-074 button.ready,
+.town-screen-080 .quest-row.ready,
+.town-screen-080 .story-row.active {
+  border-color: rgba(255, 231, 119, .95) !important;
+  box-shadow: 0 0 0 1px rgba(255, 241, 148, .34), 0 12px 28px rgba(0, 70, 150, .18), inset 0 1px 0 rgba(255,255,255,.85) !important;
+}
+
+.town-screen-080 .town-drawer:not(.hidden) {
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  max-height: min(72dvh, 640px) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.78), rgba(215,245,255,.66)),
+    url("./assets/ui/ui-panel-glass-078.webp") center / 100% 100% no-repeat !important;
+}
+
+.town-screen-080 .town-drawer-head {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 3 !important;
+  padding: 14px 14px 10px !important;
+  border-bottom: 1px solid rgba(255, 244, 194, .62) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(223,247,255,.68)) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.town-screen-080 .town-drawer-head h2 {
+  margin: 2px 0 0 !important;
+  font-size: clamp(20px, 5.4vw, 27px) !important;
+  letter-spacing: -.055em !important;
+  color: var(--soul-080-ink) !important;
+}
+
+.town-screen-080 #townContentEyebrow {
+  color: rgba(17, 111, 218, .86) !important;
+  letter-spacing: .16em !important;
+}
+
+.town-screen-080 .town-drawer-body {
+  padding: 10px 12px 18px !important;
+  scroll-padding-top: 72px !important;
+}
+
+.town-drawer-tabs-080 {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 2 !important;
+  display: flex !important;
+  gap: 7px !important;
+  margin: -2px -2px 12px !important;
+  padding: 2px 2px 10px !important;
+  overflow-x: auto !important;
+  overscroll-behavior-x: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
+  background: linear-gradient(180deg, rgba(232, 249, 255, .94), rgba(232, 249, 255, .64) 72%, transparent) !important;
+}
+
+.town-drawer-tabs-080::-webkit-scrollbar { display: none !important; }
+
+.town-drawer-tab-080 {
+  flex: 0 0 auto !important;
+  min-width: 62px !important;
+  height: 48px !important;
+  padding: 6px 10px !important;
+  display: grid !important;
+  grid-template-columns: auto auto !important;
+  gap: 5px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 17px !important;
+  border: 1px solid rgba(36, 129, 201, .18) !important;
+  color: var(--soul-080-ink) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(219,244,255,.78)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.88), 0 7px 16px rgba(0, 80, 154, .10) !important;
+}
+
+.town-drawer-tab-080 i {
+  font-style: normal !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+}
+
+.town-drawer-tab-080 b {
+  font-size: 12px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.town-drawer-tab-080.active {
+  border-color: rgba(255, 235, 143, .96) !important;
+  color: #fff !important;
+  background: linear-gradient(180deg, var(--soul-080-cyan), var(--soul-080-blue) 60%, #0b4fa6) !important;
+  text-shadow: 0 2px 7px rgba(0, 23, 73, .46) !important;
+  box-shadow: 0 12px 26px rgba(0, 82, 172, .28), inset 0 1px 0 rgba(255,255,255,.88) !important;
+}
+
+.town-screen-080 .hunt-recommend-card,
+.town-screen-080 .visual-immersion-board,
+.town-screen-080 .omega-command-board,
+.town-screen-080 .mega-progress-dashboard,
+.town-screen-080 .account-panel,
+.town-screen-080 .boss-panel,
+.town-screen-080 .safe-zone-guide,
+.town-screen-080 .town-content-note {
+  max-width: 100% !important;
+  border-radius: 22px !important;
+  overflow: hidden !important;
+}
+
+.town-screen-080 .drawer-zone-list,
+.town-screen-080 .quest-list,
+.town-screen-080 .story-list,
+.town-screen-080 .shop-list {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+}
+
+.town-screen-080 .drawer-zone-card,
+.town-screen-080 .quest-row,
+.town-screen-080 .story-row,
+.town-screen-080 .shop-card {
+  min-height: 72px !important;
+}
+
+.town-screen-080 button:disabled,
+.town-screen-080 .locked,
+body.field-active button:disabled {
+  opacity: .55 !important;
+  filter: grayscale(.18) saturate(.75) !important;
+}
+
+body.field-active .hud-top {
+  width: min(92vw, 420px) !important;
+  max-width: calc(100vw - var(--soul-080-safe-l) - var(--soul-080-safe-r)) !important;
+  min-height: 76px !important;
+  padding: 8px !important;
+  z-index: 16 !important;
+}
+
+body.field-active .resource-strip {
+  top: calc(var(--soul-080-safe-t) + 82px) !important;
+  left: var(--soul-080-safe-l) !important;
+  width: min(92vw, 420px) !important;
+  max-width: calc(100vw - var(--soul-080-safe-l) - var(--soul-080-safe-r)) !important;
+  display: flex !important;
+  gap: 6px !important;
+  z-index: 15 !important;
+}
+
+body.field-active .resource-strip span {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+body.field-active .target-card {
+  top: calc(var(--soul-080-safe-t) + 124px) !important;
+  left: var(--soul-080-safe-l) !important;
+  right: auto !important;
+  width: min(62vw, 310px) !important;
+  z-index: 12 !important;
+}
+
+body.field-active .field-quest-tracker {
+  top: calc(var(--soul-080-safe-t) + 188px) !important;
+  left: var(--soul-080-safe-l) !important;
+  width: min(58vw, 290px) !important;
+  z-index: 11 !important;
+}
+
+body.field-active .field-chain-meter {
+  top: calc(var(--soul-080-safe-t) + 124px) !important;
+  right: var(--soul-080-safe-r) !important;
+  width: min(31vw, 142px) !important;
+  z-index: 12 !important;
+}
+
+body.field-active .field-minimap {
+  top: calc(var(--soul-080-safe-t) + 200px) !important;
+  right: var(--soul-080-safe-r) !important;
+  width: min(34vw, 150px) !important;
+  z-index: 10 !important;
+}
+
+body.field-active .combat-log {
+  left: var(--soul-080-safe-l) !important;
+  bottom: calc(var(--soul-080-safe-b) + 162px) !important;
+  width: min(54vw, 252px) !important;
+  max-height: 118px !important;
+  z-index: 9 !important;
+}
+
+body.field-active .combat-log-toggle {
+  left: var(--soul-080-safe-l) !important;
+  bottom: calc(var(--soul-080-safe-b) + 286px) !important;
+  z-index: 10 !important;
+}
+
+body.field-active .joystick {
+  z-index: 17 !important;
+}
+
+body.field-active .potion-dock,
+body.field-active .skill-dock,
+body.field-active .action-dock {
+  z-index: 18 !important;
+}
+
+body.field-active .action-dock {
+  width: min(62vw, 300px) !important;
+}
+
+body.field-active .skill-dock {
+  width: min(62vw, 300px) !important;
+  bottom: calc(var(--soul-080-safe-b) + 91px) !important;
+}
+
+body.field-active .potion-dock {
+  gap: 7px !important;
+}
+
+@media (max-width: 430px) {
+  .town-screen-080 .town-master-title-074 {
+    top: calc(var(--soul-080-safe-t) + 106px) !important;
+  }
+  .town-screen-080 .town-master-title-074 h1 {
+    font-size: clamp(30px, 9vw, 42px) !important;
+  }
+  .town-screen-080 .town-master-hotspots-074,
+  .town-screen-080 .town-master-quest-074 {
+    top: calc(var(--soul-080-safe-t) + 164px) !important;
+    width: min(43vw, 166px) !important;
+  }
+  .town-screen-080 .town-master-player-074 {
+    width: min(55vw, 220px) !important;
+    grid-template-columns: 52px minmax(0, 1fr) !important;
+  }
+  .town-screen-080 .town-master-portrait-074 {
+    width: 52px !important;
+    height: 52px !important;
+  }
+  .town-screen-080 .town-master-hunt-074 {
+    width: min(39vw, 150px) !important;
+    min-width: 112px !important;
+  }
+  .town-drawer-tab-080 {
+    min-width: 56px !important;
+    padding-inline: 8px !important;
+  }
+  body.field-active .target-card,
+  body.field-active .field-quest-tracker {
+    width: min(59vw, 260px) !important;
+  }
+  body.field-active .field-chain-meter,
+  body.field-active .field-minimap {
+    width: min(33vw, 132px) !important;
+  }
+}
+
+@media (max-width: 360px), (max-height: 640px) {
+  .town-screen-080 .town-master-title-074 p,
+  .town-screen-080 .town-master-hotspots-074 span,
+  .town-screen-080 .town-master-quest-074 span,
+  body.field-active .combat-log,
+  body.field-active .combat-log-toggle {
+    display: none !important;
+  }
+  .town-screen-080 .town-master-hotspots-074 button,
+  .town-screen-080 .town-master-quest-074 button {
+    min-height: 44px !important;
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+  }
+  .town-screen-080 .town-drawer:not(.hidden) {
+    max-height: min(76dvh, 560px) !important;
+  }
+}
+
+/* Alpha 0.81: fantasy UI kit assetization + safe-frame layout hardening.
+   The uploaded AI reference boards are now converted into public/assets/ui/fantasy
+   and used only as blurred mood/key-art layers; live UI remains data-driven HTML/CSS. */
+:root {
+  --soul-081-safe-t: max(10px, env(safe-area-inset-top));
+  --soul-081-safe-r: max(10px, env(safe-area-inset-right));
+  --soul-081-safe-b: max(10px, env(safe-area-inset-bottom));
+  --soul-081-safe-l: max(10px, env(safe-area-inset-left));
+  --soul-081-ink: #12345d;
+  --soul-081-ink-strong: #08234a;
+  --soul-081-muted: rgba(18, 52, 93, .72);
+  --soul-081-blue: #166fd6;
+  --soul-081-blue-deep: #0b4b9c;
+  --soul-081-sky: #5ad0ff;
+  --soul-081-gold: #ffe39a;
+  --soul-081-gold-deep: #c98523;
+  --soul-081-white: rgba(255, 255, 250, .94);
+  --soul-081-panel: rgba(244, 251, 255, .86);
+  --soul-081-panel-strong: rgba(255, 255, 255, .94);
+  --soul-081-line: rgba(255, 232, 156, .72);
+  --soul-081-line-blue: rgba(70, 145, 220, .22);
+  --soul-081-shadow: 0 18px 46px rgba(13, 74, 140, .24), 0 4px 12px rgba(5, 25, 64, .12), inset 0 1px 0 rgba(255,255,255,.88);
+  --soul-081-shadow-deep: 0 24px 58px rgba(0, 26, 76, .36), inset 0 1px 0 rgba(255,255,255,.76);
+  --soul-081-radius-lg: 30px;
+  --soul-081-radius-md: 22px;
+  --soul-081-radius-sm: 16px;
+  --soul-081-title-art: url('/assets/ui/fantasy/backgrounds/title-keyart-081.webp');
+  --soul-081-lobby-mood: url('/assets/ui/fantasy/backgrounds/lobby-mood-blur-081.webp');
+  --soul-081-kit-mood: url('/assets/ui/fantasy/backgrounds/ui-kit-mood-blur-081.webp');
+}
+
+html,
+body.fantasy-ui-081,
+body.fantasy-ui-081 #app,
+body.fantasy-ui-081 #game-root {
+  width: 100%;
+  min-width: 0;
+  max-width: 100vw;
+  min-height: 100%;
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+body.fantasy-ui-081,
+body.fantasy-ui-081 * ,
+body.fantasy-ui-081 *::before,
+body.fantasy-ui-081 *::after {
+  box-sizing: border-box;
+}
+
+body.fantasy-ui-081 button {
+  user-select: none;
+  min-width: 0;
+}
+
+body.fantasy-ui-081 img,
+body.fantasy-ui-081 svg,
+body.fantasy-ui-081 canvas {
+  max-width: 100%;
+}
+
+.title-screen-081,
+.login-screen-081,
+body.town-active .town-screen-081,
+body.field-active {
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+.title-screen-081 .title-bg,
+.login-screen-081 .login-backdrop {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background:
+    radial-gradient(circle at 24% 12%, rgba(255,255,255,.46), transparent 23%),
+    radial-gradient(circle at 84% 4%, rgba(255,231,150,.30), transparent 28%),
+    linear-gradient(180deg, rgba(58, 165, 238, .22), rgba(3, 50, 118, .54)),
+    var(--soul-081-kit-mood) center / cover no-repeat !important;
+  filter: saturate(1.1) contrast(1.02) !important;
+}
+
+.title-screen-081 .title-bg::after,
+.login-screen-081 .login-backdrop::after,
+.town-screen-081 .town-master-lobby-074::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.20), transparent 38%),
+    radial-gradient(circle at 50% 100%, rgba(0,38,96,.24), transparent 54%);
+  z-index: 1;
+}
+
+.title-screen-081 .title-stage {
+  isolation: isolate;
+  width: min(100vw, 980px) !important;
+  height: 100dvh !important;
+  margin: 0 auto !important;
+  padding: calc(var(--soul-081-safe-t) + 12px) var(--soul-081-safe-r) calc(var(--soul-081-safe-b) + 14px) var(--soul-081-safe-l) !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(260px, 1fr) auto auto !important;
+  gap: clamp(8px, 1.8dvh, 16px) !important;
+  align-items: center !important;
+  justify-items: center !important;
+}
+
+.title-screen-081 .title-copy {
+  width: min(92vw, 560px) !important;
+  padding: clamp(12px, 3.8vw, 20px) clamp(16px, 5vw, 28px) !important;
+  border-radius: 30px !important;
+  border: 1px solid rgba(255, 239, 176, .56) !important;
+  color: #fff !important;
+  background: linear-gradient(180deg, rgba(6, 42, 102, .54), rgba(8, 54, 121, .22)) !important;
+  box-shadow: 0 20px 48px rgba(0, 24, 78, .30), inset 0 1px 0 rgba(255,255,255,.38) !important;
+  backdrop-filter: blur(10px) saturate(1.1) !important;
+}
+
+.title-screen-081 .title-kicker {
+  color: rgba(255, 233, 151, .94) !important;
+  letter-spacing: .12em !important;
+  font-size: clamp(9px, 2.5vw, 12px) !important;
+}
+
+.title-screen-081 .title-copy h1 {
+  color: #fff !important;
+  text-shadow: 0 5px 24px rgba(0, 52, 132, .54), 0 1px 0 rgba(255,255,255,.32) !important;
+}
+
+.title-screen-081 .title-hero {
+  width: min(92vw, 540px) !important;
+  height: min(52dvh, 600px) !important;
+  min-height: 260px !important;
+  border-radius: 34px !important;
+  border: 1px solid rgba(255, 239, 176, .76) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,52,124,.14)),
+    var(--soul-081-title-art) center / cover no-repeat !important;
+  box-shadow: 0 22px 60px rgba(0, 39, 104, .34), 0 0 0 4px rgba(255,255,255,.16), inset 0 1px 0 rgba(255,255,255,.52) !important;
+  overflow: hidden !important;
+}
+
+.title-screen-081 .title-hero::after {
+  content: '';
+  position: absolute;
+  inset: auto 16px 14px 16px;
+  height: 72px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.42);
+  background: radial-gradient(circle at 50% 0, rgba(255,255,255,.54), transparent 48%), linear-gradient(180deg, rgba(52,178,255,.48), rgba(16,95,203,.54));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.76), 0 12px 24px rgba(0,58,139,.24);
+  opacity: .28;
+}
+
+.title-screen-081 .title-character,
+.title-screen-081 .title-character-companion,
+.title-screen-081 .title-soul-ring,
+.title-screen-081 .title-hero-glow,
+.title-screen-081 .title-hero-rune {
+  opacity: .18 !important;
+  filter: blur(.5px) saturate(.8) !important;
+}
+
+.title-screen-081 #startGameBtn {
+  width: min(86vw, 430px) !important;
+  min-height: 60px !important;
+  border-radius: 999px !important;
+  color: #fff !important;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.38), transparent 22%, transparent 78%, rgba(255,255,255,.32)),
+    linear-gradient(180deg, #67d4ff, #1776dc 58%, #0c4d9e) !important;
+  border: 1px solid rgba(255, 241, 180, .84) !important;
+  text-shadow: 0 2px 9px rgba(0, 23, 74, .55) !important;
+  box-shadow: 0 18px 34px rgba(0, 55, 139, .34), 0 0 24px rgba(103, 212, 255, .28), inset 0 1px 0 rgba(255,255,255,.76) !important;
+}
+
+.title-screen-081 .title-mini-nav {
+  width: min(92vw, 430px) !important;
+  padding: 6px 8px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 232, 156, .40) !important;
+  color: rgba(255,255,255,.90) !important;
+  background: rgba(8, 48, 106, .28) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.login-screen-081 {
+  background:
+    radial-gradient(circle at 52% 8%, rgba(255,255,255,.42), transparent 25%),
+    linear-gradient(180deg, #dbf5ff, #78c7fb 48%, #0c4d95 100%) !important;
+}
+
+.login-screen-081 .login-panel {
+  width: min(100%, 980px) !important;
+  max-height: calc(100dvh - var(--soul-081-safe-t) - var(--soul-081-safe-b) - 20px) !important;
+  grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr) !important;
+  gap: clamp(10px, 2vw, 16px) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.login-screen-081 .login-lore-card,
+.login-screen-081 .login-flow-card {
+  position: relative !important;
+  border-radius: 32px !important;
+  border: 1px solid var(--soul-081-line) !important;
+  color: var(--soul-081-ink) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(222,244,255,.72)) !important;
+  box-shadow: var(--soul-081-shadow) !important;
+}
+
+.login-screen-081 .login-lore-card {
+  min-height: 420px !important;
+  justify-content: end !important;
+  background:
+    linear-gradient(180deg, rgba(5,55,126,.02), rgba(5,55,126,.58)),
+    var(--soul-081-title-art) center / cover no-repeat !important;
+  color: #fff !important;
+  text-shadow: 0 2px 12px rgba(0,31,80,.48) !important;
+}
+
+.login-screen-081 .login-lore-card span { color: rgba(255, 231, 151, .96) !important; }
+.login-screen-081 .login-lore-card p { color: rgba(255,255,255,.88) !important; }
+
+.login-screen-081 .login-flow-card {
+  max-height: inherit !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding: clamp(16px, 4vw, 24px) !important;
+}
+
+.login-screen-081 .brand-block {
+  padding: 10px 12px !important;
+  border-radius: 22px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.70), rgba(212,242,255,.54)) !important;
+  border: 1px solid rgba(255, 232, 156, .46) !important;
+}
+
+.login-screen-081 .wide-action,
+.town-screen-081 .wide-action,
+body.fantasy-ui-081 .detail-action,
+body.fantasy-ui-081 .shop-buy-btn,
+body.fantasy-ui-081 .enhance-action,
+body.fantasy-ui-081 .story-action-btn {
+  min-height: 50px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255, 234, 165, .76) !important;
+  color: var(--soul-081-ink-strong) !important;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.45), transparent 24%, transparent 76%, rgba(255,255,255,.28)),
+    linear-gradient(180deg, rgba(255,255,255,.98), rgba(218,243,255,.88)) !important;
+  box-shadow: 0 11px 22px rgba(0, 75, 150, .16), inset 0 1px 0 rgba(255,255,255,.90) !important;
+}
+
+.login-screen-081 .wide-action.primary,
+.town-screen-081 .wide-action.primary,
+body.fantasy-ui-081 .detail-action.primary,
+body.fantasy-ui-081 .shop-buy-btn.primary,
+body.fantasy-ui-081 .enhance-action.primary,
+body.fantasy-ui-081 .story-action-btn {
+  color: #fff !important;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.38), transparent 24%, transparent 76%, rgba(255,255,255,.26)),
+    linear-gradient(180deg, var(--soul-081-sky), var(--soul-081-blue) 56%, var(--soul-081-blue-deep)) !important;
+  text-shadow: 0 2px 9px rgba(0, 24, 72, .48) !important;
+}
+
+.login-screen-081 .wide-action.danger,
+.town-screen-081 .wide-action.danger {
+  color: #fff !important;
+  background: linear-gradient(180deg, #ffb07e, #e76642 58%, #a73722) !important;
+}
+
+body.town-active .town-screen-081 {
+  display: block !important;
+  position: fixed !important;
+  inset: 0 !important;
+  background: #80cdfa !important;
+}
+
+.town-screen-081 .town-backdrop,
+.town-screen-081 .town-diorama,
+.town-screen-081 .town-game-lobby-070,
+.town-screen-081 .town-premium-lobby-072,
+.town-screen-081 .town-topbar,
+.town-screen-081 .town-layout,
+.town-screen-081 .town-layout-v2,
+.town-screen-081 .town-bottom-menu,
+.town-screen-081 .town-more-menu,
+.town-screen-081 [class^="town-hotspot-layer"],
+.town-screen-081 [class*=" town-hotspot-layer"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.town-screen-081 .town-master-lobby-074 {
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(255,255,255,.36), transparent 24%),
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(45, 152, 223, .15) 43%, rgba(0, 38, 94, .35) 100%),
+    var(--soul-081-lobby-mood) center / cover no-repeat !important;
+}
+
+.town-screen-081 .town-master-lobby-074 > * {
+  position: absolute !important;
+  z-index: 3 !important;
+}
+
+.town-screen-081 .town-safe-frame-081 {
+  inset: var(--soul-081-safe-t) var(--soul-081-safe-r) var(--soul-081-safe-b) var(--soul-081-safe-l) !important;
+  border-radius: clamp(22px, 6vw, 38px) !important;
+  border: 1px solid rgba(255, 239, 176, .34) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), inset 0 -80px 120px rgba(0, 38, 99, .18) !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+.town-screen-081 .town-art-bloom-081 {
+  left: 50% !important;
+  top: 43% !important;
+  width: min(76vw, 720px) !important;
+  height: min(42dvh, 430px) !important;
+  transform: translate(-50%, -50%) !important;
+  border-radius: 999px !important;
+  background: radial-gradient(ellipse at center, rgba(255,255,255,.30), rgba(92, 205, 255, .12) 44%, transparent 74%) !important;
+  filter: blur(2px) !important;
+  pointer-events: none !important;
+  z-index: 2 !important;
+}
+
+.town-screen-081 .town-master-header-074 {
+  top: var(--soul-081-safe-t) !important;
+  left: var(--soul-081-safe-l) !important;
+  right: var(--soul-081-safe-r) !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: clamp(54px, 8.5dvh, 68px) !important;
+  padding: 6px !important;
+  display: grid !important;
+  grid-template-columns: clamp(42px, 12vw, 54px) minmax(0, 1fr) repeat(3, clamp(42px, 12vw, 54px)) !important;
+  gap: clamp(4px, 1.3vw, 8px) !important;
+  align-items: center !important;
+  border-radius: 24px !important;
+  border: 1px solid var(--soul-081-line) !important;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.38), transparent 20%, transparent 80%, rgba(255,255,255,.26)),
+    linear-gradient(180deg, rgba(255,255,255,.84), rgba(212,244,255,.58)) !important;
+  box-shadow: var(--soul-081-shadow) !important;
+  backdrop-filter: blur(11px) saturate(1.2) !important;
+  z-index: 12 !important;
+}
+
+.town-screen-081 .town-master-brand-074 {
+  position: static !important;
+  display: grid !important;
+  place-items: center !important;
+  min-width: 0 !important;
+  padding-inline: 3px !important;
+  color: #fff !important;
+  text-shadow: 0 3px 12px rgba(0, 58, 128, .56), 0 0 20px rgba(83, 198, 255, .30) !important;
+}
+
+.town-screen-081 .town-master-brand-074 i { display: none !important; }
+.town-screen-081 .town-master-brand-074 b { font-size: clamp(18px, 5vw, 24px) !important; line-height: .86 !important; letter-spacing: -.06em !important; }
+.town-screen-081 .town-master-brand-074 em { font-size: clamp(8px, 2.4vw, 11px) !important; letter-spacing: .24em !important; }
+
+.town-screen-081 .town-master-icon-074,
+.town-screen-081 .town-master-wallet-074 button,
+.town-screen-081 .town-master-bottom-074 button,
+.town-screen-081 .town-master-hotspots-074 button,
+.town-screen-081 .town-master-quest-074 button {
+  position: relative !important;
+  min-width: 0 !important;
+  border: 1px solid rgba(255, 234, 165, .72) !important;
+  color: var(--soul-081-ink) !important;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.46), transparent 36%),
+    linear-gradient(180deg, rgba(255,255,255,.92), rgba(219,244,255,.74)) !important;
+  box-shadow: 0 10px 20px rgba(0, 67, 136, .15), inset 0 1px 0 rgba(255,255,255,.90) !important;
+  overflow: hidden !important;
+}
+
+.town-screen-081 .town-master-icon-074 {
+  position: static !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 18px !important;
+}
+
+.town-screen-081 .town-master-icon-074 i {
+  transform: scale(.88) !important;
+  filter: drop-shadow(0 5px 8px rgba(0,76,148,.16)) !important;
+}
+
+.town-screen-081 .town-master-icon-074 span {
+  display: none !important;
+}
+
+.town-screen-081 .town-master-wallet-074 {
+  top: calc(var(--soul-081-safe-t) + clamp(60px, 9.2dvh, 76px)) !important;
+  left: var(--soul-081-safe-l) !important;
+  right: var(--soul-081-safe-r) !important;
+  width: auto !important;
+  max-width: calc(100vw - var(--soul-081-safe-l) - var(--soul-081-safe-r)) !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: clamp(5px, 1.5vw, 8px) !important;
+  z-index: 11 !important;
+}
+
+.town-screen-081 .town-master-wallet-074 button {
+  height: clamp(38px, 6.4dvh, 48px) !important;
+  padding: 4px 8px !important;
+  border-radius: 999px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+}
+
+.town-screen-081 .town-master-wallet-074 b {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: clamp(11px, 3.2vw, 15px) !important;
+}
+
+.town-screen-081 .town-master-stage-074 {
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 4 !important;
+  pointer-events: none !important;
+}
+
+.town-screen-081 .town-master-stage-074 > * {
+  pointer-events: auto !important;
+}
+
+.town-screen-081 .town-master-title-074 {
+  top: calc(var(--soul-081-safe-t) + clamp(112px, 17dvh, 138px)) !important;
+  left: var(--soul-081-safe-l) !important;
+  width: min(54vw, 320px) !important;
+  max-width: calc(100vw - var(--soul-081-safe-l) - var(--soul-081-safe-r)) !important;
+  padding: clamp(12px, 3.2vw, 18px) !important;
+  border-radius: 26px !important;
+  border: 1px solid rgba(255, 232, 156, .55) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.74), rgba(210,242,255,.46)) !important;
+  box-shadow: var(--soul-081-shadow) !important;
+  color: var(--soul-081-ink) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.town-screen-081 .town-master-title-074 span { color: var(--soul-081-blue) !important; letter-spacing: .14em !important; }
+.town-screen-081 .town-master-title-074 h1 { color: var(--soul-081-ink-strong) !important; font-size: clamp(28px, 8vw, 48px) !important; letter-spacing: -.07em !important; }
+.town-screen-081 .town-master-title-074 p { color: var(--soul-081-muted) !important; font-size: clamp(11px, 2.8vw, 14px) !important; }
+
+.town-screen-081 .town-master-hotspots-074,
+.town-screen-081 .town-master-quest-074 {
+  top: calc(var(--soul-081-safe-t) + clamp(186px, 28dvh, 230px)) !important;
+  width: min(43vw, 210px) !important;
+  max-height: min(39dvh, 310px) !important;
+  display: grid !important;
+  gap: clamp(6px, 1.5vw, 9px) !important;
+  overflow: hidden !important;
+  z-index: 8 !important;
+}
+
+.town-screen-081 .town-master-hotspots-074 { right: var(--soul-081-safe-r) !important; }
+.town-screen-081 .town-master-quest-074 { left: var(--soul-081-safe-l) !important; }
+
+.town-screen-081 .town-master-hotspots-074 button,
+.town-screen-081 .town-master-quest-074 button {
+  min-height: clamp(46px, 7.3dvh, 62px) !important;
+  padding: 8px 9px !important;
+  border-radius: 20px !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  grid-template-rows: auto auto !important;
+  align-items: center !important;
+  column-gap: 7px !important;
+}
+
+.town-screen-081 .town-master-hotspots-074 button i {
+  grid-row: 1 / 3 !important;
+  width: clamp(28px, 8.2vw, 38px) !important;
+  height: clamp(28px, 8.2vw, 38px) !important;
+  border-radius: 14px !important;
+  background: radial-gradient(circle at 35% 25%, rgba(255,255,255,.86), rgba(94,198,255,.34) 44%, rgba(21,111,214,.14)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.76), 0 6px 10px rgba(0,76,148,.12) !important;
+}
+
+.town-screen-081 .town-master-hotspots-074 b,
+.town-screen-081 .town-master-quest-074 b {
+  color: var(--soul-081-ink-strong) !important;
+  font-size: clamp(12px, 3.1vw, 15px) !important;
+  line-height: 1.08 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.town-screen-081 .town-master-hotspots-074 span,
+.town-screen-081 .town-master-quest-074 span {
+  color: var(--soul-081-muted) !important;
+  font-size: clamp(10px, 2.6vw, 12px) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.town-screen-081 .town-master-player-074 {
+  left: var(--soul-081-safe-l) !important;
+  bottom: calc(var(--soul-081-safe-b) + clamp(78px, 11.5dvh, 102px)) !important;
+  width: min(56vw, 300px) !important;
+  max-width: calc(100vw - var(--soul-081-safe-l) - var(--soul-081-safe-r) - 152px) !important;
+  min-height: clamp(72px, 11dvh, 92px) !important;
+  padding: 8px !important;
+  display: grid !important;
+  grid-template-columns: clamp(54px, 15vw, 72px) minmax(0, 1fr) !important;
+  grid-template-rows: auto auto !important;
+  column-gap: 9px !important;
+  border-radius: 26px !important;
+  border: 1px solid var(--soul-081-line) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(213,243,255,.60)) !important;
+  box-shadow: var(--soul-081-shadow-deep) !important;
+  backdrop-filter: blur(10px) saturate(1.15) !important;
+  z-index: 9 !important;
+}
+
+.town-screen-081 .town-master-portrait-074 {
+  grid-row: 1 / 3 !important;
+  width: clamp(54px, 15vw, 72px) !important;
+  height: clamp(54px, 15vw, 72px) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 10px 22px rgba(0,62,133,.20), inset 0 1px 0 rgba(255,255,255,.86) !important;
+}
+
+.town-screen-081 .town-master-player-copy-074,
+.town-screen-081 .town-master-bars-074 {
+  min-width: 0 !important;
+}
+
+.town-screen-081 .town-master-player-copy-074 b,
+.town-screen-081 .town-master-player-copy-074 em,
+.town-screen-081 .town-master-player-copy-074 span {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.town-screen-081 .town-master-player-copy-074 span { color: var(--soul-081-blue) !important; }
+.town-screen-081 .town-master-player-copy-074 b { color: var(--soul-081-ink-strong) !important; font-size: clamp(14px, 4vw, 18px) !important; }
+.town-screen-081 .town-master-player-copy-074 em { color: var(--soul-081-muted) !important; font-size: clamp(10px, 2.8vw, 12px) !important; }
+
+.town-screen-081 .town-master-bars-074 {
+  grid-column: 2 !important;
+  display: grid !important;
+  gap: 4px !important;
+}
+
+.town-screen-081 .town-master-bars-074 label {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: 30px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 5px !important;
+  font-size: 10px !important;
+  color: var(--soul-081-muted) !important;
+}
+
+.town-screen-081 .town-master-bars-074 span { display: none !important; }
+.town-screen-081 .town-master-bars-074 i { height: 7px !important; border-radius: 999px !important; overflow: hidden !important; background: rgba(12,62,130,.18) !important; }
+
+.town-screen-081 .town-master-hunt-074 {
+  right: var(--soul-081-safe-r) !important;
+  bottom: calc(var(--soul-081-safe-b) + clamp(84px, 12.4dvh, 108px)) !important;
+  width: min(38vw, 190px) !important;
+  min-width: 128px !important;
+  max-width: calc(100vw - var(--soul-081-safe-l) - var(--soul-081-safe-r) - 196px) !important;
+  min-height: clamp(54px, 8dvh, 70px) !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 238, 166, .94) !important;
+  color: #fff !important;
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255,255,255,.46), transparent 30%),
+    linear-gradient(180deg, #65d7ff, #1577de 56%, #0b4f9d) !important;
+  box-shadow: 0 18px 34px rgba(0, 58, 145, .34), 0 0 22px rgba(105, 213, 255, .28), inset 0 1px 0 rgba(255,255,255,.82) !important;
+  text-shadow: 0 3px 10px rgba(0, 27, 76, .55) !important;
+  z-index: 10 !important;
+}
+
+.town-screen-081 .town-master-bottom-074 {
+  left: var(--soul-081-safe-l) !important;
+  right: var(--soul-081-safe-r) !important;
+  bottom: var(--soul-081-safe-b) !important;
+  width: auto !important;
+  min-height: clamp(68px, 10dvh, 82px) !important;
+  padding: 7px !important;
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: clamp(4px, 1.2vw, 7px) !important;
+  border-radius: 26px 26px 18px 18px !important;
+  border: 1px solid var(--soul-081-line) !important;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.38), transparent 26%, transparent 74%, rgba(255,255,255,.24)),
+    linear-gradient(180deg, rgba(255,255,255,.86), rgba(211,242,255,.66)) !important;
+  box-shadow: var(--soul-081-shadow-deep) !important;
+  backdrop-filter: blur(12px) saturate(1.15) !important;
+  z-index: 14 !important;
+}
+
+.town-screen-081 .town-master-bottom-074 button {
+  height: auto !important;
+  min-height: 52px !important;
+  padding: 5px 3px !important;
+  border-radius: 18px !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 2px !important;
+}
+
+.town-screen-081 .town-master-bottom-074 i {
+  width: clamp(23px, 6.4vw, 30px) !important;
+  height: clamp(23px, 6.4vw, 30px) !important;
+}
+
+.town-screen-081 .town-master-bottom-074 b {
+  max-width: 100% !important;
+  color: var(--soul-081-ink-strong) !important;
+  font-size: clamp(10px, 2.75vw, 12px) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.town-screen-081 .town-master-bottom-074 button.active,
+.town-screen-081 .town-master-hotspots-074 button.active,
+.town-screen-081 .town-master-quest-074 button.active,
+.town-screen-081 .town-master-icon-074.active,
+.town-screen-081 .town-master-wallet-074 button.active,
+.town-drawer-tab-081.active {
+  border-color: rgba(255, 239, 151, .98) !important;
+  color: #fff !important;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.45), transparent 36%),
+    linear-gradient(180deg, var(--soul-081-sky), var(--soul-081-blue) 56%, var(--soul-081-blue-deep)) !important;
+  text-shadow: 0 2px 9px rgba(0, 24, 72, .50) !important;
+  box-shadow: 0 13px 28px rgba(0, 82, 172, .32), 0 0 22px rgba(100, 215, 255, .30), inset 0 1px 0 rgba(255,255,255,.88) !important;
+}
+
+.town-screen-081 .town-master-bottom-074 button.active b,
+.town-screen-081 .town-master-hotspots-074 button.active b,
+.town-screen-081 .town-master-hotspots-074 button.active span,
+.town-screen-081 .town-master-quest-074 button.active b,
+.town-screen-081 .town-master-quest-074 button.active span {
+  color: #fff !important;
+}
+
+.town-screen-081 button:disabled,
+.town-screen-081 .locked,
+body.field-active button:disabled {
+  opacity: .52 !important;
+  filter: grayscale(.18) saturate(.72) !important;
+}
+
+.town-screen-081 .town-drawer:not(.hidden) {
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  left: var(--soul-081-safe-l) !important;
+  right: var(--soul-081-safe-r) !important;
+  bottom: calc(var(--soul-081-safe-b) + clamp(76px, 11dvh, 92px)) !important;
+  width: auto !important;
+  max-width: calc(100vw - var(--soul-081-safe-l) - var(--soul-081-safe-r)) !important;
+  max-height: min(72dvh, 660px) !important;
+  border-radius: 30px !important;
+  border: 1px solid var(--soul-081-line) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.88), rgba(221,245,255,.74)),
+    var(--soul-081-kit-mood) center / cover no-repeat !important;
+  color: var(--soul-081-ink) !important;
+  box-shadow: 0 28px 70px rgba(0, 28, 80, .38), inset 0 1px 0 rgba(255,255,255,.86) !important;
+  backdrop-filter: blur(16px) saturate(1.15) !important;
+  overflow: hidden !important;
+  z-index: 30 !important;
+}
+
+.town-screen-081 .town-drawer-head {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 5 !important;
+  padding: 13px 14px 10px !important;
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 44px !important;
+  gap: 10px !important;
+  align-items: center !important;
+  border-bottom: 1px solid rgba(255, 232, 156, .54) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(225,247,255,.76)) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.town-screen-081 .town-drawer-head div { min-width: 0 !important; }
+.town-screen-081 .town-drawer-head h2 {
+  margin: 2px 0 0 !important;
+  max-width: 100% !important;
+  color: var(--soul-081-ink-strong) !important;
+  font-size: clamp(19px, 5.3vw, 28px) !important;
+  line-height: 1.05 !important;
+  letter-spacing: -.06em !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.town-screen-081 #townContentEyebrow {
+  color: var(--soul-081-blue) !important;
+  font-size: 10px !important;
+  letter-spacing: .17em !important;
+}
+
+.town-screen-081 .town-drawer-body {
+  min-width: 0 !important;
+  padding: 10px 12px 18px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scroll-padding-top: 72px !important;
+}
+
+.town-drawer-tabs-081 {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 4 !important;
+  display: flex !important;
+  gap: 7px !important;
+  margin: -2px -2px 12px !important;
+  padding: 2px 2px 10px !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  overscroll-behavior-x: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
+  background: linear-gradient(180deg, rgba(235, 250, 255, .96), rgba(235, 250, 255, .66) 72%, transparent) !important;
+}
+
+.town-drawer-tabs-081::-webkit-scrollbar { display: none !important; }
+
+.town-drawer-tab-081 {
+  flex: 0 0 auto !important;
+  min-width: 62px !important;
+  height: 48px !important;
+  padding: 6px 10px !important;
+  display: grid !important;
+  grid-template-columns: auto auto !important;
+  gap: 5px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 17px !important;
+  border: 1px solid var(--soul-081-line-blue) !important;
+  color: var(--soul-081-ink) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(219,244,255,.80)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.88), 0 7px 16px rgba(0, 80, 154, .11) !important;
+}
+
+.town-drawer-tab-081 i { font-style: normal !important; font-size: 14px !important; line-height: 1 !important; }
+.town-drawer-tab-081 b { font-size: 12px !important; line-height: 1 !important; white-space: nowrap !important; }
+
+.town-screen-081 .slot-grid,
+.town-screen-081 .town-zone-grid,
+.town-screen-081 .town-content-grid,
+.town-screen-081 .drawer-zone-list,
+.town-screen-081 .quest-list,
+.town-screen-081 .story-list,
+.town-screen-081 .shop-list,
+.town-screen-081 .equipment-grid,
+.town-screen-081 .skill-grid,
+.town-screen-081 .card-grid,
+.town-screen-081 .soul-grid {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.town-screen-081 .drawer-zone-list,
+.town-screen-081 .quest-list,
+.town-screen-081 .story-list,
+.town-screen-081 .shop-list {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+}
+
+.town-screen-081 .slot-cell,
+.town-screen-081 .zone-card,
+.town-screen-081 .content-card,
+.town-screen-081 .quest-card,
+.town-screen-081 .shop-card,
+.town-screen-081 .skill-card,
+.town-screen-081 .equipment-card,
+.town-screen-081 .drawer-zone-card,
+.town-screen-081 .quest-row,
+.town-screen-081 .story-row,
+.town-screen-081 .pledge-task,
+.town-screen-081 .account-panel,
+.town-screen-081 .boss-panel,
+.town-screen-081 .hunt-recommend-card,
+.town-screen-081 .safe-zone-guide,
+.town-screen-081 .visual-immersion-board,
+.town-screen-081 .omega-command-board,
+.town-screen-081 .mega-progress-dashboard,
+.town-screen-081 .town-content-note {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  border-radius: 22px !important;
+  border-color: rgba(255, 232, 156, .48) !important;
+  color: var(--soul-081-ink) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(225,246,255,.72)) !important;
+  box-shadow: 0 12px 26px rgba(0, 71, 145, .14), inset 0 1px 0 rgba(255,255,255,.86) !important;
+  overflow: hidden !important;
+}
+
+.town-screen-081 .slot-cell b,
+.town-screen-081 .zone-card b,
+.town-screen-081 .content-card b,
+.town-screen-081 .quest-card b,
+.town-screen-081 .shop-card b,
+.town-screen-081 .skill-card b,
+.town-screen-081 .equipment-card b,
+.town-screen-081 .drawer-zone-card b,
+.town-screen-081 .quest-row b,
+.town-screen-081 .story-row b {
+  color: var(--soul-081-ink-strong) !important;
+}
+
+body.field-active.fantasy-ui-081 .hud-top,
+body.field-active.fantasy-ui-081 .resource-strip,
+body.field-active.fantasy-ui-081 .target-card,
+body.field-active.fantasy-ui-081 .field-quest-tracker,
+body.field-active.fantasy-ui-081 .field-chain-meter,
+body.field-active.fantasy-ui-081 .field-minimap,
+body.field-active.fantasy-ui-081 .combat-log,
+body.field-active.fantasy-ui-081 .combat-log-toggle,
+body.field-active.fantasy-ui-081 .joystick,
+body.field-active.fantasy-ui-081 .potion-dock,
+body.field-active.fantasy-ui-081 .skill-dock,
+body.field-active.fantasy-ui-081 .action-dock {
+  max-width: calc(100vw - var(--soul-081-safe-l) - var(--soul-081-safe-r)) !important;
+}
+
+body.field-active.fantasy-ui-081 .hud-top {
+  top: var(--soul-081-safe-t) !important;
+  left: var(--soul-081-safe-l) !important;
+  width: min(92vw, 420px) !important;
+  min-height: 74px !important;
+  padding: 8px !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(255, 232, 156, .48) !important;
+  background: linear-gradient(180deg, rgba(7,31,70,.82), rgba(8,42,96,.62)) !important;
+  backdrop-filter: blur(10px) !important;
+  z-index: 16 !important;
+}
+
+body.field-active.fantasy-ui-081 .resource-strip {
+  top: calc(var(--soul-081-safe-t) + 82px) !important;
+  left: var(--soul-081-safe-l) !important;
+  width: min(92vw, 420px) !important;
+  display: flex !important;
+  gap: 6px !important;
+  z-index: 15 !important;
+}
+
+body.field-active.fantasy-ui-081 .resource-strip span {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+body.field-active.fantasy-ui-081 .target-card {
+  top: calc(var(--soul-081-safe-t) + 124px) !important;
+  left: var(--soul-081-safe-l) !important;
+  right: auto !important;
+  width: min(61vw, 310px) !important;
+  z-index: 12 !important;
+}
+
+body.field-active.fantasy-ui-081 .field-quest-tracker {
+  top: calc(var(--soul-081-safe-t) + 188px) !important;
+  left: var(--soul-081-safe-l) !important;
+  width: min(56vw, 288px) !important;
+  z-index: 11 !important;
+}
+
+body.field-active.fantasy-ui-081 .field-chain-meter {
+  top: calc(var(--soul-081-safe-t) + 124px) !important;
+  right: var(--soul-081-safe-r) !important;
+  width: min(32vw, 142px) !important;
+  z-index: 12 !important;
+}
+
+body.field-active.fantasy-ui-081 .field-minimap {
+  top: calc(var(--soul-081-safe-t) + 200px) !important;
+  right: var(--soul-081-safe-r) !important;
+  width: min(34vw, 150px) !important;
+  z-index: 10 !important;
+}
+
+body.field-active.fantasy-ui-081 .combat-log {
+  left: var(--soul-081-safe-l) !important;
+  bottom: calc(var(--soul-081-safe-b) + 162px) !important;
+  width: min(54vw, 252px) !important;
+  max-height: 116px !important;
+  z-index: 9 !important;
+}
+
+body.field-active.fantasy-ui-081 .combat-log-toggle {
+  left: var(--soul-081-safe-l) !important;
+  bottom: calc(var(--soul-081-safe-b) + 284px) !important;
+  z-index: 10 !important;
+}
+
+body.field-active.fantasy-ui-081 .joystick {
+  left: var(--soul-081-safe-l) !important;
+  bottom: calc(var(--soul-081-safe-b) + 18px) !important;
+  z-index: 17 !important;
+}
+
+body.field-active.fantasy-ui-081 .action-dock {
+  right: var(--soul-081-safe-r) !important;
+  bottom: calc(var(--soul-081-safe-b) + 8px) !important;
+  width: min(62vw, 300px) !important;
+  z-index: 18 !important;
+}
+
+body.field-active.fantasy-ui-081 .skill-dock {
+  right: var(--soul-081-safe-r) !important;
+  bottom: calc(var(--soul-081-safe-b) + 91px) !important;
+  width: min(62vw, 300px) !important;
+  z-index: 18 !important;
+}
+
+body.field-active.fantasy-ui-081 .potion-dock {
+  left: calc(var(--soul-081-safe-l) + clamp(112px, 30vw, 146px)) !important;
+  bottom: calc(var(--soul-081-safe-b) + 22px) !important;
+  gap: 7px !important;
+  z-index: 18 !important;
+}
+
+body.fantasy-ui-081 .sheet.open,
+body.fantasy-ui-081 .sheet {
+  left: var(--soul-081-safe-l) !important;
+  right: var(--soul-081-safe-r) !important;
+  bottom: var(--soul-081-safe-b) !important;
+  width: auto !important;
+  max-width: calc(100vw - var(--soul-081-safe-l) - var(--soul-081-safe-r)) !important;
+  max-height: min(82dvh, 720px) !important;
+  border-radius: 30px 30px 18px 18px !important;
+  overflow: hidden !important;
+}
+
+body.fantasy-ui-081 .item-detail-card,
+body.fantasy-ui-081 .exit-confirm-card {
+  max-width: calc(100vw - var(--soul-081-safe-l) - var(--soul-081-safe-r) - 12px) !important;
+  max-height: calc(100dvh - var(--soul-081-safe-t) - var(--soul-081-safe-b) - 20px) !important;
+  overflow: auto !important;
+  border-radius: 28px !important;
+}
+
+body.fantasy-ui-081 .pressed-feedback,
+.town-screen-081 button:active,
+.login-screen-081 button:active,
+.title-screen-081 button:active,
+body.field-active.fantasy-ui-081 button:active {
+  transform: translateY(1px) scale(.985) !important;
+  filter: brightness(1.05) saturate(1.08) !important;
+}
+
+@media (min-width: 820px) and (min-height: 700px) {
+  .title-screen-081 .title-stage {
+    width: min(100vw, 1180px) !important;
+    grid-template-columns: minmax(0, .92fr) minmax(360px, 1.08fr) !important;
+    grid-template-rows: minmax(0, 1fr) auto auto !important;
+    column-gap: 24px !important;
+  }
+  .title-screen-081 .title-copy {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    align-self: center !important;
+  }
+  .title-screen-081 .title-hero {
+    grid-column: 2 !important;
+    grid-row: 1 / 4 !important;
+    width: min(48vw, 560px) !important;
+    height: min(82dvh, 760px) !important;
+  }
+  .title-screen-081 #startGameBtn,
+  .title-screen-081 .title-mini-nav,
+  .title-screen-081 small {
+    grid-column: 1 !important;
+  }
+  .town-screen-081 .town-master-wallet-074 {
+    left: auto !important;
+    width: min(48vw, 520px) !important;
+  }
+  .town-screen-081 .town-master-title-074 {
+    width: min(36vw, 410px) !important;
+  }
+  .town-screen-081 .town-master-hotspots-074,
+  .town-screen-081 .town-master-quest-074 {
+    width: min(30vw, 280px) !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .login-screen-081 .login-panel {
+    display: block !important;
+    width: min(100%, 430px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .login-screen-081 .login-lore-card {
+    display: none !important;
+  }
+  .login-screen-081 .login-flow-card {
+    max-height: calc(100dvh - var(--soul-081-safe-t) - var(--soul-081-safe-b) - 20px) !important;
+  }
+  .town-screen-081 .town-master-title-074 {
+    top: calc(var(--soul-081-safe-t) + 112px) !important;
+    width: min(57vw, 222px) !important;
+  }
+  .town-screen-081 .town-master-title-074 p { display: none !important; }
+  .town-screen-081 .town-master-hotspots-074,
+  .town-screen-081 .town-master-quest-074 {
+    top: calc(var(--soul-081-safe-t) + 176px) !important;
+    width: min(43.5vw, 166px) !important;
+  }
+  .town-screen-081 .town-master-hotspots-074 span,
+  .town-screen-081 .town-master-quest-074 span {
+    display: none !important;
+  }
+  .town-screen-081 .town-master-player-074 {
+    width: min(55vw, 220px) !important;
+    max-width: calc(100vw - var(--soul-081-safe-l) - var(--soul-081-safe-r) - 150px) !important;
+    grid-template-columns: 52px minmax(0, 1fr) !important;
+  }
+  .town-screen-081 .town-master-portrait-074 {
+    width: 52px !important;
+    height: 52px !important;
+  }
+  .town-screen-081 .town-master-bars-074 label:nth-child(n+3) {
+    display: none !important;
+  }
+  .town-screen-081 .town-master-hunt-074 {
+    width: min(39vw, 150px) !important;
+    min-width: 112px !important;
+    max-width: calc(100vw - var(--soul-081-safe-l) - var(--soul-081-safe-r) - 218px) !important;
+  }
+  .town-drawer-tab-081 {
+    min-width: 56px !important;
+    padding-inline: 8px !important;
+  }
+  body.field-active.fantasy-ui-081 .target-card,
+  body.field-active.fantasy-ui-081 .field-quest-tracker {
+    width: min(59vw, 260px) !important;
+  }
+  body.field-active.fantasy-ui-081 .field-chain-meter,
+  body.field-active.fantasy-ui-081 .field-minimap {
+    width: min(33vw, 132px) !important;
+  }
+}
+
+@media (max-width: 370px), (max-height: 660px) {
+  .title-screen-081 .title-copy p,
+  .title-screen-081 small,
+  .town-screen-081 .town-master-title-074,
+  body.field-active.fantasy-ui-081 .combat-log,
+  body.field-active.fantasy-ui-081 .combat-log-toggle {
+    display: none !important;
+  }
+  .title-screen-081 .title-stage {
+    grid-template-rows: minmax(238px, 1fr) auto auto !important;
+  }
+  .title-screen-081 .title-hero {
+    min-height: 238px !important;
+    height: min(58dvh, 430px) !important;
+  }
+  .town-screen-081 .town-master-wallet-074 {
+    top: calc(var(--soul-081-safe-t) + 58px) !important;
+  }
+  .town-screen-081 .town-master-hotspots-074,
+  .town-screen-081 .town-master-quest-074 {
+    top: calc(var(--soul-081-safe-t) + 108px) !important;
+    max-height: 40dvh !important;
+  }
+  .town-screen-081 .town-master-hotspots-074 button:nth-child(n+4),
+  .town-screen-081 .town-master-quest-074 button:nth-child(n+3) {
+    display: none !important;
+  }
+  .town-screen-081 .town-master-hotspots-074 button,
+  .town-screen-081 .town-master-quest-074 button {
+    min-height: 43px !important;
+    padding: 7px !important;
+  }
+  .town-screen-081 .town-drawer:not(.hidden) {
+    max-height: min(76dvh, 560px) !important;
+  }
+  body.field-active.fantasy-ui-081 .field-quest-tracker,
+  body.field-active.fantasy-ui-081 .field-minimap {
+    display: none !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  body.fantasy-ui-081 .orientation-guard {
+    display: grid !important;
+  }
+  .title-screen-081 .title-stage,
+  .login-screen-081,
+  body.town-active .town-screen-081,
+  body.field-active.fantasy-ui-081 #game-root {
+    max-height: 100dvh !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-screen-081 *,
+  .login-screen-081 *,
+  .town-screen-081 *,
+  body.field-active.fantasy-ui-081 * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Alpha 0.82: Soul Online brand cleanup, fantasy UI polish, and strict mobile safe-frame pass. */
+:root {
+  --soul-082-safe-t: var(--soul-081-safe-t, max(10px, env(safe-area-inset-top)));
+  --soul-082-safe-r: var(--soul-081-safe-r, max(10px, env(safe-area-inset-right)));
+  --soul-082-safe-b: var(--soul-081-safe-b, max(10px, env(safe-area-inset-bottom)));
+  --soul-082-safe-l: var(--soul-081-safe-l, max(10px, env(safe-area-inset-left)));
+  --soul-082-ink: #092958;
+  --soul-082-ink-soft: rgba(9, 41, 88, .72);
+  --soul-082-blue: #126ed7;
+  --soul-082-blue-deep: #083c91;
+  --soul-082-sky: #59d7ff;
+  --soul-082-gold: #ffe7a3;
+  --soul-082-gold-deep: #b7761e;
+  --soul-082-panel: rgba(249, 253, 255, .90);
+  --soul-082-panel-soft: rgba(224, 247, 255, .76);
+  --soul-082-line: rgba(255, 232, 156, .76);
+  --soul-082-line-blue: rgba(69, 147, 224, .24);
+  --soul-082-shadow: 0 20px 50px rgba(5, 62, 135, .24), 0 6px 16px rgba(0, 26, 72, .13), inset 0 1px 0 rgba(255,255,255,.88);
+  --soul-082-shadow-strong: 0 30px 74px rgba(0, 25, 80, .38), inset 0 1px 0 rgba(255,255,255,.78);
+}
+
+body.fantasy-ui-082,
+body.fantasy-ui-082 #app,
+body.fantasy-ui-082 #game-root {
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+body.fantasy-ui-082 * {
+  box-sizing: border-box !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+body.fantasy-ui-082 button,
+body.fantasy-ui-082 input {
+  font: inherit !important;
+}
+
+body.fantasy-ui-082 button {
+  touch-action: manipulation !important;
+}
+
+body.fantasy-ui-082 :where(button, [role="button"]):focus-visible {
+  outline: 2px solid rgba(255, 235, 151, .95) !important;
+  outline-offset: 2px !important;
+}
+
+.title-screen-082,
+.login-screen-082,
+.town-screen-082 {
+  isolation: isolate !important;
+}
+
+.title-screen-082 .title-stage,
+.login-screen-082,
+.town-screen-082 .town-master-lobby-074 {
+  contain: layout paint style !important;
+}
+
+.title-screen-082 .title-copy,
+.login-screen-082 .brand-block,
+.town-screen-082 .town-master-brand-074 {
+  text-wrap: balance;
+}
+
+.title-screen-082 .title-copy {
+  position: relative !important;
+  padding: clamp(14px, 4vw, 24px) !important;
+  border-radius: clamp(24px, 7vw, 40px) !important;
+  border: 1px solid rgba(255, 235, 166, .34) !important;
+  background: linear-gradient(180deg, rgba(2, 41, 96, .28), rgba(8, 68, 145, .10)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.20), 0 16px 42px rgba(0, 31, 86, .18) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.title-screen-082 .title-kicker {
+  display: inline-flex !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  padding: 5px 10px !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.14) !important;
+  border: 1px solid rgba(255,235,166,.26) !important;
+}
+
+.title-screen-082 #startGameBtn,
+.login-screen-082 .wide-action,
+.town-screen-082 .wide-action,
+body.fantasy-ui-082 .town-advisor-cta,
+body.fantasy-ui-082 .shop-buy-actions button,
+body.fantasy-ui-082 .item-row button,
+body.fantasy-ui-082 .story-row button,
+body.fantasy-ui-082 .quest-row button {
+  min-height: 46px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255, 234, 165, .74) !important;
+  font-weight: 900 !important;
+  letter-spacing: -.035em !important;
+  box-shadow: 0 10px 22px rgba(0, 79, 160, .18), inset 0 1px 0 rgba(255,255,255,.86) !important;
+}
+
+.title-screen-082 #startGameBtn,
+.login-screen-082 .wide-action.primary,
+.town-screen-082 .wide-action.primary,
+body.fantasy-ui-082 .town-advisor-cta.primary,
+body.fantasy-ui-082 .shop-buy-actions button:first-child:not(:disabled),
+body.fantasy-ui-082 .item-row button:not(:disabled),
+body.fantasy-ui-082 .story-row button:not(:disabled),
+body.fantasy-ui-082 .quest-row button:not(:disabled) {
+  color: #fff !important;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.36), transparent 28%, transparent 72%, rgba(255,255,255,.22)),
+    linear-gradient(180deg, var(--soul-082-sky), var(--soul-082-blue) 58%, var(--soul-082-blue-deep)) !important;
+  text-shadow: 0 2px 10px rgba(0, 28, 82, .50) !important;
+}
+
+.login-screen-082 .login-flow-card,
+.town-screen-082 .town-drawer:not(.hidden),
+body.fantasy-ui-082 .sheet,
+body.fantasy-ui-082 .item-detail-card,
+body.fantasy-ui-082 .exit-confirm-card {
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.52), transparent 22%, transparent 78%, rgba(255,255,255,.32)),
+    linear-gradient(180deg, var(--soul-082-panel), var(--soul-082-panel-soft)) !important;
+  border: 1px solid var(--soul-082-line) !important;
+  color: var(--soul-082-ink) !important;
+  box-shadow: var(--soul-082-shadow-strong) !important;
+}
+
+.login-screen-082 .login-panel {
+  padding: var(--soul-082-safe-t) var(--soul-082-safe-r) var(--soul-082-safe-b) var(--soul-082-safe-l) !important;
+}
+
+.login-screen-082 .character-slot-list,
+.login-screen-082 .server-list,
+.login-screen-082 .class-grid,
+.login-screen-082 .gender-grid {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.login-screen-082 .server-card,
+.login-screen-082 .class-card,
+.login-screen-082 .character-slot-card,
+.login-screen-082 .world-card {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  border-radius: 20px !important;
+  border-color: rgba(255, 232, 156, .50) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.90), rgba(227,247,255,.74)) !important;
+}
+
+.town-screen-082 .town-master-lobby-074::before,
+.town-screen-082 .town-master-lobby-074::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+}
+
+.town-screen-082 .town-master-lobby-074::before {
+  z-index: 1 !important;
+  background:
+    radial-gradient(circle at 50% 5%, rgba(255,255,255,.38), transparent 22%),
+    radial-gradient(circle at 18% 82%, rgba(255, 226, 145, .26), transparent 20%),
+    linear-gradient(180deg, rgba(255,255,255,.04), transparent 52%, rgba(4, 29, 72, .36)) !important;
+}
+
+.town-screen-082 .town-master-lobby-074::after {
+  z-index: 2 !important;
+  inset: var(--soul-082-safe-t) var(--soul-082-safe-r) var(--soul-082-safe-b) var(--soul-082-safe-l) !important;
+  border-radius: clamp(22px, 6vw, 40px) !important;
+  border: 1px solid rgba(255, 239, 176, .32) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), inset 0 -64px 110px rgba(0, 31, 88, .17) !important;
+}
+
+.town-screen-082 .town-safe-frame-082 {
+  display: none !important;
+}
+
+.town-screen-082 .town-art-bloom-082 {
+  width: min(88vw, 840px) !important;
+  height: min(48dvh, 480px) !important;
+  opacity: .85 !important;
+  background:
+    radial-gradient(ellipse at center, rgba(255,255,255,.36), rgba(88,210,255,.16) 42%, transparent 72%),
+    radial-gradient(ellipse at 45% 60%, rgba(255,227,154,.18), transparent 54%) !important;
+}
+
+.town-screen-082 .town-master-header-074 {
+  height: clamp(50px, 7.9dvh, 64px) !important;
+  border-radius: 22px !important;
+  gap: clamp(4px, 1vw, 7px) !important;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.42), transparent 18%, transparent 82%, rgba(255,255,255,.24)),
+    linear-gradient(180deg, rgba(255,255,255,.88), rgba(218,245,255,.62)) !important;
+}
+
+.town-screen-082 .town-master-brand-074 b::before {
+  content: 'SOUL' !important;
+}
+
+.town-screen-082 .town-master-brand-074 b {
+  font-size: 0 !important;
+}
+
+.town-screen-082 .town-master-brand-074 b::before {
+  font-size: clamp(18px, 5vw, 25px) !important;
+  letter-spacing: -.06em !important;
+}
+
+.town-screen-082 .town-master-wallet-074 {
+  top: calc(var(--soul-082-safe-t) + clamp(56px, 8.7dvh, 72px)) !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.town-screen-082 .town-master-wallet-074 button,
+.town-screen-082 .town-master-icon-074,
+.town-screen-082 .town-master-hotspots-074 button,
+.town-screen-082 .town-master-quest-074 button,
+.town-screen-082 .town-master-bottom-074 button {
+  border-color: rgba(255, 232, 156, .70) !important;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.52), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.93), rgba(218,244,255,.76)) !important;
+  box-shadow: 0 10px 20px rgba(0, 67, 136, .14), inset 0 1px 0 rgba(255,255,255,.90) !important;
+}
+
+.town-screen-082 .town-master-icon-074.active,
+.town-screen-082 .town-master-wallet-074 button.active,
+.town-screen-082 .town-master-hotspots-074 button.active,
+.town-screen-082 .town-master-quest-074 button.active,
+.town-screen-082 .town-master-bottom-074 button.active,
+.town-drawer-tab-082.active {
+  color: #fff !important;
+  border-color: rgba(255, 237, 156, .98) !important;
+  background:
+    linear-gradient(115deg, rgba(255,255,255,.32), transparent 30%, transparent 70%, rgba(255,255,255,.18)),
+    linear-gradient(180deg, #65daff, #1374da 58%, #08459d) !important;
+  text-shadow: 0 2px 9px rgba(0, 24, 70, .52) !important;
+  box-shadow: 0 15px 32px rgba(0, 88, 176, .30), 0 0 22px rgba(96, 212, 255, .26), inset 0 1px 0 rgba(255,255,255,.88) !important;
+}
+
+.town-screen-082 .town-master-title-074,
+.town-screen-082 .town-master-player-074,
+.town-screen-082 .town-master-hunt-074,
+.town-screen-082 .town-master-bottom-074 {
+  backdrop-filter: blur(13px) saturate(1.15) !important;
+}
+
+.town-screen-082 .town-master-title-074 {
+  width: min(52vw, 340px) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(220,245,255,.58)) !important;
+}
+
+.town-screen-082 .town-master-title-074 h1,
+.town-screen-082 .town-drawer-head h2,
+.town-flow-main-082 h3 {
+  word-break: keep-all !important;
+}
+
+.town-screen-082 .town-master-hotspots-074,
+.town-screen-082 .town-master-quest-074 {
+  max-height: min(38dvh, 300px) !important;
+  overflow: hidden !important;
+}
+
+.town-screen-082 .town-master-hotspots-074 button,
+.town-screen-082 .town-master-quest-074 button {
+  min-height: clamp(48px, 7.2dvh, 62px) !important;
+  padding: clamp(8px, 2vw, 11px) !important;
+}
+
+.town-screen-082 .town-master-player-074 {
+  width: min(58vw, 326px) !important;
+  max-width: calc(100vw - var(--soul-082-safe-l) - var(--soul-082-safe-r) - clamp(170px, 42vw, 240px)) !important;
+  grid-template-columns: clamp(54px, 14vw, 66px) minmax(0, 1fr) !important;
+  grid-template-areas: 'portrait copy' 'bars bars' !important;
+  gap: 7px 10px !important;
+}
+
+.town-screen-082 .town-master-portrait-074 { grid-area: portrait !important; }
+.town-screen-082 .town-master-player-copy-074 { grid-area: copy !important; min-width: 0 !important; }
+.town-screen-082 .town-master-bars-074 { grid-area: bars !important; }
+.town-screen-082 .town-master-player-copy-074 b,
+.town-screen-082 .town-master-player-copy-074 em,
+.town-screen-082 .town-master-bars-074 label span {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.town-screen-082 .town-master-hunt-074 {
+  min-height: clamp(58px, 9dvh, 76px) !important;
+  width: min(38vw, 196px) !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.44), transparent 38%),
+    linear-gradient(180deg, #65dbff, #1375da 58%, #073c8c) !important;
+}
+
+.town-screen-082 .town-master-bottom-074 {
+  height: clamp(62px, 9.5dvh, 78px) !important;
+  padding: 6px !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: clamp(4px, 1.2vw, 8px) !important;
+}
+
+.town-screen-082 .town-master-bottom-074 button {
+  min-width: 0 !important;
+  min-height: 48px !important;
+  border-radius: 18px !important;
+  padding: 5px 2px !important;
+}
+
+.town-screen-082 .town-master-bottom-074 b {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: clamp(10px, 2.8vw, 12px) !important;
+}
+
+.town-screen-082 .town-drawer:not(.hidden) {
+  left: var(--soul-082-safe-l) !important;
+  right: var(--soul-082-safe-r) !important;
+  bottom: calc(var(--soul-082-safe-b) + clamp(70px, 10.6dvh, 88px)) !important;
+  max-height: min(73dvh, 680px) !important;
+  border-radius: 28px !important;
+}
+
+.town-screen-082 .town-drawer-body {
+  padding: 10px clamp(10px, 3vw, 14px) 18px !important;
+  overflow-x: clip !important;
+}
+
+.town-drawer-tabs-082 {
+  margin: -1px -1px 10px !important;
+  padding-bottom: 9px !important;
+  scroll-snap-type: x proximity !important;
+}
+
+.town-drawer-tab-082 {
+  scroll-snap-align: start !important;
+  min-width: 58px !important;
+  height: 47px !important;
+  border-radius: 16px !important;
+}
+
+.town-drawer-tab-082.more:not(.active) {
+  background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(239,247,255,.66)) !important;
+}
+
+.town-flow-advisor-082 {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 10px !important;
+  margin: 0 0 12px !important;
+  padding: 12px !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(255, 232, 156, .62) !important;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(255,255,255,.62), transparent 36%),
+    linear-gradient(180deg, rgba(255,255,255,.90), rgba(222,246,255,.76)) !important;
+  box-shadow: 0 16px 32px rgba(0, 79, 160, .16), inset 0 1px 0 rgba(255,255,255,.88) !important;
+}
+
+.town-flow-main-082 {
+  min-width: 0 !important;
+}
+
+.town-flow-eyebrow-082 {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  color: var(--soul-082-blue) !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: .15em !important;
+}
+
+.town-flow-main-082 h3 {
+  margin: 3px 0 4px !important;
+  color: var(--soul-082-ink) !important;
+  font-size: clamp(18px, 5vw, 25px) !important;
+  letter-spacing: -.06em !important;
+}
+
+.town-flow-main-082 p {
+  margin: 0 !important;
+  color: var(--soul-082-ink-soft) !important;
+  font-size: clamp(12px, 3vw, 14px) !important;
+  line-height: 1.35 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+.town-flow-progress-082 {
+  position: relative !important;
+  height: 16px !important;
+  margin-top: 9px !important;
+  overflow: hidden !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(37, 120, 210, .22) !important;
+  background: rgba(10, 55, 112, .12) !important;
+}
+
+.town-flow-progress-082 i {
+  display: block !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  border-radius: inherit !important;
+  background: linear-gradient(90deg, #6ddfff, #1c83ef 70%, #ffe28f) !important;
+  box-shadow: 0 0 18px rgba(78, 207, 255, .42) !important;
+}
+
+.town-flow-progress-082 em {
+  position: absolute !important;
+  inset: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  color: #fff !important;
+  font-size: 10px !important;
+  font-style: normal !important;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 4px rgba(0, 31, 80, .55) !important;
+}
+
+.town-flow-stats-082 {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  max-width: 100% !important;
+}
+
+.town-flow-stats-082 span {
+  min-width: 0 !important;
+  padding: 8px 6px !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(66, 146, 220, .20) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(221,244,255,.62)) !important;
+  text-align: center !important;
+}
+
+.town-flow-stats-082 b,
+.town-flow-stats-082 em {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.town-flow-stats-082 b {
+  color: var(--soul-082-ink) !important;
+  font-size: clamp(12px, 3.2vw, 15px) !important;
+}
+
+.town-flow-stats-082 em {
+  color: var(--soul-082-ink-soft) !important;
+  font-size: 10px !important;
+  font-style: normal !important;
+}
+
+.town-flow-actions-082 {
+  display: grid !important;
+  grid-template-columns: 1.3fr .85fr .85fr !important;
+  gap: 7px !important;
+}
+
+body.fantasy-ui-082 .town-advisor-cta {
+  min-width: 0 !important;
+  min-height: 42px !important;
+  padding: 0 10px !important;
+  color: var(--soul-082-ink) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(220,245,255,.78)) !important;
+}
+
+body.fantasy-ui-082 .town-advisor-cta.primary {
+  color: #fff !important;
+}
+
+body.fantasy-ui-082 .shop-row,
+body.fantasy-ui-082 .item-row,
+body.fantasy-ui-082 .story-row,
+body.fantasy-ui-082 .quest-row,
+body.fantasy-ui-082 .drawer-zone-card,
+body.fantasy-ui-082 .equipment-resonance-panel,
+body.fantasy-ui-082 .potion-belt-panel,
+body.fantasy-ui-082 .auto-tactics-panel,
+body.fantasy-ui-082 .audio-settings-panel,
+body.fantasy-ui-082 .hunt-recommend-card,
+body.fantasy-ui-082 .mega-progress-dashboard,
+body.fantasy-ui-082 .boss-panel,
+body.fantasy-ui-082 .account-panel {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  border-radius: 22px !important;
+  border: 1px solid rgba(255, 232, 156, .48) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.90), rgba(224,247,255,.72)) !important;
+  box-shadow: 0 12px 28px rgba(0, 78, 156, .13), inset 0 1px 0 rgba(255,255,255,.88) !important;
+  overflow: hidden !important;
+}
+
+body.fantasy-ui-082 .shop-row,
+body.fantasy-ui-082 .item-row {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 10px !important;
+}
+
+body.fantasy-ui-082 .item-row {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+}
+
+body.fantasy-ui-082 .shop-row h3,
+body.fantasy-ui-082 .item-row h3,
+body.fantasy-ui-082 .story-row h3,
+body.fantasy-ui-082 .quest-row h3,
+body.fantasy-ui-082 .drawer-zone-card b {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  color: var(--soul-082-ink) !important;
+}
+
+body.fantasy-ui-082 .shop-row p,
+body.fantasy-ui-082 .item-row p,
+body.fantasy-ui-082 .story-row p,
+body.fantasy-ui-082 .quest-row p,
+body.fantasy-ui-082 .drawer-zone-card span {
+  color: var(--soul-082-ink-soft) !important;
+  line-height: 1.32 !important;
+}
+
+body.fantasy-ui-082 .shop-buy-actions {
+  display: grid !important;
+  gap: 6px !important;
+  min-width: min(28vw, 118px) !important;
+}
+
+body.fantasy-ui-082 .shop-buy-actions button,
+body.fantasy-ui-082 .item-row button {
+  min-height: 38px !important;
+  border-radius: 14px !important;
+  padding: 0 10px !important;
+}
+
+body.fantasy-ui-082 .pill-row,
+body.fantasy-ui-082 .pill-row .pill {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+body.fantasy-ui-082 .pill {
+  border-color: rgba(58, 143, 220, .22) !important;
+  background: rgba(255,255,255,.70) !important;
+  color: var(--soul-082-ink-soft) !important;
+}
+
+body.field-active.fantasy-ui-082 .hud-top,
+body.field-active.fantasy-ui-082 .resource-strip,
+body.field-active.fantasy-ui-082 .target-card,
+body.field-active.fantasy-ui-082 .field-quest-tracker,
+body.field-active.fantasy-ui-082 .field-chain-meter,
+body.field-active.fantasy-ui-082 .field-minimap,
+body.field-active.fantasy-ui-082 .combat-log,
+body.field-active.fantasy-ui-082 .skill-dock,
+body.field-active.fantasy-ui-082 .action-dock,
+body.field-active.fantasy-ui-082 .potion-dock,
+body.field-active.fantasy-ui-082 .joystick {
+  max-width: calc(100vw - var(--soul-082-safe-l) - var(--soul-082-safe-r)) !important;
+}
+
+body.field-active.fantasy-ui-082 .hud-top,
+body.field-active.fantasy-ui-082 .resource-strip,
+body.field-active.fantasy-ui-082 .target-card,
+body.field-active.fantasy-ui-082 .field-quest-tracker,
+body.field-active.fantasy-ui-082 .field-chain-meter,
+body.field-active.fantasy-ui-082 .field-minimap,
+body.field-active.fantasy-ui-082 .combat-log {
+  border: 1px solid rgba(255, 232, 156, .42) !important;
+  background: linear-gradient(180deg, rgba(6, 31, 73, .86), rgba(6, 49, 111, .62)) !important;
+  box-shadow: 0 14px 36px rgba(0, 22, 70, .28), inset 0 1px 0 rgba(255,255,255,.16) !important;
+  backdrop-filter: blur(10px) saturate(1.18) !important;
+}
+
+body.field-active.fantasy-ui-082 .hud-top {
+  width: min(91vw, 410px) !important;
+  min-height: 70px !important;
+}
+
+body.field-active.fantasy-ui-082 .resource-strip {
+  top: calc(var(--soul-082-safe-t) + 76px) !important;
+  width: min(91vw, 410px) !important;
+}
+
+body.field-active.fantasy-ui-082 .target-card {
+  top: calc(var(--soul-082-safe-t) + 116px) !important;
+  width: min(60vw, 300px) !important;
+}
+
+body.field-active.fantasy-ui-082 .field-quest-tracker {
+  top: calc(var(--soul-082-safe-t) + 176px) !important;
+  width: min(55vw, 280px) !important;
+}
+
+body.field-active.fantasy-ui-082 .field-chain-meter {
+  top: calc(var(--soul-082-safe-t) + 116px) !important;
+  width: min(33vw, 138px) !important;
+}
+
+body.field-active.fantasy-ui-082 .field-minimap {
+  top: calc(var(--soul-082-safe-t) + 190px) !important;
+  width: min(34vw, 146px) !important;
+}
+
+body.field-active.fantasy-ui-082 .combat-log {
+  bottom: calc(var(--soul-082-safe-b) + 148px) !important;
+  width: min(52vw, 250px) !important;
+  max-height: 106px !important;
+}
+
+body.field-active.fantasy-ui-082 .combat-log-toggle {
+  bottom: calc(var(--soul-082-safe-b) + 260px) !important;
+}
+
+body.field-active.fantasy-ui-082 .joystick {
+  width: clamp(92px, 26vw, 118px) !important;
+  height: clamp(92px, 26vw, 118px) !important;
+}
+
+body.field-active.fantasy-ui-082 .potion-dock {
+  left: calc(var(--soul-082-safe-l) + clamp(102px, 29vw, 136px)) !important;
+  bottom: calc(var(--soul-082-safe-b) + 18px) !important;
+}
+
+body.field-active.fantasy-ui-082 .skill-dock,
+body.field-active.fantasy-ui-082 .action-dock {
+  right: var(--soul-082-safe-r) !important;
+  width: min(61vw, 292px) !important;
+}
+
+body.field-active.fantasy-ui-082 .skill-dock {
+  bottom: calc(var(--soul-082-safe-b) + 84px) !important;
+}
+
+body.field-active.fantasy-ui-082 .action-dock {
+  bottom: calc(var(--soul-082-safe-b) + 6px) !important;
+}
+
+body.field-active.fantasy-ui-082 .dock-btn,
+body.field-active.fantasy-ui-082 .skill-btn,
+body.field-active.fantasy-ui-082 .potion-btn {
+  min-width: 0 !important;
+  min-height: 48px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255, 232, 156, .58) !important;
+}
+
+body.fantasy-ui-082 .sheet.open,
+body.fantasy-ui-082 .sheet {
+  max-height: min(80dvh, 700px) !important;
+  border-radius: 28px 28px 18px 18px !important;
+}
+
+body.fantasy-ui-082 .sheet-head,
+body.fantasy-ui-082 .tabs {
+  position: sticky !important;
+  z-index: 4 !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(226,247,255,.78)) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+body.fantasy-ui-082 .sheet-head { top: 0 !important; }
+body.fantasy-ui-082 .tabs { top: 62px !important; }
+
+body.fantasy-ui-082 .sheet-body {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+@media (min-width: 900px) and (min-height: 680px) {
+  .town-screen-082 .town-master-wallet-074 {
+    right: var(--soul-082-safe-r) !important;
+    left: auto !important;
+    width: min(48vw, 540px) !important;
+  }
+  .town-screen-082 .town-master-title-074 {
+    width: min(34vw, 430px) !important;
+  }
+  .town-screen-082 .town-drawer:not(.hidden) {
+    left: auto !important;
+    right: calc(var(--soul-082-safe-r) + 10px) !important;
+    bottom: calc(var(--soul-082-safe-b) + 92px) !important;
+    width: min(50vw, 560px) !important;
+    max-height: min(76dvh, 700px) !important;
+  }
+  .town-flow-advisor-082 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .title-screen-082 .title-copy {
+    padding: 13px !important;
+  }
+  .title-screen-082 .title-copy h1 {
+    font-size: clamp(40px, 14vw, 58px) !important;
+  }
+  .login-screen-082 .login-flow-card {
+    border-radius: 26px !important;
+  }
+  .town-screen-082 .town-master-header-074 {
+    grid-template-columns: clamp(40px, 11vw, 50px) minmax(0, .84fr) repeat(3, clamp(40px, 11vw, 50px)) !important;
+    height: clamp(50px, 7.7dvh, 60px) !important;
+  }
+  .town-screen-082 .town-master-brand-074 em {
+    display: none !important;
+  }
+  .town-screen-082 .town-master-wallet-074 {
+    top: calc(var(--soul-082-safe-t) + 56px) !important;
+  }
+  .town-screen-082 .town-master-title-074 {
+    display: none !important;
+  }
+  .town-screen-082 .town-master-hotspots-074,
+  .town-screen-082 .town-master-quest-074 {
+    top: calc(var(--soul-082-safe-t) + 108px) !important;
+    width: min(43vw, 164px) !important;
+    max-height: min(36dvh, 240px) !important;
+  }
+  .town-screen-082 .town-master-hotspots-074 button:nth-child(n+4),
+  .town-screen-082 .town-master-quest-074 button:nth-child(n+3) {
+    display: none !important;
+  }
+  .town-screen-082 .town-master-player-074 {
+    bottom: calc(var(--soul-082-safe-b) + 72px) !important;
+    width: min(54vw, 210px) !important;
+    max-width: calc(100vw - var(--soul-082-safe-l) - var(--soul-082-safe-r) - 150px) !important;
+  }
+  .town-screen-082 .town-master-hunt-074 {
+    bottom: calc(var(--soul-082-safe-b) + 78px) !important;
+    width: min(40vw, 150px) !important;
+    min-width: 112px !important;
+    max-width: calc(100vw - var(--soul-082-safe-l) - var(--soul-082-safe-r) - 216px) !important;
+  }
+  .town-flow-stats-082 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .town-flow-actions-082 {
+    grid-template-columns: 1fr 1fr 1fr !important;
+  }
+  body.fantasy-ui-082 .shop-row {
+    grid-template-columns: auto minmax(0, 1fr) !important;
+  }
+  body.fantasy-ui-082 .shop-buy-actions {
+    grid-column: 1 / -1 !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
+  body.field-active.fantasy-ui-082 .target-card,
+  body.field-active.fantasy-ui-082 .field-quest-tracker {
+    width: min(58vw, 252px) !important;
+  }
+  body.field-active.fantasy-ui-082 .field-chain-meter,
+  body.field-active.fantasy-ui-082 .field-minimap {
+    width: min(32vw, 128px) !important;
+  }
+  body.field-active.fantasy-ui-082 .dock-btn b,
+  body.field-active.fantasy-ui-082 .skill-btn b,
+  body.field-active.fantasy-ui-082 .potion-btn b {
+    font-size: 10px !important;
+  }
+}
+
+@media (max-width: 370px), (max-height: 660px) {
+  .town-screen-082 .town-master-wallet-074 button span,
+  .town-screen-082 .town-master-icon-074:nth-of-type(3),
+  .town-screen-082 .town-master-bars-074 label:nth-child(n+3),
+  body.field-active.fantasy-ui-082 .field-minimap,
+  body.field-active.fantasy-ui-082 .field-quest-tracker,
+  body.field-active.fantasy-ui-082 .combat-log,
+  body.field-active.fantasy-ui-082 .combat-log-toggle {
+    display: none !important;
+  }
+  .town-screen-082 .town-master-header-074 {
+    grid-template-columns: clamp(40px, 12vw, 48px) minmax(0, 1fr) repeat(2, clamp(40px, 12vw, 48px)) !important;
+  }
+  .town-screen-082 .town-master-wallet-074 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+  }
+  .town-screen-082 .town-master-wallet-074 button {
+    height: 36px !important;
+    padding-inline: 5px !important;
+  }
+  .town-screen-082 .town-master-hotspots-074,
+  .town-screen-082 .town-master-quest-074 {
+    max-height: 34dvh !important;
+  }
+  .town-screen-082 .town-master-bottom-074 b {
+    display: none !important;
+  }
+  .town-screen-082 .town-master-bottom-074 button {
+    min-height: 44px !important;
+  }
+  .town-screen-082 .town-drawer:not(.hidden) {
+    bottom: calc(var(--soul-082-safe-b) + 60px) !important;
+    max-height: min(78dvh, 560px) !important;
+  }
+  .town-flow-advisor-082 {
+    padding: 10px !important;
+  }
+  .town-flow-main-082 p {
+    -webkit-line-clamp: 1 !important;
+  }
+  body.field-active.fantasy-ui-082 .hud-top {
+    width: min(100vw - var(--soul-082-safe-l) - var(--soul-082-safe-r), 370px) !important;
+  }
+  body.field-active.fantasy-ui-082 .resource-strip {
+    display: none !important;
+  }
+  body.field-active.fantasy-ui-082 .target-card,
+  body.field-active.fantasy-ui-082 .field-chain-meter {
+    top: calc(var(--soul-082-safe-t) + 78px) !important;
+  }
+  body.field-active.fantasy-ui-082 .skill-dock {
+    bottom: calc(var(--soul-082-safe-b) + 76px) !important;
+  }
+  body.field-active.fantasy-ui-082 .dock-btn,
+  body.field-active.fantasy-ui-082 .skill-btn,
+  body.field-active.fantasy-ui-082 .potion-btn {
+    min-height: 44px !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 540px) {
+  body.fantasy-ui-082 .orientation-guard {
+    display: grid !important;
+    z-index: 999 !important;
+  }
+}
+
+@supports (height: 100svh) {
+  body.fantasy-ui-082,
+  body.fantasy-ui-082 #app,
+  body.fantasy-ui-082 #game-root {
+    height: 100svh !important;
+    max-height: 100svh !important;
+  }
+}
