@@ -2,6 +2,8 @@ import './styles.css';
 import './styles/alpha098.css';
 import './styles/alpha099.css';
 import './styles/alpha100.css';
+import './styles/alpha101.css';
+import './styles/alpha102.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
@@ -25,6 +27,8 @@ import { installVisualMass097, syncVisualMass097, inspectVisualMass097 } from '.
 import { installVisualClean098, syncVisualClean098, inspectVisualClean098 } from './ui/visualClean098';
 import { installVisualArtPerf099, syncVisualArtPerf099, inspectVisualArt099 } from './ui/visualArtPerf099';
 import { installFieldHudOverhaul100, syncFieldHudOverhaul100, inspectFieldHud100 } from './ui/fieldHudOverhaul100';
+import { applyImageDecodePolicy101, inspectPerformance101, installPerformanceTuner101, syncPerformanceRoute101 } from './ui/performanceTuner101';
+import { installSoulAssetKit102, inspectSoulAssetKit102, syncSoulAssetKit102 } from './ui/soulAssetKit102';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
 import type { AutoHuntSettings, CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
@@ -81,7 +85,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '1.00.0';
+const ALPHA_VERSION = '1.02.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -229,7 +233,7 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-098', 'visual-clean-098', 'fantasy-ui-099', 'visual-art-099', 'fantasy-ui-100', 'visual-field-100', 'entry-flow-ready-090');
+  document.body.classList.add('fantasy-ui-098', 'visual-clean-098', 'fantasy-ui-099', 'visual-art-099', 'fantasy-ui-100', 'visual-field-100', 'fantasy-ui-101', 'perf-polish-101', 'fantasy-ui-102', 'asset-kit-102', 'entry-flow-ready-090');
   titleScreen.classList.add('title-screen-098', 'title-art-099');
   loginScreen.classList.add('login-screen-098', 'login-art-099');
   townScreen.classList.add('town-screen-098', 'town-art-099');
@@ -242,6 +246,9 @@ async function boot() {
   installVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   installVisualArtPerf099({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   installFieldHudOverhaul100({ gameRoot: root });
+  installPerformanceTuner101(document);
+  applyImageDecodePolicy101(document);
+  installSoulAssetKit102(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   await saveService.init();
   await mergeCloudRosterToLocal();
   pendingSave = saveService.loadLocal();
@@ -282,6 +289,8 @@ async function boot() {
   syncVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncVisualArtPerf099({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncFieldHudOverhaul100();
+  syncPerformanceRoute101(document.body.classList.contains('field-active') ? 'field' : document.body.classList.contains('town-active') ? 'town' : titleScreen.classList.contains('hidden') ? 'login' : 'title');
+  syncSoulAssetKit102(document, document.body.classList.contains('field-active') ? 'field' : document.body.classList.contains('town-active') ? 'town' : titleScreen.classList.contains('hidden') ? 'login' : 'title');
   ensureTitleEntry090({ titleScreen, startButton: startGameBtn, loginScreen });
   installEntryRegressionGuards092();
   titleEntryLastReport090 = titleEntryHealthLabel090(inspectTitleEntry090(titleScreen, startGameBtn)).label;
@@ -310,6 +319,8 @@ function bindTitleFlow() {
   syncVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncVisualArtPerf099({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncFieldHudOverhaul100();
+  syncPerformanceRoute101(document.body.classList.contains('field-active') ? 'field' : document.body.classList.contains('town-active') ? 'town' : titleScreen.classList.contains('hidden') ? 'login' : 'title');
+  syncSoulAssetKit102(document, document.body.classList.contains('field-active') ? 'field' : document.body.classList.contains('town-active') ? 'town' : titleScreen.classList.contains('hidden') ? 'login' : 'title');
     });
     titleStartBusy090 = false;
   };
@@ -1064,6 +1075,8 @@ async function enterTown(save: PlayerSave, label = '마을로 이동 중') {
   syncVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncVisualArtPerf099({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncFieldHudOverhaul100();
+  syncPerformanceRoute101(document.body.classList.contains('field-active') ? 'field' : document.body.classList.contains('town-active') ? 'town' : titleScreen.classList.contains('hidden') ? 'login' : 'title');
+  syncSoulAssetKit102(document, document.body.classList.contains('field-active') ? 'field' : document.body.classList.contains('town-active') ? 'town' : titleScreen.classList.contains('hidden') ? 'login' : 'title');
   });
 }
 
@@ -1095,6 +1108,8 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
   syncVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncVisualArtPerf099({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncFieldHudOverhaul100();
+  syncPerformanceRoute101(document.body.classList.contains('field-active') ? 'field' : document.body.classList.contains('town-active') ? 'town' : titleScreen.classList.contains('hidden') ? 'login' : 'title');
+  syncSoulAssetKit102(document, document.body.classList.contains('field-active') ? 'field' : document.body.classList.contains('town-active') ? 'town' : titleScreen.classList.contains('hidden') ? 'login' : 'title');
       setFieldZoneHud(zoneId);
 
       if (game) game.destroy();
@@ -1143,6 +1158,8 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
   syncVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncVisualArtPerf099({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncFieldHudOverhaul100();
+  syncPerformanceRoute101(document.body.classList.contains('field-active') ? 'field' : document.body.classList.contains('town-active') ? 'town' : titleScreen.classList.contains('hidden') ? 'login' : 'title');
+  syncSoulAssetKit102(document, document.body.classList.contains('field-active') ? 'field' : document.body.classList.contains('town-active') ? 'town' : titleScreen.classList.contains('hidden') ? 'login' : 'title');
     showToast(error instanceof Error ? `사냥터 입장 실패: ${error.message}` : '사냥터 입장 실패');
   }
 }
@@ -4409,6 +4426,8 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
   const visual098 = inspectVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   const visual099 = inspectVisualArt099({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   const field100 = inspectFieldHud100();
+  const perf101 = inspectPerformance101(document);
+  const asset102 = inspectSoulAssetKit102(document);
   titleEntryLastReport090 = titleHealth090.label;
   const rows: HealthTile087[] = [
     { label: '브랜드', value: 'Soul Online 고정', level: 'ok' },
@@ -4417,6 +4436,8 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     { label: '0.98 UI', value: visual098.message, level: visual098.level, hint: `legacy ${visual098.legacyVisible} · overflow ${visual098.overflowCount}` },
     { label: '0.99 아트/랙', value: visual099.message, level: visual099.level, hint: `route ${visual099.route} · budget ${visual099.budget}` },
     { label: '1.00 사냥터 HUD', value: field100.message, level: field100.level, hint: `route ${field100.route} · budget ${field100.budget}` },
+    { label: '1.01 성능', value: perf101.label, level: perf101.level, hint: perf101.hint },
+    { label: '1.02 에셋 UI', value: asset102.message, level: asset102.level, hint: `${asset102.decoratedControls} controls · ${asset102.assetCount} assets` },
     { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
     { label: '성능', value: perfHealth.label, level: perfHealth.level },
     { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },
@@ -4425,6 +4446,8 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     { label: '0.98 클린 UI', value: visual098.message, level: visual098.level, hint: `route ${visual098.route}` },
     { label: '0.99 아트/최적화', value: visual099.message, level: visual099.level, hint: `overflow ${visual099.overflowCount}` },
     { label: '1.00 필드 안정성', value: field100.message, level: field100.level, hint: `overflow ${field100.overflowCount}` },
+    { label: '1.01 렌더 계층', value: perf101.label, level: perf101.level, hint: perf101.hint },
+    { label: '1.02 에셋 UI', value: asset102.message, level: asset102.level, hint: `${asset102.decoratedControls} controls · ${asset102.decoratedPanels} panels` },
     { label: '에셋', value: assetHealth.message, level: assetHealth.level },
     { label: '세이브', value: saveHealth.message, level: saveHealth.level },
     { label: '콘텐츠', value: contentHealth.message, level: contentHealth.level, hint: lastContentGraphMessage087 },
@@ -4562,6 +4585,8 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
   const visual098 = inspectVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   const visual099 = inspectVisualArt099({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   const field100 = inspectFieldHud100();
+  const perf101 = inspectPerformance101(document);
+  const asset102 = inspectSoulAssetKit102(document);
   titleEntryLastReport090 = titleHealth090.label;
   const tiles: HealthTile087[] = [
     { label: '첫 화면', value: titleHealth090.label, level: titleHealth090.level, hint: titleHealth090.hint },
@@ -4569,6 +4594,8 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     { label: '0.98 UI', value: visual098.message, level: visual098.level, hint: `legacy ${visual098.legacyVisible} · overflow ${visual098.overflowCount}` },
     { label: '0.99 아트/랙', value: visual099.message, level: visual099.level, hint: `route ${visual099.route} · budget ${visual099.budget}` },
     { label: '1.00 사냥터 HUD', value: field100.message, level: field100.level, hint: `route ${field100.route} · budget ${field100.budget}` },
+    { label: '1.01 성능', value: perf101.label, level: perf101.level, hint: perf101.hint },
+    { label: '1.02 에셋 UI', value: asset102.message, level: asset102.level, hint: `${asset102.decoratedControls} controls · ${asset102.assetCount} assets` },
     { label: 'FPS', value: `${measuredFps} · ${perfHealth.label}`, level: perfHealth.level },
     { label: '저장 연결', value: cloudState, level: cloud.paused ? 'warn' : 'ok' },
     { label: 'UI 안전', value: document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상', level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok', hint: lastUiAuditMessage },

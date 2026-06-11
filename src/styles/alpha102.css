@@ -1,0 +1,331 @@
+:root {
+  --so102-ink: #f8fbff;
+  --so102-ink-muted: #bac7da;
+  --so102-ink-dark: #102039;
+  --so102-gold: #f4c964;
+  --so102-gold-deep: #8e6221;
+  --so102-blue-0: #061021;
+  --so102-blue-1: #10203a;
+  --so102-blue-2: #17365f;
+  --so102-aqua: #60d8ff;
+  --so102-violet: #9d7bff;
+  --so102-rose: #ff8ea8;
+  --so102-panel: rgba(9, 18, 35, .82);
+  --so102-panel-soft: rgba(15, 30, 56, .76);
+  --so102-border: rgba(244, 201, 100, .82);
+  --so102-sprite: url('/assets/ui/fantasy/102/shortcuts/icons/ui-spritesheet-102.png');
+}
+
+body.fantasy-ui-102 {
+  background-color: #071324;
+  color: var(--so102-ink);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.asset-kit-102 * {
+  box-sizing: border-box;
+}
+
+body.asset-kit-102 .asset-panel-102 {
+  color: var(--so102-ink);
+  border: 1px solid rgba(244, 201, 100, .65) !important;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.06), transparent 34%),
+    radial-gradient(circle at 0 0, rgba(96,216,255,.12), transparent 38%),
+    linear-gradient(180deg, rgba(16,32,58,.88), rgba(6,14,29,.88)) !important;
+  box-shadow: 0 14px 30px rgba(0,0,0,.34), inset 0 0 0 1px rgba(255,255,255,.08) !important;
+  backdrop-filter: none !important;
+  contain: layout paint style;
+}
+
+body.asset-kit-102 .town-content-panel,
+body.asset-kit-102 .sheet-panel,
+body.asset-kit-102 .item-detail-modal,
+body.asset-kit-102 .reward-modal {
+  color: var(--so102-ink-dark) !important;
+  background:
+    linear-gradient(180deg, rgba(255,250,232,.94), rgba(227,238,249,.92)) !important;
+  border-color: rgba(161,113,35,.62) !important;
+}
+
+body.asset-kit-102 .asset-field-panel-102,
+body.asset-kit-102 .field-hud-shell-100,
+body.asset-kit-102 .target-card,
+body.asset-kit-102 .field-quest-tracker,
+body.asset-kit-102 .combat-log,
+body.asset-kit-102 .field-minimap {
+  color: var(--so102-ink) !important;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.06), transparent 24%),
+    linear-gradient(180deg, rgba(9,18,35,.88), rgba(9,20,40,.78)) !important;
+  border-color: rgba(244,201,100,.72) !important;
+  box-shadow: 0 10px 22px rgba(0,0,0,.34), inset 0 0 0 1px rgba(96,216,255,.08) !important;
+}
+
+body.asset-kit-102 .asset-btn-102 {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(244,201,100,.72) !important;
+  color: #f9fbff !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,.75);
+  background:
+    linear-gradient(180deg, rgba(36,67,112,.96), rgba(10,24,50,.96)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 5px 14px rgba(0,0,0,.28) !important;
+  overflow: hidden;
+  transform: translateZ(0);
+}
+
+body.asset-kit-102 .asset-btn-102::after {
+  content: '';
+  position: absolute;
+  inset: 1px 2px auto 2px;
+  height: 42%;
+  border-radius: 8px 8px 12px 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.18), transparent);
+  pointer-events: none;
+}
+
+body.asset-kit-102 .asset-btn-102[data-asset-variant102='gold'],
+body.asset-kit-102 .asset-btn-102[data-asset-variant102='attack'] {
+  border-color: rgba(255,222,134,.9) !important;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,.32), transparent 24%),
+    linear-gradient(180deg, #b38332, #7f4918) !important;
+}
+
+body.asset-kit-102 .asset-btn-102[data-asset-variant102='confirm'] {
+  border-color: rgba(103,247,160,.8) !important;
+  background: linear-gradient(180deg, #2d9b68, #145c45) !important;
+}
+
+body.asset-kit-102 .asset-btn-102[data-asset-variant102='danger'] {
+  border-color: rgba(255,123,128,.84) !important;
+  background: linear-gradient(180deg, #9c2d45, #5f1527) !important;
+}
+
+body.asset-kit-102 .asset-icon-control-102::before {
+  content: '';
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  display: inline-block;
+  background-image: var(--so102-sprite);
+  background-repeat: no-repeat;
+  background-size: 192px 144px;
+  image-rendering: auto;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.5));
+  z-index: 1;
+}
+
+/* Sprite positions follow the uploaded 8x6 spritesheet order. */
+.so-icon-bag-102::before { background-position: -120px 0; }
+.so-icon-equipment-102::before { background-position: -24px -48px; }
+.so-icon-shop-102::before { background-position: -96px 0; }
+.so-icon-attack-102::before { background-position: 0 0; }
+.so-icon-hunt-102::before { background-position: 0 0; }
+.so-icon-skill-102::before { background-position: -72px -72px; }
+.so-icon-quest-102::before { background-position: -48px -72px; }
+.so-icon-card-102::before { background-position: -48px -24px; }
+.so-icon-guild-102::before { background-position: -96px -48px; }
+.so-icon-boss-102::before { background-position: -168px 0; }
+.so-icon-settings-102::before { background-position: -72px -96px; }
+.so-icon-auto-102::before { background-position: -48px 0; }
+.so-icon-potion-102::before { background-position: -24px -72px; }
+.so-icon-map-102::before { background-position: -120px -72px; }
+.so-icon-story-102::before { background-position: -144px -24px; }
+.so-icon-confirm-102::before { background-position: -24px -48px; }
+.so-icon-cancel-102::before { background-position: -144px -96px; }
+.so-icon-close-102::before { background-position: -144px -96px; }
+
+body.asset-kit-102 .asset-close-102 {
+  width: 42px !important;
+  min-width: 42px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  font-size: 0 !important;
+  background:
+    url('/assets/ui/fantasy/102/shortcuts/buttons/close.png') center / contain no-repeat,
+    radial-gradient(circle, #2c3f6f, #071425) !important;
+}
+
+body.asset-kit-102 .asset-close-102::before {
+  display: none !important;
+}
+
+body.asset-kit-102 .asset-slot-102 {
+  border-color: rgba(244,201,100,.66) !important;
+  background:
+    url('/assets/ui/fantasy/102/shortcuts/panels/item-slot.png') center / 100% 100% no-repeat,
+    linear-gradient(180deg, rgba(15,31,57,.92), rgba(5,12,24,.92)) !important;
+}
+
+body.asset-kit-102 .asset-hud-102 {
+  contain: layout paint style;
+}
+
+body.asset-kit-102 .asset-hp-102,
+body.asset-kit-102 .asset-mp-102,
+body.asset-kit-102 .asset-exp-102 {
+  border-radius: 999px !important;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.38), 0 0 10px rgba(0,0,0,.16);
+}
+
+body.asset-kit-102 .asset-hp-102 { background-image: linear-gradient(90deg, #ff4e62, #ffd0aa) !important; }
+body.asset-kit-102 .asset-mp-102 { background-image: linear-gradient(90deg, #38a4ff, #a5f4ff) !important; }
+body.asset-kit-102 .asset-exp-102 { background-image: linear-gradient(90deg, #82e06f, #ffe26a) !important; }
+
+body.asset-kit-102 .field-hud-shell-100 {
+  left: max(10px, env(safe-area-inset-left)) !important;
+  right: max(10px, env(safe-area-inset-right)) !important;
+  top: max(10px, env(safe-area-inset-top)) !important;
+  max-width: calc(100vw - max(20px, env(safe-area-inset-left) + env(safe-area-inset-right))) !important;
+  pointer-events: none;
+}
+
+body.asset-kit-102 .field-hud-shell-100 button,
+body.asset-kit-102 .field-hud-shell-100 .attack-button,
+body.asset-kit-102 .field-hud-shell-100 .skill-dock,
+body.asset-kit-102 .field-hud-shell-100 .potion-dock,
+body.asset-kit-102 .field-hud-shell-100 .joystick {
+  pointer-events: auto;
+}
+
+body.asset-kit-102 .field-quest-tracker {
+  left: max(10px, env(safe-area-inset-left)) !important;
+  top: clamp(88px, 15dvh, 150px) !important;
+  max-width: min(320px, calc(100vw - 20px)) !important;
+  max-height: 108px !important;
+  overflow: hidden auto !important;
+}
+
+body.asset-kit-102 .combat-log {
+  left: max(10px, env(safe-area-inset-left)) !important;
+  bottom: max(118px, calc(env(safe-area-inset-bottom) + 112px)) !important;
+  width: min(340px, calc(100vw - 20px)) !important;
+  max-height: 122px !important;
+}
+
+body.asset-kit-102 .field-minimap {
+  right: max(10px, env(safe-area-inset-right)) !important;
+  top: max(10px, env(safe-area-inset-top)) !important;
+  width: clamp(86px, 22vw, 132px) !important;
+  height: clamp(86px, 22vw, 132px) !important;
+}
+
+body.asset-kit-102 .joystick {
+  left: max(18px, env(safe-area-inset-left)) !important;
+  bottom: max(18px, env(safe-area-inset-bottom)) !important;
+  transform: translateZ(0);
+}
+
+body.asset-kit-102 .attack-button {
+  right: max(16px, env(safe-area-inset-right)) !important;
+  bottom: max(16px, env(safe-area-inset-bottom)) !important;
+  width: clamp(78px, 22vw, 112px) !important;
+  height: clamp(78px, 22vw, 112px) !important;
+  border-radius: 50% !important;
+}
+
+body.asset-kit-102 .skill-dock {
+  right: max(16px, env(safe-area-inset-right)) !important;
+  bottom: max(104px, calc(env(safe-area-inset-bottom) + 100px)) !important;
+  max-width: min(260px, calc(100vw - 144px)) !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+body.asset-kit-102 .skill-dock button,
+body.asset-kit-102 .potion-dock button {
+  min-width: 48px !important;
+  width: clamp(48px, 12.5vw, 62px) !important;
+  height: clamp(48px, 12.5vw, 62px) !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+}
+
+body.asset-kit-102 .potion-dock {
+  left: clamp(116px, 32vw, 180px) !important;
+  bottom: max(18px, env(safe-area-inset-bottom)) !important;
+  max-width: min(156px, 36vw) !important;
+  display: flex !important;
+  gap: 8px;
+}
+
+body.asset-kit-102.asset-field-overflow-102 .combat-log,
+body.asset-kit-102.asset-field-overflow-102 .field-quest-tracker {
+  transform: scale(.92);
+  transform-origin: left bottom;
+}
+
+body.asset-kit-102 .town-clean-hub-098,
+body.asset-kit-102 .town-content-panel,
+body.asset-kit-102 .sheet-panel {
+  max-width: calc(100vw - 18px) !important;
+  max-height: calc(100dvh - 18px) !important;
+  overflow: hidden auto !important;
+}
+
+body.asset-lite-102 .asset-panel-102,
+body.asset-lite-102 .asset-btn-102 {
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.05) !important;
+  background-image: linear-gradient(180deg, rgba(18,34,60,.95), rgba(6,14,28,.95)) !important;
+  filter: none !important;
+}
+
+body.asset-lite-102 .asset-btn-102::after,
+body.asset-lite-102 .asset-icon-control-102::before {
+  filter: none !important;
+}
+
+@media (max-width: 540px) {
+  body.asset-kit-102 .field-quest-tracker {
+    top: clamp(74px, 14dvh, 116px) !important;
+    width: min(258px, calc(100vw - 116px)) !important;
+    font-size: 12px !important;
+  }
+
+  body.asset-kit-102 .combat-log {
+    display: none !important;
+  }
+
+  body.asset-kit-102 .field-minimap {
+    width: 82px !important;
+    height: 82px !important;
+  }
+
+  body.asset-kit-102 .skill-dock {
+    right: max(12px, env(safe-area-inset-right)) !important;
+    bottom: max(96px, calc(env(safe-area-inset-bottom) + 92px)) !important;
+    max-width: 156px !important;
+  }
+
+  body.asset-kit-102 .skill-dock button,
+  body.asset-kit-102 .potion-dock button {
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    min-height: 46px !important;
+  }
+
+  body.asset-kit-102 .attack-button {
+    width: 84px !important;
+    height: 84px !important;
+  }
+}
+
+@media (max-height: 680px) {
+  body.asset-kit-102 .field-quest-tracker { max-height: 86px !important; }
+  body.asset-kit-102 .skill-dock { gap: 6px; }
+  body.asset-kit-102 .potion-dock { bottom: max(10px, env(safe-area-inset-bottom)) !important; }
+}
