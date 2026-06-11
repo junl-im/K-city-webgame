@@ -868,16 +868,28 @@ export class SolGame {
   private async loadTextures() {
     const required = this.requiredTextureKeys();
     let loaded = 0;
-    await Promise.all(
-      required.map(async (key) => {
+    let cursor = 0;
+    const concurrency = this.textureLoadConcurrency092(required.length);
+    const loadNext = async () => {
+      while (cursor < required.length) {
+        const key = required[cursor];
+        cursor += 1;
         const fallbackUrl = textureUrls[key];
         const runtimeUrl = runtimeTextureUrls[key];
         const texture = await this.loadTextureWithFallback(runtimeUrl, fallbackUrl);
         this.textures.set(key, texture);
         loaded += 1;
         this.options.onLoadProgress?.(loaded, required.length, String(key));
-      })
-    );
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(concurrency, required.length) }, loadNext));
+  }
+
+  private textureLoadConcurrency092(requiredCount: number) {
+    const hardware = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || 4 : 4;
+    if (requiredCount >= 90 || hardware <= 4) return 4;
+    if (requiredCount >= 60) return 5;
+    return 7;
   }
 
   private requiredTextureKeys(): TextureKey[] {

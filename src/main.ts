@@ -4,6 +4,7 @@ import './styles/alpha088.css';
 import './styles/alpha089.css';
 import './styles/alpha090.css';
 import './styles/alpha091.css';
+import './styles/alpha092.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
@@ -17,6 +18,8 @@ import { renderSkillReadinessStrip089, renderSkillUpgradeConfirm089, renderSkill
 import { buildPreloadPlan089, preloadAssetPlan089, summarizePreloadPlan089 } from './ui/assetPreload089';
 import { ensureTitleEntry090, inspectTitleEntry090, markTitleEntryTransition090, titleEntryHealthLabel090 } from './ui/titleEntry090';
 import { applyResourceBudgetState091, formatBudgetDelta091, inspectResourceBudget091, installDomImageBudgetPolicy091, shouldUseLiteRender091 } from './ui/assetBudget091';
+import { applyCssBudgetState092, inspectCssBudget092, summarizeCssBudget092 } from './ui/cssBudget092';
+import { inspectEntryRegression092, repairEntryRegressionClasses092 } from './ui/entryRegression092';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
 import type { AutoHuntSettings, CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
@@ -73,7 +76,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '0.91.0';
+const ALPHA_VERSION = '0.92.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -113,6 +116,9 @@ let lastAssetBudgetReport091 = '리소스 예산 검사 대기';
 let lastDomImagePolicy091 = 'DOM 이미지 정책 대기';
 let liteRenderMode091 = false;
 let assetBudgetAuditPending091 = false;
+let cssBudgetAuditPending092 = false;
+let lastCssBudgetReport092 = 'CSS 예산 검사 대기';
+let entryRegressionLastReport092 = '진입 회귀 검사 대기';
 
 const root = must('#game-root');
 const titleScreen = must('#titleScreen');
@@ -257,6 +263,7 @@ async function boot() {
   updateWorldSummary();
   goStep('login');
   ensureTitleEntry090({ titleScreen, startButton: startGameBtn, loginScreen });
+  installEntryRegressionGuards092();
   titleEntryLastReport090 = titleEntryHealthLabel090(inspectTitleEntry090(titleScreen, startGameBtn)).label;
   registerServiceWorker();
   updateAudioButtons();
@@ -2489,7 +2496,7 @@ function renderTownStorySnapshot(save: PlayerSave) {
   if (!quest) {
     townChapterText.textContent = 'STORY CLEAR';
     townStoryTitle.textContent = '현재 챕터 완료';
-    townStoryDesc.textContent = 'Alpha 0.91 스토리를 모두 완료했습니다.';
+    townStoryDesc.textContent = 'Alpha 0.92 스토리를 모두 완료했습니다.';
     townStoryProgress.style.width = '100%';
     townStoryProgressText.textContent = '완료';
     townStoryActionBtn.textContent = '스토리 보기';
@@ -4141,6 +4148,7 @@ function installPerformanceGuards085() {
       document.body.classList.toggle('perf-reduced-motion-089', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-090', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-091', reduceMotion || liteRenderMode091);
+      document.body.classList.toggle('perf-reduced-motion-092', reduceMotion || liteRenderMode091);
           if (entry.duration >= 120) recordClientIssue('perf', `긴 작업 ${Math.round(entry.duration)}ms 감지`);
         }
       });
@@ -4160,9 +4168,10 @@ function installAssetBudgetGuards091() {
   const changed = installDomImageBudgetPolicy091(document);
   lastDomImagePolicy091 = changed ? `DOM 이미지 ${changed}개 lazy 적용` : 'DOM 이미지 정책 정상';
   scheduleAssetBudgetAudit091();
-  window.addEventListener('load', () => window.setTimeout(scheduleAssetBudgetAudit091, 700));
+  scheduleCssBudgetAudit092();
+  window.addEventListener('load', () => window.setTimeout(() => { scheduleAssetBudgetAudit091(); scheduleCssBudgetAudit092(); runEntryRegressionAudit092(); }, 700));
   window.addEventListener('visibilitychange', () => {
-    if (!document.hidden) scheduleAssetBudgetAudit091();
+    if (!document.hidden) { scheduleAssetBudgetAudit091(); scheduleCssBudgetAudit092(); runEntryRegressionAudit092(); }
   });
 }
 
@@ -4180,6 +4189,56 @@ function runAssetBudgetAudit091() {
   const autoLite = shouldUseLiteRender091(report, measuredFps, longTaskCount085);
   applyResourceBudgetState091(report, liteRenderMode091 || autoLite);
   lastAssetBudgetReport091 = `${report.message} · ${report.hint}`;
+  if (report.level === 'danger') recordClientIssue('perf', report.message);
+  return report;
+}
+
+function installEntryRegressionGuards092() {
+  repairEntryRegressionClasses092({
+    body: document.body,
+    titleScreen,
+    loginScreen,
+    townScreen,
+    startButton: startGameBtn
+  });
+  runEntryRegressionAudit092();
+  window.addEventListener('resize', runEntryRegressionAudit092);
+  window.addEventListener('orientationchange', runEntryRegressionAudit092);
+}
+
+function runEntryRegressionAudit092() {
+  repairEntryRegressionClasses092({
+    body: document.body,
+    titleScreen,
+    loginScreen,
+    townScreen,
+    startButton: startGameBtn
+  });
+  const report = inspectEntryRegression092({
+    body: document.body,
+    titleScreen,
+    loginScreen,
+    townScreen,
+    startButton: startGameBtn
+  });
+  entryRegressionLastReport092 = `${report.label} · ${report.hint}`;
+  if (report.level !== 'ok') recordClientIssue('ui', `진입 회귀 ${entryRegressionLastReport092}`);
+  return report;
+}
+
+function scheduleCssBudgetAudit092() {
+  if (cssBudgetAuditPending092) return;
+  cssBudgetAuditPending092 = true;
+  window.requestAnimationFrame(() => {
+    cssBudgetAuditPending092 = false;
+    runCssBudgetAudit092();
+  });
+}
+
+function runCssBudgetAudit092() {
+  const report = inspectCssBudget092(document);
+  applyCssBudgetState092(report);
+  lastCssBudgetReport092 = `${report.message} · ${report.hint}`;
   if (report.level === 'danger') recordClientIssue('perf', report.message);
   return report;
 }
@@ -4230,7 +4289,7 @@ async function handleHealthAction085(action: string) {
     clientIssues.splice(0);
     longTaskCount085 = 0;
     lastLongTaskMs085 = 0;
-    document.body.classList.remove('perf-longtask-risk-085', 'perf-reduced-motion-086', 'perf-reduced-motion-087', 'perf-reduced-motion-088', 'perf-reduced-motion-089', 'perf-reduced-motion-090', 'perf-reduced-motion-091');
+    document.body.classList.remove('perf-longtask-risk-085', 'perf-reduced-motion-086', 'perf-reduced-motion-087', 'perf-reduced-motion-088', 'perf-reduced-motion-089', 'perf-reduced-motion-090', 'perf-reduced-motion-091', 'perf-reduced-motion-092');
     showToast('진단 로그를 정리했습니다.');
   }
   if (action === 'save-local') {
@@ -4255,6 +4314,14 @@ async function handleHealthAction085(action: string) {
     const report = runAssetBudgetAudit091();
     showToast(`리소스 점검 · ${formatBudgetDelta091(report)}`);
   }
+  if (action === 'audit-css') {
+    const report = runCssBudgetAudit092();
+    showToast(`CSS 점검 · ${summarizeCssBudget092(report)}`);
+  }
+  if (action === 'audit-entry') {
+    const report = runEntryRegressionAudit092();
+    showToast(`진입 검사 · ${report.label}`);
+  }
   if (action === 'toggle-lite-mode') {
     liteRenderMode091 = !liteRenderMode091;
     try {
@@ -4276,6 +4343,8 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
   const contentHealth = inspectCurrentContentGraph087();
   const preloadSummary089 = currentPreloadSummary089();
   const resourceBudget091 = runAssetBudgetAudit091();
+  const cssBudget092 = runCssBudgetAudit092();
+  const entryRegression092 = runEntryRegressionAudit092();
   const classSkillsForHealth089 = skills.filter((skill) => skill.classId === save.classId);
   const skillReadiness089 = summarizeSkillReadiness089({
     skills: classSkillsForHealth089,
@@ -4289,6 +4358,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
   const rows: HealthTile087[] = [
     { label: '브랜드', value: 'Soul Online 고정', level: 'ok' },
     { label: '첫 화면', value: titleHealth090.label, level: titleHealth090.level, hint: titleHealth090.hint },
+    { label: '진입 회귀', value: entryRegression092.label, level: entryRegression092.level, hint: entryRegressionLastReport092 },
     { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
     { label: '성능', value: perfHealth.label, level: perfHealth.level },
     { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },
@@ -4298,6 +4368,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     { label: '스킬', value: skillReadiness089.label, level: skillReadiness089.level },
     { label: '예열', value: preloadSummary089.label, level: preloadSummary089.count > 12 ? 'warn' : 'ok', hint: lastPreloadReport089 },
     { label: '리소스', value: resourceBudget091.message, level: resourceBudget091.level, hint: resourceBudget091.hint },
+    { label: 'CSS 예산', value: summarizeCssBudget092(cssBudget092), level: cssBudget092.level, hint: lastCssBudgetReport092 },
     { label: '라이트', value: liteRenderMode091 ? '사용자 ON' : '자동 감지', level: liteRenderMode091 ? 'warn' : 'ok', hint: lastDomImagePolicy091 }
   ];
   return renderSystemDoctor087({ version: ALPHA_VERSION, mode, rows });
@@ -4330,6 +4401,7 @@ function installClientDiagnostics() {
       document.body.classList.toggle('perf-reduced-motion-089', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-090', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-091', reduceMotion || liteRenderMode091);
+      document.body.classList.toggle('perf-reduced-motion-092', reduceMotion || liteRenderMode091);
     }
     lastFrameMs = now;
     window.requestAnimationFrame(tick);
@@ -4393,6 +4465,8 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
   const contentHealth = inspectCurrentContentGraph087();
   const preloadSummary089 = currentPreloadSummary089();
   const resourceBudget091 = runAssetBudgetAudit091();
+  const cssBudget092 = runCssBudgetAudit092();
+  const entryRegression092 = runEntryRegressionAudit092();
   const classSkillsForHealth089 = skills.filter((skill) => skill.classId === save.classId);
   const skillReadiness089 = summarizeSkillReadiness089({
     skills: classSkillsForHealth089,
@@ -4423,6 +4497,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
   titleEntryLastReport090 = titleHealth090.label;
   const tiles: HealthTile087[] = [
     { label: '첫 화면', value: titleHealth090.label, level: titleHealth090.level, hint: titleHealth090.hint },
+    { label: '진입 회귀', value: entryRegression092.label, level: entryRegression092.level, hint: entryRegressionLastReport092 },
     { label: 'FPS', value: `${measuredFps} · ${perfHealth.label}`, level: perfHealth.level },
     { label: '저장 연결', value: cloudState, level: cloud.paused ? 'warn' : 'ok' },
     { label: 'UI 안전', value: document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상', level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok', hint: lastUiAuditMessage },
@@ -4436,6 +4511,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     { label: '예열 계획', value: preloadSummary089.label, level: preloadSummary089.count > 12 ? 'warn' : 'ok', hint: `최근 ${lastPreloadReport089}` },
     { label: '렌더 예산', value: renderBudget088.value, level: renderBudget088.level, hint: renderBudget088.hint },
     { label: '리소스 예산', value: formatBudgetDelta091(resourceBudget091), level: resourceBudget091.level, hint: lastAssetBudgetReport091 },
+    { label: 'CSS 예산', value: summarizeCssBudget092(cssBudget092), level: cssBudget092.level, hint: lastCssBudgetReport092 },
     { label: '라이트 모드', value: liteRenderMode091 ? '수동 ON' : '자동', level: liteRenderMode091 ? 'warn' : 'ok', hint: lastDomImagePolicy091 },
     { label: '상점 UX', value: pendingShopPurchase088 ? '구매 확인 대기' : '확인 단계 준비', level: 'ok' },
     { label: '입력', value: buildActionLatencyLabel(lastActionAt086), level: 'ok' }
@@ -4452,7 +4528,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
       networkState: networkState085,
       pwaState: serviceWorkerReady086 ? '준비' : '대기',
       characterTail: save.saveId.slice(-6),
-      contentSummary: `콘텐츠 ${contentHealth.totals.zones}존 · ${contentHealth.totals.monsters}몬스터 · ${contentHealth.totals.items}아이템 · ${contentHealth.totals.quests}퀘스트 · 예열 ${preloadSummary089.count}개 · 리소스 ${resourceBudget091.totalMB}MB`
+      contentSummary: `콘텐츠 ${contentHealth.totals.zones}존 · ${contentHealth.totals.monsters}몬스터 · ${contentHealth.totals.items}아이템 · ${contentHealth.totals.quests}퀘스트 · 예열 ${preloadSummary089.count}개 · 리소스 ${resourceBudget091.totalMB}MB · CSS ${Math.max(cssBudget092.estimatedKB, cssBudget092.runtimeCssKB).toFixed(0)}KB`
     },
     issueRows,
     cloudError: cloud.lastError,

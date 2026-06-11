@@ -23,13 +23,13 @@ export function renderSystemDoctor087(params: {
   rows: HealthTile087[];
 }) {
   return `
-    <section class="system-doctor-085 system-doctor-086 system-doctor-087 system-doctor-091 ${escapeAttr087(params.mode)}" aria-label="0.91 시스템 닥터">
+    <section class="system-doctor-085 system-doctor-086 system-doctor-087 system-doctor-091 system-doctor-092 ${escapeAttr087(params.mode)}" aria-label="0.92 시스템 닥터">
       <div class="system-doctor-head-085">
-        <span class="panel-kicker">SYSTEM DOCTOR · 0.91</span>
+        <span class="panel-kicker">SYSTEM DOCTOR · 0.92</span>
         <h3>문제점·연결성·성능 빠른 점검</h3>
-        <p>v${escapeHtml087(params.version)} 기준으로 UI 안전 영역, 세이브, 에셋, 콘텐츠 연결 그래프, 렌더 예산, 스킬 성장 UX, 리소스 예산을 함께 점검합니다.</p>
+        <p>v${escapeHtml087(params.version)} 기준으로 UI 안전 영역, 세이브, 에셋, 콘텐츠 연결 그래프, 렌더 예산, 스킬 성장 UX, 리소스 예산, CSS 예산, 첫 진입 회귀를 함께 점검합니다.</p>
       </div>
-      <div class="system-doctor-grid-085 system-doctor-grid-087 system-doctor-grid-091">
+      <div class="system-doctor-grid-085 system-doctor-grid-087 system-doctor-grid-091 system-doctor-grid-092">
         ${params.rows.map(renderHealthTile087).join('')}
       </div>
       <div class="system-doctor-actions-085">
@@ -37,6 +37,8 @@ export function renderSystemDoctor087(params: {
         <button data-town-health-action="save-local" data-health-action="save-local">저장 확인</button>
         <button data-town-health-action="preload-assets" data-health-action="preload-assets">에셋 예열</button>
         <button data-town-health-action="audit-assets" data-health-action="audit-assets">리소스 점검</button>
+        <button data-town-health-action="audit-css" data-health-action="audit-css">CSS 점검</button>
+        <button data-town-health-action="audit-entry" data-health-action="audit-entry">진입 검사</button>
         <button data-town-health-action="toggle-lite-mode" data-health-action="toggle-lite-mode">라이트 모드</button>
         <button data-town-health-action="clear-issues" data-health-action="clear-issues">로그 정리</button>
       </div>
@@ -55,21 +57,23 @@ export function renderTechnicalHealthPanel087(params: {
   contentProblems: string[];
 }) {
   return `
-    <section class="tech-health-panel-084 tech-health-panel-086 tech-health-panel-087 tech-health-panel-091 ${escapeAttr087(params.mode)}" aria-label="기술 상태 점검">
+    <section class="tech-health-panel-084 tech-health-panel-086 tech-health-panel-087 tech-health-panel-091 tech-health-panel-092 ${escapeAttr087(params.mode)}" aria-label="기술 상태 점검">
       <div class="tech-health-head-084">
         <span class="panel-kicker">TECH HEALTH · v${escapeHtml087(params.version)}</span>
         <h3>연결성·성능·UI 안전 점검</h3>
-        <p>마을/필드/저장/PWA/콘텐츠 그래프를 분리 점검해서, 기능이 쌓여도 연결이 끊기지 않게 관리하고, 모바일 리소스 예산을 추적합니다.</p>
+        <p>마을/필드/저장/PWA/콘텐츠 그래프를 분리 점검해서, 기능이 쌓여도 연결이 끊기지 않게 관리하고, 모바일 리소스 예산과 CSS 충돌 위험까지 추적합니다.</p>
         <div class="tech-health-actions-085">
           <button data-town-health-action="audit-ui" data-health-action="audit-ui">UI 재검사</button>
           <button data-town-health-action="clear-issues" data-health-action="clear-issues">로그 정리</button>
           <button data-town-health-action="save-local" data-health-action="save-local">로컬 저장 확인</button>
           <button data-town-health-action="preload-assets" data-health-action="preload-assets">에셋 예열</button>
           <button data-town-health-action="audit-assets" data-health-action="audit-assets">리소스 점검</button>
+          <button data-town-health-action="audit-css" data-health-action="audit-css">CSS 점검</button>
+          <button data-town-health-action="audit-entry" data-health-action="audit-entry">진입 검사</button>
           <button data-town-health-action="toggle-lite-mode" data-health-action="toggle-lite-mode">라이트 모드</button>
         </div>
       </div>
-      <div class="tech-health-grid-084 tech-health-grid-087 tech-health-grid-091">
+      <div class="tech-health-grid-084 tech-health-grid-087 tech-health-grid-091 tech-health-grid-092">
         ${params.tiles.map(renderHealthTile087).join('')}
       </div>
       <div class="connectivity-matrix-086 connectivity-matrix-087" aria-label="연결성 매트릭스">
