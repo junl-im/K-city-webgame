@@ -1,5 +1,6 @@
 import './styles.css';
 import './styles/alpha087.css';
+import './styles/alpha088.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
@@ -8,6 +9,7 @@ import { formatGold, formatNumber, formatSoul, roll, uid } from './game/math';
 import { buildActionLatencyLabel, buildConnectivityRows, classifyPerformance, inspectRuntimeAssets, inspectSaveIntegrity } from './ui/technicalHealth';
 import { inspectContentGraph087 } from './ui/contentIntegrity';
 import { renderSystemDoctor087, renderTechnicalHealthPanel087, type HealthTile087 } from './ui/healthPanelRenderer';
+import { inventoryFilterForItem088, normalizeInventoryFilter088, normalizeShopFilter088, renderInventoryFilterRail088, renderShopFilterRail088, renderShopPurchaseConfirm088, shopFilterForItem088, summarizeRenderBudget088, type InventoryFilter088, type ShopFilter088, type ShopPurchaseDraft088 } from './ui/townPanelRenderer088';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
 import type { AutoHuntSettings, CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
@@ -30,6 +32,27 @@ const townContentMeta: Record<TownContentId, { eyebrow: string; title: string; l
 
 const townDrawerOrder: TownContentId[] = ['hunt', 'inventory', 'skills', 'cards', 'story', 'quests', 'shop', 'boss', 'pledge', 'settings', 'account'];
 
+const TOWN_SHOP_STOCK_088: Array<{ itemId: string; price: number; label: string }> = [
+  { itemId: 'hp-potion-small', price: 7, label: 'HP 2% 회복' },
+  { itemId: 'mp-potion-small', price: 9, label: 'MP 2% 회복' },
+  { itemId: 'hp-potion-mid', price: 20, label: 'HP 3.5% 회복' },
+  { itemId: 'mp-potion-mid', price: 24, label: 'MP 3.5% 회복' },
+  { itemId: 'hp-potion-high', price: 48, label: 'HP 5% 회복' },
+  { itemId: 'mp-potion-high', price: 56, label: 'MP 5% 회복' },
+  { itemId: 'skillbook-basic', price: 180, label: '1번 스킬 습득' },
+  { itemId: 'skillbook-second', price: 850, label: '2번 스킬 습득' },
+  { itemId: 'skillbook-third', price: 2600, label: '3번 스킬 습득' },
+  { itemId: 'iron-sword', price: 180, label: '초반 무기 보강' },
+  { itemId: 'moon-blade', price: 560, label: 'R 무기' },
+  { itemId: 'crystal-mail', price: 620, label: 'R 방어구' },
+  { itemId: 'fox-charm', price: 900, label: '유물 슬롯' },
+  { itemId: 'soul-shard', price: 120, label: '강화 재료' },
+  { itemId: 'enhance-stone', price: 420, label: '+10 이후 재료' },
+  { itemId: 'lumina-seal', price: 1200, label: '후반 전선 인장' },
+  { itemId: 'radiant-ore', price: 3600, label: '최상급 강화 재료' }
+];
+const TOWN_SHOP_PRICE_088: Record<string, number> = Object.fromEntries(TOWN_SHOP_STOCK_088.map((entry) => [entry.itemId, entry.price]));
+
 const saveService = new SaveService();
 type SolGameInstance = import('./game/SolGame').SolGame;
 let game: SolGameInstance | null = null;
@@ -43,7 +66,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '0.87.0';
+const ALPHA_VERSION = '0.88.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -72,6 +95,9 @@ let lastActionAt086 = 0;
 let serviceWorkerReady086 = false;
 let lastUiAuditReport086 = 'UI 안전 영역 정상';
 let lastContentGraphMessage087 = '콘텐츠 연결 검사 대기';
+let activeInventoryFilter088: InventoryFilter088 = 'all';
+let activeShopFilter088: ShopFilter088 = 'all';
+let pendingShopPurchase088: ShopPurchaseDraft088 | null = null;
 
 const root = must('#game-root');
 const titleScreen = must('#titleScreen');
@@ -177,7 +203,7 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-081', 'fantasy-ui-082', 'fantasy-ui-083', 'fantasy-ui-084', 'fantasy-ui-085', 'fantasy-ui-086', 'fantasy-ui-087');
+  document.body.classList.add('fantasy-ui-081', 'fantasy-ui-082', 'fantasy-ui-083', 'fantasy-ui-084', 'fantasy-ui-085', 'fantasy-ui-086', 'fantasy-ui-087', 'fantasy-ui-088');
   await saveService.init();
   await mergeCloudRosterToLocal();
   pendingSave = saveService.loadLocal();
@@ -620,6 +646,38 @@ function bindLoginFlow() {
   });
   townContentBody.addEventListener('click', async (event) => {
     const target = event.target as HTMLElement;
+
+    const inventoryFilter = target.closest<HTMLButtonElement>('[data-inventory-filter-088]');
+    if (inventoryFilter) {
+      activeInventoryFilter088 = normalizeInventoryFilter088(inventoryFilter.dataset.inventoryFilter088);
+      renderTownContent();
+      scheduleUiSafetyAudit();
+      return;
+    }
+
+    const shopFilter = target.closest<HTMLButtonElement>('[data-shop-filter-088]');
+    if (shopFilter) {
+      activeShopFilter088 = normalizeShopFilter088(shopFilter.dataset.shopFilter088);
+      pendingShopPurchase088 = null;
+      renderTownContent();
+      scheduleUiSafetyAudit();
+      return;
+    }
+
+    const shopConfirm = target.closest<HTMLButtonElement>('[data-shop-confirm-088]');
+    if (shopConfirm) {
+      const action = shopConfirm.dataset.shopConfirm088 || 'cancel';
+      if (action === 'confirm' && pendingShopPurchase088) {
+        const { itemId, count } = pendingShopPurchase088;
+        pendingShopPurchase088 = null;
+        buyTownShopItem(itemId, count);
+      } else {
+        pendingShopPurchase088 = null;
+        renderTownContent();
+      }
+      return;
+    }
+
     const equipCard = target.closest<HTMLButtonElement>('[data-town-equip-card]');
     if (equipCard) {
       toggleTownCard(equipCard.dataset.townEquipCard || '');
@@ -652,13 +710,13 @@ function bindLoginFlow() {
 
     const buyBulkItem = target.closest<HTMLButtonElement>('[data-town-shop-buy-bulk]');
     if (buyBulkItem) {
-      buyTownShopItem(buyBulkItem.dataset.townShopBuyBulk || '', Number(buyBulkItem.dataset.townShopCount || 5));
+      stageTownShopPurchase088(buyBulkItem.dataset.townShopBuyBulk || '', Number(buyBulkItem.dataset.townShopCount || 5));
       return;
     }
 
     const buyItem = target.closest<HTMLButtonElement>('[data-town-shop-buy]');
     if (buyItem) {
-      buyTownShopItem(buyItem.dataset.townShopBuy || '');
+      stageTownShopPurchase088(buyItem.dataset.townShopBuy || '', 1);
       return;
     }
 
@@ -1478,7 +1536,7 @@ function renderInventory(snapshot: Snapshot) {
     ${renderEquipmentResonanceSummary(snapshot.save)}
     ${renderEnhancementWorkbench(snapshot.save)}
     ${renderPotionBeltSummary(snapshot.save)}
-    ${renderCategorizedInventory(snapshot.save, false)}
+    ${renderCategorizedInventory(snapshot.save, false, 'all')}
   `;
 }
 
@@ -1833,7 +1891,7 @@ function renderInventoryCategoryGrid(save: PlayerSave, entries: Array<{ def: Ite
   `;
 }
 
-function renderCategorizedInventory(save: PlayerSave, townMode: boolean) {
+function renderCategorizedInventory(save: PlayerSave, townMode: boolean, activeFilter: InventoryFilter088 = 'all') {
   const described = save.inventory.flatMap((instance) => {
     const def = items.find((item) => item.id === instance.itemId);
     return def ? [{ def, instance }] : [];
@@ -1844,19 +1902,33 @@ function renderCategorizedInventory(save: PlayerSave, townMode: boolean) {
   const skillbook = described.filter(({ def }) => def.type === 'skillbook');
   const bagLimit = 64;
   const modeHint = townMode ? '마을 가방' : '필드 가방';
+  const normalizedFilter = normalizeInventoryFilter088(activeFilter);
+  const counts = [
+    { key: 'all' as const, label: '전체', count: described.length },
+    { key: 'gear' as const, label: '장비', count: gear.length },
+    { key: 'consumable' as const, label: '소모품', count: consumable.length },
+    { key: 'material' as const, label: '재료', count: material.length },
+    { key: 'skillbook' as const, label: '스킬서', count: skillbook.length }
+  ];
+  const sections = [
+    { key: 'gear' as const, html: renderInventoryCategoryGrid(save, gear, '장비', 'WEAPON · ARMOR · RELIC', 12) },
+    { key: 'consumable' as const, html: renderInventoryCategoryGrid(save, consumable, '소모품', 'POTION · USE', 8) },
+    { key: 'material' as const, html: renderInventoryCategoryGrid(save, material, '재료', 'MATERIAL · CRAFT', 12) },
+    { key: 'skillbook' as const, html: renderInventoryCategoryGrid(save, skillbook, '스킬서', 'SKILL BOOK', 8) }
+  ].filter((section) => normalizedFilter === 'all' || section.key === normalizedFilter);
+  const activeCount = normalizedFilter === 'all' ? described.length : counts.find((entry) => entry.key === normalizedFilter)?.count || 0;
   return `
     ${renderInventoryQualityBoard(save, described, bagLimit)}
-    <div class="inventory-category-toolbar">
+    <div class="inventory-category-toolbar inventory-category-toolbar-088">
       <span>${modeHint} · ${save.inventory.length}/${bagLimit}</span>
-      <em>장비/소모품/재료/스킬서를 분리했습니다. 클릭하면 상세 정보가 열립니다.</em>
+      <em>현재 ${counts.find((entry) => entry.key === normalizedFilter)?.label || '전체'} ${activeCount}개 · 필터 상태가 유지됩니다.</em>
     </div>
-    <div class="inventory-category-nav inventory-category-tabs">
-      <span>장비 ${gear.length}</span><span>소모품 ${consumable.length}</span><span>재료 ${material.length}</span><span>스킬서 ${skillbook.length}</span>
-    </div>
-    ${renderInventoryCategoryGrid(save, gear, '장비', 'WEAPON · ARMOR · RELIC', 12)}
-    ${renderInventoryCategoryGrid(save, consumable, '소모품', 'POTION · USE', 8)}
-    ${renderInventoryCategoryGrid(save, material, '재료', 'MATERIAL · CRAFT', 12)}
-    ${renderInventoryCategoryGrid(save, skillbook, '스킬서', 'SKILL BOOK', 8)}
+    ${townMode ? renderInventoryFilterRail088(counts, normalizedFilter) : `
+      <div class="inventory-category-nav inventory-category-tabs">
+        <span>장비 ${gear.length}</span><span>소모품 ${consumable.length}</span><span>재료 ${material.length}</span><span>스킬서 ${skillbook.length}</span>
+      </div>
+    `}
+    ${sections.map((section) => section.html).join('')}
   `;
 }
 
@@ -2150,6 +2222,7 @@ function openTownContent(content: TownContentId) {
     return;
   }
   closeTownMoreMenu();
+  if (content !== 'shop') pendingShopPurchase088 = null;
   activeTownContent = content;
   townContentOpen = true;
   document.body.classList.add('town-drawer-open');
@@ -2290,7 +2363,7 @@ function renderTownStorySnapshot(save: PlayerSave) {
   if (!quest) {
     townChapterText.textContent = 'STORY CLEAR';
     townStoryTitle.textContent = '현재 챕터 완료';
-    townStoryDesc.textContent = 'Alpha 0.87 스토리를 모두 완료했습니다.';
+    townStoryDesc.textContent = 'Alpha 0.88 스토리를 모두 완료했습니다.';
     townStoryProgress.style.width = '100%';
     townStoryProgressText.textContent = '완료';
     townStoryActionBtn.textContent = '스토리 보기';
@@ -2900,7 +2973,7 @@ function renderTownInventory(save: PlayerSave) {
     ${renderEquipmentResonanceSummary(save, true)}
     ${renderEnhancementWorkbench(save)}
     ${renderPotionBeltSummary(save)}
-    ${renderCategorizedInventory(save, true)}
+    ${renderCategorizedInventory(save, true, activeInventoryFilter088)}
   `;
 }
 
@@ -3118,57 +3191,51 @@ function shopCategory083(def: ItemDefinition) {
 }
 
 function renderTownShop(save: PlayerSave) {
-  const stock: Array<{ itemId: string; price: number; label: string }> = [
-    { itemId: 'hp-potion-small', price: 7, label: 'HP 2% 회복' },
-    { itemId: 'mp-potion-small', price: 9, label: 'MP 2% 회복' },
-    { itemId: 'hp-potion-mid', price: 20, label: 'HP 3.5% 회복' },
-    { itemId: 'mp-potion-mid', price: 24, label: 'MP 3.5% 회복' },
-    { itemId: 'hp-potion-high', price: 48, label: 'HP 5% 회복' },
-    { itemId: 'mp-potion-high', price: 56, label: 'MP 5% 회복' },
-    { itemId: 'skillbook-basic', price: 180, label: '1번 스킬 습득' },
-    { itemId: 'skillbook-second', price: 850, label: '2번 스킬 습득' },
-    { itemId: 'skillbook-third', price: 2600, label: '3번 스킬 습득' },
-    { itemId: 'iron-sword', price: 180, label: '초반 무기 보강' },
-    { itemId: 'moon-blade', price: 560, label: 'R 무기' },
-    { itemId: 'crystal-mail', price: 620, label: 'R 방어구' },
-    { itemId: 'fox-charm', price: 900, label: '유물 슬롯' },
-    { itemId: 'soul-shard', price: 120, label: '강화 재료' },
-    { itemId: 'enhance-stone', price: 420, label: '+10 이후 재료' },
-    { itemId: 'lumina-seal', price: 1200, label: '후반 전선 인장' },
-    { itemId: 'radiant-ore', price: 3600, label: '최상급 강화 재료' }
-  ];
-  const rows = stock
+  const detailedStock = TOWN_SHOP_STOCK_088
     .flatMap((entry) => {
       const def = items.find((item) => item.id === entry.itemId);
-      return def ? [{ ...entry, def }] : [];
-    })
+      return def ? [{ ...entry, def, filter: shopFilterForItem088(def.type) }] : [];
+    });
+  const counts = [
+    { key: 'all' as const, label: '전체', count: detailedStock.length },
+    { key: 'consumable' as const, label: '소모품', count: detailedStock.filter((entry) => entry.filter === 'consumable').length },
+    { key: 'skillbook' as const, label: '스킬북', count: detailedStock.filter((entry) => entry.filter === 'skillbook').length },
+    { key: 'equipment' as const, label: '장비', count: detailedStock.filter((entry) => entry.filter === 'equipment').length },
+    { key: 'material' as const, label: '재료', count: detailedStock.filter((entry) => entry.filter === 'material').length }
+  ];
+  const normalizedFilter = normalizeShopFilter088(activeShopFilter088);
+  const rows = detailedStock
+    .filter((entry) => normalizedFilter === 'all' || entry.filter === normalizedFilter)
     .map(({ def, price, label }) => {
       const soldOut = isSkillBookSoldOut(save, def);
       const disabled = soldOut || save.gold < price ? 'disabled' : '';
       const bulkDisabled = soldOut || save.gold < price * 5 || def.type === 'skillbook' ? 'disabled' : '';
-      const buyLabel = soldOut ? '품절' : save.gold < price ? '골드 부족' : '구매';
+      const buyLabel = soldOut ? '품절' : save.gold < price ? '골드 부족' : '구매 검토';
       const bulkLabel = def.type === 'skillbook' ? '1회 한정' : `5개 ${formatGold(price * 5)}`;
       return `
-        <article class="shop-row shop-row-083 ${soldOut ? 'sold-out' : ''} rarity-${def.rarity.toLowerCase()}" data-shop-category="${shopCategory083(def)}">
+        <article class="shop-row shop-row-083 shop-row-088 ${soldOut ? 'sold-out' : ''} rarity-${def.rarity.toLowerCase()}" data-shop-category="${shopCategory083(def)}" data-shop-filter="${shopFilterForItem088(def.type)}">
           <span class="shop-item-art"><img src="${itemArtUrl(def)}" alt="${escapeHtml(def.name)}" onerror="this.remove()" />${inlineFallbackIcon(itemIcon(def.type))}</span>
           <div>
             <div class="pill-row"><span class="pill">${shopCategory083(def)}</span><span class="pill">${def.rarity}</span><span class="pill">${label}</span>${soldOut ? '<span class="pill">습득 완료</span>' : ''}</div>
             <h3>${escapeHtml(def.name)}</h3>
             <p>${escapeHtml(def.effectText)} · 가격 ${formatGold(price)}</p>
           </div>
-          <div class="shop-buy-actions">
+          <div class="shop-buy-actions shop-buy-actions-088">
             <button ${disabled} data-town-shop-buy="${def.id}">${buyLabel}</button>
             <button ${bulkDisabled} data-town-shop-buy-bulk="${def.id}" data-town-shop-count="5">${bulkLabel}</button>
           </div>
         </article>
       `;
     })
-    .join('');
+    .join('') || '<article class="shop-empty-088"><b>해당 분류 상품 없음</b><span>상단 필터를 전체로 돌려 보급품을 확인하세요.</span></article>';
+  const filterLabel = counts.find((entry) => entry.key === normalizedFilter)?.label || '전체';
   return `
     ${renderShopHero083(save)}
-    <div class="town-content-note town-content-note-083">보유 골드 ${formatGold(save.gold)} · 소모품/재료는 5개 묶음 구매를 지원합니다.</div>
+    ${renderShopPurchaseConfirm088(pendingShopPurchase088, formatGold(save.gold))}
+    <div class="town-content-note town-content-note-083 town-content-note-088">보유 골드 ${formatGold(save.gold)} · 현재 ${filterLabel} 보기 · 모든 구매는 0.88 확인 단계를 거칩니다.</div>
+    ${renderShopFilterRail088(counts, normalizedFilter)}
     ${renderPotionBeltSummary(save)}
-    <div class="shop-list shop-list-083">${rows}</div>
+    <div class="shop-list shop-list-083 shop-list-088">${rows}</div>
   `;
 }
 
@@ -3523,26 +3590,37 @@ function upgradeTownItem(itemUid: string) {
   persistTownSave();
 }
 
+function stageTownShopPurchase088(itemId: string, amount = 1) {
+  if (!pendingSave) return;
+  const def = items.find((item) => item.id === itemId);
+  const price = TOWN_SHOP_PRICE_088[itemId];
+  if (!def || !price) {
+    showToast('상점 연결 정보가 올바르지 않습니다. 기술 점검 패널을 확인하세요.');
+    recordClientIssue('ui', `상점 재고 연결 누락: ${itemId}`);
+    return;
+  }
+  const count = def.type === 'skillbook' ? 1 : Math.max(1, Math.min(99, Math.floor(amount || 1)));
+  const totalPrice = price * count;
+  const soldOut = isSkillBookSoldOut(pendingSave, def);
+  const canAfford = !soldOut && pendingSave.gold >= totalPrice;
+  pendingShopPurchase088 = {
+    itemId,
+    name: def.name,
+    rarity: def.rarity,
+    count,
+    unitPrice: price,
+    totalPrice,
+    canAfford,
+    reason: soldOut ? '이미 습득한 스킬서입니다.' : canAfford ? '구매 전 최종 확인 단계입니다.' : `골드 부족 · 필요 ${formatGold(totalPrice)}`
+  };
+  renderTownContent();
+  scheduleUiSafetyAudit();
+}
+
 function buyTownShopItem(itemId: string, amount = 1) {
   if (!pendingSave) return;
-  const stock: Record<string, number> = {
-    'hp-potion-small': 7,
-    'mp-potion-small': 9,
-    'hp-potion-mid': 20,
-    'mp-potion-mid': 24,
-    'hp-potion-high': 48,
-    'mp-potion-high': 56,
-    'skillbook-basic': 180,
-    'skillbook-second': 850,
-    'skillbook-third': 2600,
-    'iron-sword': 180,
-    'moon-blade': 560,
-    'crystal-mail': 620,
-    'fox-charm': 900,
-    'soul-shard': 120,
-    'enhance-stone': 420
-  };
-  const price = stock[itemId];
+  pendingShopPurchase088 = null;
+  const price = TOWN_SHOP_PRICE_088[itemId];
   const def = items.find((item) => item.id === itemId);
   if (!price || !def) return;
   if (isSkillBookSoldOut(pendingSave, def)) {
@@ -3933,6 +4011,7 @@ function installPerformanceGuards085() {
           const reduceMotion = classifyPerformance(measuredFps, longTaskCount085, lastLongTaskMs085).shouldReduceMotion;
       document.body.classList.toggle('perf-reduced-motion-086', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-087', reduceMotion);
+      document.body.classList.toggle('perf-reduced-motion-088', reduceMotion);
           if (entry.duration >= 120) recordClientIssue('perf', `긴 작업 ${Math.round(entry.duration)}ms 감지`);
         }
       });
@@ -3989,7 +4068,7 @@ async function handleHealthAction085(action: string) {
     clientIssues.splice(0);
     longTaskCount085 = 0;
     lastLongTaskMs085 = 0;
-    document.body.classList.remove('perf-longtask-risk-085', 'perf-reduced-motion-086');
+    document.body.classList.remove('perf-longtask-risk-085', 'perf-reduced-motion-086', 'perf-reduced-motion-087', 'perf-reduced-motion-088');
     showToast('진단 로그를 정리했습니다.');
   }
   if (action === 'save-local') {
@@ -4051,6 +4130,7 @@ function installClientDiagnostics() {
       const reduceMotion = classifyPerformance(measuredFps, longTaskCount085, lastLongTaskMs085).shouldReduceMotion;
       document.body.classList.toggle('perf-reduced-motion-086', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-087', reduceMotion);
+      document.body.classList.toggle('perf-reduced-motion-088', reduceMotion);
     }
     lastFrameMs = now;
     window.requestAnimationFrame(tick);
@@ -4112,6 +4192,12 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
   const assetHealth = inspectRuntimeAssets();
   const saveHealth = validateSaveHealth085(save);
   const contentHealth = inspectCurrentContentGraph087();
+  const renderBudget088 = summarizeRenderBudget088({
+    domNodes: document.querySelectorAll('*').length,
+    imageNodes: document.images.length,
+    visiblePanels: [townContentOpen, sheetOpen, !itemDetailModal.classList.contains('hidden'), Boolean(pendingShopPurchase088)].filter(Boolean).length,
+    issueCount: clientIssues.length
+  });
   const connectivityRows = buildConnectivityRows({
     activeTownContent,
     townContentOpen,
@@ -4134,6 +4220,8 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     { label: '이미지', value: `${assetHealth.decodedImages}/${assetHealth.imageCount}`, level: assetHealth.level, hint: assetHealth.message },
     { label: '세이브', value: saveHealth.message, level: saveHealth.level },
     { label: '콘텐츠', value: contentHealth.message, level: contentHealth.level },
+    { label: '렌더 예산', value: renderBudget088.value, level: renderBudget088.level, hint: renderBudget088.hint },
+    { label: '상점 UX', value: pendingShopPurchase088 ? '구매 확인 대기' : '확인 단계 준비', level: 'ok' },
     { label: '입력', value: buildActionLatencyLabel(lastActionAt086), level: 'ok' }
   ];
   return renderTechnicalHealthPanel087({
