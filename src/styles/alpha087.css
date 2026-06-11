@@ -1,0 +1,194 @@
+/* Alpha 0.87: separated UI stabilization layer for Soul Online. */
+:root {
+  --soul-087-safe-t: var(--soul-086-safe-t, max(10px, env(safe-area-inset-top)));
+  --soul-087-safe-r: var(--soul-086-safe-r, max(10px, env(safe-area-inset-right)));
+  --soul-087-safe-b: var(--soul-086-safe-b, max(10px, env(safe-area-inset-bottom)));
+  --soul-087-safe-l: var(--soul-086-safe-l, max(10px, env(safe-area-inset-left)));
+  --soul-087-panel: rgba(247, 252, 255, .97);
+  --soul-087-blue: #075fc8;
+  --soul-087-gold: rgba(255, 226, 145, .94);
+  --soul-087-line: rgba(255, 230, 164, .76);
+  --soul-087-danger: #c93246;
+}
+
+body.fantasy-ui-087,
+body.fantasy-ui-087 #app,
+body.fantasy-ui-087 #game-root {
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  touch-action: manipulation;
+}
+
+body.fantasy-ui-087 .title-screen-087,
+body.fantasy-ui-087 .login-screen-087,
+body.fantasy-ui-087 .town-screen-087,
+body.fantasy-ui-087 #townContentPanel,
+body.fantasy-ui-087 .town-drawer,
+body.fantasy-ui-087 .sheet.open,
+body.fantasy-ui-087 .item-detail-card,
+body.fantasy-ui-087 .tech-health-panel-087,
+body.fantasy-ui-087 .system-doctor-087 {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  max-width: 100vw !important;
+  overflow-wrap: anywhere;
+}
+
+body.fantasy-ui-087 #townContentPanel:not(.hidden),
+body.fantasy-ui-087 .town-drawer:not(.hidden),
+body.fantasy-ui-087 .sheet.open {
+  top: max(8px, var(--soul-087-safe-t)) !important;
+  right: max(8px, var(--soul-087-safe-r)) !important;
+  bottom: max(8px, var(--soul-087-safe-b)) !important;
+  left: max(8px, var(--soul-087-safe-l)) !important;
+  width: auto !important;
+  max-width: calc(100vw - var(--soul-087-safe-l) - var(--soul-087-safe-r) - 16px) !important;
+  max-height: calc(100dvh - var(--soul-087-safe-t) - var(--soul-087-safe-b) - 16px) !important;
+  transform: none;
+}
+
+body.fantasy-ui-087 .town-content-body,
+body.fantasy-ui-087 .town-drawer-body,
+body.fantasy-ui-087 .sheet-body,
+body.fantasy-ui-087 .item-detail-card,
+body.fantasy-ui-087 .tech-health-panel-087 {
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable both-edges;
+  contain: layout paint style;
+  content-visibility: auto;
+  contain-intrinsic-size: 760px;
+}
+
+body.fantasy-ui-087 .system-doctor-087,
+body.fantasy-ui-087 .tech-health-panel-087,
+body.fantasy-ui-087 .render-budget-panel-087 {
+  border: 1px solid var(--soul-087-line) !important;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(105, 224, 255, .23), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.98), var(--soul-087-panel)) !important;
+  box-shadow: 0 16px 42px rgba(4, 28, 72, .14), inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+body.fantasy-ui-087 .system-doctor-grid-087,
+body.fantasy-ui-087 .tech-health-grid-087,
+body.fantasy-ui-087 .connectivity-matrix-087 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body.fantasy-ui-087 .system-doctor-grid-087 article,
+body.fantasy-ui-087 .tech-health-grid-087 article,
+body.fantasy-ui-087 .connectivity-matrix-087 article {
+  min-width: 0;
+  overflow: hidden;
+}
+
+body.fantasy-ui-087 .system-doctor-grid-087 article small,
+body.fantasy-ui-087 .tech-health-grid-087 article small,
+body.fantasy-ui-087 .connectivity-matrix-087 article small {
+  display: block;
+  margin-top: 3px;
+  color: rgba(6, 33, 77, .56);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.render-budget-panel-087 {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 20px;
+}
+.render-budget-panel-087 b {
+  color: var(--soul-087-blue);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.render-budget-panel-087 span {
+  color: rgba(6, 33, 77, .9);
+  font-size: 13px;
+  font-weight: 950;
+}
+.render-budget-panel-087 em {
+  color: rgba(6, 33, 77, .6);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+}
+.content-health-issues-087 {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.content-health-issues-087 li {
+  padding: 8px 10px;
+  border: 1px solid rgba(201, 50, 70, .22);
+  border-radius: 14px;
+  background: rgba(255, 239, 242, .86);
+  color: var(--soul-087-danger);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+body.fantasy-ui-087.ui-overflow-risk #townContentPanel:not(.hidden),
+body.fantasy-ui-087.ui-overflow-risk .town-drawer:not(.hidden),
+body.fantasy-ui-087.ui-overflow-risk .sheet.open,
+body.fantasy-ui-087.ui-overflow-risk .item-detail-card {
+  inset: max(8px, var(--soul-087-safe-t)) max(8px, var(--soul-087-safe-r)) max(8px, var(--soul-087-safe-b)) max(8px, var(--soul-087-safe-l)) !important;
+  max-width: calc(100vw - 16px) !important;
+  max-height: calc(100dvh - 16px) !important;
+}
+
+body.fantasy-ui-087.ui-narrow-087 .town-wallet-074,
+body.fantasy-ui-087.ui-narrow-087 .resource-strip {
+  transform: scale(.94);
+  transform-origin: top right;
+}
+body.fantasy-ui-087.ui-short-087 .town-master-quest-074 span,
+body.fantasy-ui-087.ui-short-087 .town-master-hotspots-074 span,
+body.fantasy-ui-087.ui-short-087 .system-doctor-head-085 p,
+body.fantasy-ui-087.ui-short-087 .tech-health-head-084 p {
+  display: none !important;
+}
+
+body.fantasy-ui-087.perf-reduced-motion-087 .title-orb,
+body.fantasy-ui-087.perf-reduced-motion-087 .title-soul-ring,
+body.fantasy-ui-087.perf-reduced-motion-087 .town-art-bloom-081,
+body.fantasy-ui-087.perf-reduced-motion-087 .loot-rune-083,
+body.fantasy-ui-087.perf-reduced-motion-087 .field-attack-impact,
+body.fantasy-ui-087[data-fps-state="low"] .title-orb,
+body.fantasy-ui-087[data-fps-state="low"] .title-soul-ring,
+body.fantasy-ui-087[data-fps-state="low"] .town-art-bloom-081,
+body.fantasy-ui-087[data-fps-state="low"] .loot-rune-083 {
+  animation: none !important;
+  transition-duration: .001ms !important;
+  filter: none !important;
+}
+
+@media (max-width: 560px) {
+  body.fantasy-ui-087 .system-doctor-grid-087,
+  body.fantasy-ui-087 .tech-health-grid-087,
+  body.fantasy-ui-087 .connectivity-matrix-087 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 370px), (max-height: 590px) {
+  body.fantasy-ui-087 .system-doctor-grid-087,
+  body.fantasy-ui-087 .tech-health-grid-087,
+  body.fantasy-ui-087 .connectivity-matrix-087 {
+    grid-template-columns: 1fr !important;
+  }
+  body.fantasy-ui-087 .tech-health-actions-085 button,
+  body.fantasy-ui-087 .system-doctor-actions-085 button {
+    flex: 1 1 100%;
+  }
+}

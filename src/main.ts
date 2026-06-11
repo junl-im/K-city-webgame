@@ -1,10 +1,14 @@
 import './styles.css';
+import './styles/alpha087.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
 import { applyEquipmentResonance, equipmentResonanceEffects, nextEquipmentResonanceHint, resonanceBonusText } from './game/equipmentResonance';
 import { formatGold, formatNumber, formatSoul, roll, uid } from './game/math';
-import { auditUiBounds, buildActionLatencyLabel, buildConnectivityRows, classifyPerformance, inspectRuntimeAssets, inspectSaveIntegrity } from './ui/technicalHealth';
+import { buildActionLatencyLabel, buildConnectivityRows, classifyPerformance, inspectRuntimeAssets, inspectSaveIntegrity } from './ui/technicalHealth';
+import { inspectContentGraph087 } from './ui/contentIntegrity';
+import { renderSystemDoctor087, renderTechnicalHealthPanel087, type HealthTile087 } from './ui/healthPanelRenderer';
+import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
 import type { AutoHuntSettings, CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
@@ -39,7 +43,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '0.86.0';
+const ALPHA_VERSION = '0.87.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -67,6 +71,7 @@ let networkState085 = navigator.onLine ? '온라인' : '오프라인';
 let lastActionAt086 = 0;
 let serviceWorkerReady086 = false;
 let lastUiAuditReport086 = 'UI 안전 영역 정상';
+let lastContentGraphMessage087 = '콘텐츠 연결 검사 대기';
 
 const root = must('#game-root');
 const titleScreen = must('#titleScreen');
@@ -172,7 +177,7 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-081', 'fantasy-ui-082', 'fantasy-ui-083', 'fantasy-ui-084', 'fantasy-ui-085', 'fantasy-ui-086');
+  document.body.classList.add('fantasy-ui-081', 'fantasy-ui-082', 'fantasy-ui-083', 'fantasy-ui-084', 'fantasy-ui-085', 'fantasy-ui-086', 'fantasy-ui-087');
   await saveService.init();
   await mergeCloudRosterToLocal();
   pendingSave = saveService.loadLocal();
@@ -2285,7 +2290,7 @@ function renderTownStorySnapshot(save: PlayerSave) {
   if (!quest) {
     townChapterText.textContent = 'STORY CLEAR';
     townStoryTitle.textContent = '현재 챕터 완료';
-    townStoryDesc.textContent = 'Alpha 0.86 스토리를 모두 완료했습니다.';
+    townStoryDesc.textContent = 'Alpha 0.87 스토리를 모두 완료했습니다.';
     townStoryProgress.style.width = '100%';
     townStoryProgressText.textContent = '완료';
     townStoryActionBtn.textContent = '스토리 보기';
@@ -2390,7 +2395,7 @@ function learnSkillReward(save: PlayerSave, token: string) {
 }
 
 function emptyKillRecord(): Record<any, number> {
-  return { slime: 0, wolf: 0, goblin: 0, crystalBear: 0, dragon: 0, shadowImp: 0, mossGolem: 0, wraith: 0, fireDrake: 0, stormHarpy: 0, graveKnight: 0, fieldBoss: 0 };
+  return { slime: 0, wolf: 0, goblin: 0, crystalBear: 0, dragon: 0, shadowImp: 0, mossGolem: 0, wraith: 0, fireDrake: 0, stormHarpy: 0, graveKnight: 0, fieldBoss: 0, orcBerserker: 0, nightmareBat: 0, lavaGolem: 0, iceWitch: 0, royalGuard: 0, riftBeast: 0 };
 }
 
 function applyStoryReward(save: PlayerSave, reward: (typeof storyQuests)[number]['reward']) {
@@ -3882,6 +3887,23 @@ function knownContentIds086() {
   };
 }
 
+function inspectCurrentContentGraph087() {
+  const report = inspectContentGraph087({
+    classes: Object.values(classes),
+    items,
+    cards,
+    cardSets,
+    souls,
+    skills,
+    monsters,
+    zones,
+    storyQuests,
+    dailyQuests
+  });
+  lastContentGraphMessage087 = report.problems[0] || report.message;
+  return report;
+}
+
 
 
 
@@ -3908,7 +3930,9 @@ function installPerformanceGuards085() {
           longTaskCount085 += 1;
           lastLongTaskMs085 = Math.max(lastLongTaskMs085, entry.duration);
           document.body.classList.toggle('perf-longtask-risk-085', longTaskCount085 >= 5 || entry.duration >= 180);
-          document.body.classList.toggle('perf-reduced-motion-086', classifyPerformance(measuredFps, longTaskCount085, lastLongTaskMs085).shouldReduceMotion);
+          const reduceMotion = classifyPerformance(measuredFps, longTaskCount085, lastLongTaskMs085).shouldReduceMotion;
+      document.body.classList.toggle('perf-reduced-motion-086', reduceMotion);
+      document.body.classList.toggle('perf-reduced-motion-087', reduceMotion);
           if (entry.duration >= 120) recordClientIssue('perf', `긴 작업 ${Math.round(entry.duration)}ms 감지`);
         }
       });
@@ -3991,32 +4015,17 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
   const saveHealth = validateSaveHealth085(save);
   const perfHealth = classifyPerformance(measuredFps, longTaskCount085, lastLongTaskMs085);
   const assetHealth = inspectRuntimeAssets();
-  const rows = [
-    ['브랜드', 'Soul Online 고정', 'ok'],
-    ['Firebase', saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', saveService.isOnline() ? 'ok' : 'warn'],
-    ['성능', perfHealth.label, perfHealth.level],
-    ['화면', lastUiAuditReport086, document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok'],
-    ['에셋', assetHealth.message, assetHealth.level],
-    ['세이브', saveHealth.message, saveHealth.level]
-  ] as Array<[string, string, string]>;
-  return `
-    <section class="system-doctor-085 system-doctor-086 ${mode}" aria-label="0.86 시스템 닥터">
-      <div class="system-doctor-head-085">
-        <span class="panel-kicker">SYSTEM DOCTOR · 0.86</span>
-        <h3>문제점·연결성·성능 빠른 점검</h3>
-        <p>UI 화면 이탈, 세이브 연결, 에셋 로딩, PWA 캐시 상태를 한 번에 확인합니다.</p>
-      </div>
-      <div class="system-doctor-grid-085">
-        ${rows.map(([label, value, level]) => `<article class="${level}"><b>${escapeHtml(label)}</b><em>${escapeHtml(value)}</em></article>`).join('')}
-      </div>
-      <div class="system-doctor-actions-085">
-        <button data-town-health-action="audit-ui" data-health-action="audit-ui">UI 재검사</button>
-        <button data-town-health-action="save-local" data-health-action="save-local">저장 확인</button>
-        <button data-town-health-action="preload-assets" data-health-action="preload-assets">에셋 예열</button>
-        <button data-town-health-action="clear-issues" data-health-action="clear-issues">로그 정리</button>
-      </div>
-    </section>
-  `;
+  const contentHealth = inspectCurrentContentGraph087();
+  const rows: HealthTile087[] = [
+    { label: '브랜드', value: 'Soul Online 고정', level: 'ok' },
+    { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
+    { label: '성능', value: perfHealth.label, level: perfHealth.level },
+    { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },
+    { label: '에셋', value: assetHealth.message, level: assetHealth.level },
+    { label: '세이브', value: saveHealth.message, level: saveHealth.level },
+    { label: '콘텐츠', value: contentHealth.message, level: contentHealth.level, hint: lastContentGraphMessage087 }
+  ];
+  return renderSystemDoctor087({ version: ALPHA_VERSION, mode, rows });
 }
 
 function validateSaveHealth085(save: PlayerSave) {
@@ -4039,7 +4048,9 @@ function installClientDiagnostics() {
       fpsFrames = 0;
       fpsWindowMs = now;
       document.body.dataset.fpsState = measuredFps >= 50 ? 'good' : measuredFps >= 32 ? 'watch' : 'low';
-      document.body.classList.toggle('perf-reduced-motion-086', classifyPerformance(measuredFps, longTaskCount085, lastLongTaskMs085).shouldReduceMotion);
+      const reduceMotion = classifyPerformance(measuredFps, longTaskCount085, lastLongTaskMs085).shouldReduceMotion;
+      document.body.classList.toggle('perf-reduced-motion-086', reduceMotion);
+      document.body.classList.toggle('perf-reduced-motion-087', reduceMotion);
     }
     lastFrameMs = now;
     window.requestAnimationFrame(tick);
@@ -4074,27 +4085,11 @@ function scheduleUiSafetyAudit() {
 }
 
 function runUiSafetyAudit() {
-  const report = auditUiBounds([
-    '.town-master-lobby-074',
-    '.town-drawer:not(.hidden)',
-    '#townContentPanel:not(.hidden)',
-    '.town-safe-frame-081',
-    '.sheet.open',
-    '.hud-top',
-    '.resource-strip',
-    '.field-minimap',
-    '.field-quest-tracker',
-    '.combat-log',
-    '.action-dock',
-    '.joystick',
-    '.item-detail-modal:not(.hidden) .item-detail-card',
-    '.system-doctor-085',
-    '.tech-health-panel-084'
-  ], 2);
+  const report = auditSoulOnlineSafeFrame087(2);
+  applySafeFrameBodyState087(report);
   const hasOverflow = !report.ok;
-  document.body.classList.toggle('ui-overflow-risk', hasOverflow);
-  lastUiAuditMessage = report.message;
-  lastUiAuditReport086 = report.message;
+  lastUiAuditMessage = `${report.message} · ${report.viewport}`;
+  lastUiAuditReport086 = lastUiAuditMessage;
   const now = Date.now();
   if (hasOverflow && now - lastUiAuditAt > 5000) {
     lastUiAuditAt = now;
@@ -4116,6 +4111,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
   const cloudState = cloud.paused ? '보류' : saveService.isOnline() ? '온라인' : '로컬';
   const assetHealth = inspectRuntimeAssets();
   const saveHealth = validateSaveHealth085(save);
+  const contentHealth = inspectCurrentContentGraph087();
   const connectivityRows = buildConnectivityRows({
     activeTownContent,
     townContentOpen,
@@ -4128,40 +4124,36 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     cloudPaused: cloud.paused,
     serviceWorkerReady: serviceWorkerReady086
   });
-  return `
-    <section class="tech-health-panel-084 tech-health-panel-086 ${mode}" aria-label="기술 상태 점검">
-      <div class="tech-health-head-084">
-        <span class="panel-kicker">TECH HEALTH · v${ALPHA_VERSION}</span>
-        <h3>연결성·성능·UI 안전 점검</h3>
-        <p>마을/필드/저장/PWA 흐름을 분리 점검해서, 기능이 쌓여도 연결이 끊기지 않게 관리합니다.</p>
-        <div class="tech-health-actions-085">
-          <button data-town-health-action="audit-ui" data-health-action="audit-ui">UI 재검사</button>
-          <button data-town-health-action="clear-issues" data-health-action="clear-issues">로그 정리</button>
-          <button data-town-health-action="save-local" data-health-action="save-local">로컬 저장 확인</button>
-          <button data-town-health-action="preload-assets" data-health-action="preload-assets">에셋 예열</button>
-        </div>
-      </div>
-      <div class="tech-health-grid-084">
-        <article class="${perfHealth.level}"><b>${measuredFps}</b><em>FPS ${perfHealth.label}</em></article>
-        <article class="${cloud.paused ? 'warn' : 'ok'}"><b>${escapeHtml(cloudState)}</b><em>저장 연결</em></article>
-        <article class="${document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok'}"><b>${document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상'}</b><em>${escapeHtml(lastUiAuditMessage)}</em></article>
-        <article class="${save.inventory.length >= 60 ? 'warn' : 'ok'}"><b>${save.inventory.length}/64</b><em>가방 ${inventoryPressure}</em></article>
-        <article class="${longTaskCount085 >= 5 ? 'warn' : 'ok'}"><b>${longTaskCount085}</b><em>긴 작업 ${lastLongTaskMs085 ? `${Math.round(lastLongTaskMs085)}ms` : '없음'}</em></article>
-        <article class="${storageEstimate085.available && storageEstimate085.percent > 85 ? 'warn' : 'ok'}"><b>${storageEstimate085.available ? `${storageEstimate085.percent}%` : 'OK'}</b><em>저장소 여유</em></article>
-        <article class="${assetHealth.level}"><b>${assetHealth.decodedImages}/${assetHealth.imageCount}</b><em>이미지 로드</em></article>
-        <article class="${saveHealth.level}"><b>${saveHealth.level.toUpperCase()}</b><em>${escapeHtml(saveHealth.message)}</em></article>
-        <article class="ok"><b>${escapeHtml(buildActionLatencyLabel(lastActionAt086))}</b><em>최근 입력 반응</em></article>
-      </div>
-      <div class="connectivity-matrix-086" aria-label="연결성 매트릭스">
-        ${connectivityRows.map((row) => `<article class="${row.level}"><b>${escapeHtml(row.label)}</b><span>${escapeHtml(row.value)}</span></article>`).join('')}
-      </div>
-      <div class="tech-health-meta-084 tech-health-meta-086">
-        <span>화면 ${viewport}</span><span>메모리 ${escapeHtml(memoryText)}</span><span>저장소 ${storageEstimate085.available ? `${storageEstimate085.usedMB}MB/${storageEstimate085.quotaMB}MB` : '미지원'}</span><span>네트워크 ${escapeHtml(networkState085)}</span><span>PWA ${serviceWorkerReady086 ? '준비' : '대기'}</span><span>캐릭터 ${escapeHtml(save.saveId.slice(-6))}</span>
-      </div>
-      ${cloud.lastError ? `<p class="tech-health-error-084">최근 클라우드 오류: ${escapeHtml(cloud.lastError)}</p>` : ''}
-      <ul class="tech-health-issues-084">${issueRows}</ul>
-    </section>
-  `;
+  const tiles: HealthTile087[] = [
+    { label: 'FPS', value: `${measuredFps} · ${perfHealth.label}`, level: perfHealth.level },
+    { label: '저장 연결', value: cloudState, level: cloud.paused ? 'warn' : 'ok' },
+    { label: 'UI 안전', value: document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상', level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok', hint: lastUiAuditMessage },
+    { label: '가방', value: `${save.inventory.length}/64 · ${inventoryPressure}`, level: save.inventory.length >= 60 ? 'warn' : 'ok' },
+    { label: 'Long Task', value: `${longTaskCount085}회${lastLongTaskMs085 ? ` · ${Math.round(lastLongTaskMs085)}ms` : ''}`, level: longTaskCount085 >= 5 ? 'warn' : 'ok' },
+    { label: '저장소', value: storageEstimate085.available ? `${storageEstimate085.percent}%` : 'OK', level: storageEstimate085.available && storageEstimate085.percent > 85 ? 'warn' : 'ok' },
+    { label: '이미지', value: `${assetHealth.decodedImages}/${assetHealth.imageCount}`, level: assetHealth.level, hint: assetHealth.message },
+    { label: '세이브', value: saveHealth.message, level: saveHealth.level },
+    { label: '콘텐츠', value: contentHealth.message, level: contentHealth.level },
+    { label: '입력', value: buildActionLatencyLabel(lastActionAt086), level: 'ok' }
+  ];
+  return renderTechnicalHealthPanel087({
+    version: ALPHA_VERSION,
+    mode,
+    tiles,
+    connectivityRows,
+    meta: {
+      viewport,
+      memoryText,
+      storageText: storageEstimate085.available ? `${storageEstimate085.usedMB}MB/${storageEstimate085.quotaMB}MB` : '미지원',
+      networkState: networkState085,
+      pwaState: serviceWorkerReady086 ? '준비' : '대기',
+      characterTail: save.saveId.slice(-6),
+      contentSummary: `콘텐츠 ${contentHealth.totals.zones}존 · ${contentHealth.totals.monsters}몬스터 · ${contentHealth.totals.items}아이템 · ${contentHealth.totals.quests}퀘스트`
+    },
+    issueRows,
+    cloudError: cloud.lastError,
+    contentProblems: contentHealth.problems
+  });
 }
 
 function bindDetailModal() {

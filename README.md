@@ -1,28 +1,31 @@
-# Soul Online Alpha 0.86 덮어쓰기 패치
+# Soul Online Alpha 0.87 덮어쓰기 패치
 
-이 패치는 Soul Online 0.85 이후에 적용하는 기술 안정화/구조 분리 기반 패치입니다.
+Soul Online 0.87은 외형 확장보다 기술 기반 정리에 집중한 안정화 패치입니다. 0.86 위에 그대로 덮어쓰는 소스 패치로 사용할 수 있습니다.
 
-## 적용 방법
+## 적용 순서
 
-1. GitHub Desktop에서 현재 상태를 먼저 커밋합니다.
-2. 이 ZIP의 내용을 프로젝트 루트에 그대로 덮어씁니다.
-3. `npm install`을 실행합니다.
-4. `npm run build`로 빌드를 확인합니다.
-5. Firebase Hosting 사용 시 `firebase deploy --only hosting`으로 배포합니다.
+1. GitHub Desktop에서 현재 상태를 커밋합니다.
+2. ZIP 압축을 해제합니다.
+3. 프로젝트 루트에 그대로 복사해서 덮어씁니다.
+4. `npm install`
+5. `npm run build`
+6. Firebase Hosting 사용 시 `firebase deploy --only hosting`
 
-## 0.86 핵심
+## 0.87 핵심
 
-- 버전을 `0.86.0`으로 갱신했습니다.
-- PWA 캐시를 `soul-online-alpha-v0-86`으로 갱신했습니다.
-- `fantasy-ui-086`, `title/login/town-screen-086` 안정화 레이어를 추가했습니다.
-- `src/ui/technicalHealth.ts`를 새로 분리해 UI 안전 검사, 세이브 무결성 검사, 성능 분류, 연결성 매트릭스를 모듈화했습니다.
-- System Doctor를 0.86으로 확장해 에셋 로딩, PWA 상태, 마을/필드 라우트 연결성을 함께 보여줍니다.
-- UI 화면 이탈 감지 대상을 System Doctor/Tech Health 패널까지 확장했습니다.
-- 저성능 상태에서 장식 애니메이션을 더 빨리 줄이는 `perf-reduced-motion-086` 가드를 추가했습니다.
-- 드로어/시트/상세 모달/가방/스킬/상점 화면에 `contain`/`content-visibility` 기반 성능 격리를 추가했습니다.
+- 버전을 `0.87.0`으로 갱신했습니다.
+- PWA 캐시를 `soul-online-alpha-v0-87`로 갱신했습니다.
+- `src/styles/alpha087.css`를 추가해서 CSS 분리 작업을 시작했습니다.
+- `src/ui/screenSafety.ts`를 추가해 UI 화면 이탈 검사 대상과 body 상태 반영을 모듈화했습니다.
+- `src/ui/contentIntegrity.ts`를 추가해 아이템/스킬/카드/몬스터/사냥터/퀘스트 연결성 그래프를 점검합니다.
+- `src/ui/healthPanelRenderer.ts`를 추가해 System Doctor/Tech Health 렌더링을 main.ts 밖으로 분리하기 시작했습니다.
+- 설정/계정의 기술 점검 패널에 콘텐츠 연결 그래프 상태와 렌더링 예산 정보를 추가했습니다.
+- `PlayerSave` 타입의 중복 `inventory` 선언을 제거했습니다.
+- 마을 일일 의뢰 초기화용 kill record에 후반 몬스터 ID를 모두 포함했습니다.
+- 작은 화면/낮은 화면에서 패널, 드로어, 시트, 상세 모달이 화면 밖으로 나가지 않도록 0.87 safe-frame CSS를 보강했습니다.
 
 ## 아직 남은 큰 과제
 
-- `src/main.ts`와 `src/styles.css`는 여전히 큽니다. 0.87부터는 가방/스킬/상점 렌더러를 실제 파일 단위로 분리해야 합니다.
-- Firebase 프로젝트 ID는 현재 호스팅 연결 때문에 그대로 두는 것이 안전합니다. 게임 표기는 Soul Online으로 유지합니다.
-- 대형 스프라이트 시트는 모바일 첫 로딩 최적화가 더 필요합니다.
+- `src/main.ts`는 여전히 비대합니다. 가방/스킬/상점 렌더러를 다음 패치에서 실제 파일 단위로 더 분리해야 합니다.
+- `src/styles.css`는 여전히 큽니다. 0.87부터 새 CSS는 `src/styles/alpha087.css`처럼 분리해서 누적 충돌을 줄여야 합니다.
+- 대형 이미지/스프라이트는 모바일 첫 로딩 최적화가 계속 필요합니다.
