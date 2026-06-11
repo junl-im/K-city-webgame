@@ -1,0 +1,431 @@
+/* Soul Online alpha 0.99 - art grade palette + mobile performance pass.
+   Goal: remove flat two-tone feeling, keep every major UI inside the mobile safe frame,
+   and reduce costly effects on low-end devices. */
+:root {
+  --so99-deep: #071735;
+  --so99-ink: #08274f;
+  --so99-ink-soft: #395f86;
+  --so99-sky: #54c8ff;
+  --so99-aqua: #7de6d4;
+  --so99-violet: #8a6cff;
+  --so99-rose: #ff8fa7;
+  --so99-gold: #f3c76b;
+  --so99-ember: #e98936;
+  --so99-paper: #fff8e8;
+  --so99-glass: rgba(255, 255, 255, .76);
+  --so99-dark-glass: rgba(5, 20, 46, .82);
+  --so99-edge: rgba(255, 225, 139, .78);
+  --so99-safe-top: max(12px, env(safe-area-inset-top));
+  --so99-safe-right: max(12px, env(safe-area-inset-right));
+  --so99-safe-bottom: max(12px, env(safe-area-inset-bottom));
+  --so99-safe-left: max(12px, env(safe-area-inset-left));
+  --so99-card-shadow: 0 18px 44px rgba(5, 28, 69, .28), inset 0 1px 0 rgba(255,255,255,.72);
+}
+
+body.visual-art-099 {
+  background: radial-gradient(circle at 50% 18%, #1e7dc9 0, #081b3b 56%, #050d22 100%);
+  color: var(--so99-ink);
+  text-rendering: geometricPrecision;
+}
+body.visual-art-099 * { box-sizing: border-box; }
+body.visual-art-099 button { touch-action: manipulation; }
+body.visual-art-099 .title-screen,
+body.visual-art-099 .login-screen,
+body.visual-art-099 .town-screen,
+body.visual-art-099 #game-root { contain: layout style paint; }
+
+/* Route hygiene: never let field HUD leak into title/login/town. */
+body.route-title-099 #game-root,
+body.route-title-099 .hud-top,
+body.route-title-099 .resource-strip,
+body.route-title-099 .target-card,
+body.route-title-099 .field-quest-tracker,
+body.route-title-099 .field-chain-meter,
+body.route-title-099 .field-minimap,
+body.route-title-099 .combat-log,
+body.route-title-099 .combat-log-toggle,
+body.route-title-099 .joystick,
+body.route-title-099 .potion-dock,
+body.route-title-099 .skill-dock,
+body.route-title-099 .action-dock,
+body.route-login-099 #game-root,
+body.route-login-099 .hud-top,
+body.route-login-099 .resource-strip,
+body.route-login-099 .target-card,
+body.route-login-099 .field-quest-tracker,
+body.route-login-099 .field-chain-meter,
+body.route-login-099 .field-minimap,
+body.route-login-099 .combat-log,
+body.route-login-099 .combat-log-toggle,
+body.route-login-099 .joystick,
+body.route-login-099 .potion-dock,
+body.route-login-099 .skill-dock,
+body.route-login-099 .action-dock,
+body.route-town-099 #game-root,
+body.route-town-099 .hud-top,
+body.route-town-099 .resource-strip,
+body.route-town-099 .target-card,
+body.route-town-099 .field-quest-tracker,
+body.route-town-099 .field-chain-meter,
+body.route-town-099 .field-minimap,
+body.route-town-099 .combat-log,
+body.route-town-099 .combat-log-toggle,
+body.route-town-099 .joystick,
+body.route-town-099 .potion-dock,
+body.route-town-099 .skill-dock,
+body.route-town-099 .action-dock { display: none !important; }
+body.route-field-099 .title-screen,
+body.route-field-099 .login-screen,
+body.route-field-099 .town-screen { display: none !important; }
+
+/* Title: painterly art, separated real button, not UI screenshot. */
+body.visual-art-099 .title-screen.title-art-099 {
+  background-color: #0b2d61 !important;
+  background-image:
+    radial-gradient(circle at 50% 72%, rgba(255, 209, 115, .24), transparent 26%),
+    linear-gradient(180deg, rgba(255,255,255,.02) 0%, rgba(51,180,237,.08) 42%, rgba(5,17,42,.72) 100%),
+    url('/assets/ui/fantasy/099/title-artgrade-099.webp') !important;
+  background-position: center !important;
+  background-size: cover !important;
+  overflow: hidden !important;
+}
+body.visual-art-099 .title-screen.title-art-099::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 21% 21%, rgba(126,231,255,.18), transparent 22%),
+    radial-gradient(circle at 74% 18%, rgba(255,221,137,.16), transparent 20%),
+    linear-gradient(180deg, transparent 0 52%, rgba(5,15,35,.22) 70%, rgba(4,10,25,.70) 100%);
+  z-index: 1;
+}
+body.visual-art-099 .title-screen.title-art-099::after {
+  content:'';
+  position:absolute;
+  inset: 9px;
+  border-radius: clamp(22px, 5vw, 42px);
+  border: 1px solid rgba(255, 230, 157, .54);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), inset 0 -80px 130px rgba(4,14,34,.38);
+  z-index: 2;
+  pointer-events:none;
+}
+body.visual-art-099 .entry-clean-098.entry-art-099 {
+  inset: var(--so99-safe-top) var(--so99-safe-right) var(--so99-safe-bottom) var(--so99-safe-left) !important;
+  grid-template-rows: 1fr auto !important;
+  justify-items: center !important;
+  z-index: 3 !important;
+}
+body.visual-art-099 .entry-brand-098 {
+  margin-top: min(4dvh, 42px) !important;
+  filter: drop-shadow(0 8px 22px rgba(5,28,70,.32));
+}
+body.visual-art-099 .entry-card-098.entry-card-099 {
+  width: min(430px, calc(100vw - 34px)) !important;
+  margin-bottom: clamp(24px, 7.5dvh, 78px) !important;
+  padding: 14px !important;
+  border-radius: 30px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 232, .76), rgba(174, 227, 255, .22) 58%, rgba(17, 55, 106, .42)),
+    url('/assets/ui/fantasy/099/panel-parchment-099.webp') center / cover !important;
+  border: 1px solid rgba(255, 229, 148, .92) !important;
+  box-shadow: 0 18px 48px rgba(3,17,44,.42), inset 0 1px 0 rgba(255,255,255,.86) !important;
+  backdrop-filter: blur(12px) saturate(1.14);
+}
+body.visual-art-099 .entry-copy-098 { margin-bottom: 10px !important; }
+body.visual-art-099 .entry-copy-098 h1 { color: #fff9dc !important; text-shadow: 0 3px 12px rgba(4,19,48,.82), 0 0 16px rgba(87,204,255,.4); }
+body.visual-art-099 .entry-copy-098 p { color: rgba(255,255,255,.90) !important; }
+body.visual-art-099 #startGameBtn.start-game-btn-099 {
+  min-height: 60px !important;
+  border-radius: 999px !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.52), rgba(255,255,255,0) 28%),
+    linear-gradient(110deg, rgba(126,232,255,.55), rgba(139,108,255,.32) 43%, rgba(255,213,119,.42)),
+    url('/assets/ui/fantasy/099/button-azure-099.webp') center / 100% 100% no-repeat !important;
+  color: #fff !important;
+  text-shadow: 0 2px 8px rgba(0,24,70,.9), 0 0 18px rgba(87,212,255,.36) !important;
+  letter-spacing: .075em !important;
+  box-shadow: 0 16px 34px rgba(5,68,150,.38), 0 0 0 1px rgba(255,232,158,.88), inset 0 0 18px rgba(255,255,255,.22) !important;
+}
+body.visual-art-099 #startGameBtn.start-game-btn-099:active { transform: translateY(1px) scale(.992) !important; }
+body.visual-art-099 #titleAudioBtn.title-audio-099 {
+  background: rgba(7, 31, 72, .64) !important;
+  color: #fff7cf !important;
+  border-color: rgba(255,227,152,.54) !important;
+}
+
+/* Login/server/card flow: parchment + glass, less flat blue. */
+body.visual-art-099 .login-screen.login-art-099 {
+  background-color: #dff5ff !important;
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,.64), rgba(216,240,255,.48) 35%, rgba(8,35,76,.30)),
+    url('/assets/ui/fantasy/099/title-artgrade-099.webp') !important;
+  background-position: center !important;
+  background-size: cover !important;
+}
+body.visual-art-099 .login-panel,
+body.visual-art-099 .login-panel-v3 {
+  background:
+    linear-gradient(130deg, rgba(255,251,232,.84), rgba(235,248,255,.72) 54%, rgba(222,226,255,.62)),
+    url('/assets/ui/fantasy/099/panel-parchment-099.webp') center / cover !important;
+  border-color: rgba(236,185,88,.82) !important;
+  box-shadow: var(--so99-card-shadow) !important;
+  color: var(--so99-ink) !important;
+}
+body.visual-art-099 .login-lore-card,
+body.visual-art-099 .login-flow-card,
+body.visual-art-099 .class-card,
+body.visual-art-099 .server-card,
+body.visual-art-099 .character-slot,
+body.visual-art-099 .wide-action {
+  background: linear-gradient(160deg, rgba(255,255,255,.86), rgba(231,247,255,.66) 48%, rgba(255,245,215,.58)) !important;
+  color: var(--so99-ink) !important;
+  border-color: rgba(70,119,166,.18) !important;
+}
+body.visual-art-099 .wide-action.primary,
+body.visual-art-099 .server-card.active,
+body.visual-art-099 .class-card.active,
+body.visual-art-099 .character-slot.active {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.34), transparent 32%),
+    linear-gradient(135deg, #23b7f6 0%, #4a72e8 42%, #845ee7 72%, #e9a83f 100%) !important;
+  color: #fff !important;
+  border-color: rgba(255,230,151,.88) !important;
+  text-shadow: 0 2px 8px rgba(3,18,54,.55) !important;
+}
+
+/* Town: richer art background and premium cards, not flat two-tone. */
+body.visual-art-099 .town-screen.town-art-099 {
+  background-color: #d9f6ff !important;
+  background-image:
+    radial-gradient(circle at 18% 18%, rgba(255,236,172,.22), transparent 25%),
+    radial-gradient(circle at 82% 26%, rgba(137,111,255,.16), transparent 24%),
+    linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.18) 42%, rgba(8,32,74,.28) 100%),
+    url('/assets/ui/fantasy/099/town-artgrade-099.webp') !important;
+  background-position: center !important;
+  background-size: cover !important;
+}
+body.visual-art-099 .town-screen.town-art-099::before {
+  background:
+    radial-gradient(circle at 52% 16%, rgba(255,249,206,.20), transparent 30%),
+    linear-gradient(180deg, rgba(255,255,255,.12), rgba(6,31,68,.20) 100%) !important;
+}
+body.visual-art-099 .town-clean-hub-098 {
+  inset: var(--so99-safe-top) var(--so99-safe-right) var(--so99-safe-bottom) var(--so99-safe-left) !important;
+  gap: 12px !important;
+  color: var(--so99-ink) !important;
+}
+body.visual-art-099 .town-clean-brand-098,
+body.visual-art-099 .town-clean-wallet-098,
+body.visual-art-099 .town-clean-hero-098,
+body.visual-art-099 .town-clean-panel-098,
+body.visual-art-099 .town-clean-bottom-098,
+body.visual-art-099 .town-clean-quick-098 button,
+body.visual-art-099 .town-clean-quest-098 button,
+body.visual-art-099 .town-drawer,
+body.visual-art-099 .sheet,
+body.visual-art-099 .item-detail-card,
+body.visual-art-099 .exit-confirm-card {
+  background:
+    linear-gradient(145deg, rgba(255,251,232,.88), rgba(230,248,255,.72) 54%, rgba(239,232,255,.62)),
+    url('/assets/ui/fantasy/099/panel-parchment-099.webp') center / cover !important;
+  border: 1px solid rgba(222, 174, 82, .72) !important;
+  box-shadow: var(--so99-card-shadow) !important;
+  color: var(--so99-ink) !important;
+}
+body.visual-art-099 .town-clean-brand-098 i,
+body.visual-art-099 .town-clean-quick-098 button i {
+  background: url('/assets/ui/fantasy/099/soul-medallion-099.webp') center / cover no-repeat !important;
+  color: #173b75 !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.6);
+}
+body.visual-art-099 .town-clean-wallet-098 button,
+body.visual-art-099 .town-clean-bottom-098 button {
+  background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(230,246,255,.64) 55%, rgba(255,238,192,.52)) !important;
+  border: 1px solid rgba(60,116,170,.16) !important;
+  color: #113b70 !important;
+}
+body.visual-art-099 .town-clean-wallet-098 i {
+  background: linear-gradient(180deg, #fff7c8, #e4a433 55%, #b86b1e) !important;
+  color: #5b3708 !important;
+}
+body.visual-art-099 .town-clean-title-098 span,
+body.visual-art-099 .town-clean-brand-098 span,
+body.visual-art-099 .town-clean-identity-098 span { color: #4166b8 !important; }
+body.visual-art-099 .town-clean-title-098 h1,
+body.visual-art-099 .town-clean-brand-098 b,
+body.visual-art-099 .town-clean-identity-098 b { color: #082b5c !important; text-shadow: 0 1px 0 rgba(255,255,255,.55); }
+body.visual-art-099 .town-clean-title-098 p,
+body.visual-art-099 .town-clean-identity-098 em,
+body.visual-art-099 .town-clean-quick-098 button span,
+body.visual-art-099 .town-clean-quest-098 button span { color: #4b6689 !important; }
+body.visual-art-099 .town-clean-hunt-098,
+body.visual-art-099 .primary-action,
+body.visual-art-099 .town-action.primary,
+body.visual-art-099 .purchase-confirm-088 button.confirm,
+body.visual-art-099 .skill-upgrade-confirm-089 button.confirm {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.38), transparent 28%),
+    linear-gradient(120deg, #23b9ff, #4874e8 40%, #8467e9 72%, #e9a340) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,230,154,.84) !important;
+  text-shadow: 0 2px 8px rgba(2,20,61,.62) !important;
+  box-shadow: 0 14px 30px rgba(34,95,180,.30), inset 0 1px 0 rgba(255,255,255,.45) !important;
+}
+body.visual-art-099 .town-clean-bottom-098 button.active,
+body.visual-art-099 .town-clean-quest-098 button.ready {
+  background: linear-gradient(180deg, #fff8d9, #efc66b 60%, #de9b31) !important;
+  color: #603909 !important;
+}
+body.visual-art-099 .town-drawer,
+body.visual-art-099 .sheet {
+  max-width: min(960px, calc(100vw - 18px)) !important;
+  max-height: calc(100dvh - var(--so99-safe-top) - var(--so99-safe-bottom) - 14px) !important;
+}
+body.visual-art-099 .town-drawer-body,
+body.visual-art-099 .sheet-body,
+body.visual-art-099 .item-detail-body { color: var(--so99-ink) !important; }
+
+/* Field HUD: stay inside safe frame with readable dark glass. */
+body.visual-art-099.route-field-099 #game-root { display: block !important; background: #071735 !important; }
+body.visual-art-099 .hud-top,
+body.visual-art-099 .resource-strip,
+body.visual-art-099 .target-card,
+body.visual-art-099 .field-quest-tracker,
+body.visual-art-099 .field-chain-meter,
+body.visual-art-099 .field-minimap,
+body.visual-art-099 .combat-log,
+body.visual-art-099 .potion-dock,
+body.visual-art-099 .skill-dock,
+body.visual-art-099 .action-dock {
+  background:
+    linear-gradient(135deg, rgba(11,33,73,.88), rgba(14,60,105,.72) 52%, rgba(45,31,87,.68)),
+    url('/assets/ui/fantasy/099/field-glass-prism-099.webp') center / cover !important;
+  border: 1px solid rgba(255,221,139,.62) !important;
+  color: #f7fbff !important;
+  box-shadow: 0 12px 28px rgba(3,14,36,.34), inset 0 1px 0 rgba(255,255,255,.14) !important;
+  backdrop-filter: blur(8px) saturate(1.08);
+}
+body.visual-art-099 .field-quest-tracker,
+body.visual-art-099 .target-card { color: #f7fbff !important; }
+body.visual-art-099 .field-quest-tracker *:not(button),
+body.visual-art-099 .target-card *:not(button),
+body.visual-art-099 .combat-log * { color: inherit; }
+body.visual-art-099 .hud-top { top: var(--so99-safe-top) !important; left: var(--so99-safe-left) !important; right: auto !important; max-width: min(430px, calc(100vw - 24px)) !important; }
+body.visual-art-099 .resource-strip { top: var(--so99-safe-top) !important; right: var(--so99-safe-right) !important; max-width: min(360px, 45vw) !important; }
+body.visual-art-099 .field-minimap { top: calc(var(--so99-safe-top) + 78px) !important; right: var(--so99-safe-right) !important; }
+body.visual-art-099 .field-quest-tracker { left: var(--so99-safe-left) !important; top: calc(var(--so99-safe-top) + 92px) !important; max-width: min(340px, 58vw) !important; }
+body.visual-art-099 .target-card { left: var(--so99-safe-left) !important; top: calc(var(--so99-safe-top) + 180px) !important; max-width: min(340px, 58vw) !important; }
+body.visual-art-099 .joystick { left: calc(var(--so99-safe-left) + 10px) !important; bottom: calc(var(--so99-safe-bottom) + 16px) !important; }
+body.visual-art-099 .potion-dock { left: calc(var(--so99-safe-left) + 126px) !important; bottom: calc(var(--so99-safe-bottom) + 20px) !important; }
+body.visual-art-099 .skill-dock { right: calc(var(--so99-safe-right) + 102px) !important; bottom: calc(var(--so99-safe-bottom) + 24px) !important; max-width: min(360px, 48vw) !important; }
+body.visual-art-099 .action-dock { right: var(--so99-safe-right) !important; bottom: calc(var(--so99-safe-bottom) + 18px) !important; }
+body.visual-art-099 .skill-btn,
+body.visual-art-099 .attack-button,
+body.visual-art-099 .auto-button,
+body.visual-art-099 .potion-btn {
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255,255,255,.62), transparent 28%),
+    linear-gradient(140deg, #24b8ff, #5d63e5 58%, #d89a35) !important;
+  border-color: rgba(255,231,157,.72) !important;
+  color: #fff !important;
+  text-shadow: 0 2px 7px rgba(1,19,52,.8) !important;
+}
+body.visual-art-099 .attack-button {
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255,255,255,.72), transparent 28%),
+    linear-gradient(140deg, #fff3bd, #e3952b 48%, #965017 100%) !important;
+}
+
+/* Close buttons: actual gem asset. */
+body.visual-art-099 .close-crystal-098,
+body.visual-art-099 .close-gem-099,
+body.visual-art-099 #closeSheet,
+body.visual-art-099 #closeTownContent,
+body.visual-art-099 #closeItemDetail {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: url('/assets/ui/fantasy/099/close-gem-099.webp') center / contain no-repeat !important;
+  color: transparent !important;
+  text-indent: -999px !important;
+  overflow: hidden !important;
+  filter: drop-shadow(0 8px 14px rgba(5,27,65,.24));
+}
+
+/* Performance mode: remove expensive blur/filter/animation while keeping readability. */
+body.art-lite-099 .title-screen,
+body.art-lite-099 .login-screen,
+body.art-lite-099 .town-screen {
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,.10), rgba(6,18,43,.50)),
+    url('/assets/ui/fantasy/099/title-artgrade-lq-099.webp') !important;
+}
+body.art-lite-099 .town-screen.town-art-099 {
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,.18), rgba(6,22,48,.42)),
+    url('/assets/ui/fantasy/099/town-artgrade-lq-099.webp') !important;
+}
+body.art-lite-099 *,
+body.perf-reduced-motion-099 * {
+  animation-duration: .001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .001ms !important;
+  scroll-behavior: auto !important;
+}
+body.art-lite-099 .entry-card-098,
+body.art-lite-099 .login-panel,
+body.art-lite-099 .town-clean-brand-098,
+body.art-lite-099 .town-clean-wallet-098,
+body.art-lite-099 .town-clean-hero-098,
+body.art-lite-099 .town-clean-panel-098,
+body.art-lite-099 .town-clean-bottom-098,
+body.art-lite-099 .hud-top,
+body.art-lite-099 .resource-strip,
+body.art-lite-099 .target-card,
+body.art-lite-099 .field-quest-tracker,
+body.art-lite-099 .field-minimap,
+body.art-lite-099 .combat-log,
+body.art-lite-099 .potion-dock,
+body.art-lite-099 .skill-dock,
+body.art-lite-099 .action-dock {
+  backdrop-filter: none !important;
+  box-shadow: 0 8px 20px rgba(4,20,50,.24) !important;
+}
+body.tab-hidden-099 .soul-particle,
+body.tab-hidden-099 .damage-float { animation-play-state: paused !important; }
+
+@media (orientation: portrait) {
+  body.visual-art-099 .login-panel,
+  body.visual-art-099 .login-panel-v3 { grid-template-columns: 1fr !important; width: min(560px, calc(100vw - 20px)) !important; }
+  body.visual-art-099 .login-lore-card { min-height: 180px !important; }
+  body.visual-art-099 .town-clean-main-098 { grid-template-columns: 1fr !important; overflow: auto !important; }
+  body.visual-art-099 .town-clean-hero-098 { max-height: 36dvh !important; }
+  body.visual-art-099 .town-clean-panel-098 { min-height: 270px !important; }
+  body.visual-art-099 .town-clean-quick-098 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 430px), (max-height: 720px) {
+  body.visual-art-099 .entry-card-098.entry-card-099 { margin-bottom: max(16px, var(--so99-safe-bottom)) !important; padding: 12px !important; }
+  body.visual-art-099 .entry-copy-098 p { display: none !important; }
+  body.visual-art-099 #startGameBtn.start-game-btn-099 { min-height: 54px !important; font-size: 16px !important; }
+  body.visual-art-099 .town-clean-hub-098 { gap: 8px !important; }
+  body.visual-art-099 .town-clean-top-098 { grid-template-columns: 1fr !important; }
+  body.visual-art-099 .town-clean-wallet-098 { max-width: 100% !important; }
+  body.visual-art-099 .town-clean-quick-098 button { min-height: 64px !important; }
+  body.visual-art-099 .hud-top { max-width: calc(100vw - 24px) !important; }
+  body.visual-art-099 .resource-strip { display: none !important; }
+  body.visual-art-099 .field-minimap { width: 92px !important; height: 92px !important; top: calc(var(--so99-safe-top) + 66px) !important; }
+  body.visual-art-099 .field-quest-tracker { top: calc(var(--so99-safe-top) + 170px) !important; max-width: calc(100vw - 24px) !important; }
+  body.visual-art-099 .target-card { display: none !important; }
+  body.visual-art-099 .skill-dock { right: calc(var(--so99-safe-right) + 78px) !important; max-width: 46vw !important; gap: 6px !important; }
+  body.visual-art-099 .action-dock { transform: scale(.92); transform-origin: right bottom; }
+  body.visual-art-099 .potion-dock { left: calc(var(--so99-safe-left) + 110px) !important; }
+}
+@media (max-width: 360px) {
+  body.visual-art-099 .town-clean-quick-098 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  body.visual-art-099 .town-clean-bottom-098 button b { display: none; }
+  body.visual-art-099 .joystick { transform: scale(.86); transform-origin: left bottom; }
+  body.visual-art-099 .skill-dock { display: none !important; }
+}

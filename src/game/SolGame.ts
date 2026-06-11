@@ -251,13 +251,15 @@ export class SolGame {
 
   async mount(root: HTMLElement) {
     this.app = new Application();
+    const renderProfile099 = this.renderProfile099();
     await this.app.init({
       resizeTo: window,
       backgroundAlpha: 0,
-      antialias: true,
+      antialias: renderProfile099.antialias,
       autoDensity: true,
-      resolution: Math.min(window.devicePixelRatio || 1, 2)
+      resolution: renderProfile099.resolution
     });
+    this.app.ticker.maxFPS = renderProfile099.maxFPS;
 
     root.replaceChildren(this.app.canvas);
     this.world.scale.set(FIELD_ZOOM);
@@ -869,7 +871,7 @@ export class SolGame {
     const required = this.requiredTextureKeys();
     let loaded = 0;
     let cursor = 0;
-    const concurrency = this.textureLoadConcurrency092(required.length);
+    const concurrency = this.textureLoadConcurrency099(required.length);
     const loadNext = async () => {
       while (cursor < required.length) {
         const key = required[cursor];
@@ -885,11 +887,37 @@ export class SolGame {
     await Promise.all(Array.from({ length: Math.min(concurrency, required.length) }, loadNext));
   }
 
-  private textureLoadConcurrency092(requiredCount: number) {
-    const hardware = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || 4 : 4;
-    if (requiredCount >= 90 || hardware <= 4) return 4;
-    if (requiredCount >= 60) return 5;
-    return 7;
+  private renderProfile099() {
+    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+    const nav = typeof navigator !== 'undefined' ? navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean; effectiveType?: string } } : null;
+    const memory = nav?.deviceMemory || 4;
+    const cores = nav?.hardwareConcurrency || 4;
+    const saveData = Boolean(nav?.connection?.saveData);
+    const network = nav?.connection?.effectiveType || '';
+    const forcedLite = this.localStorageFlag099('soul-online-lite-render-091');
+    const lowEnd = forcedLite || saveData || memory <= 2 || cores <= 2 || /2g|slow-2g/.test(network);
+    const mid = !lowEnd && (memory <= 4 || cores <= 4);
+    return {
+      resolution: Math.min(dpr, lowEnd ? 1.15 : mid ? 1.35 : 1.75),
+      antialias: !lowEnd,
+      maxFPS: lowEnd ? 45 : 60
+    };
+  }
+
+  private localStorageFlag099(key: string) {
+    try { return window.localStorage.getItem(key) === '1'; } catch { return false; }
+  }
+
+  private textureLoadConcurrency099(requiredCount: number) {
+    const nav = typeof navigator !== 'undefined' ? navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean; effectiveType?: string } } : null;
+    const hardware = nav?.hardwareConcurrency || 4;
+    const memory = nav?.deviceMemory || 4;
+    const saveData = Boolean(nav?.connection?.saveData);
+    const forcedLite = this.localStorageFlag099('soul-online-lite-render-091');
+    if (forcedLite || saveData || memory <= 2 || hardware <= 2) return 2;
+    if (requiredCount >= 90 || hardware <= 4 || memory <= 4) return 3;
+    if (requiredCount >= 60) return 4;
+    return 5;
   }
 
   private requiredTextureKeys(): TextureKey[] {
