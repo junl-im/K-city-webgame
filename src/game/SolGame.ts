@@ -894,13 +894,14 @@ export class SolGame {
     const cores = nav?.hardwareConcurrency || 4;
     const saveData = Boolean(nav?.connection?.saveData);
     const network = nav?.connection?.effectiveType || '';
-    const forcedLite = this.localStorageFlag099('soul-online-lite-render-091');
+    const forcedLite = this.localStorageFlag099('soul-online-lite-render-091') || this.localStorageFlag099('soul-online-field-lite-100');
     const lowEnd = forcedLite || saveData || memory <= 2 || cores <= 2 || /2g|slow-2g/.test(network);
     const mid = !lowEnd && (memory <= 4 || cores <= 4);
     return {
-      resolution: Math.min(dpr, lowEnd ? 1.15 : mid ? 1.35 : 1.75),
-      antialias: !lowEnd,
-      maxFPS: lowEnd ? 45 : 60
+      // Alpha 1.00: prefer stable input and frame pacing over raw resolution on mobile.
+      resolution: Math.min(dpr, lowEnd ? 1.0 : mid ? 1.2 : 1.55),
+      antialias: !lowEnd && !mid,
+      maxFPS: lowEnd ? 40 : mid ? 50 : 60
     };
   }
 
@@ -913,11 +914,11 @@ export class SolGame {
     const hardware = nav?.hardwareConcurrency || 4;
     const memory = nav?.deviceMemory || 4;
     const saveData = Boolean(nav?.connection?.saveData);
-    const forcedLite = this.localStorageFlag099('soul-online-lite-render-091');
-    if (forcedLite || saveData || memory <= 2 || hardware <= 2) return 2;
-    if (requiredCount >= 90 || hardware <= 4 || memory <= 4) return 3;
-    if (requiredCount >= 60) return 4;
-    return 5;
+    const forcedLite = this.localStorageFlag099('soul-online-lite-render-091') || this.localStorageFlag099('soul-online-field-lite-100');
+    if (forcedLite || saveData || memory <= 2 || hardware <= 2) return 1;
+    if (requiredCount >= 90 || hardware <= 4 || memory <= 4) return 2;
+    if (requiredCount >= 60) return 3;
+    return 4;
   }
 
   private requiredTextureKeys(): TextureKey[] {
@@ -2391,12 +2392,13 @@ export class SolGame {
   }
 
   private mobDensityBoost(zoneId: string) {
-    if (zoneId === 'slime-forest') return 1.35;
-    if (zoneId === 'crystal-moss' || zoneId === 'goblin-road') return 1.55;
-    if (zoneId === 'black-cave' || zoneId === 'moonlit-grove' || zoneId === 'soul-ruins') return 1.7;
+    const liteScale = this.localStorageFlag099('soul-online-field-lite-100') ? 0.78 : 1;
+    if (zoneId === 'slime-forest') return 1.25 * liteScale;
+    if (zoneId === 'crystal-moss' || zoneId === 'goblin-road') return 1.42 * liteScale;
+    if (zoneId === 'black-cave' || zoneId === 'moonlit-grove' || zoneId === 'soul-ruins') return 1.56 * liteScale;
     const zoneLevel = zones.find((zone) => zone.id === zoneId)?.recommendedLevel || 1;
-    if (zoneLevel >= 70) return 2.05;
-    return 1.85;
+    if (zoneLevel >= 70) return 1.86 * liteScale;
+    return 1.68 * liteScale;
   }
 
   private expandSpawnCandidates(zoneId: string, seeds: Array<{ monsterId: MonsterId; x: number; y: number }>) {
@@ -4427,6 +4429,7 @@ export class SolGame {
 
   private floatText(text: string, x: number, y: number, color: number) {
     if (!this.app) return;
+    if (this.localStorageFlag099('soul-online-field-lite-100') && this.fxLayer.children.length > 34 && !text.includes('CRIT')) return;
     const pos = isoToScreen(x, y);
     const label = new Text({
       text,
@@ -4466,6 +4469,7 @@ export class SolGame {
 
   private animate(duration: number, onUpdate: (t: number) => void, onDone?: () => void) {
     if (!this.app) return;
+    if (this.localStorageFlag099('soul-online-field-lite-100')) duration = Math.max(0.08, duration * 0.82);
     let elapsed = 0;
     const tick = (ticker: { deltaMS: number }) => {
       elapsed += ticker.deltaMS / 1000;
