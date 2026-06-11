@@ -22,7 +22,9 @@ export const SOUL_UI_SAFE_SELECTORS_087 = [
   '.render-budget-panel-087',
   '.inventory-filter-rail-088',
   '.shop-filter-rail-088',
-  '.shop-confirm-088'
+  '.shop-confirm-088',
+  '.skill-readiness-strip-089',
+  '.skill-upgrade-confirm-089'
 ];
 
 export interface SafeFrameState087 extends UiAuditReport {
@@ -49,6 +51,9 @@ export function applySafeFrameBodyState087(report: SafeFrameState087) {
   document.body.classList.toggle('ui-short-087', report.short);
   document.body.classList.toggle('ui-narrow-088', report.narrow);
   document.body.classList.toggle('ui-short-088', report.short);
+  document.body.classList.toggle('ui-narrow-089', report.narrow);
+  document.body.classList.toggle('ui-short-089', report.short);
   document.body.dataset.safeFrame087 = report.ok ? 'ok' : 'overflow';
   document.body.dataset.safeFrame088 = report.ok ? 'ok' : 'overflow';
+  document.body.dataset.safeFrame089 = report.ok ? 'ok' : 'overflow';
 }

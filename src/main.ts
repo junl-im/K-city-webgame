@@ -1,6 +1,7 @@
 import './styles.css';
 import './styles/alpha087.css';
 import './styles/alpha088.css';
+import './styles/alpha089.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
@@ -10,6 +11,8 @@ import { buildActionLatencyLabel, buildConnectivityRows, classifyPerformance, in
 import { inspectContentGraph087 } from './ui/contentIntegrity';
 import { renderSystemDoctor087, renderTechnicalHealthPanel087, type HealthTile087 } from './ui/healthPanelRenderer';
 import { inventoryFilterForItem088, normalizeInventoryFilter088, normalizeShopFilter088, renderInventoryFilterRail088, renderShopFilterRail088, renderShopPurchaseConfirm088, shopFilterForItem088, summarizeRenderBudget088, type InventoryFilter088, type ShopFilter088, type ShopPurchaseDraft088 } from './ui/townPanelRenderer088';
+import { renderSkillReadinessStrip089, renderSkillUpgradeConfirm089, renderSkillUpgradeHint089, summarizeSkillReadiness089, type SkillProgressRow089, type SkillUpgradeDraft089 } from './ui/skillPanelRenderer089';
+import { buildPreloadPlan089, preloadAssetPlan089, summarizePreloadPlan089 } from './ui/assetPreload089';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
 import type { AutoHuntSettings, CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
@@ -66,7 +69,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '0.88.0';
+const ALPHA_VERSION = '0.89.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -98,6 +101,8 @@ let lastContentGraphMessage087 = '콘텐츠 연결 검사 대기';
 let activeInventoryFilter088: InventoryFilter088 = 'all';
 let activeShopFilter088: ShopFilter088 = 'all';
 let pendingShopPurchase088: ShopPurchaseDraft088 | null = null;
+let pendingSkillTraining089: string | null = null;
+let lastPreloadReport089 = '예열 대기';
 
 const root = must('#game-root');
 const titleScreen = must('#titleScreen');
@@ -203,7 +208,7 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-081', 'fantasy-ui-082', 'fantasy-ui-083', 'fantasy-ui-084', 'fantasy-ui-085', 'fantasy-ui-086', 'fantasy-ui-087', 'fantasy-ui-088');
+  document.body.classList.add('fantasy-ui-081', 'fantasy-ui-082', 'fantasy-ui-083', 'fantasy-ui-084', 'fantasy-ui-085', 'fantasy-ui-086', 'fantasy-ui-087', 'fantasy-ui-088', 'fantasy-ui-089');
   await saveService.init();
   await mergeCloudRosterToLocal();
   pendingSave = saveService.loadLocal();
@@ -678,6 +683,18 @@ function bindLoginFlow() {
       return;
     }
 
+    const skillConfirm = target.closest<HTMLButtonElement>('[data-skill-confirm-089]');
+    if (skillConfirm) {
+      const action = skillConfirm.dataset.skillConfirm089 || 'cancel';
+      if (action === 'confirm') confirmTownSkillTraining089();
+      else {
+        pendingSkillTraining089 = null;
+        renderTownContent();
+        scheduleUiSafetyAudit();
+      }
+      return;
+    }
+
     const equipCard = target.closest<HTMLButtonElement>('[data-town-equip-card]');
     if (equipCard) {
       toggleTownCard(equipCard.dataset.townEquipCard || '');
@@ -698,7 +715,7 @@ function bindLoginFlow() {
 
     const upgradeTownSkill = target.closest<HTMLButtonElement>('[data-town-upgrade-skill]');
     if (upgradeTownSkill) {
-      trainTownSkill(upgradeTownSkill.dataset.townUpgradeSkill || '');
+      stageTownSkillTraining089(upgradeTownSkill.dataset.townUpgradeSkill || '');
       return;
     }
 
@@ -1572,6 +1589,19 @@ function renderSkillTrainingBoard083(save: PlayerSave, classSkills: SkillDefinit
 
 function renderSkillGrid(save: PlayerSave, townMode: boolean) {
   const classSkills = skills.filter((skill) => skill.classId === save.classId);
+  const readiness = summarizeSkillReadiness089({
+    skills: classSkills,
+    learnedSkillIds: save.learnedSkillIds || [],
+    levelBySkillId: (skillId) => skillLevel(save, skillId),
+    playerLevel: save.level,
+    canUpgradeSkill: (skill) => canUpgradeSkill(save, skill)
+  });
+  const readinessRows: SkillProgressRow089[] = [
+    { label: '습득', value: `${readiness.learned}/${readiness.total}`, level: readiness.bookMissing ? 'warn' : 'ok', hint: readiness.bookMissing ? `스킬북 필요 ${readiness.bookMissing}` : '직업 스킬 습득 정상' },
+    { label: '사용 가능', value: `${readiness.ready}`, level: readiness.lockedByLevel ? 'warn' : 'ok', hint: readiness.lockedByLevel ? `레벨 잠금 ${readiness.lockedByLevel}` : '필드 스킬 슬롯 연결 정상' },
+    { label: '강화 가능', value: `${readiness.upgradeable}`, level: readiness.upgradeable ? 'ok' : 'warn', hint: readiness.upgradeable ? '강화 확인 패널로 안전하게 진행' : '골드/파편/강화석 점검' },
+    { label: '숙련 합계', value: `Lv.${readiness.masteryTotal}`, level: 'ok', hint: '스킬 숙련이 전투력과 타격감 성장에 연결됨' }
+  ];
   const cells = classSkills.map((skill) => {
     const learned = Array.isArray(save.learnedSkillIds) && save.learnedSkillIds.includes(skill.id);
     const levelReady = save.level >= skill.unlockLevel;
@@ -1581,11 +1611,11 @@ function renderSkillGrid(save: PlayerSave, townMode: boolean) {
     const canUpgrade = canUpgradeSkill(save, skill);
     const cost = level < SKILL_MAX_LEVEL ? skillMasteryCost(level) : null;
     const costText = cost ? `골드 ${formatGold(cost.gold)} · 파편 ${cost.shard}${cost.stone ? ` · 강화석 ${cost.stone}` : ''}` : '최대 숙련';
-    const upgradeButton = `<span class="slot-click-hint">터치 상세</span>`;
+    const upgradeButton = `<span class="slot-click-hint">터치 상세${townMode && canUpgrade ? ' · 강화 가능' : ''}</span>`;
     return `
-      <article class="slot-cell skill-slot ${unlocked ? 'unlocked' : 'locked'}" data-skill-detail="${skill.id}" tabindex="0" role="button" aria-label="${escapeHtml(skill.name)} 상세 보기">
+      <article class="slot-cell skill-slot ${unlocked ? 'unlocked' : 'locked'} ${canUpgrade ? 'upgrade-ready-089' : ''}" data-skill-detail="${skill.id}" tabindex="0" role="button" aria-label="${escapeHtml(skill.name)} 상세 보기">
         <span class="slot-art skill-art skill-art-${skill.hotkey}"><img src="${skillArtUrl(skill)}" alt="${escapeHtml(skill.name)}" onerror="this.remove()" />${inlineFallbackIcon(skill.hotkey)}</span>
-        <span class="slot-rarity">${state}</span>
+        <span class="slot-rarity">${state}${canUpgrade ? ' · 강화 가능' : ''}</span>
         <b>${escapeHtml(skill.name)}</b>
         <em>MP ${effectiveSkillMpCost(skill, level)} · 쿨 ${effectiveSkillCooldown(skill, level)}s</em>
         <small class="skill-mastery-meta">피해/회복 +${skillMasteryBonusPercent(level)}% · ${costText}</small>
@@ -1593,14 +1623,82 @@ function renderSkillGrid(save: PlayerSave, townMode: boolean) {
       </article>
     `;
   });
+  const draft = townMode ? buildSkillUpgradeDraft089(pendingSkillTraining089 || '') : null;
   return `
     ${renderSkillTrainingBoard083(save, classSkills, townMode)}
-    <div class="slot-toolbar slot-toolbar-083">
+    ${renderSkillReadinessStrip089(readinessRows)}
+    ${renderSkillUpgradeHint089(readiness)}
+    ${renderSkillUpgradeConfirm089(draft)}
+    <div class="slot-toolbar slot-toolbar-083 slot-toolbar-089">
       <span>스킬 슬롯 3x3 · ${classes[save.classId].name}</span>
-      <em>숙련 강화로 피해/회복, 쿨타임, MP 효율이 성장합니다.</em>
+      <em>0.89부터 숙련 강화는 확인 후 진행됩니다. 비용/효과를 보고 확정하세요.</em>
     </div>
     <div class="slot-grid skill-slot-grid compact-slot-grid">${fillSlots(cells, 9, '미개방')}</div>
   `;
+}
+
+function buildSkillUpgradeDraft089(skillId: string): SkillUpgradeDraft089 | null {
+  if (!pendingSave || !skillId) return null;
+  const skill = skills.find((entry) => entry.id === skillId && entry.classId === pendingSave?.classId);
+  if (!skill) return null;
+  const learned = pendingSave.learnedSkillIds?.includes(skill.id);
+  const level = skillLevel(pendingSave, skill.id);
+  const nextLevel = Math.min(SKILL_MAX_LEVEL, level + 1);
+  const cost = level > 0 && level < SKILL_MAX_LEVEL ? skillMasteryCost(level) : null;
+  const needsLevel = cost ? Math.max(skill.unlockLevel, cost.levelReq) : skill.unlockLevel;
+  const shardCount = materialCount(pendingSave, 'soul-shard');
+  const stoneCount = materialCount(pendingSave, 'enhance-stone');
+  const problems: string[] = [];
+  if (!learned) problems.push('스킬북 필요');
+  if (level >= SKILL_MAX_LEVEL) problems.push('최대 숙련');
+  if (pendingSave.level < needsLevel) problems.push(`Lv.${needsLevel} 필요`);
+  if (cost && pendingSave.gold < cost.gold) problems.push(`골드 ${formatGold(cost.gold - pendingSave.gold)} 부족`);
+  if (cost && shardCount < cost.shard) problems.push(`파편 ${cost.shard - shardCount}개 부족`);
+  if (cost && stoneCount < cost.stone) problems.push(`강화석 ${cost.stone - stoneCount}개 부족`);
+  const canUpgrade = Boolean(cost && learned && problems.length === 0 && canUpgradeSkill(pendingSave, skill));
+  const costText = cost ? `비용 ${formatGold(cost.gold)} · 파편 ${cost.shard}${cost.stone ? ` · 강화석 ${cost.stone}` : ''}` : '최대 숙련 또는 미습득';
+  const nextBenefit = `피해/회복 +${skillMasteryBonusPercent(level)}% → +${skillMasteryBonusPercent(nextLevel)}% · 쿨 ${effectiveSkillCooldown(skill, level)}s → ${effectiveSkillCooldown(skill, nextLevel)}s · MP ${effectiveSkillMpCost(skill, level)} → ${effectiveSkillMpCost(skill, nextLevel)}`;
+  return {
+    skillId: skill.id,
+    name: skill.name,
+    hotkey: skill.hotkey,
+    level,
+    nextLevel,
+    costText,
+    canUpgrade,
+    reason: canUpgrade ? '강화 가능 · 확정 시 즉시 저장' : problems.join(' · ') || '조건 확인 필요',
+    nextBenefit,
+    artUrl: skillArtUrl(skill),
+    className: classes[skill.classId].name
+  };
+}
+
+function stageTownSkillTraining089(skillId: string) {
+  pendingSkillTraining089 = skillId || null;
+  if (!pendingSkillTraining089) return;
+  const draft = buildSkillUpgradeDraft089(pendingSkillTraining089);
+  if (draft?.canUpgrade) showToast(`${draft.name} 숙련 강화 확인`);
+  else if (draft) showToast(draft.reason);
+  if (townContentOpen && activeTownContent === 'skills') renderTownContent();
+  else openTownContent('skills');
+  scheduleUiSafetyAudit();
+}
+
+function confirmTownSkillTraining089() {
+  const skillId = pendingSkillTraining089;
+  const draft = buildSkillUpgradeDraft089(skillId || '');
+  if (!skillId || !draft) {
+    pendingSkillTraining089 = null;
+    renderTownContent();
+    return;
+  }
+  if (!draft.canUpgrade) {
+    showToast(draft.reason);
+    renderTownContent();
+    return;
+  }
+  pendingSkillTraining089 = null;
+  trainTownSkill(skillId);
 }
 
 function skillLevel(save: PlayerSave, skillId: string) {
@@ -2363,7 +2461,7 @@ function renderTownStorySnapshot(save: PlayerSave) {
   if (!quest) {
     townChapterText.textContent = 'STORY CLEAR';
     townStoryTitle.textContent = '현재 챕터 완료';
-    townStoryDesc.textContent = 'Alpha 0.88 스토리를 모두 완료했습니다.';
+    townStoryDesc.textContent = 'Alpha 0.89 스토리를 모두 완료했습니다.';
     townStoryProgress.style.width = '100%';
     townStoryProgressText.textContent = '완료';
     townStoryActionBtn.textContent = '스토리 보기';
@@ -3232,7 +3330,7 @@ function renderTownShop(save: PlayerSave) {
   return `
     ${renderShopHero083(save)}
     ${renderShopPurchaseConfirm088(pendingShopPurchase088, formatGold(save.gold))}
-    <div class="town-content-note town-content-note-083 town-content-note-088">보유 골드 ${formatGold(save.gold)} · 현재 ${filterLabel} 보기 · 모든 구매는 0.88 확인 단계를 거칩니다.</div>
+    <div class="town-content-note town-content-note-083 town-content-note-088">보유 골드 ${formatGold(save.gold)} · 현재 ${filterLabel} 보기 · 구매/스킬 강화는 확인 단계를 거칩니다.</div>
     ${renderShopFilterRail088(counts, normalizedFilter)}
     ${renderPotionBeltSummary(save)}
     <div class="shop-list shop-list-083 shop-list-088">${rows}</div>
@@ -4012,6 +4110,7 @@ function installPerformanceGuards085() {
       document.body.classList.toggle('perf-reduced-motion-086', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-087', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-088', reduceMotion);
+      document.body.classList.toggle('perf-reduced-motion-089', reduceMotion);
           if (entry.duration >= 120) recordClientIssue('perf', `긴 작업 ${Math.round(entry.duration)}ms 감지`);
         }
       });
@@ -4042,21 +4141,21 @@ async function refreshStorageEstimate085() {
 
 
 async function preloadCriticalAssets086() {
-  const urls = [
-    '/assets/ui/fantasy/backgrounds/title-keyart-081.webp',
-    '/assets/ui/fantasy/backgrounds/lobby-mood-blur-081.webp',
-    '/assets/ui/fantasy/backgrounds/ui-kit-mood-blur-081.webp',
-    '/assets/ui/fantasy/frames/quest-panel-reference-081.webp',
-    '/assets/ui/fantasy/icons/menu-icons-reference-081.webp'
-  ];
-  await Promise.allSettled(urls.map((url) => new Promise<void>((resolve) => {
-    const image = new Image();
-    image.onload = () => resolve();
-    image.onerror = () => resolve();
-    image.decoding = 'async';
-    image.loading = 'eager';
-    image.src = url;
-  })));
+  const plan = buildPreloadPlan089({
+    classId: pendingSave?.classId || latest?.save.classId,
+    activeTownContent,
+    fieldActive: document.body.classList.contains('field-active')
+  });
+  const summary = await preloadAssetPlan089(plan, 9);
+  lastPreloadReport089 = summary.label;
+}
+
+function currentPreloadSummary089() {
+  return summarizePreloadPlan089(buildPreloadPlan089({
+    classId: pendingSave?.classId || latest?.save.classId,
+    activeTownContent,
+    fieldActive: document.body.classList.contains('field-active')
+  }));
 }
 
 async function handleHealthAction085(action: string) {
@@ -4068,7 +4167,7 @@ async function handleHealthAction085(action: string) {
     clientIssues.splice(0);
     longTaskCount085 = 0;
     lastLongTaskMs085 = 0;
-    document.body.classList.remove('perf-longtask-risk-085', 'perf-reduced-motion-086', 'perf-reduced-motion-087', 'perf-reduced-motion-088');
+    document.body.classList.remove('perf-longtask-risk-085', 'perf-reduced-motion-086', 'perf-reduced-motion-087', 'perf-reduced-motion-088', 'perf-reduced-motion-089');
     showToast('진단 로그를 정리했습니다.');
   }
   if (action === 'save-local') {
@@ -4084,7 +4183,7 @@ async function handleHealthAction085(action: string) {
   }
   if (action === 'preload-assets') {
     await preloadCriticalAssets086();
-    showToast('핵심 UI 에셋 예열 완료');
+    showToast(`에셋 예열 완료 · ${lastPreloadReport089}`);
   }
   if (townContentOpen && (activeTownContent === 'settings' || activeTownContent === 'account')) renderTownContent();
   if (sheetOpen && activeSheetTab === 'account') renderSheet();
@@ -4095,6 +4194,15 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
   const perfHealth = classifyPerformance(measuredFps, longTaskCount085, lastLongTaskMs085);
   const assetHealth = inspectRuntimeAssets();
   const contentHealth = inspectCurrentContentGraph087();
+  const preloadSummary089 = currentPreloadSummary089();
+  const classSkillsForHealth089 = skills.filter((skill) => skill.classId === save.classId);
+  const skillReadiness089 = summarizeSkillReadiness089({
+    skills: classSkillsForHealth089,
+    learnedSkillIds: save.learnedSkillIds || [],
+    levelBySkillId: (skillId) => skillLevel(save, skillId),
+    playerLevel: save.level,
+    canUpgradeSkill: (skill) => canUpgradeSkill(save, skill)
+  });
   const rows: HealthTile087[] = [
     { label: '브랜드', value: 'Soul Online 고정', level: 'ok' },
     { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
@@ -4102,7 +4210,9 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },
     { label: '에셋', value: assetHealth.message, level: assetHealth.level },
     { label: '세이브', value: saveHealth.message, level: saveHealth.level },
-    { label: '콘텐츠', value: contentHealth.message, level: contentHealth.level, hint: lastContentGraphMessage087 }
+    { label: '콘텐츠', value: contentHealth.message, level: contentHealth.level, hint: lastContentGraphMessage087 },
+    { label: '스킬', value: skillReadiness089.label, level: skillReadiness089.level },
+    { label: '예열', value: preloadSummary089.label, level: preloadSummary089.count > 12 ? 'warn' : 'ok', hint: lastPreloadReport089 }
   ];
   return renderSystemDoctor087({ version: ALPHA_VERSION, mode, rows });
 }
@@ -4131,6 +4241,7 @@ function installClientDiagnostics() {
       document.body.classList.toggle('perf-reduced-motion-086', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-087', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-088', reduceMotion);
+      document.body.classList.toggle('perf-reduced-motion-089', reduceMotion);
     }
     lastFrameMs = now;
     window.requestAnimationFrame(tick);
@@ -4192,6 +4303,15 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
   const assetHealth = inspectRuntimeAssets();
   const saveHealth = validateSaveHealth085(save);
   const contentHealth = inspectCurrentContentGraph087();
+  const preloadSummary089 = currentPreloadSummary089();
+  const classSkillsForHealth089 = skills.filter((skill) => skill.classId === save.classId);
+  const skillReadiness089 = summarizeSkillReadiness089({
+    skills: classSkillsForHealth089,
+    learnedSkillIds: save.learnedSkillIds || [],
+    levelBySkillId: (skillId) => skillLevel(save, skillId),
+    playerLevel: save.level,
+    canUpgradeSkill: (skill) => canUpgradeSkill(save, skill)
+  });
   const renderBudget088 = summarizeRenderBudget088({
     domNodes: document.querySelectorAll('*').length,
     imageNodes: document.images.length,
@@ -4220,6 +4340,8 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     { label: '이미지', value: `${assetHealth.decodedImages}/${assetHealth.imageCount}`, level: assetHealth.level, hint: assetHealth.message },
     { label: '세이브', value: saveHealth.message, level: saveHealth.level },
     { label: '콘텐츠', value: contentHealth.message, level: contentHealth.level },
+    { label: '스킬 성장', value: skillReadiness089.label, level: skillReadiness089.level, hint: `습득 ${skillReadiness089.learned}/${skillReadiness089.total} · 숙련 Lv.${skillReadiness089.masteryTotal}` },
+    { label: '예열 계획', value: preloadSummary089.label, level: preloadSummary089.count > 12 ? 'warn' : 'ok', hint: `최근 ${lastPreloadReport089}` },
     { label: '렌더 예산', value: renderBudget088.value, level: renderBudget088.level, hint: renderBudget088.hint },
     { label: '상점 UX', value: pendingShopPurchase088 ? '구매 확인 대기' : '확인 단계 준비', level: 'ok' },
     { label: '입력', value: buildActionLatencyLabel(lastActionAt086), level: 'ok' }
@@ -4236,7 +4358,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
       networkState: networkState085,
       pwaState: serviceWorkerReady086 ? '준비' : '대기',
       characterTail: save.saveId.slice(-6),
-      contentSummary: `콘텐츠 ${contentHealth.totals.zones}존 · ${contentHealth.totals.monsters}몬스터 · ${contentHealth.totals.items}아이템 · ${contentHealth.totals.quests}퀘스트`
+      contentSummary: `콘텐츠 ${contentHealth.totals.zones}존 · ${contentHealth.totals.monsters}몬스터 · ${contentHealth.totals.items}아이템 · ${contentHealth.totals.quests}퀘스트 · 예열 ${preloadSummary089.count}개`
     },
     issueRows,
     cloudError: cloud.lastError,
@@ -4263,7 +4385,7 @@ function bindDetailModal() {
     const upgradeField = target.closest<HTMLButtonElement>('[data-upgrade-item]');
     if (upgradeField) { game?.upgradeItem(upgradeField.dataset.upgradeItem || ''); closeDetailModal(); return; }
     const upgradeTownSkill = target.closest<HTMLButtonElement>('[data-town-upgrade-skill]');
-    if (upgradeTownSkill) { trainTownSkill(upgradeTownSkill.dataset.townUpgradeSkill || ''); closeDetailModal(); return; }
+    if (upgradeTownSkill) { stageTownSkillTraining089(upgradeTownSkill.dataset.townUpgradeSkill || ''); closeDetailModal(); return; }
     const upgradeFieldSkill = target.closest<HTMLButtonElement>('[data-upgrade-skill]');
     if (upgradeFieldSkill) { game?.upgradeSkill(upgradeFieldSkill.dataset.upgradeSkill || ''); closeDetailModal(); return; }
   });
@@ -4439,7 +4561,7 @@ function openSkillDetail(skillId: string, townMode: boolean) {
   const costText = cost ? `${formatGold(cost.gold)} · 파편 ${cost.shard}${cost.stone ? ` · 강화석 ${cost.stone}` : ''}` : level >= SKILL_MAX_LEVEL ? '최대 숙련' : '스킬서 필요';
   const upgradeAttr = townMode ? 'data-town-upgrade-skill' : 'data-upgrade-skill';
   const upgradeAction = learned
-    ? `<button class="wide-action primary" ${level >= SKILL_MAX_LEVEL ? 'disabled' : ''} ${upgradeAttr}="${def.id}">${level >= SKILL_MAX_LEVEL ? '숙련 MAX' : canUpgradeSkill(save, def) ? '숙련 강화' : '조건 부족'}</button>`
+    ? `<button class="wide-action primary" ${level >= SKILL_MAX_LEVEL ? 'disabled' : ''} ${upgradeAttr}="${def.id}">${level >= SKILL_MAX_LEVEL ? '숙련 MAX' : canUpgradeSkill(save, def) ? '강화 확인' : '조건 부족'}</button>`
     : '';
   openDetailModal({
     eyebrow: `${classes[def.classId].name} SKILL · ${learned ? `숙련 Lv.${level}` : '미습득'}`,

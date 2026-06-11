@@ -1,0 +1,284 @@
+/* Alpha 0.89: skill renderer, training confirmation and preload-budget polish. */
+:root {
+  --soul-089-blue: #0a67d8;
+  --soul-089-cyan: rgba(91, 205, 255, .94);
+  --soul-089-gold: rgba(255, 228, 145, .96);
+  --soul-089-line: rgba(255, 233, 176, .74);
+  --soul-089-panel: rgba(248, 252, 255, .975);
+  --soul-089-ink: #0c244b;
+  --soul-089-danger: #b23939;
+}
+
+body.fantasy-ui-089,
+body.fantasy-ui-089 #app,
+body.fantasy-ui-089 #game-root {
+  overscroll-behavior: none;
+}
+
+body.fantasy-ui-089 .skill-readiness-strip-089,
+body.fantasy-ui-089 .skill-upgrade-confirm-089,
+body.fantasy-ui-089 .skill-upgrade-hint-089,
+body.fantasy-ui-089 .preload-budget-panel-089 {
+  border: 1px solid var(--soul-089-line);
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .96), rgba(220, 242, 255, .9)),
+    radial-gradient(circle at 10% 0%, rgba(105, 190, 255, .26), transparent 34%);
+  box-shadow: 0 16px 40px rgba(31, 78, 145, .18), inset 0 1px 0 rgba(255, 255, 255, .78);
+  color: var(--soul-089-ink);
+}
+
+.skill-readiness-strip-089 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 12px;
+  padding: 10px;
+}
+
+.skill-readiness-strip-089 article {
+  min-width: 0;
+  padding: 10px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, .68);
+  border: 1px solid rgba(103, 165, 230, .3);
+}
+
+.skill-readiness-strip-089 article.warn {
+  border-color: rgba(242, 180, 82, .64);
+  background: rgba(255, 246, 220, .74);
+}
+
+.skill-readiness-strip-089 article.danger {
+  border-color: rgba(222, 93, 93, .68);
+  background: rgba(255, 232, 232, .76);
+}
+
+.skill-readiness-strip-089 b,
+.skill-readiness-strip-089 em,
+.skill-readiness-strip-089 small {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skill-readiness-strip-089 b {
+  font-size: .72rem;
+  letter-spacing: .08em;
+  color: rgba(18, 59, 104, .72);
+}
+
+.skill-readiness-strip-089 em {
+  margin-top: 3px;
+  font-style: normal;
+  font-weight: 900;
+  color: var(--soul-089-ink);
+}
+
+.skill-readiness-strip-089 small {
+  margin-top: 3px;
+  font-size: .68rem;
+  color: rgba(26, 64, 108, .66);
+}
+
+.skill-upgrade-confirm-089 {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+  padding: 12px;
+  position: relative;
+  overflow: hidden;
+  contain: layout paint style;
+}
+
+.skill-upgrade-confirm-089::before {
+  content: '';
+  position: absolute;
+  inset: -50% auto auto -10%;
+  width: 210px;
+  height: 210px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(78, 186, 255, .22), transparent 62%);
+  pointer-events: none;
+}
+
+.skill-upgrade-confirm-089.blocked {
+  border-color: rgba(216, 100, 100, .62);
+  background: linear-gradient(135deg, rgba(255, 248, 248, .98), rgba(255, 229, 229, .88));
+}
+
+.skill-confirm-visual-089 {
+  position: relative;
+  z-index: 1;
+}
+
+.skill-confirm-copy-089 {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.skill-confirm-copy-089 h3 {
+  margin: 2px 0 4px;
+  font-size: clamp(1rem, 3.4vw, 1.25rem);
+  color: var(--soul-089-ink);
+}
+
+.skill-confirm-copy-089 p,
+.skill-confirm-copy-089 em {
+  display: block;
+  margin: 0;
+  font-size: .78rem;
+  color: rgba(20, 54, 94, .76);
+  line-height: 1.35;
+}
+
+.skill-confirm-copy-089 em {
+  margin-top: 4px;
+  font-style: normal;
+  font-weight: 800;
+  color: rgba(27, 72, 120, .86);
+}
+
+.skill-confirm-actions-089 {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 7px;
+  min-width: 94px;
+}
+
+.skill-confirm-actions-089 button {
+  border: 1px solid rgba(74, 121, 185, .36);
+  border-radius: 13px;
+  padding: 9px 11px;
+  background: rgba(255, 255, 255, .78);
+  color: var(--soul-089-ink);
+  font-weight: 900;
+}
+
+.skill-confirm-actions-089 button.primary {
+  border-color: var(--soul-089-gold);
+  background: linear-gradient(135deg, var(--soul-089-blue), #0c9df0);
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(16, 91, 180, .24);
+}
+
+.skill-confirm-actions-089 button:disabled {
+  opacity: .52;
+  filter: grayscale(.4);
+}
+
+.skill-upgrade-hint-089 {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  margin: 10px 0;
+  padding: 10px 12px;
+}
+
+.skill-upgrade-hint-089 b {
+  color: var(--soul-089-ink);
+}
+
+.skill-upgrade-hint-089 span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(25, 61, 103, .74);
+  font-size: .76rem;
+}
+
+.preload-budget-panel-089 {
+  margin-top: 10px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.preload-budget-panel-089 b,
+.preload-budget-panel-089 span,
+.preload-budget-panel-089 em {
+  display: block;
+}
+
+.preload-budget-panel-089 b {
+  color: var(--soul-089-ink);
+}
+
+.preload-budget-panel-089 span,
+.preload-budget-panel-089 em {
+  color: rgba(25, 61, 103, .72);
+  font-style: normal;
+  font-size: .74rem;
+}
+
+body.fantasy-ui-089 .skill-slot-grid,
+body.fantasy-ui-089 .skill-readiness-strip-089,
+body.fantasy-ui-089 .skill-upgrade-confirm-089,
+body.fantasy-ui-089 .tech-health-panel-087,
+body.fantasy-ui-089 .system-doctor-087 {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 280px;
+}
+
+body.fantasy-ui-089.ui-overflow-risk #townContentPanel:not(.hidden),
+body.fantasy-ui-089.ui-overflow-risk .town-drawer:not(.hidden),
+body.fantasy-ui-089.ui-overflow-risk .sheet.open,
+body.fantasy-ui-089.ui-overflow-risk .item-detail-card {
+  max-width: calc(100vw - 16px) !important;
+  max-height: calc(100dvh - 18px) !important;
+  overflow: auto !important;
+}
+
+@media (max-width: 520px) {
+  .skill-readiness-strip-089 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .skill-upgrade-confirm-089 {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .skill-confirm-actions-089 {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .skill-upgrade-hint-089,
+  .preload-budget-panel-089 {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .skill-upgrade-hint-089 span {
+    white-space: normal;
+  }
+}
+
+@media (max-height: 640px) {
+  .skill-readiness-strip-089 {
+    margin: 6px 0;
+    padding: 8px;
+  }
+
+  .skill-readiness-strip-089 article,
+  .skill-upgrade-confirm-089 {
+    padding: 8px;
+  }
+}
+
+body.fantasy-ui-089.perf-reduced-motion-089 .skill-upgrade-confirm-089,
+body.fantasy-ui-089.perf-reduced-motion-089 .skill-confirm-actions-089 button,
+body.fantasy-ui-089[data-fps-state="low"] .skill-upgrade-confirm-089 {
+  animation: none !important;
+  transition-duration: .01ms !important;
+}
