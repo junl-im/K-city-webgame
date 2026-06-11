@@ -1,15 +1,5 @@
 import './styles.css';
-import './styles/alpha087.css';
-import './styles/alpha088.css';
-import './styles/alpha089.css';
-import './styles/alpha090.css';
-import './styles/alpha091.css';
-import './styles/alpha092.css';
-import './styles/alpha093.css';
-import './styles/alpha094.css';
-import './styles/alpha095.css';
-import './styles/alpha096.css';
-import './styles/alpha097.css';
+import './styles/alpha098.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
@@ -30,6 +20,7 @@ import { installVisualConsolidation094 } from './ui/visualConsolidation094';
 import { installVisualOverhaul095, syncVisualOverhaul095 } from './ui/visualOverhaul095';
 import { installVisualStability096, syncVisualStability096, inspectVisualStability096 } from './ui/visualStability096';
 import { installVisualMass097, syncVisualMass097, inspectVisualMass097 } from './ui/visualMass097';
+import { installVisualClean098, syncVisualClean098, inspectVisualClean098 } from './ui/visualClean098';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
 import type { AutoHuntSettings, CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
@@ -86,7 +77,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '0.97.0';
+const ALPHA_VERSION = '0.98.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -234,16 +225,17 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-097', 'visual-mass-097', 'entry-flow-ready-090');
-  titleScreen.classList.add('title-screen-097');
-  loginScreen.classList.add('login-screen-097');
-  townScreen.classList.add('town-screen-097');
+  document.body.classList.add('fantasy-ui-098', 'visual-clean-098', 'entry-flow-ready-090');
+  titleScreen.classList.add('title-screen-098');
+  loginScreen.classList.add('login-screen-098');
+  townScreen.classList.add('town-screen-098');
   ensureTitleEntry090({ titleScreen, startButton: startGameBtn, loginScreen });
   installVisualRescue093({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   installVisualConsolidation094({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   installVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   installVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   installVisualMass097({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  installVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   await saveService.init();
   await mergeCloudRosterToLocal();
   pendingSave = saveService.loadLocal();
@@ -281,6 +273,7 @@ async function boot() {
   syncVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncVisualMass097({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  syncVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   ensureTitleEntry090({ titleScreen, startButton: startGameBtn, loginScreen });
   installEntryRegressionGuards092();
   titleEntryLastReport090 = titleEntryHealthLabel090(inspectTitleEntry090(titleScreen, startGameBtn)).label;
@@ -306,6 +299,7 @@ function bindTitleFlow() {
   syncVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncVisualMass097({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  syncVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
     });
     titleStartBusy090 = false;
   };
@@ -1057,6 +1051,7 @@ async function enterTown(save: PlayerSave, label = '마을로 이동 중') {
   syncVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncVisualMass097({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  syncVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   });
 }
 
@@ -1085,6 +1080,7 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
   syncVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncVisualMass097({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  syncVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
       setFieldZoneHud(zoneId);
 
       if (game) game.destroy();
@@ -1130,6 +1126,7 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
   syncVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   syncVisualMass097({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  syncVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
     showToast(error instanceof Error ? `사냥터 입장 실패: ${error.message}` : '사냥터 입장 실패');
   }
 }
@@ -4184,6 +4181,7 @@ function installPerformanceGuards085() {
       document.body.classList.toggle('perf-reduced-motion-090', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-091', reduceMotion || liteRenderMode091);
       document.body.classList.toggle('perf-reduced-motion-092', reduceMotion || liteRenderMode091);
+      document.body.classList.toggle('perf-reduced-motion-098', reduceMotion || liteRenderMode091);
           if (entry.duration >= 120) recordClientIssue('perf', `긴 작업 ${Math.round(entry.duration)}ms 감지`);
         }
       });
@@ -4324,7 +4322,7 @@ async function handleHealthAction085(action: string) {
     clientIssues.splice(0);
     longTaskCount085 = 0;
     lastLongTaskMs085 = 0;
-    document.body.classList.remove('perf-longtask-risk-085', 'perf-reduced-motion-086', 'perf-reduced-motion-087', 'perf-reduced-motion-088', 'perf-reduced-motion-089', 'perf-reduced-motion-090', 'perf-reduced-motion-091', 'perf-reduced-motion-092');
+    document.body.classList.remove('perf-longtask-risk-085', 'perf-reduced-motion-086', 'perf-reduced-motion-087', 'perf-reduced-motion-088', 'perf-reduced-motion-089', 'perf-reduced-motion-090', 'perf-reduced-motion-091', 'perf-reduced-motion-092', 'perf-reduced-motion-098');
     showToast('진단 로그를 정리했습니다.');
   }
   if (action === 'save-local') {
@@ -4391,16 +4389,19 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
   const titleHealth090 = titleEntryHealthLabel090(inspectTitleEntry090(titleScreen, startGameBtn));
   const visual096 = inspectVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const visual097 = inspectVisualMass097({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  const visual098 = inspectVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   titleEntryLastReport090 = titleHealth090.label;
   const rows: HealthTile087[] = [
     { label: '브랜드', value: 'Soul Online 고정', level: 'ok' },
     { label: '첫 화면', value: titleHealth090.label, level: titleHealth090.level, hint: titleHealth090.hint },
     { label: '진입 회귀', value: entryRegression092.label, level: entryRegression092.level, hint: entryRegressionLastReport092 },
+    { label: '0.98 UI', value: visual098.message, level: visual098.level, hint: `legacy ${visual098.legacyVisible} · overflow ${visual098.overflowCount}` },
     { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
     { label: '성능', value: perfHealth.label, level: perfHealth.level },
     { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },
     { label: '시각 안정화', value: visual096.message, level: visual096.startVisible && visual096.fieldOverflow === 0 ? 'ok' : 'warn', hint: `route ${visual096.route}` },
     { label: '0.97 화면 복구', value: visual097.message, level: visual097.titleButtonReady && visual097.townSingleHub && visual097.fieldOverflowCount === 0 ? 'ok' : 'warn', hint: `route ${visual097.route}` },
+    { label: '0.98 클린 UI', value: visual098.message, level: visual098.level, hint: `route ${visual098.route}` },
     { label: '에셋', value: assetHealth.message, level: assetHealth.level },
     { label: '세이브', value: saveHealth.message, level: saveHealth.level },
     { label: '콘텐츠', value: contentHealth.message, level: contentHealth.level, hint: lastContentGraphMessage087 },
@@ -4441,6 +4442,7 @@ function installClientDiagnostics() {
       document.body.classList.toggle('perf-reduced-motion-090', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-091', reduceMotion || liteRenderMode091);
       document.body.classList.toggle('perf-reduced-motion-092', reduceMotion || liteRenderMode091);
+      document.body.classList.toggle('perf-reduced-motion-098', reduceMotion || liteRenderMode091);
     }
     lastFrameMs = now;
     window.requestAnimationFrame(tick);
@@ -4533,10 +4535,12 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     serviceWorkerReady: serviceWorkerReady086
   });
   const titleHealth090 = titleEntryHealthLabel090(inspectTitleEntry090(titleScreen, startGameBtn));
+  const visual098 = inspectVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   titleEntryLastReport090 = titleHealth090.label;
   const tiles: HealthTile087[] = [
     { label: '첫 화면', value: titleHealth090.label, level: titleHealth090.level, hint: titleHealth090.hint },
     { label: '진입 회귀', value: entryRegression092.label, level: entryRegression092.level, hint: entryRegressionLastReport092 },
+    { label: '0.98 UI', value: visual098.message, level: visual098.level, hint: `legacy ${visual098.legacyVisible} · overflow ${visual098.overflowCount}` },
     { label: 'FPS', value: `${measuredFps} · ${perfHealth.label}`, level: perfHealth.level },
     { label: '저장 연결', value: cloudState, level: cloud.paused ? 'warn' : 'ok' },
     { label: 'UI 안전', value: document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상', level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok', hint: lastUiAuditMessage },
