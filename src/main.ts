@@ -4,6 +4,7 @@ import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
 import { applyEquipmentResonance, equipmentResonanceEffects, nextEquipmentResonanceHint, resonanceBonusText } from './game/equipmentResonance';
 import { formatGold, formatNumber, formatSoul, roll, uid } from './game/math';
+import { auditUiBounds, buildActionLatencyLabel, buildConnectivityRows, classifyPerformance, inspectRuntimeAssets, inspectSaveIntegrity } from './ui/technicalHealth';
 import type { AutoHuntSettings, CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
@@ -38,7 +39,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '0.84.0';
+const ALPHA_VERSION = '0.86.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -48,7 +49,7 @@ type WakeLockHandle = { release: () => Promise<void>; addEventListener?: (type: 
 let wakeLockHandle: WakeLockHandle | null = null;
 
 
-type ClientIssue = { time: number; type: 'error' | 'promise' | 'ui'; message: string };
+type ClientIssue = { time: number; type: 'error' | 'promise' | 'ui' | 'perf' | 'network' | 'storage'; message: string };
 const clientIssues: ClientIssue[] = [];
 let measuredFps = 60;
 let lastFrameMs = performance.now();
@@ -56,6 +57,16 @@ let fpsFrames = 0;
 let fpsWindowMs = performance.now();
 let uiAuditPending = false;
 let lastUiAuditMessage = 'UI 안전 영역 정상';
+let lastUiAuditAt = 0;
+let longTaskCount085 = 0;
+let lastLongTaskMs085 = 0;
+let lastIssueSignature085 = '';
+let lastIssueAt085 = 0;
+let storageEstimate085: { usedMB: number; quotaMB: number; percent: number; available: boolean } = { usedMB: 0, quotaMB: 0, percent: 0, available: false };
+let networkState085 = navigator.onLine ? '온라인' : '오프라인';
+let lastActionAt086 = 0;
+let serviceWorkerReady086 = false;
+let lastUiAuditReport086 = 'UI 안전 영역 정상';
 
 const root = must('#game-root');
 const titleScreen = must('#titleScreen');
@@ -161,7 +172,7 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-081', 'fantasy-ui-082', 'fantasy-ui-083', 'fantasy-ui-084');
+  document.body.classList.add('fantasy-ui-081', 'fantasy-ui-082', 'fantasy-ui-083', 'fantasy-ui-084', 'fantasy-ui-085', 'fantasy-ui-086');
   await saveService.init();
   await mergeCloudRosterToLocal();
   pendingSave = saveService.loadLocal();
@@ -188,6 +199,8 @@ async function boot() {
   bindLootPresentation();
   installBrowserCompatibilityMode();
   installClientDiagnostics();
+  installPerformanceGuards085();
+  installInteractionPulse086();
   renderCharacterSummary();
   renderCharacterSlots();
   updateWorldSummary();
@@ -218,7 +231,18 @@ function bindTitleFlow() {
 function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register(new URL('./sw.js', window.location.href)).catch((error) => console.warn('[PWA] service worker skipped', error));
+    navigator.serviceWorker
+      .register(new URL('./sw.js', window.location.href))
+      .then(() => navigator.serviceWorker.ready)
+      .then(() => {
+        serviceWorkerReady086 = true;
+        document.body.classList.add('pwa-ready-086');
+      })
+      .catch((error) => {
+        serviceWorkerReady086 = false;
+        recordClientIssue('network', 'PWA 캐시 등록 보류');
+        console.warn('[PWA] service worker skipped', error);
+      });
   });
 }
 
@@ -702,6 +726,9 @@ function bindLoginFlow() {
       return;
     }
 
+    const healthAction = target.closest<HTMLButtonElement>('[data-town-health-action]');
+    if (healthAction) { await handleHealthAction085(healthAction.dataset.townHealthAction || ''); return; }
+
     const account = target.closest<HTMLButtonElement>('[data-town-account-action]');
     const settings = target.closest<HTMLButtonElement>('[data-town-settings-action]');
     if (settings) { handleAudioSettingsAction(settings.dataset.townSettingsAction || ''); return; }
@@ -1124,6 +1151,12 @@ function bindSheet() {
     const audioAction = target.closest<HTMLButtonElement>('[data-audio-action]');
     if (audioAction) {
       handleAudioSettingsAction(audioAction.dataset.audioAction || '');
+      return;
+    }
+
+    const healthAction = target.closest<HTMLButtonElement>('[data-health-action]');
+    if (healthAction) {
+      await handleHealthAction085(healthAction.dataset.healthAction || '');
       return;
     }
 
@@ -1880,6 +1913,8 @@ function renderAccount(snapshot: Snapshot) {
         <button data-account-action="logout">로그아웃</button>
       </article>
       ${renderAutoHuntSettingsPanel(snapshot.save)}
+      ${renderSystemDoctor085(snapshot.save, 'field')}
+      ${renderTechnicalHealthPanel(snapshot.save, 'account')}
       ${renderAudioSettingsPanel('field')}
     </div>
   `;
@@ -2147,7 +2182,7 @@ function renderTownContent() {
     boss: () => renderTownBoss(pendingSave as PlayerSave),
     quests: () => renderTownQuests(pendingSave as PlayerSave),
     pledge: () => renderTownPledge(pendingSave as PlayerSave),
-    settings: () => renderTechnicalHealthPanel(pendingSave as PlayerSave, 'town') + renderAutoHuntSettingsPanel(pendingSave as PlayerSave) + renderAudioSettingsPanel('town'),
+    settings: () => renderSystemDoctor085(pendingSave as PlayerSave, 'town') + renderTechnicalHealthPanel(pendingSave as PlayerSave, 'town') + renderAutoHuntSettingsPanel(pendingSave as PlayerSave) + renderAudioSettingsPanel('town'),
     account: () => renderTownAccount(pendingSave as PlayerSave)
   };
 
@@ -2250,7 +2285,7 @@ function renderTownStorySnapshot(save: PlayerSave) {
   if (!quest) {
     townChapterText.textContent = 'STORY CLEAR';
     townStoryTitle.textContent = '현재 챕터 완료';
-    townStoryDesc.textContent = 'Alpha 0.84 스토리를 모두 완료했습니다.';
+    townStoryDesc.textContent = 'Alpha 0.86 스토리를 모두 완료했습니다.';
     townStoryProgress.style.width = '100%';
     townStoryProgressText.textContent = '완료';
     townStoryActionBtn.textContent = '스토리 보기';
@@ -3323,6 +3358,7 @@ function renderTownAccount(save: PlayerSave) {
         <button data-town-account-action="save">수동 저장</button>
       </article>
       ${renderLawfulSystemPanel(save)}
+      ${renderSystemDoctor085(save, 'account')}
       ${renderTechnicalHealthPanel(save, 'account')}
       ${renderAudioSettingsPanel('town')}
     </div>
@@ -3827,6 +3863,165 @@ function delay(ms: number) {
 }
 
 
+function installInteractionPulse086() {
+  document.addEventListener('pointerdown', (event) => {
+    const target = event.target as HTMLElement;
+    if (target.closest('button, [role="button"], a, input, select, textarea')) lastActionAt086 = Date.now();
+  }, { passive: true });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') lastActionAt086 = Date.now();
+  });
+}
+
+function knownContentIds086() {
+  return {
+    classIds: Object.keys(classes),
+    itemIds: items.map((item) => item.id),
+    cardIds: cards.map((card) => card.id),
+    skillIds: skills.map((skill) => skill.id)
+  };
+}
+
+
+
+
+function installPerformanceGuards085() {
+  refreshStorageEstimate085();
+  window.setInterval(refreshStorageEstimate085, 30000);
+  window.addEventListener('online', () => {
+    networkState085 = '온라인';
+    recordClientIssue('network', '네트워크 온라인 복귀');
+    if (townContentOpen && (activeTownContent === 'settings' || activeTownContent === 'account')) renderTownContent();
+  });
+  window.addEventListener('offline', () => {
+    networkState085 = '오프라인';
+    recordClientIssue('network', '네트워크 오프라인 · 로컬 저장 유지');
+    if (townContentOpen && (activeTownContent === 'settings' || activeTownContent === 'account')) renderTownContent();
+  });
+
+  const perf = window as Window & { PerformanceObserver?: typeof PerformanceObserver };
+  if (perf.PerformanceObserver) {
+    try {
+      const observer = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (entry.duration < 50) continue;
+          longTaskCount085 += 1;
+          lastLongTaskMs085 = Math.max(lastLongTaskMs085, entry.duration);
+          document.body.classList.toggle('perf-longtask-risk-085', longTaskCount085 >= 5 || entry.duration >= 180);
+          document.body.classList.toggle('perf-reduced-motion-086', classifyPerformance(measuredFps, longTaskCount085, lastLongTaskMs085).shouldReduceMotion);
+          if (entry.duration >= 120) recordClientIssue('perf', `긴 작업 ${Math.round(entry.duration)}ms 감지`);
+        }
+      });
+      observer.observe({ entryTypes: ['longtask'] });
+    } catch {
+      // Long Task API is not available on every mobile browser.
+    }
+  }
+}
+
+async function refreshStorageEstimate085() {
+  try {
+    const storage = navigator.storage;
+    if (!storage?.estimate) return;
+    const estimate = await storage.estimate();
+    const usage = estimate.usage || 0;
+    const quota = estimate.quota || 0;
+    storageEstimate085 = {
+      usedMB: Math.round(usage / 1048576),
+      quotaMB: Math.round(quota / 1048576),
+      percent: quota ? Math.min(100, Math.round((usage / quota) * 100)) : 0,
+      available: true
+    };
+  } catch {
+    storageEstimate085 = { usedMB: 0, quotaMB: 0, percent: 0, available: false };
+  }
+}
+
+
+async function preloadCriticalAssets086() {
+  const urls = [
+    '/assets/ui/fantasy/backgrounds/title-keyart-081.webp',
+    '/assets/ui/fantasy/backgrounds/lobby-mood-blur-081.webp',
+    '/assets/ui/fantasy/backgrounds/ui-kit-mood-blur-081.webp',
+    '/assets/ui/fantasy/frames/quest-panel-reference-081.webp',
+    '/assets/ui/fantasy/icons/menu-icons-reference-081.webp'
+  ];
+  await Promise.allSettled(urls.map((url) => new Promise<void>((resolve) => {
+    const image = new Image();
+    image.onload = () => resolve();
+    image.onerror = () => resolve();
+    image.decoding = 'async';
+    image.loading = 'eager';
+    image.src = url;
+  })));
+}
+
+async function handleHealthAction085(action: string) {
+  if (action === 'audit-ui') {
+    scheduleUiSafetyAudit();
+    showToast('UI 안전 영역을 다시 검사합니다.');
+  }
+  if (action === 'clear-issues') {
+    clientIssues.splice(0);
+    longTaskCount085 = 0;
+    lastLongTaskMs085 = 0;
+    document.body.classList.remove('perf-longtask-risk-085', 'perf-reduced-motion-086');
+    showToast('진단 로그를 정리했습니다.');
+  }
+  if (action === 'save-local') {
+    const save = pendingSave || latest?.save || getSelectedCharacter();
+    if (!save) {
+      showToast('저장할 캐릭터가 없습니다.');
+      return;
+    }
+    saveService.saveLocal(save);
+    await refreshStorageEstimate085();
+    refreshCharacterRoster(save.saveId);
+    showToast('로컬 저장 정상 확인');
+  }
+  if (action === 'preload-assets') {
+    await preloadCriticalAssets086();
+    showToast('핵심 UI 에셋 예열 완료');
+  }
+  if (townContentOpen && (activeTownContent === 'settings' || activeTownContent === 'account')) renderTownContent();
+  if (sheetOpen && activeSheetTab === 'account') renderSheet();
+}
+
+function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'field') {
+  const saveHealth = validateSaveHealth085(save);
+  const perfHealth = classifyPerformance(measuredFps, longTaskCount085, lastLongTaskMs085);
+  const assetHealth = inspectRuntimeAssets();
+  const rows = [
+    ['브랜드', 'Soul Online 고정', 'ok'],
+    ['Firebase', saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', saveService.isOnline() ? 'ok' : 'warn'],
+    ['성능', perfHealth.label, perfHealth.level],
+    ['화면', lastUiAuditReport086, document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok'],
+    ['에셋', assetHealth.message, assetHealth.level],
+    ['세이브', saveHealth.message, saveHealth.level]
+  ] as Array<[string, string, string]>;
+  return `
+    <section class="system-doctor-085 system-doctor-086 ${mode}" aria-label="0.86 시스템 닥터">
+      <div class="system-doctor-head-085">
+        <span class="panel-kicker">SYSTEM DOCTOR · 0.86</span>
+        <h3>문제점·연결성·성능 빠른 점검</h3>
+        <p>UI 화면 이탈, 세이브 연결, 에셋 로딩, PWA 캐시 상태를 한 번에 확인합니다.</p>
+      </div>
+      <div class="system-doctor-grid-085">
+        ${rows.map(([label, value, level]) => `<article class="${level}"><b>${escapeHtml(label)}</b><em>${escapeHtml(value)}</em></article>`).join('')}
+      </div>
+      <div class="system-doctor-actions-085">
+        <button data-town-health-action="audit-ui" data-health-action="audit-ui">UI 재검사</button>
+        <button data-town-health-action="save-local" data-health-action="save-local">저장 확인</button>
+        <button data-town-health-action="preload-assets" data-health-action="preload-assets">에셋 예열</button>
+        <button data-town-health-action="clear-issues" data-health-action="clear-issues">로그 정리</button>
+      </div>
+    </section>
+  `;
+}
+
+function validateSaveHealth085(save: PlayerSave) {
+  return inspectSaveIntegrity(save, knownContentIds086());
+}
 
 function installClientDiagnostics() {
   window.addEventListener('error', (event) => {
@@ -3844,6 +4039,7 @@ function installClientDiagnostics() {
       fpsFrames = 0;
       fpsWindowMs = now;
       document.body.dataset.fpsState = measuredFps >= 50 ? 'good' : measuredFps >= 32 ? 'watch' : 'low';
+      document.body.classList.toggle('perf-reduced-motion-086', classifyPerformance(measuredFps, longTaskCount085, lastLongTaskMs085).shouldReduceMotion);
     }
     lastFrameMs = now;
     window.requestAnimationFrame(tick);
@@ -3859,8 +4055,13 @@ function installClientDiagnostics() {
 function recordClientIssue(type: ClientIssue['type'], message: string) {
   const text = String(message || '').slice(0, 180);
   if (!text) return;
-  clientIssues.unshift({ time: Date.now(), type, message: text });
-  clientIssues.splice(5);
+  const now = Date.now();
+  const signature = `${type}:${text}`;
+  if (signature === lastIssueSignature085 && now - lastIssueAt085 < 5000) return;
+  lastIssueSignature085 = signature;
+  lastIssueAt085 = now;
+  clientIssues.unshift({ time: now, type, message: text });
+  clientIssues.splice(6);
 }
 
 function scheduleUiSafetyAudit() {
@@ -3873,12 +4074,11 @@ function scheduleUiSafetyAudit() {
 }
 
 function runUiSafetyAudit() {
-  const width = window.innerWidth || document.documentElement.clientWidth || 0;
-  const height = window.innerHeight || document.documentElement.clientHeight || 0;
-  if (!width || !height) return;
-  const targets = Array.from(document.querySelectorAll<HTMLElement>([
+  const report = auditUiBounds([
     '.town-master-lobby-074',
     '.town-drawer:not(.hidden)',
+    '#townContentPanel:not(.hidden)',
+    '.town-safe-frame-081',
     '.sheet.open',
     '.hud-top',
     '.resource-strip',
@@ -3887,26 +4087,25 @@ function runUiSafetyAudit() {
     '.combat-log',
     '.action-dock',
     '.joystick',
-    '.item-detail-modal:not(.hidden) .item-detail-card'
-  ].join(',')));
-  const visibleTargets = targets.filter((node) => {
-    const style = window.getComputedStyle(node);
-    const rect = node.getBoundingClientRect();
-    return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 2 && rect.height > 2;
-  });
-  const overflow = visibleTargets.find((node) => {
-    const rect = node.getBoundingClientRect();
-    return rect.left < -2 || rect.top < -2 || rect.right > width + 2 || rect.bottom > height + 2;
-  });
-  const hasOverflow = Boolean(overflow);
+    '.item-detail-modal:not(.hidden) .item-detail-card',
+    '.system-doctor-085',
+    '.tech-health-panel-084'
+  ], 2);
+  const hasOverflow = !report.ok;
   document.body.classList.toggle('ui-overflow-risk', hasOverflow);
-  lastUiAuditMessage = hasOverflow ? `화면 이탈 감지: ${overflow?.className.toString().slice(0, 48) || 'UI'}` : 'UI 안전 영역 정상';
-  if (hasOverflow) recordClientIssue('ui', lastUiAuditMessage);
+  lastUiAuditMessage = report.message;
+  lastUiAuditReport086 = report.message;
+  const now = Date.now();
+  if (hasOverflow && now - lastUiAuditAt > 5000) {
+    lastUiAuditAt = now;
+    recordClientIssue('ui', lastUiAuditMessage);
+  }
+  if (!hasOverflow) lastUiAuditAt = 0;
 }
 
 function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') {
   const cloud = saveService.getCloudWriteStatus();
-  const fpsState = measuredFps >= 50 ? '양호' : measuredFps >= 32 ? '주의' : '낮음';
+  const perfHealth = classifyPerformance(measuredFps, longTaskCount085, lastLongTaskMs085);
   const viewport = `${window.innerWidth || 0}×${window.innerHeight || 0}`;
   const memoryInfo = (performance as Performance & { memory?: { usedJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
   const memoryText = memoryInfo ? `${Math.round(memoryInfo.usedJSHeapSize / 1048576)}MB / ${Math.round(memoryInfo.jsHeapSizeLimit / 1048576)}MB` : '브라우저 미지원';
@@ -3915,21 +4114,49 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     : '<li><b>OK</b><span>이번 세션에서 감지된 런타임 오류 없음</span></li>';
   const inventoryPressure = save.inventory.length >= 60 ? '주의' : '정상';
   const cloudState = cloud.paused ? '보류' : saveService.isOnline() ? '온라인' : '로컬';
+  const assetHealth = inspectRuntimeAssets();
+  const saveHealth = validateSaveHealth085(save);
+  const connectivityRows = buildConnectivityRows({
+    activeTownContent,
+    townContentOpen,
+    sheetOpen,
+    routeBusy: townRouteBusy,
+    hasPendingSave: Boolean(pendingSave),
+    hasLatestSnapshot: Boolean(latest),
+    hasGameInstance: Boolean(game),
+    cloudOnline: saveService.isOnline(),
+    cloudPaused: cloud.paused,
+    serviceWorkerReady: serviceWorkerReady086
+  });
   return `
-    <section class="tech-health-panel-084 ${mode}" aria-label="기술 상태 점검">
+    <section class="tech-health-panel-084 tech-health-panel-086 ${mode}" aria-label="기술 상태 점검">
       <div class="tech-health-head-084">
         <span class="panel-kicker">TECH HEALTH · v${ALPHA_VERSION}</span>
         <h3>연결성·성능·UI 안전 점검</h3>
-        <p>모바일 웹/PWA에서 화면 이탈, 프레임 저하, 저장 상태를 계속 확인합니다.</p>
+        <p>마을/필드/저장/PWA 흐름을 분리 점검해서, 기능이 쌓여도 연결이 끊기지 않게 관리합니다.</p>
+        <div class="tech-health-actions-085">
+          <button data-town-health-action="audit-ui" data-health-action="audit-ui">UI 재검사</button>
+          <button data-town-health-action="clear-issues" data-health-action="clear-issues">로그 정리</button>
+          <button data-town-health-action="save-local" data-health-action="save-local">로컬 저장 확인</button>
+          <button data-town-health-action="preload-assets" data-health-action="preload-assets">에셋 예열</button>
+        </div>
       </div>
       <div class="tech-health-grid-084">
-        <article class="${measuredFps < 32 ? 'danger' : measuredFps < 50 ? 'warn' : 'ok'}"><b>${measuredFps}</b><em>FPS ${fpsState}</em></article>
+        <article class="${perfHealth.level}"><b>${measuredFps}</b><em>FPS ${perfHealth.label}</em></article>
         <article class="${cloud.paused ? 'warn' : 'ok'}"><b>${escapeHtml(cloudState)}</b><em>저장 연결</em></article>
         <article class="${document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok'}"><b>${document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상'}</b><em>${escapeHtml(lastUiAuditMessage)}</em></article>
         <article class="${save.inventory.length >= 60 ? 'warn' : 'ok'}"><b>${save.inventory.length}/64</b><em>가방 ${inventoryPressure}</em></article>
+        <article class="${longTaskCount085 >= 5 ? 'warn' : 'ok'}"><b>${longTaskCount085}</b><em>긴 작업 ${lastLongTaskMs085 ? `${Math.round(lastLongTaskMs085)}ms` : '없음'}</em></article>
+        <article class="${storageEstimate085.available && storageEstimate085.percent > 85 ? 'warn' : 'ok'}"><b>${storageEstimate085.available ? `${storageEstimate085.percent}%` : 'OK'}</b><em>저장소 여유</em></article>
+        <article class="${assetHealth.level}"><b>${assetHealth.decodedImages}/${assetHealth.imageCount}</b><em>이미지 로드</em></article>
+        <article class="${saveHealth.level}"><b>${saveHealth.level.toUpperCase()}</b><em>${escapeHtml(saveHealth.message)}</em></article>
+        <article class="ok"><b>${escapeHtml(buildActionLatencyLabel(lastActionAt086))}</b><em>최근 입력 반응</em></article>
       </div>
-      <div class="tech-health-meta-084">
-        <span>화면 ${viewport}</span><span>메모리 ${escapeHtml(memoryText)}</span><span>캐릭터 ${escapeHtml(save.saveId.slice(-6))}</span>
+      <div class="connectivity-matrix-086" aria-label="연결성 매트릭스">
+        ${connectivityRows.map((row) => `<article class="${row.level}"><b>${escapeHtml(row.label)}</b><span>${escapeHtml(row.value)}</span></article>`).join('')}
+      </div>
+      <div class="tech-health-meta-084 tech-health-meta-086">
+        <span>화면 ${viewport}</span><span>메모리 ${escapeHtml(memoryText)}</span><span>저장소 ${storageEstimate085.available ? `${storageEstimate085.usedMB}MB/${storageEstimate085.quotaMB}MB` : '미지원'}</span><span>네트워크 ${escapeHtml(networkState085)}</span><span>PWA ${serviceWorkerReady086 ? '준비' : '대기'}</span><span>캐릭터 ${escapeHtml(save.saveId.slice(-6))}</span>
       </div>
       ${cloud.lastError ? `<p class="tech-health-error-084">최근 클라우드 오류: ${escapeHtml(cloud.lastError)}</p>` : ''}
       <ul class="tech-health-issues-084">${issueRows}</ul>

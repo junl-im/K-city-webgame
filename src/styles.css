@@ -25755,3 +25755,432 @@ body.fantasy-ui-084.ui-overflow-risk::after {
     scroll-behavior: auto !important;
   }
 }
+
+/* Alpha 0.85: system doctor, runtime performance guard, and stricter mobile containment. */
+:root {
+  --soul-085-safe-t: var(--soul-084-safe-t, max(10px, env(safe-area-inset-top)));
+  --soul-085-safe-r: var(--soul-084-safe-r, max(10px, env(safe-area-inset-right)));
+  --soul-085-safe-b: var(--soul-084-safe-b, max(10px, env(safe-area-inset-bottom)));
+  --soul-085-safe-l: var(--soul-084-safe-l, max(10px, env(safe-area-inset-left)));
+  --soul-085-ink: #062657;
+  --soul-085-blue: #0d6edc;
+  --soul-085-cyan: #78e5ff;
+  --soul-085-gold: #ffe3a0;
+  --soul-085-panel: rgba(247, 253, 255, .96);
+  --soul-085-line: rgba(255, 226, 142, .72);
+  --soul-085-shadow: 0 24px 64px rgba(5, 42, 102, .28), inset 0 1px 0 rgba(255,255,255,.86);
+}
+
+body.fantasy-ui-085,
+body.fantasy-ui-085 #app,
+body.fantasy-ui-085 #game-root {
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  touch-action: manipulation;
+}
+
+body.fantasy-ui-085 .title-screen-085,
+body.fantasy-ui-085 .login-screen-085,
+body.fantasy-ui-085 .town-screen-085,
+body.fantasy-ui-085 .town-master-lobby-074,
+body.fantasy-ui-085 #townContentPanel,
+body.fantasy-ui-085 .town-drawer,
+body.fantasy-ui-085 .sheet.open,
+body.fantasy-ui-085 .item-detail-card {
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  overflow-wrap: anywhere;
+}
+
+body.town-active.fantasy-ui-085 .town-master-lobby-074 {
+  width: min(100vw, 760px) !important;
+  padding: var(--soul-085-safe-t) var(--soul-085-safe-r) var(--soul-085-safe-b) var(--soul-085-safe-l) !important;
+  contain: layout paint style !important;
+}
+
+body.fantasy-ui-085 #townContentPanel:not(.hidden),
+body.fantasy-ui-085 .town-drawer:not(.hidden),
+body.fantasy-ui-085 .sheet.open {
+  left: max(8px, var(--soul-085-safe-l)) !important;
+  right: max(8px, var(--soul-085-safe-r)) !important;
+  width: auto !important;
+  max-width: calc(100vw - var(--soul-085-safe-l) - var(--soul-085-safe-r) - 16px) !important;
+  max-height: calc(100dvh - var(--soul-085-safe-t) - var(--soul-085-safe-b) - 16px) !important;
+  overflow: hidden !important;
+}
+
+body.fantasy-ui-085 .town-drawer-body,
+body.fantasy-ui-085 .sheet-body,
+body.fantasy-ui-085 .town-content-body,
+body.fantasy-ui-085 .item-detail-card {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+}
+
+.system-doctor-085 {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  padding: clamp(14px, 3vw, 18px);
+  border: 1px solid var(--soul-085-line);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(120,229,255,.34), transparent 30%),
+    radial-gradient(circle at 100% 8%, rgba(255,227,160,.30), transparent 32%),
+    linear-gradient(180deg, rgba(255,255,255,.98), rgba(229,246,255,.90));
+  color: var(--soul-085-ink);
+  box-shadow: var(--soul-085-shadow);
+  overflow: hidden;
+}
+
+.system-doctor-head-085 h3 {
+  margin: 4px 0;
+  font-size: clamp(18px, 4.8vw, 24px);
+  color: var(--soul-085-ink);
+}
+.system-doctor-head-085 p {
+  margin: 0;
+  color: rgba(6,38,87,.72);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.system-doctor-grid-085 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.system-doctor-grid-085 article {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(13,110,220,.18);
+  border-radius: 18px;
+  background: rgba(255,255,255,.76);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+}
+.system-doctor-grid-085 article.ok { border-color: rgba(74,188,130,.42); }
+.system-doctor-grid-085 article.warn { border-color: rgba(235,166,54,.58); background: rgba(255,245,220,.86); }
+.system-doctor-grid-085 article.danger { border-color: rgba(232,78,84,.62); background: rgba(255,232,234,.90); }
+.system-doctor-grid-085 b,
+.system-doctor-grid-085 em {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.system-doctor-grid-085 b {
+  color: #0b64bd;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .06em;
+}
+.system-doctor-grid-085 em {
+  margin-top: 3px;
+  color: rgba(6,38,87,.82);
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.system-doctor-actions-085,
+.tech-health-actions-085 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.system-doctor-actions-085 button,
+.tech-health-actions-085 button {
+  min-height: 34px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255,227,160,.8);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #177de8, #075cb9);
+  color: #fff8d7;
+  font-size: 12px;
+  font-weight: 950;
+  box-shadow: 0 10px 22px rgba(9,74,153,.22), inset 0 1px 0 rgba(255,255,255,.34);
+}
+
+body.fantasy-ui-085 .tech-health-grid-084 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+body.fantasy-ui-085 .tech-health-panel-084 {
+  border-color: var(--soul-085-line);
+  box-shadow: var(--soul-085-shadow);
+}
+
+body.field-active.fantasy-ui-085 .hud-top,
+body.field-active.fantasy-ui-085 .resource-strip,
+body.field-active.fantasy-ui-085 .field-minimap,
+body.field-active.fantasy-ui-085 .field-quest-tracker,
+body.field-active.fantasy-ui-085 .combat-log,
+body.field-active.fantasy-ui-085 .action-dock,
+body.field-active.fantasy-ui-085 .joystick {
+  max-width: calc(100vw - var(--soul-085-safe-l) - var(--soul-085-safe-r)) !important;
+  max-height: calc(100dvh - var(--soul-085-safe-t) - var(--soul-085-safe-b)) !important;
+  contain: layout paint style;
+}
+
+body.fantasy-ui-085.perf-longtask-risk-085 .title-orb,
+body.fantasy-ui-085.perf-longtask-risk-085 .title-soul-ring,
+body.fantasy-ui-085.perf-longtask-risk-085 .town-art-bloom-081,
+body.fantasy-ui-085.perf-longtask-risk-085 .loot-rune-083,
+body.fantasy-ui-085[data-fps-state="low"] .title-orb,
+body.fantasy-ui-085[data-fps-state="low"] .title-soul-ring,
+body.fantasy-ui-085[data-fps-state="low"] .town-art-bloom-081,
+body.fantasy-ui-085[data-fps-state="low"] .loot-rune-083 {
+  animation: none !important;
+  transition-duration: .001ms !important;
+  filter: none !important;
+}
+
+@media (max-width: 540px) {
+  .system-doctor-grid-085,
+  body.fantasy-ui-085 .tech-health-grid-084 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .system-doctor-085,
+  body.fantasy-ui-085 .tech-health-panel-084 {
+    border-radius: 22px;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .system-doctor-grid-085,
+  body.fantasy-ui-085 .tech-health-grid-084 {
+    grid-template-columns: 1fr;
+  }
+  .system-doctor-actions-085 button,
+  .tech-health-actions-085 button {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-height: 620px) {
+  body.fantasy-ui-085 #townContentPanel:not(.hidden),
+  body.fantasy-ui-085 .town-drawer:not(.hidden),
+  body.fantasy-ui-085 .sheet.open {
+    top: max(6px, var(--soul-085-safe-t)) !important;
+    bottom: max(6px, var(--soul-085-safe-b)) !important;
+    max-height: calc(100dvh - var(--soul-085-safe-t) - var(--soul-085-safe-b) - 12px) !important;
+  }
+}
+
+/* Alpha 0.86: technical refactor foundation, connectivity matrix, and performance containment. */
+:root {
+  --soul-086-safe-t: var(--soul-085-safe-t, max(10px, env(safe-area-inset-top)));
+  --soul-086-safe-r: var(--soul-085-safe-r, max(10px, env(safe-area-inset-right)));
+  --soul-086-safe-b: var(--soul-085-safe-b, max(10px, env(safe-area-inset-bottom)));
+  --soul-086-safe-l: var(--soul-085-safe-l, max(10px, env(safe-area-inset-left)));
+  --soul-086-navy: #06214d;
+  --soul-086-blue: #0a72df;
+  --soul-086-glow: rgba(116, 225, 255, .42);
+  --soul-086-gold: rgba(255, 228, 154, .92);
+  --soul-086-panel: rgba(246, 252, 255, .96);
+  --soul-086-line: rgba(255, 230, 164, .76);
+}
+
+body.fantasy-ui-086,
+body.fantasy-ui-086 #app,
+body.fantasy-ui-086 #game-root {
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+body.fantasy-ui-086 .title-screen-086,
+body.fantasy-ui-086 .login-screen-086,
+body.fantasy-ui-086 .town-screen-086,
+body.fantasy-ui-086 .town-master-lobby-074,
+body.fantasy-ui-086 #townContentPanel,
+body.fantasy-ui-086 .town-drawer,
+body.fantasy-ui-086 .sheet.open,
+body.fantasy-ui-086 .item-detail-card,
+body.fantasy-ui-086 .system-doctor-085,
+body.fantasy-ui-086 .tech-health-panel-084 {
+  box-sizing: border-box !important;
+  max-width: 100vw !important;
+  min-width: 0 !important;
+  overflow-wrap: anywhere;
+}
+
+body.fantasy-ui-086 .town-master-lobby-074,
+body.fantasy-ui-086 .town-content-panel,
+body.fantasy-ui-086 .town-drawer,
+body.fantasy-ui-086 .sheet.open,
+body.fantasy-ui-086 .item-detail-card,
+body.fantasy-ui-086 .system-doctor-085,
+body.fantasy-ui-086 .tech-health-panel-084 {
+  contain: layout paint style;
+}
+
+body.fantasy-ui-086 #townContentPanel:not(.hidden),
+body.fantasy-ui-086 .town-drawer:not(.hidden),
+body.fantasy-ui-086 .sheet.open {
+  top: max(8px, var(--soul-086-safe-t)) !important;
+  bottom: max(8px, var(--soul-086-safe-b)) !important;
+  left: max(8px, var(--soul-086-safe-l)) !important;
+  right: max(8px, var(--soul-086-safe-r)) !important;
+  width: auto !important;
+  max-width: calc(100vw - var(--soul-086-safe-l) - var(--soul-086-safe-r) - 16px) !important;
+  max-height: calc(100dvh - var(--soul-086-safe-t) - var(--soul-086-safe-b) - 16px) !important;
+}
+
+body.fantasy-ui-086 .town-content-body,
+body.fantasy-ui-086 .town-drawer-body,
+body.fantasy-ui-086 .sheet-body,
+body.fantasy-ui-086 .item-detail-card {
+  scrollbar-gutter: stable both-edges;
+  overscroll-behavior: contain;
+  content-visibility: auto;
+  contain-intrinsic-size: 720px;
+}
+
+.system-doctor-086 {
+  position: relative;
+  isolation: isolate;
+}
+.system-doctor-086::after {
+  content: '';
+  position: absolute;
+  inset: auto -16% -42% 38%;
+  height: 92px;
+  z-index: -1;
+  background: radial-gradient(circle, var(--soul-086-glow), transparent 68%);
+  opacity: .72;
+  pointer-events: none;
+}
+
+.tech-health-panel-086 {
+  position: relative;
+  border-color: var(--soul-086-line) !important;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(110, 225, 255, .24), transparent 32%),
+    linear-gradient(180deg, rgba(255,255,255,.98), var(--soul-086-panel)) !important;
+}
+
+body.fantasy-ui-086 .tech-health-grid-084 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+body.fantasy-ui-086 .tech-health-grid-084 article,
+.connectivity-matrix-086 article {
+  min-width: 0;
+}
+body.fantasy-ui-086 .tech-health-grid-084 article b,
+body.fantasy-ui-086 .tech-health-grid-084 article em,
+.connectivity-matrix-086 article b,
+.connectivity-matrix-086 article span {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.connectivity-matrix-086 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 10px;
+}
+.connectivity-matrix-086 article {
+  padding: 10px;
+  border: 1px solid rgba(10, 114, 223, .18);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(227,246,255,.72));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+}
+.connectivity-matrix-086 article.ok { border-color: rgba(56, 188, 132, .42); }
+.connectivity-matrix-086 article.warn { border-color: rgba(235, 166, 54, .58); background: rgba(255, 246, 224, .88); }
+.connectivity-matrix-086 article.danger { border-color: rgba(232, 78, 84, .62); background: rgba(255, 232, 234, .90); }
+.connectivity-matrix-086 b,
+.connectivity-matrix-086 span {
+  display: block;
+}
+.connectivity-matrix-086 b {
+  color: #0a63bf;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .05em;
+}
+.connectivity-matrix-086 span {
+  margin-top: 4px;
+  color: rgba(6, 33, 77, .82);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+body.fantasy-ui-086 .tech-health-meta-086 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+body.fantasy-ui-086 .tech-health-meta-086 span {
+  max-width: 100%;
+}
+
+body.fantasy-ui-086.ui-overflow-risk #townContentPanel:not(.hidden),
+body.fantasy-ui-086.ui-overflow-risk .town-drawer:not(.hidden),
+body.fantasy-ui-086.ui-overflow-risk .sheet.open {
+  transform: none !important;
+}
+
+body.fantasy-ui-086.perf-reduced-motion-086 .title-orb,
+body.fantasy-ui-086.perf-reduced-motion-086 .title-soul-ring,
+body.fantasy-ui-086.perf-reduced-motion-086 .town-art-bloom-081,
+body.fantasy-ui-086.perf-reduced-motion-086 .loot-rune-083,
+body.fantasy-ui-086.perf-reduced-motion-086 .field-attack-impact,
+body.fantasy-ui-086[data-fps-state="low"] .title-orb,
+body.fantasy-ui-086[data-fps-state="low"] .title-soul-ring,
+body.fantasy-ui-086[data-fps-state="low"] .town-art-bloom-081,
+body.fantasy-ui-086[data-fps-state="low"] .loot-rune-083 {
+  animation: none !important;
+  transition-duration: .001ms !important;
+  filter: none !important;
+}
+
+@media (max-width: 560px) {
+  body.fantasy-ui-086 .tech-health-grid-084,
+  .connectivity-matrix-086 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  body.fantasy-ui-086 .system-doctor-085,
+  body.fantasy-ui-086 .tech-health-panel-084 {
+    border-radius: 22px;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 370px) {
+  body.fantasy-ui-086 .tech-health-grid-084,
+  .connectivity-matrix-086,
+  body.fantasy-ui-086 .system-doctor-grid-085 {
+    grid-template-columns: 1fr !important;
+  }
+  body.fantasy-ui-086 .system-doctor-actions-085 button,
+  body.fantasy-ui-086 .tech-health-actions-085 button {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-height: 620px) {
+  body.fantasy-ui-086 .town-master-quest-074 span,
+  body.fantasy-ui-086 .town-master-hotspots-074 span,
+  body.fantasy-ui-086 .tech-health-head-084 p,
+  body.fantasy-ui-086 .system-doctor-head-085 p {
+    display: none !important;
+  }
+}
