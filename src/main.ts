@@ -2,6 +2,7 @@ import './styles.css';
 import './styles/alpha087.css';
 import './styles/alpha088.css';
 import './styles/alpha089.css';
+import './styles/alpha090.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
@@ -13,6 +14,7 @@ import { renderSystemDoctor087, renderTechnicalHealthPanel087, type HealthTile08
 import { inventoryFilterForItem088, normalizeInventoryFilter088, normalizeShopFilter088, renderInventoryFilterRail088, renderShopFilterRail088, renderShopPurchaseConfirm088, shopFilterForItem088, summarizeRenderBudget088, type InventoryFilter088, type ShopFilter088, type ShopPurchaseDraft088 } from './ui/townPanelRenderer088';
 import { renderSkillReadinessStrip089, renderSkillUpgradeConfirm089, renderSkillUpgradeHint089, summarizeSkillReadiness089, type SkillProgressRow089, type SkillUpgradeDraft089 } from './ui/skillPanelRenderer089';
 import { buildPreloadPlan089, preloadAssetPlan089, summarizePreloadPlan089 } from './ui/assetPreload089';
+import { ensureTitleEntry090, inspectTitleEntry090, markTitleEntryTransition090, titleEntryHealthLabel090 } from './ui/titleEntry090';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
 import type { AutoHuntSettings, CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
@@ -69,7 +71,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '0.89.0';
+const ALPHA_VERSION = '0.90.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -103,6 +105,8 @@ let activeShopFilter088: ShopFilter088 = 'all';
 let pendingShopPurchase088: ShopPurchaseDraft088 | null = null;
 let pendingSkillTraining089: string | null = null;
 let lastPreloadReport089 = '예열 대기';
+let titleStartBusy090 = false;
+let titleEntryLastReport090 = '타이틀 시작 화면 검사 대기';
 
 const root = must('#game-root');
 const titleScreen = must('#titleScreen');
@@ -208,7 +212,11 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-081', 'fantasy-ui-082', 'fantasy-ui-083', 'fantasy-ui-084', 'fantasy-ui-085', 'fantasy-ui-086', 'fantasy-ui-087', 'fantasy-ui-088', 'fantasy-ui-089');
+  document.body.classList.add('fantasy-ui-081', 'fantasy-ui-082', 'fantasy-ui-083', 'fantasy-ui-084', 'fantasy-ui-085', 'fantasy-ui-086', 'fantasy-ui-087', 'fantasy-ui-088', 'fantasy-ui-089', 'fantasy-ui-090', 'entry-flow-ready-090');
+  titleScreen.classList.add('title-screen-090');
+  loginScreen.classList.add('login-screen-090');
+  townScreen.classList.add('town-screen-090');
+  ensureTitleEntry090({ titleScreen, startButton: startGameBtn, loginScreen });
   await saveService.init();
   await mergeCloudRosterToLocal();
   pendingSave = saveService.loadLocal();
@@ -241,8 +249,8 @@ async function boot() {
   renderCharacterSlots();
   updateWorldSummary();
   goStep('login');
-  titleScreen.classList.remove('hidden');
-  loginScreen.classList.add('hidden');
+  ensureTitleEntry090({ titleScreen, startButton: startGameBtn, loginScreen });
+  titleEntryLastReport090 = titleEntryHealthLabel090(inspectTitleEntry090(titleScreen, startGameBtn)).label;
   registerServiceWorker();
   updateAudioButtons();
 }
@@ -250,17 +258,30 @@ async function boot() {
 
 
 function bindTitleFlow() {
-  startGameBtn.addEventListener('click', async () => {
+  const startEntry = async () => {
+    if (titleStartBusy090) return;
+    titleStartBusy090 = true;
+    titleEntryLastReport090 = titleEntryHealthLabel090(inspectTitleEntry090(titleScreen, startGameBtn)).label;
     void ensureFullscreen();
     void lockPortraitMode();
     await audioService.unlock();
     audioService.setScene('title');
     await withSceneTransition('접속 화면 준비 중', async () => {
-      titleScreen.classList.add('hidden');
-      loginScreen.classList.remove('hidden');
-      loginScreen.setAttribute('aria-hidden', 'false');
+      markTitleEntryTransition090({ titleScreen, startButton: startGameBtn, loginScreen });
       goStep('login');
     });
+    titleStartBusy090 = false;
+  };
+
+  startGameBtn.addEventListener('click', () => {
+    void startEntry();
+  });
+
+  titleScreen.addEventListener('pointerup', (event) => {
+    if (titleScreen.classList.contains('hidden')) return;
+    const target = event.target as HTMLElement;
+    if (target.closest('button, a, input, select, textarea')) return;
+    void startEntry();
   });
 }
 
@@ -2461,7 +2482,7 @@ function renderTownStorySnapshot(save: PlayerSave) {
   if (!quest) {
     townChapterText.textContent = 'STORY CLEAR';
     townStoryTitle.textContent = '현재 챕터 완료';
-    townStoryDesc.textContent = 'Alpha 0.89 스토리를 모두 완료했습니다.';
+    townStoryDesc.textContent = 'Alpha 0.90 스토리를 모두 완료했습니다.';
     townStoryProgress.style.width = '100%';
     townStoryProgressText.textContent = '완료';
     townStoryActionBtn.textContent = '스토리 보기';
@@ -4111,6 +4132,7 @@ function installPerformanceGuards085() {
       document.body.classList.toggle('perf-reduced-motion-087', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-088', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-089', reduceMotion);
+      document.body.classList.toggle('perf-reduced-motion-090', reduceMotion);
           if (entry.duration >= 120) recordClientIssue('perf', `긴 작업 ${Math.round(entry.duration)}ms 감지`);
         }
       });
@@ -4167,7 +4189,7 @@ async function handleHealthAction085(action: string) {
     clientIssues.splice(0);
     longTaskCount085 = 0;
     lastLongTaskMs085 = 0;
-    document.body.classList.remove('perf-longtask-risk-085', 'perf-reduced-motion-086', 'perf-reduced-motion-087', 'perf-reduced-motion-088', 'perf-reduced-motion-089');
+    document.body.classList.remove('perf-longtask-risk-085', 'perf-reduced-motion-086', 'perf-reduced-motion-087', 'perf-reduced-motion-088', 'perf-reduced-motion-089', 'perf-reduced-motion-090');
     showToast('진단 로그를 정리했습니다.');
   }
   if (action === 'save-local') {
@@ -4203,8 +4225,11 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     playerLevel: save.level,
     canUpgradeSkill: (skill) => canUpgradeSkill(save, skill)
   });
+  const titleHealth090 = titleEntryHealthLabel090(inspectTitleEntry090(titleScreen, startGameBtn));
+  titleEntryLastReport090 = titleHealth090.label;
   const rows: HealthTile087[] = [
     { label: '브랜드', value: 'Soul Online 고정', level: 'ok' },
+    { label: '첫 화면', value: titleHealth090.label, level: titleHealth090.level, hint: titleHealth090.hint },
     { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
     { label: '성능', value: perfHealth.label, level: perfHealth.level },
     { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },
@@ -4242,6 +4267,7 @@ function installClientDiagnostics() {
       document.body.classList.toggle('perf-reduced-motion-087', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-088', reduceMotion);
       document.body.classList.toggle('perf-reduced-motion-089', reduceMotion);
+      document.body.classList.toggle('perf-reduced-motion-090', reduceMotion);
     }
     lastFrameMs = now;
     window.requestAnimationFrame(tick);
@@ -4330,7 +4356,10 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     cloudPaused: cloud.paused,
     serviceWorkerReady: serviceWorkerReady086
   });
+  const titleHealth090 = titleEntryHealthLabel090(inspectTitleEntry090(titleScreen, startGameBtn));
+  titleEntryLastReport090 = titleHealth090.label;
   const tiles: HealthTile087[] = [
+    { label: '첫 화면', value: titleHealth090.label, level: titleHealth090.level, hint: titleHealth090.hint },
     { label: 'FPS', value: `${measuredFps} · ${perfHealth.label}`, level: perfHealth.level },
     { label: '저장 연결', value: cloudState, level: cloud.paused ? 'warn' : 'ok' },
     { label: 'UI 안전', value: document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상', level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok', hint: lastUiAuditMessage },
