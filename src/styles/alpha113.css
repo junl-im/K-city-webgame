@@ -1,0 +1,240 @@
+/* Soul Online Alpha 1.13
+   누적 UI 패치를 강제로 갈아엎지 않고, 모바일 세로 화면의 마지막 안전 프레임과 상용 HUD 질감을 보정하는 레이어입니다. */
+
+:root {
+  --ui-scale-113: 1;
+  --ui-safe-inline-113: 12px;
+  --ui-safe-block-113: 12px;
+  --ui-vvh-113: 100vh;
+  --ui-vvw-113: 100vw;
+  --kcity-ink-113: #f8fbff;
+  --kcity-muted-113: rgba(220, 235, 255, 0.74);
+  --kcity-line-113: rgba(142, 223, 255, 0.30);
+  --kcity-glass-113: rgba(5, 11, 24, 0.78);
+  --kcity-glass-strong-113: rgba(4, 9, 20, 0.90);
+  --kcity-blue-113: #65ddff;
+  --kcity-gold-113: #ffe18a;
+}
+
+body.maintenance-113 {
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+body.maintenance-113 .game-root,
+body.maintenance-113 .town-screen,
+body.maintenance-113 .login-screen,
+body.maintenance-113 .title-screen {
+  min-height: var(--ui-vvh-113);
+}
+
+/* 고정 HUD의 기본 안전 폭을 통일해서 주소창/노치/초소형 화면에서 화면 밖 이탈을 줄입니다. */
+body.maintenance-113 [data-hud-safe112="true"],
+body.maintenance-113 .sheet,
+body.maintenance-113 .town-content-panel,
+body.maintenance-113 .item-detail-modal,
+body.maintenance-113 .create-modal {
+  max-width: calc(var(--ui-vvw-113) - var(--ui-safe-inline-113) * 2);
+}
+
+body.field-active.maintenance-113 .hud-top {
+  left: max(env(safe-area-inset-left), var(--ui-safe-inline-113));
+  right: max(env(safe-area-inset-right), var(--ui-safe-inline-113));
+  top: max(env(safe-area-inset-top), var(--ui-safe-block-113));
+  color: var(--kcity-ink-113);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.82);
+}
+
+body.field-active.maintenance-113 .resource-strip,
+body.field-active.maintenance-113 .target-card,
+body.field-active.maintenance-113 .field-quest-tracker,
+body.field-active.maintenance-113 .field-minimap,
+body.field-active.maintenance-113 .combat-log {
+  color: var(--kcity-ink-113);
+  border-color: var(--kcity-line-113);
+  background:
+    linear-gradient(145deg, rgba(76, 192, 255, 0.14), rgba(255, 255, 255, 0.045) 38%, rgba(3, 8, 18, 0.82)),
+    var(--kcity-glass-113);
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 0 22px rgba(101, 221, 255, 0.10);
+  backdrop-filter: blur(13px) saturate(1.18);
+}
+
+body.field-active.maintenance-113 .target-card {
+  left: max(env(safe-area-inset-left), var(--ui-safe-inline-113));
+  right: auto;
+  transform-origin: left top;
+}
+
+body.field-active.maintenance-113 .field-quest-tracker {
+  right: max(env(safe-area-inset-right), var(--ui-safe-inline-113));
+  transform-origin: right top;
+}
+
+body.field-active.maintenance-113 .field-minimap {
+  right: max(env(safe-area-inset-right), var(--ui-safe-inline-113));
+}
+
+body.field-active.maintenance-113 .combat-log {
+  left: max(env(safe-area-inset-left), var(--ui-safe-inline-113));
+  bottom: calc(max(env(safe-area-inset-bottom), var(--ui-safe-block-113)) + 78px);
+  max-height: min(25vh, 154px);
+}
+
+body.field-active.maintenance-113 .joystick {
+  left: max(env(safe-area-inset-left), calc(var(--ui-safe-inline-113) + 2px));
+  bottom: calc(max(env(safe-area-inset-bottom), var(--ui-safe-block-113)) + 18px);
+  transform: scale(var(--ui-scale-113));
+  transform-origin: left bottom;
+}
+
+body.field-active.maintenance-113 .action-dock,
+body.field-active.maintenance-113 .skill-dock {
+  right: max(env(safe-area-inset-right), var(--ui-safe-inline-113));
+  bottom: max(env(safe-area-inset-bottom), var(--ui-safe-block-113));
+  transform: scale(var(--ui-scale-113));
+  transform-origin: right bottom;
+}
+
+body.maintenance-113 [data-interactive113="true"] {
+  touch-action: manipulation;
+  user-select: none;
+}
+
+body.maintenance-113 .dock-btn,
+body.maintenance-113 .skill-btn,
+body.maintenance-113 .combat-log-toggle,
+body.maintenance-113 [data-open-field-menu] {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+body.maintenance-113 .input-pop-113 {
+  animation: input-pop-113 180ms cubic-bezier(0.2, 1.25, 0.22, 1) both;
+}
+
+@keyframes input-pop-113 {
+  0% { transform: translateZ(0) scale(1); }
+  52% { transform: translateZ(0) scale(0.94); }
+  100% { transform: translateZ(0) scale(1); }
+}
+
+/* 팝업은 한 장만 떠도 상용 게임처럼 밀도 있게 보이도록 중앙 안전 프레임과 네온 대비를 통일합니다. */
+body.maintenance-113 .sheet,
+body.maintenance-113 .town-content-panel,
+body.maintenance-113 .item-detail-modal,
+body.maintenance-113 .create-modal {
+  color: var(--kcity-ink-113);
+  border-color: rgba(122, 222, 255, 0.34);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(118, 218, 255, 0.24), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.105), rgba(6, 13, 28, 0.92) 42%, rgba(3, 7, 18, 0.96)),
+    var(--kcity-glass-strong-113);
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.52),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.055);
+}
+
+body.maintenance-113 [data-panel-guard113="true"] {
+  max-height: calc(var(--ui-vvh-113) - max(24px, env(safe-area-inset-top)) - max(24px, env(safe-area-inset-bottom)));
+}
+
+body.maintenance-panel-stack-113 [data-panel-depth113="1"] {
+  filter: saturate(0.88) brightness(0.82);
+}
+
+body.maintenance-panel-stack-113 [data-panel-depth113="2"] {
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.64),
+    0 0 0 1px rgba(113, 221, 255, 0.34),
+    0 0 34px rgba(101, 221, 255, 0.18);
+}
+
+body.maintenance-113 .inventory-grid-111,
+body.maintenance-113 .inventory-grid,
+body.maintenance-113 [data-inventory-grid] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(clamp(58px, 18vw, 82px), 1fr));
+  gap: clamp(8px, 2.1vw, 12px);
+  align-items: stretch;
+}
+
+body.maintenance-113 .inventory-slot-111,
+body.maintenance-113 .inventory-slot,
+body.maintenance-113 [data-inventory-slot] {
+  min-height: clamp(62px, 18vw, 84px);
+  border-color: rgba(151, 225, 255, 0.28);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.12), rgba(70, 197, 255, 0.08) 36%, rgba(5, 11, 25, 0.88)),
+    rgba(6, 14, 31, 0.84);
+}
+
+body.maintenance-compact-113.field-active .target-card,
+body.maintenance-compact-113.field-active .field-quest-tracker {
+  transform: scale(0.92);
+}
+
+body.maintenance-compact-113.field-active .resource-strip {
+  transform: scale(0.94);
+  transform-origin: top center;
+}
+
+body.maintenance-compact-113.field-active .combat-log {
+  max-height: 112px;
+  font-size: 11px;
+}
+
+body.maintenance-lite-113.field-active .field-minimap,
+body.maintenance-lite-113.field-active .combat-log:not(.expanded) {
+  backdrop-filter: none;
+}
+
+body.maintenance-lite-113 .title-screen::before,
+body.maintenance-lite-113 .town-screen::before,
+body.maintenance-lite-113 .login-screen::before {
+  animation: none !important;
+}
+
+body.maintenance-overflow-risk-113::after {
+  content: "UI SAFE";
+  position: fixed;
+  right: max(8px, env(safe-area-inset-right));
+  bottom: max(8px, env(safe-area-inset-bottom));
+  z-index: 9999;
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #05111f;
+  background: #ffe18a;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  opacity: 0.88;
+}
+
+@media (max-width: 360px), (max-height: 640px) {
+  body.maintenance-113.field-active .hud-top {
+    font-size: 11px;
+  }
+
+  body.maintenance-113.field-active .field-quest-tracker {
+    max-width: min(46vw, 168px);
+  }
+
+  body.maintenance-113.field-active .target-card {
+    max-width: min(48vw, 178px);
+  }
+
+  body.maintenance-113.field-active .skill-dock {
+    gap: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.maintenance-113 .input-pop-113 {
+    animation: none;
+  }
+}

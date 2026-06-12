@@ -1,0 +1,267 @@
+/* Soul Online alpha 1.12 - 모바일 HUD/런타임 최종 보정 레이어 */
+:root {
+  --kcity-ink-112: #f8fbff;
+  --kcity-muted-112: rgba(226, 240, 255, 0.82);
+  --kcity-panel-112: rgba(8, 15, 31, 0.78);
+  --kcity-panel-solid-112: rgba(8, 15, 31, 0.94);
+  --kcity-neon-112: #72e7ff;
+  --kcity-gold-112: #ffd66b;
+  --kcity-danger-112: #ff7b8a;
+}
+
+body.mobile-runtime-112,
+body.field-hud-112 {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+body.kcity-commercial-112 .game-root canvas {
+  image-rendering: auto;
+}
+
+body.runtime-lite-112 .login-backdrop,
+body.runtime-lite-112 .town-ambient,
+body.runtime-lite-112 .field-ambient,
+body.runtime-lite-112 .soul-ui-ornament,
+body.runtime-data-saver-112 .login-backdrop,
+body.runtime-data-saver-112 .town-ambient,
+body.runtime-data-saver-112 .field-ambient,
+body.runtime-data-saver-112 .soul-ui-ornament {
+  filter: none !important;
+  animation: none !important;
+}
+
+body.runtime-reduced-motion-112 *,
+body.runtime-lite-112 * {
+  scroll-behavior: auto !important;
+}
+
+body.field-active.field-hud-112 .hud-top,
+body.field-active.field-hud-112 .resource-strip,
+body.field-active.field-hud-112 .target-card,
+body.field-active.field-hud-112 .field-quest-tracker,
+body.field-active.field-hud-112 .field-minimap,
+body.field-active.field-hud-112 .combat-log,
+body.field-active.field-hud-112 .combat-log-toggle,
+body.field-active.field-hud-112 .action-dock,
+body.field-active.field-hud-112 .joystick {
+  max-width: calc(var(--field-vvw-112, 100vw) - 20px) !important;
+  contain: layout paint;
+}
+
+body.field-active.field-hud-112 .hud-top {
+  top: calc(max(8px, env(safe-area-inset-top)) + 2px) !important;
+  left: max(10px, env(safe-area-inset-left)) !important;
+  width: min(58vw, 292px) !important;
+  color: var(--kcity-ink-112) !important;
+}
+
+body.field-active.field-hud-112 .resource-strip {
+  top: calc(max(8px, env(safe-area-inset-top)) + 72px) !important;
+  left: max(10px, env(safe-area-inset-left)) !important;
+  width: min(58vw, 292px) !important;
+  gap: 5px !important;
+}
+
+body.field-active.field-hud-112 .resource-strip span,
+body.field-active.field-hud-112 .target-card,
+body.field-active.field-hud-112 .field-quest-tracker,
+body.field-active.field-hud-112 .combat-log {
+  border-color: rgba(114, 231, 255, 0.3) !important;
+  background:
+    linear-gradient(145deg, rgba(13, 28, 55, 0.92), rgba(4, 9, 20, 0.82)),
+    radial-gradient(circle at 20% 0%, rgba(114, 231, 255, 0.22), transparent 42%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 12px 28px rgba(0, 0, 0, 0.34),
+    0 0 16px rgba(114, 231, 255, 0.08) !important;
+  color: var(--kcity-ink-112) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.82) !important;
+}
+
+body.field-active.field-hud-112 .resource-strip span {
+  min-height: 27px !important;
+  padding: 6px 8px !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.01em !important;
+}
+
+body.field-active.field-hud-112 .target-card {
+  top: calc(max(8px, env(safe-area-inset-top)) + 112px) !important;
+  right: max(10px, env(safe-area-inset-right)) !important;
+  width: min(42vw, 178px) !important;
+  min-height: 70px !important;
+  padding: 9px !important;
+}
+
+body.field-active.field-hud-112 .target-card strong,
+body.field-active.field-hud-112 .field-quest-tracker b {
+  color: #ffffff !important;
+  font-weight: 1000 !important;
+}
+
+body.field-active.field-hud-112 .target-card span,
+body.field-active.field-hud-112 .field-quest-tracker em {
+  color: var(--kcity-muted-112) !important;
+}
+
+body.field-active.field-hud-112 .field-quest-tracker {
+  top: calc(max(8px, env(safe-area-inset-top)) + 194px) !important;
+  right: max(10px, env(safe-area-inset-right)) !important;
+  width: min(50vw, 214px) !important;
+  padding: 9px 10px !important;
+}
+
+body.field-active.field-hud-112 .field-minimap {
+  top: calc(max(8px, env(safe-area-inset-top)) + 74px) !important;
+  right: max(10px, env(safe-area-inset-right)) !important;
+  width: min(28vw, 108px) !important;
+}
+
+body.field-active.field-hud-112 .combat-log-toggle {
+  left: max(10px, env(safe-area-inset-left)) !important;
+  bottom: calc(138px + env(safe-area-inset-bottom)) !important;
+  min-width: 46px !important;
+  min-height: 42px !important;
+}
+
+body.field-active.field-hud-112 .combat-log {
+  left: max(10px, env(safe-area-inset-left)) !important;
+  bottom: calc(168px + env(safe-area-inset-bottom)) !important;
+  width: min(52vw, 234px) !important;
+  max-height: min(26vh, 152px) !important;
+  overflow: auto !important;
+}
+
+body.field-active.field-hud-112 .joystick {
+  left: max(12px, env(safe-area-inset-left)) !important;
+  bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+  width: clamp(94px, 28vw, 118px) !important;
+  height: clamp(94px, 28vw, 118px) !important;
+  border-color: rgba(114, 231, 255, 0.28) !important;
+  background: radial-gradient(circle, rgba(114, 231, 255, 0.18), rgba(8, 15, 31, 0.62) 58%, rgba(0, 0, 0, 0.42)) !important;
+}
+
+body.field-active.field-hud-112 .joystick i {
+  width: 44% !important;
+  height: 44% !important;
+  background: radial-gradient(circle, #ffffff, #72e7ff 58%, #195a76) !important;
+  box-shadow: 0 0 22px rgba(114, 231, 255, 0.42) !important;
+}
+
+body.field-active.field-hud-112 .action-dock {
+  right: max(10px, env(safe-area-inset-right)) !important;
+  bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+  width: min(45vw, 172px) !important;
+  grid-template-columns: repeat(3, minmax(46px, 52px)) !important;
+  gap: 7px !important;
+  justify-content: end !important;
+}
+
+body.field-active.field-hud-112 .dock-btn,
+body.field-active.field-hud-112 .skill-btn {
+  min-width: 46px !important;
+  min-height: 46px !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.16), rgba(114,231,255,.08)),
+    radial-gradient(circle at 30% 18%, rgba(255,255,255,.28), transparent 34%),
+    rgba(5, 13, 28, 0.86) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,.9) !important;
+  touch-action: manipulation;
+}
+
+body.field-active.field-hud-112 .dock-btn.primary,
+body.field-active.field-hud-112 .skill-btn:not(:disabled):not(.cooling) {
+  border-color: rgba(255, 214, 107, 0.42) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.42), 0 0 18px rgba(255, 214, 107, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+}
+
+body.field-active.field-hud-112 .hud-touch-down-112 {
+  transform: translateY(1px) scale(0.965) !important;
+  filter: brightness(1.16) saturate(1.18);
+}
+
+body.field-hud-compact-112.field-active .hud-top,
+body.field-hud-compact-112.field-active .resource-strip {
+  width: min(62vw, 258px) !important;
+}
+
+body.field-hud-compact-112.field-active .target-card {
+  width: min(40vw, 154px) !important;
+  min-height: 62px !important;
+}
+
+body.field-hud-compact-112.field-active .field-quest-tracker {
+  top: calc(max(8px, env(safe-area-inset-top)) + 184px) !important;
+  width: min(48vw, 184px) !important;
+}
+
+body.field-hud-compact-112.field-active .field-minimap {
+  width: 78px !important;
+}
+
+body.field-hud-compact-112.field-active .combat-log {
+  width: min(50vw, 196px) !important;
+  max-height: 116px !important;
+}
+
+body.field-hud-compact-112.field-active .action-dock {
+  width: 154px !important;
+  grid-template-columns: repeat(3, 46px) !important;
+  gap: 6px !important;
+}
+
+body.field-hud-compact-112.field-active .dock-btn,
+body.field-hud-compact-112.field-active .skill-btn {
+  width: 46px !important;
+  height: 46px !important;
+}
+
+body.kcity-commercial-112 .sheet,
+body.kcity-commercial-112 .town-content-panel,
+body.kcity-commercial-112 .item-detail-modal {
+  max-height: min(var(--menu-window-max-h-111, 88vh), calc(var(--vvh-112, 100vh) - 22px)) !important;
+  overscroll-behavior: contain;
+}
+
+body.kcity-commercial-112 .sheet-body,
+body.kcity-commercial-112 .town-content-body {
+  content-visibility: auto;
+  contain-intrinsic-size: 680px;
+}
+
+body.kcity-commercial-112 .kcity-inventory-grid-111 {
+  grid-auto-rows: minmax(126px, auto) !important;
+}
+
+body.kcity-commercial-112 .kcity-item-slot-111 img {
+  filter: drop-shadow(0 8px 14px rgba(0,0,0,.34));
+}
+
+body.scene-transition-busy-111 .dock-btn,
+body.scene-transition-busy-111 .skill-btn,
+body.scene-transition-busy-111 .joystick,
+body.scene-transition-busy-111 .town-nav-btn {
+  pointer-events: none !important;
+}
+
+@media (max-width: 340px), (max-height: 610px) {
+  body.field-active.field-hud-112 .resource-strip span { font-size: 9px !important; padding-inline: 6px !important; }
+  body.field-active.field-hud-112 .target-card { width: 142px !important; }
+  body.field-active.field-hud-112 .field-quest-tracker { display: none !important; }
+  body.field-active.field-hud-112 .combat-log { display: none !important; }
+  body.field-active.field-hud-112 .action-dock { width: 146px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.field-hud-112 .dock-btn,
+  body.field-hud-112 .skill-btn,
+  body.field-hud-112 .joystick i {
+    transition: none !important;
+    animation: none !important;
+  }
+}

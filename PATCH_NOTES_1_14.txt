@@ -1,0 +1,10 @@
+Soul Online Alpha 1.14 Patch Notes
+
+- Added src/ui/styleLoader114.ts.
+- Split alpha098~alpha113 CSS layers out of the initial static CSS import path.
+- Added src/styles/alpha114.css as the new always-on mobile safe-frame and CSS runtime layer.
+- Consolidated repeated UI sync calls in src/main.ts into syncLegacyVisualStack114().
+- Added System Doctor row: 1.14 CSS split.
+- Updated package version to 1.14.0.
+- Updated service worker cache to soul-online-alpha-v1-14.
+- Build verified with npm run build.

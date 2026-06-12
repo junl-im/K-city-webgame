@@ -1,0 +1,9 @@
+Soul Online Alpha 1.13 Patch Notes
+
+- Added src/ui/maintenance113.ts runtime cleanup layer.
+- Added src/styles/alpha113.css final mobile safe-frame and neon contrast overrides.
+- Connected 1.13 System Doctor diagnostics in src/main.ts.
+- Added Pixi frame governor in src/game/SolGame.ts.
+- Updated package version to 1.13.0.
+- Updated PWA cache to soul-online-alpha-v1-13.
+- Verified with npm run build: TypeScript and Vite production build passed.

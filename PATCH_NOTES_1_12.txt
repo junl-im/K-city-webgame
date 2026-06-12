@@ -1,0 +1,12 @@
+Soul Online alpha 1.12 patch
+
+- Added mobile runtime tier guard: lite / balanced / quality.
+- Added visualViewport based CSS variables for mobile browser address-bar changes.
+- Added field HUD safe-frame inspector and runtime sync.
+- Added high-contrast K-city neon HUD polish for target card, resource strip, quest tracker, joystick, action dock, combat log, and skill buttons.
+- Added ultra-small screen fallback for 340px class devices.
+- Added lazy/async/fetchpriority policy for DOM images.
+- Added 1.12 runtime and HUD status rows to System Doctor.
+- Updated package version to 1.12.0.
+- Updated PWA cache to soul-online-alpha-v1-12.
+- Verified with npm run build.

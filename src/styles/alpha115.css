@@ -1,0 +1,91 @@
+/* Alpha 1.15: route-aware CSS loading + Firebase-friendly atlas delivery polish. */
+:root {
+  --so-alpha-115: 1;
+  --so-safe-pad-115: max(10px, env(safe-area-inset-left), env(safe-area-inset-right));
+  --so-panel-max-h-115: calc(var(--visual-vh-112, 1vh) * 100 - max(22px, env(safe-area-inset-top)) - max(22px, env(safe-area-inset-bottom)) - 24px);
+}
+
+body.css-runtime-115 {
+  --so-neon-edge-115: rgba(135, 226, 255, 0.64);
+  --so-panel-ink-115: #f6fbff;
+}
+
+body.css-runtime-115 .sheet,
+body.css-runtime-115 .town-content-panel,
+body.css-runtime-115 .item-detail-modal,
+body.css-runtime-115 .create-modal {
+  max-height: min(760px, var(--so-panel-max-h-115));
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+body.css-runtime-115 .sheet:not(.hidden),
+body.css-runtime-115 .town-content-panel:not(.hidden) {
+  border-color: color-mix(in srgb, var(--so-neon-edge-115), white 16%);
+  box-shadow: 0 18px 54px rgba(4, 10, 28, 0.56), inset 0 0 0 1px rgba(255,255,255,0.10);
+}
+
+body.css-critical-loading-115 .title-screen,
+body.css-critical-loading-115 .login-screen,
+body.css-critical-loading-115 .town-screen {
+  contain: layout paint;
+}
+
+body.css-route-loading-115 .field-quest-tracker,
+body.css-route-loading-115 .target-card,
+body.css-route-loading-115 .combat-log,
+body.css-route-loading-115 .hud-top {
+  transition-duration: 120ms;
+}
+
+body.field-active.css-runtime-115 .hud-top,
+body.field-active.css-runtime-115 .field-quest-tracker,
+body.field-active.css-runtime-115 .target-card,
+body.field-active.css-runtime-115 .field-minimap,
+body.field-active.css-runtime-115 .combat-log {
+  max-width: calc(100vw - var(--so-safe-pad-115) * 2);
+}
+
+body.field-active.css-runtime-115 .skill-dock,
+body.field-active.css-runtime-115 .action-dock,
+body.field-active.css-runtime-115 .potion-dock {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.field-active.asset-external-lite-115 .field-minimap,
+body.field-active.asset-external-lite-115 .target-card,
+body.field-active.asset-external-lite-115 .field-quest-tracker {
+  backdrop-filter: blur(8px) saturate(1.08);
+}
+
+body.asset-external-lite-115 .system-doctor,
+body.asset-external-lite-115 .technical-health-panel {
+  --so-health-ok-glow: rgba(119, 232, 255, 0.22);
+}
+
+@media (max-width: 380px), (max-height: 680px) {
+  body.css-runtime-115 .sheet,
+  body.css-runtime-115 .town-content-panel {
+    max-height: calc(var(--visual-vh-112, 1vh) * 100 - 32px);
+    border-radius: 18px;
+  }
+
+  body.field-active.css-runtime-115 .combat-log:not(.expanded) {
+    max-height: 92px;
+  }
+
+  body.field-active.css-runtime-115 .field-quest-tracker {
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.css-runtime-115 *,
+  body.css-runtime-115 *::before,
+  body.css-runtime-115 *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

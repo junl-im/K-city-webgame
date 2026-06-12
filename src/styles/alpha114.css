@@ -1,0 +1,168 @@
+/* Alpha 1.14 - CSS 런타임 분리와 모바일 HUD 최종 보정 레이어 */
+:root {
+  --kcity-neon-114: #72e7ff;
+  --kcity-ink-114: #f7fbff;
+  --kcity-panel-114: rgba(7, 13, 24, 0.86);
+  --kcity-panel-line-114: rgba(130, 230, 255, 0.42);
+  --kcity-safe-bottom-114: max(12px, env(safe-area-inset-bottom));
+  --kcity-safe-top-114: max(10px, env(safe-area-inset-top));
+  --css-lazy-progress-114: 0;
+}
+
+body.fantasy-ui-114,
+body.kcity-commercial-114 {
+  color-scheme: dark;
+  text-rendering: geometricPrecision;
+}
+
+body.css-runtime-114::before {
+  content: "";
+  position: fixed;
+  left: max(12px, env(safe-area-inset-left));
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(8px, env(safe-area-inset-bottom));
+  z-index: 2;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0;
+  transform-origin: left center;
+  transform: scaleX(var(--css-lazy-progress-114));
+  background: linear-gradient(90deg, rgba(114, 231, 255, 0.05), rgba(114, 231, 255, 0.72), rgba(255, 255, 255, 0.1));
+  transition: opacity 180ms ease, transform 220ms ease;
+}
+
+body.css-lazy-loading-114::before {
+  opacity: 0.32;
+}
+
+body.css-lazy-ready-114::before,
+body.css-lazy-error-114::before {
+  opacity: 0;
+}
+
+body.fantasy-ui-114 .hud-top,
+body.fantasy-ui-114 .target-card,
+body.fantasy-ui-114 .field-quest-tracker,
+body.fantasy-ui-114 .combat-log,
+body.fantasy-ui-114 .resource-strip {
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.75), 0 0 16px rgba(74, 198, 255, 0.18);
+}
+
+body.field-active.fantasy-ui-114 .hud-top {
+  top: calc(var(--kcity-safe-top-114) + 2px);
+  max-width: calc(100vw - max(22px, env(safe-area-inset-left)) - max(22px, env(safe-area-inset-right)));
+}
+
+body.field-active.fantasy-ui-114 .resource-strip {
+  max-width: calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right));
+}
+
+body.field-active.fantasy-ui-114 .target-card,
+body.field-active.fantasy-ui-114 .field-quest-tracker,
+body.field-active.fantasy-ui-114 .combat-log {
+  border-color: var(--kcity-panel-line-114);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(114, 231, 255, 0.15), transparent 36%),
+    linear-gradient(180deg, rgba(14, 31, 50, 0.88), var(--kcity-panel-114));
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+body.field-active.fantasy-ui-114 .action-dock,
+body.field-active.fantasy-ui-114 .skill-dock {
+  bottom: calc(var(--kcity-safe-bottom-114) + 2px);
+  max-width: calc(100vw - 18px - env(safe-area-inset-left) - env(safe-area-inset-right));
+}
+
+body.field-active.fantasy-ui-114 .attack-btn,
+body.field-active.fantasy-ui-114 .skill-btn,
+body.field-active.fantasy-ui-114 .dock-btn,
+body.field-active.fantasy-ui-114 .potion-btn {
+  min-width: 44px;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+body.field-active.fantasy-ui-114 .attack-btn:active,
+body.field-active.fantasy-ui-114 .skill-btn:active,
+body.field-active.fantasy-ui-114 .dock-btn:active {
+  transform: translateY(1px) scale(0.97);
+}
+
+body.fantasy-ui-114 .sheet,
+body.fantasy-ui-114 .town-content-panel,
+body.fantasy-ui-114 .item-detail-modal,
+body.fantasy-ui-114 .create-modal {
+  max-width: min(94vw, 460px);
+  max-height: min(calc(100dvh - var(--kcity-safe-top-114) - var(--kcity-safe-bottom-114) - 18px), 720px);
+  overscroll-behavior: contain;
+}
+
+body.maintenance-compact-113.fantasy-ui-114 .sheet,
+body.maintenance-compact-113.fantasy-ui-114 .town-content-panel,
+body.maintenance-compact-113.fantasy-ui-114 .item-detail-modal {
+  max-width: calc(100vw - 16px);
+  border-radius: 18px;
+}
+
+body.css-lazy-loading-114 .sheet,
+body.css-lazy-loading-114 .town-content-panel,
+body.css-lazy-loading-114 .item-detail-modal {
+  transition: opacity 160ms ease, transform 180ms ease;
+}
+
+body.maintenance-panel-stack-113.fantasy-ui-114 .sheet:not(.hidden),
+body.maintenance-panel-stack-113.fantasy-ui-114 .town-content-panel:not(.hidden),
+body.maintenance-panel-stack-113.fantasy-ui-114 .item-detail-modal:not(.hidden) {
+  transform: translateY(calc(var(--panel-depth-113, 0) * 4px)) scale(calc(1 - var(--panel-depth-113, 0) * 0.012));
+}
+
+body.fantasy-ui-114 .inventory-grid-111,
+body.fantasy-ui-114 .inventory-grid,
+body.fantasy-ui-114 .slot-grid.inventory-slot-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(64px, 18vw), 1fr));
+  gap: clamp(7px, 2vw, 10px);
+}
+
+body.maintenance-lite-113.fantasy-ui-114 .field-minimap,
+body.maintenance-lite-113.fantasy-ui-114 .field-chain-meter {
+  transform: scale(0.92);
+  transform-origin: top right;
+}
+
+body.maintenance-lite-113.fantasy-ui-114 .combat-log {
+  max-height: 108px;
+}
+
+body.maintenance-overflow-risk-113.fantasy-ui-114 .target-card,
+body.maintenance-overflow-risk-113.fantasy-ui-114 .field-quest-tracker,
+body.maintenance-overflow-risk-113.fantasy-ui-114 .combat-log {
+  max-width: calc(100vw - 18px - env(safe-area-inset-left) - env(safe-area-inset-right));
+}
+
+@media (max-width: 360px), (max-height: 640px) {
+  body.fantasy-ui-114 .field-quest-tracker {
+    display: none;
+  }
+
+  body.field-active.fantasy-ui-114 .target-card {
+    transform: scale(0.9);
+    transform-origin: top right;
+  }
+
+  body.field-active.fantasy-ui-114 .joystick {
+    transform: scale(0.88);
+    transform-origin: bottom left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.fantasy-ui-114 *,
+  body.fantasy-ui-114 *::before,
+  body.fantasy-ui-114 *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}

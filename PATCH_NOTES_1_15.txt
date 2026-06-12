@@ -1,0 +1,10 @@
+Soul Online alpha 1.15 patch
+
+- Version: 1.15.0
+- PWA cache: soul-online-alpha-v1-15
+- Externalized heavy 2.5D sprite-sheet fallbacks to public/assets/soulpack-lite.
+- Preserved source high-resolution atlas files under src/assets/2p5d for future quality pack work.
+- Added route-aware CSS loader 1.15.
+- Added asset delivery System Doctor report.
+- Added alpha115 mobile safe-frame CSS.
+- Firebase dist should no longer duplicate most 2~3MB source sprite sheets as hashed Vite assets.

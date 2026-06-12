@@ -259,6 +259,8 @@ export class SolGame {
   private spriteAtlasMode106: 'lite' | 'high' = 'high';
   private autoRouteIndex110 = 0;
   private autoRouteCooldown110 = 0;
+  private cleanupHandlers113: Array<() => void> = [];
+  private frameGovernorTimer113 = 0;
 
   constructor(
     private save: PlayerSave,
@@ -277,6 +279,7 @@ export class SolGame {
       resolution: renderProfile099.resolution
     });
     this.app.ticker.maxFPS = renderProfile099.maxFPS;
+    this.installFrameGovernor113();
 
     root.replaceChildren(this.app.canvas);
     this.world.scale.set(FIELD_ZOOM);
@@ -859,6 +862,8 @@ export class SolGame {
   destroy() {
     if (this.cloudTimer) window.clearTimeout(this.cloudTimer);
     if (this.hitStopTimer) window.clearTimeout(this.hitStopTimer);
+    if (this.frameGovernorTimer113) window.clearTimeout(this.frameGovernorTimer113);
+    this.cleanupHandlers113.splice(0).forEach((cleanup) => cleanup());
     if (this.app) this.app.ticker.speed = 1;
     this.listeners.clear();
     const canvas = this.app?.canvas;
@@ -923,6 +928,40 @@ export class SolGame {
     };
   }
 
+
+  /**
+   * Alpha 1.13: 화면 상태에 따라 Pixi ticker 상한을 다시 조정합니다.
+   * 1.05 프로필을 기본값으로 유지하되, 숨김 탭/초소형 화면/런타임 lite 등급에서는 배터리와 발열을 우선합니다.
+   */
+  private installFrameGovernor113() {
+    if (!this.app) return;
+    const apply = () => {
+      if (!this.app) return;
+      const profile = getFieldEngineProfile105();
+      const runtimeTier = document.body.dataset.maintenanceTier113 || document.body.dataset.runtimeTier112 || profile.tier;
+      const compact = Math.min(window.innerWidth || 0, window.innerHeight || 0) <= 380 || (window.innerHeight || 0) <= 680;
+      let fpsCap = profile.maxFPS;
+      if (document.hidden) fpsCap = 12;
+      else if (runtimeTier === 'lite' || compact) fpsCap = Math.min(fpsCap, 26);
+      else if (runtimeTier === 'balanced') fpsCap = Math.min(fpsCap, 38);
+      this.app.ticker.maxFPS = fpsCap;
+      document.body.dataset.fieldFpsCap113 = String(fpsCap);
+    };
+    const schedule = () => {
+      window.clearTimeout(this.frameGovernorTimer113);
+      this.frameGovernorTimer113 = window.setTimeout(apply, 120);
+    };
+    window.addEventListener('resize', schedule, { passive: true });
+    window.addEventListener('orientationchange', schedule, { passive: true });
+    document.addEventListener('visibilitychange', apply);
+    this.cleanupHandlers113.push(
+      () => window.removeEventListener('resize', schedule),
+      () => window.removeEventListener('orientationchange', schedule),
+      () => document.removeEventListener('visibilitychange', apply)
+    );
+    apply();
+  }
+
   private performanceTier101(): 'lite' | 'balanced' | 'quality' {
     return detectFieldEngineTier105();
   }
@@ -937,6 +976,18 @@ export class SolGame {
 
   private localStorageFlag099(key: string) {
     try { return window.localStorage.getItem(key) === '1'; } catch { return false; }
+  }
+
+  /**
+   * Alpha 1.15: public/assets/soulpack 풀팩이 없는 기본 Firebase 배포에서는
+   * 존재하지 않는 고품질 런타임 팩을 매 텍스처마다 요청하지 않습니다.
+   * 풀팩을 별도 배치한 빌드에서는 localStorage `soul-online-full-atlas-115=1`로 우선 사용을 켤 수 있습니다.
+   */
+  private shouldTryRuntimeTexture115(runtimeUrl: string | undefined, fallbackUrl: string) {
+    if (!runtimeUrl) return false;
+    if (runtimeUrl === fallbackUrl) return false;
+    if (runtimeUrl.includes('/assets/soulpack/') && !this.localStorageFlag099('soul-online-full-atlas-115')) return false;
+    return true;
   }
 
   private textureLoadConcurrency099(requiredCount: number) {
@@ -1011,9 +1062,9 @@ export class SolGame {
         // Lite atlases are optional. Fall through to normal runtime/fallback assets.
       }
     }
-    if (runtimeUrl) {
+    if (this.shouldTryRuntimeTexture115(runtimeUrl, fallbackUrl)) {
       try {
-        return await Assets.load<LoadedTexture>(runtimeUrl);
+        return await Assets.load<LoadedTexture>(runtimeUrl as string);
       } catch {
         // Runtime asset packs are optional. If a file is missing or corrupt, keep the game playable.
       }
