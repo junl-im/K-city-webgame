@@ -1,4 +1,4 @@
-const CACHE_NAME = 'soul-online-alpha-v1-07';
+const CACHE_NAME = 'soul-online-alpha-v1-08';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {

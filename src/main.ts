@@ -9,6 +9,7 @@ import './styles/alpha104.css';
 import './styles/alpha105.css';
 import './styles/alpha106.css';
 import './styles/alpha107.css';
+import './styles/alpha108.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
@@ -39,6 +40,7 @@ import { installQualityPass104, syncQualityPass104, inspectQualityPass104 } from
 import { installEngineQuality105, syncEngineQuality105, inspectEngineQuality105 } from './ui/engineQuality105';
 import { installEngineOptimization106, syncEngineOptimization106, inspectEngineOptimization106, applyImagePolicy106 } from './ui/engineOptimization106';
 import { installFinalOptimization107, syncFinalOptimization107, inspectFinalOptimization107, applyFinalImagePolicy107 } from './ui/finalOptimization107';
+import { installMobileQuality108, syncMobileQuality108, inspectMobileQuality108 } from './ui/mobileQuality108';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
 import type { AutoHuntSettings, CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
@@ -95,7 +97,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '1.07.0';
+const ALPHA_VERSION = '1.08.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -243,7 +245,7 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-098', 'visual-clean-098', 'fantasy-ui-099', 'visual-art-099', 'fantasy-ui-100', 'visual-field-100', 'fantasy-ui-101', 'perf-polish-101', 'fantasy-ui-102', 'asset-kit-102', 'fantasy-ui-103', 'portrait-lock-103', 'field-ui-103', 'fantasy-ui-104', 'quality-pass-104', 'fantasy-ui-105', 'engine-quality-105', 'fantasy-ui-106', 'engine-106', 'fantasy-ui-107', 'final-opt-107', 'entry-flow-ready-090');
+  document.body.classList.add('fantasy-ui-098', 'visual-clean-098', 'fantasy-ui-099', 'visual-art-099', 'fantasy-ui-100', 'visual-field-100', 'fantasy-ui-101', 'perf-polish-101', 'fantasy-ui-102', 'asset-kit-102', 'fantasy-ui-103', 'portrait-lock-103', 'field-ui-103', 'fantasy-ui-104', 'quality-pass-104', 'fantasy-ui-105', 'engine-quality-105', 'fantasy-ui-106', 'engine-106', 'fantasy-ui-107', 'final-opt-107', 'fantasy-ui-108', 'mobile-quality-108', 'entry-flow-ready-090');
   titleScreen.classList.add('title-screen-098', 'title-art-099');
   loginScreen.classList.add('login-screen-098', 'login-art-099');
   townScreen.classList.add('town-screen-098', 'town-art-099');
@@ -266,6 +268,7 @@ async function boot() {
   installEngineQuality105(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   installEngineOptimization106(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   installFinalOptimization107(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  installMobileQuality108(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   await saveService.init();
   await mergeCloudRosterToLocal();
   pendingSave = saveService.loadLocal();
@@ -313,6 +316,7 @@ async function boot() {
   syncEngineQuality105(document);
 syncEngineOptimization106(document);
   syncFinalOptimization107(document);
+  syncMobileQuality108(document);
   ensureTitleEntry090({ titleScreen, startButton: startGameBtn, loginScreen });
   installEntryRegressionGuards092();
   titleEntryLastReport090 = titleEntryHealthLabel090(inspectTitleEntry090(titleScreen, startGameBtn)).label;
@@ -348,6 +352,7 @@ function bindTitleFlow() {
   syncEngineQuality105(document);
 syncEngineOptimization106(document);
   syncFinalOptimization107(document);
+  syncMobileQuality108(document);
     });
     titleStartBusy090 = false;
   };
@@ -1109,6 +1114,7 @@ async function enterTown(save: PlayerSave, label = '마을로 이동 중') {
   syncEngineQuality105(document);
 syncEngineOptimization106(document);
   syncFinalOptimization107(document);
+  syncMobileQuality108(document);
   });
 }
 
@@ -1147,6 +1153,7 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
   syncEngineQuality105(document);
 syncEngineOptimization106(document);
   syncFinalOptimization107(document);
+  syncMobileQuality108(document);
       setFieldZoneHud(zoneId);
 
       if (game) game.destroy();
@@ -1202,6 +1209,7 @@ syncEngineOptimization106(document);
   syncEngineQuality105(document);
 syncEngineOptimization106(document);
   syncFinalOptimization107(document);
+  syncMobileQuality108(document);
     showToast(error instanceof Error ? `사냥터 입장 실패: ${error.message}` : '사냥터 입장 실패');
   }
 }
@@ -4477,6 +4485,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
   const engine105 = inspectEngineQuality105(document);
   const engine106 = inspectEngineOptimization106(document);
   const final107 = inspectFinalOptimization107(document);
+  const quality108 = inspectMobileQuality108(document);
   titleEntryLastReport090 = titleHealth090.label;
   const rows: HealthTile087[] = [
     { label: '브랜드', value: 'Soul Online 고정', level: 'ok' },
@@ -4492,6 +4501,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     { label: '1.05 엔진 QA', value: engine105.message, level: engine105.level, hint: engine105.hint },
     { label: '1.06 스프라이트/성능', value: engine106.message, level: engine106.level, hint: engine106.hint },
     { label: '1.07 최종 최적화', value: final107.message, level: final107.level, hint: final107.hint },
+    { label: '1.08 모바일 품질', value: quality108.message, level: quality108.level, hint: quality108.hint },
     { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
     { label: '성능', value: perfHealth.label, level: perfHealth.level },
     { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },
@@ -4648,6 +4658,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
   const engine105 = inspectEngineQuality105(document);
   const engine106 = inspectEngineOptimization106(document);
   const final107 = inspectFinalOptimization107(document);
+  const quality108 = inspectMobileQuality108(document);
   titleEntryLastReport090 = titleHealth090.label;
   const tiles: HealthTile087[] = [
     { label: '첫 화면', value: titleHealth090.label, level: titleHealth090.level, hint: titleHealth090.hint },
@@ -4662,6 +4673,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     { label: '1.05 엔진 QA', value: engine105.message, level: engine105.level, hint: engine105.hint },
     { label: '1.06 스프라이트/성능', value: engine106.message, level: engine106.level, hint: engine106.hint },
     { label: '1.07 최종 최적화', value: final107.message, level: final107.level, hint: final107.hint },
+    { label: '1.08 모바일 품질', value: quality108.message, level: quality108.level, hint: quality108.hint },
     { label: 'FPS', value: `${measuredFps} · ${perfHealth.label}`, level: perfHealth.level },
     { label: '저장 연결', value: cloudState, level: cloud.paused ? 'warn' : 'ok' },
     { label: 'UI 안전', value: document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상', level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok', hint: lastUiAuditMessage },
@@ -4692,7 +4704,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
       networkState: networkState085,
       pwaState: serviceWorkerReady086 ? '준비' : '대기',
       characterTail: save.saveId.slice(-6),
-      contentSummary: `콘텐츠 ${contentHealth.totals.zones}존 · ${contentHealth.totals.monsters}몬스터 · ${contentHealth.totals.items}아이템 · ${contentHealth.totals.quests}퀘스트 · 예열 ${preloadSummary089.count}개 · 리소스 ${resourceBudget091.totalMB}MB · CSS ${Math.max(cssBudget092.estimatedKB, cssBudget092.runtimeCssKB).toFixed(0)}KB · 1.05 ${engine105.tier} · 1.07 ${final107.tier}`
+      contentSummary: `콘텐츠 ${contentHealth.totals.zones}존 · ${contentHealth.totals.monsters}몬스터 · ${contentHealth.totals.items}아이템 · ${contentHealth.totals.quests}퀘스트 · 예열 ${preloadSummary089.count}개 · 리소스 ${resourceBudget091.totalMB}MB · CSS ${Math.max(cssBudget092.estimatedKB, cssBudget092.runtimeCssKB).toFixed(0)}KB · 1.05 ${engine105.tier} · 1.07 ${final107.tier} · 1.08 ${quality108.tier}`
     },
     issueRows,
     cloudError: cloud.lastError,
