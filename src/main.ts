@@ -45,6 +45,8 @@ import { installFinalOptimization107, syncFinalOptimization107, inspectFinalOpti
 import { installMobileQuality108, syncMobileQuality108, inspectMobileQuality108 } from './ui/mobileQuality108';
 import { installMaintenance109, syncMaintenance109, inspectMaintenance109 } from './ui/maintenance109';
 import { installFieldLayout110, syncFieldLayout110, inspectFieldLayout110 } from './ui/fieldLayout110';
+import { renderInventoryPanel111 } from './ui/InventoryUI';
+import { closeMenuWindow111, installMenuWindowMotion111, openMenuWindow111, syncMenuWindowSafeFrame111 } from './ui/MenuWindow';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
 import type { AutoHuntSettings, CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
 
@@ -101,7 +103,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '1.10.0';
+const ALPHA_VERSION = '1.11.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -249,7 +251,7 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-098', 'visual-clean-098', 'fantasy-ui-099', 'visual-art-099', 'fantasy-ui-100', 'visual-field-100', 'fantasy-ui-101', 'perf-polish-101', 'fantasy-ui-102', 'asset-kit-102', 'fantasy-ui-103', 'field-ui-103', 'fantasy-ui-104', 'quality-pass-104', 'fantasy-ui-105', 'engine-quality-105', 'fantasy-ui-106', 'engine-106', 'fantasy-ui-107', 'final-opt-107', 'fantasy-ui-108', 'mobile-quality-108', 'fantasy-ui-109', 'maintenance-109', 'entry-flow-ready-090');
+  document.body.classList.add('fantasy-ui-098', 'visual-clean-098', 'fantasy-ui-099', 'visual-art-099', 'fantasy-ui-100', 'visual-field-100', 'fantasy-ui-101', 'perf-polish-101', 'fantasy-ui-102', 'asset-kit-102', 'fantasy-ui-103', 'field-ui-103', 'fantasy-ui-104', 'quality-pass-104', 'fantasy-ui-105', 'engine-quality-105', 'fantasy-ui-106', 'engine-106', 'fantasy-ui-107', 'final-opt-107', 'fantasy-ui-108', 'mobile-quality-108', 'fantasy-ui-109', 'maintenance-109', 'fantasy-ui-111', 'kcity-commercial-111', 'entry-flow-ready-090');
   titleScreen.classList.add('title-screen-098', 'title-art-099');
   loginScreen.classList.add('login-screen-098', 'login-art-099');
   townScreen.classList.add('town-screen-098', 'town-art-099');
@@ -275,6 +277,7 @@ async function boot() {
   installMobileQuality108(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   installMaintenance109(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   installFieldLayout110(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  installMenuWindowMotion111({ sheet, townPanel: townContentPanel, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   await saveService.init();
   await mergeCloudRosterToLocal();
   pendingSave = saveService.loadLocal();
@@ -1668,6 +1671,8 @@ function openSheet(tab: SheetTab) {
   document.body.classList.add('sheet-open');
   sheet.classList.add('open');
   sheet.setAttribute('aria-hidden', 'false');
+  syncMenuWindowSafeFrame111(sheet);
+  openMenuWindow111(sheet);
   document.querySelectorAll('[data-sheet-tab]').forEach((item) => {
     item.classList.toggle('active', (item as HTMLElement).dataset.sheetTab === tab);
   });
@@ -1678,6 +1683,7 @@ function openSheet(tab: SheetTab) {
 function closeCurrentSheet() {
   sheetOpen = false;
   document.body.classList.remove('sheet-open');
+  closeMenuWindow111(sheet);
   sheet.classList.remove('open');
   sheet.setAttribute('aria-hidden', 'true');
   scheduleUiSafetyAudit();
@@ -1727,7 +1733,7 @@ function renderInventory(snapshot: Snapshot) {
     ${renderEquipmentResonanceSummary(snapshot.save)}
     ${renderEnhancementWorkbench(snapshot.save)}
     ${renderPotionBeltSummary(snapshot.save)}
-    ${renderCategorizedInventory(snapshot.save, false, 'all')}
+    ${renderInventoryPanel111(snapshot.save, { townMode: false, activeFilter: 'all', bagLimit: 64 })}
   `;
 }
 
@@ -2501,6 +2507,8 @@ function openTownContent(content: TownContentId) {
   townScreen.classList.add('town-drawer-open');
   townContentPanel.classList.remove('hidden');
   townContentPanel.setAttribute('aria-hidden', 'false');
+  syncMenuWindowSafeFrame111(townContentPanel);
+  openMenuWindow111(townContentPanel);
   syncTownMenuState();
   renderTownContent();
   scheduleUiSafetyAudit();
@@ -2510,6 +2518,7 @@ function closeTownContentPanel() {
   townContentOpen = false;
   document.body.classList.remove('town-drawer-open');
   townScreen.classList.remove('town-drawer-open');
+  closeMenuWindow111(townContentPanel);
   townContentPanel.classList.add('hidden');
   townContentPanel.setAttribute('aria-hidden', 'true');
   syncTownMenuState();
@@ -3245,7 +3254,7 @@ function renderTownInventory(save: PlayerSave) {
     ${renderEquipmentResonanceSummary(save, true)}
     ${renderEnhancementWorkbench(save)}
     ${renderPotionBeltSummary(save)}
-    ${renderCategorizedInventory(save, true, activeInventoryFilter088)}
+    ${renderInventoryPanel111(save, { townMode: true, activeFilter: activeInventoryFilter088, bagLimit: 64 })}
   `;
 }
 
@@ -4195,15 +4204,21 @@ async function lockPortraitMode() {
 
 async function withSceneTransition(label: string, action: () => Promise<void> | void) {
   sceneTransitionLabel.textContent = label;
-  sceneTransition.classList.add('show');
+  sceneTransition.classList.remove('phase-in-111', 'phase-switch-111');
+  sceneTransition.classList.add('show', 'phase-out-111');
   sceneTransition.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('scene-transition-busy-111');
   try {
-    await delay(120);
+    await delay(160);
+    sceneTransition.classList.add('phase-switch-111');
     await action();
-    await delay(180);
+    sceneTransition.classList.remove('phase-out-111', 'phase-switch-111');
+    sceneTransition.classList.add('phase-in-111');
+    await delay(220);
   } finally {
-    sceneTransition.classList.remove('show');
+    sceneTransition.classList.remove('show', 'phase-out-111', 'phase-switch-111', 'phase-in-111');
     sceneTransition.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('scene-transition-busy-111');
   }
 }
 

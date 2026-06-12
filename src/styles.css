@@ -26184,3 +26184,356 @@ body.fantasy-ui-086[data-fps-state="low"] .loot-rune-083 {
     display: none !important;
   }
 }
+
+/* =========================================================
+   Soul Online 1.11 - K-city commercial RPG polish
+   목적: 팝업 탄성 모션, 네온 인벤토리, 페이드 전환, 모바일 safe-area 보정
+   ========================================================= */
+body.kcity-commercial-111 {
+  --kcity-neon-blue: #72e7ff;
+  --kcity-neon-deep: #132a4c;
+  --kcity-panel-white: rgba(245, 251, 255, 0.94);
+  --kcity-ink: #07111f;
+}
+
+.menu-window-ready-111 {
+  max-height: var(--menu-window-max-h-111, calc(100dvh - 28px));
+  transform-origin: var(--menu-window-origin-x, 50%) var(--menu-window-origin-y, 52%);
+  will-change: transform, opacity, filter;
+}
+
+.menu-window-opening-111 {
+  animation: menu-window-pop-111 0.36s cubic-bezier(0.18, 0.88, 0.24, 1.12) both;
+}
+
+.menu-window-closing-111 {
+  animation: menu-window-close-111 0.18s ease both;
+}
+
+.menu-close-press-111 {
+  transform: scale(0.94) !important;
+  filter: brightness(1.15) saturate(1.15);
+}
+
+@keyframes menu-window-pop-111 {
+  0% { opacity: 0; transform: translate3d(0, 16px, 0) scale(0.18); filter: blur(10px) saturate(1.4); }
+  58% { opacity: 1; transform: translate3d(0, -4px, 0) scale(1.045); filter: blur(0) saturate(1.12); }
+  78% { transform: translate3d(0, 2px, 0) scale(0.985); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0) saturate(1); }
+}
+
+@keyframes menu-window-close-111 {
+  0% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  100% { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.92); }
+}
+
+body.kcity-commercial-111 .sheet.open,
+body.kcity-commercial-111 .town-content-panel:not(.hidden) {
+  border: 1px solid rgba(114, 231, 255, 0.38) !important;
+  box-shadow:
+    0 22px 70px rgba(0, 0, 0, 0.58),
+    0 0 0 1px rgba(255, 255, 255, 0.09) inset,
+    0 0 34px rgba(114, 231, 255, 0.16) !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(114, 231, 255, 0.16), transparent 34%),
+    linear-gradient(180deg, rgba(10, 24, 44, 0.94), rgba(6, 10, 22, 0.96)) !important;
+}
+
+body.kcity-commercial-111 .scene-transition {
+  z-index: 120;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(114, 231, 255, 0.16), transparent 34%),
+    radial-gradient(circle at 50% 55%, rgba(255, 255, 255, 0.08), transparent 22%),
+    rgba(3, 7, 14, 0.9);
+  transition: opacity 0.22s ease;
+}
+
+body.kcity-commercial-111 .scene-transition.phase-out-111 div {
+  animation: scene-card-out-111 0.18s ease both;
+}
+
+body.kcity-commercial-111 .scene-transition.phase-in-111 div {
+  animation: scene-card-in-111 0.22s ease both;
+}
+
+body.scene-transition-busy-111 .game-root,
+body.scene-transition-busy-111 .town-screen {
+  filter: saturate(0.92) brightness(0.72);
+}
+
+@keyframes scene-card-out-111 {
+  from { transform: scale(0.96); opacity: 0.35; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes scene-card-in-111 {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(1.02); opacity: 0; }
+}
+
+.kcity-inventory-shell-111 {
+  display: grid;
+  gap: 12px;
+  padding: 2px 0 max(8px, env(safe-area-inset-bottom));
+}
+
+.kcity-inventory-hero-111 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(104px, 0.34fr);
+  gap: 10px;
+  align-items: stretch;
+  padding: 14px;
+  border: 1px solid rgba(114, 231, 255, 0.32);
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(245, 251, 255, 0.94), rgba(198, 238, 255, 0.86) 42%, rgba(41, 104, 174, 0.72)),
+    radial-gradient(circle at 84% 18%, rgba(255, 255, 255, 0.95), transparent 28%);
+  color: var(--kcity-ink);
+  box-shadow: 0 16px 42px rgba(25, 111, 177, 0.18), 0 1px 0 rgba(255, 255, 255, 0.82) inset;
+}
+
+.kcity-inventory-hero-111 h3,
+.kcity-inventory-hero-111 p {
+  margin: 0;
+}
+
+.kcity-inventory-hero-111 h3 {
+  margin-top: 3px;
+  font-size: clamp(20px, 5vw, 28px);
+  line-height: 1.04;
+  color: #06162a;
+}
+
+.kcity-inventory-hero-111 p {
+  margin-top: 6px;
+  color: rgba(7, 17, 31, 0.72);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.kcity-bag-meter-111 {
+  display: grid;
+  align-content: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 10px;
+  border-radius: 18px;
+  background: rgba(6, 17, 35, 0.82);
+  color: #f5fbff;
+  box-shadow: 0 0 0 1px rgba(114, 231, 255, 0.22) inset;
+}
+
+.kcity-bag-meter-111 b {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.kcity-bag-meter-111 i {
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.13);
+}
+
+.kcity-bag-meter-111 em {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #72e7ff, #ffffff);
+  box-shadow: 0 0 12px rgba(114, 231, 255, 0.72);
+}
+
+.kcity-bag-meter-111 small {
+  color: rgba(245, 251, 255, 0.76);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.kcity-inventory-filter-111 {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+  padding: 6px;
+  border: 1px solid rgba(114, 231, 255, 0.2);
+  border-radius: 18px;
+  background: rgba(7, 13, 27, 0.58);
+}
+
+.kcity-inventory-filter-111 button {
+  display: grid;
+  gap: 2px;
+  min-height: 48px;
+  padding: 7px 5px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(239, 248, 255, 0.78);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+
+.kcity-inventory-filter-111 button.active {
+  background: linear-gradient(180deg, rgba(114, 231, 255, 0.96), rgba(255, 255, 255, 0.9));
+  color: #07111f;
+  box-shadow: 0 0 22px rgba(114, 231, 255, 0.32);
+}
+
+.kcity-inventory-filter-111 b { font-size: 11px; }
+.kcity-inventory-filter-111 em { font-size: 10px; opacity: 0.82; }
+
+.kcity-inventory-grid-wrap-111 {
+  overflow: hidden;
+  padding: 8px;
+  border: 1px solid rgba(114, 231, 255, 0.18);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02)),
+    rgba(4, 10, 23, 0.64);
+}
+
+.slot-grid.kcity-inventory-grid-111 {
+  display: grid !important;
+  grid-template-columns: repeat(var(--inventory-columns-111, 4), minmax(0, 1fr)) !important;
+  gap: clamp(7px, 1.8vw, 10px) !important;
+}
+
+.kcity-item-slot-111 {
+  position: relative;
+  min-height: 116px !important;
+  overflow: hidden;
+  border-color: rgba(114, 231, 255, 0.24) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(114, 231, 255, 0.12), transparent 32%),
+    linear-gradient(180deg, rgba(16, 36, 66, 0.92), rgba(5, 10, 22, 0.94)) !important;
+}
+
+.kcity-item-slot-111.equipped {
+  border-color: rgba(255, 229, 150, 0.78) !important;
+  box-shadow: 0 0 22px rgba(255, 209, 95, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.08) inset !important;
+}
+
+.kcity-item-slot-111.upgrade-ready-111::before {
+  content: "UP";
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  padding: 3px 5px;
+  border-radius: 999px;
+  background: #72e7ff;
+  color: #06101f;
+  font-size: 9px;
+  font-weight: 1000;
+  box-shadow: 0 0 16px rgba(114, 231, 255, 0.48);
+}
+
+.kcity-item-slot-111 .slot-art {
+  width: clamp(42px, 13vw, 58px) !important;
+  height: clamp(42px, 13vw, 58px) !important;
+  margin: 0 auto 5px;
+  border-radius: 16px !important;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.36), transparent 32%),
+    linear-gradient(145deg, rgba(114, 231, 255, 0.26), rgba(18, 35, 69, 0.92)) !important;
+}
+
+.kcity-item-slot-111 .slot-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.kcity-item-slot-111 b {
+  color: #f5fbff !important;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.42);
+}
+
+.kcity-item-slot-111 em {
+  color: rgba(221, 244, 255, 0.72) !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.kcity-slot-actions-111 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.kcity-slot-actions-111 button {
+  min-height: 26px;
+  border-radius: 999px;
+  background: rgba(114, 231, 255, 0.92);
+  color: #06101f;
+  font-size: 10px;
+  font-weight: 1000;
+}
+
+.kcity-slot-actions-111 button:disabled {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.kcity-empty-slot-111 {
+  min-height: 116px !important;
+  border: 1px dashed rgba(114, 231, 255, 0.22) !important;
+  background: rgba(255, 255, 255, 0.035) !important;
+}
+
+.kcity-inventory-footer-111 {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid rgba(114, 231, 255, 0.16);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.kcity-inventory-footer-111 span {
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(114, 231, 255, 0.16);
+  color: #72e7ff;
+  font-size: 10px;
+  font-weight: 1000;
+}
+
+.kcity-inventory-footer-111 p {
+  margin: 0;
+  color: rgba(235, 247, 255, 0.72);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+@media (max-width: 390px) {
+  .kcity-inventory-hero-111 {
+    grid-template-columns: 1fr;
+  }
+  .kcity-inventory-filter-111 {
+    gap: 5px;
+  }
+  .slot-grid.kcity-inventory-grid-111 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  .kcity-item-slot-111,
+  .kcity-empty-slot-111 {
+    min-height: 104px !important;
+  }
+  .kcity-slot-actions-111 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-window-opening-111,
+  .menu-window-closing-111,
+  body.kcity-commercial-111 .scene-transition.phase-out-111 div,
+  body.kcity-commercial-111 .scene-transition.phase-in-111 div {
+    animation: none !important;
+  }
+}

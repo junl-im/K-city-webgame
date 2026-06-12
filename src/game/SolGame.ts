@@ -44,6 +44,7 @@ import { isoToScreen, screenToIso } from './iso';
 import { clamp, distance, formatGold, formatNumber, normalize, roll, uid } from './math';
 import type { SaveService } from './SaveService';
 import { audioService } from './AudioService';
+import { CombatSystem } from './CombatSystem';
 import { applyEquipmentResonance, equipmentResonanceEffects } from './equipmentResonance';
 import { HUMANOID_SHEET_META, MONSTER_SHEET_META, SpriteSheetAnimator, directionFromIsoVector, type SpriteDirection } from './SpriteSheetAnimator';
 import { detectFieldEngineTier105, getFieldEngineProfile105 } from './fieldEngineProfile105';
@@ -218,6 +219,7 @@ export class SolGame {
   private playerFacing: SpriteDirection = 's';
   private playerShadow: Graphics | null = null;
   private playerCompanion: Container | null = null;
+  private combatFx: CombatSystem | null = null;
   private textures = new Map<string, LoadedTexture>();
   private currentMap: TileId[][] = worldMap.map((row) => [...row]);
   private mobs: WorldMob[] = [];
@@ -280,6 +282,12 @@ export class SolGame {
     this.world.scale.set(FIELD_ZOOM);
     this.world.addChild(this.mapLayer, this.ambientLayer, this.propLayer, this.entityLayer, this.fxLayer);
     this.app.stage.addChild(this.world);
+    this.combatFx = new CombatSystem({
+      ticker: this.app.ticker,
+      world: this.world,
+      fxLayer: this.fxLayer,
+      isLite: () => this.isFieldLite101()
+    });
 
     this.spriteAtlasMode106 = shouldUseLiteSpriteAtlas106() ? 'lite' : 'high';
     await this.loadTextures();
@@ -858,6 +866,7 @@ export class SolGame {
     this.app?.destroy();
     canvas?.remove();
     this.app = null;
+    this.combatFx = null;
     this.mobs = [];
     this.mobViews.clear();
     this.target = null;
@@ -3571,7 +3580,7 @@ export class SolGame {
       this.slashEffect(mob, result.crit);
       this.lungePlayer(mob);
       this.combatMotionAccent(mob, result.crit ? 0xffd15f : klass.accent, result.crit);
-      if (result.hit) this.screenShake();
+      if (result.crit) this.screenShake();
       return;
     }
     if (klass.attackStyle === 'projectile') {
@@ -4211,13 +4220,19 @@ export class SolGame {
     const view = this.mobViews.get(mob.uid);
     if (!view) return;
     view.animator?.playOnce('hit', mob.state === 'chase' ? 'run' : 'idle');
-    view.body.tint = 0xffd1d1;
+    // 1.11: 몬스터 피격은 0.1초 백색 플래시 + 짧은 반동으로 타격감을 명확히 합니다.
+    if (this.combatFx) {
+      this.combatFx.hitFlash(view.body, { duration: 0.1, shakeX: mob.eliteAffix ? 6 : 4.5, squash: 0.1 });
+      return;
+    }
+    view.body.tint = 0xffffff;
     const originalX = view.body.x;
-    this.animate(0.16, (t) => {
+    this.animate(0.1, (t) => {
       view.body.x = originalX + Math.sin(t * Math.PI * 4) * 5 * (1 - t);
-      view.body.scale.y = view.baseScale * (1 - 0.12 * (1 - t));
+      view.body.scale.y = view.baseScale * (1 - 0.1 * Math.sin(t * Math.PI));
     }, () => {
       view.body.x = originalX;
+      view.body.scale.y = view.baseScale;
       view.body.tint = 0xffffff;
     });
   }
@@ -4239,14 +4254,20 @@ export class SolGame {
     this.playerAnimator?.playOnce('attack', 'idle');
     this.playerAfterImage(classes[this.save.classId].accent, 0.34);
     const dir = normalize(mob.x - this.save.x, mob.y - this.save.y);
-    const sx = (dir.x - dir.y) * 14;
-    const sy = (dir.x + dir.y) * 7;
+    const sx = (dir.x - dir.y) * 18;
+    const sy = (dir.x + dir.y) * 8;
+    const rotate = 0.13 * (this.playerBody.scale.x < 0 ? -1 : 1);
+    // 1.11: player_soul.png 계열 SD 히어로가 적에게 순간 접근했다가 원위치로 복귀하는 트윈 대시입니다.
+    if (this.combatFx) {
+      this.combatFx.dashAndReturn(this.playerBody, sx, -sy, { duration: 0.22, lift: 5, rotate });
+      return;
+    }
     this.animate(0.2, (t) => {
       const pulse = Math.sin(t * Math.PI);
       if (this.playerBody) {
         this.playerBody.x = sx * pulse;
         this.playerBody.y = -sy * pulse - pulse * 4;
-        this.playerBody.rotation = pulse * 0.13 * (this.playerBody.scale.x < 0 ? -1 : 1);
+        this.playerBody.rotation = pulse * rotate;
       }
     }, () => {
       if (this.playerBody) {
@@ -4625,6 +4646,17 @@ export class SolGame {
     if (this.localStorageFlag099('soul-online-field-lite-100') && this.fxLayer.children.length > 34 && !important101) return;
     if (!this.shouldSpawnFx101(1, important101)) return;
     const pos = isoToScreen(x, y);
+    if (this.combatFx) {
+      this.combatFx.floatingDamageText({
+        text,
+        x: pos.x,
+        y: pos.y,
+        color,
+        critical: text.includes('CRIT'),
+        important: important101
+      });
+      return;
+    }
     const label = new Text({
       text,
       style: {
@@ -4647,6 +4679,7 @@ export class SolGame {
 
   private screenShake() {
     if (this.isFieldLite101()) return;
+    this.combatFx?.cameraShake({ strength: 11, duration: 0.22 });
     document.body.classList.remove('screen-shake');
     void document.body.offsetWidth;
     document.body.classList.add('screen-shake');

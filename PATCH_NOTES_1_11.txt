@@ -1,0 +1,30 @@
+Soul Online alpha 1.11 patch notes
+
+Build verification:
+- npm ci --prefer-offline --no-audit --no-fund: success
+- npm run build: success
+- TypeScript: tsc --noEmit passed
+- Vite production build: passed
+
+Changed source files:
+- src/game/CombatSystem.ts
+- src/game/SolGame.ts
+- src/ui/MenuWindow.ts
+- src/ui/InventoryUI.ts
+- src/main.ts
+- src/styles.css
+- public/sw.js
+- package.json
+- docs/KCITY_COMMERCIAL_RPG_REFACTOR_1_11.md
+
+Core improvements:
+- PixiJS combat tween helper added
+- Player dash-and-return attack motion strengthened
+- Critical camera shake moved to crit hit emphasis
+- Monster hit flash changed to 0.1s white flash
+- Floating damage text upgraded with bounce/drift animation
+- Menu/sheet/town panel bounce open animation added
+- Mobile safe-area max-height sync added
+- K-city neon 4x4/5x5 inventory renderer added
+- Scene transition fade phases added
+- PWA cache updated to soul-online-alpha-v1-11
