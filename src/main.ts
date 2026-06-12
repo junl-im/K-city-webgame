@@ -1,9 +1,4 @@
-import './styles.css';
-import './styles/alpha114.css';
-import './styles/alpha115.css';
-import './styles/alpha116.css';
-import './styles/alpha117.css';
-import './styles/alpha118.css';
+import './styles/alpha119.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
@@ -46,10 +41,34 @@ import { installFieldLayout116, syncFieldLayout116, inspectFieldLayout116 } from
 import { installViewportLock117, syncViewportLock117, inspectViewportLock117 } from './ui/viewportLock117';
 import { installSingleVisualMode117, syncSingleVisualMode117, inspectSingleVisualMode117 } from './ui/singleVisualMode117';
 import { installSceneStability118, syncSceneStability118, inspectSceneStability118 } from './ui/sceneStability118';
+import { installEmergencyBoot119, inspectEmergencyBoot119, markBootFullyReady119, markBootInteractive119, runIdleBatch119, syncEmergencyScene119 } from './ui/emergencyBoot119';
 import { renderInventoryPanel111 } from './ui/InventoryUI';
 import { closeMenuWindow111, installMenuWindowMotion111, openMenuWindow111, syncMenuWindowSafeFrame111 } from './ui/MenuWindow';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
 import type { AutoHuntSettings, CardDefinition, CharacterClassId, CharacterGender, EquipmentSlot, EliteAffixId, ItemDefinition, PlayerSave, SheetTab, SkillDefinition, Snapshot, SoulDefinition, Stats } from './types';
+
+
+let runtimeStylesRequested119 = false;
+function loadRuntimeStyles119() {
+  if (runtimeStylesRequested119) return;
+  runtimeStylesRequested119 = true;
+  document.body.classList.add('runtime-style-loading-119');
+  void Promise.all([
+    import('./styles.css'),
+    import('./styles/alpha114.css'),
+    import('./styles/alpha115.css'),
+    import('./styles/alpha116.css'),
+    import('./styles/alpha117.css'),
+    import('./styles/alpha118.css')
+  ]).then(() => {
+    document.body.classList.remove('runtime-style-loading-119');
+    document.body.classList.add('runtime-style-ready-119');
+  }).catch((error) => {
+    document.body.classList.remove('runtime-style-loading-119');
+    document.body.classList.add('runtime-style-failed-119');
+    console.warn('[SoulOnline 1.19] runtime CSS load skipped', error);
+  });
+}
 
 type FlowStep = 'login' | 'server' | 'character' | 'town';
 type TownContentId = 'hunt' | 'story' | 'cards' | 'inventory' | 'skills' | 'shop' | 'boss' | 'quests' | 'pledge' | 'settings' | 'account';
@@ -104,7 +123,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '1.18.0';
+const ALPHA_VERSION = '1.19.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -252,46 +271,30 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-098', 'visual-clean-098', 'fantasy-ui-099', 'visual-art-099', 'fantasy-ui-100', 'visual-field-100', 'fantasy-ui-101', 'perf-polish-101', 'fantasy-ui-102', 'asset-kit-102', 'fantasy-ui-103', 'field-ui-103', 'fantasy-ui-104', 'quality-pass-104', 'fantasy-ui-105', 'engine-quality-105', 'fantasy-ui-106', 'engine-106', 'fantasy-ui-107', 'final-opt-107', 'fantasy-ui-108', 'mobile-quality-108', 'fantasy-ui-109', 'maintenance-109', 'fantasy-ui-111', 'kcity-commercial-111', 'fantasy-ui-112', 'kcity-commercial-112', 'fantasy-ui-113', 'kcity-commercial-113', 'runtime-cleanup-113', 'fantasy-ui-114', 'kcity-commercial-114', 'css-runtime-114', 'fantasy-ui-116', 'field-layout-116', 'title-layout-116', 'no-pet-116', 'fantasy-ui-117', 'single-visual-117', 'viewport-lock-117', 'fantasy-ui-118', 'scene-stability-118', 'viewport-frame-118', 'standard-only-118', 'entry-flow-ready-090');
+  document.body.classList.add('fantasy-ui-119', 'emergency-boot-119', 'boot-critical-119', 'standard-mode-119', 'entry-flow-ready-090', 'title-layout-116', 'no-pet-116', 'single-visual-117', 'viewport-lock-117', 'scene-stability-118');
   titleScreen.classList.add('title-screen-098', 'title-art-099');
   loginScreen.classList.add('login-screen-098', 'login-art-099');
   townScreen.classList.add('town-screen-098', 'town-art-099');
-  installViewportLock117(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root });
-  installSingleVisualMode117(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+
+  // 1.19 긴급 부팅: 무거운 보정 레이어보다 START 버튼을 먼저 살린다.
+  installEmergencyBoot119(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   ensureTitleEntry090({ titleScreen, startButton: startGameBtn, loginScreen });
-  installVisualRescue093({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
-  installVisualConsolidation094({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  installVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  installVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  installVisualMass097({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  installVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  installVisualArtPerf099({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  installFieldHudOverhaul100({ gameRoot: root });
-  installPerformanceTuner101(document);
-  applyImageDecodePolicy101(document);
-  applyImagePolicy106(document);
-  applyFinalImagePolicy107(document);
-  installSoulAssetKit102(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  installPortraitFieldUx103(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  installQualityPass104(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  installEngineQuality105(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  installEngineOptimization106(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  installFinalOptimization107(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  installMobileQuality108(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  installMaintenance109(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  installFieldLayout110(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  installMobileRuntime112(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root });
-  installFieldHud112(document, { gameRoot: root });
-  installMaintenance113(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, sheet, townPanel: townContentPanel, itemDetailModal });
-  installStyleLoader115(document);
-  installAssetDelivery115(document);
-  installFieldLayout116(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
-  syncViewportLock117(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root });
-  syncSingleVisualMode117(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
-  installSceneStability118(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
-  installMenuWindowMotion111({ sheet, townPanel: townContentPanel, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
+  bindTitleFlow();
+  registerServiceWorker();
+  updateAudioButtons();
+
+  // 첫 화면은 동기 처리로 고정한다. 이후 로그인/마을/필드 보정은 지연 로드한다.
+  syncEmergencyScene119(document, 'title', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  titleScreen.classList.remove('hidden');
+  titleScreen.setAttribute('aria-hidden', 'false');
+  loginScreen.classList.add('hidden');
+  loginScreen.setAttribute('aria-hidden', 'true');
+  townScreen.classList.add('hidden');
+  townScreen.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('town-active', 'field-active');
+
+  // Firebase/Auth가 느리거나 막혀도 부팅을 멈추지 않는다. 로컬 저장을 먼저 준비한다.
   await saveService.init();
-  await mergeCloudRosterToLocal();
   pendingSave = saveService.loadLocal();
   refreshCharacterRoster();
 
@@ -302,7 +305,6 @@ async function boot() {
     loginStatus.textContent = `${characterRoster.length}개 캐릭터를 찾았습니다.`;
   }
 
-  bindTitleFlow();
   bindLoginFlow();
   bindTownSafeRouting();
   bindActions();
@@ -323,22 +325,67 @@ async function boot() {
   renderCharacterSlots();
   updateWorldSummary();
   goStep('login');
-  // 1.10: keep the real first screen visible until the player taps START.
-  titleScreen.classList.remove('hidden');
-  titleScreen.setAttribute('aria-hidden', 'false');
-  loginScreen.classList.add('hidden');
-  loginScreen.setAttribute('aria-hidden', 'true');
-  townScreen.classList.add('hidden');
-  townScreen.setAttribute('aria-hidden', 'true');
-  document.body.classList.remove('town-active', 'field-active');
-  syncLegacyVisualStack114();
-  ensureTitleEntry090({ titleScreen, startButton: startGameBtn, loginScreen });
+  syncEmergencyScene119(document, 'title', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   installEntryRegressionGuards092();
   titleEntryLastReport090 = titleEntryHealthLabel090(inspectTitleEntry090(titleScreen, startGameBtn)).label;
-  registerServiceWorker();
-  updateAudioButtons();
+  markBootInteractive119(document);
+  scheduleDeferredBootStack119();
+
+  // 클라우드 로스터 병합은 화면이 열린 뒤에 진행한다. 실패해도 로컬 플레이는 유지된다.
+  window.setTimeout(() => {
+    void mergeCloudRosterToLocal().then(() => {
+      pendingSave = saveService.loadLocal() || pendingSave;
+      refreshCharacterRoster(pendingSave?.saveId);
+      renderCharacterSlots();
+      updateWorldSummary();
+    }).catch((error) => console.warn('[Cloud] delayed roster merge skipped', error));
+  }, 1800);
 }
 
+
+
+
+function scheduleDeferredBootStack119() {
+  const targets = { root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn };
+  const closeButtons = [closeSheet, closeTownContent, closeItemDetail];
+  const tasks: Array<() => void> = [
+    () => loadRuntimeStyles119(),
+    () => installViewportLock117(document, targets),
+    () => installSingleVisualMode117(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn }),
+    () => installVisualRescue093({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn }),
+    () => installVisualConsolidation094({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons }),
+    () => installVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons }),
+    () => installVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons }),
+    () => installVisualMass097({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons }),
+    () => installVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons }),
+    () => installVisualArtPerf099({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons }),
+    () => installFieldHudOverhaul100({ gameRoot: root }),
+    () => installPerformanceTuner101(document),
+    () => applyImageDecodePolicy101(document),
+    () => applyImagePolicy106(document),
+    () => applyFinalImagePolicy107(document),
+    () => installSoulAssetKit102(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, closeButtons }),
+    () => installPortraitFieldUx103(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, closeButtons }),
+    () => installQualityPass104(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons }),
+    () => installEngineQuality105(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, closeButtons }),
+    () => installEngineOptimization106(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, closeButtons }),
+    () => installFinalOptimization107(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, closeButtons }),
+    () => installMobileQuality108(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons }),
+    () => installMaintenance109(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons }),
+    () => installFieldLayout110(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons }),
+    () => installMobileRuntime112(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root }),
+    () => installFieldHud112(document, { gameRoot: root }),
+    () => installMaintenance113(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, sheet, townPanel: townContentPanel, itemDetailModal }),
+    () => installStyleLoader115(document),
+    () => installAssetDelivery115(document),
+    () => installFieldLayout116(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn }),
+    () => installSceneStability118(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn }),
+    () => installMenuWindowMotion111({ sheet, townPanel: townContentPanel, closeButtons }),
+    () => syncLegacyVisualStack114(),
+    () => markBootFullyReady119(document)
+  ];
+  runIdleBatch119('deferred-boot-stack', tasks, 2, 350);
+}
 
 function currentRuntimeRoute114() {
   return document.body.classList.contains('field-active')
@@ -350,35 +397,57 @@ function currentRuntimeRoute114() {
         : 'title';
 }
 
+let syncLegacyQueued119 = false;
+let syncLegacyLast119 = 0;
+
 function syncLegacyVisualStack114() {
   const route = currentRuntimeRoute114();
-  syncVisualRoute093({ titleScreen, loginScreen, townScreen, gameRoot: root });
-  syncVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  syncVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  syncVisualMass097({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  syncVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  syncVisualArtPerf099({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
-  syncFieldHudOverhaul100();
-  syncPerformanceRoute101(route);
-  syncSoulAssetKit102(document, route);
-  syncPortraitFieldUx103(document);
-  syncQualityPass104(document);
-  syncEngineQuality105(document);
-  syncEngineOptimization106(document);
-  syncFinalOptimization107(document);
-  syncMobileQuality108(document);
-  syncMaintenance109(document);
-  syncFieldLayout110(document);
-  syncMobileRuntime112(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root });
-  syncFieldHud112(document);
-  syncMaintenance113(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, sheet, townPanel: townContentPanel, itemDetailModal });
-  syncStyleLoader115(document);
-  syncAssetDelivery115(document);
-  syncFieldLayout116(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  syncEmergencyScene119(document, route, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   syncViewportLock117(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root });
-  syncSingleVisualMode117(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
-  syncSceneStability118(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+
+  if (!document.body.classList.contains('legacy-visual-enabled-119')) return;
+
+  const now = performance.now();
+  if (now - syncLegacyLast119 < 120) {
+    if (syncLegacyQueued119) return;
+    syncLegacyQueued119 = true;
+    window.setTimeout(() => {
+      syncLegacyQueued119 = false;
+      syncLegacyVisualStack114();
+    }, 140);
+    return;
+  }
+  syncLegacyLast119 = now;
+
+  runIdleBatch119('legacy-sync', [
+    () => syncVisualRoute093({ titleScreen, loginScreen, townScreen, gameRoot: root }),
+    () => syncVisualOverhaul095({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] }),
+    () => syncVisualStability096({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] }),
+    () => syncVisualMass097({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] }),
+    () => syncVisualClean098({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] }),
+    () => syncVisualArtPerf099({ titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn, titleAudioButton: titleAudioBtn, closeButtons: [closeSheet, closeTownContent, closeItemDetail] }),
+    () => syncFieldHudOverhaul100(),
+    () => syncPerformanceRoute101(route),
+    () => syncSoulAssetKit102(document, route),
+    () => syncPortraitFieldUx103(document),
+    () => syncQualityPass104(document),
+    () => syncEngineQuality105(document),
+    () => syncEngineOptimization106(document),
+    () => syncFinalOptimization107(document),
+    () => syncMobileQuality108(document),
+    () => syncMaintenance109(document),
+    () => syncFieldLayout110(document),
+    () => syncMobileRuntime112(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root }),
+    () => syncFieldHud112(document),
+    () => syncMaintenance113(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root, sheet, townPanel: townContentPanel, itemDetailModal }),
+    () => syncStyleLoader115(document),
+    () => syncAssetDelivery115(document),
+    () => syncFieldLayout116(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn }),
+    () => syncSingleVisualMode117(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn }),
+    () => syncSceneStability118(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn })
+  ], 4, 0);
 }
+
 
 function bindTitleFlow() {
   const startEntry = async () => {
@@ -4478,6 +4547,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
   const viewport117 = inspectViewportLock117(document);
   const singleVisual117 = inspectSingleVisualMode117(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const scene118 = inspectSceneStability118(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  const boot119 = inspectEmergencyBoot119(document);
   titleEntryLastReport090 = titleHealth090.label;
   const rows: HealthTile087[] = [
     { label: '브랜드', value: 'Soul Online 고정', level: 'ok' },
@@ -4505,6 +4575,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     { label: '1.17 크기 고정', value: viewport117.message, level: viewport117.level, hint: viewport117.hint },
     { label: '1.17 단일 모드', value: singleVisual117.message, level: singleVisual117.level, hint: singleVisual117.hint },
     { label: '1.18 장면 안정화', value: scene118.message, level: scene118.level, hint: scene118.hint },
+    { label: '1.19 긴급 부팅', value: boot119.label, level: boot119.level, hint: boot119.hint },
     { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
     { label: '성능', value: perfHealth.label, level: perfHealth.level },
     { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },

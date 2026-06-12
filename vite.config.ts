@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   base: './',
   build: {
+    modulePreload: false,
     outDir: 'dist',
     assetsInlineLimit: 4096,
     target: 'es2022',

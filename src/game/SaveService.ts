@@ -1,20 +1,70 @@
-import { initializeApp, type FirebaseApp } from 'firebase/app';
-import { getAnalytics, isSupported as isAnalyticsSupported } from 'firebase/analytics';
-import {
-  getAuth,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInAnonymously,
-  signInWithPopup,
-  signOut,
-  type Auth,
-  type User
-} from 'firebase/auth';
-import { doc, getDoc, getFirestore, serverTimestamp, setDoc, type Firestore } from 'firebase/firestore';
+import type { FirebaseApp } from 'firebase/app';
+import type { Auth, User } from 'firebase/auth';
+import type { Firestore } from 'firebase/firestore';
 import { firebaseConfig } from '../config/firebase';
 import { SAVE_VERSION, cards, classes, expToNext, items, pledgeExpToNext, skills, souls, storyQuests } from '../data/gameData';
 import type { AutoHuntSettings, CharacterClassId, CharacterGender, DailyProgress, EquipmentSlot, MonsterId, PlayerSave, PledgeState, SaveRoster, StoryProgress } from '../types';
 import { uid } from './math';
+
+
+type FirebaseSdk119 = {
+  initializeApp: typeof import('firebase/app').initializeApp;
+  getAnalytics: typeof import('firebase/analytics').getAnalytics;
+  isAnalyticsSupported: typeof import('firebase/analytics').isSupported;
+  getAuth: typeof import('firebase/auth').getAuth;
+  GoogleAuthProvider: typeof import('firebase/auth').GoogleAuthProvider;
+  onAuthStateChanged: typeof import('firebase/auth').onAuthStateChanged;
+  signInAnonymously: typeof import('firebase/auth').signInAnonymously;
+  signInWithPopup: typeof import('firebase/auth').signInWithPopup;
+  signOut: typeof import('firebase/auth').signOut;
+  doc: typeof import('firebase/firestore').doc;
+  getDoc: typeof import('firebase/firestore').getDoc;
+  getFirestore: typeof import('firebase/firestore').getFirestore;
+  serverTimestamp: typeof import('firebase/firestore').serverTimestamp;
+  setDoc: typeof import('firebase/firestore').setDoc;
+};
+
+let firebaseSdkPromise119: Promise<FirebaseSdk119> | null = null;
+
+function timeout119<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error(label)), ms);
+    promise.then((value) => {
+      window.clearTimeout(timer);
+      resolve(value);
+    }).catch((error) => {
+      window.clearTimeout(timer);
+      reject(error);
+    });
+  });
+}
+
+function loadFirebaseSdk119(): Promise<FirebaseSdk119> {
+  if (!firebaseSdkPromise119) {
+    firebaseSdkPromise119 = Promise.all([
+      import('firebase/app'),
+      import('firebase/analytics'),
+      import('firebase/auth'),
+      import('firebase/firestore')
+    ]).then(([app, analytics, auth, firestore]) => ({
+      initializeApp: app.initializeApp,
+      getAnalytics: analytics.getAnalytics,
+      isAnalyticsSupported: analytics.isSupported,
+      getAuth: auth.getAuth,
+      GoogleAuthProvider: auth.GoogleAuthProvider,
+      onAuthStateChanged: auth.onAuthStateChanged,
+      signInAnonymously: auth.signInAnonymously,
+      signInWithPopup: auth.signInWithPopup,
+      signOut: auth.signOut,
+      doc: firestore.doc,
+      getDoc: firestore.getDoc,
+      getFirestore: firestore.getFirestore,
+      serverTimestamp: firestore.serverTimestamp,
+      setDoc: firestore.setDoc
+    }));
+  }
+  return firebaseSdkPromise119;
+}
 
 const LEGACY_SAVE_KEY = 'sol-online-alpha-save-v1';
 const ROSTER_KEY = 'sol-online-alpha-roster-v1';
@@ -32,26 +82,31 @@ export class SaveService {
 
   async init() {
     try {
-      this.app = initializeApp(firebaseConfig);
-      this.auth = getAuth(this.app);
-      this.db = getFirestore(this.app);
+      const sdk = await timeout119(loadFirebaseSdk119(), 2200, 'Firebase SDK 로딩 지연');
+      this.app = sdk.initializeApp(firebaseConfig);
+      this.auth = sdk.getAuth(this.app);
+      this.db = sdk.getFirestore(this.app);
 
-      isAnalyticsSupported()
+      sdk.isAnalyticsSupported()
         .then((supported) => {
-          if (supported && this.app) getAnalytics(this.app);
+          if (supported && this.app) sdk.getAnalytics(this.app);
         })
         .catch(() => undefined);
 
-      await new Promise<void>((resolve) => {
+      await timeout119(new Promise<void>((resolve) => {
         if (!this.auth) return resolve();
-        const off = onAuthStateChanged(this.auth, (user) => {
+        const off = sdk.onAuthStateChanged(this.auth, (user) => {
           this.user = user;
           off();
           resolve();
         });
-      });
+      }), 1200, 'Firebase Auth 상태 확인 지연');
     } catch (error) {
-      console.warn('[Firebase] init failed, local save only', error);
+      this.app = null;
+      this.auth = null;
+      this.db = null;
+      this.user = null;
+      console.warn('[Firebase] init skipped, local save only', error);
     }
   }
 
@@ -69,22 +124,27 @@ export class SaveService {
   }
 
   async loginGoogle() {
-    if (!this.auth) throw new Error('Firebase Auth 초기화 실패');
-    const result = await signInWithPopup(this.auth, new GoogleAuthProvider());
+    if (!this.auth) await this.init();
+    if (!this.auth) throw new Error('Firebase 연결이 지연되어 로컬 저장으로 먼저 진행하세요.');
+    const sdk = await loadFirebaseSdk119();
+    const result = await sdk.signInWithPopup(this.auth, new sdk.GoogleAuthProvider());
     this.user = result.user;
     return result.user;
   }
 
   async loginGuest() {
-    if (!this.auth) throw new Error('Firebase Auth 초기화 실패');
-    const result = await signInAnonymously(this.auth);
+    if (!this.auth) await this.init();
+    if (!this.auth) throw new Error('Firebase 연결이 지연되어 로컬 저장으로 먼저 진행하세요.');
+    const sdk = await loadFirebaseSdk119();
+    const result = await sdk.signInAnonymously(this.auth);
     this.user = result.user;
     return result.user;
   }
 
   async logout() {
     if (!this.auth) return;
-    await signOut(this.auth);
+    const sdk = await loadFirebaseSdk119();
+    await sdk.signOut(this.auth);
     this.user = null;
   }
 
@@ -156,8 +216,9 @@ export class SaveService {
         ? roster.saves.map((entry) => (entry.saveId === normalized.saveId ? normalized : entry))
         : [...roster.saves, normalized];
 
-      await setDoc(
-        doc(this.db, 'users', this.user.uid),
+      const sdk = await loadFirebaseSdk119();
+      await sdk.setDoc(
+        sdk.doc(this.db, 'users', this.user.uid),
         {
           uid: this.user.uid,
           name: normalized.name,
@@ -166,20 +227,20 @@ export class SaveService {
           save: normalized,
           saves: saves.slice(0, MAX_CHARACTER_SLOTS),
           activeSaveId: normalized.saveId,
-          updatedAt: serverTimestamp()
+          updatedAt: sdk.serverTimestamp()
         },
         { merge: true }
       );
 
-      await setDoc(
-        doc(this.db, 'rankings', this.user.uid),
+      await sdk.setDoc(
+        sdk.doc(this.db, 'rankings', this.user.uid),
         {
           uid: this.user.uid,
           name: normalized.name,
           level: normalized.level,
           classId: normalized.classId,
           power,
-          updatedAt: serverTimestamp()
+          updatedAt: sdk.serverTimestamp()
         },
         { merge: true }
       );
@@ -312,8 +373,9 @@ export class SaveService {
 
   private async readCloudDoc(): Promise<Record<string, any> | null> {
     if (!this.db || !this.user) return null;
-    const ref = doc(this.db, 'users', this.user.uid);
-    const snap = await getDoc(ref);
+    const sdk = await loadFirebaseSdk119();
+    const ref = sdk.doc(this.db, 'users', this.user.uid);
+    const snap = await sdk.getDoc(ref);
     return snap.exists() ? snap.data() : null;
   }
 

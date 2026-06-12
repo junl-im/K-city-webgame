@@ -1,0 +1,13 @@
+Soul Online Alpha 1.19 Emergency Boot Recovery
+
+- 긴급 부팅 모듈 src/ui/emergencyBoot119.ts 추가
+- 첫 화면 critical CSS를 index.html에 인라인 삽입
+- main.ts의 대형 CSS 정적 import 제거, 런타임 CSS 동적 로드로 전환
+- 기존 alpha114~118 및 styles.css는 첫 화면 이후 지연 로드
+- START 버튼 바인딩을 무거운 visual install보다 먼저 실행
+- 기존 visual install/sync stack을 idle batch로 분산
+- SaveService Firebase SDK 정적 import 제거, 동적 import 및 timeout fallback 적용
+- Firebase Auth 지연 시 로컬 저장 모드로 우선 부팅
+- Vite modulePreload 비활성화로 Pixi/필드 엔진 선다운로드 제거
+- sw.js v1-19: JS/CSS/HTML network-first + no-store, 구형 캐시 삭제 강화
+- System Doctor에 1.19 긴급 부팅 항목 추가
