@@ -1094,6 +1094,7 @@ export class SolGame {
 
     this.addTerrainTransitions();
     this.addFieldDepthPass();
+    this.addFieldReadabilityWash116();
     this.addZoneGroundMood();
     this.addVillageDecor();
     this.addZoneLandmarks();
@@ -1158,6 +1159,28 @@ export class SolGame {
     this.ambientLayer.addChild(veil);
   }
 
+
+
+  /**
+   * Alpha 1.16: 일부 모바일 화면에서 필드가 과하게 어둡게 보이던 문제를 완화합니다.
+   * 타일과 오브젝트 위에 얇은 하늘빛 워시를 얹어 원화풍 밝기는 살리고,
+   * 몬스터/캐릭터 가독성은 유지합니다.
+   */
+  private addFieldReadabilityWash116() {
+    const zoneId = this.options.zoneId || 'slime-forest';
+    const isDarkZone = zoneId === 'black-cave' || zoneId === 'soul-ruins' || zoneId === 'demon-rift' || this.isInfernusZone();
+    const bounds = [isoToScreen(0, 0), isoToScreen(MAP_W - 1, 0), isoToScreen(MAP_W - 1, MAP_H - 1), isoToScreen(0, MAP_H - 1)];
+    const minX = Math.min(...bounds.map((p) => p.x)) - 220;
+    const maxX = Math.max(...bounds.map((p) => p.x)) + 220;
+    const minY = Math.min(...bounds.map((p) => p.y)) - 180;
+    const maxY = Math.max(...bounds.map((p) => p.y)) + 220;
+    const wash = new Graphics()
+      .rect(minX, minY, maxX - minX, maxY - minY)
+      .fill({ color: isDarkZone ? 0xb8e8ff : 0xffffff, alpha: isDarkZone ? 0.085 : 0.052 })
+      .rect(minX, minY, maxX - minX, maxY - minY)
+      .fill({ color: 0x8eeaff, alpha: isDarkZone ? 0.046 : 0.026 });
+    this.ambientLayer.addChild(wash);
+  }
 
   private addBiomeDecorPass() {
     const zoneId = this.options.zoneId || 'slime-forest';
@@ -2040,7 +2063,7 @@ export class SolGame {
       .lineTo(bounds[2].x, bounds[2].y + 26)
       .lineTo(bounds[3].x, bounds[3].y + 26)
       .closePath()
-      .fill({ color: 0x050809, alpha: 0.32 });
+      .fill({ color: 0x244b62, alpha: 0.16 });
     this.mapLayer.addChild(shadow);
   }
 
@@ -2687,8 +2710,9 @@ export class SolGame {
       .roundRect(-37, -60, 74, 20, 7).fill({ color: 0x08264d, alpha: 0.42 })
       .roundRect(-35, -58, 70, 16, 6).fill({ color: 0xffffff, alpha: 0.055 })
       .roundRect(-37, -60, 74, 20, 7).stroke({ color: 0x8fe4ff, alpha: 0.26, width: 1.1 });
-    this.playerCompanion = this.buildAlpha063Companion(klass.accent);
-    this.playerRoot.addChild(pedestal, this.playerShadow, aura, this.playerBody, this.playerCompanion, namePlate, name, badge);
+    // Alpha 1.16: 아직 펫 시스템이 정식 기능이 아니므로 필드 동행 펫 스프라이트를 제거합니다.
+    this.playerCompanion = null;
+    this.playerRoot.addChild(pedestal, this.playerShadow, aura, this.playerBody, namePlate, name, badge);
     if (!this.entityLayer.children.includes(this.playerRoot)) this.entityLayer.addChild(this.playerRoot);
     this.placeEntity(this.playerRoot, this.save.x, this.save.y);
   }

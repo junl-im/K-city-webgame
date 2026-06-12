@@ -1,0 +1,576 @@
+/* Alpha 1.16 - 요청 반영: 시작 화면, 필드 밝기, HUD/버튼 충돌, 펫 UI 제거 */
+:root {
+  --so116-safe-l: max(10px, env(safe-area-inset-left));
+  --so116-safe-r: max(10px, env(safe-area-inset-right));
+  --so116-safe-t: max(10px, env(safe-area-inset-top));
+  --so116-safe-b: max(10px, env(safe-area-inset-bottom));
+  --so116-hud-w: clamp(176px, 56vw, 226px);
+  --so116-right-w: calc(100vw - var(--so116-hud-w) - var(--so116-safe-l) - var(--so116-safe-r) - 10px);
+  --so116-btn: clamp(48px, 13.7vw, 54px);
+  --so116-gap: 6px;
+  --so116-joy: clamp(100px, 28vw, 116px);
+}
+
+body.fantasy-ui-116 {
+  --so116-glass: rgba(7, 15, 28, 0.78);
+  --so116-line: rgba(142, 232, 255, 0.44);
+  --so116-gold: #ffe49a;
+}
+
+/* 시작 화면: TOUCH TO START를 화면 중앙권으로 올리고, 중복 안내 문구와 장식선을 제거합니다. */
+body.title-layout-116 .title-screen {
+  overflow: hidden !important;
+  background: radial-gradient(circle at 50% 20%, rgba(148, 226, 255, .28), transparent 34%), #081524 !important;
+}
+
+body.title-layout-116 .title-stage {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  min-height: calc(var(--so116-vh, 1vh) * 100) !important;
+  padding: 0 !important;
+  pointer-events: none !important;
+}
+
+body.title-layout-116 .title-mini-nav {
+  position: absolute !important;
+  top: calc(var(--so116-safe-t) + 4px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 8 !important;
+  width: min(86vw, 330px) !important;
+  min-height: 44px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 6px 12px !important;
+  border: 1px solid rgba(255,255,255,.38) !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, rgba(44, 111, 164, .74), rgba(12, 34, 58, .60)) !important;
+  box-shadow: 0 16px 36px rgba(0, 32, 64, .28), inset 0 1px 0 rgba(255,255,255,.28) !important;
+  backdrop-filter: blur(14px) saturate(1.16) !important;
+  pointer-events: auto !important;
+}
+
+body.title-layout-116 .title-mini-nav span,
+body.title-layout-116 .title-mini-nav button {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  color: #f4fbff !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  letter-spacing: .02em !important;
+  text-shadow: 0 1px 6px rgba(0,0,0,.48) !important;
+}
+
+body.title-layout-116 .title-mini-nav button {
+  min-height: 32px !important;
+  padding: 0 12px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, rgba(102,177,255,.95), rgba(45,103,205,.88)) !important;
+  border: 1px solid rgba(255,255,255,.28) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28) !important;
+}
+
+body.title-layout-116 .title-copy {
+  position: absolute !important;
+  top: clamp(126px, 22vh, 172px) !important;
+  left: 50% !important;
+  width: min(86vw, 360px) !important;
+  transform: translateX(-50%) !important;
+  z-index: 5 !important;
+  text-align: center !important;
+  pointer-events: none !important;
+}
+
+body.title-layout-116 .title-copy .title-kicker,
+body.title-layout-116 .title-copy p,
+body.title-layout-116 .title-stage small {
+  display: none !important;
+}
+
+body.title-layout-116 .title-copy h1 {
+  margin: 0 !important;
+  color: #ffffff !important;
+  font-size: clamp(48px, 16vw, 78px) !important;
+  line-height: .84 !important;
+  letter-spacing: -.06em !important;
+  text-shadow: 0 5px 16px rgba(27, 103, 172, .52), 0 0 24px rgba(255,255,255,.36) !important;
+}
+
+body.title-layout-116 .title-copy h1::after {
+  content: "ONLINE";
+  display: block;
+  margin-top: 9px;
+  color: rgba(255,255,255,.94);
+  font-size: clamp(14px, 4.2vw, 23px);
+  letter-spacing: .32em;
+  text-indent: .32em;
+  line-height: 1;
+}
+
+body.title-layout-116 .start-game-btn {
+  position: absolute !important;
+  left: 50% !important;
+  top: min(66vh, calc(var(--so116-vh, 1vh) * 66)) !important;
+  z-index: 9 !important;
+  width: min(86vw, 320px) !important;
+  min-width: 0 !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  transform: translate(-50%, -50%) !important;
+  border: 1px solid rgba(255,255,255,.58) !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, rgba(105, 180, 217, .78), rgba(34, 84, 121, .82)) !important;
+  color: #f8fdff !important;
+  font-size: clamp(17px, 5.1vw, 22px) !important;
+  font-weight: 1000 !important;
+  letter-spacing: .18em !important;
+  text-indent: .18em !important;
+  box-shadow: 0 16px 36px rgba(0, 52, 84, .34), 0 0 0 1px rgba(134, 224, 255, .30) inset !important;
+  text-shadow: 0 2px 8px rgba(0, 35, 67, .78) !important;
+  pointer-events: auto !important;
+}
+
+body.title-layout-116 .start-game-btn::before,
+body.title-layout-116 .start-game-btn::after {
+  content: none !important;
+  display: none !important;
+}
+
+body.title-layout-116 .title-hero {
+  pointer-events: none !important;
+}
+
+body.title-layout-116 .title-character-companion,
+body.no-pet-116 .title-character-companion,
+body.no-pet-116 .town-lobby-pet-070 {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* 필드가 너무 어둡게 보이는 문제: 배경 캔버스와 루트에 과하지 않은 밝기/채도 보정. */
+body.field-active.field-layout-116 #game-root {
+  background:
+    radial-gradient(circle at 50% 18%, rgba(191, 244, 255, .20), transparent 30%),
+    linear-gradient(180deg, #9edfff 0%, #d6f7ff 36%, #83d28d 100%) !important;
+}
+
+body.field-active.field-layout-116 #game-root canvas {
+  filter: brightness(1.18) saturate(1.10) contrast(.98) !important;
+}
+
+/* 필드 HUD: 캐릭터 HUD 좌측, 퀘스트 미니창 우측, 몬스터 타깃은 HUD 아래. */
+body.field-active.field-layout-116 .hud-top {
+  position: fixed !important;
+  top: var(--so116-safe-t) !important;
+  left: var(--so116-safe-l) !important;
+  right: auto !important;
+  width: var(--so116-hud-w) !important;
+  min-height: 72px !important;
+  max-height: 78px !important;
+  display: grid !important;
+  grid-template-columns: 46px minmax(0, 1fr) !important;
+  gap: 8px !important;
+  align-items: center !important;
+  padding: 8px 10px !important;
+  border: 1px solid var(--so116-line) !important;
+  border-radius: 18px !important;
+  background: linear-gradient(180deg, rgba(8, 28, 48, .86), rgba(4, 12, 24, .78)) !important;
+  box-shadow: 0 16px 34px rgba(0, 20, 42, .34), inset 0 1px 0 rgba(255,255,255,.16) !important;
+  backdrop-filter: blur(12px) saturate(1.12) !important;
+  z-index: 96 !important;
+  overflow: hidden !important;
+}
+
+body.field-active.field-layout-116 .hud-top .portrait {
+  width: 46px !important;
+  height: 46px !important;
+  min-width: 46px !important;
+}
+
+body.field-active.field-layout-116 .hud-top .hero-status {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 4px !important;
+}
+
+body.field-active.field-layout-116 .hud-top .hud-row {
+  min-width: 0 !important;
+  display: flex !important;
+  gap: 5px !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+body.field-active.field-layout-116 #playerName,
+body.field-active.field-layout-116 #levelText {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+body.field-active.field-layout-116 #playerName { font-size: 12px !important; }
+body.field-active.field-layout-116 #levelText { flex: 0 0 auto !important; font-size: 10px !important; }
+
+body.field-active.field-layout-116 .hud-top .bar {
+  height: 9px !important;
+  min-height: 9px !important;
+  padding: 1px !important;
+  margin: 0 !important;
+  border-radius: 999px !important;
+}
+
+body.field-active.field-layout-116 .hud-top .bar.exp {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  width: 100% !important;
+  height: 6px !important;
+  min-height: 6px !important;
+}
+
+body.field-active.field-layout-116 .hud-top .bar em { display: none !important; }
+
+body.field-active.field-layout-116 #returnTownBtn {
+  position: fixed !important;
+  left: calc(var(--so116-safe-l) + (var(--so116-joy) - 52px) / 2) !important;
+  bottom: calc(var(--so116-safe-b) + var(--so116-joy) + 16px) !important;
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  min-height: 52px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid rgba(255, 228, 154, .50) !important;
+  border-radius: 17px !important;
+  background: linear-gradient(180deg, rgba(19, 52, 72, .92), rgba(6, 16, 28, .88)) !important;
+  color: #fff2b7 !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,.38), 0 0 0 1px rgba(255,255,255,.08) inset !important;
+  pointer-events: auto !important;
+  z-index: 97 !important;
+}
+
+body.field-active.field-layout-116 .field-quest-tracker {
+  position: fixed !important;
+  top: var(--so116-safe-t) !important;
+  right: var(--so116-safe-r) !important;
+  left: auto !important;
+  width: max(116px, var(--so116-right-w)) !important;
+  min-height: 72px !important;
+  max-height: 76px !important;
+  padding: 9px 10px !important;
+  border: 1px solid rgba(142, 232, 255, .42) !important;
+  border-radius: 17px !important;
+  background: linear-gradient(180deg, rgba(9, 35, 58, .84), rgba(3, 12, 24, .78)) !important;
+  box-shadow: 0 15px 32px rgba(0, 20, 42, .32), inset 0 1px 0 rgba(255,255,255,.14) !important;
+  backdrop-filter: blur(11px) saturate(1.14) !important;
+  z-index: 95 !important;
+  overflow: hidden !important;
+}
+
+body.field-active.field-layout-116 .field-quest-tracker span,
+body.field-active.field-layout-116 .field-quest-tracker b,
+body.field-active.field-layout-116 .field-quest-tracker em {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+body.field-active.field-layout-116 .field-quest-tracker span { color: #84e7ff !important; font-size: 9px !important; }
+body.field-active.field-layout-116 .field-quest-tracker b { color: #fff !important; font-size: 11px !important; }
+body.field-active.field-layout-116 .field-quest-tracker em { color: rgba(245,250,255,.76) !important; font-size: 9px !important; }
+
+body.field-active.field-layout-116 .target-card {
+  position: fixed !important;
+  top: calc(var(--so116-safe-t) + 84px) !important;
+  left: var(--so116-safe-l) !important;
+  right: auto !important;
+  width: var(--so116-hud-w) !important;
+  min-height: 58px !important;
+  max-height: 68px !important;
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) auto !important;
+  gap: 6px !important;
+  padding: 8px 10px !important;
+  border: 1px solid rgba(142, 232, 255, .38) !important;
+  border-radius: 16px !important;
+  background: linear-gradient(180deg, rgba(7, 26, 44, .82), rgba(3, 10, 21, .72)) !important;
+  box-shadow: 0 12px 28px rgba(0,20,42,.28), inset 0 1px 0 rgba(255,255,255,.12) !important;
+  backdrop-filter: blur(10px) saturate(1.1) !important;
+  transform: none !important;
+  z-index: 94 !important;
+  overflow: hidden !important;
+}
+
+body.field-active.field-layout-116 .target-card div:first-child {
+  display: grid !important;
+  gap: 1px !important;
+  min-width: 0 !important;
+  align-content: center !important;
+}
+
+body.field-active.field-layout-116 .target-card strong,
+body.field-active.field-layout-116 .target-card span {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  text-align: left !important;
+}
+
+body.field-active.field-layout-116 .target-card strong { color: #fff !important; font-size: 11px !important; }
+body.field-active.field-layout-116 .target-card span { color: rgba(230,246,255,.72) !important; font-size: 9px !important; }
+body.field-active.field-layout-116 .target-hp { height: 6px !important; min-height: 6px !important; padding: 1px !important; border-radius: 999px !important; }
+
+body.field-active.field-layout-116 .resource-strip {
+  position: fixed !important;
+  top: calc(var(--so116-safe-t) + 158px) !important;
+  left: var(--so116-safe-l) !important;
+  right: auto !important;
+  width: var(--so116-hud-w) !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+  transform: none !important;
+  pointer-events: none !important;
+  z-index: 90 !important;
+}
+
+body.field-active.field-layout-116 .resource-strip span {
+  min-width: 0 !important;
+  padding: 5px 4px !important;
+  border-radius: 11px !important;
+  background: rgba(7, 21, 37, .70) !important;
+  border: 1px solid rgba(142, 232, 255, .22) !important;
+  font-size: 9px !important;
+  line-height: 1 !important;
+}
+
+body.field-active.field-layout-116 .field-chain-meter {
+  position: fixed !important;
+  top: calc(var(--so116-safe-t) + 84px) !important;
+  right: var(--so116-safe-r) !important;
+  left: auto !important;
+  width: max(116px, var(--so116-right-w)) !important;
+  min-height: 48px !important;
+  padding: 7px 9px !important;
+  border-radius: 15px !important;
+  z-index: 90 !important;
+  opacity: .92 !important;
+}
+
+body.field-active.field-layout-116 .field-minimap {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* 하단 컨트롤: 조이스틱은 좌측 고정, 물약은 중앙 세로, 행동 버튼은 우측 2x3 정렬. */
+body.field-active.field-layout-116 .joystick {
+  position: fixed !important;
+  left: var(--so116-safe-l) !important;
+  bottom: calc(var(--so116-safe-b) + 12px) !important;
+  width: var(--so116-joy) !important;
+  height: var(--so116-joy) !important;
+  transform: scale(var(--so116-control-scale, 1)) !important;
+  transform-origin: bottom left !important;
+  z-index: 92 !important;
+}
+
+body.field-active.field-layout-116 .potion-dock {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: calc(var(--so116-safe-b) + 12px) !important;
+  width: 46px !important;
+  display: grid !important;
+  grid-template-columns: 46px !important;
+  grid-auto-rows: 46px !important;
+  gap: 7px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  transform: translateX(-50%) scale(var(--so116-control-scale, 1)) !important;
+  transform-origin: bottom center !important;
+  z-index: 93 !important;
+}
+
+body.field-active.field-layout-116 .potion-btn {
+  width: 46px !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  border-radius: 15px !important;
+}
+
+body.field-active.field-layout-116 .skill-dock {
+  position: fixed !important;
+  right: var(--so116-safe-r) !important;
+  left: auto !important;
+  bottom: calc(var(--so116-safe-b) + 188px) !important;
+  width: calc(var(--so116-btn) * 3 + var(--so116-gap) * 2) !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, var(--so116-btn)) !important;
+  gap: var(--so116-gap) !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  transform: scale(var(--so116-control-scale, 1)) !important;
+  transform-origin: bottom right !important;
+  z-index: 93 !important;
+}
+
+body.field-active.field-layout-116 .skill-btn {
+  width: var(--so116-btn) !important;
+  height: calc(var(--so116-btn) + 5px) !important;
+  min-height: calc(var(--so116-btn) + 5px) !important;
+  padding: 4px !important;
+  border-radius: 15px !important;
+}
+
+body.field-active.field-layout-116 .skill-dock-art {
+  width: 29px !important;
+  height: 29px !important;
+  border-radius: 11px !important;
+}
+
+body.field-active.field-layout-116 .skill-btn b {
+  max-width: 42px !important;
+  font-size: 7.5px !important;
+  line-height: 1 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+body.field-active.field-layout-116 .skill-btn em { display: none !important; }
+
+body.field-active.field-layout-116 .action-dock {
+  position: fixed !important;
+  right: var(--so116-safe-r) !important;
+  left: auto !important;
+  bottom: calc(var(--so116-safe-b) + 12px) !important;
+  width: calc(var(--so116-btn) * 2 + var(--so116-gap) + 10px) !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, var(--so116-btn)) !important;
+  grid-template-rows: repeat(3, calc(var(--so116-btn) - 2px)) !important;
+  gap: var(--so116-gap) !important;
+  padding: 5px !important;
+  border-radius: 18px !important;
+  background: rgba(4, 15, 28, .52) !important;
+  border: 1px solid rgba(142, 232, 255, .16) !important;
+  box-shadow: 0 18px 36px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.08) !important;
+  backdrop-filter: blur(10px) saturate(1.08) !important;
+  transform: scale(var(--so116-control-scale, 1)) !important;
+  transform-origin: bottom right !important;
+  z-index: 94 !important;
+}
+
+body.field-active.field-layout-116 .dock-btn {
+  width: var(--so116-btn) !important;
+  height: calc(var(--so116-btn) - 2px) !important;
+  min-height: calc(var(--so116-btn) - 2px) !important;
+  padding: 4px 3px !important;
+  border-radius: 14px !important;
+}
+
+body.field-active.field-layout-116 #autoHuntBtn { grid-column: 1 !important; grid-row: 1 !important; }
+body.field-active.field-layout-116 #attackBtn { grid-column: 2 !important; grid-row: 1 !important; }
+body.field-active.field-layout-116 #inventoryBtn { grid-column: 1 !important; grid-row: 2 !important; }
+body.field-active.field-layout-116 #fieldMenuBtn { grid-column: 2 !important; grid-row: 2 !important; }
+body.field-active.field-layout-116 #sleepModeBtn { grid-column: 1 !important; grid-row: 3 !important; }
+body.field-active.field-layout-116 #cardsBtn { display: none !important; }
+
+body.field-active.field-layout-116 .dock-btn span {
+  width: 22px !important;
+  height: 22px !important;
+  margin: 0 !important;
+  font-size: 15px !important;
+  line-height: 1 !important;
+}
+
+body.field-active.field-layout-116 .dock-btn b {
+  font-size: 8px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+body.field-active.field-layout-116 .combat-log,
+body.field-active.field-layout-116 .combat-log-toggle {
+  display: none !important;
+}
+
+@media (max-width: 370px) {
+  :root {
+    --so116-hud-w: clamp(168px, 54vw, 198px);
+    --so116-btn: 47px;
+    --so116-joy: 96px;
+    --so116-gap: 5px;
+  }
+
+  body.field-active.field-layout-116 .hud-top {
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    min-height: 68px !important;
+    padding: 7px 8px !important;
+  }
+
+  body.field-active.field-layout-116 .hud-top .portrait {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+  }
+
+  body.field-active.field-layout-116 .field-chain-meter {
+    display: none !important;
+  }
+
+  body.field-active.field-layout-116 .resource-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body.field-active.field-layout-116 .resource-strip span:nth-child(3) {
+    display: none !important;
+  }
+
+  body.title-layout-116 .start-game-btn {
+    top: min(68vh, calc(var(--so116-vh, 1vh) * 68)) !important;
+  }
+}
+
+@media (max-height: 650px) {
+  body.field-active.field-layout-116 .field-chain-meter,
+  body.field-active.field-layout-116 .resource-strip {
+    display: none !important;
+  }
+
+  body.field-active.field-layout-116 .target-card {
+    top: calc(var(--so116-safe-t) + 78px) !important;
+  }
+
+  body.field-active.field-layout-116 .skill-dock {
+    bottom: calc(var(--so116-safe-b) + 168px) !important;
+  }
+
+  body.title-layout-116 .title-copy {
+    top: clamp(104px, 19vh, 136px) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.fantasy-ui-116 *,
+  body.fantasy-ui-116 *::before,
+  body.fantasy-ui-116 *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}
