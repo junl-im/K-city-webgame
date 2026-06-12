@@ -1,0 +1,701 @@
+/* Soul Online alpha 1.03: portrait lock and hunting-field HUD rebuild pass. */
+:root {
+  --so103-safe-top: max(8px, env(safe-area-inset-top));
+  --so103-safe-right: max(8px, env(safe-area-inset-right));
+  --so103-safe-bottom: max(10px, env(safe-area-inset-bottom));
+  --so103-safe-left: max(8px, env(safe-area-inset-left));
+  --so103-ink-light: #f9fbff;
+  --so103-ink-muted: rgba(220, 234, 255, .82);
+  --so103-ink-dark: #13294a;
+  --so103-parchment: #fff5dc;
+  --so103-gold: #f5cf73;
+  --so103-gold-deep: #8c5c1d;
+  --so103-aqua: #72e8ff;
+  --so103-violet: #b9a0ff;
+  --so103-rose: #ff9aaf;
+  --so103-emerald: #7ee6a9;
+  --so103-field-glass: rgba(9, 20, 42, .84);
+  --so103-field-glass-2: rgba(16, 38, 70, .76);
+  --so103-panel-border: rgba(245, 207, 115, .72);
+  --so103-panel-shadow: 0 14px 30px rgba(0, 5, 22, .36), inset 0 1px 0 rgba(255,255,255,.16);
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+body.portrait-lock-103 {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  background: #071325;
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+}
+
+body.portrait-lock-103 #app {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: 100vw;
+  max-height: 100dvh;
+  overflow: hidden !important;
+  background: #071325;
+}
+
+body.landscape-guard-103 #app::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background:
+    radial-gradient(circle at 50% 25%, rgba(114,232,255,.16), transparent 32%),
+    linear-gradient(180deg, rgba(6,14,30,.94), rgba(13,28,54,.96));
+  pointer-events: auto;
+}
+
+body.landscape-guard-103 .orientation-guard {
+  display: grid !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+  place-items: center !important;
+  padding: 24px !important;
+  pointer-events: auto !important;
+  background: transparent !important;
+}
+body.landscape-guard-103 .orientation-guard > div {
+  width: min(360px, calc(100vw - 36px));
+  border-radius: 30px;
+  padding: 28px 24px;
+  text-align: center;
+  border: 1px solid rgba(245,207,115,.82);
+  color: #fff8df;
+  background:
+    radial-gradient(circle at 50% 0, rgba(114,232,255,.22), transparent 38%),
+    linear-gradient(180deg, rgba(21,43,78,.96), rgba(7,17,36,.96));
+  box-shadow: 0 18px 50px rgba(0,0,0,.48), inset 0 0 0 1px rgba(255,255,255,.08);
+}
+body.landscape-guard-103 .orientation-guard b { display:block; font-size: 21px; color:#ffe6a2; margin-bottom:8px; }
+body.landscape-guard-103 .orientation-guard span { display:block; font-size: 14px; line-height:1.55; color:rgba(238,247,255,.88); }
+body:not(.landscape-guard-103) .orientation-guard { display: none !important; }
+
+body.fantasy-ui-103 button,
+body.fantasy-ui-103 [role='button'] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.field-active.field-ui-103 #game-root,
+body.route-field-103 #game-root {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+  background: #061021 !important;
+  contain: strict;
+}
+body.field-active.field-ui-103 #game-root canvas,
+body.route-field-103 #game-root canvas {
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  display: block !important;
+  touch-action: none !important;
+}
+
+body.field-ui-103 .field-hud-shell-103,
+body.field-ui-103 .field-hud-shell-100 {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  z-index: 60 !important;
+  contain: layout style paint;
+}
+body.field-active.field-ui-103 .field-hud-shell-103,
+body.field-active.field-ui-103 .field-hud-shell-100,
+body.route-field-103 .field-hud-shell-103,
+body.route-field-103 .field-hud-shell-100 {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+body:not(.field-active).field-ui-103 .field-hud-shell-103,
+body:not(.field-active).field-ui-103 .field-hud-shell-100,
+body.route-title-103 .field-hud-shell-100,
+body.route-login-103 .field-hud-shell-100,
+body.route-town-103 .field-hud-shell-100 {
+  display: none !important;
+}
+
+body.field-active.field-ui-103 .field-hud-shell-100::before {
+  content: '';
+  position: absolute;
+  inset: -18px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 42%, transparent 0 42%, rgba(2,8,22,.20) 76%, rgba(1,5,16,.56) 100%),
+    linear-gradient(180deg, rgba(13,31,60,.10), rgba(0,0,0,.24));
+  opacity: .82;
+  mix-blend-mode: multiply;
+}
+
+body.field-active.field-ui-103 .hud-top,
+body.field-active.field-ui-103 .resource-strip,
+body.field-active.field-ui-103 .field-minimap,
+body.field-active.field-ui-103 .target-card,
+body.field-active.field-ui-103 .field-quest-tracker,
+body.field-active.field-ui-103 .field-chain-meter,
+body.field-active.field-ui-103 .combat-log,
+body.field-active.field-ui-103 .combat-log-toggle,
+body.field-active.field-ui-103 .joystick,
+body.field-active.field-ui-103 .potion-dock,
+body.field-active.field-ui-103 .skill-dock,
+body.field-active.field-ui-103 .action-dock {
+  position: absolute !important;
+  box-sizing: border-box !important;
+  max-width: calc(100vw - var(--so103-safe-left) - var(--so103-safe-right)) !important;
+  max-height: calc(100dvh - var(--so103-safe-top) - var(--so103-safe-bottom)) !important;
+  margin: 0 !important;
+  transform: none !important;
+  color: var(--so103-ink-light) !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,.52) !important;
+  pointer-events: auto !important;
+  contain: layout style paint;
+}
+
+/* Top safe row */
+body.field-active.field-ui-103 .hud-top.field-player-card-103 {
+  top: var(--so103-safe-top) !important;
+  left: var(--so103-safe-left) !important;
+  right: auto !important;
+  width: min(268px, calc(100vw - var(--so103-safe-left) - var(--so103-safe-right) - 104px)) !important;
+  min-width: 206px !important;
+  height: 74px !important;
+  padding: 8px 38px 8px 8px !important;
+  display: grid !important;
+  grid-template-columns: 48px minmax(0, 1fr) !important;
+  gap: 8px !important;
+  align-items: center !important;
+  border-radius: 22px !important;
+  border: 1px solid var(--so103-panel-border) !important;
+  background:
+    radial-gradient(circle at 15% 0, rgba(255,255,255,.18), transparent 28%),
+    linear-gradient(135deg, rgba(11,26,54,.94), rgba(24,58,95,.80) 52%, rgba(48,39,92,.84)) !important;
+  box-shadow: var(--so103-panel-shadow) !important;
+  overflow: hidden !important;
+  backdrop-filter: none !important;
+}
+body.field-active.field-ui-103 .hud-top.field-player-card-103::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  background: linear-gradient(90deg, rgba(114,232,255,.08), transparent 44%, rgba(255,154,175,.07));
+  pointer-events:none;
+}
+body.field-active.field-ui-103 .hud-top .portrait {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(255,234,172,.82) !important;
+  background-color: rgba(255,255,255,.14) !important;
+  background-size: cover !important;
+  background-position: center !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), 0 6px 14px rgba(0,0,0,.28) !important;
+}
+body.field-active.field-ui-103 .hero-status { display:grid !important; gap: 3px !important; min-width:0 !important; }
+body.field-active.field-ui-103 .hud-row { display:flex !important; align-items:center !important; gap:6px !important; justify-content:space-between !important; min-width:0; }
+body.field-active.field-ui-103 #playerName { color:#fff6d4 !important; font-size:12px !important; max-width:118px !important; overflow:hidden !important; white-space:nowrap !important; text-overflow:ellipsis !important; }
+body.field-active.field-ui-103 #levelText { color:#83edff !important; font-size:11px !important; font-weight:950 !important; }
+body.field-active.field-ui-103 .hud-top .bar {
+  height: 7px !important;
+  border-radius: 999px !important;
+  overflow: hidden !important;
+  background: rgba(2,8,22,.56) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+}
+body.field-active.field-ui-103 .hud-top .bar em { display:none !important; }
+body.field-active.field-ui-103 .hud-top .bar i { height:100% !important; display:block !important; border-radius:inherit !important; }
+body.field-active.field-ui-103 .hud-top .bar.hp i { background: linear-gradient(90deg,#ff4f67,#ffb17e) !important; }
+body.field-active.field-ui-103 .hud-top .bar.mp i { background: linear-gradient(90deg,#3aa8ff,#95f4ff) !important; }
+body.field-active.field-ui-103 .hud-top .bar.exp i { background: linear-gradient(90deg,#75df76,#ffe477) !important; }
+body.field-active.field-ui-103 #returnTownBtn {
+  position:absolute !important;
+  top:8px !important;
+  right:8px !important;
+  width:30px !important;
+  height:30px !important;
+  min-width:30px !important;
+  border-radius:50% !important;
+  padding:0 !important;
+  font-size:15px !important;
+  color:#092653 !important;
+  background: radial-gradient(circle at 35% 22%, #fff, #8decff 36%, #3f6be0 82%) !important;
+  border:1px solid rgba(255,226,147,.78) !important;
+}
+
+body.field-active.field-ui-103 .field-minimap-103 {
+  top: var(--so103-safe-top) !important;
+  right: var(--so103-safe-right) !important;
+  left: auto !important;
+  width: 88px !important;
+  height: 88px !important;
+  padding: 7px !important;
+  border: 1px solid rgba(245,207,115,.68) !important;
+  border-radius: 27px !important;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(114,232,255,.12), rgba(9,20,42,.78) 58%, rgba(4,10,24,.94)),
+    url('/assets/ui/fantasy/103/minimap-frame-103.webp') center / 100% 100% no-repeat !important;
+  box-shadow: var(--so103-panel-shadow) !important;
+  overflow: hidden !important;
+}
+body.field-active.field-ui-103 .field-minimap-103 .minimap-head {
+  height: 20px !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:3px !important;
+  padding:0 3px !important;
+  color:#fff2c5 !important;
+  font-size:9px !important;
+  line-height:1 !important;
+}
+body.field-active.field-ui-103 .field-minimap-103 .minimap-head b { max-width:42px !important; overflow:hidden !important; white-space:nowrap !important; text-overflow:ellipsis !important; }
+body.field-active.field-ui-103 .field-minimap-103 .minimap-head span { display:none !important; }
+body.field-active.field-ui-103 .field-minimap-103 #miniMapToggle { width:18px !important; height:18px !important; min-width:18px !important; margin-left:auto !important; border-radius:50% !important; padding:0 !important; font-size:11px !important; }
+body.field-active.field-ui-103 .field-minimap-103 .minimap-canvas { height: calc(100% - 22px) !important; border-radius: 18px !important; background: rgba(1,9,24,.52) !important; }
+
+body.field-active.field-ui-103 .resource-strip.field-resource-pill-103 {
+  top: calc(var(--so103-safe-top) + 76px) !important;
+  left: var(--so103-safe-left) !important;
+  right: auto !important;
+  width: min(268px, calc(100vw - var(--so103-safe-left) - var(--so103-safe-right) - 104px)) !important;
+  min-width: 206px !important;
+  height: 28px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:4px !important;
+  padding:3px 6px !important;
+  border-radius:999px !important;
+  border:1px solid rgba(245,207,115,.58) !important;
+  background: linear-gradient(90deg, rgba(11,26,54,.86), rgba(38,39,84,.72), rgba(21,75,94,.72)) !important;
+  box-shadow: 0 8px 18px rgba(0,0,0,.26) !important;
+}
+body.field-active.field-ui-103 .resource-strip.field-resource-pill-103 span {
+  min-width:0 !important;
+  padding:0 5px !important;
+  height:20px !important;
+  border-radius:999px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  background: rgba(255,255,255,.08) !important;
+  color:#fff4cc !important;
+  font-size:9px !important;
+  font-weight:900 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+body.field-active.field-ui-103 .monster-card-103 {
+  top: calc(var(--so103-safe-top) + 96px) !important;
+  right: var(--so103-safe-right) !important;
+  left: auto !important;
+  width: clamp(136px, 39vw, 168px) !important;
+  height: 76px !important;
+  padding: 10px 10px 9px 12px !important;
+  display:grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-content:center !important;
+  border-radius: 22px !important;
+  border:1px solid rgba(255,210,126,.76) !important;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255,154,175,.16), transparent 34%),
+    url('/assets/ui/fantasy/103/field-card-dark-103.webp') center / 100% 100% no-repeat,
+    linear-gradient(145deg, rgba(32,29,66,.92), rgba(10,23,45,.88) 54%, rgba(22,67,74,.82)) !important;
+  box-shadow: var(--so103-panel-shadow) !important;
+  overflow:hidden !important;
+}
+body.field-active.field-ui-103 .monster-card-103::before {
+  content:'';
+  position:absolute;
+  right:7px;
+  top:7px;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  background:
+    url('/assets/ui/fantasy/102/ui-kit/icons_32x32/ui_icon_monster.png') center / 22px 22px no-repeat,
+    radial-gradient(circle, rgba(255,255,255,.22), rgba(255,154,175,.16) 46%, transparent 70%);
+  opacity:.9;
+}
+body.field-active.field-ui-103 .monster-card-103 > div { min-width:0 !important; padding-right:28px !important; }
+body.field-active.field-ui-103 .monster-card-103 strong { display:block !important; color:#fff6d6 !important; font-size:12px !important; line-height:1.2 !important; max-width:100% !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
+body.field-active.field-ui-103 .monster-card-103 span { display:block !important; color:rgba(220,235,255,.78) !important; font-size:10px !important; line-height:1.2 !important; max-width:100% !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
+body.field-active.field-ui-103 .monster-card-103 .target-hp { height:7px !important; margin-top:7px !important; border-radius:999px !important; background:rgba(0,0,0,.36) !important; border:1px solid rgba(255,255,255,.10) !important; overflow:hidden !important; }
+body.field-active.field-ui-103 .monster-card-103 .target-hp i { height:100% !important; border-radius:inherit !important; background:linear-gradient(90deg,#ff5470,#ffcc7a) !important; }
+
+body.field-active.field-ui-103 .field-quest-103 {
+  top: calc(var(--so103-safe-top) + 112px) !important;
+  left: var(--so103-safe-left) !important;
+  right: auto !important;
+  width: min(190px, calc(100vw - var(--so103-safe-left) - var(--so103-safe-right) - 178px)) !important;
+  min-width: 148px !important;
+  max-height: 78px !important;
+  padding: 9px 10px !important;
+  border-radius: 19px !important;
+  border:1px solid rgba(245,207,115,.66) !important;
+  background:
+    radial-gradient(circle at 0 0, rgba(114,232,255,.11), transparent 44%),
+    url('/assets/ui/fantasy/103/field-card-light-103.webp') center / 100% 100% no-repeat,
+    linear-gradient(180deg, rgba(251,244,223,.96), rgba(219,234,246,.92)) !important;
+  color: var(--so103-ink-dark) !important;
+  text-shadow: none !important;
+  box-shadow: 0 10px 24px rgba(0,0,0,.22), inset 0 0 0 1px rgba(255,255,255,.56) !important;
+  overflow:hidden !important;
+}
+body.field-active.field-ui-103 .field-quest-103 span { color:#8a5d1c !important; font-size:9px !important; font-weight:950 !important; letter-spacing:.06em; }
+body.field-active.field-ui-103 .field-quest-103 b { display:block !important; color:#18355f !important; font-size:12px !important; line-height:1.22 !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; margin-top:2px !important; }
+body.field-active.field-ui-103 .field-quest-103 em { display:block !important; color:#1c6f91 !important; font-style:normal !important; font-weight:950 !important; font-size:11px !important; margin-top:4px !important; }
+
+body.field-active.field-ui-103 .field-chain-103 {
+  top: calc(var(--so103-safe-top) + 198px) !important;
+  left: var(--so103-safe-left) !important;
+  width: min(162px, calc(100vw - 192px)) !important;
+  height: 42px !important;
+  padding: 6px 9px !important;
+  border-radius: 16px !important;
+  border:1px solid rgba(185,160,255,.55) !important;
+  background: linear-gradient(135deg, rgba(20,28,58,.72), rgba(50,38,94,.66)) !important;
+  box-shadow: 0 8px 18px rgba(0,0,0,.20) !important;
+  overflow:hidden !important;
+}
+body.field-active.field-ui-103 .field-chain-103 span { display:none !important; }
+body.field-active.field-ui-103 .field-chain-103 b { color:#ffe6a2 !important; font-size:12px !important; }
+body.field-active.field-ui-103 .field-chain-103 em { color:rgba(236,245,255,.74) !important; font-size:9px !important; font-style:normal !important; }
+body.field-active.field-ui-103 .field-chain-103 .chain-timer { height:4px !important; margin-top:4px !important; border-radius:999px !important; background:rgba(0,0,0,.30) !important; }
+
+/* Lower combat controls. */
+body.field-active.field-ui-103 .field-action-grid-103 {
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  pointer-events: none !important;
+  display: block !important;
+  background: none !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+body.field-active.field-ui-103 .field-action-grid-103 button {
+  position: absolute !important;
+  pointer-events: auto !important;
+  margin:0 !important;
+  font-weight:950 !important;
+}
+body.field-active.field-ui-103 .field-attack-103 {
+  right: var(--so103-safe-right) !important;
+  bottom: var(--so103-safe-bottom) !important;
+  width: clamp(82px, 24vw, 106px) !important;
+  height: clamp(82px, 24vw, 106px) !important;
+  min-width: 82px !important;
+  min-height: 82px !important;
+  border-radius: 50% !important;
+  color:#fff8d7 !important;
+  border:1px solid rgba(255,226,147,.94) !important;
+  background:
+    url('/assets/ui/fantasy/103/attack-orb-103.webp') center / contain no-repeat,
+    radial-gradient(circle at 34% 20%, rgba(255,255,255,.45), rgba(255,204,105,.22) 32%, rgba(113,41,22,.88) 78%) !important;
+  box-shadow: 0 16px 34px rgba(0,0,0,.42), 0 0 22px rgba(255,182,77,.20), inset 0 0 0 1px rgba(255,255,255,.20) !important;
+  text-shadow: 0 2px 4px rgba(0,0,0,.75) !important;
+  z-index: 8 !important;
+}
+body.field-active.field-ui-103 .field-attack-103 span { display:block !important; font-size:24px !important; line-height:1 !important; }
+body.field-active.field-ui-103 .field-attack-103 b { display:block !important; font-size:11px !important; margin-top:1px !important; }
+body.field-active.field-ui-103 .field-auto-103,
+body.field-active.field-ui-103 .field-menu-103,
+body.field-active.field-ui-103 .field-bag-103,
+body.field-active.field-ui-103 .field-sleep-103 {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  border-radius: 50% !important;
+  padding:0 !important;
+  border:1px solid rgba(245,207,115,.72) !important;
+  color:#fff7da !important;
+  background: linear-gradient(180deg, rgba(45,66,112,.92), rgba(10,22,46,.94)) !important;
+  box-shadow: 0 9px 20px rgba(0,0,0,.30), inset 0 0 0 1px rgba(255,255,255,.10) !important;
+  z-index:7 !important;
+}
+body.field-active.field-ui-103 .field-auto-103 {
+  right: calc(var(--so103-safe-right) + 20px) !important;
+  bottom: calc(var(--so103-safe-bottom) + clamp(88px, 25vw, 112px)) !important;
+}
+body.field-active.field-ui-103 .field-menu-103 {
+  right: calc(var(--so103-safe-right) + clamp(88px, 25vw, 112px)) !important;
+  bottom: calc(var(--so103-safe-bottom) + 18px) !important;
+}
+body.field-active.field-ui-103 .field-bag-103 {
+  right: calc(var(--so103-safe-right) + clamp(92px, 26vw, 118px)) !important;
+  bottom: calc(var(--so103-safe-bottom) + 68px) !important;
+}
+body.field-active.field-ui-103 .field-sleep-103 {
+  right: calc(var(--so103-safe-right) + 18px) !important;
+  bottom: calc(var(--so103-safe-bottom) + clamp(132px, 37vw, 160px)) !important;
+}
+body.field-active.field-ui-103 .field-auto-103 b,
+body.field-active.field-ui-103 .field-menu-103 b,
+body.field-active.field-ui-103 .field-bag-103 b,
+body.field-active.field-ui-103 .field-sleep-103 b { display:none !important; }
+body.field-active.field-ui-103 .field-auto-103 span,
+body.field-active.field-ui-103 .field-menu-103 span,
+body.field-active.field-ui-103 .field-bag-103 span,
+body.field-active.field-ui-103 .field-sleep-103 span { font-size:18px !important; }
+
+body.field-active.field-ui-103 .field-skill-stack-103 {
+  right: var(--so103-safe-right) !important;
+  bottom: calc(var(--so103-safe-bottom) + clamp(112px, 32vw, 138px)) !important;
+  width: clamp(50px, 14vw, 62px) !important;
+  max-width: 64px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  gap: 7px !important;
+  padding:0 !important;
+  background:none !important;
+  border:0 !important;
+  box-shadow:none !important;
+  z-index:6 !important;
+}
+body.field-active.field-ui-103 .field-skill-103 {
+  position:relative !important;
+  width: clamp(48px, 13.5vw, 58px) !important;
+  height: clamp(48px, 13.5vw, 58px) !important;
+  min-width:48px !important;
+  min-height:48px !important;
+  border-radius:50% !important;
+  padding:0 !important;
+  border:1px solid rgba(236,220,255,.80) !important;
+  color:#fff8dc !important;
+  background:
+    url('/assets/ui/fantasy/103/skill-orb-103.webp') center / contain no-repeat,
+    radial-gradient(circle at 34% 18%, rgba(255,255,255,.40), rgba(114,232,255,.18) 32%, rgba(53,39,118,.92) 78%) !important;
+  box-shadow: 0 10px 22px rgba(0,0,0,.34), 0 0 14px rgba(185,160,255,.18), inset 0 0 0 1px rgba(255,255,255,.16) !important;
+  overflow:visible !important;
+}
+body.field-active.field-ui-103 .field-skill-103 span { position:absolute !important; left:3px !important; top:3px !important; width:17px !important; height:17px !important; border-radius:50% !important; display:grid !important; place-items:center !important; background:#fff0bc !important; color:#57350a !important; font-size:9px !important; font-weight:950 !important; }
+body.field-active.field-ui-103 .field-skill-103 b { position:absolute !important; left:50% !important; bottom:-13px !important; transform:translateX(-50%) !important; max-width:60px !important; color:#fff6dc !important; font-size:8px !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
+body.field-active.field-ui-103 .field-skill-103 em { display:none !important; }
+
+body.field-active.field-ui-103 .field-potions-103 {
+  left: 50% !important;
+  bottom: var(--so103-safe-bottom) !important;
+  transform: translateX(-50%) !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap: 8px !important;
+  width:auto !important;
+  max-width: 112px !important;
+  padding:0 !important;
+  background:none !important;
+  border:0 !important;
+  box-shadow:none !important;
+  z-index:5 !important;
+}
+body.field-active.field-ui-103 .field-potion-103 {
+  width:44px !important;
+  height:44px !important;
+  min-width:44px !important;
+  min-height:44px !important;
+  border-radius:50% !important;
+  padding:0 !important;
+  border:1px solid rgba(245,207,115,.66) !important;
+  background: linear-gradient(180deg, rgba(35,58,103,.96), rgba(7,17,35,.96)) !important;
+  color:#fff6df !important;
+  box-shadow: 0 8px 18px rgba(0,0,0,.28) !important;
+}
+body.field-active.field-ui-103 .field-potion-103 span { display:block !important; font-size:14px !important; line-height:1 !important; }
+body.field-active.field-ui-103 .field-potion-103 b { display:block !important; font-size:9px !important; line-height:1 !important; }
+body.field-active.field-ui-103 .field-potion-103 em { position:absolute !important; right:-2px !important; top:-2px !important; min-width:16px !important; height:16px !important; border-radius:999px !important; padding:0 4px !important; display:grid !important; place-items:center !important; background:#fff1bd !important; color:#543507 !important; font-style:normal !important; font-size:8px !important; font-weight:950 !important; }
+
+body.field-active.field-ui-103 .field-joystick-103 {
+  left: var(--so103-safe-left) !important;
+  bottom: var(--so103-safe-bottom) !important;
+  width: clamp(86px, 25vw, 112px) !important;
+  height: clamp(86px, 25vw, 112px) !important;
+  border-radius:50% !important;
+  border:1px solid rgba(245,207,115,.60) !important;
+  background:
+    url('/assets/ui/fantasy/103/joystick-ring-103.webp') center / contain no-repeat,
+    radial-gradient(circle at 50% 50%, rgba(114,232,255,.08), rgba(8,19,42,.52) 52%, rgba(3,8,20,.78)) !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,.34), inset 0 0 0 1px rgba(255,255,255,.10) !important;
+  opacity: .96 !important;
+  z-index:4 !important;
+}
+body.field-active.field-ui-103 .field-joystick-103 i {
+  width: 42% !important;
+  height: 42% !important;
+  border-radius:50% !important;
+  background: radial-gradient(circle at 35% 22%, #fff, #8decff 34%, #3d67d6 78%) !important;
+  border:1px solid rgba(255,230,166,.74) !important;
+  box-shadow: 0 5px 12px rgba(0,0,0,.30) !important;
+}
+
+body.field-active.field-ui-103 .field-log-103 {
+  left: var(--so103-safe-left) !important;
+  bottom: calc(var(--so103-safe-bottom) + clamp(96px, 28vw, 126px)) !important;
+  width: min(210px, calc(100vw - 168px)) !important;
+  max-height: 82px !important;
+  border-radius: 18px !important;
+  padding: 8px 9px !important;
+  border:1px solid rgba(114,232,255,.28) !important;
+  background: rgba(6,16,35,.60) !important;
+  color:rgba(236,245,255,.86) !important;
+  font-size:10px !important;
+  overflow:hidden auto !important;
+  box-shadow:0 8px 18px rgba(0,0,0,.22) !important;
+}
+body.field-active.field-ui-103 .field-log-toggle-103 {
+  left: var(--so103-safe-left) !important;
+  bottom: calc(var(--so103-safe-bottom) + clamp(182px, 49vw, 224px)) !important;
+  width: 74px !important;
+  height: 28px !important;
+  border-radius:999px !important;
+  border:1px solid rgba(114,232,255,.28) !important;
+  background: rgba(6,16,35,.64) !important;
+  color:#dcefff !important;
+  font-size:10px !important;
+}
+
+/* Panel/background and text harmony. */
+body.light-panel-contrast-103 .readable-panel-103,
+body.light-panel-contrast-103 .town-drawer,
+body.light-panel-contrast-103 .sheet,
+body.light-panel-contrast-103 .item-detail-card {
+  color: var(--so103-ink-dark) !important;
+  text-shadow: none !important;
+  background:
+    radial-gradient(circle at 0 0, rgba(114,232,255,.10), transparent 34%),
+    linear-gradient(180deg, rgba(255,248,226,.96), rgba(222,236,248,.94)) !important;
+  border-color: rgba(140,92,29,.46) !important;
+}
+body.light-panel-contrast-103 .readable-panel-103 h1,
+body.light-panel-contrast-103 .readable-panel-103 h2,
+body.light-panel-contrast-103 .readable-panel-103 h3,
+body.light-panel-contrast-103 .town-drawer h2,
+body.light-panel-contrast-103 .sheet h2,
+body.light-panel-contrast-103 .item-detail-card h2 { color:#10294c !important; text-shadow:none !important; }
+body.light-panel-contrast-103 .readable-panel-103 p,
+body.light-panel-contrast-103 .readable-panel-103 span,
+body.light-panel-contrast-103 .readable-panel-103 em,
+body.light-panel-contrast-103 .town-drawer p,
+body.light-panel-contrast-103 .town-drawer span,
+body.light-panel-contrast-103 .town-drawer em { color:#34506f !important; text-shadow:none !important; }
+
+body.fantasy-ui-103 .close-gem-103,
+body.fantasy-ui-103 .asset-close-102.close-gem-103 {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  min-height: 42px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  font-size: 0 !important;
+  background:
+    url('/assets/ui/fantasy/102/shortcuts/buttons/close.png') center / contain no-repeat,
+    radial-gradient(circle, #4d6096, #09172b) !important;
+  border:0 !important;
+  box-shadow: 0 8px 18px rgba(0,0,0,.24) !important;
+}
+body.fantasy-ui-103 .close-gem-103::before,
+body.fantasy-ui-103 .close-gem-103::after { display:none !important; }
+
+/* Compact portrait QA: 360/390px devices. */
+@media (max-width: 390px) {
+  body.field-active.field-ui-103 .hud-top.field-player-card-103 {
+    width: calc(100vw - var(--so103-safe-left) - var(--so103-safe-right) - 94px) !important;
+    min-width: 0 !important;
+    height: 68px !important;
+    grid-template-columns: 43px minmax(0,1fr) !important;
+  }
+  body.field-active.field-ui-103 .hud-top .portrait { width:43px !important; height:43px !important; min-width:43px !important; }
+  body.field-active.field-ui-103 .field-minimap-103 { width: 78px !important; height: 78px !important; border-radius: 23px !important; }
+  body.field-active.field-ui-103 .resource-strip.field-resource-pill-103 { top: calc(var(--so103-safe-top) + 70px) !important; height:25px !important; width: calc(100vw - var(--so103-safe-left) - var(--so103-safe-right) - 94px) !important; min-width:0 !important; }
+  body.field-active.field-ui-103 .resource-strip.field-resource-pill-103 span { font-size:8px !important; padding:0 3px !important; }
+  body.field-active.field-ui-103 .monster-card-103 { top: calc(var(--so103-safe-top) + 86px) !important; width: 130px !important; height: 70px !important; padding:8px 9px !important; }
+  body.field-active.field-ui-103 .field-quest-103 { top: calc(var(--so103-safe-top) + 100px) !important; width: calc(100vw - var(--so103-safe-left) - var(--so103-safe-right) - 148px) !important; min-width: 132px !important; max-height: 70px !important; padding:8px !important; }
+  body.field-active.field-ui-103 .field-chain-103 { display:none !important; }
+  body.field-active.field-ui-103 .field-log-103,
+  body.field-active.field-ui-103 .field-log-toggle-103 { display:none !important; }
+  body.field-active.field-ui-103 .field-potions-103 { bottom: calc(var(--so103-safe-bottom) + 4px) !important; gap:6px !important; }
+  body.field-active.field-ui-103 .field-potion-103 { width:40px !important; height:40px !important; min-width:40px !important; min-height:40px !important; }
+  body.field-active.field-ui-103 .field-skill-stack-103 { bottom: calc(var(--so103-safe-bottom) + 106px) !important; right: calc(var(--so103-safe-right) + 2px) !important; gap:5px !important; }
+  body.field-active.field-ui-103 .field-skill-103 { width:46px !important; height:46px !important; min-width:46px !important; min-height:46px !important; }
+  body.field-active.field-ui-103 .field-attack-103 { width:80px !important; height:80px !important; min-width:80px !important; min-height:80px !important; }
+  body.field-active.field-ui-103 .field-auto-103,
+  body.field-active.field-ui-103 .field-menu-103,
+  body.field-active.field-ui-103 .field-bag-103,
+  body.field-active.field-ui-103 .field-sleep-103 { width:38px !important; height:38px !important; min-width:38px !important; min-height:38px !important; }
+  body.field-active.field-ui-103 .field-bag-103,
+  body.field-active.field-ui-103 .field-sleep-103 { display:none !important; }
+}
+
+@media (max-height: 700px) {
+  body.field-active.field-ui-103 .field-log-103,
+  body.field-active.field-ui-103 .field-log-toggle-103 { display:none !important; }
+  body.field-active.field-ui-103 .field-chain-103 { top: calc(var(--so103-safe-top) + 180px) !important; height:36px !important; }
+  body.field-active.field-ui-103 .monster-card-103 { height:68px !important; }
+  body.field-active.field-ui-103 .field-quest-103 { max-height:66px !important; }
+}
+
+body.field-lite-103 .field-hud-shell-100::before,
+body.field-lite-103 .field-player-card-103::before,
+body.field-lite-103 .monster-card-103::before { opacity:.45 !important; filter:none !important; }
+body.field-lite-103 .field-card-103,
+body.field-lite-103 .field-attack-103,
+body.field-lite-103 .field-skill-103,
+body.field-lite-103 .field-potion-103,
+body.field-lite-103 .field-joystick-103 {
+  box-shadow: 0 6px 14px rgba(0,0,0,.22) !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+body.field-lite-103 .field-skill-103 b,
+body.field-lite-103 .field-chain-103,
+body.field-lite-103 .field-log-103,
+body.field-lite-103 .field-log-toggle-103 { display:none !important; }
+
+body.field-overflow-103 .monster-card-103,
+body.field-overflow-103 .field-quest-103,
+body.field-overflow-103 .field-skill-stack-103,
+body.field-overflow-103 .field-action-grid-103 {
+  outline: 1px solid rgba(255, 122, 132, .54) !important;
+}
+
+@media (orientation: landscape) {
+  body.portrait-lock-103:not(.landscape-guard-103) .orientation-guard {
+    display: grid !important;
+  }
+}

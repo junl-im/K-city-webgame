@@ -1,4 +1,4 @@
-const CACHE_NAME = 'soul-online-alpha-v1-02';
+const CACHE_NAME = 'soul-online-alpha-v1-06';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
@@ -16,7 +16,7 @@ self.addEventListener('activate', (event) => {
 function shouldRuntimeCache(request, url) {
   if (request.destination === 'image') return false;
   if (/\.(png|jpe?g|webp|gif|avif|mp3|ogg|wav)(\?|$)/i.test(url.pathname)) return false;
-  if (url.pathname.includes('/assets/soulpack/')) return false;
+  if (url.pathname.includes('/assets/soulpack/') || url.pathname.includes('/assets/soulpack-lite/')) return false;
   return true;
 }
 

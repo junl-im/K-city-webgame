@@ -20,7 +20,7 @@ import {
   villageProps,
   worldMap
 } from '../data/gameData';
-import { runtimeTextureUrls, textureUrls } from '../data/assetManifest';
+import { liteRuntimeTextureUrls106, runtimeTextureUrls, textureUrls } from '../data/assetManifest';
 import type {
   AutoHuntSettings,
   CardDefinition,
@@ -46,6 +46,8 @@ import type { SaveService } from './SaveService';
 import { audioService } from './AudioService';
 import { applyEquipmentResonance, equipmentResonanceEffects } from './equipmentResonance';
 import { HUMANOID_SHEET_META, MONSTER_SHEET_META, SpriteSheetAnimator, directionFromIsoVector, type SpriteDirection } from './SpriteSheetAnimator';
+import { detectFieldEngineTier105, getFieldEngineProfile105 } from './fieldEngineProfile105';
+import { getTexturePriority106, inspectFieldSpriteAtlas106, shouldUseLiteSpriteAtlas106 } from './fieldSpriteBudget106';
 
 type MobView = {
   root: Container;
@@ -247,6 +249,7 @@ export class SolGame {
   private fxBudgetWindow101 = 0;
   private fxBudgetCount101 = 0;
   private hiddenMobFrame101 = 0;
+  private spriteAtlasMode106: 'lite' | 'high' = 'high';
 
   constructor(
     private save: PlayerSave,
@@ -271,6 +274,7 @@ export class SolGame {
     this.world.addChild(this.mapLayer, this.ambientLayer, this.propLayer, this.entityLayer, this.fxLayer);
     this.app.stage.addChild(this.world);
 
+    this.spriteAtlasMode106 = shouldUseLiteSpriteAtlas106() ? 'lite' : 'high';
     await this.loadTextures();
     this.buildMap();
     this.spawnMobs();
@@ -873,7 +877,7 @@ export class SolGame {
   }
 
   private async loadTextures() {
-    const required = this.requiredTextureKeys();
+    const required = this.requiredTextureKeys().sort((a, b) => getTexturePriority106(a, this.options.zoneId || 'slime-forest', this.save.classId) - getTexturePriority106(b, this.options.zoneId || 'slime-forest', this.save.classId));
     let loaded = 0;
     let cursor = 0;
     const concurrency = this.textureLoadConcurrency099(required.length);
@@ -883,7 +887,7 @@ export class SolGame {
         cursor += 1;
         const fallbackUrl = textureUrls[key];
         const runtimeUrl = runtimeTextureUrls[key];
-        const texture = await this.loadTextureWithFallback(runtimeUrl, fallbackUrl);
+        const texture = await this.loadTextureWithFallback(key, runtimeUrl, fallbackUrl);
         this.textures.set(key, texture);
         loaded += 1;
         this.options.onLoadProgress?.(loaded, required.length, String(key));
@@ -893,28 +897,18 @@ export class SolGame {
   }
 
   private renderProfile099() {
-    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-    const tier = this.performanceTier101();
+    const profile105 = getFieldEngineProfile105();
     return {
-      // Alpha 1.01: mobile stability first. A slightly lower canvas resolution prevents
-      // large sprite sheets and full-screen HUD filters from competing for GPU memory.
-      resolution: Math.min(dpr, tier === 'lite' ? 0.85 : tier === 'balanced' ? 1.05 : 1.42),
-      antialias: tier === 'quality' && dpr <= 2,
-      maxFPS: tier === 'lite' ? 34 : tier === 'balanced' ? 45 : 60
+      // Alpha 1.05: mobile-first Pixi budget. Keep the canvas sharp enough for art,
+      // but do not let DPR 3 devices allocate huge render targets.
+      resolution: profile105.resolution,
+      antialias: profile105.antialias,
+      maxFPS: profile105.maxFPS
     };
   }
 
   private performanceTier101(): 'lite' | 'balanced' | 'quality' {
-    const nav = typeof navigator !== 'undefined' ? navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean; effectiveType?: string } } : null;
-    const memory = nav?.deviceMemory || 4;
-    const cores = nav?.hardwareConcurrency || 4;
-    const saveData = Boolean(nav?.connection?.saveData);
-    const network = nav?.connection?.effectiveType || '';
-    const forcedLite = this.localStorageFlag099('soul-online-lite-render-091') || this.localStorageFlag099('soul-online-field-lite-100') || this.localStorageFlag099('soul-online-perf-lite-101');
-    const forcedQuality = this.localStorageFlag099('soul-online-perf-quality-101');
-    if (!forcedQuality && (forcedLite || saveData || memory <= 2 || cores <= 2 || /2g|slow-2g/.test(network))) return 'lite';
-    if (!forcedQuality && (memory <= 4 || cores <= 4 || /3g/.test(network))) return 'balanced';
-    return 'quality';
+    return detectFieldEngineTier105();
   }
 
   private isFieldLite101() {
@@ -930,10 +924,9 @@ export class SolGame {
   }
 
   private textureLoadConcurrency099(requiredCount: number) {
-    const tier = this.performanceTier101();
-    if (tier === 'lite') return 1;
-    if (tier === 'balanced' || requiredCount >= 80) return 2;
-    return 3;
+    const profile105 = getFieldEngineProfile105();
+    if (requiredCount >= 80) return Math.min(profile105.textureConcurrency, 2);
+    return profile105.textureConcurrency;
   }
 
   private requiredTextureKeys(): TextureKey[] {
@@ -961,7 +954,15 @@ export class SolGame {
     return [...keys];
   }
 
-  private async loadTextureWithFallback(runtimeUrl: string | undefined, fallbackUrl: string) {
+  private async loadTextureWithFallback(key: TextureKey, runtimeUrl: string | undefined, fallbackUrl: string) {
+    const liteUrl = shouldUseLiteSpriteAtlas106() ? liteRuntimeTextureUrls106[key] : undefined;
+    if (liteUrl) {
+      try {
+        return await Assets.load<LoadedTexture>(liteUrl);
+      } catch {
+        // Lite atlases are optional. Fall through to normal runtime/fallback assets.
+      }
+    }
     if (runtimeUrl) {
       try {
         return await Assets.load<LoadedTexture>(runtimeUrl);
@@ -2513,7 +2514,8 @@ export class SolGame {
       .moveTo(-14, -18).lineTo(-7, -18).moveTo(7, -18).lineTo(14, -18).stroke({ color: 0xffe5a2, alpha: 0.22, width: 1.1 });
     const sprite = new Sprite(petTexture);
     sprite.anchor.set(0.5, 0.92);
-    sprite.scale.set(0.19);
+    const slimeScale106 = this.textureResolutionScale106(this.mustTexture('monsterSlimeSheet'), MONSTER_SHEET_META);
+    sprite.scale.set(0.19 * slimeScale106);
     sprite.position.y = 1;
     const gem = new Graphics()
       .moveTo(0, -45).lineTo(7, -33).lineTo(0, -23).lineTo(-7, -33).closePath()
@@ -2535,7 +2537,7 @@ export class SolGame {
     this.playerShadow = new Graphics().ellipse(0, 2, 19 * PLAYER_SHADOW_SCALE, 6.5 * PLAYER_SHADOW_SCALE).fill({ color: 0x000000, alpha: 0.24 });
     this.playerAnimator = new SpriteSheetAnimator(this.mustTexture(this.classSheetTextureKey()), HUMANOID_SHEET_META, 0.98);
     this.playerBody = this.playerAnimator.sprite;
-    this.playerBody.scale.set(PLAYER_VISUAL_SCALE);
+    this.playerBody.scale.set(PLAYER_VISUAL_SCALE * this.playerAnimator.resolutionScale);
     this.playerBody.position.y = -2;
 
     const aura = new Graphics()
@@ -2602,7 +2604,7 @@ export class SolGame {
     const animator = new SpriteSheetAnimator(this.mustTexture(this.monsterSheetTextureKey(mob.def.id)), MONSTER_SHEET_META, 0.96);
     const body = animator.sprite;
     const baseScale = MOB_VISUAL_SCALE[mob.def.id] * (mob.eliteAffix ? 1.1 : isDragon ? 1.03 : 1);
-    body.scale.set(baseScale);
+    body.scale.set(baseScale * animator.resolutionScale);
     body.position.y = isDragon ? -3 : -1;
 
     const hpBack = new Graphics().roundRect(-22, -43, 44, 5, 2.5).fill({ color: 0x0b315f, alpha: 0.64 }).roundRect(-22, -43, 44, 5, 2.5).stroke({ color: 0xffffff, alpha: 0.16, width: 0.8 });
@@ -2678,7 +2680,7 @@ export class SolGame {
     this.updateMobs(dt);
     this.updateCamera();
     this.sortTimer101 += dt;
-    const sortInterval101 = this.isFieldLite101() ? 0.18 : this.isFieldBalanced101() ? 0.11 : 0.06;
+    const sortInterval101 = getFieldEngineProfile105().sortInterval;
     if (this.sortTimer101 >= sortInterval101) {
       this.sortTimer101 = 0;
       this.sortEntities();
@@ -2691,7 +2693,7 @@ export class SolGame {
     }
 
     this.emitTimer101 += dt;
-    const emitInterval101 = this.isFieldLite101() ? 0.18 : this.isFieldBalanced101() ? 0.12 : 0.075;
+    const emitInterval101 = getFieldEngineProfile105().emitInterval;
     if (this.emitTimer101 >= emitInterval101) {
       this.emitTimer101 = 0;
       this.emit();
@@ -2921,7 +2923,7 @@ export class SolGame {
       view.root.visible = nearViewport101;
       if (!nearViewport101 && this.isFieldBalanced101()) {
         this.hiddenMobFrame101 += 1;
-        if (this.hiddenMobFrame101 % (this.isFieldLite101() ? 4 : 2) !== 0) {
+        if (this.hiddenMobFrame101 % getFieldEngineProfile105().hiddenMobFrameModulo !== 0) {
           mob.attackCooldown = Math.max(0, mob.attackCooldown - dt);
           mob.wanderCooldown = Math.max(0, mob.wanderCooldown - dt);
           mob.stateTimer = Math.max(0, mob.stateTimer - dt);
@@ -4053,15 +4055,15 @@ export class SolGame {
 
   private shouldSpawnFx101(weight = 1, important = false) {
     if (!this.app) return false;
-    const tier = this.performanceTier101();
-    const maxChildren = tier === 'lite' ? 24 : tier === 'balanced' ? 44 : 78;
+    const profile105 = getFieldEngineProfile105();
+    const maxChildren = profile105.fxChildren;
     if (!important && this.fxLayer.children.length >= maxChildren) return false;
     const now = performance.now();
     if (now - this.fxBudgetWindow101 > 520) {
       this.fxBudgetWindow101 = now;
       this.fxBudgetCount101 = 0;
     }
-    const maxBurst = tier === 'lite' ? 9 : tier === 'balanced' ? 17 : 32;
+    const maxBurst = profile105.fxBurst;
     if (!important && this.fxBudgetCount101 + weight > maxBurst) return false;
     this.fxBudgetCount101 += weight;
     return true;
@@ -4514,7 +4516,7 @@ export class SolGame {
       style: {
         fill: color,
         fontFamily: 'Arial',
-        fontSize: text.includes('CRIT') ? 20 : 17,
+        fontSize: Math.round((text.includes('CRIT') ? 20 : 17) * getFieldEngineProfile105().floatTextScale),
         fontWeight: '900',
         stroke: { color: 0x111111, width: 5 }
       }
@@ -4602,6 +4604,17 @@ export class SolGame {
       combatChain: this.combatChainSnapshot(),
       potionCounts: this.potionSnapshot()
     };
+  }
+
+  private textureResolutionScale106(texture: LoadedTexture, meta: { frameWidth: number; frameHeight: number; rows: unknown[]; actions: Record<string, { start: number; frames: number }> }) {
+    const sourceSize = texture.source as { width?: number; height?: number };
+    const maxFrameColumn = Math.max(...Object.values(meta.actions).map((action) => action.start + action.frames));
+    const actualFrameWidth = Math.max(1, Math.round((sourceSize.width || meta.frameWidth * maxFrameColumn) / maxFrameColumn));
+    return Math.max(1, meta.frameWidth / actualFrameWidth);
+  }
+
+  getFieldSpriteAtlasReport106() {
+    return inspectFieldSpriteAtlas106(this.spriteAtlasMode106, this.textures);
   }
 
   private mustTexture(key: TextureKey) {

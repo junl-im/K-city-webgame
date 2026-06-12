@@ -1,0 +1,286 @@
+/* Soul Online alpha 1.06: sprite atlas lite mode, portrait HUD finalization, and high-quality readable UI polish. */
+:root {
+  --so-safe-top-106: max(10px, env(safe-area-inset-top));
+  --so-safe-right-106: max(10px, env(safe-area-inset-right));
+  --so-safe-bottom-106: max(12px, env(safe-area-inset-bottom));
+  --so-safe-left-106: max(10px, env(safe-area-inset-left));
+  --so-ink-106: #11243f;
+  --so-muted-106: #38506f;
+  --so-field-ink-106: #f8fcff;
+  --so-field-sub-106: #c7ecff;
+  --so-gold-106: #f0d184;
+  --so-aqua-106: #80e6ff;
+  --so-rose-106: #f49bb3;
+}
+
+body.engine-106 {
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden !important;
+  background: radial-gradient(circle at 50% 0%, rgba(126,230,255,.24), transparent 38%), #071426;
+}
+
+body.engine-106 #app,
+body.engine-106 #game-root {
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  contain: layout style paint;
+}
+
+body.engine-106 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body.engine-106 img { decoding: async; user-select: none; -webkit-user-drag: none; }
+
+/* Lite atlas mode: keep the game responsive first. */
+body.engine-106.asset-atlas-lite-106,
+body.engine-106.field-lite-106 {
+  --so-ui-blur-105: 0px;
+}
+body.engine-106.asset-atlas-lite-106 :is(.soul-spark,.corner-spark,.town-art-bloom-081,.town-artgrade-glow-099),
+body.engine-106.field-lite-106 :is(.field-chain-meter,.combat-log,.combat-log-toggle) {
+  animation: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+/* Portrait lock authority. Browser tabs cannot be truly locked, so make landscape a safe notice instead of broken UI. */
+@media (orientation: landscape) and (max-height: 520px) {
+  body.engine-106::before {
+    content: '소울 온라인은 세로모드 전용입니다. 기기를 세로로 돌려주세요.';
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: grid;
+    place-items: center;
+    padding: 28px;
+    text-align: center;
+    font-weight: 900;
+    color: #fff8e6;
+    background: radial-gradient(circle at 50% 15%, rgba(123,220,255,.24), transparent 38%), linear-gradient(180deg, #081529, #150d28 76%);
+  }
+}
+
+/* Readability: light surfaces use ink; dark battle surfaces use high contrast. */
+body.engine-106 :is(.login-panel,.town-clean-hub-098,#townContentPanel,#sheet,#itemDetailModal,.modal-card,.sheet-panel,.town-drawer-panel) {
+  color: var(--so-ink-106) !important;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.86), rgba(247,235,205,.86) 50%, rgba(230,247,255,.78)),
+    url('/assets/ui/fantasy/106/quest-parchment-106.webp') center/100% 100% no-repeat !important;
+  border: 1px solid rgba(230,190,104,.72) !important;
+}
+body.engine-106 :is(.login-panel,.town-clean-hub-098,#townContentPanel,#sheet,#itemDetailModal,.modal-card,.sheet-panel,.town-drawer-panel) :is(h1,h2,h3,b,strong,.title,.label) {
+  color: #0d294b !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.7) !important;
+}
+body.engine-106 :is(.login-panel,.town-clean-hub-098,#townContentPanel,#sheet,#itemDetailModal,.modal-card,.sheet-panel,.town-drawer-panel) :is(p,span,small,em,li) {
+  color: var(--so-muted-106) !important;
+}
+
+/* Field HUD shell: no overflow, no random right-bottom scattering. */
+body.engine-106.field-active :is(.field-hud-shell-100,.field-hud-shell-104,.field-shell-106) {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  z-index: 45 !important;
+  contain: strict;
+}
+
+body.engine-106.field-active :is(.hud-top,.resource-strip,.target-card,.field-quest-tracker,.field-minimap,.combat-log,.combat-log-toggle,.joystick,.potion-dock,.skill-dock,.action-dock,.field-more-dock) {
+  position: fixed !important;
+  pointer-events: auto !important;
+  max-width: calc(100vw - var(--so-safe-left-106) - var(--so-safe-right-106)) !important;
+  transform: translateZ(0);
+}
+
+body.engine-106.field-active :is(.hud-top,.resource-strip,.target-card,.field-minimap,.field-quest-tracker,.combat-log) {
+  color: var(--so-field-ink-106) !important;
+  background:
+    linear-gradient(135deg, rgba(5,15,34,.92), rgba(19,49,74,.86) 52%, rgba(45,29,80,.82)),
+    url('/assets/ui/fantasy/106/field-glass-106.webp') center/100% 100% no-repeat !important;
+  border: 1px solid rgba(128,230,255,.36) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(var(--so-ui-blur-105, 3px));
+}
+body.engine-106.field-active :is(.hud-top,.resource-strip,.target-card,.field-minimap,.field-quest-tracker,.combat-log) :is(h1,h2,h3,b,strong,.name,.title) {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,.55) !important;
+}
+body.engine-106.field-active :is(.hud-top,.resource-strip,.target-card,.field-minimap,.field-quest-tracker,.combat-log) :is(span,p,small,em) {
+  color: var(--so-field-sub-106) !important;
+}
+
+body.engine-106.field-active .hud-top {
+  top: var(--so-safe-top-106) !important;
+  left: var(--so-safe-left-106) !important;
+  right: calc(var(--so-safe-right-106) + 104px) !important;
+  width: auto !important;
+  min-height: 72px !important;
+  padding: 8px 10px !important;
+  border-radius: 20px !important;
+}
+body.engine-106.field-active .resource-strip {
+  top: calc(var(--so-safe-top-106) + 78px) !important;
+  left: var(--so-safe-left-106) !important;
+  right: calc(var(--so-safe-right-106) + 106px) !important;
+  width: auto !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  display: flex !important;
+  gap: 5px !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 5px 8px !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+body.engine-106.field-active .field-minimap {
+  top: var(--so-safe-top-106) !important;
+  right: var(--so-safe-right-106) !important;
+  width: 96px !important;
+  height: 110px !important;
+  border-radius: 22px !important;
+  overflow: hidden !important;
+  background-image: url('/assets/ui/fantasy/106/mini-frame-106.webp') !important;
+}
+body.engine-106.field-active .target-card {
+  top: calc(var(--so-safe-top-106) + 118px) !important;
+  left: var(--so-safe-left-106) !important;
+  right: var(--so-safe-right-106) !important;
+  width: auto !important;
+  min-height: 66px !important;
+  max-height: 86px !important;
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  background:
+    linear-gradient(135deg, rgba(19,11,30,.94), rgba(61,28,72,.84) 52%, rgba(18,54,74,.86)),
+    url('/assets/ui/fantasy/106/monster-plate-106.webp') center/100% 100% no-repeat !important;
+}
+body.engine-106.field-active .field-quest-tracker {
+  top: calc(var(--so-safe-top-106) + 194px) !important;
+  left: var(--so-safe-left-106) !important;
+  right: var(--so-safe-right-106) !important;
+  width: auto !important;
+  min-height: 54px !important;
+  max-height: 88px !important;
+  border-radius: 18px !important;
+  padding: 8px 10px !important;
+  overflow: hidden !important;
+}
+body.engine-106.field-active .combat-log {
+  left: var(--so-safe-left-106) !important;
+  right: var(--so-safe-right-106) !important;
+  bottom: calc(var(--so-safe-bottom-106) + 154px) !important;
+  max-height: 64px !important;
+  min-height: 44px !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  opacity: .84;
+}
+
+body.engine-106.field-active .joystick {
+  left: var(--so-safe-left-106) !important;
+  bottom: calc(var(--so-safe-bottom-106) + 18px) !important;
+  width: 116px !important;
+  height: 116px !important;
+  border-radius: 999px !important;
+}
+body.engine-106.field-active .potion-dock {
+  left: calc(var(--so-safe-left-106) + 126px) !important;
+  right: calc(var(--so-safe-right-106) + 146px) !important;
+  bottom: calc(var(--so-safe-bottom-106) + 22px) !important;
+  width: auto !important;
+  display: flex !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+body.engine-106.field-active .skill-dock {
+  right: calc(var(--so-safe-right-106) + 12px) !important;
+  bottom: calc(var(--so-safe-bottom-106) + 122px) !important;
+  width: 58px !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+}
+body.engine-106.field-active .action-dock {
+  right: var(--so-safe-right-106) !important;
+  bottom: calc(var(--so-safe-bottom-106) + 14px) !important;
+  width: 128px !important;
+  min-height: 108px !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+  place-items: center !important;
+}
+body.engine-106.field-active .attack-btn,
+body.engine-106.field-active #attackBtn {
+  width: 88px !important;
+  height: 88px !important;
+  grid-column: 1 / span 2 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: url('/assets/ui/fantasy/106/attack-orb-106.webp') center/contain no-repeat !important;
+  color: #fff9e7 !important;
+  text-shadow: 0 2px 4px rgba(0,0,0,.55) !important;
+}
+body.engine-106.field-active :is(.skill-btn,.field-skill-btn) {
+  width: 52px !important;
+  height: 52px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: url('/assets/ui/fantasy/106/skill-orb-106.webp') center/contain no-repeat !important;
+  color: #fff9e7 !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,.55) !important;
+}
+body.engine-106.field-active :is(.field-more-btn,.auto-hunt-btn,.bag-btn,.menu-btn) {
+  width: 44px !important;
+  height: 44px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: url('/assets/ui/fantasy/106/control-orb-106.webp') center/contain no-repeat !important;
+  color: #fff9e7 !important;
+}
+
+body.engine-106 .close-gem-106,
+body.engine-106 :is(.modal-close,.sheet-close,#closeSheet,#closeTownContent,#closeItemDetail) {
+  min-width: 38px !important;
+  min-height: 38px !important;
+  width: 42px !important;
+  height: 42px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: url('/assets/ui/fantasy/106/close-gem-106.webp') center/contain no-repeat !important;
+  color: transparent !important;
+  overflow: hidden !important;
+}
+body.engine-106 :is(.modal-close,.sheet-close,#closeSheet,#closeTownContent,#closeItemDetail)::after {
+  content: '×';
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #fff8e8;
+  font-size: 22px;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgba(63,13,49,.82);
+}
+
+@media (max-width: 390px), (max-height: 740px) {
+  body.engine-106.field-active .hud-top { right: calc(var(--so-safe-right-106) + 90px) !important; min-height: 66px !important; }
+  body.engine-106.field-active .resource-strip { top: calc(var(--so-safe-top-106) + 72px) !important; right: calc(var(--so-safe-right-106) + 92px) !important; font-size: 11px !important; }
+  body.engine-106.field-active .field-minimap { width: 84px !important; height: 98px !important; }
+  body.engine-106.field-active .target-card { top: calc(var(--so-safe-top-106) + 106px) !important; min-height: 58px !important; }
+  body.engine-106.field-active .field-quest-tracker { top: calc(var(--so-safe-top-106) + 170px) !important; max-height: 72px !important; }
+  body.engine-106.field-active .combat-log { display: none !important; }
+  body.engine-106.field-active .joystick { width: 104px !important; height: 104px !important; }
+  body.engine-106.field-active .potion-dock { left: calc(var(--so-safe-left-106) + 108px) !important; right: calc(var(--so-safe-right-106) + 126px) !important; }
+  body.engine-106.field-active .skill-dock { width: 50px !important; bottom: calc(var(--so-safe-bottom-106) + 110px) !important; }
+  body.engine-106.field-active :is(.skill-btn,.field-skill-btn) { width: 48px !important; height: 48px !important; }
+  body.engine-106.field-active .action-dock { width: 112px !important; }
+  body.engine-106.field-active .attack-btn,
+  body.engine-106.field-active #attackBtn { width: 78px !important; height: 78px !important; }
+}

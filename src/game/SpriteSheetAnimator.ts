@@ -53,6 +53,7 @@ export function directionFromIsoVector(dx: number, dy: number): SpriteDirection 
 
 export class SpriteSheetAnimator {
   readonly sprite: Sprite;
+  readonly resolutionScale: number;
   private frames: Record<string, Texture[]> = {};
   private motion: SpriteMotion = 'idle';
   private direction: SpriteDirection = 's';
@@ -61,6 +62,12 @@ export class SpriteSheetAnimator {
   private fallback: SpriteMotion = 'idle';
 
   constructor(sheet: Texture, private meta: SpriteSheetMeta, anchorY = 0.94) {
+    const sourceSize = sheet.source as { width?: number; height?: number };
+    const maxFrameColumn = Math.max(...Object.values(meta.actions).map((action) => action.start + action.frames));
+    const actualFrameWidth = Math.max(1, Math.round((sourceSize.width || meta.frameWidth * maxFrameColumn) / maxFrameColumn));
+    const actualFrameHeight = Math.max(1, Math.round((sourceSize.height || meta.frameHeight * meta.rows.length) / meta.rows.length));
+    this.resolutionScale = Math.max(1, meta.frameWidth / actualFrameWidth);
+
     for (const direction of meta.rows) {
       const row = meta.rows.indexOf(direction);
       for (const [motion, action] of Object.entries(meta.actions) as Array<[SpriteMotion, SpriteSheetMeta['actions'][SpriteMotion]]>) {
@@ -70,8 +77,8 @@ export class SpriteSheetAnimator {
           this.frames[key].push(
             new Texture({
               source: sheet.source,
-              frame: new Rectangle((action.start + frame) * meta.frameWidth, row * meta.frameHeight, meta.frameWidth, meta.frameHeight),
-              orig: new Rectangle(0, 0, meta.frameWidth, meta.frameHeight),
+              frame: new Rectangle((action.start + frame) * actualFrameWidth, row * actualFrameHeight, actualFrameWidth, actualFrameHeight),
+              orig: new Rectangle(0, 0, actualFrameWidth, actualFrameHeight),
               defaultAnchor: { x: 0.5, y: anchorY }
             })
           );

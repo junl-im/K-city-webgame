@@ -234,6 +234,34 @@ export const runtimeTextureUrls: Partial<Record<keyof typeof textureUrls, string
   propHuntMarker: './assets/soulpack/props/prop-hunt-marker.webp'
 } as const;
 
+
+export const liteRuntimeTextureUrls106: Partial<Record<keyof typeof textureUrls, string>> = {
+  heroWarriorMaleSheet: './assets/soulpack-lite/characters/hero-warrior-male-sheet.webp',
+  heroWarriorFemaleSheet: './assets/soulpack-lite/characters/hero-warrior-female-sheet.webp',
+  heroTaoistMaleSheet: './assets/soulpack-lite/characters/hero-taoist-male-sheet.webp',
+  heroTaoistFemaleSheet: './assets/soulpack-lite/characters/hero-taoist-female-sheet.webp',
+  heroClericMaleSheet: './assets/soulpack-lite/characters/hero-cleric-male-sheet.webp',
+  heroClericFemaleSheet: './assets/soulpack-lite/characters/hero-cleric-female-sheet.webp',
+  monsterSlimeSheet: './assets/soulpack-lite/monsters/monster-slime-sheet.webp',
+  monsterWolfSheet: './assets/soulpack-lite/monsters/monster-wolf-sheet.webp',
+  monsterGoblinSheet: './assets/soulpack-lite/monsters/monster-goblin-sheet.webp',
+  monsterBearSheet: './assets/soulpack-lite/monsters/monster-bear-sheet.webp',
+  bossDragonSheet: './assets/soulpack-lite/monsters/boss-dragon-sheet.webp',
+  monsterImpSheet: './assets/soulpack-lite/monsters/monster-imp-sheet.webp',
+  monsterGolemSheet: './assets/soulpack-lite/monsters/monster-golem-sheet.webp',
+  monsterWraithSheet: './assets/soulpack-lite/monsters/monster-wraith-sheet.webp',
+  monsterFireDrakeSheet: './assets/soulpack-lite/monsters/monster-firedrake-sheet.webp',
+  monsterHarpySheet: './assets/soulpack-lite/monsters/monster-harpy-sheet.webp',
+  monsterGraveKnightSheet: './assets/soulpack-lite/monsters/monster-grave-knight-sheet.webp',
+  monsterFieldBossSheet: './assets/soulpack-lite/monsters/monster-fieldboss-sheet.webp',
+  monsterOrcSheet: './assets/soulpack-lite/monsters/monster-orc-berserker-sheet.webp',
+  monsterBatSheet: './assets/soulpack-lite/monsters/monster-nightmare-bat-sheet.webp',
+  monsterLavaGolemSheet: './assets/soulpack-lite/monsters/monster-lava-golem-sheet.webp',
+  monsterIceWitchSheet: './assets/soulpack-lite/monsters/monster-ice-witch-sheet.webp',
+  monsterRoyalGuardSheet: './assets/soulpack-lite/monsters/monster-royal-guard-sheet.webp',
+  monsterRiftBeastSheet: './assets/soulpack-lite/monsters/monster-rift-beast-sheet.webp'
+};
+
 export const audioTrackUrls = {
   title: './assets/soulpack/audio/title-theme.ogg',
   town: './assets/soulpack/audio/town-lumina.ogg',

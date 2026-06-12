@@ -1,18 +1,17 @@
-# Soul Online Alpha 1.01
+# Soul Online Alpha 1.06
 
-Mobile-first 2.5D web MMORPG prototype. Alpha 1.01 focuses on field performance, render budget control, and mobile combat polish.
+모바일 세로형 웹 MMORPG 프로토타입입니다.
 
-## Apply
+## 1.06 핵심
+- 저사양 기기용 Lite WebP Atlas 추가
+- PixiJS 필드 렌더 예산 보수 조정
+- 사냥터 HUD / 몬스터 정보 / 퀘스트 / 스킬 / 공격 버튼 safe-area 재정렬
+- 밝은 패널과 어두운 전투 HUD의 색 대비 분리
+- PWA 캐시 `soul-online-alpha-v1-06`
 
+## 적용
 ```bash
 npm install
 npm run build
 firebase deploy --only hosting
 ```
-
-## Alpha 1.02
-
-- User-provided dark fantasy UI/icon kit integrated once under `public/assets/ui/fantasy/102/`.
-- Added runtime UI asset bridge `src/ui/soulAssetKit102.ts`.
-- Added `src/styles/alpha102.css` for icon/button/panel/field HUD polish.
-- Version bumped to `1.02.0`; PWA cache bumped to `soul-online-alpha-v1-02`.
