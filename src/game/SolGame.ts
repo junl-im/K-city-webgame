@@ -951,7 +951,39 @@ export class SolGame {
     const zoneId = this.options.zoneId || 'slime-forest';
     const monsterIds = zoneMonsterIds[zoneId] || zones.find((zone) => zone.id === zoneId)?.monsterIds || zoneMonsterIds['slime-forest'];
     for (const monsterId of monsterIds) keys.add(this.monsterSheetTextureKey(monsterId));
-    return [...keys];
+    return [...keys].filter((key) => !this.shouldSkipTextureKey107(key));
+  }
+
+  private shouldSkipTextureKey107(key: TextureKey) {
+    const tier = this.performanceTier101();
+    if (tier === 'quality') return false;
+    const name = String(key);
+    const keep = new Set<string>([
+      'tileGrass', 'tileDirt', 'tileMoss', 'tileStone', 'tileCrystal', 'tileWater', 'tileCliff', 'tilePortal', 'tileInfernus',
+      'propTree', 'propCrystal', 'propRock', 'propRuin', 'buildingHall', 'buildingForge', 'buildingStorage', 'buildingShop',
+      'effectSoulSlash', 'effectFireball', 'effectHolyNova', 'effectLightning', 'effectDarkRift',
+      this.classSheetTextureKey(), 'monsterSlimeSheet'
+    ]);
+    const zoneId = this.options.zoneId || 'slime-forest';
+    const monsterIds = zoneMonsterIds[zoneId] || zones.find((zone) => zone.id === zoneId)?.monsterIds || zoneMonsterIds['slime-forest'];
+    for (const monsterId of monsterIds) keep.add(this.monsterSheetTextureKey(monsterId));
+    if (keep.has(name)) return false;
+    if (tier === 'lite' && (/^prop(Tree|Rock)\d+/.test(name) || /^prop(Chest|Torch)\d+/.test(name) || /^infernus/.test(name))) return true;
+    if (tier === 'lite' && /^prop/.test(name)) return true;
+    if (tier === 'balanced' && (/^prop(Tree|Rock)(0[6-9]|10)$/.test(name) || /^prop(Chest|Torch)(0[3-5])$/.test(name))) return true;
+    if (tier === 'balanced' && /^prop(Ancient|Blood|CrystalBrazier|Rift|Boss|Treasure|SoulFountain|GoldWar|Candle|Marble)/.test(name)) return true;
+    return false;
+  }
+
+  private fallbackTextureKey107(key: TextureKey): TextureKey | undefined {
+    const name = String(key);
+    if (/^tile/.test(name)) return 'tileGrass';
+    if (/^propTree/.test(name) || /^propPetal/.test(name) || /^propAncientRoot/.test(name)) return 'propTree';
+    if (/^propRock/.test(name) || /^propStone/.test(name) || /^infernus/.test(name)) return 'propRock';
+    if (/^propCrystal|propMana|propSoul|propRune/.test(name)) return 'propCrystal';
+    if (/^prop/.test(name) || /^building/.test(name)) return 'propRuin';
+    if (/^effect/.test(name)) return 'effectSoulSlash';
+    return undefined;
   }
 
   private async loadTextureWithFallback(key: TextureKey, runtimeUrl: string | undefined, fallbackUrl: string) {
@@ -4619,8 +4651,13 @@ export class SolGame {
 
   private mustTexture(key: TextureKey) {
     const texture = this.textures.get(key);
-    if (!texture) throw new Error(`Missing texture ${key}`);
-    return texture;
+    if (texture) return texture;
+    const fallback = this.fallbackTextureKey107(key);
+    if (fallback) {
+      const fallbackTexture = this.textures.get(fallback);
+      if (fallbackTexture) return fallbackTexture;
+    }
+    throw new Error(`Missing texture ${key}`);
   }
 
 

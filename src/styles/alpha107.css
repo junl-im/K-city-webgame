@@ -1,0 +1,342 @@
+/* Soul Online Alpha 1.07 - final performance and portrait UI consolidation */
+:root {
+  --so107-safe-top: max(10px, env(safe-area-inset-top));
+  --so107-safe-right: max(10px, env(safe-area-inset-right));
+  --so107-safe-bottom: max(12px, env(safe-area-inset-bottom));
+  --so107-safe-left: max(10px, env(safe-area-inset-left));
+  --so107-ink-dark: #13243f;
+  --so107-ink-soft: #45617e;
+  --so107-ink-light: #f8fbff;
+  --so107-gold: #ffd98b;
+  --so107-aqua: #8ef7ff;
+  --so107-violet: #a888ff;
+  --so107-panel-light: rgba(250, 247, 232, .94);
+  --so107-panel-dark: rgba(9, 18, 35, .84);
+  --so107-border-light: rgba(255, 230, 170, .74);
+  --so107-border-dark: rgba(142, 247, 255, .32);
+}
+
+body.final-opt-107,
+body.final-opt-107 * {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.final-opt-107 {
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  background: radial-gradient(circle at 50% 0%, #1a3764 0%, #07111e 56%, #030710 100%);
+}
+
+body.final-opt-107 #game-root.safe-root-107 {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  max-width: 100vw;
+  max-height: 100dvh;
+  overflow: hidden;
+  isolation: isolate;
+  contain: layout paint style;
+}
+
+body.final-opt-107 .orientation-guard {
+  z-index: 99999;
+  background: radial-gradient(circle at 50% 20%, rgba(45, 76, 126, .96), rgba(5, 9, 18, .98));
+  color: #f8fbff;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  body.final-opt-107 .orientation-guard {
+    display: grid !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+}
+
+body.final-opt-107.route-title-107 #titleScreen:not(.hidden) {
+  display: grid !important;
+  place-items: center;
+  overflow: hidden;
+  padding: calc(var(--so107-safe-top) + 16px) var(--so107-safe-right) calc(var(--so107-safe-bottom) + 20px) var(--so107-safe-left);
+}
+
+body.final-opt-107.route-title-107 #startGameBtn,
+body.final-opt-107.route-title-107 .start-game-btn-090,
+body.final-opt-107.route-title-107 .start-game-btn-097 {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: calc(var(--so107-safe-bottom) + clamp(40px, 9dvh, 78px)) !important;
+  transform: translateX(-50%) !important;
+  min-width: min(72vw, 330px) !important;
+  min-height: 58px !important;
+  border-radius: 999px !important;
+  color: #fffdf4 !important;
+  text-shadow: 0 2px 10px rgba(24, 8, 0, .55) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 245, 190, .92), rgba(255, 177, 72, .28) 42%, rgba(87, 46, 130, .42)),
+    linear-gradient(135deg, rgba(77, 216, 255, .72), rgba(156, 102, 255, .72) 52%, rgba(255, 134, 103, .70)) !important;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .36), inset 0 1px 0 rgba(255,255,255,.58), 0 0 30px rgba(106,217,255,.35) !important;
+  border: 1px solid rgba(255, 232, 164, .88) !important;
+  z-index: 70 !important;
+}
+
+body.final-opt-107.route-login-107 #loginScreen:not(.hidden),
+body.final-opt-107.route-town-107 #townScreen:not(.hidden) {
+  max-width: 100vw;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+body.final-opt-107 .sheet,
+body.final-opt-107 #townContentPanel,
+body.final-opt-107 #itemDetailModal {
+  max-width: calc(100vw - var(--so107-safe-left) - var(--so107-safe-right) - 12px) !important;
+  max-height: calc(100dvh - var(--so107-safe-top) - var(--so107-safe-bottom) - 18px) !important;
+  overflow: auto !important;
+  color: var(--so107-ink-dark);
+  background:
+    linear-gradient(180deg, rgba(255,255,248,.95), rgba(235,242,255,.90)),
+    var(--so107-panel-light) !important;
+  border: 1px solid var(--so107-border-light) !important;
+  box-shadow: 0 20px 52px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255,255,255,.8) !important;
+  scrollbar-width: thin;
+}
+
+body.final-opt-107 .icon-btn,
+body.final-opt-107 .close-gem-107 {
+  color: #fff8dc !important;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255,255,255,.92), transparent 24%),
+    linear-gradient(145deg, #79ebff, #7056db 52%, #2e184f) !important;
+  border: 1px solid rgba(255, 229, 153, .74) !important;
+  box-shadow: 0 8px 18px rgba(17, 25, 62, .28), inset 0 1px 0 rgba(255,255,255,.48) !important;
+}
+
+body.final-opt-107.route-field-107 .hud-top {
+  position: fixed !important;
+  left: var(--so107-safe-left) !important;
+  top: var(--so107-safe-top) !important;
+  right: auto !important;
+  width: min(60vw, 300px) !important;
+  max-width: calc(100vw - 142px - var(--so107-safe-left) - var(--so107-safe-right)) !important;
+  min-height: 86px !important;
+  z-index: 45 !important;
+  color: var(--so107-ink-light) !important;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(142, 247, 255, .16), transparent 42%),
+    linear-gradient(180deg, rgba(13, 24, 45, .88), rgba(4, 8, 17, .78)) !important;
+  border: 1px solid var(--so107-border-dark) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 18px 36px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(12px);
+}
+
+body.final-opt-107.route-field-107 .resource-strip {
+  position: fixed !important;
+  top: calc(var(--so107-safe-top) + 4px) !important;
+  right: var(--so107-safe-right) !important;
+  left: auto !important;
+  width: min(34vw, 136px) !important;
+  display: grid !important;
+  gap: 4px !important;
+  z-index: 45 !important;
+  color: #fff6cf !important;
+  text-shadow: 0 1px 5px rgba(0,0,0,.55);
+  background: linear-gradient(180deg, rgba(14,25,43,.86), rgba(5,9,18,.72)) !important;
+  border: 1px solid rgba(255,217,139,.42) !important;
+  border-radius: 16px !important;
+}
+
+body.final-opt-107.route-field-107 .target-card {
+  position: fixed !important;
+  top: calc(var(--so107-safe-top) + 104px) !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  width: min(72vw, 320px) !important;
+  max-width: calc(100vw - var(--so107-safe-left) - var(--so107-safe-right) - 18px) !important;
+  z-index: 44 !important;
+  color: var(--so107-ink-light) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 142, 170, .18), transparent 46%),
+    linear-gradient(180deg, rgba(23, 15, 37, .90), rgba(7, 10, 20, .78)) !important;
+  border: 1px solid rgba(255, 198, 135, .45) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 16px 34px rgba(0,0,0,.28) !important;
+}
+
+body.final-opt-107.route-field-107 .field-quest-tracker {
+  position: fixed !important;
+  left: var(--so107-safe-left) !important;
+  top: calc(var(--so107-safe-top) + 104px) !important;
+  width: min(43vw, 176px) !important;
+  max-width: calc(100vw - 190px) !important;
+  z-index: 43 !important;
+  color: var(--so107-ink-dark) !important;
+  background: linear-gradient(180deg, rgba(255, 251, 237, .96), rgba(232, 244, 255, .88)) !important;
+  border: 1px solid rgba(255, 222, 146, .74) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 14px 30px rgba(0,0,0,.20) !important;
+}
+
+body.final-opt-107.route-field-107 .field-quest-tracker span,
+body.final-opt-107.route-field-107 .field-quest-tracker em {
+  color: #51637b !important;
+}
+
+body.final-opt-107.route-field-107 .field-minimap {
+  position: fixed !important;
+  top: calc(var(--so107-safe-top) + 78px) !important;
+  right: var(--so107-safe-right) !important;
+  width: min(34vw, 132px) !important;
+  max-width: 136px !important;
+  z-index: 44 !important;
+  color: var(--so107-ink-light) !important;
+  background: linear-gradient(180deg, rgba(10, 24, 43, .88), rgba(4, 8, 17, .74)) !important;
+  border: 1px solid rgba(142,247,255,.34) !important;
+  border-radius: 18px !important;
+}
+
+body.final-opt-107.route-field-107 .combat-log,
+body.final-opt-107.route-field-107 .combat-log-toggle {
+  left: var(--so107-safe-left) !important;
+  bottom: calc(var(--so107-safe-bottom) + 116px) !important;
+  max-width: min(42vw, 180px) !important;
+  z-index: 35 !important;
+}
+
+body.final-opt-107.route-field-107 .joystick {
+  position: fixed !important;
+  left: calc(var(--so107-safe-left) + 8px) !important;
+  bottom: calc(var(--so107-safe-bottom) + 22px) !important;
+  width: clamp(86px, 26vw, 112px) !important;
+  height: clamp(86px, 26vw, 112px) !important;
+  z-index: 48 !important;
+}
+
+body.final-opt-107.route-field-107 .action-dock {
+  position: fixed !important;
+  right: calc(var(--so107-safe-right) + 4px) !important;
+  bottom: calc(var(--so107-safe-bottom) + 16px) !important;
+  left: auto !important;
+  top: auto !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, clamp(46px, 13vw, 58px)) !important;
+  grid-auto-rows: clamp(46px, 13vw, 58px) !important;
+  gap: 7px !important;
+  z-index: 52 !important;
+  max-width: calc(100vw - 156px) !important;
+}
+
+body.final-opt-107.route-field-107 #attackBtn {
+  grid-row: span 2;
+  width: clamp(62px, 18vw, 78px) !important;
+  height: clamp(62px, 18vw, 78px) !important;
+  align-self: end;
+  justify-self: end;
+  border-radius: 999px !important;
+  color: #fffaf0 !important;
+  background:
+    radial-gradient(circle at 38% 24%, rgba(255,255,255,.92), transparent 22%),
+    radial-gradient(circle at 50% 70%, rgba(255, 108, 80, .96), rgba(109, 45, 160, .88) 62%, rgba(26, 17, 56, .96)) !important;
+  box-shadow: 0 0 26px rgba(255, 109, 84, .36), 0 18px 28px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.55) !important;
+}
+
+body.final-opt-107.route-field-107 .skill-dock {
+  position: fixed !important;
+  right: calc(var(--so107-safe-right) + 8px) !important;
+  bottom: calc(var(--so107-safe-bottom) + clamp(126px, 31vw, 160px)) !important;
+  left: auto !important;
+  top: auto !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, clamp(44px, 12vw, 54px)) !important;
+  gap: 7px !important;
+  z-index: 51 !important;
+}
+
+body.final-opt-107.route-field-107 .potion-dock {
+  position: fixed !important;
+  left: 50% !important;
+  bottom: calc(var(--so107-safe-bottom) + 18px) !important;
+  transform: translateX(-50%) !important;
+  display: flex !important;
+  gap: 8px !important;
+  z-index: 49 !important;
+  max-width: calc(100vw - 240px) !important;
+}
+
+body.final-opt-107.route-field-107 .dock-btn,
+body.final-opt-107.route-field-107 .skill-btn,
+body.final-opt-107.route-field-107 .potion-btn {
+  color: #f8fbff !important;
+  text-shadow: 0 1px 5px rgba(0,0,0,.58) !important;
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255,255,255,.52), transparent 22%),
+    linear-gradient(145deg, rgba(35,63,103,.94), rgba(26,26,58,.90)) !important;
+  border: 1px solid rgba(142, 247, 255, .32) !important;
+  box-shadow: 0 12px 22px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+
+body.final-opt-107.route-field-107 .dock-btn b,
+body.final-opt-107.route-field-107 .skill-btn b,
+body.final-opt-107.route-field-107 .potion-btn b,
+body.final-opt-107.route-field-107 .dock-btn em,
+body.final-opt-107.route-field-107 .skill-btn em,
+body.final-opt-107.route-field-107 .potion-btn em {
+  color: rgba(246, 251, 255, .92) !important;
+}
+
+body.final-opt-107.field-compact-107.route-field-107 .combat-log,
+body.final-opt-107.field-compact-107.route-field-107 .combat-log-toggle,
+body.final-opt-107.field-lite-107.route-field-107 .field-chain-meter {
+  display: none !important;
+}
+
+@media (max-width: 390px), (max-height: 720px) {
+  body.final-opt-107.route-field-107 .hud-top {
+    width: min(58vw, 232px) !important;
+    min-height: 74px !important;
+  }
+  body.final-opt-107.route-field-107 .resource-strip {
+    width: 116px !important;
+    font-size: 11px !important;
+  }
+  body.final-opt-107.route-field-107 .target-card {
+    top: calc(var(--so107-safe-top) + 86px) !important;
+    width: min(68vw, 248px) !important;
+  }
+  body.final-opt-107.route-field-107 .field-quest-tracker {
+    top: calc(var(--so107-safe-top) + 166px) !important;
+    width: min(49vw, 156px) !important;
+  }
+  body.final-opt-107.route-field-107 .field-minimap {
+    top: calc(var(--so107-safe-top) + 68px) !important;
+    width: 112px !important;
+  }
+  body.final-opt-107.route-field-107 .potion-dock {
+    transform: translateX(-54%) scale(.88) !important;
+  }
+}
+
+body.final-opt-107.final-lite-107 .title-screen-107,
+body.final-opt-107.final-lite-107 .town-screen-107,
+body.final-opt-107.final-lite-107 .hud-top,
+body.final-opt-107.final-lite-107 .target-card,
+body.final-opt-107.final-lite-107 .field-minimap,
+body.final-opt-107.final-lite-107 .sheet {
+  backdrop-filter: none !important;
+  filter: none !important;
+  box-shadow: 0 10px 22px rgba(0,0,0,.20) !important;
+}
+
+body.final-opt-107.ui-overflow-107.route-field-107 .target-card,
+body.final-opt-107.ui-overflow-107.route-field-107 .field-quest-tracker,
+body.final-opt-107.ui-overflow-107.route-field-107 .field-minimap,
+body.final-opt-107.ui-overflow-107.route-field-107 .action-dock,
+body.final-opt-107.ui-overflow-107.route-field-107 .skill-dock,
+body.final-opt-107.ui-overflow-107.route-field-107 .potion-dock,
+body.final-opt-107.ui-overflow-107.route-field-107 .joystick {
+  max-width: calc(100vw - var(--so107-safe-left) - var(--so107-safe-right) - 10px) !important;
+}
