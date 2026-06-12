@@ -1,0 +1,18 @@
+Soul Online Alpha 1.20 - Recovery Kernel / Boot Fix
+
+핵심 판단:
+- 1.14 이후 CSS 지연 로드, 1.17 viewport lock, 1.18 scene stability, 1.19 emergency boot가 누적되면서
+  첫 START 이전부터 너무 많은 보정 레이어가 서로 화면 상태를 덮어쓰는 구조가 되었다.
+- 1.19는 CSS 첫 로딩을 줄였지만 main.ts의 정적 import와 Firebase init 대기는 여전히 남아 있었고,
+  START 버튼/로그인 바인딩보다 뒤쪽 초기화가 체감 부팅을 흔들 수 있었다.
+
+수정:
+- 1.20 Recovery Kernel 추가.
+- index.html에 START 즉시 동작하는 프리부트 핸들러 추가.
+- START 클릭 시 무거운 페이드/구형 sync 없이 로그인 화면을 즉시 표시.
+- 로그인/조작 이벤트 바인딩을 Firebase/Auth 초기화보다 먼저 실행.
+- Firebase/Auth 초기화는 백그라운드로 전환.
+- 구형 0.93~1.18 비주얼 보정 스택 기본 비활성화.
+- 런타임 CSS는 styles.css + alpha116까지만 지연 로드.
+- 1.17/1.18 viewport/scene 보정의 기본 실행을 중단하고 1.20 고정 크기 커널로 대체.
+- PWA 캐시 soul-online-alpha-v1-20 갱신.

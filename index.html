@@ -14,7 +14,7 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="description" content="소울 온라인 Alpha - 모바일 2.5D 웹 MMORPG 프로토타입" />
     <title>소울 온라인 Alpha</title>
-    <style id="soul-critical-119">
+    <style id="soul-critical-120">
       html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07172a;color:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
       #app{position:fixed;inset:0;margin:auto;width:100vw;height:100dvh;max-width:480px;overflow:hidden;background:linear-gradient(180deg,#8bdcff 0%,#5bb8ec 42%,#1f6f9e 70%,#082236 100%);}
       .login-screen.hidden,.town-screen.hidden{display:none!important;}
@@ -25,11 +25,62 @@
       #startGameBtn{width:min(86vw,330px);min-height:58px;margin-top:min(28vh,220px);border-radius:999px;border:1px solid rgba(218,248,255,.92);background:linear-gradient(180deg,rgba(120,218,255,.78),rgba(20,92,137,.94));color:#f8fdff;font-weight:900;letter-spacing:.22em;box-shadow:0 12px 34px rgba(0,36,68,.42);}
       .title-mini-nav{position:absolute;left:50%;top:max(10px,env(safe-area-inset-top));transform:translateX(-50%);display:flex;gap:8px;align-items:center;justify-content:center;width:min(88vw,360px);padding:8px;border-radius:999px;background:rgba(7,36,64,.45);backdrop-filter:blur(10px);font-size:12px;}
       .title-mini-nav button{border:0;border-radius:999px;padding:8px 12px;background:rgba(255,255,255,.18);color:#fff;font-weight:800;}
+
+      #app{width:var(--soul-locked-w-120, min(100vw,480px));height:var(--soul-locked-h-120,100dvh);}
+      body.prestart-login-120 .title-screen{display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
+      body.prestart-login-120 .login-screen{display:block!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;}
+      body.prestart-login-120 .login-screen.hidden{display:block!important;}
+      .login-screen{position:absolute;inset:0;overflow-y:auto;background:linear-gradient(180deg,#0b2945,#07182a);}
+      .flow-page{display:none}.flow-page.active{display:block}
     </style>
     <script>
-      window.SOUL_ONLINE_BOOT_VERSION = '1.19.0';
-      document.documentElement.classList.add('soul-preboot-119');
+      window.SOUL_ONLINE_BOOT_VERSION = '1.20.0';
+      window.SOUL_PRESTART_ROUTE_120 = 'title';
+      document.documentElement.classList.add('soul-preboot-119', 'soul-preboot-120');
       window.addEventListener('error', function () { document.documentElement.classList.add('soul-preboot-error-119'); });
+      (function () {
+        var locked = false;
+        function lockSize() {
+          if (locked) return;
+          locked = true;
+          var vv = window.visualViewport;
+          var w = Math.max(320, Math.round((vv && vv.width) || window.innerWidth || 360));
+          var h = Math.max(520, Math.round((vv && vv.height) || window.innerHeight || 720));
+          document.documentElement.style.setProperty('--soul-locked-w-120', Math.min(480, w) + 'px');
+          document.documentElement.style.setProperty('--soul-locked-h-120', h + 'px');
+        }
+        function activateLogin() {
+          lockSize();
+          window.SOUL_PRESTART_ROUTE_120 = 'login';
+          document.body.classList.add('prestart-login-120', 'route-login-120');
+          document.body.classList.remove('route-title-120', 'route-title-119');
+          var title = document.getElementById('titleScreen');
+          var login = document.getElementById('loginScreen');
+          var town = document.getElementById('townScreen');
+          if (title) { title.classList.add('hidden'); title.setAttribute('aria-hidden', 'true'); title.style.display = 'none'; }
+          if (login) { login.classList.remove('hidden'); login.setAttribute('aria-hidden', 'false'); login.style.display = 'block'; login.style.opacity = '1'; login.style.visibility = 'visible'; }
+          if (town) { town.classList.add('hidden'); town.setAttribute('aria-hidden', 'true'); town.style.display = 'none'; }
+          var status = document.getElementById('loginStatus');
+          if (status && !status.textContent) status.textContent = '접속 방식을 선택하세요.';
+        }
+        window.SOUL_PRESTART_LOGIN_120 = activateLogin;
+        document.addEventListener('DOMContentLoaded', function () {
+          lockSize();
+          var btn = document.getElementById('startGameBtn');
+          var title = document.getElementById('titleScreen');
+          if (btn) {
+            btn.disabled = false;
+            btn.addEventListener('click', function (event) { event.preventDefault(); activateLogin(); }, { passive: false });
+          }
+          if (title) {
+            title.addEventListener('pointerup', function (event) {
+              var target = event.target;
+              if (target && target.closest && target.closest('button,a,input,select,textarea')) return;
+              activateLogin();
+            }, { passive: true });
+          }
+        });
+      })();
     </script>
   </head>
   <body class="fantasy-ui-098 visual-clean-098 fantasy-ui-099 visual-art-099 fantasy-ui-100 visual-field-100 fantasy-ui-101 perf-polish-101 fantasy-ui-102 asset-kit-102 fantasy-ui-103 field-ui-103 fantasy-ui-104 quality-pass-104 fantasy-ui-105 engine-quality-105 fantasy-ui-106 engine-106 fantasy-ui-107 final-opt-107 fantasy-ui-108 mobile-quality-108 fantasy-ui-117 single-visual-117 viewport-lock-117 route-title-098 route-title-099 route-title-108 entry-flow-ready-090">
@@ -56,7 +107,7 @@
             <span class="title-hero-rune rune-b"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn start-game-btn-098 start-game-btn-099 start-game-btn-101">TOUCH TO START</button>
-          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v1.19.0</span></div>
+          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v1.20.0</span></div>
           <small>영혼을 깨우고 루미나의 균열을 봉인하세요.</small>
         </div>
       </section>
