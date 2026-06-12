@@ -213,10 +213,7 @@ function auditOverflow108(doc: Document) {
 }
 
 function requestPortraitLock108() {
-  try {
-    const orientation = screen.orientation as ScreenOrientation & { lock?: (orientation: 'portrait-primary' | 'portrait') => Promise<void> };
-    if (orientation?.lock) void orientation.lock('portrait-primary').catch(() => undefined);
-  } catch { /* browser may not support */ }
+  // 1.10: orientation lock disabled.
 }
 
 function syncInternal108(doc: Document, targets?: InstallTargets108) {
@@ -226,7 +223,7 @@ function syncInternal108(doc: Document, targets?: InstallTargets108) {
   suppressLegacyLayers108(doc);
   const overflow = auditOverflow108(doc);
   doc.body.classList.toggle('so108-field-overflow', route === 'field' && overflow > 0);
-  doc.body.classList.toggle('so108-portrait-warn', window.innerWidth > window.innerHeight);
+  doc.body.classList.remove('so108-portrait-warn');
 }
 
 export function installMobileQuality108(doc: Document, targets: InstallTargets108) {
@@ -242,15 +239,13 @@ export function installMobileQuality108(doc: Document, targets: InstallTargets10
   targets.loginScreen.classList.add('login-screen-108');
   targets.townScreen.classList.add('town-screen-108');
   targets.gameRoot.classList.add('field-root-108');
-  requestPortraitLock108();
   syncInternal108(doc, targets);
   window.addEventListener('resize', () => {
     window.clearTimeout(resizeTimer108);
     resizeTimer108 = window.setTimeout(() => syncInternal108(doc, targets), 90);
   }, { passive: true });
   window.addEventListener('orientationchange', () => {
-    requestPortraitLock108();
-    window.clearTimeout(resizeTimer108);
+      window.clearTimeout(resizeTimer108);
     resizeTimer108 = window.setTimeout(() => syncInternal108(doc, targets), 120);
   }, { passive: true });
 }

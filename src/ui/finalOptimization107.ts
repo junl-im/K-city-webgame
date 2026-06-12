@@ -120,7 +120,7 @@ export function syncFinalOptimization107(doc: Document) {
   body.classList.toggle('field-lite-107', route === 'field' && tier === 'lite');
   body.classList.toggle('field-compact-107', route === 'field' && (tier !== 'quality' || window.innerWidth <= 430 || window.innerHeight <= 780));
   body.classList.toggle('portrait-compact-107', window.innerWidth <= 430 || window.innerHeight <= 760);
-  body.classList.toggle('landscape-guard-107', window.innerWidth > window.innerHeight);
+  body.classList.remove('landscape-guard-107');
   const overflow = overflowCount107(doc);
   body.classList.toggle('ui-overflow-107', overflow > 0);
   const root = doc.querySelector<HTMLElement>('#game-root');

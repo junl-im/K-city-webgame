@@ -108,6 +108,11 @@ const eliteAffixes: EliteAffixDefinition[] = [
 const zoneMonsterIds: Record<string, MonsterId[]> = {
   'slime-forest': ['slime', 'slime', 'slime', 'slime', 'wolf', 'wolf', 'shadowImp', 'shadowImp', 'slime', 'wolf', 'shadowImp', 'slime'],
   'crystal-moss': ['wolf', 'wolf', 'wolf', 'shadowImp', 'shadowImp', 'mossGolem', 'mossGolem', 'slime', 'wolf', 'shadowImp', 'mossGolem', 'wolf'],
+  'sunpetal-meadow': ['slime', 'slime', 'wolf', 'wolf', 'shadowImp', 'shadowImp', 'slime', 'wolf', 'shadowImp', 'wolf'],
+  'misty-riverbank': ['wolf', 'shadowImp', 'goblin', 'goblin', 'wraith', 'wolf', 'shadowImp', 'wraith', 'goblin'],
+  'old-watchyard': ['goblin', 'goblin', 'mossGolem', 'mossGolem', 'wraith', 'goblin', 'mossGolem', 'wraith'],
+  'echo-lantern-woods': ['stormHarpy', 'wraith', 'wolf', 'shadowImp', 'stormHarpy', 'wraith', 'wolf', 'stormHarpy'],
+  'fallen-aqueduct': ['crystalBear', 'graveKnight', 'mossGolem', 'wraith', 'crystalBear', 'graveKnight', 'mossGolem'],
   'goblin-road': ['goblin', 'goblin', 'goblin', 'wraith', 'wraith', 'wolf', 'shadowImp', 'goblin', 'wraith', 'goblin', 'graveKnight', 'goblin'],
   'black-cave': ['crystalBear', 'crystalBear', 'mossGolem', 'mossGolem', 'graveKnight', 'graveKnight', 'wraith', 'crystalBear', 'mossGolem', 'graveKnight'],
   'ember-ridge': ['fireDrake', 'fireDrake', 'wraith', 'graveKnight', 'fireDrake', 'stormHarpy', 'fireDrake', 'wraith', 'graveKnight'],
@@ -250,6 +255,8 @@ export class SolGame {
   private fxBudgetCount101 = 0;
   private hiddenMobFrame101 = 0;
   private spriteAtlasMode106: 'lite' | 'high' = 'high';
+  private autoRouteIndex110 = 0;
+  private autoRouteCooldown110 = 0;
 
   constructor(
     private save: PlayerSave,
@@ -2448,30 +2455,38 @@ export class SolGame {
   }
 
   private mobDensityBoost(zoneId: string) {
-    const liteScale = this.localStorageFlag099('soul-online-field-lite-100') ? 0.78 : 1;
-    if (zoneId === 'slime-forest') return 1.25 * liteScale;
-    if (zoneId === 'crystal-moss' || zoneId === 'goblin-road') return 1.42 * liteScale;
-    if (zoneId === 'black-cave' || zoneId === 'moonlit-grove' || zoneId === 'soul-ruins') return 1.56 * liteScale;
+    // 1.10: the field felt empty and too easy. Keep lite devices protected,
+    // but raise the baseline density so auto-hunt travels between real pockets.
+    const liteScale = this.localStorageFlag099('soul-online-field-lite-100') ? 0.86 : 1;
+    if (zoneId === 'slime-forest') return 2.1 * liteScale;
+    if (zoneId === 'crystal-moss' || zoneId === 'goblin-road') return 2.35 * liteScale;
+    if (zoneId === 'black-cave' || zoneId === 'moonlit-grove' || zoneId === 'soul-ruins') return 2.55 * liteScale;
     const zoneLevel = zones.find((zone) => zone.id === zoneId)?.recommendedLevel || 1;
-    if (zoneLevel >= 70) return 1.86 * liteScale;
-    return 1.68 * liteScale;
+    if (zoneLevel >= 70) return 3.05 * liteScale;
+    return 2.72 * liteScale;
   }
 
   private expandSpawnCandidates(zoneId: string, seeds: Array<{ monsterId: MonsterId; x: number; y: number }>) {
     const allowed = zoneMonsterIds[zoneId] || zones.find((entry) => entry.id === zoneId)?.monsterIds || [];
-    const targetTotal = Math.max(seeds.length, Math.ceil(allowed.length * this.mobDensityBoost(zoneId)));
-    if (!allowed.length || seeds.length >= targetTotal) return seeds;
+    if (!allowed.length) return seeds;
+    const entry = zones.find((zone) => zone.id === zoneId)?.entry || zones[0].entry;
     const next = [...seeds];
+    // 1.10: generate multi-pocket routes. Old tables often contained many of the
+    // same monster type, which made the field look empty after per-type caps.
+    const targetTotal = Math.ceil(Math.max(seeds.length + allowed.length * 2, allowed.length * 5.2) * this.mobDensityBoost(zoneId));
     let cursor = 0;
     while (next.length < targetTotal) {
-      const base = seeds[cursor % seeds.length] || { monsterId: allowed[cursor % allowed.length], x: 12, y: 22 };
+      const base = seeds[cursor % Math.max(1, seeds.length)] || { monsterId: allowed[cursor % allowed.length], x: entry.x + 3, y: entry.y + 2 };
       const monsterId = allowed[cursor % allowed.length];
-      const angle = cursor * 2.399963;
-      const ring = 0.72 + (cursor % 4) * 0.42;
-      const x = clamp(base.x + Math.cos(angle) * ring, 2, MAP_W - 3);
-      const y = clamp(base.y + Math.sin(angle) * ring, 2, MAP_H - 3);
+      const lane = Math.floor(cursor / allowed.length);
+      const angle = cursor * 2.399963 + lane * 0.37;
+      const ring = 1.05 + (cursor % 6) * 0.62 + lane * 0.22;
+      const routePush = 0.45 + lane * 0.18;
+      const x = clamp(base.x + Math.cos(angle) * ring + Math.cos(lane * 0.91) * routePush, 2, MAP_W - 3);
+      const y = clamp(base.y + Math.sin(angle) * ring + Math.sin(lane * 0.83) * routePush, 2, MAP_H - 3);
       next.push({ monsterId, x, y });
       cursor += 1;
+      if (cursor > 140) break;
     }
     return next;
   }
@@ -2484,7 +2499,9 @@ export class SolGame {
     this.mobs = candidates
       .filter((spawn) => {
         const id = spawn.monsterId as MonsterId;
-        const maxCount = Math.ceil(allowed.filter((item) => item === id).length * this.mobDensityBoost(zone.id));
+        const desiredPerType = Math.max(3, Math.ceil(candidates.length / Math.max(1, allowed.length)));
+        const tableWeight = Math.max(1, allowed.filter((item) => item === id).length);
+        const maxCount = Math.ceil((desiredPerType + tableWeight) * Math.min(1.45, this.mobDensityBoost(zone.id) * 0.48));
         if (!maxCount) return false;
         const count = counters.get(id) || 0;
         if (count >= maxCount) return false;
@@ -2698,6 +2715,7 @@ export class SolGame {
     this.updateCombatChainTimer(dt);
     this.updateSkillCooldowns(dt);
     this.autoSkillThinkTimer = Math.max(0, this.autoSkillThinkTimer - dt);
+    this.autoRouteCooldown110 = Math.max(0, this.autoRouteCooldown110 - dt);
     if (this.save.autoHunt) this.tryAutoPotionUse();
     if (this.save.autoHunt && this.autoSkillThinkTimer <= 0) this.tryAutoSkillUse();
     this.manualMoveLock = Math.max(0, this.manualMoveLock - dt);
@@ -2871,11 +2889,59 @@ export class SolGame {
     this.setPlayerFacing(x - this.save.x, y - this.save.y);
   }
 
-  private autoHuntMove() {
-    if (!this.target || !this.target.alive) this.target = this.findNearestMob();
-    if (!this.target) return;
+  private huntRoutePoints110() {
+    const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest')) || zones[0];
+    const points = this.expandSpawnCandidates(zone.id, this.spawnCandidatesForZone(zone.id))
+      .filter((point) => this.isWalkable(point.x, point.y))
+      .map((point) => ({ x: point.x, y: point.y }));
+    const entry = zone.entry || zones[0].entry;
+    const route = [{ x: entry.x, y: entry.y }, ...points];
+    return route.filter((point, index, arr) => index === 0 || distance(point.x, point.y, arr[index - 1].x, arr[index - 1].y) > 1.15).slice(0, 22);
+  }
 
+  private nextHuntRoutePoint110() {
+    const route = this.huntRoutePoints110();
+    if (!route.length) return null;
+    const point = route[this.autoRouteIndex110 % route.length];
+    if (distance(this.save.x, this.save.y, point.x, point.y) < 0.85) this.autoRouteIndex110 += 1;
+    return route[this.autoRouteIndex110 % route.length];
+  }
+
+  private routeBiasedTarget110() {
+    const point = this.nextHuntRoutePoint110();
+    if (!point) return this.findNearestMob();
+    let best: WorldMob | null = null;
+    let score = Number.POSITIVE_INFINITY;
+    for (const mob of this.mobs) {
+      if (!mob.alive) continue;
+      const playerDist = distance(this.save.x, this.save.y, mob.x, mob.y);
+      const routeDist = distance(point.x, point.y, mob.x, mob.y);
+      const value = playerDist * 0.62 + routeDist * 0.38 - (mob.eliteAffix ? 0.5 : 0);
+      if (value < score) {
+        score = value;
+        best = mob;
+      }
+    }
+    return best || this.findNearestMob();
+  }
+
+  private autoHuntMove() {
+    if (!this.target || !this.target.alive || this.autoRouteCooldown110 <= 0) {
+      this.target = this.routeBiasedTarget110();
+      this.autoRouteCooldown110 = 1.05;
+    }
+    if (!this.target) {
+      const routePoint = this.nextHuntRoutePoint110();
+      if (routePoint) this.moveTarget = routePoint;
+      return;
+    }
+
+    const routePoint110 = this.nextHuntRoutePoint110();
     const dist = distance(this.save.x, this.save.y, this.target.x, this.target.y);
+    if (routePoint110 && dist > 6.2 && distance(this.save.x, this.save.y, routePoint110.x, routePoint110.y) > 0.9) {
+      this.moveTarget = routePoint110;
+      return;
+    }
     const klass = classes[this.save.classId];
     if (dist <= klass.attackRange) {
       this.moveTarget = null;
@@ -3372,12 +3438,12 @@ export class SolGame {
   private maxAggroCount() {
     const zoneId = this.options.zoneId || 'slime-forest';
     const zoneLevel = zones.find((zone) => zone.id === zoneId)?.recommendedLevel || 1;
-    if (zoneLevel >= 114) return 8;
-    if (zoneLevel >= 70) return 7;
-    if (zoneId === 'crystal-raid' || zoneId === 'dragon-nest' || zoneId === 'storm-citadel' || zoneId === 'demon-rift' || zoneId === 'sky-citadel') return 6;
-    if (zoneId === 'black-cave' || zoneId === 'moonlit-grove' || zoneId === 'soul-ruins' || zoneId === 'ember-ridge' || zoneId === 'bloodstone-mine') return 5;
-    if (zoneId === 'goblin-road' || zoneId === 'crystal-moss') return 4;
-    return 3;
+    if (zoneLevel >= 114) return 10;
+    if (zoneLevel >= 70) return 9;
+    if (zoneId === 'crystal-raid' || zoneId === 'dragon-nest' || zoneId === 'storm-citadel' || zoneId === 'demon-rift' || zoneId === 'sky-citadel') return 7;
+    if (zoneId === 'black-cave' || zoneId === 'moonlit-grove' || zoneId === 'soul-ruins' || zoneId === 'ember-ridge' || zoneId === 'bloodstone-mine') return 6;
+    if (zoneId === 'goblin-road' || zoneId === 'crystal-moss') return 5;
+    return 4;
   }
 
   private mobAggroRange(mob: WorldMob) {
@@ -3548,6 +3614,8 @@ export class SolGame {
     mob.deathVisibleUntil = performance.now() + 680;
     mob.respawnAt = performance.now() + mob.def.respawnMs;
     if (this.target?.uid === mob.uid) this.target = null;
+    this.autoRouteIndex110 += 1;
+    this.autoRouteCooldown110 = 0;
 
     const chain = this.registerChainKill();
     const bonusGold = Math.round(mob.def.gold * chain.bonusRate);
@@ -3642,7 +3710,21 @@ export class SolGame {
   }
 
   private mobCombatStats(mob: WorldMob) {
-    return mob.def.stats;
+    const zone = zones.find((entry) => entry.id === (this.options.zoneId || 'slime-forest')) || zones[0];
+    const orderPressure = Math.min(0.58, Math.max(0, zone.order - 1) * 0.014);
+    const levelPressure = Math.max(0, zone.recommendedLevel - this.save.level) * 0.055;
+    const elitePressure = mob.eliteAffix ? 0.18 : 0;
+    const earlyFieldPressure = zone.order <= 2 ? 0.10 : zone.order <= 6 ? 0.16 : 0.22;
+    const pressure = 1 + orderPressure + levelPressure + elitePressure + earlyFieldPressure;
+    return {
+      hp: Math.round(mob.def.stats.hp * (pressure + 0.30)),
+      mp: mob.def.stats.mp,
+      atk: Math.round(mob.def.stats.atk * (pressure + 0.22)),
+      def: Math.round(mob.def.stats.def * (pressure + 0.14)),
+      aspd: Number(Math.min(2.35, mob.def.stats.aspd * (1 + Math.min(0.20, orderPressure * 0.44 + earlyFieldPressure * 0.12))).toFixed(2)),
+      crit: Number(Math.min(0.58, mob.def.stats.crit + Math.min(0.08, orderPressure * 0.14 + levelPressure * 0.05 + earlyFieldPressure * 0.035)).toFixed(3)),
+      move: Number(Math.min(3.25, mob.def.stats.move * (1 + Math.min(0.16, orderPressure * 0.28 + earlyFieldPressure * 0.08))).toFixed(2))
+    };
   }
 
   private addDailyKill(monsterId: MonsterId) {

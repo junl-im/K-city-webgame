@@ -1,20 +1,33 @@
-# Soul Online Alpha 1.09
+# Soul Online Alpha 1.10
 
-모바일 세로형 웹 MMORPG 프로토타입입니다.
+모바일 중심 웹 MMORPG 프로토타입입니다. 기기 회전을 강제하지 않고 실행 중인 화면 모드에 맞춰 UI를 재배치합니다.
 
-## 1.09 핵심
-- 장기 품질 유지용 `maintenance109` 런타임 점검 추가
-- 사냥터 HUD safe-area 재배치 보강
-- 몬스터 정보 / 퀘스트 카드 / 미니맵 / 조이스틱 / 물약 / 스킬 / 공격 버튼 화면 이탈 재점검
-- 밝은 패널과 어두운 전투 HUD의 글자 대비 추가 보정
-- 구형 마을/타이틀 레이어 suppression 강화
-- 저사양/좁은 화면/데이터 절약 환경에서 blur, filter, shadow 부담 감소
-- System Doctor와 Technical Health에 `1.09 품질 유지` 진단 추가
-- PWA 캐시 `soul-online-alpha-v1-09`
+## 최신 패치 요약
 
-## 적용
+Alpha 1.10은 사냥터 UI와 전투 루프를 우선 정리한 패치입니다.
+
+- 첫 시작 화면 원화 배경 + 중앙 START 버튼 재정렬
+- 마을 UI 색상 난잡함 완화
+- 필드 미니맵 제거
+- 필드 골드/소울/전투력 스트립 제거
+- 몬스터 타겟 카드 HUD 아래 중앙 배치
+- 직업/성별 프로필 이미지 보강
+- 우측 하단 공격/자동/메뉴 버튼 겹침 제거, 가방/절전은 필드 HUD에서 제거
+- 스킬 버튼 우측 세로 스택 정리
+- 조이스틱/물약/퀘스트 카드 safe-area 재배치
+- 몬스터 밀도 및 난이도 상향
+- 자동사냥 포켓 순환 이동 보정
+- 초중반 사냥터 5종 추가
+
+## 개발
+
 ```bash
 npm install
 npm run build
+```
+
+Firebase Hosting 배포:
+
+```bash
 firebase deploy --only hosting
 ```

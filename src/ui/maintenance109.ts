@@ -134,10 +134,7 @@ function isVisible109(el: Element) {
 }
 
 function requestPortraitLock109() {
-  try {
-    const orientation = screen.orientation as ScreenOrientation & { lock?: (orientation: 'portrait-primary' | 'portrait') => Promise<void> };
-    if (orientation?.lock) void orientation.lock('portrait-primary').catch(() => undefined);
-  } catch { /* browser may not support orientation lock */ }
+  // 1.10: orientation lock disabled.
 }
 
 function applyRoute109(doc: Document) {
@@ -160,7 +157,7 @@ function applyTier109(doc: Document) {
   doc.body.classList.toggle('maintenance-quality-109', tier === 'quality');
   doc.body.classList.toggle('maintenance-compact-109', window.innerWidth <= 430 || window.innerHeight <= 760);
   doc.body.classList.toggle('maintenance-tiny-109', window.innerWidth <= 370 || window.innerHeight <= 680);
-  doc.body.classList.toggle('maintenance-landscape-109', window.innerWidth > window.innerHeight);
+  doc.body.classList.remove('maintenance-landscape-109');
   doc.documentElement.style.setProperty('--so109-vw', `${window.innerWidth || 0}px`);
   doc.documentElement.style.setProperty('--so109-vh', `${window.innerHeight || 0}px`);
   return tier;
@@ -263,7 +260,6 @@ export function installMaintenance109(doc: Document, targets: InstallTargets109)
   targets.loginScreen.classList.add('login-screen-109');
   targets.townScreen.classList.add('town-screen-109');
   targets.gameRoot.classList.add('field-root-109');
-  requestPortraitLock109();
   syncInternal109(doc, targets);
   const schedule = () => {
     window.clearTimeout(resizeTimer109);
@@ -271,8 +267,7 @@ export function installMaintenance109(doc: Document, targets: InstallTargets109)
   };
   window.addEventListener('resize', schedule, { passive: true });
   window.addEventListener('orientationchange', () => {
-    requestPortraitLock109();
-    schedule();
+      schedule();
   }, { passive: true });
   observer109 = new MutationObserver(schedule);
   observer109.observe(doc.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'aria-hidden'] });

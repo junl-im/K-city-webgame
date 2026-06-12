@@ -42,8 +42,7 @@ const FIELD_NODES_103 = [
 
 export function installPortraitFieldUx103(documentRef: Document, refs: PortraitFieldRefs103 = {}) {
   refs103 = refs;
-  documentRef.body.classList.add('fantasy-ui-103', 'portrait-lock-103', 'field-ui-103');
-  ensureHeadPortraitHints103(documentRef);
+  documentRef.body.classList.add('fantasy-ui-103', 'field-ui-103');
   ensureFieldShell103(documentRef);
   decorateFieldControls103(documentRef);
   syncPortraitFieldUx103(documentRef);
@@ -55,14 +54,7 @@ export function installPortraitFieldUx103(documentRef: Document, refs: PortraitF
   window.addEventListener('orientationchange', () => window.setTimeout(queue, 120), { passive: true });
   window.addEventListener('pageshow', queue, { passive: true });
   documentRef.addEventListener('visibilitychange', () => { if (!documentRef.hidden) queue(); });
-  documentRef.addEventListener('pointerdown', () => {
-    void requestPortraitLock103();
-    queue();
-  }, { passive: true });
-  documentRef.addEventListener('click', (event) => {
-    const target = event.target as HTMLElement | null;
-    if (target?.closest('button, [role="button"], a, input, select, textarea')) void requestPortraitLock103();
-  }, { passive: true });
+  documentRef.addEventListener('pointerdown', queue, { passive: true });
   new MutationObserver(queue).observe(documentRef.body, { attributes: true, attributeFilter: ['class'], childList: true, subtree: false });
   window.setTimeout(queue, 180);
   window.setTimeout(queue, 900);
@@ -75,8 +67,8 @@ export function syncPortraitFieldUx103(documentRef: Document = document) {
   documentRef.body.dataset.route103 = route;
 
   const landscape = isLandscape103();
-  documentRef.body.classList.toggle('landscape-guard-103', landscape);
-  documentRef.body.classList.toggle('portrait-ready-103', !landscape);
+  documentRef.body.classList.remove('landscape-guard-103');
+  documentRef.body.classList.add('orientation-adaptive-103');
   documentRef.body.classList.toggle('field-compact-103', route === 'field' && (window.innerWidth <= 430 || window.innerHeight <= 740));
   documentRef.body.classList.toggle('field-ultra-compact-103', route === 'field' && window.innerWidth <= 370);
   documentRef.body.classList.toggle('field-short-103', route === 'field' && window.innerHeight <= 680);
@@ -86,7 +78,6 @@ export function syncPortraitFieldUx103(documentRef: Document = document) {
   decorateFieldControls103(documentRef);
   applyTextContrast103(documentRef, route);
   applyLiteBudget103(documentRef, route);
-  updateOrientationGuard103(documentRef, landscape);
   lastReport = inspectPortraitFieldUx103(documentRef);
   documentRef.body.classList.toggle('field-overflow-103', lastReport.overflowCount > 0);
 }
@@ -128,17 +119,7 @@ export function lastPortraitFieldReport103() {
 }
 
 async function requestPortraitLock103() {
-  const now = Date.now();
-  if (now - lastLockAttempt < 1500) return;
-  lastLockAttempt = now;
-  const screenWithOrientation = window.screen as Screen & {
-    orientation?: ScreenOrientation & { lock?: (orientation: 'portrait' | 'portrait-primary') => Promise<void> };
-  };
-  try {
-    await screenWithOrientation.orientation?.lock?.('portrait-primary');
-  } catch {
-    try { await screenWithOrientation.orientation?.lock?.('portrait'); } catch {}
-  }
+  // 1.10: orientation lock disabled.
 }
 
 function ensureHeadPortraitHints103(documentRef: Document) {
@@ -231,16 +212,8 @@ function applyLiteBudget103(documentRef: Document, route: PortraitFieldReport103
   documentRef.body.classList.toggle('field-balanced-103', !lite);
 }
 
-function updateOrientationGuard103(documentRef: Document, landscape: boolean) {
-  const guard = documentRef.querySelector<HTMLElement>('.orientation-guard');
-  if (!guard) return;
-  guard.setAttribute('aria-hidden', landscape ? 'false' : 'true');
-  if (landscape) {
-    const title = guard.querySelector('b');
-    const copy = guard.querySelector('span');
-    if (title) title.textContent = '세로 모드 전용 게임입니다';
-    if (copy) copy.textContent = '소울 온라인은 세로 화면에 최적화되어 있습니다. 기기를 세로로 돌리면 UI가 정상 배치됩니다.';
-  }
+function updateOrientationGuard103(_documentRef: Document, _landscape: boolean) {
+  // 1.10: no orientation message/guard.
 }
 
 function detectRoute103(documentRef: Document): PortraitFieldReport103['route'] {
