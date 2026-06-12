@@ -1,0 +1,267 @@
+/* Soul Online Alpha 1.21 Polish Kernel
+   복구된 첫 실행을 다시 무겁게 만들지 않고, 화면/필드/HUD를 필요한 만큼만 다듬는다. */
+:root {
+  --soul-locked-w-121: min(100vw, 480px);
+  --soul-locked-h-121: 100dvh;
+  --so121-safe-t: max(10px, env(safe-area-inset-top));
+  --so121-safe-r: max(10px, env(safe-area-inset-right));
+  --so121-safe-b: max(10px, env(safe-area-inset-bottom));
+  --so121-safe-l: max(10px, env(safe-area-inset-left));
+  --so121-panel: rgba(5, 18, 34, .82);
+  --so121-line: rgba(156, 235, 255, .42);
+}
+
+html.soul-polish-121,
+html.soul-polish-121 body {
+  width: 100%;
+  min-height: 100%;
+  overflow: hidden !important;
+  background: #07172a;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+body.polish-kernel-121 #app {
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: var(--soul-locked-w-121) !important;
+  height: var(--soul-locked-h-121) !important;
+  max-width: 480px !important;
+  transform: translate(-50%, -50%) !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 50% 16%, rgba(132, 221, 255, .22), transparent 33%),
+    linear-gradient(180deg, #80d9ff 0%, #4caddf 42%, #18618e 74%, #061827 100%) !important;
+  contain: layout paint !important;
+}
+
+body.polish-kernel-121 .title-screen,
+body.polish-kernel-121 .login-screen,
+body.polish-kernel-121 .town-screen,
+body.polish-kernel-121 .game-root {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 480px !important;
+  overflow: hidden !important;
+}
+
+body.route-title-121 .title-screen,
+body.route-login-121 .login-screen,
+body.route-town-121 .town-screen,
+body.route-field-121 .game-root {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 10 !important;
+}
+
+body.route-title-121 .login-screen,
+body.route-title-121 .town-screen,
+body.route-title-121 .game-root,
+body.route-login-121 .title-screen,
+body.route-login-121 .town-screen,
+body.route-login-121 .game-root,
+body.route-town-121 .title-screen,
+body.route-town-121 .login-screen,
+body.route-town-121 .game-root,
+body.route-field-121 .title-screen,
+body.route-field-121 .login-screen,
+body.route-field-121 .town-screen {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.no-legacy-stack-121 .title-character-companion,
+body.no-legacy-stack-121 .town-lobby-pet-070,
+body.no-legacy-stack-121 .field-pet,
+body.no-legacy-stack-121 [class*="pet"],
+body.no-legacy-stack-121 [class*="companion"],
+body.no-legacy-stack-121 [class*="rune"],
+body.no-legacy-stack-121 .orientation-guard,
+body.no-legacy-stack-121 .rotate-guide,
+body.no-legacy-stack-121 .legacy-visual-layer,
+body.no-legacy-stack-121 .title-hero-glow {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.polish-kernel-121 .title-stage {
+  min-height: 100% !important;
+  display: grid !important;
+  grid-template-rows: 1fr auto 1fr !important;
+  align-items: center !important;
+  justify-items: center !important;
+  padding: var(--so121-safe-t) 18px var(--so121-safe-b) !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+}
+
+body.polish-kernel-121 .title-copy {
+  grid-row: 1 / 3 !important;
+  align-self: center !important;
+  margin-top: -8vh !important;
+}
+
+body.polish-kernel-121 .title-copy h1 {
+  margin: 0 !important;
+  color: #fff !important;
+  font-size: clamp(46px, 15vw, 76px) !important;
+  line-height: .86 !important;
+  letter-spacing: -.055em !important;
+  text-shadow: 0 5px 16px rgba(26, 93, 148, .52), 0 0 24px rgba(255, 255, 255, .30) !important;
+}
+
+body.polish-kernel-121 .title-copy p,
+body.polish-kernel-121 .title-kicker,
+body.polish-kernel-121 .title-hero,
+body.polish-kernel-121 .title-stage > small {
+  display: none !important;
+}
+
+body.polish-kernel-121 #startGameBtn {
+  grid-row: 2 !important;
+  align-self: center !important;
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  transform: none !important;
+  width: min(84vw, 318px) !important;
+  min-height: 58px !important;
+  margin: clamp(18px, 6vh, 44px) 0 0 !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(230, 250, 255, .96) !important;
+  background: linear-gradient(180deg, rgba(126, 220, 255, .88), rgba(25, 88, 136, .98)) !important;
+  color: #f8fdff !important;
+  font-size: clamp(17px, 4.8vw, 21px) !important;
+  font-weight: 1000 !important;
+  letter-spacing: .18em !important;
+  text-indent: .18em !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .26) inset, 0 14px 34px rgba(0, 34, 69, .46) !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+}
+
+body.polish-kernel-121 .title-mini-nav {
+  position: absolute !important;
+  top: var(--so121-safe-t) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: min(88vw, 352px) !important;
+  z-index: 40 !important;
+}
+
+body.polish-kernel-121 .login-screen {
+  background:
+    radial-gradient(circle at 50% 8%, rgba(118, 219, 255, .24), transparent 32%),
+    linear-gradient(180deg, #0b2a46 0%, #061827 100%) !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--so121-safe-t) 14px var(--so121-safe-b) !important;
+  box-sizing: border-box !important;
+}
+
+body.polish-kernel-121 .login-panel {
+  width: min(100%, 420px) !important;
+  margin: 0 auto !important;
+  display: grid !important;
+  gap: 12px !important;
+}
+
+body.polish-kernel-121 .login-lore-card,
+body.polish-kernel-121 .login-flow-card,
+body.polish-kernel-121 .world-card,
+body.polish-kernel-121 .character-create-panel {
+  border: 1px solid var(--so121-line) !important;
+  border-radius: 22px !important;
+  background: var(--so121-panel) !important;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .32) !important;
+  backdrop-filter: blur(12px) saturate(1.12) !important;
+}
+
+body.polish-kernel-121 .wide-action,
+body.polish-kernel-121 .server-card,
+body.polish-kernel-121 .class-card,
+body.polish-kernel-121 .character-slot,
+body.polish-kernel-121 button {
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+body.polish-kernel-121 .town-screen {
+  background:
+    radial-gradient(circle at 50% 16%, rgba(147, 222, 255, .18), transparent 32%),
+    linear-gradient(180deg, #153e62 0%, #071827 100%) !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+body.field-active.polish-kernel-121 #game-root {
+  background:
+    radial-gradient(circle at 50% 16%, rgba(211, 252, 255, .22), transparent 28%),
+    linear-gradient(180deg, #a9e9ff 0%, #d7f8ff 32%, #8bd88c 100%) !important;
+}
+
+body.field-active.polish-kernel-121 #game-root canvas {
+  filter: brightness(1.12) saturate(1.06) contrast(1.01) !important;
+}
+
+body.field-active.polish-kernel-121 .field-quest-tracker,
+body.field-active.polish-kernel-121 .quest-mini-116 {
+  right: var(--so121-safe-r) !important;
+  left: auto !important;
+  max-width: min(43vw, 178px) !important;
+}
+
+body.field-active.polish-kernel-121 .target-card,
+body.field-active.polish-kernel-121 .target-card-116 {
+  left: var(--so121-safe-l) !important;
+  right: auto !important;
+  top: calc(var(--so121-safe-t) + 86px) !important;
+  max-width: min(56vw, 228px) !important;
+}
+
+body.field-collision-risk-121 #returnTownBtn {
+  bottom: calc(var(--so121-safe-b) + 148px) !important;
+}
+
+body.field-collision-risk-121 #hpPotionBtn,
+body.field-collision-risk-121 #mpPotionBtn {
+  transform: translateY(-12px) !important;
+}
+
+body.runtime-style-loading-121::after {
+  content: '화면 다듬는 중...';
+  position: fixed;
+  left: 50%;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 9999;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(5, 19, 36, .78);
+  color: #eaf9ff;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+@media (max-width: 360px) {
+  body.polish-kernel-121 .login-lore-card { display: none !important; }
+  body.field-active.polish-kernel-121 .field-quest-tracker { max-width: 150px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.polish-kernel-121 *,
+  body.polish-kernel-121 *::before,
+  body.polish-kernel-121 *::after {
+    animation-duration: .001ms !important;
+    transition-duration: .001ms !important;
+  }
+}

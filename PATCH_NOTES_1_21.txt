@@ -1,0 +1,11 @@
+Soul Online Alpha 1.21 - 다듬기/부팅 안정 유지 패치
+
+- 1.20 복구 커널 이후 남아 있던 구형 body class 초기값 제거
+- START 직후 800KB급 legacy styles.css 자동 로드 중단
+- alpha116 소형 HUD 보정 CSS만 지연 로드
+- 전체 구형 CSS는 ?legacyCss=1 또는 localStorage soul-online-allow-legacy-css=1일 때만 수동 로드
+- 1.21 다듬기 커널 추가: 현재 장면만 표시, 펫/동행/룬/회전 가드 고스트 레이어 강제 숨김
+- 실행 당시 화면 크기 유지 보강
+- 필드 버튼/조이스틱 충돌 감지 시 자동 보정 class 적용
+- 타이틀 START 버튼 중앙 배치와 로그인 카드 가독성 보강
+- PWA 캐시 soul-online-alpha-v1-21 갱신

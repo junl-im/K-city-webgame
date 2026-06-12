@@ -57,7 +57,7 @@ function setFixedViewportVars119(doc: Document) {
 function clearLegacyRuntimeFlags119() {
   try {
     for (const key of OLD_MODE_KEYS) localStorage.removeItem(key);
-    localStorage.setItem(BOOT_STORAGE_KEY, '1.19.0');
+    localStorage.setItem(BOOT_STORAGE_KEY, '1.21.0');
   } catch {
     // 저장소 접근이 막힌 브라우저에서도 게임 부팅은 계속 진행한다.
   }
@@ -97,7 +97,7 @@ export function installEmergencyBoot119(doc: Document, targets: BootTargets119) 
   state119.installed = true;
   state119.readyAt = performance.now();
   const body = doc.body;
-  const version = '1.19.0';
+  const version = '1.21.0';
 
   body.classList.add('emergency-boot-119', 'boot-critical-119', 'standard-mode-119', 'no-auto-quality-119');
   body.classList.remove('lite-render', 'quality-render', 'quality-mode', 'lite-mode', 'field-low-power', 'is-rotating');
