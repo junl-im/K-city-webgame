@@ -119,7 +119,7 @@ function normalizeStaticLayers117(root: Document, options: SingleVisualOptions11
   });
 
   const version = root.querySelector<HTMLElement>('.title-mini-nav span:last-child');
-  if (version) version.textContent = 'v1.17.0';
+  if (version) version.textContent = 'v1.18.0';
   if (options.startButton) options.startButton.dataset.singleMode117 = 'start';
 }
 

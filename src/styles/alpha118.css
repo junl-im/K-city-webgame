@@ -1,0 +1,165 @@
+/* Alpha 1.18 · 장면 고스트 제거 + 실행 크기 프레임 고정 + 사냥터 컨트롤 충돌 보정 */
+html.viewport-frame-root-118,
+html.viewport-frame-root-118 body.viewport-frame-118 {
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-width: 100vw !important;
+  min-height: 100dvh !important;
+  max-width: none !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  background: #06182c !important;
+}
+
+body.viewport-frame-118 #app {
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: var(--so118-lock-w, var(--so117-lock-w)) !important;
+  height: var(--so118-lock-h, var(--so117-lock-h)) !important;
+  min-width: var(--so118-lock-w, var(--so117-lock-w)) !important;
+  min-height: var(--so118-lock-h, var(--so117-lock-h)) !important;
+  max-width: var(--so118-lock-w, var(--so117-lock-w)) !important;
+  max-height: var(--so118-lock-h, var(--so117-lock-h)) !important;
+  transform: translate(-50%, -50%) translateZ(0) !important;
+  transform-origin: center center !important;
+  overflow: hidden !important;
+  contain: layout paint size !important;
+  background: #071b31 !important;
+}
+
+body.scene-stability-118 :is(#titleScreen, #loginScreen, #townScreen, #game-root)[data-scene-hidden118] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+body.scene-stability-118 :is(#titleScreen, #loginScreen, #townScreen, #game-root)[data-scene-active118] {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+body.scene-stability-118.scene-field-118 #game-root[data-scene-active118] {
+  display: block !important;
+}
+
+body.scene-stability-118 [data-scene-hidden118="legacy"],
+body.scene-stability-118 [data-single-mode-hidden117="true"],
+body.scene-stability-118 [data-removed-pet116],
+body.scene-stability-118 .title-character-companion,
+body.scene-stability-118 .title-hero-glow,
+body.scene-stability-118 .title-hero-rune,
+body.scene-stability-118 .title-soul-ring,
+body.scene-stability-118 .title-orb,
+body.scene-stability-118 .town-lobby-pet-070,
+body.scene-stability-118 .orientation-guard {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+body.standard-only-118 {
+  --so-render-scale-105: 0.92 !important;
+  --so-ui-blur-105: 4px !important;
+  --so-fx-opacity-105: .86 !important;
+  --so-field-fx-scale: .9 !important;
+  --so-panel-blur-101: 6px !important;
+}
+
+body.standard-only-118 :is(.field-lite-100, .field-lite-103, .field-lite-106, .field-lite-107, .runtime-lite-112, .engine-lite-105, .final-lite-107),
+body.standard-only-118 :is(.engine-quality-tier-105, .final-quality-107, .maintenance-quality-113, .runtime-quality-112) {
+  filter: none !important;
+}
+
+body.scene-stability-118 #titleScreen .title-bg.single-layer-118,
+body.scene-stability-118 #titleScreen .title-bg.single-layer-117 {
+  background:
+    linear-gradient(180deg, rgba(7, 24, 46, .06), rgba(7, 24, 46, .24) 70%, rgba(4, 13, 26, .64)),
+    url('../assets/ui/title-keyvisual-063.webp') center center / cover no-repeat !important;
+}
+
+body.scene-stability-118 #townScreen .town-backdrop {
+  background:
+    linear-gradient(180deg, rgba(10, 33, 60, .10), rgba(4, 18, 34, .30)),
+    url('../assets/ui/town-keyvisual-063.webp') center bottom / cover no-repeat !important;
+}
+
+body.scene-stability-118.field-active #game-root {
+  background:
+    radial-gradient(circle at 48% 16%, rgba(202, 248, 255, .24), transparent 32%),
+    linear-gradient(180deg, #a9e8ff 0%, #e2fbff 34%, #92d98f 100%) !important;
+}
+
+body.scene-stability-118.field-active #game-root canvas {
+  width: var(--so118-lock-w, var(--so117-lock-w)) !important;
+  height: var(--so118-lock-h, var(--so117-lock-h)) !important;
+  object-fit: fill !important;
+  filter: brightness(1.20) saturate(1.12) contrast(.98) !important;
+}
+
+body.scene-stability-118.field-active .hud-top,
+body.scene-stability-118.field-active .field-quest-tracker,
+body.scene-stability-118.field-active .target-card,
+body.scene-stability-118.field-active .resource-strip,
+body.scene-stability-118.field-active #returnTownBtn {
+  will-change: auto !important;
+  backface-visibility: hidden !important;
+}
+
+body.scene-stability-118.field-active.control-short-118 .skill-dock,
+body.scene-stability-118.field-active.control-collision-118 .skill-dock {
+  bottom: calc(var(--so116-safe-b) + 196px) !important;
+}
+
+body.scene-stability-118.field-active.control-collision-118 .action-dock {
+  right: calc(var(--so116-safe-r) + 2px) !important;
+  bottom: calc(var(--so116-safe-b) + 10px) !important;
+}
+
+body.scene-stability-118.field-active.control-collision-118 .potion-dock {
+  bottom: calc(var(--so116-safe-b) + 76px) !important;
+  transform: translateX(-50%) scale(.92) !important;
+}
+
+body.scene-stability-118.field-active.control-narrow-118 .joystick,
+body.scene-stability-118.field-active.control-collision-118 .joystick {
+  width: min(var(--so116-joy), 96px) !important;
+  height: min(var(--so116-joy), 96px) !important;
+}
+
+body.scene-stability-118.field-active.control-narrow-118 #returnTownBtn,
+body.scene-stability-118.field-active.control-collision-118 #returnTownBtn {
+  left: calc(var(--so116-safe-l) + 22px) !important;
+  bottom: calc(var(--so116-safe-b) + 112px) !important;
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+}
+
+body.scene-stability-118.field-active .field-quest-tracker,
+body.scene-stability-118.field-active .target-card {
+  overflow: hidden !important;
+  text-wrap: balance;
+}
+
+body.scene-stability-118.scene-title-118 #startGameBtn {
+  z-index: 30 !important;
+}
+
+@media (max-height: 650px) {
+  body.scene-stability-118.field-active .skill-dock {
+    bottom: calc(var(--so116-safe-b) + 190px) !important;
+  }
+
+  body.scene-stability-118.field-active .target-card {
+    top: calc(var(--so116-safe-t) + 80px) !important;
+  }
+}

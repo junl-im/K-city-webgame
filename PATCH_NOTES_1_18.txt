@@ -1,0 +1,20 @@
+Soul Online Alpha 1.18 Patch Notes
+
+목표
+- 1.17 단일 표준 모드 이후에도 남아 있던 구형 화면/이미지 레이어 깜빡임을 더 강하게 억제.
+- 화면 회전/주소창 리사이즈가 들어와도 실행 당시 논리 크기를 유지하는 프레임 가드 보강.
+- 사냥터 컨트롤 충돌을 감지해 조이스틱/마을/스킬/포션/액션 버튼 위치를 자동 보정.
+
+변경
+- sceneStability118 런타임 가드 추가.
+- alpha118 CSS 보정 레이어 추가.
+- title/login/town/field 중 현재 장면 하나만 활성 표시되도록 고스트 화면 숨김.
+- 구형 lite/quality class 재부착 시 즉시 제거.
+- title/town 배경은 단일 키비주얼만 유지.
+- System Doctor에 1.18 장면 안정화 항목 추가.
+- 중복 syncSoulAssetKit102 호출 제거.
+- SolGame onSnapshot의 중복 return 제거.
+- PWA 캐시 v1-18, package 1.18.0 갱신.
+
+검증
+- npm run build 통과.

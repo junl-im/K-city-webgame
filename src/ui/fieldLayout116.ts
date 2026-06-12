@@ -168,7 +168,7 @@ function annotate116(root: Document) {
 
 function normalizeTitle116(root: Document) {
   const version = root.querySelector<HTMLElement>('.title-mini-nav span:last-child');
-  if (version) version.textContent = 'v1.17.0';
+  if (version) version.textContent = 'v1.18.0';
   const start = root.querySelector<HTMLElement>('#startGameBtn');
   if (start) {
     start.setAttribute('aria-label', '게임 시작');

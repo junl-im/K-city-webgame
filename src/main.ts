@@ -3,6 +3,7 @@ import './styles/alpha114.css';
 import './styles/alpha115.css';
 import './styles/alpha116.css';
 import './styles/alpha117.css';
+import './styles/alpha118.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
@@ -44,6 +45,7 @@ import { installAssetDelivery115, syncAssetDelivery115, inspectAssetDelivery115 
 import { installFieldLayout116, syncFieldLayout116, inspectFieldLayout116 } from './ui/fieldLayout116';
 import { installViewportLock117, syncViewportLock117, inspectViewportLock117 } from './ui/viewportLock117';
 import { installSingleVisualMode117, syncSingleVisualMode117, inspectSingleVisualMode117 } from './ui/singleVisualMode117';
+import { installSceneStability118, syncSceneStability118, inspectSceneStability118 } from './ui/sceneStability118';
 import { renderInventoryPanel111 } from './ui/InventoryUI';
 import { closeMenuWindow111, installMenuWindowMotion111, openMenuWindow111, syncMenuWindowSafeFrame111 } from './ui/MenuWindow';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
@@ -102,7 +104,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '1.17.0';
+const ALPHA_VERSION = '1.18.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -250,7 +252,7 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-098', 'visual-clean-098', 'fantasy-ui-099', 'visual-art-099', 'fantasy-ui-100', 'visual-field-100', 'fantasy-ui-101', 'perf-polish-101', 'fantasy-ui-102', 'asset-kit-102', 'fantasy-ui-103', 'field-ui-103', 'fantasy-ui-104', 'quality-pass-104', 'fantasy-ui-105', 'engine-quality-105', 'fantasy-ui-106', 'engine-106', 'fantasy-ui-107', 'final-opt-107', 'fantasy-ui-108', 'mobile-quality-108', 'fantasy-ui-109', 'maintenance-109', 'fantasy-ui-111', 'kcity-commercial-111', 'fantasy-ui-112', 'kcity-commercial-112', 'fantasy-ui-113', 'kcity-commercial-113', 'runtime-cleanup-113', 'fantasy-ui-114', 'kcity-commercial-114', 'css-runtime-114', 'fantasy-ui-116', 'field-layout-116', 'title-layout-116', 'no-pet-116', 'fantasy-ui-117', 'single-visual-117', 'viewport-lock-117', 'entry-flow-ready-090');
+  document.body.classList.add('fantasy-ui-098', 'visual-clean-098', 'fantasy-ui-099', 'visual-art-099', 'fantasy-ui-100', 'visual-field-100', 'fantasy-ui-101', 'perf-polish-101', 'fantasy-ui-102', 'asset-kit-102', 'fantasy-ui-103', 'field-ui-103', 'fantasy-ui-104', 'quality-pass-104', 'fantasy-ui-105', 'engine-quality-105', 'fantasy-ui-106', 'engine-106', 'fantasy-ui-107', 'final-opt-107', 'fantasy-ui-108', 'mobile-quality-108', 'fantasy-ui-109', 'maintenance-109', 'fantasy-ui-111', 'kcity-commercial-111', 'fantasy-ui-112', 'kcity-commercial-112', 'fantasy-ui-113', 'kcity-commercial-113', 'runtime-cleanup-113', 'fantasy-ui-114', 'kcity-commercial-114', 'css-runtime-114', 'fantasy-ui-116', 'field-layout-116', 'title-layout-116', 'no-pet-116', 'fantasy-ui-117', 'single-visual-117', 'viewport-lock-117', 'fantasy-ui-118', 'scene-stability-118', 'viewport-frame-118', 'standard-only-118', 'entry-flow-ready-090');
   titleScreen.classList.add('title-screen-098', 'title-art-099');
   loginScreen.classList.add('login-screen-098', 'login-art-099');
   townScreen.classList.add('town-screen-098', 'town-art-099');
@@ -286,6 +288,7 @@ async function boot() {
   installFieldLayout116(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   syncViewportLock117(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root });
   syncSingleVisualMode117(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  installSceneStability118(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   installMenuWindowMotion111({ sheet, townPanel: townContentPanel, closeButtons: [closeSheet, closeTownContent, closeItemDetail] });
   await saveService.init();
   await mergeCloudRosterToLocal();
@@ -374,6 +377,7 @@ function syncLegacyVisualStack114() {
   syncFieldLayout116(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   syncViewportLock117(document, { root, titleScreen, loginScreen, townScreen, gameRoot: root });
   syncSingleVisualMode117(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  syncSceneStability118(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
 }
 
 function bindTitleFlow() {
@@ -4426,7 +4430,7 @@ async function handleHealthAction085(action: string) {
     liteRenderMode091 = false;
     try { localStorage.removeItem('soul-online-lite-render-091'); } catch { /* storage unavailable */ }
     syncSingleVisualMode117(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
-    showToast('1.17부터 라이트/고화질 전환 없이 단일 표준 모드로 실행합니다.');
+    showToast('1.18부터 단일 표준 모드와 장면 고정 가드로 실행합니다.');
   }
   if (townContentOpen && (activeTownContent === 'settings' || activeTownContent === 'account')) renderTownContent();
   if (sheetOpen && activeSheetTab === 'account') renderSheet();
@@ -4473,6 +4477,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
   const fieldLayout116 = inspectFieldLayout116(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const viewport117 = inspectViewportLock117(document);
   const singleVisual117 = inspectSingleVisualMode117(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  const scene118 = inspectSceneStability118(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   titleEntryLastReport090 = titleHealth090.label;
   const rows: HealthTile087[] = [
     { label: '브랜드', value: 'Soul Online 고정', level: 'ok' },
@@ -4499,6 +4504,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     { label: '1.16 요청 UI', value: fieldLayout116.message, level: fieldLayout116.level, hint: fieldLayout116.hint },
     { label: '1.17 크기 고정', value: viewport117.message, level: viewport117.level, hint: viewport117.hint },
     { label: '1.17 단일 모드', value: singleVisual117.message, level: singleVisual117.level, hint: singleVisual117.hint },
+    { label: '1.18 장면 안정화', value: scene118.message, level: scene118.level, hint: scene118.hint },
     { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
     { label: '성능', value: perfHealth.label, level: perfHealth.level },
     { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },
@@ -4666,6 +4672,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
   const fieldLayout116 = inspectFieldLayout116(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const viewport117 = inspectViewportLock117(document);
   const singleVisual117 = inspectSingleVisualMode117(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  const scene118 = inspectSceneStability118(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   titleEntryLastReport090 = titleHealth090.label;
   const tiles: HealthTile087[] = [
     { label: '첫 화면', value: titleHealth090.label, level: titleHealth090.level, hint: titleHealth090.hint },
@@ -4691,6 +4698,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     { label: '1.16 요청 UI', value: fieldLayout116.message, level: fieldLayout116.level, hint: fieldLayout116.hint },
     { label: '1.17 크기 고정', value: viewport117.message, level: viewport117.level, hint: viewport117.hint },
     { label: '1.17 단일 모드', value: singleVisual117.message, level: singleVisual117.level, hint: singleVisual117.hint },
+    { label: '1.18 장면 안정화', value: scene118.message, level: scene118.level, hint: scene118.hint },
     { label: 'FPS', value: `${measuredFps} · ${perfHealth.label}`, level: perfHealth.level },
     { label: '저장 연결', value: cloudState, level: cloud.paused ? 'warn' : 'ok' },
     { label: 'UI 안전', value: document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상', level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok', hint: lastUiAuditMessage },
@@ -4721,7 +4729,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
       networkState: networkState085,
       pwaState: serviceWorkerReady086 ? '준비' : '대기',
       characterTail: save.saveId.slice(-6),
-      contentSummary: `콘텐츠 ${contentHealth.totals.zones}존 · ${contentHealth.totals.monsters}몬스터 · ${contentHealth.totals.items}아이템 · ${contentHealth.totals.quests}퀘스트 · 예열 ${preloadSummary089.count}개 · 리소스 ${resourceBudget091.totalMB}MB · CSS ${Math.max(cssBudget092.estimatedKB, cssBudget092.runtimeCssKB).toFixed(0)}KB · 1.05 ${engine105.tier} · 1.07 ${final107.tier} · 1.08 ${quality108.tier} · 1.09 ${maintenance109.tier} · 1.10 ${fieldLayout110.tier} · 1.12 ${runtime112.tier}/${fieldHud112.overflowCount} · 1.13 ${maintenance113.tier}/${maintenance113.overflowCount} · 1.15 ${assetDelivery115.mode}/${styleLoader115.loaded} · 1.16 ${fieldLayout116.overflowCount}/${fieldLayout116.collisionCount} · 1.17 ${singleVisual117.mode}/${viewport117.width}x${viewport117.height}`
+      contentSummary: `콘텐츠 ${contentHealth.totals.zones}존 · ${contentHealth.totals.monsters}몬스터 · ${contentHealth.totals.items}아이템 · ${contentHealth.totals.quests}퀘스트 · 예열 ${preloadSummary089.count}개 · 리소스 ${resourceBudget091.totalMB}MB · CSS ${Math.max(cssBudget092.estimatedKB, cssBudget092.runtimeCssKB).toFixed(0)}KB · 1.05 ${engine105.tier} · 1.07 ${final107.tier} · 1.08 ${quality108.tier} · 1.09 ${maintenance109.tier} · 1.10 ${fieldLayout110.tier} · 1.12 ${runtime112.tier}/${fieldHud112.overflowCount} · 1.13 ${maintenance113.tier}/${maintenance113.overflowCount} · 1.15 ${assetDelivery115.mode}/${styleLoader115.loaded} · 1.16 ${fieldLayout116.overflowCount}/${fieldLayout116.collisionCount} · 1.17 ${singleVisual117.mode}/${viewport117.width}x${viewport117.height} · 1.18 ${scene118.route}/${scene118.ghostSurfaceCount}`
     },
     issueRows,
     cloudError: cloud.lastError,
