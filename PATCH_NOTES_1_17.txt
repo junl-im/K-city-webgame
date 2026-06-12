@@ -1,0 +1,11 @@
+Soul Online Alpha 1.17 Patch Notes
+
+- Lite / Balanced / Quality 자동 전환을 실제 렌더 기준에서 단일 표준 모드로 고정
+- 고화질/저화질 atlas 경쟁 로딩 제거
+- 필드 PixiJS canvas를 window resizeTo가 아니라 실행 당시 viewport 크기로 초기화
+- 모바일 resize / orientationchange / visualViewport.resize 이후에도 레이아웃 기준 크기 유지
+- 자동 fullscreen 요청 중단으로 브라우저가 화면 방향/크기를 바꾸는 문제 완화
+- 1.15 legacy CSS lazy stack 비활성화로 배경 이미지가 늦게 바뀌며 깜빡이는 현상 완화
+- 타이틀/마을의 구형 중복 배경 레이어와 companion/pet placeholder 억제
+- System Doctor에 1.17 크기 고정 / 단일 모드 진단 추가
+- PWA cache: soul-online-alpha-v1-17

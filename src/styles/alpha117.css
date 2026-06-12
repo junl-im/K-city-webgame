@@ -1,0 +1,241 @@
+/* Alpha 1.17 · 단일 표준 모드 + 실행 크기 고정 + 중복 레이어 억제 */
+html.viewport-lock-root-117,
+html.viewport-lock-root-117 body.viewport-lock-117 {
+  width: var(--so117-lock-w) !important;
+  height: var(--so117-lock-h) !important;
+  min-width: var(--so117-lock-w) !important;
+  min-height: var(--so117-lock-h) !important;
+  max-width: var(--so117-lock-w) !important;
+  max-height: var(--so117-lock-h) !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  touch-action: manipulation;
+  background: #06182c;
+}
+
+body.viewport-lock-117 #app {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: var(--so117-lock-w) !important;
+  height: var(--so117-lock-h) !important;
+  min-width: var(--so117-lock-w) !important;
+  min-height: var(--so117-lock-h) !important;
+  max-width: var(--so117-lock-w) !important;
+  max-height: var(--so117-lock-h) !important;
+  overflow: hidden !important;
+  transform: translateZ(0);
+  transform-origin: top left;
+  contain: layout paint size;
+}
+
+body.viewport-lock-117 :is(.title-screen, .login-screen, .town-screen, .game-root) {
+  width: var(--so117-lock-w) !important;
+  height: var(--so117-lock-h) !important;
+  min-width: var(--so117-lock-w) !important;
+  min-height: var(--so117-lock-h) !important;
+  max-width: var(--so117-lock-w) !important;
+  max-height: var(--so117-lock-h) !important;
+  overflow: hidden !important;
+}
+
+body.viewport-lock-117 .game-root canvas {
+  width: var(--so117-lock-w) !important;
+  height: var(--so117-lock-h) !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: fill !important;
+}
+
+body.viewport-lock-117 .orientation-guard,
+body.viewport-lock-117.landscape-guard-103 .orientation-guard,
+body.viewport-lock-117.landscape-block-105 .orientation-guard,
+body.viewport-lock-117.maintenance-landscape-109 .orientation-guard,
+body.viewport-lock-117.so108-portrait-warn .orientation-guard,
+body.viewport-lock-117.forced-landscape-safe .orientation-guard {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.single-visual-117 {
+  --so117-panel: rgba(8, 24, 44, .78);
+  --so117-panel-strong: rgba(7, 20, 38, .9);
+  --so117-line: rgba(172, 234, 255, .46);
+  --so117-glow: rgba(81, 195, 255, .36);
+  --so117-gold: #ffe8a3;
+}
+
+/* 시작 화면은 한 장의 키비주얼만 사용합니다. 구형 044~078 레이어가 늦게 붙으며 다른 이미지가 보이는 현상을 차단합니다. */
+body.single-visual-117 #titleScreen.title-screen:not(.hidden) {
+  background:
+    linear-gradient(180deg, rgba(8, 28, 54, .08) 0%, rgba(7, 26, 48, .18) 52%, rgba(5, 18, 34, .56) 100%),
+    url('../assets/ui/title-keyvisual-063.webp') center center / cover no-repeat !important;
+  isolation: isolate;
+}
+
+body.single-visual-117 #titleScreen .title-bg {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  opacity: 1 !important;
+  background:
+    linear-gradient(180deg, rgba(7, 24, 46, .08), rgba(7, 24, 46, .32) 72%, rgba(4, 13, 26, .68)),
+    url('../assets/ui/title-keyvisual-063.webp') center center / cover no-repeat !important;
+  transform: none !important;
+  animation: none !important;
+  filter: none !important;
+}
+
+body.single-visual-117 #titleScreen .title-bg::before,
+body.single-visual-117 #titleScreen .title-bg::after,
+body.single-visual-117 #titleScreen .title-orb,
+body.single-visual-117 #titleScreen .title-hero,
+body.single-visual-117 #titleScreen .title-soul-ring,
+body.single-visual-117 #titleScreen .title-character,
+body.single-visual-117 #titleScreen .title-character-companion,
+body.single-visual-117 #titleScreen .title-hero-glow,
+body.single-visual-117 #titleScreen .title-hero-rune {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  animation: none !important;
+  pointer-events: none !important;
+}
+
+body.single-visual-117 #titleScreen .title-stage {
+  position: relative !important;
+  z-index: 2 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  display: grid !important;
+  grid-template-rows: minmax(84px, 26vh) 1fr auto minmax(34px, 8vh) !important;
+  align-items: center !important;
+  justify-items: center !important;
+  padding: calc(12px + env(safe-area-inset-top)) 20px calc(16px + env(safe-area-inset-bottom)) !important;
+}
+
+body.single-visual-117 #titleScreen .title-copy {
+  align-self: end !important;
+  max-width: min(88vw, 360px) !important;
+  text-align: center !important;
+  opacity: .98 !important;
+  transform: none !important;
+}
+
+body.single-visual-117 #titleScreen .title-copy h1,
+body.single-visual-117 #titleScreen .title-copy p,
+body.single-visual-117 #titleScreen .title-kicker {
+  text-shadow: 0 3px 14px rgba(4, 17, 34, .72), 0 0 24px rgba(92, 204, 255, .28) !important;
+}
+
+body.single-visual-117 #startGameBtn {
+  grid-row: 3 !important;
+  align-self: center !important;
+  justify-self: center !important;
+  width: min(88vw, 330px) !important;
+  min-height: 58px !important;
+  margin: 0 !important;
+  transform: none !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(190, 244, 255, .72) !important;
+  background: linear-gradient(180deg, rgba(93, 185, 226, .74), rgba(28, 91, 136, .82)) !important;
+  box-shadow: 0 12px 30px rgba(4, 17, 36, .42), inset 0 1px 0 rgba(255, 255, 255, .52), 0 0 30px rgba(94, 211, 255, .34) !important;
+  color: #f7fbff !important;
+  letter-spacing: .24em !important;
+  line-height: 1 !important;
+  text-shadow: 0 2px 8px rgba(0, 23, 54, .72) !important;
+  animation: startPulse117 2.4s ease-in-out infinite !important;
+}
+
+body.single-visual-117 #titleScreen .title-stage > small {
+  display: none !important;
+}
+
+body.single-visual-117 #titleScreen .title-mini-nav span:last-child::before {
+  content: '' !important;
+}
+
+@keyframes startPulse117 {
+  0%, 100% { filter: brightness(1); box-shadow: 0 12px 30px rgba(4, 17, 36, .42), inset 0 1px 0 rgba(255,255,255,.52), 0 0 22px rgba(94,211,255,.25); }
+  50% { filter: brightness(1.08); box-shadow: 0 14px 34px rgba(4, 17, 36, .46), inset 0 1px 0 rgba(255,255,255,.68), 0 0 38px rgba(114,224,255,.42); }
+}
+
+/* 마을도 구형 여러 배경이 순차 적용되지 않도록 한 장의 기준 배경으로 고정합니다. */
+body.single-visual-117 #townScreen .town-backdrop {
+  background:
+    linear-gradient(180deg, rgba(10, 33, 60, .12), rgba(4, 18, 34, .34)),
+    url('../assets/ui/town-keyvisual-063.webp') center bottom / cover no-repeat !important;
+}
+
+body.single-visual-117 #townScreen .town-panorama-049,
+body.single-visual-117 #townScreen .town-panorama-050,
+body.single-visual-117 #townScreen .town-panorama-052,
+body.single-visual-117 #townScreen .town-panorama-053,
+body.single-visual-117 #townScreen .town-panorama-056,
+body.single-visual-117 #townScreen .town-panorama-057,
+body.single-visual-117 #townScreen .town-panorama-058,
+body.single-visual-117 #townScreen .town-panorama-059,
+body.single-visual-117 #townScreen .town-panorama-060,
+body.single-visual-117 #townScreen .town-panorama-061,
+body.single-visual-117 #townScreen .town-panorama-062,
+body.single-visual-117 #townScreen .town-panorama-063,
+body.single-visual-117 #townScreen .town-panorama-064,
+body.single-visual-117 #townScreen .town-panorama-065,
+body.single-visual-117 #townScreen .town-panorama-066,
+body.single-visual-117 #townScreen .town-panorama-067,
+body.single-visual-117 #townScreen .town-panorama-068,
+body.single-visual-117 #townScreen .town-panorama-069,
+body.single-visual-117 #townScreen .town-panorama-070 {
+  background: transparent !important;
+  opacity: 0 !important;
+  animation: none !important;
+}
+
+body.single-visual-117 .town-lobby-pet-070,
+body.single-visual-117 .title-character-companion,
+body.single-visual-117 [data-removed-pet116],
+body.single-visual-117 [data-single-mode-hidden117="true"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* 필드는 한 가지 표준 밝기와 채도를 유지합니다. 성능 등급별 색/밝기 변화가 생기지 않게 후처리를 고정합니다. */
+body.single-visual-117.field-active .game-root {
+  background: radial-gradient(circle at 50% 30%, rgba(120, 220, 255, .12), transparent 55%), #102842 !important;
+}
+
+body.single-visual-117.field-active .game-root canvas {
+  filter: brightness(1.13) saturate(1.12) contrast(1.02) !important;
+}
+
+body.single-visual-117 :is(.field-lite-100, .field-lite-107, .runtime-lite-112, .engine-lite-105) {
+  filter: none !important;
+}
+
+body.single-visual-117 .hud-top,
+body.single-visual-117 .resource-strip,
+body.single-visual-117 .target-card,
+body.single-visual-117 .field-quest-tracker,
+body.single-visual-117 .combat-log,
+body.single-visual-117 #returnTownBtn {
+  background: linear-gradient(180deg, rgba(10, 30, 54, .84), rgba(6, 18, 34, .72)) !important;
+  border-color: rgba(172, 234, 255, .46) !important;
+  box-shadow: 0 10px 26px rgba(2, 12, 24, .28), inset 0 1px 0 rgba(255,255,255,.12) !important;
+}
+
+body.single-visual-117 .skill-dock,
+body.single-visual-117 .action-dock,
+body.single-visual-117 .potion-dock,
+body.single-visual-117 .joystick {
+  transform-origin: center !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.single-visual-117 #startGameBtn { animation: none !important; }
+}

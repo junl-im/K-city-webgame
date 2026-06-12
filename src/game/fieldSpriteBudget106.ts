@@ -1,7 +1,7 @@
 import { zones } from '../data/gameData';
 import type { CharacterClassId } from '../types';
 
-export type SpriteAtlasMode106 = 'lite' | 'high';
+export type SpriteAtlasMode106 = 'standard' | 'lite' | 'high';
 
 type NavigatorBudget106 = Navigator & {
   deviceMemory?: number;
@@ -13,23 +13,11 @@ function flag106(key: string) {
 }
 
 export function shouldUseLiteSpriteAtlas106() {
-  if (typeof window === 'undefined') return false;
-  const nav = navigator as NavigatorBudget106;
-  const memory = nav.deviceMemory || 4;
-  const cores = nav.hardwareConcurrency || 4;
-  const network = nav.connection?.effectiveType || '';
-  const saveData = Boolean(nav.connection?.saveData);
-  const narrow = Math.min(window.innerWidth, window.innerHeight) <= 430 || window.innerHeight <= 760;
-  if (flag106('soul-online-force-hq-atlas-106') || flag106('soul-online-engine-quality-105')) return false;
-  return flag106('soul-online-lite-atlas-106')
-    || flag106('soul-online-engine-lite-105')
-    || flag106('soul-online-lite-render-091')
-    || saveData
-    || memory <= 4
-    || cores <= 4
-    || /2g|3g|slow-2g/.test(network)
-    || narrow;
+  // Alpha 1.17: 저화질/고화질 아틀라스 자동 전환을 제거합니다.
+  // textureUrls가 가리키는 한 가지 표준 런타임 atlas만 사용합니다.
+  return false;
 }
+
 
 export function classSheetKey106(classId: CharacterClassId) {
   if (classId === 'taoist') return ['heroTaoistMaleSheet', 'heroTaoistFemaleSheet'];
@@ -75,13 +63,13 @@ export function inspectFieldSpriteAtlas106(mode: SpriteAtlasMode106, textures: M
   const loadedKeys = [...textures.keys()];
   const sheetKeys = loadedKeys.filter((key) => /Sheet$/.test(key));
   const heavySheets = sheetKeys.filter((key) => /Dragon|Rift|Golem|Taoist|Cleric|Wolf|Slime|Fire|Bear|Royal/.test(key));
-  const level = mode === 'lite' || sheetKeys.length <= 5 ? 'ok' : heavySheets.length >= 6 ? 'warn' : 'ok';
+  const level = sheetKeys.length <= 10 ? 'ok' : heavySheets.length >= 10 ? 'warn' : 'ok';
   return {
     mode,
     sheetCount: sheetKeys.length,
     heavySheetCount: heavySheets.length,
     level: level as 'ok' | 'warn',
-    message: mode === 'lite' ? '저용량 스프라이트 아틀라스' : '고품질 스프라이트 아틀라스',
+    message: '단일 표준 스프라이트 아틀라스',
     hint: `${sheetKeys.length} sheets · heavy ${heavySheets.length}`
   };
 }

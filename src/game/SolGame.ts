@@ -20,7 +20,7 @@ import {
   villageProps,
   worldMap
 } from '../data/gameData';
-import { liteRuntimeTextureUrls106, runtimeTextureUrls, textureUrls } from '../data/assetManifest';
+import { textureUrls } from '../data/assetManifest';
 import type {
   AutoHuntSettings,
   CardDefinition,
@@ -48,7 +48,8 @@ import { CombatSystem } from './CombatSystem';
 import { applyEquipmentResonance, equipmentResonanceEffects } from './equipmentResonance';
 import { HUMANOID_SHEET_META, MONSTER_SHEET_META, SpriteSheetAnimator, directionFromIsoVector, type SpriteDirection } from './SpriteSheetAnimator';
 import { detectFieldEngineTier105, getFieldEngineProfile105 } from './fieldEngineProfile105';
-import { getTexturePriority106, inspectFieldSpriteAtlas106, shouldUseLiteSpriteAtlas106 } from './fieldSpriteBudget106';
+import { getTexturePriority106, inspectFieldSpriteAtlas106 } from './fieldSpriteBudget106';
+import { getLockedViewport117 } from '../ui/viewportLock117';
 
 type MobView = {
   root: Container;
@@ -256,7 +257,7 @@ export class SolGame {
   private fxBudgetWindow101 = 0;
   private fxBudgetCount101 = 0;
   private hiddenMobFrame101 = 0;
-  private spriteAtlasMode106: 'lite' | 'high' = 'high';
+  private spriteAtlasMode106: 'standard' = 'standard';
   private autoRouteIndex110 = 0;
   private autoRouteCooldown110 = 0;
   private cleanupHandlers113: Array<() => void> = [];
@@ -271,8 +272,10 @@ export class SolGame {
   async mount(root: HTMLElement) {
     this.app = new Application();
     const renderProfile099 = this.renderProfile099();
+    const lockedViewport117 = getLockedViewport117();
     await this.app.init({
-      resizeTo: window,
+      width: lockedViewport117.width,
+      height: lockedViewport117.height,
       backgroundAlpha: 0,
       antialias: renderProfile099.antialias,
       autoDensity: true,
@@ -292,7 +295,7 @@ export class SolGame {
       isLite: () => this.isFieldLite101()
     });
 
-    this.spriteAtlasMode106 = shouldUseLiteSpriteAtlas106() ? 'lite' : 'high';
+    this.spriteAtlasMode106 = 'standard';
     await this.loadTextures();
     this.buildMap();
     this.spawnMobs();
@@ -907,8 +910,7 @@ export class SolGame {
         const key = required[cursor];
         cursor += 1;
         const fallbackUrl = textureUrls[key];
-        const runtimeUrl = runtimeTextureUrls[key];
-        const texture = await this.loadTextureWithFallback(key, runtimeUrl, fallbackUrl);
+        const texture = await this.loadTextureWithFallback(key, fallbackUrl);
         this.textures.set(key, texture);
         loaded += 1;
         this.options.onLoadProgress?.(loaded, required.length, String(key));
@@ -938,12 +940,7 @@ export class SolGame {
     const apply = () => {
       if (!this.app) return;
       const profile = getFieldEngineProfile105();
-      const runtimeTier = document.body.dataset.maintenanceTier113 || document.body.dataset.runtimeTier112 || profile.tier;
-      const compact = Math.min(window.innerWidth || 0, window.innerHeight || 0) <= 380 || (window.innerHeight || 0) <= 680;
-      let fpsCap = profile.maxFPS;
-      if (document.hidden) fpsCap = 12;
-      else if (runtimeTier === 'lite' || compact) fpsCap = Math.min(fpsCap, 26);
-      else if (runtimeTier === 'balanced') fpsCap = Math.min(fpsCap, 38);
+      const fpsCap = document.hidden ? 12 : profile.maxFPS;
       this.app.ticker.maxFPS = fpsCap;
       document.body.dataset.fieldFpsCap113 = String(fpsCap);
     };
@@ -975,20 +972,15 @@ export class SolGame {
   }
 
   private localStorageFlag099(key: string) {
+    if (/lite|quality|atlas/i.test(key)) return false;
     try { return window.localStorage.getItem(key) === '1'; } catch { return false; }
   }
 
-  /**
-   * Alpha 1.15: public/assets/soulpack 풀팩이 없는 기본 Firebase 배포에서는
-   * 존재하지 않는 고품질 런타임 팩을 매 텍스처마다 요청하지 않습니다.
-   * 풀팩을 별도 배치한 빌드에서는 localStorage `soul-online-full-atlas-115=1`로 우선 사용을 켤 수 있습니다.
-   */
-  private shouldTryRuntimeTexture115(runtimeUrl: string | undefined, fallbackUrl: string) {
-    if (!runtimeUrl) return false;
-    if (runtimeUrl === fallbackUrl) return false;
-    if (runtimeUrl.includes('/assets/soulpack/') && !this.localStorageFlag099('soul-online-full-atlas-115')) return false;
-    return true;
+  /** Alpha 1.17: 런타임 풀팩/라이트팩 분기를 제거하고 textureUrls의 단일 표준 경로만 사용합니다. */
+  private shouldTryRuntimeTexture115(_runtimeUrl: string | undefined, _fallbackUrl: string) {
+    return false;
   }
+
 
   private textureLoadConcurrency099(requiredCount: number) {
     const profile105 = getFieldEngineProfile105();
@@ -1053,22 +1045,9 @@ export class SolGame {
     return undefined;
   }
 
-  private async loadTextureWithFallback(key: TextureKey, runtimeUrl: string | undefined, fallbackUrl: string) {
-    const liteUrl = shouldUseLiteSpriteAtlas106() ? liteRuntimeTextureUrls106[key] : undefined;
-    if (liteUrl) {
-      try {
-        return await Assets.load<LoadedTexture>(liteUrl);
-      } catch {
-        // Lite atlases are optional. Fall through to normal runtime/fallback assets.
-      }
-    }
-    if (this.shouldTryRuntimeTexture115(runtimeUrl, fallbackUrl)) {
-      try {
-        return await Assets.load<LoadedTexture>(runtimeUrl as string);
-      } catch {
-        // Runtime asset packs are optional. If a file is missing or corrupt, keep the game playable.
-      }
-    }
+  private async loadTextureWithFallback(_key: TextureKey, fallbackUrl: string) {
+    // Alpha 1.17: 저화질/고화질/풀팩 fallback 경쟁을 제거합니다.
+    // 한 텍스처 키는 한 URL만 시도하므로, 로딩 중 서로 다른 이미지가 겹쳐 보이는 일을 줄입니다.
     return Assets.load<LoadedTexture>(fallbackUrl);
   }
 

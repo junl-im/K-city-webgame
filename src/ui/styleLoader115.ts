@@ -24,23 +24,9 @@ type LazyStyleModule115 = {
   load: () => Promise<unknown>;
 };
 
-const LAZY_STYLES_115: LazyStyleModule115[] = [
-  { id: '098', label: 'visual clean', estimatedKB: 18, group: 'critical', load: () => import('../styles/alpha098.css') },
-  { id: '100', label: 'field HUD base', estimatedKB: 23, group: 'critical', load: () => import('../styles/alpha100.css') },
-  { id: '112', label: 'mobile runtime', estimatedKB: 24, group: 'critical', load: () => import('../styles/alpha112.css') },
-  { id: '113', label: 'runtime cleanup', estimatedKB: 24, group: 'critical', load: () => import('../styles/alpha113.css') },
-  { id: '099', label: 'art performance', estimatedKB: 21, group: 'town', load: () => import('../styles/alpha099.css') },
-  { id: '101', label: 'performance polish', estimatedKB: 18, group: 'town', load: () => import('../styles/alpha101.css') },
-  { id: '102', label: 'asset kit', estimatedKB: 22, group: 'town', load: () => import('../styles/alpha102.css') },
-  { id: '103', label: 'portrait field UX', estimatedKB: 28, group: 'field', load: () => import('../styles/alpha103.css') },
-  { id: '104', label: 'quality pass', estimatedKB: 30, group: 'field', load: () => import('../styles/alpha104.css') },
-  { id: '105', label: 'engine quality', estimatedKB: 25, group: 'field', load: () => import('../styles/alpha105.css') },
-  { id: '106', label: 'engine optimization', estimatedKB: 24, group: 'field', load: () => import('../styles/alpha106.css') },
-  { id: '107', label: 'final optimization', estimatedKB: 24, group: 'field', load: () => import('../styles/alpha107.css') },
-  { id: '108', label: 'mobile quality', estimatedKB: 26, group: 'field', load: () => import('../styles/alpha108.css') },
-  { id: '109', label: 'maintenance', estimatedKB: 26, group: 'deep', load: () => import('../styles/alpha109.css') },
-  { id: '110', label: 'field layout', estimatedKB: 28, group: 'deep', load: () => import('../styles/alpha110.css') }
-];
+const LAZY_STYLES_115: LazyStyleModule115[] = [];
+
+const STYLE_LOAD_DISABLED_REASON_117 = '1.17 단일 표준 모드에서 구형 CSS lazy stack 비활성화';
 
 const loadedIds115 = new Set<string>();
 const failedIds115 = new Set<string>();
@@ -58,11 +44,11 @@ let deepDrainTimer115 = 0;
 export function installStyleLoader115(root: Document = document) {
   if (!installed115) {
     installed115 = true;
-    root.body.classList.add('css-runtime-115', 'css-route-aware-115', 'css-critical-loading-115');
+    root.body.classList.add('css-runtime-115', 'css-route-aware-115', 'css-route-ready-115', 'css-single-stack-117');
     lastRoute115 = detectRoute115(root);
     root.body.dataset.styleRoute115 = lastRoute115;
-    scheduleGroupLoad115(root, 'critical');
-    scheduleDeferredDrain115(root);
+    state115 = 'ready';
+    // 1.17: 늦게 붙는 구형 CSS가 배경/레이어를 순간 교체하지 않도록 로드하지 않습니다.
   }
   return inspectStyleLoader115(root);
 }
@@ -104,12 +90,14 @@ export function inspectStyleLoader115(root: Document = document): StyleLoaderRep
   const estimatedDeferredKB = LAZY_STYLES_115.reduce((sum, item) => sum + item.estimatedKB, 0);
   const state = state115;
   const level: HealthLevel = failed > 0 ? 'warn' : criticalLoaded >= criticalTotal ? 'ok' : 'warn';
-  const message = failed > 0
-    ? `CSS ${failed}개 로드 실패 · ${loaded}/${total}`
-    : loaded >= total
-      ? `경로별 CSS ${loaded}/${total} 완료`
-      : `핵심 CSS ${criticalLoaded}/${criticalTotal} · 전체 ${loaded}/${total}`;
-  const hint = `${route} 경로 · 약 ${estimatedDeferredKB}KB 지연 로드 · pending ${pending}`;
+  const message = total === 0
+    ? '구형 CSS 지연 로드 비활성화'
+    : failed > 0
+      ? `CSS ${failed}개 로드 실패 · ${loaded}/${total}`
+      : loaded >= total
+        ? `경로별 CSS ${loaded}/${total} 완료`
+        : `핵심 CSS ${criticalLoaded}/${criticalTotal} · 전체 ${loaded}/${total}`;
+  const hint = total === 0 ? STYLE_LOAD_DISABLED_REASON_117 : `${route} 경로 · 약 ${estimatedDeferredKB}KB 지연 로드 · pending ${pending}`;
   return { level, state, route, loaded, total, failed, pending, estimatedDeferredKB, message, hint };
 }
 
@@ -125,6 +113,7 @@ function detectRoute115(root: Document): StyleRoute115 {
 }
 
 function scheduleGroupLoad115(root: Document, group: LazyStyleModule115['group']) {
+  if (!LAZY_STYLES_115.length) { state115 = 'ready'; return; }
   if (queuedGroups115.has(group)) return;
   const targets = LAZY_STYLES_115.filter((item) => item.group === group && !loadedIds115.has(item.id) && !failedIds115.has(item.id));
   if (!targets.length) return;
@@ -165,6 +154,7 @@ async function loadGroup115(root: Document, group: LazyStyleModule115['group'], 
 }
 
 function scheduleDeferredDrain115(root: Document) {
+  if (!LAZY_STYLES_115.length) return;
   if (deepDrainTimer115) window.clearTimeout(deepDrainTimer115);
   deepDrainTimer115 = window.setTimeout(() => {
     if (shouldHoldDeepStyles115()) return;
