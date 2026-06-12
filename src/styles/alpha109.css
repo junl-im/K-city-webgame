@@ -1,0 +1,648 @@
+:root {
+  --so109-safe-top: max(env(safe-area-inset-top, 0px), 10px);
+  --so109-safe-right: max(env(safe-area-inset-right, 0px), 10px);
+  --so109-safe-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+  --so109-safe-left: max(env(safe-area-inset-left, 0px), 10px);
+  --so109-ink: #0e2038;
+  --so109-ink-soft: #36516d;
+  --so109-cream: #fff4d2;
+  --so109-gold: #f6d577;
+  --so109-aqua: #86f4ff;
+  --so109-violet: #b89dff;
+  --so109-rose: #ff89a8;
+  --so109-night: rgba(5, 12, 28, 0.86);
+  --so109-night-strong: rgba(4, 9, 22, 0.94);
+  --so109-field-panel: url('/assets/ui/fantasy/108/field-panel-prism-108.webp');
+  --so109-quest-panel: url('/assets/ui/fantasy/108/quest-parchment-108.webp');
+  --so109-monster-panel: url('/assets/ui/fantasy/108/monster-plate-108.webp');
+  --so109-attack: url('/assets/ui/fantasy/108/attack-orb-108.webp');
+  --so109-skill: url('/assets/ui/fantasy/108/skill-orb-108.webp');
+  --so109-menu: url('/assets/ui/fantasy/108/menu-orb-108.webp');
+  --so109-joy: url('/assets/ui/fantasy/108/joystick-ring-108.webp');
+  --so109-close: url('/assets/ui/fantasy/108/close-gem-108.webp');
+}
+
+html.soul-online-portrait-109,
+html.soul-online-portrait-109 body {
+  width: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+body.fantasy-ui-109 {
+  color: var(--so109-cream);
+  background: radial-gradient(circle at 50% 0%, #315f8c 0%, #102541 48%, #050a18 100%);
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: geometricPrecision;
+}
+
+body.fantasy-ui-109 *,
+body.fantasy-ui-109 *::before,
+body.fantasy-ui-109 *::after {
+  box-sizing: border-box;
+}
+
+body.fantasy-ui-109 button {
+  touch-action: manipulation;
+  user-select: none;
+}
+
+body.fantasy-ui-109 [data-suppressed-109='true'] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  contain: strict !important;
+}
+
+body.fantasy-ui-109.route-title-109 .hud-top,
+body.fantasy-ui-109.route-title-109 .resource-strip,
+body.fantasy-ui-109.route-title-109 #targetCard,
+body.fantasy-ui-109.route-title-109 #fieldQuestTracker,
+body.fantasy-ui-109.route-title-109 #fieldMiniMap,
+body.fantasy-ui-109.route-title-109 #combatLog,
+body.fantasy-ui-109.route-title-109 #combatLogToggle,
+body.fantasy-ui-109.route-title-109 #joystick,
+body.fantasy-ui-109.route-title-109 .potion-dock,
+body.fantasy-ui-109.route-title-109 .skill-dock,
+body.fantasy-ui-109.route-title-109 .action-dock,
+body.fantasy-ui-109.route-login-109 .hud-top,
+body.fantasy-ui-109.route-login-109 .resource-strip,
+body.fantasy-ui-109.route-login-109 #targetCard,
+body.fantasy-ui-109.route-login-109 #fieldQuestTracker,
+body.fantasy-ui-109.route-login-109 #fieldMiniMap,
+body.fantasy-ui-109.route-login-109 #combatLog,
+body.fantasy-ui-109.route-login-109 #combatLogToggle,
+body.fantasy-ui-109.route-login-109 #joystick,
+body.fantasy-ui-109.route-login-109 .potion-dock,
+body.fantasy-ui-109.route-login-109 .skill-dock,
+body.fantasy-ui-109.route-login-109 .action-dock,
+body.fantasy-ui-109.route-town-109 .hud-top,
+body.fantasy-ui-109.route-town-109 .resource-strip,
+body.fantasy-ui-109.route-town-109 #targetCard,
+body.fantasy-ui-109.route-town-109 #fieldQuestTracker,
+body.fantasy-ui-109.route-town-109 #fieldMiniMap,
+body.fantasy-ui-109.route-town-109 #combatLog,
+body.fantasy-ui-109.route-town-109 #combatLogToggle,
+body.fantasy-ui-109.route-town-109 #joystick,
+body.fantasy-ui-109.route-town-109 .potion-dock,
+body.fantasy-ui-109.route-town-109 .skill-dock,
+body.fantasy-ui-109.route-town-109 .action-dock {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.fantasy-ui-109 .title-screen-109,
+body.fantasy-ui-109 .login-screen-109,
+body.fantasy-ui-109 .town-screen-109,
+body.fantasy-ui-109 #game-root {
+  max-width: 100vw;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+body.fantasy-ui-109 .so109-start-button,
+body.fantasy-ui-109 #startGameBtn {
+  min-height: 56px;
+  width: min(76vw, 330px);
+  margin-inline: auto;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 236, 164, 0.92) !important;
+  color: #fff8d6 !important;
+  background:
+    radial-gradient(circle at 28% 14%, rgba(255,255,255,0.36), transparent 28%),
+    linear-gradient(135deg, rgba(255, 126, 86, 0.86), rgba(255, 209, 102, 0.86) 54%, rgba(139, 104, 255, 0.74)),
+    var(--so109-attack) center/cover no-repeat !important;
+  box-shadow: 0 16px 38px rgba(244, 111, 75, 0.32), inset 0 1px 0 rgba(255,255,255,0.42) !important;
+  text-shadow: 0 2px 10px rgba(63, 18, 0, 0.58);
+  letter-spacing: 0.16em;
+}
+
+body.fantasy-ui-109 .town-clean-hub-098,
+body.fantasy-ui-109 .town-content-panel,
+body.fantasy-ui-109 .sheet,
+body.fantasy-ui-109 #sheet,
+body.fantasy-ui-109 #townContentPanel,
+body.fantasy-ui-109 .item-detail-modal .modal-card,
+body.fantasy-ui-109 .system-doctor-panel,
+body.fantasy-ui-109 .technical-health-panel {
+  color: var(--so109-ink) !important;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(135, 244, 255, 0.22), transparent 34%),
+    linear-gradient(180deg, rgba(255, 250, 224, 0.94), rgba(216, 238, 241, 0.9) 56%, rgba(243, 226, 187, 0.9)) !important;
+  border: 1px solid rgba(231, 195, 99, 0.7) !important;
+  box-shadow: 0 18px 42px rgba(4, 13, 31, 0.22), inset 0 1px 0 rgba(255,255,255,0.72) !important;
+}
+
+body.fantasy-ui-109 .town-content-panel,
+body.fantasy-ui-109 #townContentPanel,
+body.fantasy-ui-109 .sheet,
+body.fantasy-ui-109 #sheet {
+  width: min(calc(100vw - var(--so109-safe-left) - var(--so109-safe-right)), 480px) !important;
+  max-height: calc(100dvh - var(--so109-safe-top) - var(--so109-safe-bottom) - 18px) !important;
+  overflow: hidden auto !important;
+  overscroll-behavior: contain;
+  contain: layout paint style;
+}
+
+body.fantasy-ui-109 .town-clean-hub-098 h1,
+body.fantasy-ui-109 .town-clean-hub-098 h2,
+body.fantasy-ui-109 .town-clean-hub-098 h3,
+body.fantasy-ui-109 .town-content-panel h1,
+body.fantasy-ui-109 .town-content-panel h2,
+body.fantasy-ui-109 .town-content-panel h3,
+body.fantasy-ui-109 .sheet h1,
+body.fantasy-ui-109 .sheet h2,
+body.fantasy-ui-109 .sheet h3,
+body.fantasy-ui-109 .system-doctor-panel h1,
+body.fantasy-ui-109 .system-doctor-panel h2,
+body.fantasy-ui-109 .technical-health-panel h1,
+body.fantasy-ui-109 .technical-health-panel h2 {
+  color: #0b213e !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.54);
+}
+
+body.fantasy-ui-109 .town-clean-hub-098 p,
+body.fantasy-ui-109 .town-clean-hub-098 span,
+body.fantasy-ui-109 .town-content-panel p,
+body.fantasy-ui-109 .town-content-panel span,
+body.fantasy-ui-109 .sheet p,
+body.fantasy-ui-109 .sheet span {
+  color: #203b5c;
+}
+
+body.fantasy-ui-109 .so109-close-button,
+body.fantasy-ui-109 .icon-btn[aria-label='닫기'],
+body.fantasy-ui-109 #closeSheet,
+body.fantasy-ui-109 #closeTownContent,
+body.fantasy-ui-109 #closeItemDetail {
+  width: 46px !important;
+  height: 46px !important;
+  min-width: 46px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  color: transparent !important;
+  background:
+    radial-gradient(circle at 36% 22%, rgba(255,255,255,0.42), transparent 25%),
+    var(--so109-close) center/contain no-repeat !important;
+  box-shadow: 0 10px 22px rgba(8, 18, 38, 0.28) !important;
+  overflow: hidden;
+}
+
+body.fantasy-ui-109 .so109-close-button::after,
+body.fantasy-ui-109 .icon-btn[aria-label='닫기']::after,
+body.fantasy-ui-109 #closeSheet::after,
+body.fantasy-ui-109 #closeTownContent::after,
+body.fantasy-ui-109 #closeItemDetail::after {
+  content: '×';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff7d8;
+  font-size: 23px;
+  font-weight: 900;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.65);
+}
+
+body.fantasy-ui-109.route-field-109 #game-root {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden !important;
+  isolation: isolate;
+  background: radial-gradient(circle at 50% 28%, rgba(41, 80, 121, 0.18), rgba(2, 8, 18, 0.48) 58%, rgba(2, 5, 13, 0.72));
+}
+
+body.fantasy-ui-109.route-field-109 #game-root canvas {
+  width: 100vw !important;
+  height: 100dvh !important;
+  display: block;
+  touch-action: none;
+}
+
+body.fantasy-ui-109.route-field-109 .hud-top {
+  position: fixed !important;
+  top: var(--so109-safe-top) !important;
+  left: var(--so109-safe-left) !important;
+  width: min(54vw, 236px) !important;
+  min-height: 72px;
+  padding: 9px 10px !important;
+  border-radius: 19px !important;
+  color: #fff8d8 !important;
+  background:
+    linear-gradient(135deg, rgba(8, 20, 44, 0.92), rgba(15, 45, 70, 0.82) 62%, rgba(77, 56, 128, 0.72)),
+    var(--so109-field-panel) center/100% 100% no-repeat !important;
+  border: 1px solid rgba(132, 244, 255, 0.28) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+  z-index: 46 !important;
+  overflow: hidden;
+  contain: layout paint style;
+}
+
+body.fantasy-ui-109.route-field-109 .hud-top strong,
+body.fantasy-ui-109.route-field-109 .hud-top span,
+body.fantasy-ui-109.route-field-109 .hud-top em {
+  color: #fff8d8 !important;
+  text-shadow: 0 1px 5px rgba(0,0,0,0.72);
+}
+
+body.fantasy-ui-109.route-field-109 .resource-strip {
+  position: fixed !important;
+  top: calc(var(--so109-safe-top) + 2px) !important;
+  right: var(--so109-safe-right) !important;
+  left: auto !important;
+  width: min(40vw, 170px) !important;
+  max-height: 58px;
+  display: grid !important;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  padding: 7px 8px !important;
+  color: #fff7d6 !important;
+  border-radius: 15px !important;
+  background: linear-gradient(135deg, rgba(6, 19, 40, 0.88), rgba(37, 35, 70, 0.78)) !important;
+  border: 1px solid rgba(246, 213, 119, 0.24) !important;
+  z-index: 47 !important;
+  overflow: hidden;
+}
+
+body.fantasy-ui-109.route-field-109 .resource-strip span {
+  color: #fff5cf !important;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+body.fantasy-ui-109.route-field-109 #fieldMiniMap,
+body.fantasy-ui-109.route-field-109 .field-minimap {
+  position: fixed !important;
+  top: calc(var(--so109-safe-top) + 66px) !important;
+  right: var(--so109-safe-right) !important;
+  left: auto !important;
+  width: 112px !important;
+  height: 112px !important;
+  border-radius: 22px !important;
+  color: #fff8d8 !important;
+  background: linear-gradient(145deg, rgba(8, 18, 37, 0.86), rgba(32, 55, 83, 0.72)), var(--so109-field-panel) center/100% 100% no-repeat !important;
+  border: 1px solid rgba(134, 244, 255, 0.28) !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.26) !important;
+  z-index: 44 !important;
+  overflow: hidden;
+}
+
+body.fantasy-ui-109.route-field-109 #targetCard,
+body.fantasy-ui-109.route-field-109 .target-card {
+  position: fixed !important;
+  top: calc(var(--so109-safe-top) + 184px) !important;
+  right: var(--so109-safe-right) !important;
+  left: auto !important;
+  width: min(46vw, 188px) !important;
+  max-width: calc(100vw - var(--so109-safe-left) - var(--so109-safe-right) - 16px) !important;
+  min-height: 82px;
+  max-height: 132px;
+  padding: 10px 11px !important;
+  color: #fff5d4 !important;
+  border-radius: 20px !important;
+  background:
+    radial-gradient(circle at 20% 8%, rgba(255, 137, 168, 0.18), transparent 30%),
+    linear-gradient(145deg, rgba(6, 14, 30, 0.91), rgba(31, 33, 69, 0.86) 58%, rgba(83, 42, 58, 0.78)),
+    var(--so109-monster-panel) center/100% 100% no-repeat !important;
+  border: 1px solid rgba(255, 137, 168, 0.28) !important;
+  z-index: 45 !important;
+  overflow: hidden;
+  contain: layout paint style;
+}
+
+body.fantasy-ui-109.route-field-109 #targetCard strong,
+body.fantasy-ui-109.route-field-109 #targetCard span,
+body.fantasy-ui-109.route-field-109 #targetCard b,
+body.fantasy-ui-109.route-field-109 #targetCard em {
+  color: #fff6d8 !important;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.72);
+}
+
+body.fantasy-ui-109.route-field-109 #fieldQuestTracker,
+body.fantasy-ui-109.route-field-109 .field-quest-tracker {
+  position: fixed !important;
+  top: calc(var(--so109-safe-top) + 86px) !important;
+  left: var(--so109-safe-left) !important;
+  right: auto !important;
+  width: min(50vw, 210px) !important;
+  max-height: 128px !important;
+  padding: 10px 12px !important;
+  border-radius: 18px !important;
+  color: #17304d !important;
+  background:
+    radial-gradient(circle at 14% 8%, rgba(255,255,255,0.38), transparent 28%),
+    linear-gradient(180deg, rgba(255, 246, 211, 0.94), rgba(233, 218, 178, 0.9)),
+    var(--so109-quest-panel) center/100% 100% no-repeat !important;
+  border: 1px solid rgba(246, 213, 119, 0.58) !important;
+  box-shadow: 0 12px 26px rgba(0,0,0,0.18) !important;
+  z-index: 43 !important;
+  overflow: hidden;
+  contain: layout paint style;
+}
+
+body.fantasy-ui-109.route-field-109 #fieldQuestTracker span,
+body.fantasy-ui-109.route-field-109 #fieldQuestTracker b,
+body.fantasy-ui-109.route-field-109 #fieldQuestProgress {
+  color: #17304d !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.55);
+}
+
+body.fantasy-ui-109.route-field-109 .field-chain-meter {
+  position: fixed !important;
+  top: calc(var(--so109-safe-top) + 224px) !important;
+  left: var(--so109-safe-left) !important;
+  width: min(42vw, 176px) !important;
+  z-index: 42 !important;
+}
+
+body.fantasy-ui-109.route-field-109 #combatLog,
+body.fantasy-ui-109.route-field-109 .combat-log {
+  position: fixed !important;
+  left: var(--so109-safe-left) !important;
+  bottom: calc(var(--so109-safe-bottom) + 126px) !important;
+  width: min(46vw, 190px) !important;
+  max-height: 90px !important;
+  color: rgba(255, 248, 216, 0.86) !important;
+  background: rgba(4, 11, 24, 0.52) !important;
+  border-color: rgba(134, 244, 255, 0.12) !important;
+  z-index: 35 !important;
+  overflow: hidden;
+}
+
+body.fantasy-ui-109.route-field-109 #combatLogToggle,
+body.fantasy-ui-109.route-field-109 .combat-log-toggle {
+  position: fixed !important;
+  left: calc(var(--so109-safe-left) + 4px) !important;
+  bottom: calc(var(--so109-safe-bottom) + 224px) !important;
+  z-index: 36 !important;
+}
+
+body.fantasy-ui-109.route-field-109 #joystick,
+body.fantasy-ui-109.route-field-109 .joystick {
+  position: fixed !important;
+  left: calc(var(--so109-safe-left) + 6px) !important;
+  bottom: calc(var(--so109-safe-bottom) + 16px) !important;
+  width: 112px !important;
+  height: 112px !important;
+  border-radius: 999px !important;
+  background: radial-gradient(circle, rgba(134,244,255,0.16), rgba(6,16,36,0.66)), var(--so109-joy) center/contain no-repeat !important;
+  border: 1px solid rgba(134, 244, 255, 0.22) !important;
+  box-shadow: 0 16px 32px rgba(0,0,0,0.22) !important;
+  z-index: 52 !important;
+}
+
+body.fantasy-ui-109.route-field-109 #joystickKnob {
+  background: radial-gradient(circle at 35% 25%, #ffffff, #86f4ff 28%, #276ea4 72%) !important;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.28), inset 0 1px 4px rgba(255,255,255,0.6) !important;
+}
+
+body.fantasy-ui-109.route-field-109 .potion-dock {
+  position: fixed !important;
+  left: calc(var(--so109-safe-left) + 128px) !important;
+  bottom: calc(var(--so109-safe-bottom) + 20px) !important;
+  right: auto !important;
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 7px !important;
+  z-index: 53 !important;
+  max-width: calc(100vw - 250px);
+  overflow: visible;
+}
+
+body.fantasy-ui-109.route-field-109 .potion-btn {
+  width: 43px !important;
+  height: 43px !important;
+  min-width: 43px !important;
+  border-radius: 999px !important;
+  color: #fff7d8 !important;
+  background: radial-gradient(circle at 34% 24%, rgba(255,255,255,0.38), transparent 26%), linear-gradient(145deg, rgba(116, 42, 65, 0.92), rgba(30, 39, 75, 0.88)) !important;
+  border: 1px solid rgba(255, 137, 168, 0.36) !important;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.24) !important;
+}
+
+body.fantasy-ui-109.route-field-109 .skill-dock {
+  position: fixed !important;
+  right: calc(var(--so109-safe-right) + 8px) !important;
+  bottom: calc(var(--so109-safe-bottom) + 112px) !important;
+  left: auto !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, 52px) !important;
+  gap: 8px !important;
+  z-index: 55 !important;
+  max-width: 120px;
+}
+
+body.fantasy-ui-109.route-field-109 .skill-btn,
+body.fantasy-ui-109.route-field-109 .so109-skill-orb {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  border-radius: 999px !important;
+  color: #fff8d8 !important;
+  background: radial-gradient(circle at 34% 20%, rgba(255,255,255,0.36), transparent 28%), var(--so109-skill) center/cover no-repeat !important;
+  border: 1px solid rgba(184, 157, 255, 0.34) !important;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.25) !important;
+  overflow: hidden;
+}
+
+body.fantasy-ui-109.route-field-109 .skill-btn b,
+body.fantasy-ui-109.route-field-109 .skill-btn em,
+body.fantasy-ui-109.route-field-109 .skill-btn span {
+  color: #fff7d8 !important;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.72);
+}
+
+body.fantasy-ui-109.route-field-109 .action-dock {
+  position: fixed !important;
+  right: calc(var(--so109-safe-right) + 10px) !important;
+  bottom: calc(var(--so109-safe-bottom) + 16px) !important;
+  left: auto !important;
+  display: grid !important;
+  grid-template-columns: 76px 45px !important;
+  grid-template-rows: 45px 45px !important;
+  gap: 7px !important;
+  z-index: 56 !important;
+  max-width: 136px;
+}
+
+body.fantasy-ui-109.route-field-109 #attackBtn,
+body.fantasy-ui-109.route-field-109 .so109-attack-orb {
+  grid-row: 1 / span 2;
+  width: 76px !important;
+  height: 76px !important;
+  min-width: 76px !important;
+  border-radius: 999px !important;
+  color: #fff8d6 !important;
+  background: radial-gradient(circle at 34% 22%, rgba(255,255,255,0.42), transparent 28%), var(--so109-attack) center/cover no-repeat !important;
+  border: 1px solid rgba(255, 230, 142, 0.46) !important;
+  box-shadow: 0 18px 34px rgba(255, 105, 67, 0.28), 0 12px 24px rgba(0,0,0,0.28) !important;
+  text-shadow: 0 2px 8px rgba(71, 18, 0, 0.64);
+}
+
+body.fantasy-ui-109.route-field-109 #autoHuntBtn,
+body.fantasy-ui-109.route-field-109 #fieldMenuBtn,
+body.fantasy-ui-109.route-field-109 #inventoryBtn,
+body.fantasy-ui-109.route-field-109 #sleepModeBtn,
+body.fantasy-ui-109.route-field-109 .so109-menu-orb {
+  width: 45px !important;
+  height: 45px !important;
+  min-width: 45px !important;
+  border-radius: 999px !important;
+  color: #fff8d8 !important;
+  background: radial-gradient(circle at 34% 20%, rgba(255,255,255,0.28), transparent 26%), var(--so109-menu) center/cover no-repeat !important;
+  border: 1px solid rgba(134, 244, 255, 0.24) !important;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.23) !important;
+}
+
+body.fantasy-ui-109.route-field-109 .so109-overflow-risk {
+  outline: 2px solid rgba(255, 119, 146, 0.88) !important;
+  outline-offset: -2px;
+}
+
+body.fantasy-ui-109.maintenance-lite-109 .field-chain-meter,
+body.fantasy-ui-109.maintenance-lite-109 #combatLog,
+body.fantasy-ui-109.maintenance-tiny-109 .field-chain-meter,
+body.fantasy-ui-109.maintenance-tiny-109 #combatLog,
+body.fantasy-ui-109.maintenance-tiny-109 #combatLogToggle {
+  display: none !important;
+}
+
+body.fantasy-ui-109.maintenance-lite-109 .town-clean-hub-098,
+body.fantasy-ui-109.maintenance-lite-109 .town-content-panel,
+body.fantasy-ui-109.maintenance-lite-109 .sheet,
+body.fantasy-ui-109.maintenance-lite-109 .hud-top,
+body.fantasy-ui-109.maintenance-lite-109 #targetCard,
+body.fantasy-ui-109.maintenance-lite-109 #fieldQuestTracker,
+body.fantasy-ui-109.maintenance-lite-109 #fieldMiniMap {
+  backdrop-filter: none !important;
+  filter: none !important;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.18) !important;
+}
+
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 .hud-top {
+  width: min(54vw, 214px) !important;
+  min-height: 66px;
+  padding: 8px !important;
+}
+
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 #fieldQuestTracker {
+  top: calc(var(--so109-safe-top) + 80px) !important;
+  width: min(48vw, 186px) !important;
+  max-height: 104px !important;
+  padding: 8px 10px !important;
+}
+
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 #fieldMiniMap {
+  width: 98px !important;
+  height: 98px !important;
+  top: calc(var(--so109-safe-top) + 62px) !important;
+}
+
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 #targetCard {
+  top: calc(var(--so109-safe-top) + 164px) !important;
+  width: min(45vw, 172px) !important;
+  max-height: 112px !important;
+  padding: 8px 10px !important;
+}
+
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 #joystick {
+  width: 98px !important;
+  height: 98px !important;
+}
+
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 .potion-dock {
+  left: calc(var(--so109-safe-left) + 108px) !important;
+  bottom: calc(var(--so109-safe-bottom) + 18px) !important;
+}
+
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 .potion-btn {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+}
+
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 .skill-dock {
+  grid-template-columns: repeat(2, 46px) !important;
+  bottom: calc(var(--so109-safe-bottom) + 102px) !important;
+}
+
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 .skill-btn,
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 .so109-skill-orb {
+  width: 46px !important;
+  height: 46px !important;
+  min-width: 46px !important;
+}
+
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 .action-dock {
+  grid-template-columns: 68px 40px !important;
+  grid-template-rows: 40px 40px !important;
+  gap: 6px !important;
+}
+
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 #attackBtn {
+  width: 68px !important;
+  height: 68px !important;
+  min-width: 68px !important;
+}
+
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 #autoHuntBtn,
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 #fieldMenuBtn,
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 #inventoryBtn,
+body.fantasy-ui-109.maintenance-compact-109.route-field-109 #sleepModeBtn {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+}
+
+body.fantasy-ui-109.maintenance-tiny-109.route-field-109 .resource-strip {
+  display: none !important;
+}
+
+body.fantasy-ui-109.maintenance-tiny-109.route-field-109 #fieldMiniMap {
+  width: 86px !important;
+  height: 86px !important;
+}
+
+body.fantasy-ui-109.maintenance-tiny-109.route-field-109 #targetCard {
+  top: calc(var(--so109-safe-top) + 148px) !important;
+  width: min(47vw, 158px) !important;
+}
+
+body.fantasy-ui-109.maintenance-tiny-109.route-field-109 #fieldQuestTracker {
+  width: min(48vw, 168px) !important;
+}
+
+body.fantasy-ui-109.maintenance-landscape-109 .orientation-guard {
+  display: grid !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 9999 !important;
+}
+
+body.fantasy-ui-109 .health-tile,
+body.fantasy-ui-109 .technical-health-panel,
+body.fantasy-ui-109 .system-doctor-panel {
+  content-visibility: auto;
+  contain-intrinsic-size: 180px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.fantasy-ui-109 *,
+  body.fantasy-ui-109 *::before,
+  body.fantasy-ui-109 *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
