@@ -1,0 +1,128 @@
+/* 1.30 Login connection recovery: 그래픽 품질은 유지하고 접속/로그인 흐름만 안정화한다. */
+body.fantasy-ui-130 #loginScreen {
+  background:
+    radial-gradient(circle at 50% 8%, rgba(119, 216, 255, .34), transparent 32%),
+    linear-gradient(180deg, rgba(9, 38, 68, .96), rgba(6, 18, 35, .98));
+}
+
+body.fantasy-ui-130 #loginScreen:not(.hidden) {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+body.fantasy-ui-130 .login-panel-v3 {
+  position: relative;
+  z-index: 2;
+  width: min(92vw, 390px);
+  margin: max(26px, env(safe-area-inset-top)) auto max(24px, env(safe-area-inset-bottom));
+  padding: 14px;
+  border-radius: 28px;
+  border: 1px solid rgba(204, 241, 255, .34);
+  background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(13,49,82,.72));
+  box-shadow: 0 22px 54px rgba(0, 13, 35, .48), inset 0 1px 0 rgba(255,255,255,.34);
+  backdrop-filter: blur(14px);
+}
+
+body.fantasy-ui-130 .login-lore-card,
+body.fantasy-ui-130 .login-flow-card {
+  border-radius: 24px;
+  border: 1px solid rgba(203, 243, 255, .24);
+  background: linear-gradient(180deg, rgba(7, 38, 73, .72), rgba(5, 18, 39, .82));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+body.fantasy-ui-130 .login-lore-card {
+  padding: 16px;
+  color: #eefdff;
+}
+
+body.fantasy-ui-130 .login-lore-card h2 {
+  margin: 6px 0 8px;
+  font-size: clamp(20px, 5.5vw, 28px);
+  line-height: 1.08;
+  letter-spacing: -.03em;
+  text-shadow: 0 2px 12px rgba(74, 193, 255, .34);
+}
+
+body.fantasy-ui-130 .login-flow-card {
+  margin-top: 10px;
+  padding: 16px;
+}
+
+body.fantasy-ui-130 .brand-block span,
+body.fantasy-ui-130 .login-lore-card span {
+  color: #aeeaff;
+  font-weight: 900;
+  letter-spacing: .16em;
+  text-shadow: 0 0 14px rgba(108, 214, 255, .55);
+}
+
+body.fantasy-ui-130 .brand-block h1 {
+  margin: 4px 0 10px;
+  color: #fff;
+  font-size: 30px;
+  text-shadow: 0 3px 16px rgba(0, 147, 255, .34);
+}
+
+body.fantasy-ui-130 .login-flow-hint,
+body.fantasy-ui-130 .login-status {
+  color: rgba(232, 249, 255, .9);
+  text-shadow: 0 1px 8px rgba(0,0,0,.35);
+}
+
+body.fantasy-ui-130 .wide-action {
+  min-height: 48px;
+  border-radius: 18px;
+  border: 1px solid rgba(213, 246, 255, .34);
+  background: linear-gradient(180deg, rgba(122, 206, 255, .24), rgba(12, 59, 103, .8));
+  color: #f8fdff;
+  font-weight: 900;
+  box-shadow: 0 12px 24px rgba(0, 19, 45, .28), inset 0 1px 0 rgba(255,255,255,.22);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.fantasy-ui-130 .wide-action.primary {
+  background: linear-gradient(180deg, rgba(130, 226, 255, .72), rgba(37, 120, 219, .9));
+  border-color: rgba(232, 251, 255, .72);
+  box-shadow: 0 14px 30px rgba(40, 155, 255, .32), inset 0 2px 0 rgba(255,255,255,.44);
+}
+
+body.fantasy-ui-130 .wide-action:disabled {
+  opacity: .68;
+  filter: saturate(.82);
+}
+
+body.fantasy-ui-130.login-fallback-130 .login-status {
+  color: #fff6bd;
+}
+
+body.route-login-130 #titleScreen,
+body.route-town-130 #titleScreen,
+body.route-field-130 #titleScreen,
+body.route-town-130 #loginScreen,
+body.route-field-130 #loginScreen {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.route-login-130 #loginScreen,
+body.route-title-130 #titleScreen,
+body.route-town-130 #townScreen {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+@media (max-height: 640px) {
+  body.fantasy-ui-130 .login-panel-v3 { margin-top: 12px; padding: 10px; }
+  body.fantasy-ui-130 .login-lore-card { padding: 12px; }
+  body.fantasy-ui-130 .login-flow-card { padding: 12px; }
+  body.fantasy-ui-130 .login-lore-card h2 { font-size: 20px; }
+  body.fantasy-ui-130 .brand-block h1 { font-size: 24px; }
+}

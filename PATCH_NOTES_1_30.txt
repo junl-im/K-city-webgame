@@ -1,0 +1,10 @@
+Soul Online Alpha 1.30 - 로그인 연결 긴급 복구/다듬기
+
+- 그래픽 품질 유지: 1.27 타이틀 키비주얼과 2.5D 고해상도 에셋 유지
+- 첫 START 이후 로그인 화면 노출/버튼 터치 복구 커널 추가
+- 게스트 접속이 Firebase 지연 때문에 막히지 않도록 로컬 게스트 fallback 추가
+- Google/Guest/Firebase 읽기/쓰기 timeout 추가로 접속 멈춤 방지
+- preboot 단계에서도 로그인 버튼 흐름이 최소 진행되도록 fallback 보강
+- 로그인 화면 glass UI 가독성/터치 영역 개선
+- System Doctor에 1.30 로그인 연결 진단 추가
+- PWA 캐시 soul-online-alpha-v1-30 갱신

@@ -41,9 +41,9 @@
       body.route-login-126 .login-screen,body.route-town-126 .town-screen,body.route-title-126 .title-screen{display:block!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;}
     </style>
     <script>
-      window.SOUL_ONLINE_BOOT_VERSION = '1.29.0';
+      window.SOUL_ONLINE_BOOT_VERSION = '1.30.0';
       window.SOUL_PRESTART_ROUTE_120 = 'title';
-      document.documentElement.classList.add('soul-preboot-119', 'soul-preboot-120', 'soul-preboot-121', 'soul-preboot-122', 'soul-preboot-124', 'soul-preboot-125', 'soul-preboot-126', 'soul-preboot-127');
+      document.documentElement.classList.add('soul-preboot-119', 'soul-preboot-120', 'soul-preboot-121', 'soul-preboot-122', 'soul-preboot-124', 'soul-preboot-125', 'soul-preboot-126', 'soul-preboot-127', 'soul-preboot-130');
       window.addEventListener('error', function () { document.documentElement.classList.add('soul-preboot-error-119'); });
       (function () {
         var locked = false;
@@ -86,6 +86,38 @@
               activateLogin();
             }, { passive: true });
           }
+          function flowName() {
+            var active = document.querySelector('[data-flow-page].active');
+            return active && active.getAttribute('data-flow-page') || '';
+          }
+          function setFlow(name) {
+            var pages = document.querySelectorAll('[data-flow-page]');
+            for (var i = 0; i < pages.length; i += 1) {
+              var page = pages[i];
+              var on = page.getAttribute('data-flow-page') === name;
+              page.classList.toggle('active', on);
+              page.setAttribute('aria-hidden', on ? 'false' : 'true');
+            }
+            var status = document.getElementById('loginStatus');
+            var hint = document.getElementById('loginFlowHint');
+            if (status && name === 'server') status.textContent = '접속이 지연되어 로컬 모드로 먼저 진행합니다.';
+            if (hint && name === 'server') hint.textContent = '서버를 선택하고 다음 단계로 이동합니다.';
+            if (hint && name === 'character') hint.textContent = '캐릭터를 선택하거나 새 소울 바인더를 생성하세요.';
+            var buttons = document.querySelectorAll('#guestLoginBtn,#googleLoginBtn,#localLoginBtn,#serverNextBtn,#connectCharacterBtn,#newCharacterBtn,#characterNextBtn');
+            for (var j = 0; j < buttons.length; j += 1) buttons[j].disabled = false;
+          }
+          function fallbackAdvance(buttonId, from, to, delay) {
+            var node = document.getElementById(buttonId);
+            if (!node) return;
+            node.addEventListener('click', function () {
+              window.setTimeout(function () {
+                if (flowName() === from && !document.body.classList.contains('town-active')) setFlow(to);
+              }, delay || 1500);
+            }, { passive: true });
+          }
+          fallbackAdvance('guestLoginBtn', 'login', 'server', 1800);
+          fallbackAdvance('localLoginBtn', 'login', 'server', 800);
+          fallbackAdvance('serverNextBtn', 'server', 'character', 1200);
         });
       })();
     </script>
@@ -114,7 +146,7 @@
             <span class="title-hero-rune rune-b"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn start-game-btn-098 start-game-btn-099 start-game-btn-101">TOUCH TO START</button>
-          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v1.29.0</span></div>
+          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v1.30.0</span></div>
           <small>영혼을 깨우고 루미나의 균열을 봉인하세요.</small>
         </div>
       </section>

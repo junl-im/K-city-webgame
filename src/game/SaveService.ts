@@ -127,18 +127,36 @@ export class SaveService {
     if (!this.auth) await this.init();
     if (!this.auth) throw new Error('Firebase 연결이 지연되어 로컬 저장으로 먼저 진행하세요.');
     const sdk = await loadFirebaseSdk119();
-    const result = await sdk.signInWithPopup(this.auth, new sdk.GoogleAuthProvider());
-    this.user = result.user;
-    return result.user;
+    try {
+      const result = await timeout119(sdk.signInWithPopup(this.auth, new sdk.GoogleAuthProvider()), 9000, 'Google 로그인 응답 지연');
+      this.user = result.user;
+      return result.user;
+    } catch (error) {
+      this.user = null;
+      throw error instanceof Error ? error : new Error('Google 로그인 실패');
+    }
   }
 
   async loginGuest() {
     if (!this.auth) await this.init();
-    if (!this.auth) throw new Error('Firebase 연결이 지연되어 로컬 저장으로 먼저 진행하세요.');
+    if (!this.auth) {
+      this.user = null;
+      return null;
+    }
     const sdk = await loadFirebaseSdk119();
-    const result = await sdk.signInAnonymously(this.auth);
-    this.user = result.user;
-    return result.user;
+    try {
+      const result = await timeout119(sdk.signInAnonymously(this.auth), 4200, '게스트 클라우드 응답 지연');
+      this.user = result.user;
+      return result.user;
+    } catch (error) {
+      // 1.30: 게스트 접속은 네트워크 실패 때문에 막히면 안 된다.
+      // Firebase가 지연되면 로컬 게스트로 먼저 진행하고, 이후 저장은 로컬 모드로 유지한다.
+      this.user = null;
+      this.cloudWritePausedUntil = Date.now() + 45000;
+      this.lastCloudWriteError = error instanceof Error ? error.message : 'Guest cloud login deferred';
+      console.warn('[Firebase] guest login deferred, local guest mode enabled', error);
+      return null;
+    }
   }
 
   async logout() {
@@ -217,7 +235,7 @@ export class SaveService {
         : [...roster.saves, normalized];
 
       const sdk = await loadFirebaseSdk119();
-      await sdk.setDoc(
+      await timeout119(sdk.setDoc(
         sdk.doc(this.db, 'users', this.user.uid),
         {
           uid: this.user.uid,
@@ -230,9 +248,9 @@ export class SaveService {
           updatedAt: sdk.serverTimestamp()
         },
         { merge: true }
-      );
+      ), 3200, 'Cloud save write timeout');
 
-      await sdk.setDoc(
+      await timeout119(sdk.setDoc(
         sdk.doc(this.db, 'rankings', this.user.uid),
         {
           uid: this.user.uid,
@@ -243,7 +261,7 @@ export class SaveService {
           updatedAt: sdk.serverTimestamp()
         },
         { merge: true }
-      );
+      ), 3200, 'Ranking write timeout');
 
       this.lastCloudWriteError = '';
       return true;
@@ -375,7 +393,7 @@ export class SaveService {
     if (!this.db || !this.user) return null;
     const sdk = await loadFirebaseSdk119();
     const ref = sdk.doc(this.db, 'users', this.user.uid);
-    const snap = await sdk.getDoc(ref);
+    const snap = await timeout119(sdk.getDoc(ref), 2600, 'Cloud save read timeout');
     return snap.exists() ? snap.data() : null;
   }
 
