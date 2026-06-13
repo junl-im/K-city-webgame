@@ -1,0 +1,9 @@
+Soul Online Alpha 1.38
+
+- Runtime sanity guard added.
+- Kakao/in-app browser portrait cage strengthened.
+- Fullscreen API suppressed silently in in-app browsers.
+- START/Login route watchdog added.
+- Duplicate Pixi canvas cleanup added.
+- GitHub Actions auto workflow validation strengthened.
+- Visual quality preserved: 1.27 title, 1.35/1.36 UI kit, 2.5D assets unchanged.

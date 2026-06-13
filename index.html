@@ -51,6 +51,11 @@
       body.route-login-137 .title-screen,body.prestart-login-120 .title-screen{display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
       body.route-login-137 .login-screen,body.prestart-login-120 .login-screen{display:block!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;z-index:2!important;}
       body.inapp-css-only-137 :is(.orientation-guard,.orientation-lock,.rotate-device,#townFullscreenBtn){display:none!important;}
+
+      body.runtime-sanity-138 #app{position:fixed!important;left:50%!important;top:50%!important;width:var(--soul-portrait-base-w-138,var(--soul-portrait-frame-w))!important;height:var(--soul-portrait-base-h-138,var(--soul-portrait-frame-h))!important;transform:translate3d(-50%,-50%,0) scale(var(--soul-portrait-scale-138,1))!important;transform-origin:center center!important;overflow:hidden!important;}
+      body.route-login-138 .title-screen,body.route-login-138 .town-screen,body.route-login-138 #game-root,body.route-title-138 .login-screen,body.route-title-138 .town-screen,body.route-title-138 #game-root,body.route-town-138 .title-screen,body.route-town-138 .login-screen,body.route-town-138 #game-root,body.route-field-138 .title-screen,body.route-field-138 .login-screen,body.route-field-138 .town-screen{display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
+      body.route-title-138 .title-screen,body.route-login-138 .login-screen,body.route-town-138 .town-screen,body.route-field-138 #game-root{display:block!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;}
+      body.inapp-css-only-138 :is(.orientation-guard,.orientation-lock,.rotate-device,#townFullscreenBtn,[data-action="fullscreen"],.fullscreen-btn){display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
     </style>
     <script id="soul-portrait-preboot-137">
       (function () {
@@ -109,10 +114,123 @@
         });
       })();
     </script>
+
+    <script id="soul-runtime-preboot-138">
+      (function () {
+        var ua = (navigator.userAgent || '') + ' ' + (navigator.vendor || '');
+        var inApp = /KAKAOTALK|KAKAOSTORY|DaumApps|NAVER\(|FBAN|FBAV|Instagram|Line\/|; wv\)|\bwv\b|Twitter|Whale\//i.test(ua);
+        window.SOUL_RUNTIME_SANITY_138 = true;
+        if (inApp) {
+          window.SOUL_INAPP_CSS_ONLY_137 = true;
+          window.SOUL_SUPPRESS_VIEWPORT_APIS_137 = true;
+          try {
+            if (Element.prototype.requestFullscreen) {
+              Element.prototype.requestFullscreen = function () { return Promise.resolve(); };
+            }
+          } catch (e) {}
+        }
+        function live() {
+          var vv = window.visualViewport;
+          return {
+            w: Math.max(1, Math.round((vv && vv.width) || window.innerWidth || document.documentElement.clientWidth || 360)),
+            h: Math.max(1, Math.round((vv && vv.height) || window.innerHeight || document.documentElement.clientHeight || 740))
+          };
+        }
+        function ensureBase() {
+          var l = live();
+          if (!window.SOUL_PORTRAIT_BASE_138) {
+            var frame137 = window.SOUL_PORTRAIT_FRAME_137 || {};
+            var seedW = Math.round(frame137.width || (l.w > l.h ? Math.min(390, Math.floor(Math.max(l.w, l.h) * 9 / 16)) : l.w));
+            var seedH = Math.round(frame137.height || (l.w > l.h ? Math.max(l.w, l.h) : l.h));
+            var bw = Math.max(220, Math.min(480, seedW));
+            var bh = Math.max(360, Math.max(seedH, Math.round(bw * 16 / 9)));
+            window.SOUL_PORTRAIT_BASE_138 = { width: bw, height: bh };
+          }
+          return window.SOUL_PORTRAIT_BASE_138;
+        }
+        function apply() {
+          var l = live();
+          var b = ensureBase();
+          var scale = Math.max(0.35, Math.min(1, l.w / b.width, l.h / b.height));
+          var root = document.documentElement;
+          root.classList.add('runtime-sanity-root-138');
+          root.classList.toggle('inapp-css-only-138', !!inApp);
+          root.classList.toggle('landscape-cage-138', l.w > l.h);
+          root.style.setProperty('--soul-portrait-base-w-138', b.width + 'px');
+          root.style.setProperty('--soul-portrait-base-h-138', b.height + 'px');
+          root.style.setProperty('--soul-portrait-scale-138', String(scale));
+          root.style.setProperty('--soul-portrait-frame-w', b.width + 'px');
+          root.style.setProperty('--soul-portrait-frame-h', b.height + 'px');
+          root.style.setProperty('--soul-locked-w-120', b.width + 'px');
+          root.style.setProperty('--soul-locked-h-120', b.height + 'px');
+          var body = document.body;
+          if (body) {
+            body.classList.add('runtime-sanity-138', 'portrait-cage-138', 'visual-quality-preserved-138');
+            body.classList.toggle('inapp-css-only-138', !!inApp);
+            body.classList.toggle('landscape-cage-138', l.w > l.h);
+          }
+          var app = document.getElementById('app');
+          if (app) { app.style.width = b.width + 'px'; app.style.height = b.height + 'px'; app.style.transform = 'translate3d(-50%,-50%,0) scale(' + scale + ')'; }
+          return { baseWidth: b.width, baseHeight: b.height, liveWidth: l.w, liveHeight: l.h, scale: scale, inApp: !!inApp };
+        }
+        function showRoute(route) {
+          window.SOUL_PRESTART_ROUTE_120 = route === 'login' ? 'login' : window.SOUL_PRESTART_ROUTE_120;
+          var body = document.body;
+          if (!body) return;
+          var routes = ['title','login','town','field'];
+          for (var i = 0; i < routes.length; i += 1) {
+            body.classList.remove('route-' + routes[i] + '-138', 'route-' + routes[i] + '-137', 'route-' + routes[i] + '-136', 'route-' + routes[i] + '-135');
+          }
+          body.classList.add('route-' + route + '-138', 'route-' + route + '-137');
+          body.classList.toggle('prestart-login-120', route === 'login');
+          var title = document.getElementById('titleScreen');
+          var login = document.getElementById('loginScreen');
+          var town = document.getElementById('townScreen');
+          var game = document.getElementById('game-root');
+          [[title,'title'],[login,'login'],[town,'town'],[game,'field']].forEach(function (pair) {
+            var node = pair[0];
+            var on = pair[1] === route;
+            if (!node) return;
+            node.classList.toggle('hidden', !on);
+            node.setAttribute('aria-hidden', on ? 'false' : 'true');
+            node.style.display = on ? 'block' : 'none';
+            node.style.opacity = on ? '1' : '0';
+            node.style.visibility = on ? 'visible' : 'hidden';
+            node.style.pointerEvents = on ? 'auto' : 'none';
+          });
+          if (route === 'login') {
+            var status = document.getElementById('loginStatus');
+            if (status && !status.textContent) status.textContent = '접속 방식을 선택하세요.';
+          }
+          apply();
+        }
+        window.SOUL_SYNC_RUNTIME_138 = apply;
+        window.SOUL_ROUTE_TO_138 = showRoute;
+        apply();
+        window.addEventListener('resize', apply, { passive: true });
+        window.addEventListener('orientationchange', apply, { passive: true });
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', apply, { passive: true });
+        document.addEventListener('DOMContentLoaded', function () {
+          apply();
+          document.documentElement.classList.add('soul-preboot-138');
+          document.body.classList.add('runtime-sanity-138', 'route-title-138');
+          var start = document.getElementById('startGameBtn');
+          if (start) {
+            start.disabled = false;
+            start.removeAttribute('aria-disabled');
+            start.addEventListener('click', function (event) { event.preventDefault(); showRoute('login'); }, { passive: false });
+          }
+          window.setTimeout(function () {
+            if (document.body.classList.contains('route-login-138')) showRoute('login');
+            else if (!document.querySelector('.title-screen:not(.hidden),.login-screen:not(.hidden),.town-screen:not(.hidden)')) showRoute('title');
+          }, 1200);
+        });
+      })();
+    </script>
     <script>
-      window.SOUL_ONLINE_BOOT_VERSION = '1.37.0';
+      window.SOUL_ONLINE_BOOT_VERSION = '1.38.0';
       window.SOUL_PRESTART_ROUTE_120 = 'title';
-      document.documentElement.classList.add('soul-preboot-119', 'soul-preboot-120', 'soul-preboot-121', 'soul-preboot-122', 'soul-preboot-124', 'soul-preboot-125', 'soul-preboot-126', 'soul-preboot-127', 'soul-preboot-130', 'soul-preboot-133', 'soul-preboot-134', 'soul-preboot-135', 'soul-preboot-136', 'soul-preboot-137');
+      document.documentElement.classList.add('soul-preboot-119', 'soul-preboot-120', 'soul-preboot-121', 'soul-preboot-122', 'soul-preboot-124', 'soul-preboot-125', 'soul-preboot-126', 'soul-preboot-127', 'soul-preboot-130', 'soul-preboot-133', 'soul-preboot-134', 'soul-preboot-135', 'soul-preboot-136', 'soul-preboot-137', 'soul-preboot-138');
       window.addEventListener('error', function () { document.documentElement.classList.add('soul-preboot-error-119'); });
       (function () {
         var locked = false;
@@ -129,8 +247,8 @@
         function activateLogin() {
           lockSize();
           window.SOUL_PRESTART_ROUTE_120 = 'login';
-          document.body.classList.add('prestart-login-120', 'route-login-120', 'route-login-121', 'route-login-122', 'route-login-126', 'route-login-127', 'route-login-135', 'route-login-136', 'route-login-137');
-          document.body.classList.remove('route-title-120', 'route-title-121', 'route-title-122', 'route-title-126', 'route-title-127', 'route-title-119', 'route-title-135', 'route-title-136', 'route-title-137');
+          document.body.classList.add('prestart-login-120', 'route-login-120', 'route-login-121', 'route-login-122', 'route-login-126', 'route-login-127', 'route-login-135', 'route-login-136', 'route-login-137', 'route-login-138');
+          document.body.classList.remove('route-title-120', 'route-title-121', 'route-title-122', 'route-title-126', 'route-title-127', 'route-title-119', 'route-title-135', 'route-title-136', 'route-title-137', 'route-title-138');
           var title = document.getElementById('titleScreen');
           var login = document.getElementById('loginScreen');
           var town = document.getElementById('townScreen');
@@ -202,7 +320,7 @@
       <link rel="preload" as="image" href="/assets/ui/soul135/town-showcase-blur-bg.webp" />
     <link rel="preload" as="image" href="/assets/ui/soul135/login-ready-panel.webp" />
   </head>
-  <body class="emergency-boot-119 recovery-kernel-120 polish-kernel-121 stability-kernel-122 field-load-polish-124 field-runtime-polish-125 runtime-polish-126 title-revival-127 standard-mode-119 standard-visual-121 boot-safe-122 no-legacy-stack-121 no-pet-116 route-title-120 route-title-121 route-title-122 route-title-126 route-title-127 route-title-133 route-title-134 route-title-135 route-title-136 route-title-137 resilience-plan-133 visual-quality-preserved-133 firebase-freeplan-safe-133 release-control-134 visual-quality-preserved-134 firebase-freeplan-safe-134 fantasy-ui-135 visual-asset-kit-135 visual-quality-preserved-135 fantasy-ui-136 visual-asset-kit-136 visual-quality-preserved-136 portrait-guard-137 portrait-cage-137 visual-quality-preserved-137 route-title-137">
+  <body class="emergency-boot-119 recovery-kernel-120 polish-kernel-121 stability-kernel-122 field-load-polish-124 field-runtime-polish-125 runtime-polish-126 title-revival-127 standard-mode-119 standard-visual-121 boot-safe-122 no-legacy-stack-121 no-pet-116 route-title-120 route-title-121 route-title-122 route-title-126 route-title-127 route-title-133 route-title-134 route-title-135 route-title-136 route-title-137 resilience-plan-133 visual-quality-preserved-133 firebase-freeplan-safe-133 release-control-134 visual-quality-preserved-134 firebase-freeplan-safe-134 fantasy-ui-135 visual-asset-kit-135 visual-quality-preserved-135 fantasy-ui-136 visual-asset-kit-136 visual-quality-preserved-136 portrait-guard-137 portrait-cage-137 visual-quality-preserved-137 runtime-sanity-138 portrait-cage-138 visual-quality-preserved-138 route-title-137 route-title-138">
     <div id="app">
       <div id="game-root" class="game-root"></div>
 
@@ -226,7 +344,7 @@
             <span class="title-hero-rune rune-b"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn start-game-btn-098 start-game-btn-099 start-game-btn-101">TOUCH TO START</button>
-          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v1.37.0</span></div>
+          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v1.38.0</span></div>
           <small>영혼을 깨우고 루미나의 균열을 봉인하세요.</small>
         </div>
       </section>

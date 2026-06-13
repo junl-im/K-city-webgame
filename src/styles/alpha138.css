@@ -1,0 +1,114 @@
+:root {
+  --soul-portrait-base-w-138: min(100vw, 480px);
+  --soul-portrait-base-h-138: 100dvh;
+  --soul-portrait-scale-138: 1;
+}
+
+html.runtime-sanity-root-138,
+body.runtime-sanity-138 {
+  width: 100%;
+  height: 100%;
+  overflow: hidden !important;
+  background: #07172a;
+  overscroll-behavior: none;
+}
+
+body.runtime-sanity-138 #app {
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: var(--soul-portrait-base-w-138) !important;
+  height: var(--soul-portrait-base-h-138) !important;
+  max-width: none !important;
+  max-height: none !important;
+  transform: translate3d(-50%, -50%, 0) scale(var(--soul-portrait-scale-138)) !important;
+  transform-origin: center center !important;
+  overflow: hidden !important;
+  contain: layout paint size;
+}
+
+body.inapp-css-only-138,
+body.landscape-cage-138 {
+  background:
+    radial-gradient(circle at 50% 30%, rgba(75, 174, 255, .22), transparent 42%),
+    linear-gradient(180deg, #0a2848 0%, #04111f 100%) !important;
+}
+
+body.inapp-css-only-138 #app,
+body.landscape-cage-138 #app {
+  border-radius: clamp(10px, 3vw, 22px);
+  box-shadow: 0 18px 58px rgba(0, 20, 48, .42);
+}
+
+body.runtime-sanity-138 :is(.title-screen,.login-screen,.town-screen,#game-root) {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+}
+
+body.route-title-138 :is(.login-screen,.town-screen,#game-root),
+body.route-login-138 :is(.title-screen,.town-screen,#game-root),
+body.route-town-138 :is(.title-screen,.login-screen,#game-root),
+body.route-field-138 :is(.title-screen,.login-screen,.town-screen) {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.route-title-138 .title-screen,
+body.route-login-138 .login-screen,
+body.route-town-138 .town-screen,
+body.route-field-138 #game-root {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+body.route-login-138 .login-screen.hidden,
+body.route-town-138 .town-screen.hidden {
+  display: block !important;
+}
+
+body.runtime-sanity-138 #startGameBtn {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+body.inapp-css-only-138 :is(.orientation-guard,.orientation-lock,.rotate-device,.landscape-block-105,.so108-portrait-warn,#townFullscreenBtn,[data-action="fullscreen"],.fullscreen-btn) {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.landscape-cage-138 .title-mini-nav,
+body.inapp-css-only-138.landscape-cage-138 .title-mini-nav {
+  top: 8px !important;
+  transform: translateX(-50%) scale(.92) !important;
+}
+
+body.landscape-cage-138 #startGameBtn,
+body.inapp-css-only-138.landscape-cage-138 #startGameBtn {
+  bottom: max(12px, env(safe-area-inset-bottom)) !important;
+  min-height: 46px !important;
+  transform: translateX(-50%) scale(.94) !important;
+}
+
+body.route-login-138 .login-panel,
+body.route-login-138 .login-panel-v3 {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+body.canvas-dedupe-138 #game-root canvas:not(:last-child) {
+  display: none !important;
+}
