@@ -1,0 +1,10 @@
+/* 1.32 CI dependency recovery patch: 그래픽 품질은 유지하고 GitHub Actions npm ci 안정성만 보강한다. */
+body.ci-dependency-132-ready::after {
+  content: '';
+  position: fixed;
+  inset: auto 8px 8px auto;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0;
+}

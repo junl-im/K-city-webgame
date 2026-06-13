@@ -9,8 +9,6 @@ import { uid } from './math';
 
 type FirebaseSdk119 = {
   initializeApp: typeof import('firebase/app').initializeApp;
-  getAnalytics: typeof import('firebase/analytics').getAnalytics;
-  isAnalyticsSupported: typeof import('firebase/analytics').isSupported;
   getAuth: typeof import('firebase/auth').getAuth;
   GoogleAuthProvider: typeof import('firebase/auth').GoogleAuthProvider;
   onAuthStateChanged: typeof import('firebase/auth').onAuthStateChanged;
@@ -23,6 +21,8 @@ type FirebaseSdk119 = {
   serverTimestamp: typeof import('firebase/firestore').serverTimestamp;
   setDoc: typeof import('firebase/firestore').setDoc;
 };
+
+type CloudSaveMode131 = 'auto' | 'explicit';
 
 let firebaseSdkPromise119: Promise<FirebaseSdk119> | null = null;
 
@@ -43,13 +43,10 @@ function loadFirebaseSdk119(): Promise<FirebaseSdk119> {
   if (!firebaseSdkPromise119) {
     firebaseSdkPromise119 = Promise.all([
       import('firebase/app'),
-      import('firebase/analytics'),
       import('firebase/auth'),
       import('firebase/firestore')
-    ]).then(([app, analytics, auth, firestore]) => ({
+    ]).then(([app, auth, firestore]) => ({
       initializeApp: app.initializeApp,
-      getAnalytics: analytics.getAnalytics,
-      isAnalyticsSupported: analytics.isSupported,
       getAuth: auth.getAuth,
       GoogleAuthProvider: auth.GoogleAuthProvider,
       onAuthStateChanged: auth.onAuthStateChanged,
@@ -79,6 +76,19 @@ export class SaveService {
   private user: User | null = null;
   private cloudWritePausedUntil = 0;
   private lastCloudWriteError = '';
+  private lastCloudWriteAt131 = 0;
+  private lastCloudReadAt131 = 0;
+  private cachedCloudDoc131: Record<string, any> | null = null;
+  private cachedCloudDocAt131 = 0;
+  private queuedCloudSave131: { save: PlayerSave; power: number } | null = null;
+  private queuedCloudTimer131 = 0;
+  private cloudWriteAttempts131 = 0;
+  private cloudWriteSuccesses131 = 0;
+  private cloudReadAttempts131 = 0;
+  private cloudReadCacheHits131 = 0;
+  private cloudWriteQueued131 = 0;
+  private lastRankingWriteAt131 = 0;
+  private lastRankingPower131 = 0;
 
   async init() {
     try {
@@ -86,12 +96,6 @@ export class SaveService {
       this.app = sdk.initializeApp(firebaseConfig);
       this.auth = sdk.getAuth(this.app);
       this.db = sdk.getFirestore(this.app);
-
-      sdk.isAnalyticsSupported()
-        .then((supported) => {
-          if (supported && this.app) sdk.getAnalytics(this.app);
-        })
-        .catch(() => undefined);
 
       await timeout119(new Promise<void>((resolve) => {
         if (!this.auth) return resolve();
@@ -223,11 +227,22 @@ export class SaveService {
     return [];
   }
 
-  async saveCloud(save: PlayerSave, power: number): Promise<boolean> {
+  async saveCloud(save: PlayerSave, power: number, mode: CloudSaveMode131 = 'explicit'): Promise<boolean> {
     if (!this.db || !this.user) return false;
-    if (Date.now() < this.cloudWritePausedUntil) return false;
+    if (Date.now() < this.cloudWritePausedUntil) {
+      if (mode === 'auto') this.queueCloudSave131(save, power);
+      return false;
+    }
+
+    const now = Date.now();
+    const minAutoInterval = 30000;
+    if (mode === 'auto' && this.lastCloudWriteAt131 && now - this.lastCloudWriteAt131 < minAutoInterval) {
+      this.queueCloudSave131(save, power);
+      return false;
+    }
 
     try {
+      this.cloudWriteAttempts131 += 1;
       const normalized = this.validateSave({ ...save, updatedAt: Date.now() });
       const roster = this.readRoster();
       const saves = roster.saves.some((entry) => entry.saveId === normalized.saveId)
@@ -250,19 +265,39 @@ export class SaveService {
         { merge: true }
       ), 3200, 'Cloud save write timeout');
 
-      await timeout119(sdk.setDoc(
-        sdk.doc(this.db, 'rankings', this.user.uid),
-        {
-          uid: this.user.uid,
-          name: normalized.name,
-          level: normalized.level,
-          classId: normalized.classId,
-          power,
-          updatedAt: sdk.serverTimestamp()
-        },
-        { merge: true }
-      ), 3200, 'Ranking write timeout');
+      const shouldWriteRanking = mode === 'explicit'
+        || now - this.lastRankingWriteAt131 > 300000
+        || Math.abs(power - this.lastRankingPower131) >= 150;
+      if (shouldWriteRanking) {
+        await timeout119(sdk.setDoc(
+          sdk.doc(this.db, 'rankings', this.user.uid),
+          {
+            uid: this.user.uid,
+            name: normalized.name,
+            level: normalized.level,
+            classId: normalized.classId,
+            power,
+            updatedAt: sdk.serverTimestamp()
+          },
+          { merge: true }
+        ), 3200, 'Ranking write timeout');
+        this.lastRankingWriteAt131 = Date.now();
+        this.lastRankingPower131 = power;
+      }
 
+      this.lastCloudWriteAt131 = Date.now();
+      this.cloudWriteSuccesses131 += 1;
+      this.cachedCloudDoc131 = {
+        uid: this.user.uid,
+        name: normalized.name,
+        classId: normalized.classId,
+        level: normalized.level,
+        save: normalized,
+        saves: saves.slice(0, MAX_CHARACTER_SLOTS),
+        activeSaveId: normalized.saveId,
+        updatedAt: Date.now()
+      };
+      this.cachedCloudDocAt131 = Date.now();
       this.lastCloudWriteError = '';
       return true;
     } catch (error) {
@@ -274,9 +309,20 @@ export class SaveService {
   }
 
   getCloudWriteStatus() {
+    const now = Date.now();
+    const waitForRateLimit = this.lastCloudWriteAt131 ? Math.max(0, 30000 - (now - this.lastCloudWriteAt131)) : 0;
+    const waitForPause = Math.max(0, this.cloudWritePausedUntil - now);
     return {
-      paused: Date.now() < this.cloudWritePausedUntil,
-      lastError: this.lastCloudWriteError
+      paused: now < this.cloudWritePausedUntil,
+      lastError: this.lastCloudWriteError,
+      queued: Boolean(this.queuedCloudSave131),
+      nextWriteMs: Math.max(waitForRateLimit, waitForPause),
+      writes: this.cloudWriteAttempts131,
+      writeSuccesses: this.cloudWriteSuccesses131,
+      reads: this.cloudReadAttempts131,
+      readCacheHits: this.cloudReadCacheHits131,
+      queuedCount: this.cloudWriteQueued131,
+      mode: this.isOnline() ? 'cloud-local-first' : 'local-first'
     };
   }
 
@@ -391,10 +437,37 @@ export class SaveService {
 
   private async readCloudDoc(): Promise<Record<string, any> | null> {
     if (!this.db || !this.user) return null;
+    const now = Date.now();
+    if (this.cachedCloudDoc131 && now - this.cachedCloudDocAt131 < 15000) {
+      this.cloudReadCacheHits131 += 1;
+      return this.cachedCloudDoc131;
+    }
+    this.cloudReadAttempts131 += 1;
     const sdk = await loadFirebaseSdk119();
     const ref = sdk.doc(this.db, 'users', this.user.uid);
     const snap = await timeout119(sdk.getDoc(ref), 2600, 'Cloud save read timeout');
-    return snap.exists() ? snap.data() : null;
+    const data = snap.exists() ? snap.data() : null;
+    this.cachedCloudDoc131 = data;
+    this.cachedCloudDocAt131 = Date.now();
+    return data;
+  }
+
+  private queueCloudSave131(save: PlayerSave, power: number) {
+    this.queuedCloudSave131 = { save: this.validateSave({ ...save }), power };
+    this.cloudWriteQueued131 += 1;
+    if (this.queuedCloudTimer131) return;
+    const wait = Math.max(2500, 30000 - (Date.now() - this.lastCloudWriteAt131) + 500);
+    this.queuedCloudTimer131 = window.setTimeout(() => {
+      this.queuedCloudTimer131 = 0;
+      void this.flushQueuedCloudSave131();
+    }, wait);
+  }
+
+  private async flushQueuedCloudSave131() {
+    const queued = this.queuedCloudSave131;
+    if (!queued || !this.isOnline()) return;
+    this.queuedCloudSave131 = null;
+    await this.saveCloud(queued.save, queued.power, 'auto');
   }
 
   private readRoster(): SaveRoster {

@@ -1,0 +1,12 @@
+Soul Online Alpha 1.31
+
+- 그래픽 품질 유지: 1.27 타이틀 키비주얼과 2.5D 고해상도 에셋 유지
+- Firebase Analytics 로드 제거: Auth + Firestore 중심으로 축소
+- Firebase 무료 플랜 보호: 자동 클라우드 저장 30초 단위 큐 처리
+- Firestore read 중복 완화: 클라우드 세이브 15초 TTL 캐시
+- 랭킹 write 완화: 명시 저장/큰 변화/시간 경과 시에만 갱신
+- 서비스워커 개선: index는 network-first, hashed asset은 cache-first
+- 구형 PWA 캐시 정리 강화
+- System Doctor에 1.31 Firebase 무료 플랜 항목 추가
+- pixi.js/typescript/vite exact pin으로 의존성 안정화
+- npm ci / npm run build / npm audit --audit-level=high 통과

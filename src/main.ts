@@ -10,6 +10,8 @@ import './styles/alpha127.css';
 import './styles/alpha128.css';
 import './styles/alpha129.css';
 import './styles/alpha130.css';
+import './styles/alpha131.css';
+import './styles/alpha132.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
@@ -63,6 +65,7 @@ import { installTitleRevival127, inspectTitleRevival127, repairTitleRevival127, 
 import { installDependencyAudit128, inspectDependencyAudit128, syncDependencyRoute128 } from './ui/dependencyAudit128';
 import { installConnectionIntegrity129, inspectConnectionIntegrity129, syncConnectionRoute129 } from './ui/connectionIntegrity129';
 import { forceLoginFallback130, installLoginConnection130, inspectLoginConnection130, syncLoginConnectionRoute130 } from './ui/loginConnection130';
+import { installFirebaseFreePlanGuard131, inspectFirebaseFreePlan131, rememberFirebaseFreePlanStatus131 } from './ui/firebaseFreePlan131';
 import { renderInventoryPanel111 } from './ui/InventoryUI';
 import { closeMenuWindow111, installMenuWindowMotion111, openMenuWindow111, syncMenuWindowSafeFrame111 } from './ui/MenuWindow';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
@@ -158,7 +161,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '1.30.0';
+const ALPHA_VERSION = '1.32.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -306,7 +309,7 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-119', 'fantasy-ui-120', 'fantasy-ui-121', 'fantasy-ui-122', 'fantasy-ui-124', 'fantasy-ui-125', 'fantasy-ui-126', 'fantasy-ui-127', 'fantasy-ui-128', 'emergency-boot-119', 'recovery-kernel-120', 'polish-kernel-121', 'stability-kernel-122', 'field-load-polish-124', 'field-runtime-polish-125', 'runtime-polish-126', 'title-revival-127', 'dependency-audit-128', 'fantasy-ui-129', 'connection-integrity-129', 'visual-quality-preserved-129', 'fantasy-ui-130', 'login-connection-130', 'visual-quality-preserved-130', 'boot-critical-119', 'standard-mode-119', 'title-layout-116', 'no-pet-116');
+  document.body.classList.add('fantasy-ui-119', 'fantasy-ui-120', 'fantasy-ui-121', 'fantasy-ui-122', 'fantasy-ui-124', 'fantasy-ui-125', 'fantasy-ui-126', 'fantasy-ui-127', 'fantasy-ui-128', 'emergency-boot-119', 'recovery-kernel-120', 'polish-kernel-121', 'stability-kernel-122', 'field-load-polish-124', 'field-runtime-polish-125', 'runtime-polish-126', 'title-revival-127', 'dependency-audit-128', 'fantasy-ui-129', 'connection-integrity-129', 'visual-quality-preserved-129', 'fantasy-ui-130', 'login-connection-130', 'visual-quality-preserved-130', 'firebase-free-plan-131', 'visual-quality-preserved-131', 'boot-critical-119', 'standard-mode-119', 'title-layout-116', 'no-pet-116');
   titleScreen.classList.add('title-screen-098', 'title-art-099');
   loginScreen.classList.add('login-screen-098', 'login-art-099');
   townScreen.classList.add('town-screen-098', 'town-art-099');
@@ -323,6 +326,8 @@ async function boot() {
   installDependencyAudit128(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   installConnectionIntegrity129(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   installLoginConnection130(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  installFirebaseFreePlanGuard131(document);
+  rememberFirebaseFreePlanStatus131(document, saveService.getCloudWriteStatus());
   ensureTitleEntry090({ titleScreen, startButton: startGameBtn, loginScreen });
   bindTitleFlow();
   registerServiceWorker();
@@ -385,6 +390,7 @@ async function boot() {
   goStep('login');
 
   void saveService.init().then(() => {
+    rememberFirebaseFreePlanStatus131(document, saveService.getCloudWriteStatus());
     pendingSave = saveService.loadLocal() || pendingSave;
     refreshCharacterRoster(pendingSave?.saveId);
     renderCharacterSlots();
@@ -3808,6 +3814,7 @@ function todayKey() {
 function renderTownAccount(save: PlayerSave) {
   const online = saveService.isOnline();
   const cloud = saveService.getCloudWriteStatus();
+  rememberFirebaseFreePlanStatus131(document, cloud);
   const klass = classes[save.classId];
   const stats = calculateStatsFromSave(save);
   const expNeed = expToNext(save.level);
@@ -4247,12 +4254,15 @@ function powerFromSave(save: PlayerSave) {
 }
 
 async function saveCloudIfAvailable(save: PlayerSave, power: number, explicit: boolean) {
+  rememberFirebaseFreePlanStatus131(document, saveService.getCloudWriteStatus());
   if (!saveService.isOnline()) return null;
   try {
-    const saved = await saveService.saveCloud(save, power);
+    const saved = await saveService.saveCloud(save, power, explicit ? 'explicit' : 'auto');
+    rememberFirebaseFreePlanStatus131(document, saveService.getCloudWriteStatus());
     if (!saved && explicit) showToast('로컬 저장 완료 · 클라우드 동기화 보류');
     return saved;
   } catch (error) {
+    rememberFirebaseFreePlanStatus131(document, saveService.getCloudWriteStatus());
     console.warn('[Cloud] save deferred', error);
     if (explicit) showToast('로컬 저장 완료 · 클라우드 동기화 보류');
     return false;
@@ -4664,6 +4674,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
   const dependency128 = inspectDependencyAudit128(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const connection129 = inspectConnectionIntegrity129(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const login130 = inspectLoginConnection130(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  const firebase131 = inspectFirebaseFreePlan131(document, saveService.getCloudWriteStatus());
   titleEntryLastReport090 = titleHealth090.label;
   const rows: HealthTile087[] = [
     { label: '브랜드', value: 'Soul Online 고정', level: 'ok' },
@@ -4702,6 +4713,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     { label: '1.28 연결/의존성', value: dependency128.message, level: dependency128.level, hint: dependency128.hint },
     { label: '1.29 연결 보존', value: connection129.message, level: connection129.level, hint: connection129.hint },
     { label: '1.30 로그인 연결', value: login130.message, level: login130.level, hint: login130.hint },
+    { label: '1.31 Firebase 무료 플랜', value: firebase131.message, level: firebase131.level, hint: firebase131.hint },
     { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
     { label: '성능', value: perfHealth.label, level: perfHealth.level },
     { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },
@@ -4878,6 +4890,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
   const dependency128 = inspectDependencyAudit128(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const connection129 = inspectConnectionIntegrity129(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const login130 = inspectLoginConnection130(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  const firebase131 = inspectFirebaseFreePlan131(document, saveService.getCloudWriteStatus());
   titleEntryLastReport090 = titleHealth090.label;
   const tiles: HealthTile087[] = [
     { label: '첫 화면', value: titleHealth090.label, level: titleHealth090.level, hint: titleHealth090.hint },
@@ -4913,6 +4926,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     { label: '1.28 연결/의존성', value: dependency128.message, level: dependency128.level, hint: dependency128.hint },
     { label: '1.29 연결 보존', value: connection129.message, level: connection129.level, hint: connection129.hint },
     { label: '1.30 로그인 연결', value: login130.message, level: login130.level, hint: login130.hint },
+    { label: '1.31 Firebase 무료 플랜', value: firebase131.message, level: firebase131.level, hint: firebase131.hint },
     { label: 'FPS', value: `${measuredFps} · ${perfHealth.label}`, level: perfHealth.level },
     { label: '저장 연결', value: cloudState, level: cloud.paused ? 'warn' : 'ok' },
     { label: 'UI 안전', value: document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상', level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok', hint: lastUiAuditMessage },

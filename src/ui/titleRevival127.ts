@@ -32,7 +32,7 @@ export function installTitleRevival127(documentRef: Document, options: TitleRevi
 
   documentRef.documentElement.classList.add('soul-title-revival-127');
   documentRef.body.classList.add('fantasy-ui-127', 'title-revival-127', 'title-keyart-060-restored');
-  documentRef.body.dataset.alphaVersion = '1.30.0';
+  documentRef.body.dataset.alphaVersion = '1.32.0';
   ensureTitlePreload127(documentRef);
   repairTitleRevival127(documentRef, options);
 
@@ -70,7 +70,7 @@ export function repairTitleRevival127(documentRef: Document, options: TitleReviv
     startButton.textContent = 'TOUCH TO START';
   }
   if (nav) nav.classList.add('title-mini-nav-127');
-  if (version) version.textContent = 'v1.30.0';
+  if (version) version.textContent = 'v1.32.0';
 
   lastMessage127 = title && startButton ? '060 키비주얼 복구' : '타이틀 요소 확인 필요';
   return inspectTitleRevival127(documentRef);

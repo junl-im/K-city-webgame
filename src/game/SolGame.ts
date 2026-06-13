@@ -4824,7 +4824,7 @@ export class SolGame {
     if (this.cloudTimer) window.clearTimeout(this.cloudTimer);
     if (this.saveService.isOnline()) {
       this.cloudTimer = window.setTimeout(() => {
-        this.saveService.saveCloud(this.save, this.power()).catch((error) => {
+        this.saveService.saveCloud(this.save, this.power(), 'auto').catch((error) => {
           console.warn('[Save] cloud save deferred', error);
         });
       }, 900);

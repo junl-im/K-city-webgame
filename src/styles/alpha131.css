@@ -1,0 +1,53 @@
+/* 1.31 Mega stability patch: 그래픽 품질은 유지하고 Firebase 무료 플랜/접속/의존성 안정성만 보강한다. */
+body.firebase-free-plan-131 {
+  --so131-ok: #78f7d0;
+  --so131-warn: #ffd36a;
+  --so131-danger: #ff7d95;
+}
+
+body.firebase-free-plan-131.visual-quality-preserved-131::after {
+  content: '';
+  position: fixed;
+  inset: auto max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--so131-ok);
+  box-shadow: 0 0 14px rgba(120, 247, 208, 0.78);
+  z-index: 9999;
+  pointer-events: none;
+  opacity: .72;
+}
+
+body.firebase-free-plan-131.cloud-save-queued-131::after {
+  background: var(--so131-warn);
+  box-shadow: 0 0 14px rgba(255, 211, 106, 0.86);
+}
+
+body.firebase-free-plan-131.cloud-save-paused-131::after,
+body.firebase-free-plan-131.network-offline-131::after {
+  background: var(--so131-danger);
+  box-shadow: 0 0 14px rgba(255, 125, 149, 0.86);
+}
+
+body.firebase-free-plan-131 #loginStatus,
+body.firebase-free-plan-131 .login-status,
+body.firebase-free-plan-131 .login-flow-hint {
+  text-wrap: balance;
+}
+
+body.firebase-free-plan-131 button[disabled] {
+  touch-action: manipulation;
+}
+
+body.firebase-free-plan-131 .town-account-save-card .pill,
+body.firebase-free-plan-131 .account-panel .pill {
+  white-space: nowrap;
+}
+
+@media (max-width: 380px) {
+  body.firebase-free-plan-131 .town-account-save-card .pill-row,
+  body.firebase-free-plan-131 .account-panel .pill-row {
+    gap: 5px;
+  }
+}

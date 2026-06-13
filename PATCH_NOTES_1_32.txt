@@ -1,0 +1,9 @@
+Soul Online Alpha 1.32 - GitHub Actions npm ci dependency recovery
+
+- 그래픽 품질 변경 없음: 1.27 타이틀 키비주얼과 2.5D 고해상도 에셋 유지.
+- GitHub Actions npm ci 실패 원인이 될 수 있는 package-lock resolved URL 정리.
+- 내부 샌드박스 npm registry URL을 public npm registry URL로 복구.
+- .npmrc 추가: registry, retry, audit/fund 비활성화, CI 설치 안정화.
+- .nvmrc를 22.16.0으로 고정.
+- GitHub Actions build/pages 워크플로 추가: Node 22.16.0 + npm ci 안정 설치.
+- PWA 캐시를 soul-online-alpha-v1-32로 갱신.
