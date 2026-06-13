@@ -1,0 +1,79 @@
+/* Soul Online alpha 1.29: visual-preserving connection/dependency polish. */
+:root.soul-connection-integrity-129 {
+  --soul-visual-mode-129: high-fidelity-2p5d;
+}
+
+body.connection-integrity-129,
+body.visual-quality-preserved-129 {
+  image-rendering: auto;
+}
+
+body.connection-integrity-129 .title-screen-127,
+body.connection-integrity-129 #titleScreen {
+  background-color: #061d36;
+}
+
+body.connection-integrity-129 .title-revival-keyart-127,
+body.connection-integrity-129 .title-keyart-129 {
+  image-rendering: auto;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+body.connection-integrity-129 #startGameBtn,
+body.connection-integrity-129 #guestLoginBtn,
+body.connection-integrity-129 #localLoginBtn,
+body.connection-integrity-129 #connectCharacterBtn,
+body.connection-integrity-129 #returnTownBtn,
+body.connection-integrity-129 #attackBtn,
+body.connection-integrity-129 [data-skill-slot],
+body.connection-integrity-129 [data-zone-id] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.connection-integrity-129 #game-root canvas {
+  image-rendering: auto;
+  filter: saturate(1.06) contrast(1.03) brightness(1.035);
+}
+
+body.route-title-129 #loginScreen,
+body.route-title-129 #townScreen,
+body.route-title-129 #game-root[aria-hidden="true"],
+body.route-login-129 #titleScreen,
+body.route-login-129 #townScreen,
+body.route-town-129 #titleScreen,
+body.route-town-129 #loginScreen,
+body.route-field-129 #titleScreen,
+body.route-field-129 #loginScreen,
+body.route-field-129 #townScreen {
+  pointer-events: none !important;
+}
+
+body.route-field-129 #game-root {
+  pointer-events: auto;
+}
+
+body.standard-2p5d-129::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+@media (max-width: 380px) {
+  body.connection-integrity-129 #fieldQuestTracker {
+    max-width: min(42vw, 164px);
+  }
+
+  body.connection-integrity-129 #targetCard {
+    max-width: min(56vw, 220px);
+  }
+
+  body.connection-integrity-129 .field-actions,
+  body.connection-integrity-129 .combat-actions,
+  body.connection-integrity-129 #fieldActionDock {
+    gap: 8px;
+  }
+}

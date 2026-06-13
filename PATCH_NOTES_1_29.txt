@@ -1,0 +1,10 @@
+Soul Online Alpha 1.29
+
+- 비주얼 보존형 연결성/의존성 다듬기 패치
+- 그래픽 경량화 없음
+- 2.5D 고해상도 에셋 유지
+- 필드 장식 프롭 스킵 중단
+- 표준 2.5D quality 프로필 고정
+- title/login/town/field route 보정 추가
+- 중복 canvas/중복 id/필수 DOM/START/서비스워커/2.5D 캐시 진단 유지
+- System Doctor 1.29 항목 추가

@@ -1,0 +1,10 @@
+Soul Online Alpha 1.28
+
+- 그래픽 품질을 낮추지 않는 연결성/의존성 점검 패치
+- Vite dev dependency 갱신 및 npm audit high 이상 취약점 0개 정리
+- 1.28 Dependency Audit 커널 추가
+- 필수 DOM, 중복 ID, 구형 lite class, 동시 장면 표시, canvas 중복 mount 상태를 런타임에서 점검
+- System Doctor / 기술 상태 패널에 1.28 연결/의존성 항목 추가
+- 구형 lite/회전/펫/고스트 레이어 재등장 차단 유지
+- 타이틀 키비주얼과 2.5D 고해상도 에셋은 그대로 유지
+- PWA 캐시 soul-online-alpha-v1-28 갱신

@@ -1038,29 +1038,10 @@ export class SolGame {
     return [...keys].filter((key) => !this.shouldSkipTextureKey107(key));
   }
 
-  private shouldSkipTextureKey107(key: TextureKey) {
-    const tier = this.performanceTier101();
-    if (tier === 'quality') return false;
-    const name = String(key);
-    const keep = new Set<string>([
-      'tileGrass', 'tileDirt', 'tileMoss', 'tileStone', 'tileCrystal', 'tileWater', 'tileCliff', 'tilePortal', 'tileInfernus',
-      'propTree', 'propCrystal', 'propRock', 'propRuin', 'buildingHall', 'buildingForge', 'buildingStorage', 'buildingShop',
-      'effectSoulSlash', 'effectFireball', 'effectHolyNova', 'effectLightning', 'effectDarkRift',
-      this.classSheetTextureKey(), 'monsterSlimeSheet'
-    ]);
-    const zoneId = this.options.zoneId || 'slime-forest';
-    const monsterIds = zoneMonsterIds[zoneId] || zones.find((zone) => zone.id === zoneId)?.monsterIds || zoneMonsterIds['slime-forest'];
-    for (const monsterId of monsterIds) keep.add(this.monsterSheetTextureKey(monsterId));
-    if (keep.has(name)) return false;
-    // Alpha 1.24: 2.5D 캐릭터/몬스터 품질은 유지하되, 장식 프롭은 대표 텍스처로 대체한다.
-    // 모든 프롭을 고해상도로 먼저 받으면 사냥터 최초 입장 때 모바일 브라우저가 멈칫할 수 있다.
-    // mustTexture()의 fallbackTextureKey107()가 대표 트리/바위/유적 텍스처를 대신 사용하므로 화면은 비지 않고 유지된다.
-    if (/^prop(Tree|Rock)(0[4-9]|10)$/.test(name) || /^prop(Chest|Torch)(0[2-5])$/.test(name)) return true;
-    if (/^prop(Flower|Road|CrystalBrazier|Rift|Camp|StoneSteps|Petal|SoulFlowers|HeroStatue|BossTotem|WaterReflection|PathTorch|Silk|Moon|Rune|AncientRoot|BattleScar|Holo|BossGate|Lantern|Treasure|Mana|StoneLamp|Royal|GoldWar|Candle|Marble|SoulFountain|HuntMarker)/.test(name)) return true;
-    if (tier === 'lite' && (/^prop(Tree|Rock)\d+/.test(name) || /^prop(Chest|Torch)\d+/.test(name) || /^infernus/.test(name))) return true;
-    if (tier === 'lite' && /^prop/.test(name)) return true;
-    if (tier === 'balanced' && (/^prop(Tree|Rock)(0[6-9]|10)$/.test(name) || /^prop(Chest|Torch)(0[3-5])$/.test(name))) return true;
-    if (tier === 'balanced' && /^prop(Ancient|Blood|CrystalBrazier|Rift|Boss|Treasure|SoulFountain|GoldWar|Candle|Marble)/.test(name)) return true;
+  private shouldSkipTextureKey107(_key: TextureKey) {
+    // Alpha 1.29: 그래픽 품질 보존 원칙.
+    // 장식 프롭/특수 오브젝트도 더 이상 lite/balanced 기준으로 제외하지 않습니다.
+    // 렉과 접속 문제는 texture 공유 캐시, 순차 로딩, route/mount 중복 제거로 해결합니다.
     return false;
   }
 
