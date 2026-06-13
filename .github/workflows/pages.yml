@@ -1,9 +1,9 @@
-name: pages
+name: pages-manual
 
+# Firebase Hosting을 기준으로 운영하므로 GitHub Pages 자동 배포는 꺼둔다.
+# 필요할 때만 Actions 탭에서 수동 실행한다.
 on:
   workflow_dispatch:
-  push:
-    branches: [ main, master ]
 
 permissions:
   contents: read
@@ -11,13 +11,13 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: soul-online-pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-deploy-pages:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
       NPM_CONFIG_AUDIT: 'false'
@@ -34,20 +34,8 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-      - name: Verify lockfile registry
-        run: |
-          node --version
-          npm --version
-          npm config set registry https://registry.npmjs.org/
-          if grep -R "applied-caas\|internal.api.openai.org" package-lock.json .npmrc; then
-            echo "Internal registry URL detected. Regenerate package-lock.json with npm registry."
-            exit 1
-          fi
-
       - name: Install dependencies
-        run: |
-          npm ci --no-audit --no-fund --prefer-online || \
-          (npm cache clean --force && rm -rf node_modules && npm ci --no-audit --no-fund --prefer-online --cache .npm-cache)
+        run: npm ci --no-audit --no-fund --prefer-online
 
       - name: Build
         run: npm run build
@@ -57,13 +45,6 @@ jobs:
         with:
           path: dist
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

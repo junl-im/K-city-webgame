@@ -7,15 +7,25 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: soul-online-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
       NPM_CONFIG_AUDIT: 'false'
       NPM_CONFIG_FUND: 'false'
       NPM_CONFIG_PROGRESS: 'false'
+      NPM_CONFIG_FETCH_RETRIES: '5'
+      NPM_CONFIG_FETCH_RETRY_MINTIMEOUT: '20000'
+      NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT: '120000'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,7 +37,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-      - name: Verify lockfile registry
+      - name: Verify package registry and workflow count
         run: |
           node --version
           npm --version
@@ -36,6 +46,15 @@ jobs:
             echo "Internal registry URL detected. Regenerate package-lock.json with npm registry."
             exit 1
           fi
+          AUTO_COUNT=$(grep -R "^[[:space:]]*push:" .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$AUTO_COUNT" -gt 1 ]; then
+            echo "::warning::Multiple push-triggered workflows detected. Firebase users should keep only build.yml automatic."
+          fi
+
+      - name: Clean npm state
+        run: |
+          npm cache verify || npm cache clean --force
+          rm -rf node_modules
 
       - name: Install dependencies
         run: |

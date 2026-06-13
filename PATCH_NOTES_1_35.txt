@@ -1,0 +1,11 @@
+Soul Online Alpha 1.35
+
+- 사용자가 제공한 고품질 UI 레퍼런스 이미지 2장을 자산 키트로 분해.
+- public/assets/ui/soul135 및 src/assets/ui/soul135에 WebP 조각 에셋 추가.
+- 타이틀 첫 화면을 1.35 레퍼런스 키아트로 갱신.
+- 로그인/서버/캐릭터/마을/팝업/필드 HUD의 glass + gold + sky-blue 스타일 보정.
+- 레퍼런스 이미지 내 텍스트는 직접 UI 텍스트와 충돌하지 않도록 배경/장식 위주로 사용.
+- START/로그인/로컬 fallback/중복 canvas/화질저하 class 차단 유지.
+- System Doctor에 1.35 레퍼런스 UI 진단 추가.
+- PWA 캐시 soul-online-alpha-v1-35.
+- 그래픽 경량화 없음. 2.5D 고해상도 에셋 유지.

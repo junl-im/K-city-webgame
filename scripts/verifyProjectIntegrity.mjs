@@ -10,7 +10,9 @@ const requiredFiles = [
   'index.html',
   'public/sw.js',
   'src/main.ts',
-  'src/assets/ui/title-keyvisual-060.webp'
+  'src/assets/ui/title-keyvisual-060.webp',
+  'public/assets/ui/soul135/title-keyart-reference-135.webp',
+  'public/assets/ui/soul135/town-showcase-blur-bg.webp'
 ];
 const problems = [];
 
@@ -29,8 +31,8 @@ for (const token of forbidden) {
 }
 
 if (!npmrc.includes('registry=https://registry.npmjs.org/')) problems.push('.npmrc registry is not npmjs');
-if (!sw.includes('soul-online-alpha-v1-33')) problems.push('service worker cache is not v1-33');
-if (pkg.version !== '1.33.0') problems.push(`package version is ${pkg.version}, expected 1.33.0`);
+if (!sw.includes('soul-online-alpha-v1-35')) problems.push('service worker cache is not v1-35');
+if (pkg.version !== '1.35.0') problems.push(`package version is ${pkg.version}, expected 1.35.0`);
 
 const assetDir = path.join(root, 'src/assets/2p5d');
 function countWebp(dir) {
@@ -43,6 +45,24 @@ function countWebp(dir) {
   }
   return count;
 }
+
+
+const workflowDir = path.join(root, '.github', 'workflows');
+const workflowWarnings = [];
+if (fs.existsSync(workflowDir)) {
+  const workflowFiles = fs.readdirSync(workflowDir).filter((name) => /\.ya?ml$/i.test(name));
+  const autoWorkflows = [];
+  for (const name of workflowFiles) {
+    const text = fs.readFileSync(path.join(workflowDir, name), 'utf8');
+    const hasPush = /^\s*push\s*:/m.test(text) || /^\s*-\s*push\s*$/m.test(text);
+    const hasPullRequest = /^\s*pull_request\s*:/m.test(text) || /^\s*-\s*pull_request\s*$/m.test(text);
+    if (hasPush || hasPullRequest) autoWorkflows.push(name);
+  }
+  if (autoWorkflows.length > 1) {
+    workflowWarnings.push(`multiple automatic workflows detected: ${autoWorkflows.join(', ')}`);
+  }
+}
+
 const highFidelityAssets = countWebp(assetDir);
 if (highFidelityAssets < 4) problems.push('2.5D high fidelity assets look incomplete');
 
@@ -52,4 +72,7 @@ if (problems.length) {
   process.exit(1);
 }
 
-console.log(`[SoulOnline verifyProjectIntegrity] ok · version ${pkg.version} · 2.5D assets ${highFidelityAssets}`);
+if (workflowWarnings.length) {
+  for (const warning of workflowWarnings) console.warn(`[SoulOnline verifyProjectIntegrity] warning · ${warning}`);
+}
+console.log(`[SoulOnline verifyProjectIntegrity] ok · version ${pkg.version} · 2.5D assets ${highFidelityAssets} · ui135 reference kit`);

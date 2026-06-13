@@ -1,4 +1,4 @@
-const CACHE_NAME = 'soul-online-alpha-v1-33';
+const CACHE_NAME = 'soul-online-alpha-v1-35';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
@@ -30,7 +30,7 @@ function isLargeMedia(url, request) {
   return /\.(png|jpe?g|webp|gif|avif|mp3|ogg|wav)(\?|$)/i.test(url.pathname);
 }
 
-function fetchWithTimeout133(request, options, timeoutMs) {
+function fetchWithTimeout135(request, options, timeoutMs) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   return fetch(request, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
@@ -38,7 +38,7 @@ function fetchWithTimeout133(request, options, timeoutMs) {
 
 async function networkFirstShell(request, fallbackUrl) {
   try {
-    const response = await fetchWithTimeout133(request, { cache: 'no-store' }, 3500);
+    const response = await fetchWithTimeout135(request, { cache: 'no-store' }, 3500);
     if (response && response.status === 200) {
       const copy = response.clone();
       caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)).catch(() => undefined);

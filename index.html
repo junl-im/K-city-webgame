@@ -12,14 +12,14 @@
     <meta name="x5-fullscreen" content="false" />
     <meta name="full-screen" content="no" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="preload" as="image" href="/assets/ui/fantasy/title-keyvisual-060.webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="/assets/ui/soul135/title-keyart-reference-135.webp" fetchpriority="high" />
     <meta name="description" content="소울 온라인 Alpha - 모바일 2.5D 웹 MMORPG 프로토타입" />
     <title>소울 온라인 Alpha</title>
-    <style id="soul-critical-126">
+    <style id="soul-critical-135">
       html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07172a;color:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
       #app{position:fixed;inset:0;margin:auto;width:100vw;height:100dvh;max-width:480px;overflow:hidden;background:linear-gradient(180deg,#8bdcff 0%,#5bb8ec 42%,#1f6f9e 70%,#082236 100%);}
       .login-screen.hidden,.town-screen.hidden{display:none!important;}
-      .title-screen{position:absolute;inset:0;display:block;overflow:hidden;text-align:center;background:#7edbff url('/assets/ui/fantasy/title-keyvisual-060.webp') center/cover no-repeat;}
+      .title-screen{position:absolute;inset:0;display:block;overflow:hidden;text-align:center;background:#7edbff url('/assets/ui/soul135/title-keyart-reference-135.webp') center/cover no-repeat;}
       .title-stage{position:absolute;inset:0;min-height:100%;display:block;padding:0;box-sizing:border-box;pointer-events:none;}
       .title-copy,.title-copy p,.title-kicker,.title-hero,.title-stage>small,.title-bg{display:none!important;}
       .title-copy h1{display:none!important;}
@@ -41,9 +41,9 @@
       body.route-login-126 .login-screen,body.route-town-126 .town-screen,body.route-title-126 .title-screen{display:block!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;}
     </style>
     <script>
-      window.SOUL_ONLINE_BOOT_VERSION = '1.33.0';
+      window.SOUL_ONLINE_BOOT_VERSION = '1.35.0';
       window.SOUL_PRESTART_ROUTE_120 = 'title';
-      document.documentElement.classList.add('soul-preboot-119', 'soul-preboot-120', 'soul-preboot-121', 'soul-preboot-122', 'soul-preboot-124', 'soul-preboot-125', 'soul-preboot-126', 'soul-preboot-127', 'soul-preboot-130', 'soul-preboot-133');
+      document.documentElement.classList.add('soul-preboot-119', 'soul-preboot-120', 'soul-preboot-121', 'soul-preboot-122', 'soul-preboot-124', 'soul-preboot-125', 'soul-preboot-126', 'soul-preboot-127', 'soul-preboot-130', 'soul-preboot-133', 'soul-preboot-134', 'soul-preboot-135');
       window.addEventListener('error', function () { document.documentElement.classList.add('soul-preboot-error-119'); });
       (function () {
         var locked = false;
@@ -59,8 +59,8 @@
         function activateLogin() {
           lockSize();
           window.SOUL_PRESTART_ROUTE_120 = 'login';
-          document.body.classList.add('prestart-login-120', 'route-login-120', 'route-login-121', 'route-login-122', 'route-login-126', 'route-login-127');
-          document.body.classList.remove('route-title-120', 'route-title-121', 'route-title-122', 'route-title-126', 'route-title-127', 'route-title-119');
+          document.body.classList.add('prestart-login-120', 'route-login-120', 'route-login-121', 'route-login-122', 'route-login-126', 'route-login-127', 'route-login-135');
+          document.body.classList.remove('route-title-120', 'route-title-121', 'route-title-122', 'route-title-126', 'route-title-127', 'route-title-119', 'route-title-135');
           var title = document.getElementById('titleScreen');
           var login = document.getElementById('loginScreen');
           var town = document.getElementById('townScreen');
@@ -123,14 +123,16 @@
             for (var k = 0; k < buttons.length; k += 1) { buttons[k].disabled = false; buttons[k].removeAttribute('aria-disabled'); }
             try {
               var roster = localStorage.getItem('sol-online-alpha-roster-v1');
-              if (roster) localStorage.setItem('sol-online-alpha-roster-v1-backup-133', roster);
+              if (roster) localStorage.setItem('sol-online-alpha-roster-v1-backup-135', roster);
             } catch (e) {}
           }, 6000);
         });
       })();
     </script>
+      <link rel="preload" as="image" href="/assets/ui/soul135/town-showcase-blur-bg.webp" />
+    <link rel="preload" as="image" href="/assets/ui/soul135/login-ready-panel.webp" />
   </head>
-  <body class="emergency-boot-119 recovery-kernel-120 polish-kernel-121 stability-kernel-122 field-load-polish-124 field-runtime-polish-125 runtime-polish-126 title-revival-127 standard-mode-119 standard-visual-121 boot-safe-122 no-legacy-stack-121 no-pet-116 route-title-120 route-title-121 route-title-122 route-title-126 route-title-127 route-title-133 resilience-plan-133 visual-quality-preserved-133 firebase-freeplan-safe-133">
+  <body class="emergency-boot-119 recovery-kernel-120 polish-kernel-121 stability-kernel-122 field-load-polish-124 field-runtime-polish-125 runtime-polish-126 title-revival-127 standard-mode-119 standard-visual-121 boot-safe-122 no-legacy-stack-121 no-pet-116 route-title-120 route-title-121 route-title-122 route-title-126 route-title-127 route-title-133 route-title-134 route-title-135 resilience-plan-133 visual-quality-preserved-133 firebase-freeplan-safe-133 release-control-134 visual-quality-preserved-134 firebase-freeplan-safe-134 fantasy-ui-135 visual-asset-kit-135 visual-quality-preserved-135">
     <div id="app">
       <div id="game-root" class="game-root"></div>
 
@@ -154,7 +156,7 @@
             <span class="title-hero-rune rune-b"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn start-game-btn-098 start-game-btn-099 start-game-btn-101">TOUCH TO START</button>
-          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v1.33.0</span></div>
+          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v1.35.0</span></div>
           <small>영혼을 깨우고 루미나의 균열을 봉인하세요.</small>
         </div>
       </section>

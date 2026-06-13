@@ -1,0 +1,407 @@
+:root {
+  --soul135-title: url('/assets/ui/soul135/title-keyart-reference-135.webp');
+  --soul135-town-bg: url('/assets/ui/soul135/town-showcase-blur-bg.webp');
+  --soul135-town-paint: url('/assets/ui/soul135/town-paint-bg.webp');
+  --soul135-login-panel: url('/assets/ui/soul135/login-ready-panel.webp');
+  --soul135-server-panel: url('/assets/ui/soul135/server-select-panel.webp');
+  --soul135-player-card: url('/assets/ui/soul135/town-player-card.webp');
+  --soul135-quest-panel: url('/assets/ui/soul135/town-quest-panel.webp');
+  --soul135-inventory: url('/assets/ui/soul135/inventory-window.webp');
+  --soul135-modal-reward: url('/assets/ui/soul135/reward-modal.webp');
+  --soul135-levelup: url('/assets/ui/soul135/levelup-modal.webp');
+  --soul135-action-dock: url('/assets/ui/soul135/action-dock.webp');
+  --soul135-menu-row: url('/assets/ui/soul135/bottom-icon-menu.webp');
+  --soul135-chat: url('/assets/ui/soul135/town-chat-window.webp');
+  --soul135-gold: #dcae58;
+  --soul135-gold-strong: #f7d28a;
+  --soul135-blue: #1f8be8;
+  --soul135-blue-deep: #0b3f8c;
+  --soul135-ink: #163865;
+  --soul135-paper: rgba(255, 255, 255, .88);
+  --soul135-line: rgba(208, 169, 93, .72);
+  --soul135-shadow: 0 18px 42px rgba(18, 55, 105, .24);
+}
+
+body.fantasy-ui-135,
+body.visual-asset-kit-135 {
+  --panel-bg: rgba(255, 255, 255, .84);
+  --panel-border: rgba(225, 183, 101, .72);
+  background: #d7f1ff;
+  color: var(--soul135-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.fantasy-ui-135 #app {
+  background: linear-gradient(180deg, #dff7ff 0%, #97d7ff 42%, #eff9ff 100%);
+}
+
+body.fantasy-ui-135 .title-screen,
+body.fantasy-ui-135 .title-screen.title-reference-135 {
+  background-image: linear-gradient(180deg, rgba(255,255,255,.02), rgba(3,24,54,.08)), var(--soul135-title) !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.5), inset 0 -110px 120px rgba(0, 28, 60, .18);
+}
+
+body.fantasy-ui-135 .title-stage::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,.34);
+  box-shadow: inset 0 0 32px rgba(255,255,255,.16);
+}
+
+body.fantasy-ui-135 .title-mini-nav {
+  top: max(10px, env(safe-area-inset-top));
+  width: min(88vw, 356px);
+  min-height: 40px;
+  padding: 6px 9px;
+  gap: 7px;
+  border: 1px solid rgba(255,255,255,.42);
+  background: linear-gradient(180deg, rgba(38,119,190,.68), rgba(10,48,91,.58));
+  box-shadow: 0 14px 34px rgba(18,66,122,.28), inset 0 1px 0 rgba(255,255,255,.35);
+  color: #f8fdff;
+  backdrop-filter: blur(14px) saturate(1.35);
+  z-index: 5;
+}
+
+body.fantasy-ui-135 .title-mini-nav span,
+body.fantasy-ui-135 .title-mini-nav button {
+  min-width: 0;
+  font-weight: 950;
+  text-shadow: 0 1px 8px rgba(0, 38, 92, .38);
+}
+
+body.fantasy-ui-135 .title-mini-nav button {
+  border: 1px solid rgba(255,255,255,.36);
+  background: linear-gradient(180deg, rgba(65,154,244,.9), rgba(22,88,169,.86));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.38), 0 7px 16px rgba(24,77,150,.26);
+}
+
+body.fantasy-ui-135 #startGameBtn {
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 34px);
+  width: min(78vw, 286px);
+  min-height: 48px;
+  color: #fbfdff;
+  letter-spacing: .17em;
+  font-size: 15px;
+  border: 1px solid rgba(220, 247, 255, .92);
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(255,255,255,.34) 44%, transparent 52%) -180px 0/160px 100% no-repeat,
+    linear-gradient(180deg, rgba(82,188,255,.88), rgba(10,99,195,.88) 50%, rgba(6,67,142,.92));
+  box-shadow: 0 14px 28px rgba(7,49,109,.35), 0 0 0 4px rgba(185,235,255,.18), inset 0 2px 0 rgba(255,255,255,.5), inset 0 -2px 12px rgba(0,42,112,.28);
+  animation: soul135-start-shine 3.3s ease-in-out infinite;
+}
+
+@keyframes soul135-start-shine {
+  0%, 38% { background-position: -190px 0, 0 0; }
+  64%, 100% { background-position: 340px 0, 0 0; }
+}
+
+body.fantasy-ui-135 .login-screen {
+  background:
+    radial-gradient(circle at 50% 14%, rgba(255,255,255,.56), transparent 26%),
+    linear-gradient(180deg, rgba(234,248,255,.86), rgba(177,223,255,.46)),
+    var(--soul135-town-bg) center/cover no-repeat !important;
+  color: var(--soul135-ink);
+}
+
+body.fantasy-ui-135 .login-backdrop {
+  opacity: .18;
+  filter: saturate(1.15) brightness(1.06);
+}
+
+body.fantasy-ui-135 .login-panel,
+body.fantasy-ui-135 .login-panel-v3 {
+  width: min(92vw, 360px);
+  margin: max(18px, env(safe-area-inset-top)) auto max(18px, env(safe-area-inset-bottom));
+  padding: 14px;
+  border-radius: 28px;
+  border: 1px solid rgba(226,187,96,.66);
+  background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(226,243,255,.68));
+  box-shadow: var(--soul135-shadow), inset 0 1px 0 rgba(255,255,255,.78);
+  backdrop-filter: blur(16px) saturate(1.28);
+}
+
+body.fantasy-ui-135 .login-lore-card,
+body.fantasy-ui-135 .login-flow-card,
+body.fantasy-ui-135 .world-card,
+body.fantasy-ui-135 .server-card,
+body.fantasy-ui-135 .character-create-panel,
+body.fantasy-ui-135 .character-slot-list,
+body.fantasy-ui-135 .class-card {
+  border-radius: 20px;
+  border: 1px solid var(--soul135-line);
+  background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(240,248,255,.78));
+  color: var(--soul135-ink);
+  box-shadow: 0 10px 24px rgba(30,81,140,.16), inset 0 1px 0 rgba(255,255,255,.82);
+}
+
+body.fantasy-ui-135 .login-lore-card {
+  position: relative;
+  overflow: hidden;
+}
+
+body.fantasy-ui-135 .login-lore-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: .18;
+  background: var(--soul135-login-panel) center/cover no-repeat;
+  pointer-events: none;
+}
+
+body.fantasy-ui-135 .login-lore-card > *,
+body.fantasy-ui-135 .login-flow-card > * {
+  position: relative;
+}
+
+body.fantasy-ui-135 .brand-block span,
+body.fantasy-ui-135 .login-lore-card span,
+body.fantasy-ui-135 .slot-headline span,
+body.fantasy-ui-135 .login-flow-hint,
+body.fantasy-ui-135 .login-status {
+  color: #315f91;
+  text-shadow: none;
+}
+
+body.fantasy-ui-135 .brand-block h1,
+body.fantasy-ui-135 .login-lore-card h2,
+body.fantasy-ui-135 .slot-headline b {
+  color: #123e73;
+  text-shadow: 0 1px 0 rgba(255,255,255,.75);
+}
+
+body.fantasy-ui-135 .wide-action,
+body.fantasy-ui-135 button.asset-polished-135 {
+  min-height: 46px;
+  border-radius: 15px;
+  border: 1px solid rgba(202,160,79,.72);
+  background: linear-gradient(180deg, #fff8dc, #f4be67 48%, #b87624);
+  color: #173a66;
+  font-weight: 950;
+  box-shadow: 0 8px 18px rgba(75, 93, 126, .20), inset 0 2px 0 rgba(255,255,255,.58), inset 0 -2px 8px rgba(116,70,12,.18);
+}
+
+body.fantasy-ui-135 .wide-action.primary,
+body.fantasy-ui-135 #serverNextBtn,
+body.fantasy-ui-135 #enterTownBtn,
+body.fantasy-ui-135 #connectCharacterBtn,
+body.fantasy-ui-135 [data-zone-id] {
+  border-color: rgba(191,220,255,.76);
+  background: linear-gradient(180deg, #65c7ff, #1888e8 52%, #0756ba);
+  color: #fff;
+  text-shadow: 0 1px 5px rgba(0,39,92,.38);
+}
+
+body.fantasy-ui-135 .wide-action.subtle {
+  background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(215,233,250,.86));
+  color: #204c7c;
+}
+
+body.fantasy-ui-135 .wide-action.danger {
+  background: linear-gradient(180deg, #fff0e8, #e96c54 52%, #a3302b);
+  color: #fff;
+}
+
+body.fantasy-ui-135 .server-list {
+  position: relative;
+}
+
+body.fantasy-ui-135 .server-list::before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 132px;
+  margin: 0 0 10px;
+  border-radius: 18px;
+  background: var(--soul135-server-panel) center/cover no-repeat;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.36);
+}
+
+body.fantasy-ui-135 .town-screen,
+body.fantasy-ui-135 .town-reference-135 {
+  background:
+    linear-gradient(180deg, rgba(240,250,255,.25), rgba(32,101,155,.34)),
+    var(--soul135-town-paint) center/cover no-repeat !important;
+  color: var(--soul135-ink);
+}
+
+body.fantasy-ui-135 .town-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--soul135-town-bg) center/cover no-repeat;
+  opacity: .38;
+  filter: saturate(1.1);
+}
+
+body.fantasy-ui-135 .town-premium-lobby-072,
+body.fantasy-ui-135 .town-game-lobby-070,
+body.fantasy-ui-135 .town-content-panel,
+body.fantasy-ui-135 .town-lobby-main-070,
+body.fantasy-ui-135 .town-premium-stage-072 {
+  position: relative;
+  border-color: rgba(219,176,91,.62) !important;
+  box-shadow: var(--soul135-shadow), inset 0 1px 0 rgba(255,255,255,.66);
+}
+
+body.fantasy-ui-135 .town-premium-profile-072,
+body.fantasy-ui-135 .town-lobby-profile-070,
+body.fantasy-ui-135 .town-lobby-quest-stack-070,
+body.fantasy-ui-135 .town-lobby-bag-070,
+body.fantasy-ui-135 .town-premium-menu-grid-072,
+body.fantasy-ui-135 .town-panel,
+body.fantasy-ui-135 .content-card,
+body.fantasy-ui-135 .sheet,
+body.fantasy-ui-135 .detail-modal,
+body.fantasy-ui-135 .item-detail-card,
+body.fantasy-ui-135 .field-hud,
+body.fantasy-ui-135 .target-card,
+body.fantasy-ui-135 .quest-card {
+  border: 1px solid rgba(214,170,83,.68) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(236,248,255,.74)) !important;
+  color: var(--soul135-ink) !important;
+  box-shadow: 0 12px 30px rgba(28,75,131,.18), inset 0 1px 0 rgba(255,255,255,.76) !important;
+}
+
+body.fantasy-ui-135 .town-lobby-profile-070::before,
+body.fantasy-ui-135 .town-premium-profile-072::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: .17;
+  background: var(--soul135-player-card) center/cover no-repeat;
+  pointer-events: none;
+}
+
+body.fantasy-ui-135 .town-lobby-stage-070::before,
+body.fantasy-ui-135 .town-premium-banner-072::before,
+body.fantasy-ui-135 .town-premium-copy-072::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: .22;
+  background: var(--soul135-quest-panel) center/cover no-repeat;
+  pointer-events: none;
+}
+
+body.fantasy-ui-135 .town-lobby-side-070 button,
+body.fantasy-ui-135 .town-premium-icon-072,
+body.fantasy-ui-135 .town-lobby-icon-070,
+body.fantasy-ui-135 .town-lobby-action-070,
+body.fantasy-ui-135 .skill-button,
+body.fantasy-ui-135 [data-skill-slot],
+body.fantasy-ui-135 [data-open-field-menu] {
+  border: 1px solid rgba(214,174,89,.74) !important;
+  background: radial-gradient(circle at 50% 22%, rgba(255,255,255,.92), rgba(64,158,237,.66) 45%, rgba(15,79,160,.9)) !important;
+  color: #fff !important;
+  text-shadow: 0 1px 6px rgba(0,40,98,.48);
+  box-shadow: 0 10px 20px rgba(12,62,130,.22), inset 0 1px 0 rgba(255,255,255,.62) !important;
+}
+
+body.fantasy-ui-135 .town-lobby-currency-070 button,
+body.fantasy-ui-135 .town-premium-currencies-072 button,
+body.fantasy-ui-135 .resource-pill,
+body.fantasy-ui-135 .hud-pill {
+  border: 1px solid rgba(226,185,98,.74) !important;
+  background: linear-gradient(180deg, rgba(36,76,127,.74), rgba(19,49,89,.82)) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 18px rgba(20,65,122,.22), inset 0 1px 0 rgba(255,255,255,.28) !important;
+}
+
+body.fantasy-ui-135 .town-lobby-bag-grid-070,
+body.fantasy-ui-135 .inventory-grid,
+body.fantasy-ui-135 .slot-grid,
+body.fantasy-ui-135 .item-grid {
+  border-radius: 18px;
+  border: 1px solid rgba(224,184,101,.56);
+  background: linear-gradient(180deg, rgba(232,246,255,.62), rgba(255,255,255,.52));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.64);
+}
+
+body.fantasy-ui-135 .sheet-reference-135::before,
+body.fantasy-ui-135 .inventory-window::before {
+  content: '';
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 152px;
+  height: 92px;
+  opacity: .12;
+  background: var(--soul135-inventory) center/contain no-repeat;
+  pointer-events: none;
+}
+
+body.fantasy-ui-135 .chat-panel,
+body.fantasy-ui-135 .town-chat,
+body.fantasy-ui-135 .field-log,
+body.fantasy-ui-135 .combat-log {
+  border: 1px solid rgba(222,183,96,.58) !important;
+  background: linear-gradient(180deg, rgba(18,44,77,.88), rgba(7,26,50,.9)) !important;
+  color: #eff8ff !important;
+  box-shadow: 0 12px 26px rgba(0, 33, 74, .28), inset 0 1px 0 rgba(255,255,255,.16) !important;
+}
+
+body.fantasy-ui-135 .attack-button,
+body.fantasy-ui-135 #attackBtn {
+  border: 2px solid rgba(245,210,128,.86) !important;
+  background: radial-gradient(circle at 45% 35%, rgba(255,255,255,.78), rgba(55,171,255,.78) 36%, rgba(14,71,158,.98) 62%, rgba(9,45,104,.98)) !important;
+  box-shadow: 0 15px 32px rgba(13,61,138,.34), inset 0 2px 0 rgba(255,255,255,.55), 0 0 0 5px rgba(255,222,139,.15) !important;
+}
+
+body.fantasy-ui-135 .joystick,
+body.fantasy-ui-135 #joystick {
+  border: 1px solid rgba(239,202,125,.78) !important;
+  background: radial-gradient(circle, rgba(255,255,255,.44), rgba(78,158,222,.34) 44%, rgba(20,65,115,.58)) !important;
+  box-shadow: 0 12px 26px rgba(7,40,85,.22), inset 0 0 0 1px rgba(255,255,255,.28) !important;
+}
+
+body.fantasy-ui-135 #joystickKnob {
+  background: radial-gradient(circle at 45% 35%, #fff7d6, #d8a84f 56%, #8b5f18 100%) !important;
+  border: 1px solid rgba(255,237,170,.9) !important;
+}
+
+body.fantasy-ui-135 .soul-design-badge-135 {
+  position: fixed;
+  left: 50%;
+  bottom: calc(max(8px, env(safe-area-inset-bottom)) + 6px);
+  transform: translateX(-50%);
+  z-index: 9998;
+  max-width: min(86vw, 340px);
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.42);
+  background: linear-gradient(180deg, rgba(21,70,126,.74), rgba(8,35,74,.68));
+  color: #f7fcff;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .02em;
+  text-align: center;
+  box-shadow: 0 10px 24px rgba(5,31,68,.24), inset 0 1px 0 rgba(255,255,255,.28);
+  pointer-events: none;
+  opacity: .92;
+  backdrop-filter: blur(10px) saturate(1.2);
+}
+
+body.route-title-135 .soul-design-badge-135,
+body.route-field-135 .soul-design-badge-135 {
+  opacity: 0;
+}
+
+@media (max-width: 380px) {
+  body.fantasy-ui-135 .login-panel,
+  body.fantasy-ui-135 .login-panel-v3 { width: min(94vw, 346px); padding: 10px; }
+  body.fantasy-ui-135 .title-mini-nav { width: min(92vw, 344px); font-size: 11px; }
+  body.fantasy-ui-135 #startGameBtn { width: min(80vw, 280px); min-height: 46px; font-size: 13px; }
+  body.fantasy-ui-135 .soul-design-badge-135 { font-size: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.fantasy-ui-135 #startGameBtn { animation: none; }
+}
