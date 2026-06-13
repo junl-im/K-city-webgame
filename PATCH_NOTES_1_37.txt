@@ -1,0 +1,13 @@
+Soul Online Alpha 1.37
+
+- 카카오톡/인앱 브라우저용 CSS-only portrait cage 추가
+- 인앱 브라우저에서 fullscreen/orientation lock API 호출 차단
+- 첫 시작 화면 START 버튼 preboot 복구 강화
+- 로그인 화면 진입 route-login-137 보강
+- RecoveryKernel/ViewportLock이 PortraitGuard 프레임을 우선 사용
+- manifest orientation portrait-primary 추가
+- GitHub Actions 자동 실행 workflow를 build.yml 하나로 정리
+- pull_request trigger 제거
+- pages.yml 제거
+- package/PWA cache v1.37 갱신
+- 그래픽 품질, 1.27 타이틀, 2.5D 고해상도 에셋 유지

@@ -1,3 +1,4 @@
+import { getPortraitFrame137, syncPortraitGuard137 } from '../core/PortraitGuard';
 export type RecoveryRoute120 = 'title' | 'login' | 'town' | 'field';
 
 type RecoveryTargets120 = {
@@ -56,12 +57,21 @@ export function installRecoveryKernel120(documentRef: Document, targets: Recover
 export function lockInitialViewport120(documentRef: Document, targets?: Partial<RecoveryTargets120>) {
   const win = documentRef.defaultView;
   if (!win) return;
-  if (!locked120) {
+
+  // 1.37: 인앱/가로 viewport에서는 기존의 단순 width/height 고정 대신 PortraitGuard의 세로 프레임을 우선한다.
+  const frame137 = getPortraitFrame137(documentRef);
+  if (documentRef.body.classList.contains('portrait-guard-137') || frame137.inApp || frame137.landscape) {
+    syncPortraitGuard137(documentRef, targets);
+    lockedWidth120 = frame137.width;
+    lockedHeight120 = frame137.height;
+    locked120 = true;
+  } else if (!locked120) {
     const visual = win.visualViewport;
     lockedWidth120 = Math.max(320, Math.round(visual?.width || win.innerWidth || documentRef.documentElement.clientWidth || 360));
     lockedHeight120 = Math.max(520, Math.round(visual?.height || win.innerHeight || documentRef.documentElement.clientHeight || 720));
     locked120 = true;
   }
+
   const appWidth = Math.min(480, lockedWidth120);
   const root = documentRef.documentElement;
   root.style.setProperty('--soul-locked-w-120', `${appWidth}px`);

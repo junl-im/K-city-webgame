@@ -16,6 +16,7 @@ import './styles/alpha133.css';
 import './styles/alpha134.css';
 import './styles/alpha135.css';
 import './styles/alpha136.css';
+import './styles/alpha137.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
@@ -74,6 +75,7 @@ import { installResiliencePlan133, inspectResiliencePlan133, syncResilienceRoute
 import { installReleaseControl134, inspectReleaseControl134, syncReleaseRoute134 } from './ui/releaseControl134';
 import { installVisualAssetKit135, inspectVisualAssetKit135, syncVisualAssetRoute135 } from './ui/visualAssetKit135';
 import { installVisualAssetKit136, inspectVisualAssetKit136, syncVisualAssetRoute136 } from './ui/visualAssetKit136';
+import { installPortraitGuard137, inspectPortraitGuard137, syncPortraitGuard137, shouldSuppressViewportApi137 } from './core/PortraitGuard';
 import { renderInventoryPanel111 } from './ui/InventoryUI';
 import { closeMenuWindow111, installMenuWindowMotion111, openMenuWindow111, syncMenuWindowSafeFrame111 } from './ui/MenuWindow';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
@@ -169,7 +171,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '1.36.0';
+const ALPHA_VERSION = '1.37.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -322,6 +324,9 @@ async function boot() {
   loginScreen.classList.add('login-screen-098', 'login-art-099');
   townScreen.classList.add('town-screen-098', 'town-art-099');
 
+  // 1.37: 카카오톡/인앱 브라우저에서는 fullscreen/orientation API 없이 CSS 세로 프레임만 먼저 고정한다.
+  installPortraitGuard137(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+
   // 1.19 긴급 부팅: 무거운 보정 레이어보다 START 버튼을 먼저 살린다.
   installEmergencyBoot119(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   installRecoveryKernel120(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
@@ -360,6 +365,7 @@ async function boot() {
     syncReleaseRoute134(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncVisualAssetRoute135(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncVisualAssetRoute136(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+    syncPortraitGuard137(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   } else {
     syncRecoveryRoute120(document, 'title', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncPolishRoute121(document, 'title', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
@@ -373,6 +379,7 @@ async function boot() {
     syncReleaseRoute134(document, 'title', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncVisualAssetRoute135(document, 'title', { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncVisualAssetRoute136(document, 'title', { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+    syncPortraitGuard137(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   }
 
   bindLoginFlow();
@@ -474,6 +481,7 @@ function syncLegacyVisualStack114() {
   syncReleaseRoute134(document, route, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   syncVisualAssetRoute135(document, route, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   syncVisualAssetRoute136(document, route, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  syncPortraitGuard137(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   lockInitialViewport120(document, { appShell: document.querySelector<HTMLElement>('#app') });
 
   if (!document.body.classList.contains('legacy-visual-enabled-120')) return;
@@ -540,6 +548,7 @@ function bindTitleFlow() {
     syncReleaseRoute134(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncVisualAssetRoute135(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncVisualAssetRoute136(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+    syncPortraitGuard137(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
       goStep('login');
       markBootInteractive119(document);
       void audioService.unlock().then(() => {
@@ -4366,14 +4375,15 @@ document.addEventListener('visibilitychange', () => {
 });
 
 async function ensureFullscreen(forceToast = false) {
-  // Alpha 1.17: 모바일 브라우저가 전체화면 요청을 처리하면서 화면 방향이나 viewport를 바꾸는 사례가 있어
-  // 자동 전체화면 진입을 중단합니다. 게임은 실행 당시 캡처한 크기 그대로 유지합니다.
+  // 1.37: 카카오톡/인앱 브라우저에서는 requestFullscreen/screen.orientation.lock을 절대 호출하지 않는다.
+  syncPortraitGuard137(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   lockInitialViewport120(document, { appShell: document.querySelector<HTMLElement>('#app') });
-  if (forceToast) showToast('전체화면 전환 대신 실행 크기를 그대로 유지합니다.');
+  if (forceToast && !shouldSuppressViewportApi137(window)) showToast('전체화면 전환 대신 세로 게임 프레임을 유지합니다.');
 }
 
 async function lockPortraitMode() {
-  // Alpha 1.17: 방향 잠금/회전 요청 없음. 실행 당시 화면 크기를 viewportLock117이 유지합니다.
+  // 1.37: 방향 잠금 API 없이 CSS 세로 프레임만 유지한다.
+  syncPortraitGuard137(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   lockInitialViewport120(document, { appShell: document.querySelector<HTMLElement>('#app') });
 }
 
@@ -4716,6 +4726,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
   const release134 = inspectReleaseControl134(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const visual135 = inspectVisualAssetKit135(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const visual136 = inspectVisualAssetKit136(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  const portrait137 = inspectPortraitGuard137(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   titleEntryLastReport090 = titleHealth090.label;
   const rows: HealthTile087[] = [
     { label: '브랜드', value: 'Soul Online 고정', level: 'ok' },
@@ -4759,6 +4770,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     { label: '1.34 릴리즈/Actions', value: release134.message, level: release134.level, hint: release134.hint },
     { label: '1.35 레퍼런스 UI', value: visual135.message, level: visual135.level, hint: visual135.hint },
     { label: '1.36 레퍼런스 확장', value: visual136.message, level: visual136.level, hint: visual136.hint },
+    { label: '1.37 세로/인앱', value: portrait137.message, level: portrait137.level, hint: portrait137.hint },
     { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
     { label: '성능', value: perfHealth.label, level: perfHealth.level },
     { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },
@@ -4940,6 +4952,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
   const release134 = inspectReleaseControl134(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const visual135 = inspectVisualAssetKit135(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const visual136 = inspectVisualAssetKit136(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  const portrait137 = inspectPortraitGuard137(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   titleEntryLastReport090 = titleHealth090.label;
   const tiles: HealthTile087[] = [
     { label: '첫 화면', value: titleHealth090.label, level: titleHealth090.level, hint: titleHealth090.hint },
@@ -4980,6 +4993,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     { label: '1.34 릴리즈/Actions', value: release134.message, level: release134.level, hint: release134.hint },
     { label: '1.35 레퍼런스 UI', value: visual135.message, level: visual135.level, hint: visual135.hint },
     { label: '1.36 레퍼런스 확장', value: visual136.message, level: visual136.level, hint: visual136.hint },
+    { label: '1.37 세로/인앱', value: portrait137.message, level: portrait137.level, hint: portrait137.hint },
     { label: 'FPS', value: `${measuredFps} · ${perfHealth.label}`, level: perfHealth.level },
     { label: '저장 연결', value: cloudState, level: cloud.paused ? 'warn' : 'ok' },
     { label: 'UI 안전', value: document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상', level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok', hint: lastUiAuditMessage },

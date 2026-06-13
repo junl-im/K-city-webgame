@@ -1,9 +1,9 @@
 name: build
 
+# Firebase Hosting 운용 기준: 자동 Actions는 이 파일 하나만 사용한다.
+# pull_request 트리거는 push와 동시에 잡혀 2회 실행되는 경우가 있어 제거했다.
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
     branches: [ main, master ]
   workflow_dispatch:
 
@@ -37,7 +37,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-      - name: Verify package registry and workflow count
+      - name: Preflight workflow and registry
         run: |
           node --version
           npm --version
@@ -48,7 +48,9 @@ jobs:
           fi
           AUTO_COUNT=$(grep -R "^[[:space:]]*push:" .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null | wc -l | tr -d ' ')
           if [ "$AUTO_COUNT" -gt 1 ]; then
-            echo "::warning::Multiple push-triggered workflows detected. Firebase users should keep only build.yml automatic."
+            echo "Multiple push-triggered workflows detected. Keep only build.yml automatic for Firebase Hosting."
+            grep -R "^[[:space:]]*push:" .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null || true
+            exit 1
           fi
 
       - name: Clean npm state

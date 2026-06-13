@@ -1,0 +1,8 @@
+1.37 source patch만 덮어씌운 경우 반드시 삭제할 파일:
+
+.github/workflows/pages.yml
+.github/workflows/firebase-hosting-*.yml
+.github/workflows/deploy.yml
+.github/workflows/pages-build-deployment.yml
+
+전체 덮어쓰기 ZIP을 사용하면 pages.yml은 이미 제거되어 있습니다.

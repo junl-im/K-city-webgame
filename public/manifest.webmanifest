@@ -1,7 +1,7 @@
 {
   "name": "Soul Online Alpha",
   "short_name": "Soul Online",
-  "description": "소울 온라인 Alpha 1.10 - 모바일 웹 MMORPG 품질 유지/사냥터 HUD 안정화 빌드. PixiJS 8 필드, WebP Atlas, Firebase 저장, PWA를 검증합니다.",
+  "description": "소울 온라인 Alpha 1.37 - 세로 전용 인앱 브라우저 안정화 빌드. 고해상도 2.5D 에셋과 레퍼런스 UI를 유지합니다.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -18,5 +18,6 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "orientation": "portrait-primary"
 }

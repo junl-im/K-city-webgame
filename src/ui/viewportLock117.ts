@@ -1,3 +1,4 @@
+import { getPortraitFrame137 } from '../core/PortraitGuard';
 import type { HealthLevel } from './technicalHealth';
 
 export interface ViewportLockReport117 {
@@ -76,6 +77,16 @@ export function syncViewportLock117(root: Document = document, options: Viewport
 
 /** PixiJS 초기화에서도 같은 고정 크기를 쓰기 위한 안전한 getter입니다. */
 export function getLockedViewport117(root: Document = document) {
+  const frame137 = getPortraitFrame137(root);
+  if (root.body?.classList.contains('portrait-guard-137') || frame137.inApp || frame137.landscape) {
+    return {
+      width: frame137.width,
+      height: frame137.height,
+      dpr: Math.max(1, Math.min(window.devicePixelRatio || 1, 2)),
+      orientation: frame137.landscape ? 'portrait' as const : 'portrait' as const,
+      capturedAt: Date.now()
+    };
+  }
   if (!lockedViewport117) lockedViewport117 = captureViewport117(root);
   return { ...lockedViewport117 };
 }

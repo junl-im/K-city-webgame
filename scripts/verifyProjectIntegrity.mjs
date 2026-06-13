@@ -14,7 +14,9 @@ const requiredFiles = [
   'public/assets/ui/soul135/title-keyart-reference-135.webp',
   'public/assets/ui/soul135/town-showcase-blur-bg.webp',
   'public/assets/ui/soul136/title-card-polished-136.webp',
-  'public/assets/ui/soul136/town-hero-profile-clean-136.webp'
+  'public/assets/ui/soul136/town-hero-profile-clean-136.webp',
+  'src/core/PortraitGuard.ts',
+  'src/styles/alpha137.css'
 ];
 const problems = [];
 
@@ -33,8 +35,8 @@ for (const token of forbidden) {
 }
 
 if (!npmrc.includes('registry=https://registry.npmjs.org/')) problems.push('.npmrc registry is not npmjs');
-if (!sw.includes('soul-online-alpha-v1-36')) problems.push('service worker cache is not v1-36');
-if (pkg.version !== '1.36.0') problems.push(`package version is ${pkg.version}, expected 1.36.0`);
+if (!sw.includes('soul-online-alpha-v1-37')) problems.push('service worker cache is not v1-37');
+if (pkg.version !== '1.37.0') problems.push(`package version is ${pkg.version}, expected 1.37.0`);
 
 const assetDir = path.join(root, 'src/assets/2p5d');
 function countWebp(dir) {
@@ -61,7 +63,13 @@ if (fs.existsSync(workflowDir)) {
     if (hasPush || hasPullRequest) autoWorkflows.push(name);
   }
   if (autoWorkflows.length > 1) {
-    workflowWarnings.push(`multiple automatic workflows detected: ${autoWorkflows.join(', ')}`);
+    problems.push(`multiple automatic workflows detected: ${autoWorkflows.join(', ')}`);
+  }
+  for (const name of autoWorkflows) {
+    const text = fs.readFileSync(path.join(workflowDir, name), 'utf8');
+    if (/^\s*pull_request\s*:/m.test(text) || /^\s*-\s*pull_request\s*$/m.test(text)) {
+      problems.push(`pull_request trigger can duplicate Actions: ${name}`);
+    }
   }
 }
 
@@ -77,4 +85,4 @@ if (problems.length) {
 if (workflowWarnings.length) {
   for (const warning of workflowWarnings) console.warn(`[SoulOnline verifyProjectIntegrity] warning · ${warning}`);
 }
-console.log(`[SoulOnline verifyProjectIntegrity] ok · version ${pkg.version} · 2.5D assets ${highFidelityAssets} · ui135+ui136 reference kit`);
+console.log(`[SoulOnline verifyProjectIntegrity] ok · version ${pkg.version} · 2.5D assets ${highFidelityAssets} · ui135+ui136 reference kit · portrait137`);

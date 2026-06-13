@@ -1,0 +1,157 @@
+:root {
+  --soul-portrait-frame-w: min(100vw, 480px);
+  --soul-portrait-frame-h: 100dvh;
+  --soul-portrait-live-w: 100vw;
+  --soul-portrait-live-h: 100dvh;
+}
+
+html.portrait-guard-root-137,
+body.portrait-guard-137 {
+  width: 100%;
+  height: 100%;
+  overflow: hidden !important;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  background: #07172a;
+}
+
+body.portrait-guard-137 #app {
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: var(--soul-portrait-frame-w) !important;
+  height: var(--soul-portrait-frame-h) !important;
+  max-width: none !important;
+  max-height: none !important;
+  transform: translate3d(-50%, -50%, 0) !important;
+  transform-origin: center center !important;
+  overflow: hidden !important;
+  background: radial-gradient(circle at 50% 0%, #fff 0, #bfeeff 24%, #73bff8 60%, #ecf9ff 100%);
+  box-shadow: 0 18px 54px rgba(0, 24, 56, .28);
+  contain: layout paint size;
+}
+
+body.inapp-css-only-137,
+body.landscape-cage-137 {
+  background:
+    radial-gradient(circle at 50% 30%, rgba(80, 174, 255, .26), transparent 44%),
+    linear-gradient(180deg, #09233d, #04111f) !important;
+}
+
+body.inapp-css-only-137 #app,
+body.landscape-cage-137 #app {
+  border-radius: clamp(10px, 3vw, 22px);
+}
+
+body.portrait-guard-137 :is(.title-screen,.login-screen,.town-screen,#game-root) {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+}
+
+body.portrait-guard-137 .title-screen {
+  display: block;
+  z-index: 1;
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,34,78,.08) 54%, rgba(0,28,70,.18)),
+    url('/assets/ui/soul136/title-card-polished-136.webp') !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+
+body.portrait-guard-137 #startGameBtn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: 25 !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+body.portrait-guard-137 .title-mini-nav {
+  z-index: 24 !important;
+  pointer-events: auto !important;
+}
+
+body.prestart-login-120.portrait-guard-137 .title-screen,
+body.route-login-137 .title-screen {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.prestart-login-120.portrait-guard-137 .login-screen,
+body.route-login-137 .login-screen {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 2 !important;
+}
+
+body.route-title-137 .login-screen,
+body.route-title-137 .town-screen,
+body.route-title-137 #game-root,
+body.route-login-137 .town-screen,
+body.route-login-137 #game-root,
+body.route-town-137 .title-screen,
+body.route-town-137 .login-screen,
+body.route-field-137 .title-screen,
+body.route-field-137 .login-screen,
+body.route-field-137 .town-screen {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.route-title-137 .title-screen,
+body.route-town-137 .town-screen,
+body.route-field-137 #game-root {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+body.inapp-css-only-137 :is(.orientation-guard,.orientation-lock,.rotate-device,.landscape-block-105,.so108-portrait-warn) {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.inapp-css-only-137 #townFullscreenBtn,
+body.inapp-css-only-137 [data-action="fullscreen"],
+body.inapp-css-only-137 .fullscreen-btn {
+  display: none !important;
+}
+
+body.landscape-cage-137 .title-mini-nav {
+  top: 8px !important;
+  transform: translateX(-50%) scale(.92) !important;
+}
+
+body.landscape-cage-137 #startGameBtn {
+  bottom: max(12px, env(safe-area-inset-bottom)) !important;
+  min-height: 46px !important;
+  transform: translateX(-50%) scale(.94) !important;
+}
+
+body.landscape-cage-137 .login-screen {
+  overflow-y: auto !important;
+  scrollbar-width: none;
+}
+
+body.landscape-cage-137 .login-panel,
+body.landscape-cage-137 .login-panel-v3 {
+  transform: scale(.92);
+  transform-origin: top center;
+}
