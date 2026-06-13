@@ -12,17 +12,18 @@
     <meta name="x5-fullscreen" content="false" />
     <meta name="full-screen" content="no" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preload" as="image" href="/assets/ui/fantasy/title-keyvisual-060.webp" fetchpriority="high" />
     <meta name="description" content="소울 온라인 Alpha - 모바일 2.5D 웹 MMORPG 프로토타입" />
     <title>소울 온라인 Alpha</title>
-    <style id="soul-critical-125">
+    <style id="soul-critical-126">
       html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07172a;color:#fff;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
       #app{position:fixed;inset:0;margin:auto;width:100vw;height:100dvh;max-width:480px;overflow:hidden;background:linear-gradient(180deg,#8bdcff 0%,#5bb8ec 42%,#1f6f9e 70%,#082236 100%);}
       .login-screen.hidden,.town-screen.hidden{display:none!important;}
-      .title-screen{position:absolute;inset:0;display:block;overflow:hidden;text-align:center;}
-      .title-stage{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;}
-      .title-copy p,.title-kicker,.title-hero,.title-stage>small{display:none!important;}
-      .title-copy h1{font-size:clamp(42px,14vw,76px);line-height:.9;margin:0 0 16px;text-shadow:0 5px 24px rgba(0,42,74,.45);}
-      #startGameBtn{width:min(86vw,330px);min-height:58px;margin-top:min(28vh,220px);border-radius:999px;border:1px solid rgba(218,248,255,.92);background:linear-gradient(180deg,rgba(120,218,255,.78),rgba(20,92,137,.94));color:#f8fdff;font-weight:900;letter-spacing:.22em;box-shadow:0 12px 34px rgba(0,36,68,.42);}
+      .title-screen{position:absolute;inset:0;display:block;overflow:hidden;text-align:center;background:#7edbff url('/assets/ui/fantasy/title-keyvisual-060.webp') center/cover no-repeat;}
+      .title-stage{position:absolute;inset:0;min-height:100%;display:block;padding:0;box-sizing:border-box;pointer-events:none;}
+      .title-copy,.title-copy p,.title-kicker,.title-hero,.title-stage>small,.title-bg{display:none!important;}
+      .title-copy h1{display:none!important;}
+      #startGameBtn{width:min(88vw,326px);min-height:52px;margin:0;position:absolute;left:50%;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 38px);transform:translateX(-50%);border-radius:999px;border:1px solid rgba(226,249,255,.86);background:linear-gradient(180deg,rgba(166,231,255,.46),rgba(16,70,104,.78));color:#f8fdff;font-weight:950;letter-spacing:.22em;box-shadow:0 14px 32px rgba(0,31,58,.36),inset 0 2px 0 rgba(255,255,255,.36);}
       .title-mini-nav{position:absolute;left:50%;top:max(10px,env(safe-area-inset-top));transform:translateX(-50%);display:flex;gap:8px;align-items:center;justify-content:center;width:min(88vw,360px);padding:8px;border-radius:999px;background:rgba(7,36,64,.45);backdrop-filter:blur(10px);font-size:12px;}
       .title-mini-nav button{border:0;border-radius:999px;padding:8px 12px;background:rgba(255,255,255,.18);color:#fff;font-weight:800;}
 
@@ -36,11 +37,13 @@
       body.route-login-121 .title-screen,body.route-login-122 .title-screen{display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
       body.route-login-121 .login-screen,body.route-login-122 .login-screen{display:block!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;}
       body.route-title-121 .login-screen,body.route-title-121 .town-screen,body.route-title-122 .login-screen,body.route-title-122 .town-screen{display:none!important;}
+      body.route-title-126 .login-screen,body.route-title-126 .town-screen,body.route-login-126 .title-screen,body.route-login-126 .town-screen,body.route-town-126 .title-screen,body.route-town-126 .login-screen,body.route-field-126 .title-screen,body.route-field-126 .login-screen,body.route-field-126 .town-screen{display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
+      body.route-login-126 .login-screen,body.route-town-126 .town-screen,body.route-title-126 .title-screen{display:block!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;}
     </style>
     <script>
-      window.SOUL_ONLINE_BOOT_VERSION = '1.25.0';
+      window.SOUL_ONLINE_BOOT_VERSION = '1.27.0';
       window.SOUL_PRESTART_ROUTE_120 = 'title';
-      document.documentElement.classList.add('soul-preboot-119', 'soul-preboot-120', 'soul-preboot-121', 'soul-preboot-122', 'soul-preboot-124', 'soul-preboot-125');
+      document.documentElement.classList.add('soul-preboot-119', 'soul-preboot-120', 'soul-preboot-121', 'soul-preboot-122', 'soul-preboot-124', 'soul-preboot-125', 'soul-preboot-126', 'soul-preboot-127');
       window.addEventListener('error', function () { document.documentElement.classList.add('soul-preboot-error-119'); });
       (function () {
         var locked = false;
@@ -56,8 +59,8 @@
         function activateLogin() {
           lockSize();
           window.SOUL_PRESTART_ROUTE_120 = 'login';
-          document.body.classList.add('prestart-login-120', 'route-login-120', 'route-login-121', 'route-login-122');
-          document.body.classList.remove('route-title-120', 'route-title-121', 'route-title-122', 'route-title-119');
+          document.body.classList.add('prestart-login-120', 'route-login-120', 'route-login-121', 'route-login-122', 'route-login-126', 'route-login-127');
+          document.body.classList.remove('route-title-120', 'route-title-121', 'route-title-122', 'route-title-126', 'route-title-127', 'route-title-119');
           var title = document.getElementById('titleScreen');
           var login = document.getElementById('loginScreen');
           var town = document.getElementById('townScreen');
@@ -87,7 +90,7 @@
       })();
     </script>
   </head>
-  <body class="emergency-boot-119 recovery-kernel-120 polish-kernel-121 stability-kernel-122 field-load-polish-124 field-runtime-polish-125 standard-mode-119 standard-visual-121 boot-safe-122 no-legacy-stack-121 no-pet-116 route-title-120 route-title-121 route-title-122">
+  <body class="emergency-boot-119 recovery-kernel-120 polish-kernel-121 stability-kernel-122 field-load-polish-124 field-runtime-polish-125 runtime-polish-126 title-revival-127 standard-mode-119 standard-visual-121 boot-safe-122 no-legacy-stack-121 no-pet-116 route-title-120 route-title-121 route-title-122 route-title-126 route-title-127">
     <div id="app">
       <div id="game-root" class="game-root"></div>
 
@@ -111,7 +114,7 @@
             <span class="title-hero-rune rune-b"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn start-game-btn-098 start-game-btn-099 start-game-btn-101">TOUCH TO START</button>
-          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v1.25.0</span></div>
+          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v1.27.0</span></div>
           <small>영혼을 깨우고 루미나의 균열을 봉인하세요.</small>
         </div>
       </section>

@@ -1,0 +1,11 @@
+Soul Online Alpha 1.27
+
+- 첫 시작 화면을 0.60 계열 원화풍 키비주얼로 복구
+- title-keyvisual-060.webp를 첫 화면 단일 배경으로 고정
+- 첫 페인트에서도 보이도록 public preload 이미지 추가
+- 구형 타이틀 텍스트/히어로/룬/동행/글로우 레이어 숨김
+- 상단 루미나 원정대/BGM/버전 pill UI 복구
+- TOUCH TO START 버튼 하단 중앙 네온 글래스 스타일 복구
+- START 클릭 및 로그인 진입 안정화 흐름 유지
+- PWA 캐시 soul-online-alpha-v1-27 갱신
+- npm run build 통과

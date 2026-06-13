@@ -5,6 +5,8 @@ import './styles/alpha122.css';
 import './styles/alpha123.css';
 import './styles/alpha124.css';
 import './styles/alpha125.css';
+import './styles/alpha126.css';
+import './styles/alpha127.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
@@ -53,6 +55,8 @@ import { auditFieldCollision121, installPolishKernel121, inspectPolishKernel121,
 import { auditFieldCollision122, guardStartTap122, installStabilityKernel122, inspectStabilityKernel122, syncStabilityRoute122 } from './ui/stabilityKernel122';
 import { createFieldEntryController124, installFieldLoadPolish124, inspectFieldLoadPolish124, markFieldMounting124 } from './ui/fieldLoadPolish124';
 import { auditFieldUi125, beginFieldEntry125, finishFieldEntry125, installFieldRuntimePolish125, inspectFieldRuntimePolish125 } from './ui/fieldRuntimePolish125';
+import { installRuntimePolish126, inspectRuntimePolish126, syncRuntimeRoute126 } from './ui/runtimePolish126';
+import { installTitleRevival127, inspectTitleRevival127, repairTitleRevival127, syncTitleRevivalRoute127 } from './ui/titleRevival127';
 import { renderInventoryPanel111 } from './ui/InventoryUI';
 import { closeMenuWindow111, installMenuWindowMotion111, openMenuWindow111, syncMenuWindowSafeFrame111 } from './ui/MenuWindow';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
@@ -148,7 +152,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '1.25.0';
+const ALPHA_VERSION = '1.27.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -296,7 +300,7 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-119', 'fantasy-ui-120', 'fantasy-ui-121', 'fantasy-ui-122', 'fantasy-ui-124', 'fantasy-ui-125', 'emergency-boot-119', 'recovery-kernel-120', 'polish-kernel-121', 'stability-kernel-122', 'field-load-polish-124', 'field-runtime-polish-125', 'boot-critical-119', 'standard-mode-119', 'title-layout-116', 'no-pet-116');
+  document.body.classList.add('fantasy-ui-119', 'fantasy-ui-120', 'fantasy-ui-121', 'fantasy-ui-122', 'fantasy-ui-124', 'fantasy-ui-125', 'fantasy-ui-126', 'fantasy-ui-127', 'emergency-boot-119', 'recovery-kernel-120', 'polish-kernel-121', 'stability-kernel-122', 'field-load-polish-124', 'field-runtime-polish-125', 'runtime-polish-126', 'title-revival-127', 'boot-critical-119', 'standard-mode-119', 'title-layout-116', 'no-pet-116');
   titleScreen.classList.add('title-screen-098', 'title-art-099');
   loginScreen.classList.add('login-screen-098', 'login-art-099');
   townScreen.classList.add('town-screen-098', 'town-art-099');
@@ -308,6 +312,8 @@ async function boot() {
   installStabilityKernel122(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   installFieldLoadPolish124(document);
   installFieldRuntimePolish125(document);
+  installRuntimePolish126(document, { appShell: document.querySelector<HTMLElement>('#app'), gameRoot: root, titleScreen, loginScreen, townScreen, startButton: startGameBtn });
+  installTitleRevival127(document, { titleScreen, startButton: startGameBtn, titleAudioButton: titleAudioBtn });
   ensureTitleEntry090({ titleScreen, startButton: startGameBtn, loginScreen });
   bindTitleFlow();
   registerServiceWorker();
@@ -319,10 +325,14 @@ async function boot() {
     syncRecoveryRoute120(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncPolishRoute121(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncStabilityRoute122(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+    syncRuntimeRoute126(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), gameRoot: root, titleScreen, loginScreen, townScreen, startButton: startGameBtn });
+    syncTitleRevivalRoute127(document, 'login', { titleScreen, startButton: startGameBtn, titleAudioButton: titleAudioBtn });
   } else {
     syncRecoveryRoute120(document, 'title', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncPolishRoute121(document, 'title', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncStabilityRoute122(document, 'title', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+    syncRuntimeRoute126(document, 'title', { appShell: document.querySelector<HTMLElement>('#app'), gameRoot: root, titleScreen, loginScreen, townScreen, startButton: startGameBtn });
+    syncTitleRevivalRoute127(document, 'title', { titleScreen, startButton: startGameBtn, titleAudioButton: titleAudioBtn });
   }
 
   bindLoginFlow();
@@ -414,6 +424,8 @@ function syncLegacyVisualStack114() {
   syncRecoveryRoute120(document, route, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   syncPolishRoute121(document, route, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   syncStabilityRoute122(document, route, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  syncRuntimeRoute126(document, route, { appShell: document.querySelector<HTMLElement>('#app'), gameRoot: root, titleScreen, loginScreen, townScreen, startButton: startGameBtn });
+  syncTitleRevivalRoute127(document, route, { titleScreen, startButton: startGameBtn, titleAudioButton: titleAudioBtn });
   lockInitialViewport120(document, { appShell: document.querySelector<HTMLElement>('#app') });
 
   if (!document.body.classList.contains('legacy-visual-enabled-120')) return;
@@ -471,6 +483,8 @@ function bindTitleFlow() {
       showLoginNow120(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
       syncPolishRoute121(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
       syncStabilityRoute122(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+      syncRuntimeRoute126(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), gameRoot: root, titleScreen, loginScreen, townScreen, startButton: startGameBtn });
+      syncTitleRevivalRoute127(document, 'login', { titleScreen, startButton: startGameBtn, titleAudioButton: titleAudioBtn });
       goStep('login');
       markBootInteractive119(document);
       void audioService.unlock().then(() => {
@@ -483,6 +497,8 @@ function bindTitleFlow() {
       showLoginNow120(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
       syncPolishRoute121(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
       syncStabilityRoute122(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+      syncRuntimeRoute126(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), gameRoot: root, titleScreen, loginScreen, townScreen, startButton: startGameBtn });
+      syncTitleRevivalRoute127(document, 'login', { titleScreen, startButton: startGameBtn, titleAudioButton: titleAudioBtn });
     } finally {
       window.setTimeout(() => { titleStartBusy090 = false; }, 120);
     }
@@ -1231,6 +1247,8 @@ async function enterTown(save: PlayerSave, label = '마을로 이동 중') {
     syncRecoveryRoute120(document, 'town', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncPolishRoute121(document, 'town', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncStabilityRoute122(document, 'town', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+    syncRuntimeRoute126(document, 'town', { appShell: document.querySelector<HTMLElement>('#app'), gameRoot: root, titleScreen, loginScreen, townScreen, startButton: startGameBtn });
+    syncTitleRevivalRoute127(document, 'town', { titleScreen, startButton: startGameBtn, titleAudioButton: titleAudioBtn });
     syncLegacyVisualStack114();
     loadFullLegacyStyles121('town-opt-in');
   });
@@ -1266,6 +1284,8 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
       syncRecoveryRoute120(document, 'field', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
       syncPolishRoute121(document, 'field', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
       syncStabilityRoute122(document, 'field', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+    syncRuntimeRoute126(document, 'field', { appShell: document.querySelector<HTMLElement>('#app'), gameRoot: root, titleScreen, loginScreen, townScreen, startButton: startGameBtn });
+    syncTitleRevivalRoute127(document, 'field', { titleScreen, startButton: startGameBtn, titleAudioButton: titleAudioBtn });
       syncLegacyVisualStack114();
       loadFullLegacyStyles121('field-opt-in');
       setFieldZoneHud(zoneId);
@@ -1322,6 +1342,8 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
     if (pendingSave) renderTown(pendingSave);
     syncPolishRoute121(document, 'town', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncStabilityRoute122(document, 'town', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+    syncRuntimeRoute126(document, 'town', { appShell: document.querySelector<HTMLElement>('#app'), gameRoot: root, titleScreen, loginScreen, townScreen, startButton: startGameBtn });
+    syncTitleRevivalRoute127(document, 'town', { titleScreen, startButton: startGameBtn, titleAudioButton: titleAudioBtn });
     syncLegacyVisualStack114();
     showToast(error instanceof Error ? `사냥터 입장 실패: ${error.message}` : '사냥터 입장 실패');
   }
@@ -4603,6 +4625,8 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
   const stability122 = inspectStabilityKernel122(document);
   const fieldLoad124 = inspectFieldLoadPolish124(document);
   const fieldRuntime125 = inspectFieldRuntimePolish125(document);
+  const runtime126 = inspectRuntimePolish126(document);
+  const title127 = inspectTitleRevival127(document);
   titleEntryLastReport090 = titleHealth090.label;
   const rows: HealthTile087[] = [
     { label: '브랜드', value: 'Soul Online 고정', level: 'ok' },
@@ -4636,6 +4660,8 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     { label: '1.23 2.5D 복구', value: assetDelivery115.message, level: assetDelivery115.level, hint: assetDelivery115.hint },
     { label: '1.24 2.5D 로딩', value: fieldLoad124.message, level: fieldLoad124.level, hint: fieldLoad124.hint },
     { label: '1.25 필드 런타임', value: fieldRuntime125.message, level: fieldRuntime125.level, hint: fieldRuntime125.hint },
+    { label: '1.26 런타임 다듬기', value: runtime126.message, level: runtime126.level, hint: runtime126.hint },
+    { label: '1.27 시작 화면', value: title127.message, level: title127.level, hint: title127.hint },
     { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
     { label: '성능', value: perfHealth.label, level: perfHealth.level },
     { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },
@@ -4807,6 +4833,8 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
   const stability122 = inspectStabilityKernel122(document);
   const fieldLoad124 = inspectFieldLoadPolish124(document);
   const fieldRuntime125 = inspectFieldRuntimePolish125(document);
+  const runtime126 = inspectRuntimePolish126(document);
+  const title127 = inspectTitleRevival127(document);
   titleEntryLastReport090 = titleHealth090.label;
   const tiles: HealthTile087[] = [
     { label: '첫 화면', value: titleHealth090.label, level: titleHealth090.level, hint: titleHealth090.hint },
@@ -4837,6 +4865,8 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     { label: '1.23 2.5D 복구', value: assetDelivery115.message, level: assetDelivery115.level, hint: assetDelivery115.hint },
     { label: '1.24 2.5D 로딩', value: fieldLoad124.message, level: fieldLoad124.level, hint: fieldLoad124.hint },
     { label: '1.25 필드 런타임', value: fieldRuntime125.message, level: fieldRuntime125.level, hint: fieldRuntime125.hint },
+    { label: '1.26 런타임 다듬기', value: runtime126.message, level: runtime126.level, hint: runtime126.hint },
+    { label: '1.27 시작 화면', value: title127.message, level: title127.level, hint: title127.hint },
     { label: 'FPS', value: `${measuredFps} · ${perfHealth.label}`, level: perfHealth.level },
     { label: '저장 연결', value: cloudState, level: cloud.paused ? 'warn' : 'ok' },
     { label: 'UI 안전', value: document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상', level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok', hint: lastUiAuditMessage },

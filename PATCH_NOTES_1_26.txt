@@ -1,0 +1,13 @@
+Soul Online Alpha 1.26
+
+- 2.5D 고해상도 에셋 유지
+- 1.26 런타임 다듬기 커널 추가
+- title/login/town/field route 표시 보조 정리
+- #game-root 중복 canvas 자동 정리
+- 필드 입장 stuck 방지 watchdog 추가
+- 사냥터 입장 중 버튼 중복 입력 방지 보강
+- 필드 메뉴 버튼 중복 click listener 제거
+- 조이스틱/액션 버튼 충돌 보정 강화
+- 구형 펫/동행/룬/회전 가드 레이어 재등장 차단 유지
+- System Doctor에 1.26 런타임 다듬기 항목 추가
+- PWA 캐시 soul-online-alpha-v1-26 갱신

@@ -1,0 +1,125 @@
+:root.soul-runtime-polish-126 {
+  --soul-touch-gap-126: max(10px, env(safe-area-inset-bottom));
+}
+
+body.runtime-polish-126 {
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+}
+
+body.runtime-polish-126 #app {
+  width: var(--soul-locked-w-120, min(100vw, 480px));
+  height: var(--soul-locked-h-120, 100dvh);
+  max-width: 480px;
+  contain: layout paint style;
+}
+
+body.route-title-126 #loginScreen,
+body.route-title-126 #townScreen,
+body.route-login-126 #titleScreen,
+body.route-login-126 #townScreen,
+body.route-town-126 #titleScreen,
+body.route-town-126 #loginScreen,
+body.route-field-126 #titleScreen,
+body.route-field-126 #loginScreen,
+body.route-field-126 #townScreen {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.route-title-126 #titleScreen,
+body.route-login-126 #loginScreen,
+body.route-town-126 #townScreen {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+body.field-entry-busy-125 [data-zone-id],
+body.field-entry-busy-125 [data-town-zone-enter],
+body.field-entry-busy-125 .town-action-btn,
+body.field-entry-busy-125 .quick-action-btn {
+  pointer-events: none !important;
+  filter: saturate(.8) brightness(.92);
+}
+
+body.field-entry-busy-125 [data-zone-id]::after,
+body.field-entry-busy-125 [data-town-zone-enter]::after {
+  content: '입장 중';
+  position: absolute;
+  inset: auto 10px 10px auto;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(5, 20, 36, .72);
+  color: #e8fbff;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: -.02em;
+}
+
+body.field-entry-watchdog-125 .scene-transition strong::after,
+body.field-runtime-watchdog-126 .scene-transition strong::after {
+  content: ' · 복구 점검';
+  color: #fff5b8;
+}
+
+body.runtime-canvas-pruned-126 #game-root canvas {
+  transform: translateZ(0);
+}
+
+body.field-active.runtime-polish-126 .hud-top,
+body.field-active.runtime-polish-126 .target-card,
+body.field-active.runtime-polish-126 .field-quest-tracker,
+body.field-active.runtime-polish-126 .action-dock,
+body.field-active.runtime-polish-126 .joystick {
+  will-change: transform;
+}
+
+body.field-active.runtime-polish-126 .action-dock {
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(16px, calc(env(safe-area-inset-bottom) + 12px));
+  gap: 8px;
+}
+
+body.field-active.runtime-polish-126 .joystick {
+  left: max(14px, env(safe-area-inset-left));
+  bottom: max(18px, calc(env(safe-area-inset-bottom) + 16px));
+}
+
+body.field-collision-risk-125.runtime-polish-126 .action-dock {
+  transform: translateY(-8px) scale(.96);
+}
+
+body.field-collision-risk-125.runtime-polish-126 .joystick {
+  transform: scale(.94);
+  transform-origin: left bottom;
+}
+
+body.runtime-polish-126 .orientation-guard,
+body.runtime-polish-126 .rotate-guide,
+body.runtime-polish-126 [class*='companion'],
+body.runtime-polish-126 [class*='rune'],
+body.runtime-polish-126 .field-pet,
+body.runtime-polish-126 .town-lobby-pet-070,
+body.runtime-polish-126 .title-hero-glow {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+@media (max-width: 360px) {
+  body.field-active.runtime-polish-126 .hud-top {
+    transform: scale(.94);
+    transform-origin: top right;
+  }
+  body.field-active.runtime-polish-126 .field-quest-tracker {
+    max-width: 148px;
+  }
+  body.field-active.runtime-polish-126 .target-card {
+    max-width: 190px;
+  }
+}

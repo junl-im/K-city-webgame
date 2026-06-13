@@ -25,6 +25,7 @@ let lastUiAuditMessage125 = '필드 UI 검사 대기';
 let lastUiAuditCollisions125 = 0;
 let lastTouchRepairAt125 = 0;
 let lastError125 = '';
+let fieldEntryWatchdog125 = 0;
 
 const GHOST_SELECTOR_125 = [
   '.title-character-companion',
@@ -110,6 +111,18 @@ export function beginFieldEntry125(documentRef: Document, zoneName: string) {
   fieldEntryZone125 = zoneName || '사냥터';
   fieldEntryStartedAt125 = now;
   fieldEntryCompletedAt125 = 0;
+  if (fieldEntryWatchdog125) window.clearTimeout(fieldEntryWatchdog125);
+  fieldEntryWatchdog125 = window.setTimeout(() => {
+    if (!fieldEntryBusy125) return;
+    fieldEntryBusy125 = false;
+    fieldEntryCompletedAt125 = performance.now();
+    blockedEntries125 += 1;
+    lastError125 = 'field entry watchdog recovered';
+    documentRef.body.classList.remove('field-entry-busy-125', 'field-entry-watchdog-125');
+    documentRef.body.classList.add('field-entry-watchdog-125');
+    const recoverWin = documentRef.defaultView as SoulWindow125 | null;
+    if (recoverWin) recoverWin.SOUL_FIELD_ENTRY_BUSY_125 = false;
+  }, 45000);
   fieldEntryCount125 += 1;
   documentRef.body.classList.remove('field-entry-deduped-125', 'field-entry-failed-125');
   documentRef.body.classList.add('field-entry-busy-125');
@@ -125,8 +138,10 @@ export function beginFieldEntry125(documentRef: Document, zoneName: string) {
 
 export function finishFieldEntry125(documentRef: Document, ok = true) {
   fieldEntryBusy125 = false;
+  if (fieldEntryWatchdog125) window.clearTimeout(fieldEntryWatchdog125);
+  fieldEntryWatchdog125 = 0;
   fieldEntryCompletedAt125 = performance.now();
-  documentRef.body.classList.remove('field-entry-busy-125');
+  documentRef.body.classList.remove('field-entry-busy-125', 'field-entry-watchdog-125');
   documentRef.body.classList.toggle('field-entry-failed-125', !ok);
   documentRef.body.classList.toggle('field-entry-ready-125', ok);
   const win = documentRef.defaultView as SoulWindow125 | null;
