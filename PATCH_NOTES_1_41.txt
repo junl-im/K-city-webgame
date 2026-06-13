@@ -1,0 +1,11 @@
+Soul Online alpha 1.41
+
+- 첫 화면 응답 불능 가능성을 줄이기 위해 boot.ts를 1.41 기준으로 재정리
+- START 버튼을 투명 최상단 히트박스로 고정
+- TOUCH TO START 중복 장식/텍스트 제거
+- 타이틀 화면 세로 프레임 중앙 정렬 보정
+- 로그인 화면 전환 후 main.ts 지연 로드 유지
+- 카카오톡/인앱 브라우저에서 fullscreen/orientation API 무력화 유지
+- route-title/login/town/field 1.41 class 정리
+- PWA 캐시 soul-online-alpha-v1-41 갱신
+- 그래픽 품질, 2.5D 고해상도 에셋, 레퍼런스 UI 유지

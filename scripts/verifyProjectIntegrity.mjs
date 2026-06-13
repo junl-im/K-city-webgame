@@ -20,7 +20,8 @@ const requiredFiles = [
   'src/core/RuntimeSanity138.ts',
   'src/styles/alpha138.css',
   'src/boot.ts',
-  'src/styles/alpha140.css'
+  'src/styles/alpha140.css',
+  'src/styles/alpha141.css'
 ];
 const problems = [];
 
@@ -39,8 +40,8 @@ for (const token of forbidden) {
 }
 
 if (!npmrc.includes('registry=https://registry.npmjs.org/')) problems.push('.npmrc registry is not npmjs');
-if (!sw.includes('soul-online-alpha-v1-40')) problems.push('service worker cache is not v1-40');
-if (pkg.version !== '1.40.0') problems.push(`package version is ${pkg.version}, expected 1.40.0`);
+if (!sw.includes('soul-online-alpha-v1-41')) problems.push('service worker cache is not v1-41');
+if (pkg.version !== '1.41.0') problems.push(`package version is ${pkg.version}, expected 1.41.0`);
 
 const assetDir = path.join(root, 'src/assets/2p5d');
 function countWebp(dir) {
@@ -84,6 +85,13 @@ if (!fs.existsSync(workflowDir)) {
   if (!buildText.includes('FORCE_JAVASCRIPT_ACTIONS_TO_NODE24')) problems.push('build.yml must force Node24 action runtime');
 }
 
+const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+if (!indexHtml.includes('src="/src/boot.ts"')) problems.push('index.html must load /src/boot.ts');
+for (const stale of ['soul-portrait-preboot-137', 'soul-runtime-preboot-138', 'soul-critical-140']) {
+  if (indexHtml.includes(stale)) problems.push(`index.html still contains stale boot block: ${stale}`);
+}
+if (!indexHtml.includes('soul-critical-141')) problems.push('index.html missing soul-critical-141');
+
 const highFidelityAssets = countWebp(assetDir);
 if (highFidelityAssets < 4) problems.push('2.5D high fidelity assets look incomplete');
 
@@ -96,4 +104,4 @@ if (problems.length) {
 if (workflowWarnings.length) {
   for (const warning of workflowWarnings) console.warn(`[SoulOnline verifyProjectIntegrity] warning · ${warning}`);
 }
-console.log(`[SoulOnline verifyProjectIntegrity] ok · version ${pkg.version} · 2.5D assets ${highFidelityAssets} · clean workflow build-only · ui135+ui136 reference kit · portrait137+runtime138+boot140`);
+console.log(`[SoulOnline verifyProjectIntegrity] ok · version ${pkg.version} · 2.5D assets ${highFidelityAssets} · clean workflow build-only · ui135+ui136 reference kit · portrait141+runtime138+boot141`);
