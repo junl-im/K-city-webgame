@@ -46,7 +46,7 @@ export function installLoginConnection130(documentRef: Document, targets: LoginC
 
   documentRef.documentElement.classList.add('soul-login-recovery-130');
   documentRef.body.classList.add('fantasy-ui-130', 'login-connection-130', 'visual-quality-preserved-130');
-  documentRef.body.dataset.alphaVersion = '1.35.0';
+  documentRef.body.dataset.alphaVersion = '1.39.0';
 
   repairLoginButtons130(documentRef);
   ensureLoginFlowPage130(documentRef, 'login');

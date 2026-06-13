@@ -173,7 +173,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '1.38.0';
+const ALPHA_VERSION = '1.39.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -4781,7 +4781,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     { label: '1.35 레퍼런스 UI', value: visual135.message, level: visual135.level, hint: visual135.hint },
     { label: '1.36 레퍼런스 확장', value: visual136.message, level: visual136.level, hint: visual136.hint },
     { label: '1.37 세로/인앱', value: portrait137.message, level: portrait137.level, hint: portrait137.hint },
-    { label: '1.38 런타임 점검', value: runtime138.message, level: runtime138.level, hint: runtime138.hint },
+    { label: '1.39 클린 리셋', value: runtime138.message, level: runtime138.level, hint: runtime138.hint },
     { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
     { label: '성능', value: perfHealth.label, level: perfHealth.level },
     { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },
@@ -5006,7 +5006,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     { label: '1.35 레퍼런스 UI', value: visual135.message, level: visual135.level, hint: visual135.hint },
     { label: '1.36 레퍼런스 확장', value: visual136.message, level: visual136.level, hint: visual136.hint },
     { label: '1.37 세로/인앱', value: portrait137.message, level: portrait137.level, hint: portrait137.hint },
-    { label: '1.38 런타임 점검', value: runtime138.message, level: runtime138.level, hint: runtime138.hint },
+    { label: '1.39 클린 리셋', value: runtime138.message, level: runtime138.level, hint: runtime138.hint },
     { label: 'FPS', value: `${measuredFps} · ${perfHealth.label}`, level: perfHealth.level },
     { label: '저장 연결', value: cloudState, level: cloud.paused ? 'warn' : 'ok' },
     { label: 'UI 안전', value: document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상', level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok', hint: lastUiAuditMessage },

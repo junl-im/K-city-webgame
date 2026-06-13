@@ -114,7 +114,7 @@ export function installResiliencePlan133(documentRef: Document, targets: Resilie
 
   documentRef.documentElement.classList.add('soul-resilience-133');
   documentRef.body.classList.add('fantasy-ui-133', 'resilience-plan-133', 'visual-quality-preserved-133', 'firebase-freeplan-safe-133');
-  documentRef.body.dataset.alphaVersion = '1.35.0';
+  documentRef.body.dataset.alphaVersion = '1.39.0';
   documentRef.body.dataset.visualPolicy133 = 'high-fidelity-preserved';
 
   purgeStaleStorageFlags133();

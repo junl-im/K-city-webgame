@@ -116,7 +116,7 @@ export function installConnectionIntegrity129(documentRef: Document, context: Co
 
   documentRef.documentElement.classList.add('soul-connection-integrity-129');
   documentRef.body.classList.add('fantasy-ui-129', 'connection-integrity-129', 'visual-quality-preserved-129');
-  documentRef.body.dataset.alphaVersion = '1.35.0';
+  documentRef.body.dataset.alphaVersion = '1.39.0';
   removeVisualDowngradeState129(documentRef);
   purgeStaleFlags129();
   hardenTapTargets129(documentRef);

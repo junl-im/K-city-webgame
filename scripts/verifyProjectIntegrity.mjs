@@ -37,8 +37,8 @@ for (const token of forbidden) {
 }
 
 if (!npmrc.includes('registry=https://registry.npmjs.org/')) problems.push('.npmrc registry is not npmjs');
-if (!sw.includes('soul-online-alpha-v1-38')) problems.push('service worker cache is not v1-38');
-if (pkg.version !== '1.38.0') problems.push(`package version is ${pkg.version}, expected 1.38.0`);
+if (!sw.includes('soul-online-alpha-v1-39')) problems.push('service worker cache is not v1-39');
+if (pkg.version !== '1.39.0') problems.push(`package version is ${pkg.version}, expected 1.39.0`);
 
 const assetDir = path.join(root, 'src/assets/2p5d');
 function countWebp(dir) {
@@ -55,8 +55,15 @@ function countWebp(dir) {
 
 const workflowDir = path.join(root, '.github', 'workflows');
 const workflowWarnings = [];
-if (fs.existsSync(workflowDir)) {
-  const workflowFiles = fs.readdirSync(workflowDir).filter((name) => /\.ya?ml$/i.test(name));
+if (!fs.existsSync(workflowDir)) {
+  problems.push('missing .github/workflows directory');
+} else {
+  const workflowFiles = fs.readdirSync(workflowDir).filter((name) => /\.ya?ml$/i.test(name)).sort();
+  const extraWorkflows = workflowFiles.filter((name) => name !== 'build.yml');
+  if (!workflowFiles.includes('build.yml')) problems.push('missing .github/workflows/build.yml');
+  if (extraWorkflows.length > 0) {
+    problems.push(`clean reset allows only build.yml workflow; remove: ${extraWorkflows.join(', ')}`);
+  }
   const autoWorkflows = [];
   for (const name of workflowFiles) {
     const text = fs.readFileSync(path.join(workflowDir, name), 'utf8');
@@ -64,15 +71,15 @@ if (fs.existsSync(workflowDir)) {
     const hasPullRequest = /^\s*pull_request\s*:/m.test(text) || /^\s*-\s*pull_request\s*$/m.test(text);
     if (hasPush || hasPullRequest) autoWorkflows.push(name);
   }
-  if (autoWorkflows.length > 1) {
-    problems.push(`multiple automatic workflows detected: ${autoWorkflows.join(', ')}`);
+  if (autoWorkflows.length !== 1 || autoWorkflows[0] !== 'build.yml') {
+    problems.push(`exactly one automatic workflow is allowed: build.yml; detected: ${autoWorkflows.join(', ') || 'none'}`);
   }
-  for (const name of autoWorkflows) {
-    const text = fs.readFileSync(path.join(workflowDir, name), 'utf8');
-    if (/^\s*pull_request\s*:/m.test(text) || /^\s*-\s*pull_request\s*$/m.test(text)) {
-      problems.push(`pull_request trigger can duplicate Actions: ${name}`);
-    }
-  }
+  const buildText = fs.existsSync(path.join(workflowDir, 'build.yml'))
+    ? fs.readFileSync(path.join(workflowDir, 'build.yml'), 'utf8')
+    : '';
+  if (!buildText.includes('actions/checkout@v6')) problems.push('build.yml must use actions/checkout@v6');
+  if (!buildText.includes('actions/setup-node@v5')) problems.push('build.yml must use actions/setup-node@v5');
+  if (!buildText.includes('FORCE_JAVASCRIPT_ACTIONS_TO_NODE24')) problems.push('build.yml must force Node24 action runtime');
 }
 
 const highFidelityAssets = countWebp(assetDir);
@@ -87,4 +94,4 @@ if (problems.length) {
 if (workflowWarnings.length) {
   for (const warning of workflowWarnings) console.warn(`[SoulOnline verifyProjectIntegrity] warning · ${warning}`);
 }
-console.log(`[SoulOnline verifyProjectIntegrity] ok · version ${pkg.version} · 2.5D assets ${highFidelityAssets} · ui135+ui136 reference kit · portrait137+runtime138`);
+console.log(`[SoulOnline verifyProjectIntegrity] ok · version ${pkg.version} · 2.5D assets ${highFidelityAssets} · clean workflow build-only · ui135+ui136 reference kit · portrait137+runtime138`);

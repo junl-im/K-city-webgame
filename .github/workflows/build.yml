@@ -1,7 +1,8 @@
 name: build
 
-# Firebase Hosting 운용 기준: 자동 Actions는 이 파일 하나만 사용한다.
-# pull_request 트리거는 push와 동시에 잡혀 2회 실행되는 경우가 있어 제거했다.
+# Soul Online clean repository workflow.
+# Firebase Hosting 운용 기준: 자동 GitHub Actions는 이 파일 하나만 사용한다.
+# deploy.yml / pages.yml / firebase-hosting*.yml 같은 자동 workflow는 레포에서 삭제한다.
 on:
   push:
     branches: [ main, master ]
@@ -9,6 +10,16 @@ on:
 
 permissions:
   contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+  NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
+  NPM_CONFIG_AUDIT: 'false'
+  NPM_CONFIG_FUND: 'false'
+  NPM_CONFIG_PROGRESS: 'false'
+  NPM_CONFIG_FETCH_RETRIES: '5'
+  NPM_CONFIG_FETCH_RETRY_MINTIMEOUT: '20000'
+  NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT: '120000'
 
 concurrency:
   group: soul-online-build-${{ github.ref }}
@@ -18,47 +29,44 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    env:
-      NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
-      NPM_CONFIG_AUDIT: 'false'
-      NPM_CONFIG_FUND: 'false'
-      NPM_CONFIG_PROGRESS: 'false'
-      NPM_CONFIG_FETCH_RETRIES: '5'
-      NPM_CONFIG_FETCH_RETRY_MINTIMEOUT: '20000'
-      NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT: '120000'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '22.16.0'
-          cache: 'npm'
+          node-version-file: .nvmrc
+          cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Preflight workflow and registry
+      - name: Preflight repository cleanliness
+        shell: bash
         run: |
           node --version
           npm --version
           npm config set registry https://registry.npmjs.org/
-          if grep -R "applied-caas\|internal.api.openai.org" package-lock.json .npmrc; then
-            echo "Internal registry URL detected. Regenerate package-lock.json with npm registry."
+          echo "Workflow files:"
+          find .github/workflows -maxdepth 1 -type f -name '*.yml' -o -name '*.yaml' | sort || true
+          EXTRA_WORKFLOWS=$(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) ! -name 'build.yml' | wc -l | tr -d ' ')
+          if [ "$EXTRA_WORKFLOWS" -ne 0 ]; then
+            echo "Only .github/workflows/build.yml is allowed in the clean Firebase workflow setup."
+            find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) ! -name 'build.yml' -print
             exit 1
           fi
-          AUTO_COUNT=$(grep -R "^[[:space:]]*push:" .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null | wc -l | tr -d ' ')
-          if [ "$AUTO_COUNT" -gt 1 ]; then
-            echo "Multiple push-triggered workflows detected. Keep only build.yml automatic for Firebase Hosting."
-            grep -R "^[[:space:]]*push:" .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null || true
+          if grep -R "applied-caas\|internal.api.openai.org\|localhost:\|127.0.0.1:" package-lock.json .npmrc; then
+            echo "Forbidden registry URL detected. Regenerate package-lock.json with npm registry."
             exit 1
           fi
 
       - name: Clean npm state
+        shell: bash
         run: |
           npm cache verify || npm cache clean --force
           rm -rf node_modules
 
       - name: Install dependencies
+        shell: bash
         run: |
           npm ci --no-audit --no-fund --prefer-online || \
           (npm cache clean --force && rm -rf node_modules && npm ci --no-audit --no-fund --prefer-online --cache .npm-cache)

@@ -1,0 +1,10 @@
+Soul Online Alpha 1.39 Clean Repository Reset
+
+- 자동 GitHub Actions workflow를 build.yml 하나로 정리
+- pages.yml/deploy.yml 잔존으로 인한 중복 Actions 문제 차단
+- verifyProjectIntegrity에서 build.yml 외 workflow 감지 시 실패하도록 강화
+- actions/checkout@v6, actions/setup-node@v5로 갱신
+- FORCE_JAVASCRIPT_ACTIONS_TO_NODE24 적용
+- PWA 캐시 soul-online-alpha-v1-39 갱신
+- package version 1.39.0 갱신
+- 그래픽 품질/2.5D 고해상도 에셋/레퍼런스 UI 유지

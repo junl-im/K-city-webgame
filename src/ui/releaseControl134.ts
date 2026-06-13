@@ -118,7 +118,7 @@ export function installReleaseControl134(documentRef: Document, targets: Release
 
   documentRef.documentElement.classList.add('soul-release-control-134');
   documentRef.body.classList.add('fantasy-ui-134', 'release-control-134', 'visual-quality-preserved-134', 'firebase-freeplan-safe-134');
-  documentRef.body.dataset.alphaVersion = '1.35.0';
+  documentRef.body.dataset.alphaVersion = '1.39.0';
   documentRef.body.dataset.visualPolicy134 = 'high-fidelity-preserved';
   purgeStaleFlags134();
   stripQualityDowngrade134(documentRef);
