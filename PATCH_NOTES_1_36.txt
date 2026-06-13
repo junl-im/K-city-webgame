@@ -1,0 +1,11 @@
+Soul Online Alpha 1.36
+
+- 업로드된 UI 레퍼런스 2장을 다시 분석해 54개 WebP 조각 에셋 추가
+- public/assets/ui/soul136 및 src/assets/ui/soul136에 확장 키트 배치
+- 타이틀, 로그인, 서버 선택, 마을 HUD, 퀘스트, 인벤토리, 채팅, 필드 HUD/버튼에 레퍼런스 스타일 추가 적용
+- 이미지 안에 박힌 글자는 장식 배경으로만 쓰고 실제 UI 문구는 DOM 텍스트로 보정
+- visualAssetKit136 런타임 보정 모듈 추가
+- System Doctor에 1.36 레퍼런스 확장 진단 추가
+- verifyProjectIntegrity에서 1.36 핵심 에셋 존재 검사 추가
+- PWA 캐시 soul-online-alpha-v1-36 갱신
+- 그래픽 경량화 없음, 2.5D 고해상도 에셋 유지

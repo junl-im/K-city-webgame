@@ -12,7 +12,9 @@ const requiredFiles = [
   'src/main.ts',
   'src/assets/ui/title-keyvisual-060.webp',
   'public/assets/ui/soul135/title-keyart-reference-135.webp',
-  'public/assets/ui/soul135/town-showcase-blur-bg.webp'
+  'public/assets/ui/soul135/town-showcase-blur-bg.webp',
+  'public/assets/ui/soul136/title-card-polished-136.webp',
+  'public/assets/ui/soul136/town-hero-profile-clean-136.webp'
 ];
 const problems = [];
 
@@ -31,8 +33,8 @@ for (const token of forbidden) {
 }
 
 if (!npmrc.includes('registry=https://registry.npmjs.org/')) problems.push('.npmrc registry is not npmjs');
-if (!sw.includes('soul-online-alpha-v1-35')) problems.push('service worker cache is not v1-35');
-if (pkg.version !== '1.35.0') problems.push(`package version is ${pkg.version}, expected 1.35.0`);
+if (!sw.includes('soul-online-alpha-v1-36')) problems.push('service worker cache is not v1-36');
+if (pkg.version !== '1.36.0') problems.push(`package version is ${pkg.version}, expected 1.36.0`);
 
 const assetDir = path.join(root, 'src/assets/2p5d');
 function countWebp(dir) {
@@ -75,4 +77,4 @@ if (problems.length) {
 if (workflowWarnings.length) {
   for (const warning of workflowWarnings) console.warn(`[SoulOnline verifyProjectIntegrity] warning · ${warning}`);
 }
-console.log(`[SoulOnline verifyProjectIntegrity] ok · version ${pkg.version} · 2.5D assets ${highFidelityAssets} · ui135 reference kit`);
+console.log(`[SoulOnline verifyProjectIntegrity] ok · version ${pkg.version} · 2.5D assets ${highFidelityAssets} · ui135+ui136 reference kit`);

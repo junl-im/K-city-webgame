@@ -1,0 +1,468 @@
+:root {
+  --soul136-title-card: url('/assets/ui/soul136/title-card-polished-136.webp');
+  --soul136-reference-a: url('/assets/ui/soul136/reference-ui-board-a-136.webp');
+  --soul136-reference-b: url('/assets/ui/soul136/reference-town-board-b-136.webp');
+  --soul136-login-panel: url('/assets/ui/soul136/login-panel-soft-136.webp');
+  --soul136-server-panel: url('/assets/ui/soul136/server-panel-soft-136.webp');
+  --soul136-quest-clean: url('/assets/ui/soul136/quest-panel-clean-136.webp');
+  --soul136-inventory-clean: url('/assets/ui/soul136/inventory-panel-clean-136.webp');
+  --soul136-slot-grid: url('/assets/ui/soul136/inventory-slot-grid-136.webp');
+  --soul136-reward-clean: url('/assets/ui/soul136/reward-panel-clean-136.webp');
+  --soul136-level-clean: url('/assets/ui/soul136/levelup-panel-clean-136.webp');
+  --soul136-chat-clean: url('/assets/ui/soul136/chat-panel-clean-136.webp');
+  --soul136-action-wheel: url('/assets/ui/soul136/action-wheel-kit-136.webp');
+  --soul136-bottom-icons: url('/assets/ui/soul136/bottom-menu-icon-kit-136.webp');
+  --soul136-button-kit: url('/assets/ui/soul136/button-kit-clean-136.webp');
+  --soul136-start-button: url('/assets/ui/soul136/start-button-clean-136.webp');
+  --soul136-blue-button: url('/assets/ui/soul136/blue-button-clean-136.webp');
+  --soul136-gold-button: url('/assets/ui/soul136/gold-button-clean-136.webp');
+  --soul136-town-logo: url('/assets/ui/soul136/town-left-logo-136.webp');
+  --soul136-town-profile: url('/assets/ui/soul136/town-hero-profile-clean-136.webp');
+  --soul136-town-menu-grid: url('/assets/ui/soul136/town-menu-grid-clean-136.webp');
+  --soul136-town-quest-list: url('/assets/ui/soul136/town-quest-list-clean-136.webp');
+  --soul136-town-banner: url('/assets/ui/soul136/town-banner-clean-136.webp');
+  --soul136-town-chat: url('/assets/ui/soul136/town-chat-clean-136.webp');
+  --soul136-town-left-menu: url('/assets/ui/soul136/town-left-menu-136.webp');
+  --soul136-town-status: url('/assets/ui/soul136/town-status-bars-136.webp');
+  --soul136-town-stickers: url('/assets/ui/soul136/town-sticker-strip-136.webp');
+  --soul136-town-skills: url('/assets/ui/soul136/town-skill-row-136.webp');
+  --soul136-town-action-ring: url('/assets/ui/soul136/town-action-ring-136.webp');
+  --soul136-town-reward: url('/assets/ui/soul136/town-reward-toast-clean-136.webp');
+  --soul136-currency-bar: url('/assets/ui/soul136/currency-bar-136.webp');
+  --soul136-right-rail: url('/assets/ui/soul136/right-rail-icon-kit-136.webp');
+  --soul136-side-button: url('/assets/ui/soul136/side-menu-button-clean-136.webp');
+  --soul136-gold: #d6a348;
+  --soul136-gold-bright: #fff0b8;
+  --soul136-blue: #147fe0;
+  --soul136-blue-deep: #073c89;
+  --soul136-ink: #12396b;
+  --soul136-ink-soft: #315d8f;
+  --soul136-paper: rgba(255, 255, 255, .9);
+  --soul136-paper-strong: rgba(255, 255, 255, .96);
+  --soul136-line: rgba(205, 160, 74, .74);
+  --soul136-shadow: 0 18px 44px rgba(17, 62, 118, .22), inset 0 1px 0 rgba(255,255,255,.7);
+}
+
+body.fantasy-ui-136,
+body.visual-asset-kit-136 {
+  --panel-bg: rgba(255,255,255,.88);
+  --panel-border: var(--soul136-line);
+  color: var(--soul136-ink);
+  background: #e9f7ff;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.visual-quality-preserved-136 {
+  image-rendering: auto;
+}
+
+body.fantasy-ui-136 #app {
+  background: radial-gradient(circle at 50% 0%, #fff 0, #bfeeff 24%, #73bff8 60%, #ecf9ff 100%);
+}
+
+body.fantasy-ui-136 .title-screen,
+body.fantasy-ui-136 .title-screen.title-reference-135,
+body.fantasy-ui-136 .title-screen.title-reference-136 {
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,34,78,.08) 54%, rgba(0,28,70,.18)),
+    var(--soul136-title-card) !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  color: #fff;
+}
+
+body.fantasy-ui-136 .title-copy,
+body.fantasy-ui-136 .title-hero,
+body.fantasy-ui-136 .title-bg {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+body.fantasy-ui-136 .title-stage::after {
+  border-radius: 26px;
+  border: 1px solid rgba(255,255,255,.34);
+  box-shadow: inset 0 0 0 1px rgba(38,133,220,.18), inset 0 -150px 150px rgba(1,29,68,.12);
+}
+
+body.fantasy-ui-136 .title-mini-nav {
+  top: max(10px, env(safe-area-inset-top));
+  width: min(88vw, 360px);
+  min-height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.58);
+  background: linear-gradient(180deg, rgba(70,150,222,.76), rgba(15,68,128,.66));
+  box-shadow: 0 12px 26px rgba(16,66,126,.28), inset 0 1px 0 rgba(255,255,255,.48);
+  backdrop-filter: blur(16px) saturate(1.3);
+}
+
+body.fantasy-ui-136 #startGameBtn {
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 36px) !important;
+  width: min(78vw, 290px) !important;
+  min-height: 50px !important;
+  letter-spacing: .16em;
+  font-weight: 950;
+  border: 1px solid rgba(236,250,255,.92);
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(255,255,255,.34) 44%, transparent 56%) -180px 0/190px 100% no-repeat,
+    var(--soul136-start-button) center/100% 100% no-repeat,
+    linear-gradient(180deg, #64c7ff, #087ee1 54%, #053f9d) !important;
+  box-shadow: 0 16px 32px rgba(8,57,128,.36), 0 0 0 4px rgba(196,238,255,.18), inset 0 2px 0 rgba(255,255,255,.62) !important;
+  text-shadow: 0 2px 8px rgba(0,42,100,.45);
+}
+
+body.fantasy-ui-136 .login-screen {
+  background:
+    radial-gradient(circle at 50% 10%, rgba(255,255,255,.74), transparent 24%),
+    linear-gradient(180deg, rgba(237,249,255,.88), rgba(146,211,255,.38)),
+    var(--soul136-reference-b) center/cover no-repeat !important;
+}
+
+body.fantasy-ui-136 .login-panel,
+body.fantasy-ui-136 .login-panel-v3 {
+  width: min(92vw, 374px);
+  border-radius: 30px;
+  border: 1px solid rgba(207,161,72,.78);
+  background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(232,246,255,.74));
+  box-shadow: var(--soul136-shadow);
+  overflow: hidden;
+}
+
+body.fantasy-ui-136 .login-panel::before,
+body.fantasy-ui-136 .login-flow-card::before,
+body.fantasy-ui-136 .server-list::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .24;
+  background: var(--soul136-login-panel) center/cover no-repeat;
+  border-radius: inherit;
+}
+
+body.fantasy-ui-136 .login-panel > *,
+body.fantasy-ui-136 .login-flow-card > *,
+body.fantasy-ui-136 .server-list > * { position: relative; z-index: 1; }
+
+body.fantasy-ui-136 .login-flow-card,
+body.fantasy-ui-136 .login-lore-card,
+body.fantasy-ui-136 .world-card,
+body.fantasy-ui-136 .character-create-panel,
+body.fantasy-ui-136 .character-slot-list,
+body.fantasy-ui-136 .class-card,
+body.fantasy-ui-136 .server-card {
+  border: 1px solid var(--soul136-line) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(238,248,255,.83)) !important;
+  color: var(--soul136-ink) !important;
+  box-shadow: 0 10px 24px rgba(22, 76, 143, .14), inset 0 1px 0 rgba(255,255,255,.82) !important;
+}
+
+body.fantasy-ui-136 .server-list::before {
+  position: relative;
+  display: block;
+  height: 150px;
+  margin: 0 0 10px;
+  opacity: .92;
+  background: var(--soul136-server-panel) center/cover no-repeat;
+}
+
+body.fantasy-ui-136 .wide-action,
+body.fantasy-ui-136 button.asset-polished-135,
+body.fantasy-ui-136 button.asset-polished-136 {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px !important;
+  border: 1px solid rgba(202,158,72,.78) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.20), transparent 40%),
+    var(--soul136-gold-button) center/100% 100% no-repeat,
+    linear-gradient(180deg, #fff7d9, #efbd66 52%, #ae6e22) !important;
+  color: #153864 !important;
+  font-weight: 950 !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.52) !important;
+  box-shadow: 0 10px 20px rgba(49,83,130,.20), inset 0 1px 0 rgba(255,255,255,.72) !important;
+}
+
+body.fantasy-ui-136 .wide-action.primary,
+body.fantasy-ui-136 #serverNextBtn,
+body.fantasy-ui-136 #enterTownBtn,
+body.fantasy-ui-136 #connectCharacterBtn,
+body.fantasy-ui-136 [data-zone-id],
+body.fantasy-ui-136 .town-master-hunt-074,
+body.fantasy-ui-136 .town-premium-hunt-072 {
+  border-color: rgba(190,225,255,.82) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.22), transparent 45%),
+    var(--soul136-blue-button) center/100% 100% no-repeat,
+    linear-gradient(180deg, #65cfff, #1688e6 54%, #064eab) !important;
+  color: #fff !important;
+  text-shadow: 0 1px 8px rgba(0,35,90,.45) !important;
+}
+
+body.fantasy-ui-136 .wide-action.subtle {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.24), transparent),
+    url('/assets/ui/soul136/cancel-button-clean-136.webp') center/100% 100% no-repeat,
+    linear-gradient(180deg, #fff, #e5f0f9) !important;
+  color: #1c4b7c !important;
+}
+
+body.fantasy-ui-136 .town-screen,
+body.fantasy-ui-136 .town-reference-135,
+body.fantasy-ui-136 .town-reference-136 {
+  background:
+    linear-gradient(180deg, rgba(233,248,255,.20), rgba(19,90,148,.30)),
+    var(--soul136-reference-b) center/cover no-repeat !important;
+  color: var(--soul136-ink) !important;
+}
+
+body.fantasy-ui-136 .town-screen::before {
+  background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.04)) !important;
+  opacity: 1 !important;
+}
+
+body.fantasy-ui-136 .town-master-lobby-074,
+body.fantasy-ui-136 .town-premium-lobby-072,
+body.fantasy-ui-136 .town-game-lobby-070,
+body.fantasy-ui-136 .town-content-panel {
+  color: var(--soul136-ink) !important;
+}
+
+body.fantasy-ui-136 .town-master-player-074,
+body.fantasy-ui-136 .town-premium-profile-072,
+body.fantasy-ui-136 .town-lobby-profile-070 {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.76), rgba(239,249,255,.56)),
+    var(--soul136-town-profile) center/cover no-repeat !important;
+  border: 1px solid var(--soul136-line) !important;
+  box-shadow: var(--soul136-shadow) !important;
+}
+
+body.fantasy-ui-136 .town-master-wallet-074,
+body.fantasy-ui-136 .town-premium-currencies-072 {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.36), rgba(10,57,118,.16)),
+    var(--soul136-currency-bar) center/cover no-repeat !important;
+  border-color: rgba(255,231,176,.64) !important;
+}
+
+body.fantasy-ui-136 .town-master-hotspots-074,
+body.fantasy-ui-136 .town-premium-menu-grid-072,
+body.fantasy-ui-136 .town-premium-hotspots-072 {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.74), rgba(244,250,255,.52)),
+    var(--soul136-town-menu-grid) center/cover no-repeat !important;
+  border: 1px solid var(--soul136-line) !important;
+  box-shadow: var(--soul136-shadow) !important;
+}
+
+body.fantasy-ui-136 .town-master-hotspots-074 button,
+body.fantasy-ui-136 .town-premium-hotspots-072 button,
+body.fantasy-ui-136 .town-lobby-side-070 button,
+body.fantasy-ui-136 .town-master-bottom-074 button,
+body.fantasy-ui-136 .town-premium-bottom-072 button {
+  border-color: rgba(208,164,80,.66) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.78), rgba(238,246,255,.58)),
+    var(--soul136-side-button) center/100% 100% no-repeat !important;
+  color: var(--soul136-ink) !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.58) !important;
+}
+
+body.fantasy-ui-136 .town-master-quest-074,
+body.fantasy-ui-136 [data-town-lobby-quest-list],
+body.fantasy-ui-136 .town-lobby-quest-stack-070,
+body.fantasy-ui-136 .town-content-panel .quest-list,
+body.fantasy-ui-136 .town-panel.quest-panel {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.77), rgba(247,251,255,.65)),
+    var(--soul136-town-quest-list) center/cover no-repeat !important;
+  border: 1px solid var(--soul136-line) !important;
+  box-shadow: var(--soul136-shadow) !important;
+}
+
+body.fantasy-ui-136 .town-master-title-074,
+body.fantasy-ui-136 .town-premium-copy-072,
+body.fantasy-ui-136 .town-premium-banner-072 {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.54), rgba(233,246,255,.30)),
+    var(--soul136-town-banner) center/cover no-repeat !important;
+  border: 1px solid var(--soul136-line) !important;
+  box-shadow: var(--soul136-shadow) !important;
+}
+
+body.fantasy-ui-136 .town-master-brand-074,
+body.fantasy-ui-136 .town-premium-logo-072 {
+  background: var(--soul136-town-logo) center/contain no-repeat !important;
+}
+body.fantasy-ui-136 .town-master-brand-074 b,
+body.fantasy-ui-136 .town-master-brand-074 em,
+body.fantasy-ui-136 .town-premium-logo-072 b,
+body.fantasy-ui-136 .town-premium-logo-072 em { opacity: 0; }
+
+body.fantasy-ui-136 .town-master-bottom-074,
+body.fantasy-ui-136 .town-premium-bottom-072 {
+  border: 1px solid rgba(204,161,83,.66) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.82), rgba(232,245,255,.68)),
+    var(--soul136-bottom-icons) center/cover no-repeat !important;
+  box-shadow: var(--soul136-shadow) !important;
+}
+
+body.fantasy-ui-136 .sheet,
+body.fantasy-ui-136 .sheet-reference-135,
+body.fantasy-ui-136 .detail-modal,
+body.fantasy-ui-136 .item-detail-card,
+body.fantasy-ui-136 .town-content-panel,
+body.fantasy-ui-136 .town-panel,
+body.fantasy-ui-136 .content-card {
+  border: 1px solid var(--soul136-line) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.90), rgba(237,248,255,.78)),
+    var(--soul136-inventory-clean) center/cover no-repeat !important;
+  color: var(--soul136-ink) !important;
+  box-shadow: var(--soul136-shadow) !important;
+}
+
+body.fantasy-ui-136 .inventory-grid,
+body.fantasy-ui-136 .item-grid,
+body.fantasy-ui-136 .slot-grid {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.44), rgba(255,255,255,.10)),
+    var(--soul136-slot-grid) center/cover no-repeat !important;
+  border-radius: 16px;
+}
+
+body.fantasy-ui-136 .chat-panel,
+body.fantasy-ui-136 .town-chat,
+body.fantasy-ui-136 .combat-log {
+  border-color: rgba(210,168,87,.70) !important;
+  background:
+    linear-gradient(180deg, rgba(3,27,66,.66), rgba(6,36,82,.60)),
+    var(--soul136-town-chat) center/cover no-repeat !important;
+  color: #f7fbff !important;
+  box-shadow: 0 12px 28px rgba(6,28,62,.24), inset 0 1px 0 rgba(255,255,255,.22) !important;
+}
+
+body.fantasy-ui-136.route-field-136 :is(.target-card,.field-quest-tracker,.field-chain-meter,.field-minimap,.field-hud-shell-100,.field-hud,.quest-card) {
+  border: 1px solid rgba(213,169,86,.75) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.86), rgba(236,248,255,.70)),
+    var(--soul136-quest-clean) center/cover no-repeat !important;
+  color: var(--soul136-ink) !important;
+  box-shadow: 0 12px 30px rgba(19,63,121,.22), inset 0 1px 0 rgba(255,255,255,.72) !important;
+}
+
+body.fantasy-ui-136.route-field-136 .field-minimap {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.54), rgba(234,248,255,.35)),
+    var(--soul136-mobile-hud-map, url('/assets/ui/soul136/mobile-hud-map-136.webp')) center/cover no-repeat !important;
+}
+
+body.fantasy-ui-136.route-field-136 .joystick,
+body.fantasy-ui-136.route-field-136 .field-joystick-103,
+body.fantasy-ui-136.route-field-136 #joystick {
+  background:
+    radial-gradient(circle at 50% 44%, rgba(255,255,255,.72), rgba(113,184,242,.35) 42%, rgba(8,60,126,.42) 70%, rgba(9,31,76,.58)),
+    var(--soul136-action-wheel) center/contain no-repeat !important;
+  border: 1px solid rgba(250,226,166,.66) !important;
+  box-shadow: 0 12px 28px rgba(0,40,92,.24), inset 0 1px 0 rgba(255,255,255,.5) !important;
+}
+
+body.fantasy-ui-136.route-field-136 #attackBtn,
+body.fantasy-ui-136.route-field-136 .field-attack-103,
+body.fantasy-ui-136.route-field-136 .attack-button {
+  background:
+    radial-gradient(circle at 42% 35%, rgba(255,255,255,.9), rgba(95,194,255,.28) 30%, rgba(30,116,219,.56) 60%, rgba(9,41,106,.72)),
+    var(--soul136-town-action-ring) center/contain no-repeat !important;
+  color: #fffbe8 !important;
+  border-color: rgba(255,235,177,.70) !important;
+  box-shadow: 0 14px 30px rgba(0,45,103,.32), inset 0 1px 0 rgba(255,255,255,.44) !important;
+}
+
+body.fantasy-ui-136.route-field-136 .skill-dock button,
+body.fantasy-ui-136.route-field-136 .potion-dock button,
+body.fantasy-ui-136.route-field-136 .dock-btn {
+  border-color: rgba(246,221,160,.7) !important;
+  background:
+    radial-gradient(circle at 38% 28%, rgba(255,255,255,.78), rgba(83,181,255,.26) 34%, rgba(20,112,209,.58) 68%, rgba(6,42,100,.7)),
+    var(--soul136-town-skills) center/cover no-repeat !important;
+  color: #fff !important;
+}
+
+body.fantasy-ui-136 .reward-toast,
+body.fantasy-ui-136 .loot-toast,
+body.fantasy-ui-136 .toast,
+body.fantasy-ui-136 .soul-toast {
+  border: 1px solid rgba(211,166,76,.74) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.84), rgba(234,246,255,.70)),
+    var(--soul136-town-reward) center/cover no-repeat !important;
+  color: var(--soul136-ink) !important;
+  box-shadow: var(--soul136-shadow) !important;
+}
+
+body.fantasy-ui-136 .detail-modal.reward,
+body.fantasy-ui-136 .reward-modal,
+body.fantasy-ui-136 .loot-modal {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.82), rgba(235,247,255,.66)),
+    var(--soul136-reward-clean) center/cover no-repeat !important;
+}
+
+body.fantasy-ui-136 .levelup-modal,
+body.fantasy-ui-136 .level-up-card {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.62), rgba(16,81,166,.25)),
+    var(--soul136-level-clean) center/cover no-repeat !important;
+}
+
+body.fantasy-ui-136 .soul-design-badge-135,
+body.fantasy-ui-136 .soul-design-badge-136 {
+  border: 1px solid rgba(255,232,174,.66);
+  background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(229,244,255,.72));
+  color: #164576;
+  box-shadow: 0 8px 22px rgba(12,53,105,.18), inset 0 1px 0 rgba(255,255,255,.82);
+}
+
+body.fantasy-ui-136 .soul-design-badge-136 {
+  position: fixed;
+  left: max(10px, env(safe-area-inset-left));
+  bottom: calc(max(10px, env(safe-area-inset-bottom)) + 2px);
+  z-index: 1200;
+  max-width: min(86vw, 360px);
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 950;
+  pointer-events: none;
+  opacity: .92;
+}
+
+body.fantasy-ui-136 :is(h1,h2,h3,b,strong,.brand-block h1,.login-lore-card h2,.slot-headline b,.town-master-title-074 b,.town-premium-copy-072 b) {
+  color: #123d70;
+  text-shadow: 0 1px 0 rgba(255,255,255,.74);
+}
+
+body.fantasy-ui-136 :is(p,span,em,label,.login-flow-hint,.login-status) {
+  text-wrap: balance;
+}
+
+body.fantasy-ui-136 :is(button,.wide-action,[data-town-content],[data-zone-id]) {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.fantasy-ui-136 .pet-panel,
+body.fantasy-ui-136 [data-town-content="pet"],
+body.fantasy-ui-136 [data-legacy-visual="pet"] {
+  display: none !important;
+}
+
+@media (max-width: 430px) {
+  body.fantasy-ui-136 .login-panel,
+  body.fantasy-ui-136 .login-panel-v3 { width: min(94vw, 368px); padding: 12px; }
+  body.fantasy-ui-136 .server-list::before { height: 118px; }
+  body.fantasy-ui-136 .soul-design-badge-136 { font-size: 10px; opacity: .78; }
+  body.fantasy-ui-136.route-field-136 .field-quest-tracker { max-width: min(48vw, 176px) !important; }
+}
