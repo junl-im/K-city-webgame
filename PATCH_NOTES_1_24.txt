@@ -1,0 +1,11 @@
+Soul Online Alpha 1.24
+
+- 2.5D 고해상도 에셋 유지 상태에서 필드 입장 로딩 UX 개선
+- fieldLoadPolish124 커널 추가
+- 사냥터 로딩 진행률/느린 로딩 안내 표시
+- Pixi 텍스처 로딩 중 대형 시트마다 짧은 yield 추가
+- 캐릭터/몬스터 시트 품질은 유지, 일부 장식 프롭은 대표 fallback으로 대체
+- HUD/조이스틱/액션 버튼 충돌 보정 강화
+- 펫/동행/룬/구형 고스트 레이어 재등장 차단 유지
+- PWA 캐시 soul-online-alpha-v1-24 갱신
+- package version 1.24.0

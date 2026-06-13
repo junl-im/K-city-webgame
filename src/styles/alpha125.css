@@ -1,0 +1,155 @@
+/* Alpha 1.25: 안정화 다듬기
+   - 2.5D 고해상도 모드는 유지
+   - 사냥터 중복 입장, 버튼 중복 탭, HUD/조이스틱 충돌을 줄인다
+   - 구형 고스트 레이어 재등장을 마지막 CSS 레이어에서 차단한다 */
+
+body.field-runtime-polish-125 {
+  --so125-touch: 46px;
+  --so125-safe-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+body.field-entry-busy-125 #startGameBtn,
+body.field-entry-busy-125 .town-action-btn,
+body.field-entry-busy-125 .quick-action-btn,
+body.field-entry-busy-125 #returnTownBtn,
+body.field-entry-busy-125 #attackBtn,
+body.field-entry-busy-125 [data-skill-slot] {
+  pointer-events: none !important;
+}
+
+body.field-entry-busy-125 .scene-transition.show {
+  pointer-events: auto;
+}
+
+body.field-entry-busy-125 .scene-transition-label::after {
+  content: '\A고해상도 2.5D 에셋을 안정적으로 준비하는 중입니다';
+  display: block;
+  white-space: pre;
+  margin-top: 8px;
+  color: rgba(225, 248, 255, 0.78);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+body.field-entry-deduped-125 .scene-transition-label::after {
+  content: '\A이미 입장 처리 중입니다. 잠시만 기다려 주세요';
+}
+
+body.field-runtime-polish-125 button,
+body.field-runtime-polish-125 [role='button'],
+body.field-runtime-polish-125 .quick-action-btn,
+body.field-runtime-polish-125 .town-action-btn {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.field-active.field-runtime-polish-125 #attackBtn,
+body.field-active.field-runtime-polish-125 #inventoryBtn,
+body.field-active.field-runtime-polish-125 #cardsBtn,
+body.field-active.field-runtime-polish-125 #hpPotionBtn,
+body.field-active.field-runtime-polish-125 #mpPotionBtn,
+body.field-active.field-runtime-polish-125 [data-skill-slot] {
+  min-width: var(--so125-touch);
+  min-height: var(--so125-touch);
+}
+
+body.field-active.field-runtime-polish-125 #joystick {
+  max-width: min(31vw, 132px);
+  max-height: min(31vw, 132px);
+  transform-origin: left bottom;
+}
+
+body.field-active.field-runtime-polish-125 #returnTownBtn {
+  min-height: 38px;
+  z-index: 66;
+}
+
+body.field-active.field-runtime-polish-125 .action-dock,
+body.field-active.field-runtime-polish-125 .skill-dock {
+  z-index: 62;
+  transform-origin: right bottom;
+}
+
+body.field-active.field-runtime-polish-125 #targetCard {
+  max-width: min(48vw, 210px);
+  z-index: 54;
+}
+
+body.field-active.field-runtime-polish-125 #fieldQuestTracker,
+body.field-active.field-runtime-polish-125 .field-quest-tracker {
+  max-width: min(42vw, 176px);
+  z-index: 53;
+}
+
+body.field-collision-risk-125.field-active .action-dock {
+  transform: translate(-2px, -12px) scale(0.94) !important;
+}
+
+body.field-collision-risk-125.field-active .skill-dock {
+  transform: translate(-2px, -8px) scale(0.95) !important;
+}
+
+body.field-collision-risk-125.field-active #joystick {
+  transform: translate(-8px, -4px) scale(0.92) !important;
+}
+
+body.field-collision-risk-125.field-active #returnTownBtn {
+  transform: translateY(-6px) scale(0.96);
+}
+
+body.field-runtime-polish-125 .title-character-companion,
+body.field-runtime-polish-125 .town-lobby-pet-070,
+body.field-runtime-polish-125 .field-pet,
+body.field-runtime-polish-125 [class*='companion'],
+body.field-runtime-polish-125 [class*='rune'],
+body.field-runtime-polish-125 .orientation-guard,
+body.field-runtime-polish-125 .rotate-guide,
+body.field-runtime-polish-125 .legacy-visual-layer,
+body.field-runtime-polish-125 .title-hero-glow,
+body.field-runtime-polish-125 [data-legacy-layer='true'] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.field-ready-124.field-runtime-polish-125.field-active #game-root canvas {
+  filter: saturate(1.08) contrast(1.04) brightness(1.025);
+}
+
+@media (max-width: 360px) {
+  body.field-active.field-runtime-polish-125 #joystick {
+    max-width: 116px;
+    max-height: 116px;
+  }
+
+  body.field-active.field-runtime-polish-125 #targetCard {
+    max-width: 176px;
+  }
+
+  body.field-active.field-runtime-polish-125 #fieldQuestTracker,
+  body.field-active.field-runtime-polish-125 .field-quest-tracker {
+    max-width: 148px;
+  }
+
+  body.field-active.field-runtime-polish-125 #attackBtn,
+  body.field-active.field-runtime-polish-125 #inventoryBtn,
+  body.field-active.field-runtime-polish-125 #cardsBtn,
+  body.field-active.field-runtime-polish-125 #hpPotionBtn,
+  body.field-active.field-runtime-polish-125 #mpPotionBtn,
+  body.field-active.field-runtime-polish-125 [data-skill-slot] {
+    min-width: 42px;
+    min-height: 42px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.field-entry-busy-125 .scene-transition-label::after {
+    animation: none !important;
+  }
+
+  body.field-ready-124.field-runtime-polish-125.field-active #game-root canvas {
+    filter: saturate(1.04) contrast(1.02) brightness(1.02);
+  }
+}

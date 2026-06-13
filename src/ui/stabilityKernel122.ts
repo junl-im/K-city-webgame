@@ -64,7 +64,7 @@ export function installStabilityKernel122(documentRef: Document, targets: Stabil
 
   documentRef.documentElement.classList.add('soul-stability-122');
   documentRef.body.classList.add('fantasy-ui-122', 'stability-kernel-122', 'boot-safe-122', 'single-route-122', 'no-pet-116');
-  documentRef.body.dataset.alphaVersion = '1.23.0';
+  documentRef.body.dataset.alphaVersion = '1.25.0';
 
   stripBadBodyClasses122(documentRef);
   lockViewportOnce122(documentRef, targets);

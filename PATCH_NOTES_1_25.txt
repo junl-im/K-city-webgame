@@ -1,0 +1,10 @@
+Soul Online Alpha 1.25
+
+- 2.5D 고해상도 에셋 유지
+- 사냥터 입장 중복 실행 방지
+- SolGame 2.5D 텍스처 공유 캐시 추가
+- 필드 HUD/조이스틱/버튼 충돌 검사 throttling 강화
+- 펫/동행/룬/회전 가드/구형 고스트 레이어 재등장 차단 유지
+- System Doctor에 1.25 필드 런타임 항목 추가
+- PWA 캐시 soul-online-alpha-v1-25 갱신
+- package version 1.25.0

@@ -3,6 +3,8 @@ import './styles/alpha120.css';
 import './styles/alpha121.css';
 import './styles/alpha122.css';
 import './styles/alpha123.css';
+import './styles/alpha124.css';
+import './styles/alpha125.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
@@ -49,6 +51,8 @@ import { installEmergencyBoot119, inspectEmergencyBoot119, markBootFullyReady119
 import { installRecoveryKernel120, inspectRecoveryKernel120, lockInitialViewport120, showLoginNow120, syncRecoveryRoute120 } from './ui/recoveryKernel120';
 import { auditFieldCollision121, installPolishKernel121, inspectPolishKernel121, syncPolishRoute121 } from './ui/polishKernel121';
 import { auditFieldCollision122, guardStartTap122, installStabilityKernel122, inspectStabilityKernel122, syncStabilityRoute122 } from './ui/stabilityKernel122';
+import { createFieldEntryController124, installFieldLoadPolish124, inspectFieldLoadPolish124, markFieldMounting124 } from './ui/fieldLoadPolish124';
+import { auditFieldUi125, beginFieldEntry125, finishFieldEntry125, installFieldRuntimePolish125, inspectFieldRuntimePolish125 } from './ui/fieldRuntimePolish125';
 import { renderInventoryPanel111 } from './ui/InventoryUI';
 import { closeMenuWindow111, installMenuWindowMotion111, openMenuWindow111, syncMenuWindowSafeFrame111 } from './ui/MenuWindow';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
@@ -144,7 +148,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '1.23.0';
+const ALPHA_VERSION = '1.25.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -292,7 +296,7 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-119', 'fantasy-ui-120', 'fantasy-ui-121', 'fantasy-ui-122', 'emergency-boot-119', 'recovery-kernel-120', 'polish-kernel-121', 'stability-kernel-122', 'boot-critical-119', 'standard-mode-119', 'title-layout-116', 'no-pet-116');
+  document.body.classList.add('fantasy-ui-119', 'fantasy-ui-120', 'fantasy-ui-121', 'fantasy-ui-122', 'fantasy-ui-124', 'fantasy-ui-125', 'emergency-boot-119', 'recovery-kernel-120', 'polish-kernel-121', 'stability-kernel-122', 'field-load-polish-124', 'field-runtime-polish-125', 'boot-critical-119', 'standard-mode-119', 'title-layout-116', 'no-pet-116');
   titleScreen.classList.add('title-screen-098', 'title-art-099');
   loginScreen.classList.add('login-screen-098', 'login-art-099');
   townScreen.classList.add('town-screen-098', 'town-art-099');
@@ -302,6 +306,8 @@ async function boot() {
   installRecoveryKernel120(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   installPolishKernel121(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   installStabilityKernel122(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  installFieldLoadPolish124(document);
+  installFieldRuntimePolish125(document);
   ensureTitleEntry090({ titleScreen, startButton: startGameBtn, loginScreen });
   bindTitleFlow();
   registerServiceWorker();
@@ -1233,8 +1239,14 @@ async function enterTown(save: PlayerSave, label = '마을로 이동 중') {
 async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart = false) {
   const zone = zones.find((entry) => entry.id === zoneId) || zones[0];
   const zoneName = zone.title;
+  if (!beginFieldEntry125(document, zoneName)) {
+    showToast('사냥터 입장 처리 중입니다. 잠시만 기다려 주세요.');
+    return;
+  }
+  const fieldLoad124 = createFieldEntryController124(document, { zoneName, sceneLabel: sceneTransitionLabel });
   try {
     await withSceneTransition(`${zoneName} 입장 중`, async () => {
+      fieldLoad124.start();
       const prepared = saveService.validateSave(save);
       const entry = zone.entry || zones[0].entry;
       prepared.x = entry.x;
@@ -1268,22 +1280,30 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
         zoneId,
         zoneName,
         onLoadProgress: (loaded, total, key) => {
+          fieldLoad124.update(loaded, total, key);
           const isSheet = /Sheet$/.test(key);
           sceneTransitionLabel.textContent = `${zoneName} ${isSheet ? '2.5D 시트' : '에셋'} 로딩 ${loaded}/${total}`;
         }
       });
+      markFieldMounting124(document);
       await game.mount(root);
+      fieldLoad124.complete();
       game.onSnapshot((snapshot) => {
         latest = snapshot;
         pendingSave = snapshot.save;
         renderHud(snapshot);
-        auditFieldCollision121(document);
-        auditFieldCollision122(document);
+        auditFieldUi125(document, () => {
+          auditFieldCollision121(document);
+          auditFieldCollision122(document);
+        });
         if (sheetOpen) renderSheet();
       });
       showToast(`${zoneName} 입장`);
     });
+    finishFieldEntry125(document, true);
   } catch (error) {
+    finishFieldEntry125(document, false);
+    fieldLoad124.fail(error);
     console.error('[Field] enter failed', error);
     await releaseWakeLock();
     if (game) {
@@ -4581,6 +4601,8 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
   const boot119 = inspectEmergencyBoot119(document);
   const polish121 = inspectPolishKernel121(document);
   const stability122 = inspectStabilityKernel122(document);
+  const fieldLoad124 = inspectFieldLoadPolish124(document);
+  const fieldRuntime125 = inspectFieldRuntimePolish125(document);
   titleEntryLastReport090 = titleHealth090.label;
   const rows: HealthTile087[] = [
     { label: '브랜드', value: 'Soul Online 고정', level: 'ok' },
@@ -4612,6 +4634,8 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     { label: '1.21 다듬기', value: polish121.message, level: polish121.level, hint: polish121.hint },
     { label: '1.22 안정화', value: stability122.message, level: stability122.level, hint: stability122.hint },
     { label: '1.23 2.5D 복구', value: assetDelivery115.message, level: assetDelivery115.level, hint: assetDelivery115.hint },
+    { label: '1.24 2.5D 로딩', value: fieldLoad124.message, level: fieldLoad124.level, hint: fieldLoad124.hint },
+    { label: '1.25 필드 런타임', value: fieldRuntime125.message, level: fieldRuntime125.level, hint: fieldRuntime125.hint },
     { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
     { label: '성능', value: perfHealth.label, level: perfHealth.level },
     { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },
@@ -4781,6 +4805,8 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
   const singleVisual117 = inspectSingleVisualMode117(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const scene118 = inspectSceneStability118(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const stability122 = inspectStabilityKernel122(document);
+  const fieldLoad124 = inspectFieldLoadPolish124(document);
+  const fieldRuntime125 = inspectFieldRuntimePolish125(document);
   titleEntryLastReport090 = titleHealth090.label;
   const tiles: HealthTile087[] = [
     { label: '첫 화면', value: titleHealth090.label, level: titleHealth090.level, hint: titleHealth090.hint },
@@ -4809,6 +4835,8 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     { label: '1.18 장면 안정화', value: scene118.message, level: scene118.level, hint: scene118.hint },
     { label: '1.22 안정화', value: stability122.message, level: stability122.level, hint: stability122.hint },
     { label: '1.23 2.5D 복구', value: assetDelivery115.message, level: assetDelivery115.level, hint: assetDelivery115.hint },
+    { label: '1.24 2.5D 로딩', value: fieldLoad124.message, level: fieldLoad124.level, hint: fieldLoad124.hint },
+    { label: '1.25 필드 런타임', value: fieldRuntime125.message, level: fieldRuntime125.level, hint: fieldRuntime125.hint },
     { label: 'FPS', value: `${measuredFps} · ${perfHealth.label}`, level: perfHealth.level },
     { label: '저장 연결', value: cloudState, level: cloud.paused ? 'warn' : 'ok' },
     { label: 'UI 안전', value: document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상', level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok', hint: lastUiAuditMessage },

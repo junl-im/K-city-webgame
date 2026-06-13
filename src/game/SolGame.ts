@@ -70,6 +70,30 @@ type SolGameOptions = {
   onLoadProgress?: (loaded: number, total: number, key: string) => void;
 };
 
+
+type SoulTextureWindow125 = Window & {
+  SOUL_TEXTURE_CACHE_125?: { hits: number; loads: number; failures: number; size: number };
+};
+
+const sharedTextureCache125 = new Map<string, Promise<LoadedTexture>>();
+let sharedTextureHits125 = 0;
+let sharedTextureLoads125 = 0;
+let sharedTextureFailures125 = 0;
+
+function publishSharedTextureCache125() {
+  try {
+    const win = window as SoulTextureWindow125;
+    win.SOUL_TEXTURE_CACHE_125 = {
+      hits: sharedTextureHits125,
+      loads: sharedTextureLoads125,
+      failures: sharedTextureFailures125,
+      size: sharedTextureCache125.size
+    };
+  } catch {
+    // 브라우저 외 테스트 환경에서는 조용히 무시합니다.
+  }
+}
+
 type EliteAffixDefinition = {
   id: EliteAffixId;
   label: string;
@@ -914,6 +938,7 @@ export class SolGame {
         this.textures.set(key, texture);
         loaded += 1;
         this.options.onLoadProgress?.(loaded, required.length, String(key));
+        if (this.shouldYieldTextureLoad124(key, loaded)) await this.yieldTextureLoad124();
       }
     };
     await Promise.all(Array.from({ length: Math.min(concurrency, required.length) }, loadNext));
@@ -1027,6 +1052,11 @@ export class SolGame {
     const monsterIds = zoneMonsterIds[zoneId] || zones.find((zone) => zone.id === zoneId)?.monsterIds || zoneMonsterIds['slime-forest'];
     for (const monsterId of monsterIds) keep.add(this.monsterSheetTextureKey(monsterId));
     if (keep.has(name)) return false;
+    // Alpha 1.24: 2.5D 캐릭터/몬스터 품질은 유지하되, 장식 프롭은 대표 텍스처로 대체한다.
+    // 모든 프롭을 고해상도로 먼저 받으면 사냥터 최초 입장 때 모바일 브라우저가 멈칫할 수 있다.
+    // mustTexture()의 fallbackTextureKey107()가 대표 트리/바위/유적 텍스처를 대신 사용하므로 화면은 비지 않고 유지된다.
+    if (/^prop(Tree|Rock)(0[4-9]|10)$/.test(name) || /^prop(Chest|Torch)(0[2-5])$/.test(name)) return true;
+    if (/^prop(Flower|Road|CrystalBrazier|Rift|Camp|StoneSteps|Petal|SoulFlowers|HeroStatue|BossTotem|WaterReflection|PathTorch|Silk|Moon|Rune|AncientRoot|BattleScar|Holo|BossGate|Lantern|Treasure|Mana|StoneLamp|Royal|GoldWar|Candle|Marble|SoulFountain|HuntMarker)/.test(name)) return true;
     if (tier === 'lite' && (/^prop(Tree|Rock)\d+/.test(name) || /^prop(Chest|Torch)\d+/.test(name) || /^infernus/.test(name))) return true;
     if (tier === 'lite' && /^prop/.test(name)) return true;
     if (tier === 'balanced' && (/^prop(Tree|Rock)(0[6-9]|10)$/.test(name) || /^prop(Chest|Torch)(0[3-5])$/.test(name))) return true;
@@ -1045,11 +1075,49 @@ export class SolGame {
     return undefined;
   }
 
-  private async loadTextureWithFallback(_key: TextureKey, fallbackUrl: string) {
-    // Alpha 1.23: 2.5D 고해상도 단일 경로만 시도합니다.
-    // lite/full fallback 경쟁을 만들지 않아 장면 전환 중 다른 이미지가 겹쳐 보이는 일을 줄입니다.
-    return Assets.load<LoadedTexture>(fallbackUrl);
+  private async loadTextureWithFallback(key: TextureKey, fallbackUrl: string) {
+    // Alpha 1.25: 2.5D 고해상도 단일 경로는 유지하되, 사냥터 재입장 시 같은 시트를 다시 요청하지 않도록 공유 캐시를 둡니다.
+    // Pixi Assets에도 내부 캐시가 있지만, 여기서 한 번 더 막아두면 중복 입장/빠른 장면 전환 때 진행률과 네트워크 요청이 흔들리지 않습니다.
+    const cacheKey = `${String(key)}::${fallbackUrl}`;
+    const cached = sharedTextureCache125.get(cacheKey);
+    if (cached) {
+      sharedTextureHits125 += 1;
+      publishSharedTextureCache125();
+      return cached;
+    }
+
+    sharedTextureLoads125 += 1;
+    const request = Assets.load<LoadedTexture>(fallbackUrl);
+    sharedTextureCache125.set(cacheKey, request);
+    publishSharedTextureCache125();
+    try {
+      const texture = await request;
+      publishSharedTextureCache125();
+      return texture;
+    } catch (error) {
+      sharedTextureFailures125 += 1;
+      sharedTextureCache125.delete(cacheKey);
+      publishSharedTextureCache125();
+      throw error;
+    }
   }
+
+  private shouldYieldTextureLoad124(key: TextureKey, loaded: number) {
+    const name = String(key);
+    return /Sheet$/.test(name) || loaded % 6 === 0;
+  }
+
+  private yieldTextureLoad124() {
+    return new Promise<void>((resolve) => {
+      const win = window as Window & { scheduler?: { postTask?: (cb: () => void, options?: { priority?: string }) => Promise<unknown> } };
+      if (win.scheduler?.postTask) {
+        void win.scheduler.postTask(resolve, { priority: 'user-visible' }).catch(() => resolve());
+        return;
+      }
+      window.setTimeout(resolve, 0);
+    });
+  }
+
 
   private buildMap() {
     this.mapLayer.removeChildren();

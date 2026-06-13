@@ -1,0 +1,118 @@
+/* Alpha 1.24: 2.5D 복구 이후 다듬기
+   - 첫 화면은 가볍게 유지
+   - 사냥터 입장 중 고해상도 시트 로딩 상태를 명확히 표시
+   - 필드 진입 후 HUD/버튼 충돌과 오래된 고스트 레이어를 한 번 더 차단 */
+
+body.field-load-polish-124 {
+  --field-load-pct-124: 0%;
+}
+
+body.field-loading-124 .scene-transition.show::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: max(22px, calc(env(safe-area-inset-bottom) + 18px));
+  width: min(72vw, 320px);
+  height: 7px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, rgba(113, 226, 255, 0.95), rgba(255, 241, 166, 0.96)) 0 0 / var(--field-load-pct-124) 100% no-repeat,
+    rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 20px rgba(93, 215, 255, 0.32);
+}
+
+body.field-loading-124 .scene-transition-label {
+  max-width: min(84vw, 360px);
+  margin-inline: auto;
+  text-align: center;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+body.field-load-slow-124 .scene-transition-label::after {
+  content: '\A첫 입장만 조금 오래 걸릴 수 있어요';
+  white-space: pre;
+  display: block;
+  margin-top: 8px;
+  color: rgba(223, 245, 255, 0.76);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+body.field-load-very-slow-124 .scene-transition-label::after {
+  content: '\A네트워크가 느리면 2.5D 시트 로딩이 길어질 수 있습니다';
+  white-space: pre;
+}
+
+body.field-ready-124.field-active #game-root canvas {
+  image-rendering: auto;
+  filter: saturate(1.07) contrast(1.035) brightness(1.025);
+}
+
+body.field-active.field-load-polish-124 #returnTownBtn {
+  z-index: 64;
+}
+
+body.field-active.field-load-polish-124 .field-quest-tracker,
+body.field-active.field-load-polish-124 #fieldQuestTracker {
+  max-width: min(43vw, 176px);
+}
+
+body.field-active.field-load-polish-124 #targetCard {
+  max-width: min(48vw, 208px);
+}
+
+body.field-active.field-load-polish-124 .action-dock,
+body.field-active.field-load-polish-124 .skill-dock {
+  z-index: 60;
+}
+
+body.field-active.field-load-polish-124 #joystick {
+  z-index: 58;
+}
+
+body.field-collision-risk-122.field-load-polish-124 .action-dock {
+  transform: translateY(-10px) scale(0.96);
+  transform-origin: right bottom;
+}
+
+body.field-collision-risk-122.field-load-polish-124 #joystick {
+  transform: translateX(-6px) scale(0.94);
+  transform-origin: left bottom;
+}
+
+body.field-load-polish-124 .title-character-companion,
+body.field-load-polish-124 [class*='companion'],
+body.field-load-polish-124 [class*='rune'],
+body.field-load-polish-124 .orientation-guard,
+body.field-load-polish-124 .rotate-guide,
+body.field-load-polish-124 .legacy-visual-layer,
+body.field-load-polish-124 .title-hero-glow {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+@media (max-width: 360px) {
+  body.field-active.field-load-polish-124 .field-quest-tracker,
+  body.field-active.field-load-polish-124 #fieldQuestTracker {
+    max-width: 150px;
+    font-size: 11px;
+  }
+
+  body.field-active.field-load-polish-124 #targetCard {
+    max-width: 174px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.field-loading-124 .scene-transition.show::after {
+    box-shadow: none;
+  }
+
+  body.field-ready-124.field-active #game-root canvas {
+    filter: saturate(1.04) contrast(1.02) brightness(1.02);
+  }
+}
