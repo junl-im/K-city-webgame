@@ -1,0 +1,8 @@
+Soul Online Alpha 1.40
+- 첫 화면 응답 없음/터치 불능 복구
+- /src/boot.ts 경량 진입점 추가
+- main.ts는 START 이후 동적 로드
+- TOUCH TO START 중복 표시 제거: HTML 버튼은 투명 히트박스 처리
+- 앱 프레임 위쪽 쏠림 완화: top-fixed portrait frame 적용
+- 카카오톡/인앱 CSS-only portrait cage 정책 유지
+- 그래픽 품질 저하 없음

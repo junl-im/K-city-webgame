@@ -228,7 +228,7 @@
       })();
     </script>
     <script>
-      window.SOUL_ONLINE_BOOT_VERSION = '1.39.0';
+      window.SOUL_ONLINE_BOOT_VERSION = '1.40.0';
       window.SOUL_PRESTART_ROUTE_120 = 'title';
       document.documentElement.classList.add('soul-preboot-119', 'soul-preboot-120', 'soul-preboot-121', 'soul-preboot-122', 'soul-preboot-124', 'soul-preboot-125', 'soul-preboot-126', 'soul-preboot-127', 'soul-preboot-130', 'soul-preboot-133', 'soul-preboot-134', 'soul-preboot-135', 'soul-preboot-136', 'soul-preboot-137', 'soul-preboot-138');
       window.addEventListener('error', function () { document.documentElement.classList.add('soul-preboot-error-119'); });
@@ -319,8 +319,20 @@
     </script>
       <link rel="preload" as="image" href="/assets/ui/soul135/town-showcase-blur-bg.webp" />
     <link rel="preload" as="image" href="/assets/ui/soul135/login-ready-panel.webp" />
+
+    <style id="soul-critical-140">
+      html.soul-boot-gate-140,body.boot-gate-140{width:100%;height:100%;margin:0;overflow:hidden!important;background:#07172a;overscroll-behavior:none;touch-action:manipulation}
+      body.boot-gate-140 #app{position:fixed!important;left:50%!important;top:0!important;right:auto!important;bottom:auto!important;width:var(--soul-frame-w-140,min(100vw,480px))!important;height:var(--soul-frame-h-140,100dvh)!important;max-width:none!important;max-height:none!important;margin:0!important;transform:translate3d(-50%,0,0)!important;transform-origin:top center!important;overflow:hidden!important;contain:layout paint size;background:#74d7ff}
+      body.boot-gate-140 .title-screen{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;z-index:40!important;background:#82dcff url('/assets/ui/soul136/title-card-polished-136.webp') center/cover no-repeat!important;overflow:hidden!important}
+      body.boot-gate-140 .title-stage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;padding:0!important;margin:0!important;pointer-events:none!important}
+      body.boot-gate-140 :is(.title-copy,.title-copy *,.title-bg,.title-hero,.title-stage>small,.title-kicker,.title-mini-nav){display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+      body.boot-gate-140 #startGameBtn{display:block!important;position:absolute!important;left:50%!important;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 24px)!important;width:min(84vw,336px)!important;height:70px!important;min-height:70px!important;padding:0!important;margin:0!important;border:0!important;border-radius:999px!important;background:transparent!important;color:transparent!important;text-shadow:none!important;box-shadow:none!important;outline:none!important;transform:translate3d(-50%,0,0)!important;z-index:9999!important;pointer-events:auto!important;touch-action:manipulation!important;-webkit-tap-highlight-color:rgba(255,255,255,.16)}
+      body.boot-gate-140 #startGameBtn::before,body.boot-gate-140 #startGameBtn::after{content:none!important;display:none!important}
+      body.route-title-140 .login-screen,body.route-title-140 .town-screen,body.route-title-140 #game-root,body.route-login-140 .title-screen,body.route-login-140 .town-screen,body.route-login-140 #game-root{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+      body.route-login-140 .login-screen{display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;z-index:45!important}
+    </style>
   </head>
-  <body class="emergency-boot-119 recovery-kernel-120 polish-kernel-121 stability-kernel-122 field-load-polish-124 field-runtime-polish-125 runtime-polish-126 title-revival-127 standard-mode-119 standard-visual-121 boot-safe-122 no-legacy-stack-121 no-pet-116 route-title-120 route-title-121 route-title-122 route-title-126 route-title-127 route-title-133 route-title-134 route-title-135 route-title-136 route-title-137 resilience-plan-133 visual-quality-preserved-133 firebase-freeplan-safe-133 release-control-134 visual-quality-preserved-134 firebase-freeplan-safe-134 fantasy-ui-135 visual-asset-kit-135 visual-quality-preserved-135 fantasy-ui-136 visual-asset-kit-136 visual-quality-preserved-136 portrait-guard-137 portrait-cage-137 visual-quality-preserved-137 runtime-sanity-138 portrait-cage-138 visual-quality-preserved-138 route-title-137 route-title-138">
+  <body class="boot-gate-140 route-title-140 visual-quality-preserved-140 emergency-boot-119 recovery-kernel-120 polish-kernel-121 stability-kernel-122 field-load-polish-124 field-runtime-polish-125 runtime-polish-126 title-revival-127 standard-mode-119 standard-visual-121 boot-safe-122 no-legacy-stack-121 no-pet-116 route-title-120 route-title-121 route-title-122 route-title-126 route-title-127 route-title-133 route-title-134 route-title-135 route-title-136 route-title-137 resilience-plan-133 visual-quality-preserved-133 firebase-freeplan-safe-133 release-control-134 visual-quality-preserved-134 firebase-freeplan-safe-134 fantasy-ui-135 visual-asset-kit-135 visual-quality-preserved-135 fantasy-ui-136 visual-asset-kit-136 visual-quality-preserved-136 portrait-guard-137 portrait-cage-137 visual-quality-preserved-137 runtime-sanity-138 portrait-cage-138 visual-quality-preserved-138 route-title-137 route-title-138">
     <div id="app">
       <div id="game-root" class="game-root"></div>
 
@@ -344,7 +356,7 @@
             <span class="title-hero-rune rune-b"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn start-game-btn-098 start-game-btn-099 start-game-btn-101">TOUCH TO START</button>
-          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v1.39.0</span></div>
+          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v1.40.0</span></div>
           <small>영혼을 깨우고 루미나의 균열을 봉인하세요.</small>
         </div>
       </section>
@@ -934,6 +946,6 @@
       <div class="toast" id="toast"></div>
     </div>
 
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/boot.ts"></script>
   </body>
 </html>

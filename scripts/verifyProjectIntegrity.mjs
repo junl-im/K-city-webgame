@@ -18,7 +18,9 @@ const requiredFiles = [
   'src/core/PortraitGuard.ts',
   'src/styles/alpha137.css',
   'src/core/RuntimeSanity138.ts',
-  'src/styles/alpha138.css'
+  'src/styles/alpha138.css',
+  'src/boot.ts',
+  'src/styles/alpha140.css'
 ];
 const problems = [];
 
@@ -37,8 +39,8 @@ for (const token of forbidden) {
 }
 
 if (!npmrc.includes('registry=https://registry.npmjs.org/')) problems.push('.npmrc registry is not npmjs');
-if (!sw.includes('soul-online-alpha-v1-39')) problems.push('service worker cache is not v1-39');
-if (pkg.version !== '1.39.0') problems.push(`package version is ${pkg.version}, expected 1.39.0`);
+if (!sw.includes('soul-online-alpha-v1-40')) problems.push('service worker cache is not v1-40');
+if (pkg.version !== '1.40.0') problems.push(`package version is ${pkg.version}, expected 1.40.0`);
 
 const assetDir = path.join(root, 'src/assets/2p5d');
 function countWebp(dir) {
@@ -94,4 +96,4 @@ if (problems.length) {
 if (workflowWarnings.length) {
   for (const warning of workflowWarnings) console.warn(`[SoulOnline verifyProjectIntegrity] warning · ${warning}`);
 }
-console.log(`[SoulOnline verifyProjectIntegrity] ok · version ${pkg.version} · 2.5D assets ${highFidelityAssets} · clean workflow build-only · ui135+ui136 reference kit · portrait137+runtime138`);
+console.log(`[SoulOnline verifyProjectIntegrity] ok · version ${pkg.version} · 2.5D assets ${highFidelityAssets} · clean workflow build-only · ui135+ui136 reference kit · portrait137+runtime138+boot140`);

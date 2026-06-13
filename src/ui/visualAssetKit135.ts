@@ -106,7 +106,7 @@ export function installVisualAssetKit135(documentRef: Document, targets: VisualA
 
   documentRef.documentElement.classList.add('soul-visual-asset-kit-135');
   documentRef.body.classList.add('fantasy-ui-135', 'visual-asset-kit-135', 'visual-quality-preserved-135', 'ui-sheet-upgrade-135');
-  documentRef.body.dataset.alphaVersion = '1.39.0';
+  documentRef.body.dataset.alphaVersion = '1.40.0';
   documentRef.body.dataset.visualPolicy135 = 'reference-art-preserved';
   purgeStaleStorage135();
   stripDowngradeClasses135(documentRef);
@@ -233,8 +233,8 @@ function repairUserFacingText135(documentRef: Document, win: SoulWindow135) {
   }
   const versionNodes = Array.from(documentRef.querySelectorAll<HTMLElement>('.title-mini-nav span'));
   const version = versionNodes.find((node) => /^v\d+\.\d+\.\d+/.test((node.textContent || '').trim()));
-  if (version && version.textContent !== 'v1.39.0') {
-    version.textContent = 'v1.39.0';
+  if (version && version.textContent !== 'v1.40.0') {
+    version.textContent = 'v1.40.0';
     fixed += 1;
   }
   if (win.__soulVisualAssetKit135) win.__soulVisualAssetKit135.repairedTexts += fixed;

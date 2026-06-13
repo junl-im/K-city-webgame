@@ -32,7 +32,7 @@ type SoulWindow131 = Window & {
   };
 };
 
-const CURRENT_CACHE_131 = 'soul-online-alpha-v1-39';
+const CURRENT_CACHE_131 = 'soul-online-alpha-v1-40';
 let installed131 = false;
 let lastReport131: FirebaseFreePlanReport131 = {
   message: 'Firebase 무료 플랜 가드 대기',
@@ -54,7 +54,7 @@ export function installFirebaseFreePlanGuard131(documentRef: Document) {
   };
 
   documentRef.body.classList.add('firebase-free-plan-131', 'visual-quality-preserved-131');
-  documentRef.body.dataset.alphaVersion = '1.39.0';
+  documentRef.body.dataset.alphaVersion = '1.40.0';
   applyNetworkState131(documentRef);
 
   win.addEventListener('online', () => applyNetworkState131(documentRef), { passive: true });
