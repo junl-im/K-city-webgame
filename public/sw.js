@@ -1,4 +1,4 @@
-const CACHE_NAME = 'soul-online-alpha-v1-32';
+const CACHE_NAME = 'soul-online-alpha-v1-33';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
@@ -30,9 +30,15 @@ function isLargeMedia(url, request) {
   return /\.(png|jpe?g|webp|gif|avif|mp3|ogg|wav)(\?|$)/i.test(url.pathname);
 }
 
+function fetchWithTimeout133(request, options, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(request, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function networkFirstShell(request, fallbackUrl) {
   try {
-    const response = await fetch(request, { cache: 'no-store' });
+    const response = await fetchWithTimeout133(request, { cache: 'no-store' }, 3500);
     if (response && response.status === 200) {
       const copy = response.clone();
       caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)).catch(() => undefined);
@@ -55,6 +61,10 @@ async function cacheFirstImmutable(request) {
 }
 
 self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SOUL_SKIP_WAITING') {
+    self.skipWaiting();
+    return;
+  }
   if (event.data && event.data.type === 'SOUL_CLEAR_OLD_CACHES') {
     event.waitUntil(
       caches.keys().then((keys) => Promise.all(keys

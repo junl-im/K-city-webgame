@@ -1,0 +1,86 @@
+/* 1.33 visual-preserve resilience patch: 그래픽 품질은 유지하고 접속/캐시/대안책만 보강한다. */
+html.soul-resilience-133,
+body.resilience-plan-133 {
+  --soul-visual-policy-133: high-fidelity;
+  --soul-safe-bottom-133: max(10px, env(safe-area-inset-bottom));
+}
+
+body.resilience-plan-133 #titleScreen {
+  background-image: url('/assets/ui/fantasy/title-keyvisual-060.webp') !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+
+body.resilience-plan-133 #startGameBtn,
+body.resilience-plan-133 #guestLoginBtn,
+body.resilience-plan-133 #localLoginBtn,
+body.resilience-plan-133 #googleLoginBtn,
+body.resilience-plan-133 #serverNextBtn,
+body.resilience-plan-133 #characterNextBtn,
+body.resilience-plan-133 #connectCharacterBtn,
+body.resilience-plan-133 #newCharacterBtn {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.resilience-plan-133 #startGameBtn:disabled,
+body.resilience-plan-133 #guestLoginBtn:disabled,
+body.resilience-plan-133 #localLoginBtn:disabled,
+body.resilience-plan-133 #serverNextBtn:disabled,
+body.resilience-plan-133 #characterNextBtn:disabled,
+body.resilience-plan-133 #connectCharacterBtn:disabled {
+  opacity: .98 !important;
+  filter: none !important;
+  pointer-events: auto !important;
+}
+
+body.network-offline-133 #loginStatus::after {
+  content: ' · 오프라인 로컬 모드 사용 가능';
+  color: #b9f7ff;
+}
+
+body.route-title-133 #loginScreen,
+body.route-title-133 #townScreen,
+body.route-login-133 #titleScreen,
+body.route-login-133 #townScreen,
+body.route-town-133 #titleScreen,
+body.route-town-133 #loginScreen,
+body.route-field-133 #titleScreen,
+body.route-field-133 #loginScreen,
+body.route-field-133 #townScreen {
+  pointer-events: none !important;
+}
+
+body.route-login-133 #loginScreen,
+body.route-town-133 #townScreen,
+body.route-title-133 #titleScreen {
+  pointer-events: auto !important;
+}
+
+body.resilience-plan-133 #game-root canvas:not(:last-of-type) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+body.visual-quality-preserved-133 #game-root canvas {
+  image-rendering: auto !important;
+  filter: saturate(1.04) contrast(1.03);
+}
+
+body.firebase-freeplan-safe-133 .login-flow-card,
+body.firebase-freeplan-safe-133 .login-panel {
+  will-change: transform, opacity;
+}
+
+body.runtime-error-recovered-133 #loginStatus {
+  color: #fff7c2 !important;
+}
+
+@media (max-width: 360px) {
+  body.resilience-plan-133 #startGameBtn {
+    width: min(90vw, 320px) !important;
+    min-height: 50px !important;
+    bottom: calc(var(--soul-safe-bottom-133) + 30px) !important;
+  }
+}

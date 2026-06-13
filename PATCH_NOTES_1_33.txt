@@ -1,0 +1,9 @@
+Soul Online Alpha 1.33
+- 비주얼 보존형 초대규모 개선/대안책 보완 패치.
+- 1.27 시작 키비주얼과 2.5D 고해상도 에셋 유지.
+- 접속 실패/네트워크 지연 시 로컬 게스트 우회 보강.
+- Firebase 무료 플랜 대응: cloud read TTL 45초, read/write 실패 circuit breaker, 로컬 저장 우선.
+- 1.33 resilience kernel 추가: route 보정, 중복 canvas 정리, 구형 lite 플래그 제거, 로컬 save backup mirror.
+- GitHub Actions npm ci fallback 및 lockfile registry 검사 보강.
+- preflight 검증 스크립트 추가.
+- PWA 캐시 soul-online-alpha-v1-33.

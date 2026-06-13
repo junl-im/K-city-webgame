@@ -41,9 +41,9 @@
       body.route-login-126 .login-screen,body.route-town-126 .town-screen,body.route-title-126 .title-screen{display:block!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;}
     </style>
     <script>
-      window.SOUL_ONLINE_BOOT_VERSION = '1.30.0';
+      window.SOUL_ONLINE_BOOT_VERSION = '1.33.0';
       window.SOUL_PRESTART_ROUTE_120 = 'title';
-      document.documentElement.classList.add('soul-preboot-119', 'soul-preboot-120', 'soul-preboot-121', 'soul-preboot-122', 'soul-preboot-124', 'soul-preboot-125', 'soul-preboot-126', 'soul-preboot-127', 'soul-preboot-130');
+      document.documentElement.classList.add('soul-preboot-119', 'soul-preboot-120', 'soul-preboot-121', 'soul-preboot-122', 'soul-preboot-124', 'soul-preboot-125', 'soul-preboot-126', 'soul-preboot-127', 'soul-preboot-130', 'soul-preboot-133');
       window.addEventListener('error', function () { document.documentElement.classList.add('soul-preboot-error-119'); });
       (function () {
         var locked = false;
@@ -118,11 +118,19 @@
           fallbackAdvance('guestLoginBtn', 'login', 'server', 1800);
           fallbackAdvance('localLoginBtn', 'login', 'server', 800);
           fallbackAdvance('serverNextBtn', 'server', 'character', 1200);
+          window.setInterval(function () {
+            var buttons = document.querySelectorAll('#startGameBtn,#guestLoginBtn,#localLoginBtn,#serverNextBtn,#characterNextBtn,#connectCharacterBtn,#newCharacterBtn');
+            for (var k = 0; k < buttons.length; k += 1) { buttons[k].disabled = false; buttons[k].removeAttribute('aria-disabled'); }
+            try {
+              var roster = localStorage.getItem('sol-online-alpha-roster-v1');
+              if (roster) localStorage.setItem('sol-online-alpha-roster-v1-backup-133', roster);
+            } catch (e) {}
+          }, 6000);
         });
       })();
     </script>
   </head>
-  <body class="emergency-boot-119 recovery-kernel-120 polish-kernel-121 stability-kernel-122 field-load-polish-124 field-runtime-polish-125 runtime-polish-126 title-revival-127 standard-mode-119 standard-visual-121 boot-safe-122 no-legacy-stack-121 no-pet-116 route-title-120 route-title-121 route-title-122 route-title-126 route-title-127">
+  <body class="emergency-boot-119 recovery-kernel-120 polish-kernel-121 stability-kernel-122 field-load-polish-124 field-runtime-polish-125 runtime-polish-126 title-revival-127 standard-mode-119 standard-visual-121 boot-safe-122 no-legacy-stack-121 no-pet-116 route-title-120 route-title-121 route-title-122 route-title-126 route-title-127 route-title-133 resilience-plan-133 visual-quality-preserved-133 firebase-freeplan-safe-133">
     <div id="app">
       <div id="game-root" class="game-root"></div>
 
@@ -146,7 +154,7 @@
             <span class="title-hero-rune rune-b"></span>
           </div>
           <button id="startGameBtn" class="start-game-btn start-game-btn-098 start-game-btn-099 start-game-btn-101">TOUCH TO START</button>
-          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v1.30.0</span></div>
+          <div class="title-mini-nav"><span>루미나 원정대</span><button id="titleAudioBtn" type="button">BGM ON</button><span>v1.33.0</span></div>
           <small>영혼을 깨우고 루미나의 균열을 봉인하세요.</small>
         </div>
       </section>

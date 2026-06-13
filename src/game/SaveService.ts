@@ -89,6 +89,9 @@ export class SaveService {
   private cloudWriteQueued131 = 0;
   private lastRankingWriteAt131 = 0;
   private lastRankingPower131 = 0;
+  private cloudWriteFailures133 = 0;
+  private cloudReadPausedUntil133 = 0;
+  private cloudReadFailures133 = 0;
 
   async init() {
     try {
@@ -298,12 +301,15 @@ export class SaveService {
         updatedAt: Date.now()
       };
       this.cachedCloudDocAt131 = Date.now();
+      this.cloudWriteFailures133 = 0;
       this.lastCloudWriteError = '';
       return true;
     } catch (error) {
-      this.cloudWritePausedUntil = Date.now() + 30000;
+      this.cloudWriteFailures133 += 1;
+      const pauseMs133 = Math.min(120000, 30000 * Math.max(1, this.cloudWriteFailures133));
+      this.cloudWritePausedUntil = Date.now() + pauseMs133;
       this.lastCloudWriteError = error instanceof Error ? error.message : 'Cloud save failed';
-      console.warn('[Firebase] cloud save paused for 30s', error);
+      console.warn(`[Firebase] cloud save paused for ${Math.round(pauseMs133 / 1000)}s`, error);
       return false;
     }
   }
@@ -321,6 +327,9 @@ export class SaveService {
       writeSuccesses: this.cloudWriteSuccesses131,
       reads: this.cloudReadAttempts131,
       readCacheHits: this.cloudReadCacheHits131,
+      readPaused: now < this.cloudReadPausedUntil133,
+      readFailures: this.cloudReadFailures133,
+      writeFailures: this.cloudWriteFailures133,
       queuedCount: this.cloudWriteQueued131,
       mode: this.isOnline() ? 'cloud-local-first' : 'local-first'
     };
@@ -438,18 +447,31 @@ export class SaveService {
   private async readCloudDoc(): Promise<Record<string, any> | null> {
     if (!this.db || !this.user) return null;
     const now = Date.now();
-    if (this.cachedCloudDoc131 && now - this.cachedCloudDocAt131 < 15000) {
+    if (this.cachedCloudDoc131 && now - this.cachedCloudDocAt131 < 45000) {
       this.cloudReadCacheHits131 += 1;
       return this.cachedCloudDoc131;
     }
-    this.cloudReadAttempts131 += 1;
-    const sdk = await loadFirebaseSdk119();
-    const ref = sdk.doc(this.db, 'users', this.user.uid);
-    const snap = await timeout119(sdk.getDoc(ref), 2600, 'Cloud save read timeout');
-    const data = snap.exists() ? snap.data() : null;
-    this.cachedCloudDoc131 = data;
-    this.cachedCloudDocAt131 = Date.now();
-    return data;
+    if (!navigator.onLine || now < this.cloudReadPausedUntil133) {
+      if (this.cachedCloudDoc131) this.cloudReadCacheHits131 += 1;
+      return this.cachedCloudDoc131;
+    }
+    try {
+      this.cloudReadAttempts131 += 1;
+      const sdk = await loadFirebaseSdk119();
+      const ref = sdk.doc(this.db, 'users', this.user.uid);
+      const snap = await timeout119(sdk.getDoc(ref), 2600, 'Cloud save read timeout');
+      const data = snap.exists() ? snap.data() : null;
+      this.cachedCloudDoc131 = data;
+      this.cachedCloudDocAt131 = Date.now();
+      this.cloudReadFailures133 = 0;
+      return data;
+    } catch (error) {
+      this.cloudReadFailures133 += 1;
+      this.cloudReadPausedUntil133 = Date.now() + Math.min(120000, 30000 * Math.max(1, this.cloudReadFailures133));
+      this.lastCloudWriteError = error instanceof Error ? error.message : 'Cloud save read failed';
+      console.warn('[Firebase] cloud read deferred, cached/local roster will be used', error);
+      return this.cachedCloudDoc131;
+    }
   }
 
   private queueCloudSave131(save: PlayerSave, power: number) {

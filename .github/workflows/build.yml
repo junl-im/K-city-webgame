@@ -10,7 +10,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    env:
+      NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
+      NPM_CONFIG_AUDIT: 'false'
+      NPM_CONFIG_FUND: 'false'
+      NPM_CONFIG_PROGRESS: 'false'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,18 +27,20 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-      - name: Harden npm registry
+      - name: Verify lockfile registry
         run: |
+          node --version
           npm --version
           npm config set registry https://registry.npmjs.org/
-          npm config set audit false
-          npm config set fund false
-          npm config set fetch-retries 5
-          npm config set fetch-retry-mintimeout 20000
-          npm config set fetch-retry-maxtimeout 120000
+          if grep -R "applied-caas\|internal.api.openai.org" package-lock.json .npmrc; then
+            echo "Internal registry URL detected. Regenerate package-lock.json with npm registry."
+            exit 1
+          fi
 
       - name: Install dependencies
-        run: npm ci --no-audit --no-fund --prefer-online
+        run: |
+          npm ci --no-audit --no-fund --prefer-online || \
+          (npm cache clean --force && rm -rf node_modules && npm ci --no-audit --no-fund --prefer-online --cache .npm-cache)
 
       - name: Build
         run: npm run build

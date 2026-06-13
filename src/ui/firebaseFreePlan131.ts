@@ -9,6 +9,9 @@ export type FirebaseFreePlanStatus131 = {
   writeSuccesses?: number;
   reads?: number;
   readCacheHits?: number;
+  readPaused?: boolean;
+  readFailures?: number;
+  writeFailures?: number;
   mode?: string;
 };
 
@@ -29,7 +32,7 @@ type SoulWindow131 = Window & {
   };
 };
 
-const CURRENT_CACHE_131 = 'soul-online-alpha-v1-32';
+const CURRENT_CACHE_131 = 'soul-online-alpha-v1-33';
 let installed131 = false;
 let lastReport131: FirebaseFreePlanReport131 = {
   message: 'Firebase 무료 플랜 가드 대기',
@@ -51,7 +54,7 @@ export function installFirebaseFreePlanGuard131(documentRef: Document) {
   };
 
   documentRef.body.classList.add('firebase-free-plan-131', 'visual-quality-preserved-131');
-  documentRef.body.dataset.alphaVersion = '1.32.0';
+  documentRef.body.dataset.alphaVersion = '1.33.0';
   applyNetworkState131(documentRef);
 
   win.addEventListener('online', () => applyNetworkState131(documentRef), { passive: true });
@@ -87,6 +90,7 @@ export function inspectFirebaseFreePlan131(documentRef: Document, status?: Fireb
 
   if (!online) problems.push('오프라인 로컬 모드');
   if (paused) problems.push('클라우드 쓰기 일시 보류');
+  if (effective.readPaused) problems.push('클라우드 읽기 일시 보류');
   if (error) problems.push(`최근 오류 ${error}`);
   if (!swControlled) problems.push('서비스워커 제어 대기');
 
@@ -94,7 +98,7 @@ export function inspectFirebaseFreePlan131(documentRef: Document, status?: Fireb
     ? `write ${effective.writeSuccesses || 0}/${effective.writes}`
     : 'write 대기';
   const readInfo = typeof effective.reads === 'number'
-    ? `read ${effective.reads} · cache ${effective.readCacheHits || 0}`
+    ? `read ${effective.reads} · cache ${effective.readCacheHits || 0}${effective.readFailures ? ` · fail ${effective.readFailures}` : ''}`
     : 'read 대기';
   const queueInfo = queued
     ? `queue ${Math.max(0, Math.ceil((effective.nextWriteMs || 0) / 1000))}s`

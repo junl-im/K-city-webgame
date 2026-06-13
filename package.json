@@ -1,12 +1,13 @@
 {
   "name": "soul-online-alpha",
-  "version": "1.32.0",
+  "version": "1.33.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "node scripts/cleanupLegacySvg.mjs && tsc --noEmit && vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "build": "npm run preflight && node scripts/cleanupLegacySvg.mjs && tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "preflight": "node scripts/verifyProjectIntegrity.mjs"
   },
   "dependencies": {
     "firebase": "12.13.0",
