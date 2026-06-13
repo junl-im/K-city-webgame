@@ -1,0 +1,10 @@
+Soul Online Alpha 1.22
+
+- 1.22 안정화 커널 추가
+- START 버튼 중복 입력 방지
+- title/login/town/field 단일 장면 표시 보강
+- 화면 크기 고정 유지 보강
+- 회전 가드, 펫, 동행, 룬, 구형 고스트 레이어 재등장 차단
+- 필드 버튼 충돌 자동 보정 유지 및 호출 빈도 제한
+- System Doctor에 1.22 안정화 항목 추가
+- PWA 캐시 soul-online-alpha-v1-22 갱신

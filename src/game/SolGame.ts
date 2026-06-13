@@ -48,7 +48,7 @@ import { CombatSystem } from './CombatSystem';
 import { applyEquipmentResonance, equipmentResonanceEffects } from './equipmentResonance';
 import { HUMANOID_SHEET_META, MONSTER_SHEET_META, SpriteSheetAnimator, directionFromIsoVector, type SpriteDirection } from './SpriteSheetAnimator';
 import { detectFieldEngineTier105, getFieldEngineProfile105 } from './fieldEngineProfile105';
-import { getTexturePriority106, inspectFieldSpriteAtlas106 } from './fieldSpriteBudget106';
+import { getTexturePriority106, inspectFieldSpriteAtlas106, type SpriteAtlasMode106 } from './fieldSpriteBudget106';
 import { getLockedViewport117 } from '../ui/viewportLock117';
 
 type MobView = {
@@ -257,7 +257,7 @@ export class SolGame {
   private fxBudgetWindow101 = 0;
   private fxBudgetCount101 = 0;
   private hiddenMobFrame101 = 0;
-  private spriteAtlasMode106: 'standard' = 'standard';
+  private spriteAtlasMode106: SpriteAtlasMode106 = 'standard-2p5d';
   private autoRouteIndex110 = 0;
   private autoRouteCooldown110 = 0;
   private cleanupHandlers113: Array<() => void> = [];
@@ -295,7 +295,7 @@ export class SolGame {
       isLite: () => this.isFieldLite101()
     });
 
-    this.spriteAtlasMode106 = 'standard';
+    this.spriteAtlasMode106 = 'standard-2p5d';
     await this.loadTextures();
     this.buildMap();
     this.spawnMobs();
@@ -976,7 +976,7 @@ export class SolGame {
     try { return window.localStorage.getItem(key) === '1'; } catch { return false; }
   }
 
-  /** Alpha 1.17: 런타임 풀팩/라이트팩 분기를 제거하고 textureUrls의 단일 표준 경로만 사용합니다. */
+  /** Alpha 1.23: 런타임 풀팩/라이트팩 분기는 제거하고, textureUrls의 2.5D 단일 표준 경로만 사용합니다. */
   private shouldTryRuntimeTexture115(_runtimeUrl: string | undefined, _fallbackUrl: string) {
     return false;
   }
@@ -1046,8 +1046,8 @@ export class SolGame {
   }
 
   private async loadTextureWithFallback(_key: TextureKey, fallbackUrl: string) {
-    // Alpha 1.17: 저화질/고화질/풀팩 fallback 경쟁을 제거합니다.
-    // 한 텍스처 키는 한 URL만 시도하므로, 로딩 중 서로 다른 이미지가 겹쳐 보이는 일을 줄입니다.
+    // Alpha 1.23: 2.5D 고해상도 단일 경로만 시도합니다.
+    // lite/full fallback 경쟁을 만들지 않아 장면 전환 중 다른 이미지가 겹쳐 보이는 일을 줄입니다.
     return Assets.load<LoadedTexture>(fallbackUrl);
   }
 

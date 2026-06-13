@@ -1,0 +1,39 @@
+/* Alpha 1.23: 2.5D 고해상도 에셋 복구 보정
+   첫 화면은 1.20~1.22 복구 커널의 가벼운 부팅 경로를 유지하고,
+   필드 진입 이후에만 고해상도 시트 로딩 상태를 시각적으로 표시한다. */
+
+body.asset-2p5d-standard-123 {
+  --so-asset-mode-123: '2.5D';
+}
+
+body.field-active.asset-2p5d-standard-123 .scene-transition-label::after {
+  content: ' · 2.5D';
+  color: rgba(164, 223, 255, 0.92);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+body.field-active.asset-2p5d-standard-123 #root canvas,
+body.field-active.asset-2p5d-standard-123 .pixi-layer canvas {
+  image-rendering: auto;
+  filter: saturate(1.08) contrast(1.04) brightness(1.03);
+}
+
+body.field-active.asset-2p5d-standard-123 #targetCard,
+body.field-active.asset-2p5d-standard-123 .hud-top,
+body.field-active.asset-2p5d-standard-123 .action-dock,
+body.field-active.asset-2p5d-standard-123 .joystick {
+  backdrop-filter: blur(14px) saturate(1.18);
+}
+
+body.asset-2p5d-standard-123 .system-doctor-panel [data-health-label='1.15 에셋 배포'],
+body.asset-2p5d-standard-123 .tech-health-panel [data-health-label='1.15 에셋 배포'] {
+  outline: 1px solid rgba(120, 214, 255, 0.42);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.field-active.asset-2p5d-standard-123 #root canvas,
+  body.field-active.asset-2p5d-standard-123 .pixi-layer canvas {
+    filter: saturate(1.04) contrast(1.02) brightness(1.02);
+  }
+}

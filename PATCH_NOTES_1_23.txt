@@ -1,0 +1,13 @@
+Soul Online Alpha 1.23
+
+핵심:
+- 기존 2.5D 고해상도 캐릭터/몬스터 시트 복구
+- soulpack-lite 중심 배포에서 2.5D 단일 표준 atlas로 변경
+- 저화질/고화질 자동 전환은 계속 제거
+- 첫 화면/START 경로는 가볍게 유지, 필드 진입 시점에만 2.5D 시트 로드
+- 필드 렌더 선명도 보정: DPR 1.0 기준, antialias 활성화
+- System Doctor에 1.23 2.5D 복구 표시
+- PWA 캐시 soul-online-alpha-v1-23 갱신
+
+빌드:
+- npm run build 통과

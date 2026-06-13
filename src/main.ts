@@ -1,6 +1,8 @@
 import './styles/alpha119.css';
 import './styles/alpha120.css';
 import './styles/alpha121.css';
+import './styles/alpha122.css';
+import './styles/alpha123.css';
 import { MAP_H, MAP_W, MAX_ENHANCE_LEVEL, SKILL_MAX_LEVEL, cardSets, cards, classes, dailyQuests, enhancementCost, expToNext, items, monsters, pledgeExpToNext, skillMasteryCost, skills, souls, storyQuests, zones } from './data/gameData';
 import { MAX_CHARACTER_SLOTS, SaveService } from './game/SaveService';
 import { audioService } from './game/AudioService';
@@ -46,6 +48,7 @@ import { installSceneStability118, syncSceneStability118, inspectSceneStability1
 import { installEmergencyBoot119, inspectEmergencyBoot119, markBootFullyReady119, markBootInteractive119, runIdleBatch119, syncEmergencyScene119 } from './ui/emergencyBoot119';
 import { installRecoveryKernel120, inspectRecoveryKernel120, lockInitialViewport120, showLoginNow120, syncRecoveryRoute120 } from './ui/recoveryKernel120';
 import { auditFieldCollision121, installPolishKernel121, inspectPolishKernel121, syncPolishRoute121 } from './ui/polishKernel121';
+import { auditFieldCollision122, guardStartTap122, installStabilityKernel122, inspectStabilityKernel122, syncStabilityRoute122 } from './ui/stabilityKernel122';
 import { renderInventoryPanel111 } from './ui/InventoryUI';
 import { closeMenuWindow111, installMenuWindowMotion111, openMenuWindow111, syncMenuWindowSafeFrame111 } from './ui/MenuWindow';
 import { applySafeFrameBodyState087, auditSoulOnlineSafeFrame087 } from './ui/screenSafety';
@@ -141,7 +144,7 @@ let selectedGender: CharacterGender = 'male';
 let selectedServer = 'bearfox';
 let combatLogCollapsed = false;
 const SERVER_NAME = '곰같은여우 서버';
-const ALPHA_VERSION = '1.21.0';
+const ALPHA_VERSION = '1.23.0';
 let activeSheetTab: SheetTab = 'cards';
 let activeTownContent: TownContentId = 'hunt';
 let sheetOpen = false;
@@ -289,7 +292,7 @@ boot().catch((error) => {
 });
 
 async function boot() {
-  document.body.classList.add('fantasy-ui-119', 'fantasy-ui-120', 'fantasy-ui-121', 'emergency-boot-119', 'recovery-kernel-120', 'polish-kernel-121', 'boot-critical-119', 'standard-mode-119', 'title-layout-116', 'no-pet-116');
+  document.body.classList.add('fantasy-ui-119', 'fantasy-ui-120', 'fantasy-ui-121', 'fantasy-ui-122', 'emergency-boot-119', 'recovery-kernel-120', 'polish-kernel-121', 'stability-kernel-122', 'boot-critical-119', 'standard-mode-119', 'title-layout-116', 'no-pet-116');
   titleScreen.classList.add('title-screen-098', 'title-art-099');
   loginScreen.classList.add('login-screen-098', 'login-art-099');
   townScreen.classList.add('town-screen-098', 'town-art-099');
@@ -298,6 +301,7 @@ async function boot() {
   installEmergencyBoot119(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   installRecoveryKernel120(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   installPolishKernel121(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  installStabilityKernel122(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   ensureTitleEntry090({ titleScreen, startButton: startGameBtn, loginScreen });
   bindTitleFlow();
   registerServiceWorker();
@@ -308,9 +312,11 @@ async function boot() {
   if (prestartedLogin120) {
     syncRecoveryRoute120(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncPolishRoute121(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+    syncStabilityRoute122(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   } else {
     syncRecoveryRoute120(document, 'title', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncPolishRoute121(document, 'title', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+    syncStabilityRoute122(document, 'title', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   }
 
   bindLoginFlow();
@@ -401,6 +407,7 @@ function syncLegacyVisualStack114() {
   const route = currentRuntimeRoute114();
   syncRecoveryRoute120(document, route, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   syncPolishRoute121(document, route, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  syncStabilityRoute122(document, route, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   lockInitialViewport120(document, { appShell: document.querySelector<HTMLElement>('#app') });
 
   if (!document.body.classList.contains('legacy-visual-enabled-120')) return;
@@ -449,6 +456,7 @@ function syncLegacyVisualStack114() {
 
 function bindTitleFlow() {
   const startEntry = async () => {
+    if (!guardStartTap122(document)) return;
     if (titleStartBusy090) return;
     titleStartBusy090 = true;
     try {
@@ -456,6 +464,7 @@ function bindTitleFlow() {
       markTitleEntryTransition090({ titleScreen, startButton: startGameBtn, loginScreen });
       showLoginNow120(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
       syncPolishRoute121(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+      syncStabilityRoute122(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
       goStep('login');
       markBootInteractive119(document);
       void audioService.unlock().then(() => {
@@ -467,6 +476,7 @@ function bindTitleFlow() {
       console.error('[Start] recovery route failed', error);
       showLoginNow120(document, { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
       syncPolishRoute121(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+      syncStabilityRoute122(document, 'login', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     } finally {
       window.setTimeout(() => { titleStartBusy090 = false; }, 120);
     }
@@ -1214,6 +1224,7 @@ async function enterTown(save: PlayerSave, label = '마을로 이동 중') {
     renderTown(pendingSave);
     syncRecoveryRoute120(document, 'town', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncPolishRoute121(document, 'town', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+    syncStabilityRoute122(document, 'town', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncLegacyVisualStack114();
     loadFullLegacyStyles121('town-opt-in');
   });
@@ -1242,6 +1253,7 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
       document.body.classList.add('field-active');
       syncRecoveryRoute120(document, 'field', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
       syncPolishRoute121(document, 'field', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+      syncStabilityRoute122(document, 'field', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
       syncLegacyVisualStack114();
       loadFullLegacyStyles121('field-opt-in');
       setFieldZoneHud(zoneId);
@@ -1255,8 +1267,9 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
       game = new SolGame(prepared, saveService, {
         zoneId,
         zoneName,
-        onLoadProgress: (loaded, total) => {
-          sceneTransitionLabel.textContent = `${zoneName} 에셋 로딩 ${loaded}/${total}`;
+        onLoadProgress: (loaded, total, key) => {
+          const isSheet = /Sheet$/.test(key);
+          sceneTransitionLabel.textContent = `${zoneName} ${isSheet ? '2.5D 시트' : '에셋'} 로딩 ${loaded}/${total}`;
         }
       });
       await game.mount(root);
@@ -1265,6 +1278,7 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
         pendingSave = snapshot.save;
         renderHud(snapshot);
         auditFieldCollision121(document);
+        auditFieldCollision122(document);
         if (sheetOpen) renderSheet();
       });
       showToast(`${zoneName} 입장`);
@@ -1287,6 +1301,7 @@ async function startField(save: PlayerSave, zoneId = 'slime-forest', autoStart =
     townScreen.setAttribute('aria-hidden', 'false');
     if (pendingSave) renderTown(pendingSave);
     syncPolishRoute121(document, 'town', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+    syncStabilityRoute122(document, 'town', { appShell: document.querySelector<HTMLElement>('#app'), root, titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
     syncLegacyVisualStack114();
     showToast(error instanceof Error ? `사냥터 입장 실패: ${error.message}` : '사냥터 입장 실패');
   }
@@ -4565,6 +4580,7 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
   const scene118 = inspectSceneStability118(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const boot119 = inspectEmergencyBoot119(document);
   const polish121 = inspectPolishKernel121(document);
+  const stability122 = inspectStabilityKernel122(document);
   titleEntryLastReport090 = titleHealth090.label;
   const rows: HealthTile087[] = [
     { label: '브랜드', value: 'Soul Online 고정', level: 'ok' },
@@ -4594,6 +4610,8 @@ function renderSystemDoctor085(save: PlayerSave, mode: 'town' | 'account' | 'fie
     { label: '1.18 장면 안정화', value: scene118.message, level: scene118.level, hint: scene118.hint },
     { label: '1.19 긴급 부팅', value: boot119.label, level: boot119.level, hint: boot119.hint },
     { label: '1.21 다듬기', value: polish121.message, level: polish121.level, hint: polish121.hint },
+    { label: '1.22 안정화', value: stability122.message, level: stability122.level, hint: stability122.hint },
+    { label: '1.23 2.5D 복구', value: assetDelivery115.message, level: assetDelivery115.level, hint: assetDelivery115.hint },
     { label: 'Firebase', value: saveService.isOnline() ? '클라우드 연결됨' : '로컬 저장 모드', level: saveService.isOnline() ? 'ok' : 'warn' },
     { label: '성능', value: perfHealth.label, level: perfHealth.level },
     { label: '화면', value: lastUiAuditReport086, level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok' },
@@ -4762,6 +4780,7 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
   const viewport117 = inspectViewportLock117(document);
   const singleVisual117 = inspectSingleVisualMode117(document, { titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
   const scene118 = inspectSceneStability118(document, { appShell: document.querySelector<HTMLElement>('#app'), titleScreen, loginScreen, townScreen, gameRoot: root, startButton: startGameBtn });
+  const stability122 = inspectStabilityKernel122(document);
   titleEntryLastReport090 = titleHealth090.label;
   const tiles: HealthTile087[] = [
     { label: '첫 화면', value: titleHealth090.label, level: titleHealth090.level, hint: titleHealth090.hint },
@@ -4788,6 +4807,8 @@ function renderTechnicalHealthPanel(save: PlayerSave, mode: 'town' | 'account') 
     { label: '1.17 크기 고정', value: viewport117.message, level: viewport117.level, hint: viewport117.hint },
     { label: '1.17 단일 모드', value: singleVisual117.message, level: singleVisual117.level, hint: singleVisual117.hint },
     { label: '1.18 장면 안정화', value: scene118.message, level: scene118.level, hint: scene118.hint },
+    { label: '1.22 안정화', value: stability122.message, level: stability122.level, hint: stability122.hint },
+    { label: '1.23 2.5D 복구', value: assetDelivery115.message, level: assetDelivery115.level, hint: assetDelivery115.hint },
     { label: 'FPS', value: `${measuredFps} · ${perfHealth.label}`, level: perfHealth.level },
     { label: '저장 연결', value: cloudState, level: cloud.paused ? 'warn' : 'ok' },
     { label: 'UI 안전', value: document.body.classList.contains('ui-overflow-risk') ? '주의' : '정상', level: document.body.classList.contains('ui-overflow-risk') ? 'warn' : 'ok', hint: lastUiAuditMessage },

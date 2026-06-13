@@ -1,7 +1,7 @@
 import { zones } from '../data/gameData';
 import type { CharacterClassId } from '../types';
 
-export type SpriteAtlasMode106 = 'standard' | 'lite' | 'high';
+export type SpriteAtlasMode106 = 'standard' | 'lite' | 'high' | 'standard-2p5d';
 
 type NavigatorBudget106 = Navigator & {
   deviceMemory?: number;
@@ -13,8 +13,8 @@ function flag106(key: string) {
 }
 
 export function shouldUseLiteSpriteAtlas106() {
-  // Alpha 1.17: 저화질/고화질 아틀라스 자동 전환을 제거합니다.
-  // textureUrls가 가리키는 한 가지 표준 런타임 atlas만 사용합니다.
+  // Alpha 1.23: 저화질/고화질 자동 전환은 계속 제거하되,
+  // textureUrls는 2.5D 고해상도 시트를 단일 표준 경로로 가리킵니다.
   return false;
 }
 
@@ -69,7 +69,7 @@ export function inspectFieldSpriteAtlas106(mode: SpriteAtlasMode106, textures: M
     sheetCount: sheetKeys.length,
     heavySheetCount: heavySheets.length,
     level: level as 'ok' | 'warn',
-    message: '단일 표준 스프라이트 아틀라스',
-    hint: `${sheetKeys.length} sheets · heavy ${heavySheets.length}`
+    message: '2.5D 고해상도 스프라이트 아틀라스',
+    hint: `${sheetKeys.length} sheets · 2.5D ${heavySheets.length}`
   };
 }

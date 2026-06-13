@@ -1,0 +1,148 @@
+:root.soul-stability-122 {
+  --soul-current-w: var(--soul-locked-w-122, min(100vw, 480px));
+  --soul-current-h: var(--soul-locked-h-122, 100dvh);
+}
+
+body.stability-kernel-122 {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.stability-kernel-122 #app {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: var(--soul-locked-w-122, var(--soul-locked-w-120, min(100vw, 480px))) !important;
+  height: var(--soul-locked-h-122, var(--soul-locked-h-120, 100dvh)) !important;
+  transform: translate(-50%, -50%);
+  overflow: hidden;
+  contain: layout paint size;
+  background: linear-gradient(180deg, #87dcff 0%, #3994ca 58%, #092033 100%);
+}
+
+body.stability-kernel-122 .title-screen,
+body.stability-kernel-122 .login-screen,
+body.stability-kernel-122 .town-screen,
+body.stability-kernel-122 #game-root {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+body.route-title-122 #titleScreen,
+body.route-login-122 #loginScreen,
+body.route-town-122 #townScreen,
+body.route-field-122 #game-root {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+body.route-title-122 #loginScreen,
+body.route-title-122 #townScreen,
+body.route-title-122 #game-root,
+body.route-login-122 #titleScreen,
+body.route-login-122 #townScreen,
+body.route-login-122 #game-root,
+body.route-town-122 #titleScreen,
+body.route-town-122 #loginScreen,
+body.route-town-122 #game-root,
+body.route-field-122 #titleScreen,
+body.route-field-122 #loginScreen,
+body.route-field-122 #townScreen {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.stability-kernel-122 #startGameBtn {
+  pointer-events: auto !important;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transform: translateZ(0);
+}
+
+body.start-deduped-122 #startGameBtn {
+  filter: brightness(1.08);
+}
+
+body.stability-kernel-122 .title-character-companion,
+body.stability-kernel-122 .town-lobby-pet-070,
+body.stability-kernel-122 .field-pet,
+body.stability-kernel-122 [class*="companion"],
+body.stability-kernel-122 [class*="rune"],
+body.stability-kernel-122 .orientation-guard,
+body.stability-kernel-122 .rotate-guide,
+body.stability-kernel-122 .legacy-visual-layer,
+body.stability-kernel-122 .title-hero-glow {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.stability-kernel-122 .login-screen {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(112, 219, 255, .2), transparent 34%),
+    linear-gradient(180deg, #0a2b49 0%, #071929 100%);
+}
+
+body.stability-kernel-122 .login-panel {
+  max-height: calc(var(--soul-current-h, 100dvh) - 30px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+body.stability-kernel-122 .town-screen {
+  overflow: hidden;
+}
+
+body.stability-kernel-122 #game-root canvas {
+  image-rendering: auto;
+  filter: saturate(1.08) brightness(1.08);
+}
+
+body.field-collision-risk-122 #returnTownBtn {
+  left: max(18px, env(safe-area-inset-left)) !important;
+  right: auto !important;
+  bottom: calc(max(122px, 18vh) + env(safe-area-inset-bottom)) !important;
+}
+
+body.field-collision-risk-122 #joystick {
+  left: max(16px, env(safe-area-inset-left)) !important;
+  bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+  transform: scale(.94);
+  transform-origin: left bottom;
+}
+
+body.field-collision-risk-122 #attackBtn,
+body.field-collision-risk-122 [data-skill-slot],
+body.field-collision-risk-122 #inventoryBtn,
+body.field-collision-risk-122 #cardsBtn {
+  transform: translateZ(0) scale(.96);
+}
+
+body.stability-runtime-warning-122::after {
+  content: '복구 모드';
+  position: fixed;
+  right: 10px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  z-index: 99999;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 187, 72, .88);
+  color: #241400;
+  font-size: 11px;
+  font-weight: 900;
+  pointer-events: none;
+}
