@@ -1,5 +1,6 @@
 import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js';
 import './style.css';
+import { resolveHorizontalFacing, resolveWalkHeading, type HorizontalFacing, type WalkHeading } from './walk-motion';
 
 type Zone = 'town' | 'farm' | 'lab' | 'nursery';
 type MonsterKind = '잎새콩' | '방울몽' | '반짝몽';
@@ -394,8 +395,8 @@ async function start() {
     objects.addChild(sprite);
     return sprite;
   });
-  // 원화 속 가방·앞치마·목도리 위치가 좌우 반전되지 않도록 그림은 항상 한 방향을 바라본다.
-  // 발밑 그림자로 이동·부유감을 보여주고 캐릭터보다 낮은 깊이에 그린다.
+  // 좌우는 한 장의 원화를 반전해서 보여주고, 위아래는 자세와 발자국으로 표현한다.
+  // 발밑 그림자는 캐릭터보다 낮은 깊이에 그린다.
   const makeShadow = () => {
     const shadow = new Graphics().ellipse(0, 0, 42, 13).fill({ color: '#2a4a30', alpha: .25 });
     shadow.eventMode = 'none';
@@ -470,6 +471,26 @@ async function start() {
   let py = 585;
   let tx = px, ty = py;
   let clock = 0;
+  let walkDistance = 0;
+  let footstepDistance = 0;
+  let lastFoot = 0;
+  let walkHeading: WalkHeading = 'down';
+  let horizontalFacing: HorizontalFacing = 1;
+  const footprints: { sprite: Graphics; age: number }[] = [];
+  function leaveFootprint(x: number, y: number, dx: number, dy: number) {
+    if (prefersReducedMotion) return;
+    const length = Math.max(1, Math.hypot(dx, dy));
+    const side = lastFoot % 2 === 0 ? 1 : -1;
+    lastFoot++;
+    const footprint = new Graphics().ellipse(0, 0, 6, 3).fill({ color: '#fff6c6', alpha: .53 });
+    footprint.position.set(x - dx / length * 13 + -dy / length * side * 6, y - dy / length * 13 + dx / length * side * 6);
+    footprint.rotation = Math.atan2(dy, dx) + Math.PI / 2;
+    footprint.zIndex = y - 2;
+    footprint.eventMode = 'none';
+    objects.addChild(footprint);
+    footprints.push({ sprite: footprint, age: 0 });
+    while (footprints.length > 18) footprints.shift()?.sprite.destroy();
+  }
   let lastCropRender = 0;
   let lastNurseryRender = 0;
 
@@ -726,7 +747,7 @@ async function start() {
   (document.getElementById('map-button') as HTMLButtonElement).addEventListener('click', () => openModal('🗺️ 마법정원 월드', '<p>가고 싶은 지역을 눌러 바로 이동해봐!</p><div class="zone-choices"><button class="link-button" type="button" data-game-action="zone-town">🏡 중앙 마을</button><button class="link-button" type="button" data-game-action="zone-farm">🌿 큰 텃밭</button><button class="link-button" type="button" data-game-action="zone-lab">🧪 실험실</button><button class="link-button" type="button" data-game-action="zone-nursery">🥚 연구소</button></div><p class="modal-note">🌲 나무숲 · 💧 폭포와 호수 · 🌉 나무다리 · 🏠 집/뒤뜰은 준비 중이야.</p>'));
 
   (document.getElementById('book-button') as HTMLButtonElement).addEventListener('click', () => openModal('📖 첫 정원 도감', '<ul><li>🦊 여우 — 호기심 많은 탐험가</li><li>🐻 곰 — 정원의 듬직한 친구</li><li>🐱 고양이 — 몬스터 돌봄 담당</li><li>🐰 토끼 — 씨앗과 조합 담당</li></ul><p>🐾 발견한 몬스터: ' + (saveData.monsters.length ? saveData.monsters.join(' · ') : '아직 발견하지 못했어') + '</p>'));
-  (document.getElementById('help-button') as HTMLButtonElement).addEventListener('click', () => openModal('💡 어떻게 놀까?', '<ul><li>빈 땅을 누르면 발자국 표시가 뜨고 여우가 그곳으로 걸어가.</li><li>여우·곰·고양이·토끼를 누르면 각자의 이야기를 듣고 관련 지역으로 이동할 수 있어.</li><li>지역 버튼이나 화면의 길 안내판, 지도 메뉴로 4개 구역을 오갈 수 있어.</li><li>텃밭에 씨앗을 심고 자라면 다시 눌러 수확해.</li><li>실험실에서 열매를 정수로, 정수를 알로 조합해!</li><li>연구소에서 알을 품으면 30초 후 친구가 부화해.</li><li>가방에서 JSON 저장파일을 내려받고 다른 기기로 불러올 수 있어.</li><li>진행 내용은 이 브라우저에 자동 저장돼.</li></ul>'));
+  (document.getElementById('help-button') as HTMLButtonElement).addEventListener('click', () => openModal('💡 어떻게 놀까?', '<ul><li>빈 땅을 누르면 여우가 그곳으로 걸어가! 좌우 이동은 바라보는 쪽이 바뀌고, 위아래 이동도 발걸음과 자세로 표현돼.</li><li>여우·곰·고양이·토끼를 누르면 각자의 이야기를 듣고 관련 지역으로 이동할 수 있어.</li><li>지역 버튼이나 화면의 길 안내판, 지도 메뉴로 4개 구역을 오갈 수 있어.</li><li>텃밭에 씨앗을 심고 자라면 다시 눌러 수확해.</li><li>실험실에서 열매를 정수로, 정수를 알로 조합해!</li><li>연구소에서 알을 품으면 30초 후 친구가 부화해.</li><li>가방에서 JSON 저장파일을 내려받고 다른 기기로 불러올 수 있어.</li><li>진행 내용은 이 브라우저에 자동 저장돼.</li></ul>'));
 
   if (currentZone !== 'town') { const firstZone = currentZone; currentZone = 'town'; switchZone(firstZone); }
   else { gateLabel.text = ZONE_NAV[NEXT_ZONE.town] + ' →'; gate.position.set(1110, 600); plotViews.forEach((plot) => { plot.visible = false; }); station.visible = false; }
@@ -740,19 +761,44 @@ async function start() {
       const step = Math.min(distance, 3.5 * dt);
       px += dx / distance * step; py += dy / distance * step;
     }
-    // 이동 방향은 얼굴 반전이 아닌 미세한 몸 기울기만으로 표현한다.
-    const moveTilt = moving && !prefersReducedMotion ? Math.max(-1, Math.min(1, dx / distance)) * .034 : 0;
-    player.rotation += (moveTilt - player.rotation) * Math.min(1, dt * .18);
-    // 발 좌표(py)는 고정하고 걷기 표현만 흔들어 카메라 떨림을 피한다.
+    if (moving) {
+      walkHeading = resolveWalkHeading(dx, dy, walkHeading);
+      horizontalFacing = resolveHorizontalFacing(dx, walkHeading, horizontalFacing);
+      const traveled = Math.min(distance, 3.5 * dt);
+      walkDistance += traveled;
+      footstepDistance += traveled;
+      if (footstepDistance >= 27) {
+        footstepDistance %= 27;
+        leaveFootprint(px, py, dx, dy);
+      }
+    } else footstepDistance = 0;
+    // 한 장의 캐릭터 이미지를 좌우 반전해 진행 방향을 즉시 구별한다.
+    // 상하 이동에서는 좌우 시선을 유지하고 걷기 속도·상하 기울기로 구분한다.
+    const moveTilt = moving && !prefersReducedMotion ? Math.max(-1, Math.min(1, dx / distance)) * .075 : 0;
+    player.rotation += (moveTilt - player.rotation) * Math.min(1, dt * .23);
+    const moveSkew = moving && !prefersReducedMotion ? (walkHeading === 'up' ? -.095 : walkHeading === 'down' ? .095 : 0) : 0;
+    player.skew.x += (moveSkew - player.skew.x) * Math.min(1, dt * .21);
+    // 실제 이동 거리에 비례해 발걸음이 진행된다. 목적지에서 멈추면 걷기 애니메이션도 멈춘다.
     const perspective = .61 + Math.max(0, Math.min(1, (py - 350) / 450)) * .11;
-    const playerBounce = prefersReducedMotion ? 0 : moving ? Math.abs(Math.sin(clock / 110)) * 3.3 : Math.sin(clock / 520) * .8;
-    const walkingSquash = !prefersReducedMotion && moving ? Math.sin(clock / 102) * .012 : 0;
-    player.scale.set(perspective * friendArtScale * (1 + walkingSquash), perspective * friendArtScale * (prefersReducedMotion ? 1 : 1 + Math.sin(clock / 440) * .009 - walkingSquash));
+    const stride = walkDistance / 12;
+    const playerBounce = prefersReducedMotion ? 0 : moving ? Math.abs(Math.sin(stride)) * 6.5 : Math.sin(clock / 520) * .8;
+    const walkingSquash = !prefersReducedMotion && moving ? Math.cos(stride * 2) * .046 : 0;
+    const depthLean = moving && !prefersReducedMotion ? (walkHeading === 'up' ? .93 : walkHeading === 'down' ? 1.05 : 1) : 1;
+    player.scale.set(horizontalFacing * perspective * friendArtScale * (1 + walkingSquash), perspective * friendArtScale * depthLean * (prefersReducedMotion ? 1 : 1 + Math.sin(clock / 440) * .009 - walkingSquash));
     player.position.set(px, py - playerBounce);
     player.zIndex = py;
     playerShadow.position.set(px, py + 4);
     playerShadow.zIndex = py - .1;
     playerShadow.scale.set(perspective * 1.18 * (1 - playerBounce / 22));
+    for (let i = footprints.length - 1; i >= 0; i--) {
+      const track = footprints[i];
+      track.age += ticker.deltaMS;
+      track.sprite.alpha = Math.max(0, 1 - track.age / 750);
+      if (track.age >= 750) {
+        track.sprite.destroy();
+        footprints.splice(i, 1);
+      }
+    }
     if (walkMark.visible) {
       markAge += ticker.deltaMS;
       walkMark.alpha = Math.max(0, 1 - markAge / 850);
@@ -762,13 +808,16 @@ async function start() {
     npcs.forEach((sprite, i) => {
       const baseX = currentZone === 'town' ? [875, 1015, 620][i] : [946, 735, 330][i];
       const baseY = currentZone === 'town' ? [553, 577, 414][i] : [540, 385, 634][i];
-      const x = baseX + (prefersReducedMotion ? 0 : Math.sin(clock / (800 + i * 300)) * 8);
+      const patrolPhase = clock / (1100 + i * 320) + i;
+      const x = baseX + (prefersReducedMotion ? 0 : Math.sin(patrolPhase) * 19);
       const y = baseY + (prefersReducedMotion ? 0 : Math.cos(clock / (320 + i * 100)) * 2);
       const size = .59 + Math.max(0, Math.min(1, (y - 350) / 450)) * .1;
       const breathe = prefersReducedMotion ? 1 : 1 + Math.sin(clock / (520 + i * 100) + i) * .018;
-      sprite.scale.set(size * friendArtScale, size * friendArtScale * breathe);
-      sprite.rotation = prefersReducedMotion ? 0 : Math.sin(clock / (900 + i * 175) + i) * .014;
-      sprite.position.set(x, y - (prefersReducedMotion ? 0 : Math.max(0, Math.sin(clock / (260 + i * 43) + i)) * 1.3));
+      const npcFacing = Math.cos(patrolPhase) >= 0 ? 1 : -1;
+      const npcStep = prefersReducedMotion ? 0 : Math.abs(Math.sin(patrolPhase * 5)) * 2.4;
+      sprite.scale.set(npcFacing * size * friendArtScale, size * friendArtScale * breathe);
+      sprite.rotation = prefersReducedMotion ? 0 : npcFacing * Math.sin(patrolPhase * 5) * .037;
+      sprite.position.set(x, y - npcStep);
       sprite.zIndex = y;
       npcShadows[i].position.set(x, y + 4);
       npcShadows[i].zIndex = y - .1;

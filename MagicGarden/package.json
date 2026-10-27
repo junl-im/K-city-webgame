@@ -7,7 +7,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "npm run guard && tsc --noEmit && vite build && npm run guard:dist",
     "preview": "vite preview --host 0.0.0.0",
-    "guard": "node scripts/check-no-svg.mjs && node scripts/check-scene-art.mjs",
+    "guard": "node scripts/check-no-svg.mjs && node scripts/check-scene-art.mjs && node scripts/check-walk-motion.mjs",
     "guard:dist": "node scripts/check-no-svg.mjs dist && node scripts/check-scene-art.mjs dist"
   },
   "dependencies": {
