@@ -1,0 +1,20 @@
+{
+  "name": "gomfox-magic-garden-prototype",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "npm run guard && tsc --noEmit && vite build && npm run guard:dist",
+    "preview": "vite preview --host 0.0.0.0",
+    "guard": "node scripts/check-no-svg.mjs",
+    "guard:dist": "node scripts/check-no-svg.mjs dist"
+  },
+  "dependencies": {
+    "pixi.js": "8.13.1"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3",
+    "vite": "8.0.16"
+  }
+}
