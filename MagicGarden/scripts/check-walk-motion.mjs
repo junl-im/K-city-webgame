@@ -5,7 +5,7 @@ const cases = [
   [2, -180, 'right', 'up'], [-2, 180, 'up', 'down'],
   [1, 1, 'left', 'right'], [0, 0, 'up', 'up'],
   [NaN, 5, 'right', 'right'], [Infinity, -3, 'down', 'down'],
-  [1, 1, 'down', 'down'], [1.04, 1, 'up', 'up'],
+  [1, 1, 'down', 'down'], [1.04, -1, 'up', 'up'],
   [1.29, 1, 'down', 'down'], [1.31, 1, 'down', 'right'],
   [-1.31, 1, 'down', 'left'], [1, -1.31, 'right', 'up'],
   [-1, -1.31, 'left', 'up'], [-1.29, 1, 'right', 'left'],
