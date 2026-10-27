@@ -10,7 +10,7 @@ const cases = [
   [-1.31, 1, 'down', 'left'], [1, -1.31, 'right', 'up'],
   [-1, -1.31, 'left', 'up'], [-1.29, 1, 'right', 'left'],
   [0, -1, 'down', 'up'], [-1, 0, 'right', 'left'],
-] as const;
+];
 for (const [dx, dy, prev, expected] of cases) assert.equal(resolveWalkHeading(dx, dy, prev), expected, `vector ${dx},${dy} from ${prev}`);
 assert.equal(resolveHorizontalFacing(-130, 'left', 1), -1);
 assert.equal(resolveHorizontalFacing(130, 'right', -1), 1);
