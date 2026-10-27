@@ -494,7 +494,7 @@ async function start() {
     if (clock - lastCropRender > 1100) { lastCropRender = clock; if (currentZone === 'farm') drawPlots(); }
     if (Math.abs(dx) + Math.abs(dy) > 4) resize();
   });
-  showGuide(currentZone === 'farm' ? '밭을 눌러 씨앗을 심어봐!' : currentZone === 'lab' ? '조합대를 터치해 마법 정수를 만들어봐!' : currentZone === 'nursery' ? '부화실을 터치해 새 친구를 만나봐!' : '길을 클릭하거나 터치하면 걸어갈 수 있어!');
+  showGuide(saveData.zone === 'farm' ? '밭을 눌러 씨앗을 심어봐!' : saveData.zone === 'lab' ? '조합대를 터치해 마법 정수를 만들어봐!' : saveData.zone === 'nursery' ? '부화실을 터치해 새 친구를 만나봐!' : '길을 클릭하거나 터치하면 걸어갈 수 있어!');
 }
 start().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
