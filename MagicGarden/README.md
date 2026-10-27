@@ -41,9 +41,14 @@ npm run dev
 - 외부 CDN이나 유료 AI API 호출 없음. 앱 작동에 외부 서버 필수 아님.
 - 아트·UI·라이브러리에서 SVG 렌더링 및 SVG 파일은 어떤 용도로도 사용 금지.
 
-## 향후 QA
+## 검증 상태와 향후 QA
 
-1. `npm run build` 통과와 그래픽 리소스 검사 (현재 실행 환경에서는 미실시 — 반드시 별도 검증)
+- 작업 브랜치 전용 GitHub Actions `Magic Garden build check` 추가. 아티팩트 업로드 없이 Node.js 22 빌드·자산을 검사한다.
+- 중앙 마을 원화 1586×992, 큰 텃밭 원화 1587×991 PNG 헤더·크기 검증 완료.
+- 실제 PC·Android·iPhone에서 원화와 밭 위치가 시각적으로 맞는지는 아직 미검증.
+
+
+1. `npm run build` 및 PNG 원화·SVG 금지 검사 — GitHub Actions 통과(2026-10-27). 실제 브라우저 작동 검증과 구분
 2. PC 마우스, Android 터치, iPhone Safari 터치 테스트
 3. 새로고침/지역 전환/탭 재접속 후 저장 복원
 4. 텃밭 전부 심기→수확→재파종 루프
