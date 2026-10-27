@@ -1,0 +1,32 @@
+name: Magic Garden build check
+
+on:
+  push:
+    branches:
+      - planning/magic-garden-20261027
+    paths:
+      - 'MagicGarden/**'
+      - '.github/workflows/magic-garden-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  garden-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: MagicGarden
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install
+        run: npm install --no-audit --no-fund
+      - name: Typecheck, build and raster asset checks
+        run: npm run build
