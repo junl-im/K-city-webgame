@@ -1,15 +1,21 @@
 import { Application, Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 import './style.css';
 
-type Zone = 'town' | 'farm';
+type Zone = 'town' | 'farm' | 'lab' | 'nursery';
+type MonsterKind = '잎새콩' | '방울몽' | '반짝몽';
+const MONSTER_KINDS: MonsterKind[] = ['잎새콩', '방울몽', '반짝몽'];
+const ZONE_LABELS: Record<Zone, string> = { town: '햇살 중앙 마을', farm: '바람의 큰 텃밭', lab: '이상한 조합 실험실', nursery: '포근한 몬스터 연구소' };
+const NEXT_ZONE: Record<Zone, Zone> = { town: 'farm', farm: 'lab', lab: 'nursery', nursery: 'town' };
+const ZONE_NAV: Record<Zone, string> = { town: '🏡 마을', farm: '🌿 큰 텃밭', lab: '🧪 조합 실험실', nursery: '🥚 몬스터 연구소' };
 type Plot = { plantedAt: number | null };
-type SaveData = { zone: Zone; seeds: number; berries: number; plots: Plot[] };
+type SaveData = { zone: Zone; seeds: number; berries: number; plots: Plot[]; essence: number; eggs: number; incubatingAt: number | null; monsters: MonsterKind[] };
 type Critter = 'fox' | 'bear' | 'cat' | 'rabbit';
 
 const WORLD_WIDTH = 1280;
 const WORLD_HEIGHT = 800;
 const SAVE_KEY = 'gomfox.magic-garden.prototype.v1';
 const GROW_TIME_MS = 18000;
+const HATCH_TIME_MS = 30000;
 const stageElement = document.getElementById('stage') as HTMLDivElement;
 const zoneNameElement = document.getElementById('zone-name') as HTMLElement;
 const guideElement = document.getElementById('guide') as HTMLElement;
@@ -17,17 +23,19 @@ const seedElement = document.getElementById('seed-count') as HTMLElement;
 const berryElement = document.getElementById('berry-count') as HTMLElement;
 const townButton = document.getElementById('town-button') as HTMLButtonElement;
 const farmButton = document.getElementById('farm-button') as HTMLButtonElement;
+const labButton = document.getElementById('lab-button') as HTMLButtonElement;
+const nurseryButton = document.getElementById('nursery-button') as HTMLButtonElement;
 const modalRoot = document.getElementById('modal-root') as HTMLElement;
 const modalTitle = document.getElementById('modal-title') as HTMLElement;
 const modalContent = document.getElementById('modal-content') as HTMLElement;
 
 function restored(): SaveData {
-  const fallback: SaveData = { zone: 'town', seeds: 5, berries: 0, plots: Array.from({ length: 12 }, () => ({ plantedAt: null })) };
+  const fallback: SaveData = { zone: 'town', seeds: 5, berries: 0, plots: Array.from({ length: 12 }, () => ({ plantedAt: null })), essence: 0, eggs: 0, incubatingAt: null, monsters: [] };
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return fallback;
     const parsed: Partial<SaveData> = JSON.parse(raw);
-    if (parsed.zone !== 'town' && parsed.zone !== 'farm') return fallback;
+    if (!parsed.zone || !(parsed.zone in ZONE_LABELS)) return fallback;
     if (!Array.isArray(parsed.plots) || parsed.plots.length !== 12) return fallback;
     return {
       zone: parsed.zone,
@@ -36,6 +44,10 @@ function restored(): SaveData {
       plots: parsed.plots.map((plot) => ({
         plantedAt: typeof plot?.plantedAt === 'number' && Number.isFinite(plot.plantedAt) ? plot.plantedAt : null,
       })),
+      essence: Math.max(0, Math.floor(Number(parsed.essence) || 0)),
+      eggs: Math.max(0, Math.floor(Number(parsed.eggs) || 0)),
+      incubatingAt: typeof parsed.incubatingAt === 'number' && Number.isFinite(parsed.incubatingAt) ? parsed.incubatingAt : null,
+      monsters: Array.isArray(parsed.monsters) ? parsed.monsters.filter((kind): kind is MonsterKind => MONSTER_KINDS.includes(kind)) : [],
     };
   } catch {
     return fallback;
@@ -51,14 +63,16 @@ function persist() {
 function showGuide(message: string) {
   guideElement.textContent = message;
   window.clearTimeout(guideTimeout);
-  guideTimeout = window.setTimeout(() => { guideElement.textContent = saveData.zone === 'farm' ? '밭을 눌러 심고, 자라면 다시 눌러 수확해!' : '길을 눌러 움직이고, 큰 텃밭으로 여행해봐!'; }, 5000);
+  guideTimeout = window.setTimeout(() => { guideElement.textContent = saveData.zone === 'farm' ? '밭을 눌러 심고, 자라면 다시 눌러 수확해!' : saveData.zone === 'lab' ? '조합대에서 열매를 마법 정수로 바꿔봐!' : saveData.zone === 'nursery' ? '따뜻한 부화실에서 새 친구를 만나봐!' : '길을 눌러 움직이고, 큰 텃밭으로 여행해봐!'; }, 5000);
 }
 function updateHud() {
   seedElement.textContent = String(saveData.seeds);
   berryElement.textContent = String(saveData.berries);
-  zoneNameElement.textContent = saveData.zone === 'town' ? '햇살 중앙 마을' : '바람의 큰 텃밭';
+  zoneNameElement.textContent = ZONE_LABELS[saveData.zone];
   townButton.classList.toggle('active', saveData.zone === 'town');
   farmButton.classList.toggle('active', saveData.zone === 'farm');
+  labButton.classList.toggle('active', saveData.zone === 'lab');
+  nurseryButton.classList.toggle('active', saveData.zone === 'nursery');
 }
 function openModal(title: string, content: string) {
   modalTitle.textContent = title;
@@ -246,12 +260,14 @@ async function start() {
   const world = new Container();
   world.sortableChildren = true;
   app.stage.addChild(world);
-  const art = { town: Texture.from(paintLandscape('town')), farm: Texture.from(paintLandscape('farm')) };
+  const art: Record<Zone, Texture> = { town: Texture.from(paintLandscape('town')), farm: Texture.from(paintLandscape('farm')), lab: Texture.from(paintLandscape('lab')), nursery: Texture.from(paintLandscape('nursery')) };
   const creatures: Record<Critter, Texture> = { fox: mascotTexture('fox'), bear: mascotTexture('bear'), cat: mascotTexture('cat'), rabbit: mascotTexture('rabbit') };
   const background = new Sprite(art[saveData.zone]);
   const rasterAssets: Record<Zone, string> = {
     town: 'town-scene-v1.png',
     farm: 'farm-scene-v1.png',
+    lab: 'lab-scene-v1.png',
+    nursery: 'nursery-scene-v1.png',
   };
   const loadingRasters: Partial<Record<Zone, Promise<void>>> = {};
   function loadRaster(zone: Zone): Promise<void> {
@@ -293,7 +309,16 @@ async function start() {
   gateLabel.anchor.set(.5);
   gate.addChild(gateBackground, gateLabel);
   gate.eventMode = 'static'; gate.cursor = 'pointer';
-  gate.on('pointertap', () => switchZone(saveData.zone === 'town' ? 'farm' : 'town'));
+  gate.on('pointertap', () => switchZone(NEXT_ZONE[currentZone]));
+
+  const station = new Container();
+  station.zIndex = 13; objects.addChild(station);
+  const stationFrame = new Graphics().roundRect(-123, -39, 246, 78, 19).fill({ color: '#fff4cf', alpha: .96 }).roundRect(-123, -39, 246, 78, 19).stroke({ color: '#9e7547', width: 5 });
+  const stationText = new Text({ text: '🧪 조합 시작', style: { fontFamily: 'sans-serif', fontSize: 26, fontWeight: 'bold', fill: '#684527' } });
+  stationText.anchor.set(.5);
+  station.addChild(stationFrame, stationText);
+  station.eventMode = 'static'; station.cursor = 'pointer';
+  station.on('pointertap', () => { if (currentZone === 'lab') openLab(); else if (currentZone === 'nursery') openNursery(); });
 
   const plotViews: Graphics[] = [];
   for (let i = 0; i < 12; i++) {
@@ -350,18 +375,68 @@ async function start() {
     }
     drawPlots(); updateHud(); persist();
   }
+
+  function openLab() {
+    openModal('🧪 이상한 조합 실험실',
+      '<p>🐰 토끼가 준비한 첫 실험! 수확한 열매를 마법 정수로 바꾸고, 정수를 모아 알을 만들어봐.</p>' +
+      '<p>🍓 열매 <b>' + saveData.berries + '</b>개 · ✨ 정수 <b>' + saveData.essence + '</b>개 · 🥚 알 <b>' + saveData.eggs + '</b>개</p>' +
+      '<button type="button" class="link-button" data-game-action="brew">🍓 열매 3개 → ✨ 마법 정수 1개</button>' +
+      '<button type="button" class="link-button" data-game-action="craft-egg">✨ 정수 2개 → 🥚 신비한 알 1개</button>' +
+      '<p>재료가 부족하면 큰 텃밭으로 돌아가 수확해봐!</p>');
+  }
+  function openNursery() {
+    const remaining = saveData.incubatingAt === null ? 0 : Math.max(0, Math.ceil((HATCH_TIME_MS - (Date.now() - saveData.incubatingAt)) / 1000));
+    const hatchState = saveData.incubatingAt === null ? '알을 품을 준비가 됐어.' : remaining > 0 ? '고양이가 알을 돌보고 있어. 약 ' + remaining + '초 남았어.' : '알에서 빛이 나! 이제 부화시켜봐!';
+    openModal('🥚 포근한 몬스터 연구소',
+      '<p>🐱 고양이 연구원: 어서 와! 무서운 괴물이 아니라 정원을 돕는 귀여운 친구가 태어날 거야.</p>' +
+      '<p>🥚 보유 알 <b>' + saveData.eggs + '</b>개 · 🐾 발견 몬스터 <b>' + saveData.monsters.length + '</b>마리</p>' +
+      '<p>' + hatchState + '</p>' +
+      (saveData.incubatingAt === null ? '<button type="button" class="link-button" data-game-action="incubate">🥚 알 1개 부화실에 넣기</button>' : '<button type="button" class="link-button" data-game-action="hatch">🌟 부화 확인하기</button>') +
+      '<p>📖 현재 친구: ' + (saveData.monsters.length ? saveData.monsters.join(' · ') : '아직 없음') + '</p>');
+  }
+  modalContent.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-game-action]');
+    if (!button) return;
+    const action = button.dataset.gameAction;
+    if (action === 'brew') {
+      if (saveData.berries < 3) { showGuide('🍓 열매 3개가 필요해! 텃밭에서 수확해봐.'); return; }
+      saveData.berries -= 3; saveData.essence += 1;
+      showGuide('펑! 열매가 반짝이는 마법 정수로 변했어!'); openLab();
+    } else if (action === 'craft-egg') {
+      if (saveData.essence < 2) { showGuide('✨ 마법 정수 2개가 필요해!'); return; }
+      saveData.essence -= 2; saveData.eggs += 1;
+      showGuide('앗! 신비한 알이 생겼어. 몬스터 연구소로 가져가 봐!'); openLab();
+    } else if (action === 'incubate') {
+      if (saveData.eggs < 1 || saveData.incubatingAt !== null) { showGuide('부화할 수 있는 알이 아직 없어!'); return; }
+      saveData.eggs -= 1; saveData.incubatingAt = Date.now();
+      showGuide('고양이가 알을 포근한 이불에 눕혔어. 30초 동안 기다려봐!'); openNursery();
+    } else if (action === 'hatch') {
+      if (saveData.incubatingAt === null) return;
+      if (Date.now() - saveData.incubatingAt < HATCH_TIME_MS) { showGuide('아직 깨어나는 중이야! 조금만 더 기다려줘.'); openNursery(); return; }
+      const kind = MONSTER_KINDS[saveData.monsters.length % MONSTER_KINDS.length];
+      saveData.monsters.push(kind); saveData.incubatingAt = null;
+      showGuide('축하해! 🎉 ' + kind + '이(가) 정원의 새 친구가 됐어!'); openNursery();
+    } else {
+      return;
+    }
+    updateHud(); persist();
+  });
+
   function switchZone(next: Zone) {
     if (currentZone === next) return;
     currentZone = next;
     saveData.zone = next;
     background.texture = art[next];
     void loadRaster(next);
-    px = next === 'farm' ? 218 : 940;
+    px = next === 'farm' ? 218 : next === 'town' ? 940 : 610;
     py = 562; tx = px; ty = py;
-    gateLabel.text = next === 'town' ? '큰 텃밭으로 →' : '← 중앙 마을로';
-    gate.position.set(next === 'town' ? 1110 : 154, 600);
+    gateLabel.text = ZONE_NAV[NEXT_ZONE[next]] + ' →';
+    gate.position.set(next === 'town' ? 1110 : next === 'farm' ? 154 : 1060, 600);
     cropsLayer.visible = next === 'farm';
-    const loc = next === 'farm' ? '큰 텃밭에 도착했어! 흙을 눌러 씨앗을 심어봐.' : '햇살 마을에 돌아왔어. 여우 친구가 반겨줄 거야!';
+    station.visible = next === 'lab' || next === 'nursery';
+    station.position.set(next === 'lab' ? 660 : 685, 485);
+    stationText.text = next === 'lab' ? '🧪 조합 시작' : '🥚 부화실 열기';
+    const loc = next === 'farm' ? '큰 텃밭에 도착했어! 흙을 눌러 씨앗을 심어봐.' : next === 'lab' ? '토끼의 실험실이야! 수확한 열매로 신기한 조합을 해봐.' : next === 'nursery' ? '고양이가 돌보는 몬스터 연구소야. 알을 부화시켜봐!' : '햇살 마을에 돌아왔어. 여우 친구가 반겨줄 거야!';
     showGuide(loc); updateHud(); persist(); drawPlots();
     resize();
   }
@@ -385,12 +460,14 @@ async function start() {
   window.visualViewport?.addEventListener('resize', resize);
   townButton.addEventListener('click', () => switchZone('town'));
   farmButton.addEventListener('click', () => switchZone('farm'));
-  (document.getElementById('bag-button') as HTMLButtonElement).addEventListener('click', () => openModal('🎒 나의 가방', '<p>🌱 씨앗: <b>' + saveData.seeds + '개</b></p><p>🍓 새콤 열매: <b>' + saveData.berries + '개</b></p><p>수확한 열매는 나중에 이상한 조합 실험실에서 사용하게 될 거야!</p>'));
-  (document.getElementById('map-button') as HTMLButtonElement).addEventListener('click', () => openModal('🗺️ 마법정원 월드', '<p>🏡 햇살 중앙 마을 · 이동 가능</p><p>🌿 바람의 큰 텃밭 · 이동 가능</p><p>🌲 나무숲 · 준비 중</p><p>💧 폭포와 호수 · 준비 중</p><p>🧪 이상한 조합 실험실 · 준비 중</p><p>🥚 몬스터 연구소 · 준비 중</p>'));
-  (document.getElementById('book-button') as HTMLButtonElement).addEventListener('click', () => openModal('📖 첫 정원 도감', '<ul><li>🦊 여우 — 호기심 많은 탐험가</li><li>🐻 곰 — 정원의 듬직한 친구</li><li>🐱 고양이 — 몬스터 돌봄 담당</li><li>🐰 토끼 — 씨앗과 조합 담당</li></ul><p>다음 단계에서 식물·몬스터 도감이 늘어날 거야!</p>'));
-  (document.getElementById('help-button') as HTMLButtonElement).addEventListener('click', () => openModal('💡 어떻게 놀까?', '<ul><li>빈 땅을 누르면 여우가 그곳으로 걸어가.</li><li>상단의 마을 / 텃밭 버튼으로 지역을 오가.</li><li>텃밭 갈색 흙을 누르면 씨앗을 심을 수 있어.</li><li>작물이 익으면 다시 눌러 수확해!</li><li>진행 내용은 이 브라우저에 자동 저장돼.</li></ul>'));
-  if (currentZone === 'farm') { currentZone = 'town'; switchZone('farm'); }
-  else { gateLabel.text = '큰 텃밭으로 →'; gate.position.set(1110, 600); cropsLayer.visible = false; }
+  labButton.addEventListener('click', () => switchZone('lab'));
+  nurseryButton.addEventListener('click', () => switchZone('nursery'));
+  (document.getElementById('bag-button') as HTMLButtonElement).addEventListener('click', () => openModal('🎒 나의 가방', '<p>🌱 씨앗: <b>' + saveData.seeds + '개</b></p><p>🍓 열매: <b>' + saveData.berries + '개</b></p><p>✨ 마법 정수: <b>' + saveData.essence + '개</b></p><p>🥚 신비한 알: <b>' + saveData.eggs + '개</b></p><p>🐾 몬스터: <b>' + saveData.monsters.length + '마리</b></p>'));
+  (document.getElementById('map-button') as HTMLButtonElement).addEventListener('click', () => openModal('🗺️ 마법정원 월드', '<p>🏡 햇살 중앙 마을 · 이동 가능</p><p>🌿 바람의 큰 텃밭 · 이동 가능</p><p>🧪 이상한 조합 실험실 · 이동 가능</p><p>🥚 몬스터 연구소 · 이동 가능</p><p>🌲 나무숲 · 준비 중</p><p>💧 폭포와 호수 · 준비 중</p>'));
+  (document.getElementById('book-button') as HTMLButtonElement).addEventListener('click', () => openModal('📖 첫 정원 도감', '<ul><li>🦊 여우 — 호기심 많은 탐험가</li><li>🐻 곰 — 정원의 듬직한 친구</li><li>🐱 고양이 — 몬스터 돌봄 담당</li><li>🐰 토끼 — 씨앗과 조합 담당</li></ul><p>🐾 발견한 몬스터: ' + (saveData.monsters.length ? saveData.monsters.join(' · ') : '아직 발견하지 못했어') + '</p>'));
+  (document.getElementById('help-button') as HTMLButtonElement).addEventListener('click', () => openModal('💡 어떻게 놀까?', '<ul><li>빈 땅을 누르면 여우가 그곳으로 걸어가.</li><li>지역 버튼이나 화면의 길 안내판으로 4개 구역을 오갈 수 있어.</li><li>텃밭에 씨앗을 심고 자라면 다시 눌러 수확해.</li><li>실험실에서 열매를 정수로, 정수를 알로 조합해!</li><li>연구소에서 알을 품으면 30초 후 친구가 부화해.</li><li>진행 내용은 이 브라우저에 자동 저장돼.</li></ul>'));
+  if (currentZone !== 'town') { const firstZone = currentZone; currentZone = 'town'; switchZone(firstZone); }
+  else { gateLabel.text = ZONE_NAV[NEXT_ZONE.town] + ' →'; gate.position.set(1110, 600); cropsLayer.visible = false; station.visible = false; }
   drawPlots(); updateHud(); resize();
   app.ticker.add((ticker) => {
     const dt = Math.min(2.4, ticker.deltaTime);
@@ -410,7 +487,7 @@ async function start() {
     if (clock - lastCropRender > 1100) { lastCropRender = clock; if (currentZone === 'farm') drawPlots(); }
     if (Math.abs(dx) + Math.abs(dy) > 4) resize();
   });
-  showGuide(currentZone === 'farm' ? '밭을 눌러 씨앗을 심어봐!' : '길을 클릭하거나 터치하면 걸어갈 수 있어!');
+  showGuide(currentZone === 'farm' ? '밭을 눌러 씨앗을 심어봐!' : currentZone === 'lab' ? '조합대를 터치해 마법 정수를 만들어봐!' : currentZone === 'nursery' ? '부화실을 터치해 새 친구를 만나봐!' : '길을 클릭하거나 터치하면 걸어갈 수 있어!');
 }
 start().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
