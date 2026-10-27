@@ -1,4 +1,4 @@
-import { Application, Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js';
 import './style.css';
 
 type Zone = 'town' | 'farm' | 'lab' | 'nursery';
@@ -292,9 +292,10 @@ async function start() {
   const creatures: Record<Critter, Texture> = { fox: mascotTexture('fox'), bear: mascotTexture('bear'), cat: mascotTexture('cat'), rabbit: mascotTexture('rabbit') };
   const background = new Sprite(art[saveData.zone]);
   const rasterAssets: Partial<Record<Zone, string>> = {
-    town: 'town-scene-v1.png',
-    farm: 'farm-scene-v1.png',
-    // 실험실과 연구소 원화는 아직 제작 전이므로 기본 Canvas 배경을 사용한다.
+    town: 'town-scene-v1.webp',
+    farm: 'farm-scene-v1.webp',
+    lab: 'lab-scene-v1.webp',
+    nursery: 'nursery-scene-v1.webp',
   };
   const loadingRasters: Partial<Record<Zone, Promise<void>>> = {};
   function loadRaster(zone: Zone): Promise<void> {
@@ -321,6 +322,35 @@ async function start() {
   background.eventMode = 'static';
   world.addChild(background);
   void loadRaster(saveData.zone);
+
+  // 그림 위의 빛 먼지·작은 나비는 별도의 가벼운 레이어로 그린다.
+  // 클릭을 가로채지 않으므로 밭과 이동 조작은 그대로 작동한다.
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ambience = new Container();
+  ambience.eventMode = 'none';
+  world.addChild(ambience);
+  const ambientItems = Array.from({ length: prefersReducedMotion ? 7 : 15 }, (_, i) => {
+    const butterfly = i < 4;
+    const glow = new Graphics();
+    if (butterfly) {
+      const wing = i % 2 ? '#ffeaa1' : '#f6b7ce';
+      glow.ellipse(-5, -3, 7, 5).fill({ color: wing, alpha: .85 });
+      glow.ellipse(5, -3, 7, 5).fill({ color: wing, alpha: .85 });
+      glow.ellipse(-3, 4, 5, 4).fill({ color: '#fff4d8', alpha: .86 });
+      glow.ellipse(3, 4, 5, 4).fill({ color: '#fff4d8', alpha: .86 });
+      glow.ellipse(0, 0, 2, 7).fill('#6e7259');
+    } else {
+      glow.circle(0, 0, i % 4 === 0 ? 5 : 3).fill({ color: i % 3 === 0 ? '#fff9ca' : '#ffffff', alpha: .8 });
+      glow.circle(0, 0, i % 4 === 0 ? 9 : 6).fill({ color: '#fff8c0', alpha: .15 });
+    }
+    const x = 120 + ((i * 311 + 61) % 1040);
+    const y = 355 + ((i * 137 + 47) % 280);
+    glow.position.set(x, y);
+    glow.alpha = .5;
+    ambience.addChild(glow);
+    return { glow, butterfly, x, y, phase: i * 1.74 };
+  });
+
   const objects = new Container(); objects.sortableChildren = true; world.addChild(objects);
   const player = new Sprite(creatures.fox);
   player.anchor.set(.5, 1);
@@ -337,6 +367,24 @@ async function start() {
     sprite.on('pointertap', () => openFriend(kind));
     objects.addChild(sprite);
     return sprite;
+  });
+  let friendArtScale = 1;
+  // 원화가 천천히 도착해도 즉시 플레이할 수 있도록 기존 캐릭터를 먼저 보여준다.
+  // WebP 한 장의 4분면을 같은 GPU 텍스처로 공유해 모바일 다운로드와 메모리를 줄인다.
+  void Assets.load<Texture>(`${import.meta.env.BASE_URL}assets/friends-atlas-v1.webp`).then((sheet) => {
+    const splitX = Math.floor(sheet.width / 2);
+    const splitY = Math.floor(sheet.height / 2);
+    const clip = (col: number, row: number) => new Texture({
+      source: sheet.source,
+      frame: new Rectangle(col * splitX, row * splitY, col ? sheet.width - splitX : splitX, row ? sheet.height - splitY : splitY),
+    });
+    player.texture = clip(0, 0);
+    npcs[0].texture = clip(1, 0);
+    npcs[1].texture = clip(0, 1);
+    npcs[2].texture = clip(1, 1);
+    friendArtScale = .25;
+  }).catch(() => {
+    // 로딩이 실패하면 게임은 기존 Canvas 캐릭터로 계속 진행한다.
   });
   // 목표를 표시하는 바닥 링. 클릭을 가로채지 않는다.
   const walkMark = new Graphics().circle(0, 0, 17).stroke({ color: '#fffbee', width: 4, alpha: .95 }).circle(0, 0, 10).stroke({ color: '#6aa873', width: 3, alpha: .85 });
@@ -627,8 +675,9 @@ async function start() {
     } else { player.rotation *= .8; }
     // 발 좌표(py)는 고정하고 걷기 표현만 흔들어 카메라 떨림을 피한다.
     const perspective = .61 + Math.max(0, Math.min(1, (py - 350) / 450)) * .11;
-    player.scale.set(facing * perspective, perspective);
-    player.position.set(px, py - (moving ? Math.abs(Math.sin(clock / 110)) * 2.3 : 0));
+    const playerBounce = prefersReducedMotion ? 0 : moving ? Math.abs(Math.sin(clock / 110)) * 3.3 : Math.sin(clock / 520) * .8;
+    player.scale.set(facing * perspective * friendArtScale, perspective * friendArtScale * (prefersReducedMotion ? 1 : 1 + Math.sin(clock / 440) * .009));
+    player.position.set(px, py - playerBounce);
     player.zIndex = py;
     if (walkMark.visible) {
       markAge += ticker.deltaMS;
@@ -642,10 +691,21 @@ async function start() {
       const x = baseX + Math.sin(clock / (800 + i * 300)) * 8;
       const y = baseY + Math.cos(clock / (320 + i * 100)) * 2;
       const size = .59 + Math.max(0, Math.min(1, (y - 350) / 450)) * .1;
-      sprite.scale.set(size);
-      sprite.position.set(x, y);
+      const breathe = prefersReducedMotion ? 1 : 1 + Math.sin(clock / (520 + i * 100) + i) * .018;
+      sprite.scale.set(size * friendArtScale, size * friendArtScale * breathe);
+      sprite.rotation = prefersReducedMotion ? 0 : Math.sin(clock / (900 + i * 175) + i) * .014;
+      sprite.position.set(x, y - (prefersReducedMotion ? 0 : Math.max(0, Math.sin(clock / (260 + i * 43) + i)) * 1.3));
       sprite.zIndex = y;
     });
+    if (!prefersReducedMotion) {
+      ambientItems.forEach(({ glow, butterfly, x, y, phase }) => {
+        glow.visible = !butterfly || currentZone === 'town' || currentZone === 'farm';
+        const t = clock / 1000 + phase;
+        glow.position.set(x + Math.sin(t * (butterfly ? .7 : .28)) * (butterfly ? 29 : 13), y + Math.sin(t * (butterfly ? 1.3 : .61)) * (butterfly ? 15 : 9));
+        glow.alpha = (butterfly ? .63 : currentZone === 'town' || currentZone === 'farm' ? .35 : .15) + (Math.sin(t * 2.1) + 1) * (butterfly ? .12 : .2);
+        glow.scale.x = butterfly ? .72 + Math.abs(Math.sin(t * 10)) * .34 : 1;
+      });
+    }
     if (clock - lastCropRender > 1100) { lastCropRender = clock; if (currentZone === 'farm') drawPlots(); }
     if (Math.abs(dx) + Math.abs(dy) > 4) resize();
   });

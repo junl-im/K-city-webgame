@@ -28,3 +28,26 @@ for (const name of expected) {
   }
   process.stdout.write(`${name}: ${width}x${height}, ${(size / 1024 / 1024).toFixed(2)} MiB — OK\n`);
 }
+
+const optimized = [
+  'town-scene-v1.webp',
+  'farm-scene-v1.webp',
+  'lab-scene-v1.webp',
+  'nursery-scene-v1.webp',
+  'friends-atlas-v1.webp',
+];
+for (const name of optimized) {
+  const file = join(projectRoot, outputRoot, 'assets', name);
+  const size = statSync(file).size;
+  if (size < 20_000 || size > 3_000_000) throw new Error(`${name}: unexpected optimized image size (${size} bytes)`);
+  const fd = openSync(file, 'r');
+  const header = Buffer.alloc(16);
+  let length;
+  try { length = readSync(fd, header, 0, header.length, 0); }
+  finally { closeSync(fd); }
+  const frameType = header.toString('ascii', 12, 16);
+  if (length !== 16 || header.toString('ascii', 0, 4) !== 'RIFF' || header.toString('ascii', 8, 12) !== 'WEBP' || !['VP8 ', 'VP8L', 'VP8X'].includes(frameType)) {
+    throw new Error(`${name}: invalid WebP header`);
+  }
+  process.stdout.write(`${name}: ${(size / 1024).toFixed(0)} KiB, WebP — OK\n`);
+}
