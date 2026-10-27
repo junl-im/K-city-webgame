@@ -322,21 +322,30 @@ async function start() {
   world.addChild(background);
   void loadRaster(saveData.zone);
   const objects = new Container(); objects.sortableChildren = true; world.addChild(objects);
-  const cropsLayer = new Container(); cropsLayer.zIndex = 5; objects.addChild(cropsLayer);
   const player = new Sprite(creatures.fox);
   player.anchor.set(.5, 1);
   player.scale.set(.72);
-  player.zIndex = 15;
+  player.zIndex = 585;
+  player.eventMode = 'static'; player.cursor = 'pointer';
+  player.on('pointertap', () => openFriend('fox'));
   objects.addChild(player);
   const npcKinds: Critter[] = ['bear', 'cat', 'rabbit'];
   const npcs = npcKinds.map((kind, i) => {
     const sprite = new Sprite(creatures[kind]);
-    sprite.anchor.set(.5, 1); sprite.scale.set(.65); sprite.zIndex = 9 + i;
+    sprite.anchor.set(.5, 1); sprite.scale.set(.65); sprite.zIndex = 500 + i;
+    sprite.eventMode = 'static'; sprite.cursor = 'pointer';
+    sprite.on('pointertap', () => openFriend(kind));
     objects.addChild(sprite);
     return sprite;
   });
+  // 목표를 표시하는 바닥 링. 클릭을 가로채지 않는다.
+  const walkMark = new Graphics().circle(0, 0, 17).stroke({ color: '#fffbee', width: 4, alpha: .95 }).circle(0, 0, 10).stroke({ color: '#6aa873', width: 3, alpha: .85 });
+  walkMark.visible = false; walkMark.eventMode = 'none';
+  objects.addChild(walkMark);
+  let markAge = 0;
+
   const gate = new Container();
-  gate.zIndex = 11; objects.addChild(gate);
+  gate.zIndex = 10_000; objects.addChild(gate);
   const gateBackground = new Graphics().roundRect(-98, -30, 196, 60, 18).fill({ color: '#fff4d1', alpha: .96 }).roundRect(-98, -30, 196, 60, 18).stroke({ color: '#a78054', width: 4 });
   const gateLabel = new Text({ text: '큰 텃밭으로 →', style: { fontFamily: 'sans-serif', fontSize: 22, fontWeight: 'bold', fill: '#694a2e' } });
   gateLabel.anchor.set(.5);
@@ -345,7 +354,7 @@ async function start() {
   gate.on('pointertap', () => switchZone(NEXT_ZONE[currentZone]));
 
   const station = new Container();
-  station.zIndex = 13; objects.addChild(station);
+  station.zIndex = 10_001; objects.addChild(station);
   const stationFrame = new Graphics().roundRect(-123, -39, 246, 78, 19).fill({ color: '#fff4cf', alpha: .96 }).roundRect(-123, -39, 246, 78, 19).stroke({ color: '#9e7547', width: 5 });
   const stationText = new Text({ text: '🧪 조합 시작', style: { fontFamily: 'sans-serif', fontSize: 26, fontWeight: 'bold', fill: '#684527' } });
   stationText.anchor.set(.5);
@@ -358,15 +367,18 @@ async function start() {
     const plot = new Graphics();
     const col = i % 4, row = Math.floor(i / 4);
     plot.position.set(410 + col * 191, 476 + row * 105);
-    plot.zIndex = 4 + row;
+    // 밭과 캐릭터의 앞뒤 순서를 같은 발 위치 기준으로 계산한다.
+    plot.zIndex = plot.position.y + 20;
     plot.eventMode = 'static'; plot.cursor = 'pointer';
     plot.on('pointertap', () => interactPlot(i));
-    cropsLayer.addChild(plot); plotViews.push(plot);
+    plot.visible = saveData.zone === 'farm';
+    objects.addChild(plot); plotViews.push(plot);
   }
   let currentZone: Zone = saveData.zone;
   let px = currentZone === 'town' ? 619 : 247;
   let py = 585;
   let tx = px, ty = py;
+  let facing = 1;
   let clock = 0;
   let lastCropRender = 0;
 
@@ -407,6 +419,19 @@ async function start() {
       showGuide('쑥쑥 자라는 중이야! 약 ' + remaining + '초 후 수확할 수 있어.');
     }
     drawPlots(); updateHud(); persist();
+  }
+
+  function openFriend(kind: Critter) {
+    const dialogues: Record<Critter, { name: string; message: string; tip: string; place: Zone }> = {
+      fox: { name: '🦊 여우', message: '여기가 우리 마법정원이야! 이 길 너머에는 매일 새로운 발견이 기다리고 있어.', tip: '텃밭에서 열매를 기르고 실험실과 연구소로 가져가 보자!', place: 'farm' },
+      bear: { name: '🐻 곰', message: '어서 와! 정원은 서두르지 않아도 괜찮아. 씨앗은 천천히 자란단다.', tip: '큰 텃밭의 12칸을 눌러 심고, 다 자라면 다시 눌러 수확해 봐.', place: 'farm' },
+      cat: { name: '🐱 고양이', message: '쉿, 작은 알이 꿈꾸고 있어. 깨어나면 따뜻하게 맞아 줘야 해!', tip: '신비한 알을 만들었다면 연구소에서 30초 동안 품어 줘.', place: 'nursery' },
+      rabbit: { name: '🐰 토끼', message: '나랑 반짝반짝 조합 실험해 볼래? 열매 세 개면 신기한 정수를 만들 수 있어!', tip: '정수 2개를 모으면 신비한 알을 제작할 수 있어.', place: 'lab' },
+    };
+    const friend = dialogues[kind];
+    openModal(friend.name + '와 이야기',
+      '<p>' + friend.message + '</p><p class="modal-note">💡 ' + friend.tip + '</p>' +
+      '<button type="button" class="link-button" data-game-action="zone-' + friend.place + '">🗺️ ' + ZONE_LABELS[friend.place] + ' 이동하기</button>');
   }
 
   function openLab() {
@@ -542,7 +567,8 @@ async function start() {
     py = 562; tx = px; ty = py;
     gateLabel.text = ZONE_NAV[NEXT_ZONE[next]] + ' →';
     gate.position.set(next === 'town' ? 1110 : next === 'farm' ? 154 : 1060, 600);
-    cropsLayer.visible = next === 'farm';
+    plotViews.forEach((plot) => { plot.visible = next === 'farm'; });
+    walkMark.visible = false;
     station.visible = next === 'lab' || next === 'nursery';
     station.position.set(next === 'lab' ? 660 : 685, 485);
     stationText.text = next === 'lab' ? '🧪 조합 시작' : '🥚 부화실 열기';
@@ -565,6 +591,12 @@ async function start() {
     const local = world.toLocal(event.global);
     tx = Math.min(WORLD_WIDTH - 70, Math.max(70, local.x));
     ty = Math.min(WORLD_HEIGHT - 58, Math.max(350, local.y));
+    markAge = 0;
+    walkMark.position.set(tx, ty);
+    walkMark.zIndex = ty + 2;
+    walkMark.alpha = 1;
+    walkMark.scale.set(1);
+    walkMark.visible = true;
   });
   window.addEventListener('resize', resize);
   window.visualViewport?.addEventListener('resize', resize);
@@ -576,25 +608,43 @@ async function start() {
   (document.getElementById('map-button') as HTMLButtonElement).addEventListener('click', () => openModal('🗺️ 마법정원 월드', '<p>가고 싶은 지역을 눌러 바로 이동해봐!</p><div class="zone-choices"><button class="link-button" type="button" data-game-action="zone-town">🏡 중앙 마을</button><button class="link-button" type="button" data-game-action="zone-farm">🌿 큰 텃밭</button><button class="link-button" type="button" data-game-action="zone-lab">🧪 실험실</button><button class="link-button" type="button" data-game-action="zone-nursery">🥚 연구소</button></div><p class="modal-note">🌲 나무숲 · 💧 폭포와 호수 · 🌉 나무다리 · 🏠 집/뒤뜰은 준비 중이야.</p>'));
 
   (document.getElementById('book-button') as HTMLButtonElement).addEventListener('click', () => openModal('📖 첫 정원 도감', '<ul><li>🦊 여우 — 호기심 많은 탐험가</li><li>🐻 곰 — 정원의 듬직한 친구</li><li>🐱 고양이 — 몬스터 돌봄 담당</li><li>🐰 토끼 — 씨앗과 조합 담당</li></ul><p>🐾 발견한 몬스터: ' + (saveData.monsters.length ? saveData.monsters.join(' · ') : '아직 발견하지 못했어') + '</p>'));
-  (document.getElementById('help-button') as HTMLButtonElement).addEventListener('click', () => openModal('💡 어떻게 놀까?', '<ul><li>빈 땅을 누르면 여우가 그곳으로 걸어가.</li><li>지역 버튼이나 화면의 길 안내판, 지도 메뉴로 4개 구역을 오갈 수 있어.</li><li>텃밭에 씨앗을 심고 자라면 다시 눌러 수확해.</li><li>실험실에서 열매를 정수로, 정수를 알로 조합해!</li><li>연구소에서 알을 품으면 30초 후 친구가 부화해.</li><li>가방에서 JSON 저장파일을 내려받고 다른 기기로 불러올 수 있어.</li><li>진행 내용은 이 브라우저에 자동 저장돼.</li></ul>'));
+  (document.getElementById('help-button') as HTMLButtonElement).addEventListener('click', () => openModal('💡 어떻게 놀까?', '<ul><li>빈 땅을 누르면 발자국 표시가 뜨고 여우가 그곳으로 걸어가.</li><li>여우·곰·고양이·토끼를 누르면 각자의 이야기를 듣고 관련 지역으로 이동할 수 있어.</li><li>지역 버튼이나 화면의 길 안내판, 지도 메뉴로 4개 구역을 오갈 수 있어.</li><li>텃밭에 씨앗을 심고 자라면 다시 눌러 수확해.</li><li>실험실에서 열매를 정수로, 정수를 알로 조합해!</li><li>연구소에서 알을 품으면 30초 후 친구가 부화해.</li><li>가방에서 JSON 저장파일을 내려받고 다른 기기로 불러올 수 있어.</li><li>진행 내용은 이 브라우저에 자동 저장돼.</li></ul>'));
 
   if (currentZone !== 'town') { const firstZone = currentZone; currentZone = 'town'; switchZone(firstZone); }
-  else { gateLabel.text = ZONE_NAV[NEXT_ZONE.town] + ' →'; gate.position.set(1110, 600); cropsLayer.visible = false; station.visible = false; }
+  else { gateLabel.text = ZONE_NAV[NEXT_ZONE.town] + ' →'; gate.position.set(1110, 600); plotViews.forEach((plot) => { plot.visible = false; }); station.visible = false; }
   drawPlots(); updateHud(); resize();
   app.ticker.add((ticker) => {
     const dt = Math.min(2.4, ticker.deltaTime);
     clock += ticker.deltaMS;
     const dx = tx - px, dy = ty - py, distance = Math.hypot(dx, dy);
-    if (distance > 3) {
+    const moving = distance > 3;
+    if (moving) {
       const step = Math.min(distance, 3.5 * dt);
       px += dx / distance * step; py += dy / distance * step;
-      player.rotation = dx < -1 ? -.015 : dx > 1 ? .015 : 0;
-    } else { player.rotation *= .87; }
-    player.position.set(px, py + Math.sin(clock / 240) * 2);
+      if (dx < -1) facing = -1;
+      if (dx > 1) facing = 1;
+      player.rotation = dx < -1 ? -.012 : dx > 1 ? .012 : 0;
+    } else { player.rotation *= .8; }
+    // 발 좌표(py)는 고정하고 걷기 표현만 흔들어 카메라 떨림을 피한다.
+    const perspective = .61 + Math.max(0, Math.min(1, (py - 350) / 450)) * .11;
+    player.scale.set(facing * perspective, perspective);
+    player.position.set(px, py - (moving ? Math.abs(Math.sin(clock / 110)) * 2.3 : 0));
+    player.zIndex = py;
+    if (walkMark.visible) {
+      markAge += ticker.deltaMS;
+      walkMark.alpha = Math.max(0, 1 - markAge / 850);
+      walkMark.scale.set(.85 + markAge / 1400);
+      if (markAge >= 850 || !moving) walkMark.visible = false;
+    }
     npcs.forEach((sprite, i) => {
       const baseX = currentZone === 'town' ? [875, 1015, 620][i] : [946, 735, 330][i];
       const baseY = currentZone === 'town' ? [553, 577, 414][i] : [540, 385, 634][i];
-      sprite.position.set(baseX + Math.sin(clock / (800 + i * 300)) * 8, baseY + Math.cos(clock / (320 + i * 100)) * 2);
+      const x = baseX + Math.sin(clock / (800 + i * 300)) * 8;
+      const y = baseY + Math.cos(clock / (320 + i * 100)) * 2;
+      const size = .59 + Math.max(0, Math.min(1, (y - 350) / 450)) * .1;
+      sprite.scale.set(size);
+      sprite.position.set(x, y);
+      sprite.zIndex = y;
     });
     if (clock - lastCropRender > 1100) { lastCropRender = clock; if (currentZone === 'farm') drawPlots(); }
     if (Math.abs(dx) + Math.abs(dy) > 4) resize();
