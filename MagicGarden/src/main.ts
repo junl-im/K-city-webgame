@@ -406,6 +406,9 @@ async function start() {
   const playerShadow = makeShadow();
   const npcShadows = npcKinds.map(() => makeShadow());
   let friendArtScale = 1;
+  let foxArtScale = 1;
+  let foxFourWayReady = false;
+  const foxDirections: Partial<Record<WalkHeading, Texture>> = {};
   // 원화가 천천히 도착해도 즉시 플레이할 수 있도록 기존 캐릭터를 먼저 보여준다.
   // WebP 한 장의 4분면을 같은 GPU 텍스처로 공유해 모바일 다운로드와 메모리를 줄인다.
   void Assets.load<Texture>(`${import.meta.env.BASE_URL}assets/friends-atlas-v1.webp`).then((sheet) => {
@@ -415,7 +418,7 @@ async function start() {
       source: sheet.source,
       frame: new Rectangle(col * splitX, row * splitY, col ? sheet.width - splitX : splitX, row ? sheet.height - splitY : splitY),
     });
-    player.texture = clip(0, 0);
+    if (!foxFourWayReady) player.texture = clip(0, 0);
     npcs[0].texture = clip(1, 0);
     npcs[1].texture = clip(0, 1);
     npcs[2].texture = clip(1, 1);
@@ -423,6 +426,22 @@ async function start() {
   }).catch(() => {
     // 로딩이 실패하면 게임은 기존 Canvas 캐릭터로 계속 진행한다.
   });
+  // 네 방향 원화가 등록되면 우선 사용한다. 미등록/오류 시 기존 여우 그림으로 계속 플레이한다.
+  void Assets.load<Texture>(`${import.meta.env.BASE_URL}assets/fox-four-directions-v1.webp`).then((sheet) => {
+    const halfWidth = Math.floor(sheet.width / 2);
+    const halfHeight = Math.floor(sheet.height / 2);
+    const clip = (col: number, row: number) => new Texture({
+      source: sheet.source,
+      frame: new Rectangle(col * halfWidth, row * halfHeight, col ? sheet.width - halfWidth : halfWidth, row ? sheet.height - halfHeight : halfHeight),
+    });
+    foxDirections.down = clip(0, 0);
+    foxDirections.right = clip(1, 0);
+    foxDirections.up = clip(0, 1);
+    foxDirections.left = clip(1, 1);
+    foxArtScale = 160 / halfHeight;
+    foxFourWayReady = true;
+    player.texture = foxDirections.down;
+  }).catch(() => { /* 구버전 캐릭터와 움직임은 그대로 유지 */ });
   // 목표를 표시하는 바닥 링. 클릭을 가로채지 않는다.
   const walkMark = new Graphics().circle(0, 0, 17).stroke({ color: '#fffbee', width: 4, alpha: .95 }).circle(0, 0, 10).stroke({ color: '#6aa873', width: 3, alpha: .85 });
   walkMark.visible = false; walkMark.eventMode = 'none';
@@ -476,6 +495,7 @@ async function start() {
   let lastFoot = 0;
   let walkHeading: WalkHeading = 'down';
   let horizontalFacing: HorizontalFacing = 1;
+  const npcFacingMemory: HorizontalFacing[] = [1, 1, 1];
   const footprints: { sprite: Graphics; age: number }[] = [];
   function leaveFootprint(x: number, y: number, dx: number, dy: number) {
     if (prefersReducedMotion) return;
@@ -759,11 +779,13 @@ async function start() {
     const moving = distance > 3;
     if (moving) {
       const step = Math.min(distance, 3.5 * dt);
+      const previousX = px, previousY = py;
       px += dx / distance * step; py += dy / distance * step;
+      // 실제 프레임 이동 벡터로 방향을 판정한다. 목표까지 남은 거리로 판단하지 않는다.
+      walkHeading = resolveWalkHeading(px - previousX, py - previousY, walkHeading);
+      horizontalFacing = resolveHorizontalFacing(px - previousX, walkHeading, horizontalFacing);
     }
     if (moving) {
-      walkHeading = resolveWalkHeading(dx, dy, walkHeading);
-      horizontalFacing = resolveHorizontalFacing(dx, walkHeading, horizontalFacing);
       const traveled = Math.min(distance, 3.5 * dt);
       walkDistance += traveled;
       footstepDistance += traveled;
@@ -784,7 +806,14 @@ async function start() {
     const playerBounce = prefersReducedMotion ? 0 : moving ? Math.abs(Math.sin(stride)) * 6.5 : Math.sin(clock / 520) * .8;
     const walkingSquash = !prefersReducedMotion && moving ? Math.cos(stride * 2) * .046 : 0;
     const depthLean = moving && !prefersReducedMotion ? (walkHeading === 'up' ? .93 : walkHeading === 'down' ? 1.05 : 1) : 1;
-    player.scale.set(horizontalFacing * perspective * friendArtScale * (1 + walkingSquash), perspective * friendArtScale * depthLean * (prefersReducedMotion ? 1 : 1 + Math.sin(clock / 440) * .009 - walkingSquash));
+    // 방향 전용 원화는 거울 반전을 쓰지 않고 원본 프레임을 선택한다.
+    if (foxFourWayReady) {
+      const directionTexture = foxDirections[walkHeading];
+      if (directionTexture && player.texture !== directionTexture) player.texture = directionTexture;
+    }
+    const renderFacing = foxFourWayReady ? 1 : horizontalFacing;
+    const renderArtScale = foxFourWayReady ? foxArtScale : friendArtScale;
+    player.scale.set(renderFacing * perspective * renderArtScale * (1 + walkingSquash), perspective * renderArtScale * depthLean * (prefersReducedMotion ? 1 : 1 + Math.sin(clock / 440) * .009 - walkingSquash));
     player.position.set(px, py - playerBounce);
     player.zIndex = py;
     playerShadow.position.set(px, py + 4);
@@ -813,7 +842,10 @@ async function start() {
       const y = baseY + (prefersReducedMotion ? 0 : Math.cos(clock / (320 + i * 100)) * 2);
       const size = .59 + Math.max(0, Math.min(1, (y - 350) / 450)) * .1;
       const breathe = prefersReducedMotion ? 1 : 1 + Math.sin(clock / (520 + i * 100) + i) * .018;
-      const npcFacing = Math.cos(patrolPhase) >= 0 ? 1 : -1;
+      // 반환점 부근에서 방향을 매 프레임 반전하지 않도록 작은 완충 구간을 둔다.
+      const patrolVelocity = Math.cos(patrolPhase);
+      if (Math.abs(patrolVelocity) > .18) npcFacingMemory[i] = patrolVelocity > 0 ? 1 : -1;
+      const npcFacing = npcFacingMemory[i];
       const npcStep = prefersReducedMotion ? 0 : Math.abs(Math.sin(patrolPhase * 5)) * 2.4;
       sprite.scale.set(npcFacing * size * friendArtScale, size * friendArtScale * breathe);
       sprite.rotation = prefersReducedMotion ? 0 : npcFacing * Math.sin(patrolPhase * 5) * .037;
