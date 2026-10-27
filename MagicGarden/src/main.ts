@@ -263,20 +263,25 @@ async function start() {
   const art: Record<Zone, Texture> = { town: Texture.from(paintLandscape('town')), farm: Texture.from(paintLandscape('farm')), lab: Texture.from(paintLandscape('lab')), nursery: Texture.from(paintLandscape('nursery')) };
   const creatures: Record<Critter, Texture> = { fox: mascotTexture('fox'), bear: mascotTexture('bear'), cat: mascotTexture('cat'), rabbit: mascotTexture('rabbit') };
   const background = new Sprite(art[saveData.zone]);
-  const rasterAssets: Record<Zone, string> = {
+  const rasterAssets: Partial<Record<Zone, string>> = {
     town: 'town-scene-v1.png',
     farm: 'farm-scene-v1.png',
-    lab: 'lab-scene-v1.png',
-    nursery: 'nursery-scene-v1.png',
+    // 실험실과 연구소 원화는 아직 제작 전이므로 기본 Canvas 배경을 사용한다.
   };
   const loadingRasters: Partial<Record<Zone, Promise<void>>> = {};
   function loadRaster(zone: Zone): Promise<void> {
+    const filename = rasterAssets[zone];
+    if (!filename) return Promise.resolve();
     if (loadingRasters[zone]) return loadingRasters[zone];
     // 고품질 원화는 해당 지역에 들어갈 때만 로드한다. 실패해도 기본 그림으로 플레이할 수 있다.
-    const url = `${import.meta.env.BASE_URL}assets/${rasterAssets[zone]}`;
+    const url = `${import.meta.env.BASE_URL}assets/${filename}`;
     const load = Assets.load<Texture>(url).then((texture) => {
       art[zone] = texture;
-      if (saveData.zone === zone) background.texture = texture;
+      if (saveData.zone === zone) {
+        background.texture = texture;
+        background.width = WORLD_WIDTH;
+        background.height = WORLD_HEIGHT;
+      }
     }).catch(() => {
       // 오프라인 또는 저속 연결에서는 절차적 Canvas 배경을 그대로 사용한다.
     });
@@ -427,6 +432,8 @@ async function start() {
     currentZone = next;
     saveData.zone = next;
     background.texture = art[next];
+    background.width = WORLD_WIDTH;
+    background.height = WORLD_HEIGHT;
     void loadRaster(next);
     px = next === 'farm' ? 218 : next === 'town' ? 940 : 610;
     py = 562; tx = px; ty = py;
