@@ -28,6 +28,7 @@ const nurseryButton = document.getElementById('nursery-button') as HTMLButtonEle
 const modalRoot = document.getElementById('modal-root') as HTMLElement;
 const modalTitle = document.getElementById('modal-title') as HTMLElement;
 const modalContent = document.getElementById('modal-content') as HTMLElement;
+const modalStatus = document.getElementById('modal-status') as HTMLElement;
 
 function restored(): SaveData {
   const fallback: SaveData = { zone: 'town', seeds: 5, berries: 0, plots: Array.from({ length: 12 }, () => ({ plantedAt: null })), essence: 0, eggs: 0, incubatingAt: null, monsters: [] };
@@ -35,7 +36,7 @@ function restored(): SaveData {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return fallback;
     const parsed: Partial<SaveData> = JSON.parse(raw);
-    if (!parsed.zone || !(parsed.zone in ZONE_LABELS)) return fallback;
+    if (typeof parsed.zone !== 'string' || !Object.prototype.hasOwnProperty.call(ZONE_LABELS, parsed.zone)) return fallback;
     if (!Array.isArray(parsed.plots) || parsed.plots.length !== 12) return fallback;
     return {
       zone: parsed.zone,
@@ -55,13 +56,38 @@ function restored(): SaveData {
 }
 
 const saveData = restored();
+
+type SaveArchive = { app: 'gomfox.magic-garden'; version: 1; exportedAt: string; data: SaveData };
+function validatedArchive(input: unknown): SaveData | null {
+  if (!input || typeof input !== 'object') return null;
+  const archive = input as Record<string, unknown>;
+  if (archive.app !== 'gomfox.magic-garden' || archive.version !== 1 || !archive.data || typeof archive.data !== 'object') return null;
+  const data = archive.data as Record<string, unknown>;
+  const count = (value: unknown): value is number => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 && value <= 1_000_000_000;
+  const timestamp = (value: unknown): value is number | null => value === null || (typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1_000_000_000_000_000);
+  if (typeof data.zone !== 'string' || !Object.prototype.hasOwnProperty.call(ZONE_LABELS, data.zone)) return null;
+  if (!count(data.seeds) || !count(data.berries) || !count(data.essence) || !count(data.eggs) || !timestamp(data.incubatingAt)) return null;
+  if (!Array.isArray(data.plots) || data.plots.length !== 12 || !data.plots.every((plot) => plot && typeof plot === 'object' && timestamp(plot.plantedAt))) return null;
+  if (!Array.isArray(data.monsters) || data.monsters.length > 1000 || !data.monsters.every((kind) => MONSTER_KINDS.includes(kind))) return null;
+  return {
+    zone: data.zone as Zone, seeds: data.seeds, berries: data.berries,
+    plots: data.plots.map((plot) => ({ plantedAt: plot.plantedAt })),
+    essence: data.essence, eggs: data.eggs, incubatingAt: data.incubatingAt,
+    monsters: [...data.monsters],
+  };
+}
+function saveArchive(): SaveArchive {
+  return { app: 'gomfox.magic-garden', version: 1, exportedAt: new Date().toISOString(), data: saveData };
+}
+
 let guideTimeout = 0;
-function persist() {
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(saveData)); }
-  catch { showGuide('저장 공간이 부족해서 이번 변경을 저장하지 못했어.'); }
+function persist(): boolean {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(saveData)); return true; }
+  catch { showGuide('저장 공간이 부족해서 이번 변경을 저장하지 못했어.'); return false; }
 }
 function showGuide(message: string) {
   guideElement.textContent = message;
+  if (!modalRoot.classList.contains('hidden')) modalStatus.textContent = message;
   window.clearTimeout(guideTimeout);
   guideTimeout = window.setTimeout(() => { guideElement.textContent = saveData.zone === 'farm' ? '밭을 눌러 심고, 자라면 다시 눌러 수확해!' : saveData.zone === 'lab' ? '조합대에서 열매를 마법 정수로 바꿔봐!' : saveData.zone === 'nursery' ? '따뜻한 부화실에서 새 친구를 만나봐!' : '길을 눌러 움직이고, 큰 텃밭으로 여행해봐!'; }, 5000);
 }
@@ -75,6 +101,7 @@ function updateHud() {
   nurseryButton.classList.toggle('active', saveData.zone === 'nursery');
 }
 function openModal(title: string, content: string) {
+  if (modalRoot.classList.contains('hidden') || modalTitle.textContent !== title) modalStatus.textContent = '';
   modalTitle.textContent = title;
   modalContent.innerHTML = content;
   modalRoot.classList.remove('hidden');
@@ -82,6 +109,7 @@ function openModal(title: string, content: string) {
 function closeModal() { modalRoot.classList.add('hidden'); }
 (document.getElementById('modal-close') as HTMLButtonElement).addEventListener('click', closeModal);
 modalRoot.addEventListener('click', (event) => { if (event.target === modalRoot) closeModal(); });
+window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !modalRoot.classList.contains('hidden')) closeModal(); });
 
 function rand(seed: number) {
   let current = seed >>> 0;
@@ -399,6 +427,42 @@ async function start() {
       (saveData.incubatingAt === null ? '<button type="button" class="link-button" data-game-action="incubate">🥚 알 1개 부화실에 넣기</button>' : '<button type="button" class="link-button" data-game-action="hatch">🌟 부화 확인하기</button>') +
       '<p>📖 현재 친구: ' + (saveData.monsters.length ? saveData.monsters.join(' · ') : '아직 없음') + '</p>');
   }
+
+  function openBag() {
+    openModal('🎒 나의 가방',
+      '<p>🌱 씨앗: <b>' + saveData.seeds + '개</b> · 🍓 열매: <b>' + saveData.berries + '개</b></p>' +
+      '<p>✨ 마법 정수: <b>' + saveData.essence + '개</b> · 🥚 신비한 알: <b>' + saveData.eggs + '개</b></p>' +
+      '<p>🐾 몬스터: <b>' + saveData.monsters.length + '마리</b></p>' +
+      '<div class="save-actions"><button type="button" class="link-button" data-game-action="save-export">📤 저장파일 내보내기</button>' +
+      '<button type="button" class="link-button" data-game-action="save-import">📥 저장파일 불러오기</button></div>' +
+      '<p class="modal-note">현재 진행은 이 브라우저에 자동 저장돼. 다른 기기로 옮길 때는 JSON 저장파일을 사용해줘.</p>');
+  }
+  let pendingImport: SaveData | null = null;
+  const importInput = document.createElement('input');
+  importInput.type = 'file';
+  importInput.accept = '.json,application/json';
+  importInput.hidden = true;
+  document.body.appendChild(importInput);
+  importInput.addEventListener('change', async () => {
+    const file = importInput.files?.[0];
+    importInput.value = '';
+    if (!file) return;
+    if (file.size > 2_000_000) { openBag(); showGuide('저장파일이 너무 커! 2MB 이하 JSON 파일을 선택해줘.'); return; }
+    try {
+      const data = validatedArchive(JSON.parse(await file.text()));
+      if (!data) { openBag(); showGuide('마법정원 v1 저장파일이 아니거나 내용이 손상됐어.'); return; }
+      pendingImport = data;
+      openModal('📥 저장파일 확인',
+        '<p>불러올 지역: <b>' + ZONE_LABELS[data.zone] + '</b></p>' +
+        '<p>🌱 씨앗 ' + data.seeds + '개 · 🍓 열매 ' + data.berries + '개 · 🐾 몬스터 ' + data.monsters.length + '마리</p>' +
+        '<p><b>적용하면 현재 기기의 진행 내용이 이 파일로 바뀌어.</b> 기존 진행이 필요하다면 먼저 내보내기로 백업해줘.</p>' +
+        '<button type="button" class="link-button" data-game-action="confirm-import">이 저장파일 적용하기</button>' +
+        '<button type="button" class="link-button secondary-action" data-game-action="cancel-import">취소하고 가방으로</button>');
+    } catch {
+      openBag();
+      showGuide('저장파일을 읽지 못했어. 정상적인 JSON 파일인지 확인해줘.');
+    }
+  });
   modalContent.addEventListener('click', (event) => {
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-game-action]');
     if (!button) return;
@@ -421,6 +485,44 @@ async function start() {
       const kind = MONSTER_KINDS[saveData.monsters.length % MONSTER_KINDS.length];
       saveData.monsters.push(kind); saveData.incubatingAt = null;
       showGuide('축하해! 🎉 ' + kind + '이(가) 정원의 새 친구가 됐어!'); openNursery();
+    } else if (action === 'save-export') {
+      try {
+        const blob = new Blob([JSON.stringify(saveArchive(), null, 2)], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'gomfox-magic-garden-save-' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 3000);
+        showGuide('저장파일 다운로드를 요청했어. 파일이 저장됐는지 확인해줘!');
+      } catch {
+        showGuide('저장파일을 준비하지 못했어. 브라우저 저장 기능을 확인해줘.');
+      }
+      return;
+    } else if (action === 'save-import') {
+      importInput.click();
+      return;
+    } else if (action === 'confirm-import') {
+      if (!pendingImport) { openBag(); return; }
+      const imported = pendingImport;
+      pendingImport = null;
+      Object.assign(saveData, imported);
+      if (currentZone !== imported.zone) switchZone(imported.zone);
+      drawPlots(); updateHud();
+      const saved = persist();
+      closeModal();
+      showGuide(saved ? '저장파일을 불러왔어! 마법정원으로 돌아온 걸 환영해!' : '파일 내용은 불러왔지만 브라우저 자동 저장에 실패했어.');
+      return;
+    } else if (action === 'cancel-import') {
+      pendingImport = null; openBag(); return;
+    } else if (action?.startsWith('zone-')) {
+      const next = action.slice(5);
+      if (Object.prototype.hasOwnProperty.call(ZONE_LABELS, next)) {
+        closeModal(); switchZone(next as Zone);
+      }
+      return;
     } else {
       return;
     }
@@ -431,6 +533,7 @@ async function start() {
     if (currentZone === next) return;
     currentZone = next;
     saveData.zone = next;
+    closeModal();
     background.texture = art[next];
     background.width = WORLD_WIDTH;
     background.height = WORLD_HEIGHT;
@@ -469,10 +572,12 @@ async function start() {
   farmButton.addEventListener('click', () => switchZone('farm'));
   labButton.addEventListener('click', () => switchZone('lab'));
   nurseryButton.addEventListener('click', () => switchZone('nursery'));
-  (document.getElementById('bag-button') as HTMLButtonElement).addEventListener('click', () => openModal('🎒 나의 가방', '<p>🌱 씨앗: <b>' + saveData.seeds + '개</b></p><p>🍓 열매: <b>' + saveData.berries + '개</b></p><p>✨ 마법 정수: <b>' + saveData.essence + '개</b></p><p>🥚 신비한 알: <b>' + saveData.eggs + '개</b></p><p>🐾 몬스터: <b>' + saveData.monsters.length + '마리</b></p>'));
-  (document.getElementById('map-button') as HTMLButtonElement).addEventListener('click', () => openModal('🗺️ 마법정원 월드', '<p>🏡 햇살 중앙 마을 · 이동 가능</p><p>🌿 바람의 큰 텃밭 · 이동 가능</p><p>🧪 이상한 조합 실험실 · 이동 가능</p><p>🥚 몬스터 연구소 · 이동 가능</p><p>🌲 나무숲 · 준비 중</p><p>💧 폭포와 호수 · 준비 중</p>'));
+  (document.getElementById('bag-button') as HTMLButtonElement).addEventListener('click', openBag);
+  (document.getElementById('map-button') as HTMLButtonElement).addEventListener('click', () => openModal('🗺️ 마법정원 월드', '<p>가고 싶은 지역을 눌러 바로 이동해봐!</p><div class="zone-choices"><button class="link-button" type="button" data-game-action="zone-town">🏡 중앙 마을</button><button class="link-button" type="button" data-game-action="zone-farm">🌿 큰 텃밭</button><button class="link-button" type="button" data-game-action="zone-lab">🧪 실험실</button><button class="link-button" type="button" data-game-action="zone-nursery">🥚 연구소</button></div><p class="modal-note">🌲 나무숲 · 💧 폭포와 호수 · 🌉 나무다리 · 🏠 집/뒤뜰은 준비 중이야.</p>'));
+
   (document.getElementById('book-button') as HTMLButtonElement).addEventListener('click', () => openModal('📖 첫 정원 도감', '<ul><li>🦊 여우 — 호기심 많은 탐험가</li><li>🐻 곰 — 정원의 듬직한 친구</li><li>🐱 고양이 — 몬스터 돌봄 담당</li><li>🐰 토끼 — 씨앗과 조합 담당</li></ul><p>🐾 발견한 몬스터: ' + (saveData.monsters.length ? saveData.monsters.join(' · ') : '아직 발견하지 못했어') + '</p>'));
-  (document.getElementById('help-button') as HTMLButtonElement).addEventListener('click', () => openModal('💡 어떻게 놀까?', '<ul><li>빈 땅을 누르면 여우가 그곳으로 걸어가.</li><li>지역 버튼이나 화면의 길 안내판으로 4개 구역을 오갈 수 있어.</li><li>텃밭에 씨앗을 심고 자라면 다시 눌러 수확해.</li><li>실험실에서 열매를 정수로, 정수를 알로 조합해!</li><li>연구소에서 알을 품으면 30초 후 친구가 부화해.</li><li>진행 내용은 이 브라우저에 자동 저장돼.</li></ul>'));
+  (document.getElementById('help-button') as HTMLButtonElement).addEventListener('click', () => openModal('💡 어떻게 놀까?', '<ul><li>빈 땅을 누르면 여우가 그곳으로 걸어가.</li><li>지역 버튼이나 화면의 길 안내판, 지도 메뉴로 4개 구역을 오갈 수 있어.</li><li>텃밭에 씨앗을 심고 자라면 다시 눌러 수확해.</li><li>실험실에서 열매를 정수로, 정수를 알로 조합해!</li><li>연구소에서 알을 품으면 30초 후 친구가 부화해.</li><li>가방에서 JSON 저장파일을 내려받고 다른 기기로 불러올 수 있어.</li><li>진행 내용은 이 브라우저에 자동 저장돼.</li></ul>'));
+
   if (currentZone !== 'town') { const firstZone = currentZone; currentZone = 'town'; switchZone(firstZone); }
   else { gateLabel.text = ZONE_NAV[NEXT_ZONE.town] + ' →'; gate.position.set(1110, 600); cropsLayer.visible = false; station.visible = false; }
   drawPlots(); updateHud(); resize();

@@ -2,3 +2,15 @@
 
 /* 4개 이동 구역은 모바일에서도 한쪽으로 차분하게 묶고 HUD와 겹치지 않는다. */
 .area-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:min(270px,55vw);gap:6px}.area{min-width:0;text-overflow:ellipsis;overflow:hidden}.modal .link-button:disabled{opacity:.5;cursor:not-allowed}@media(max-width:600px){.area-panel{width:min(214px,58vw)}.area{padding:8px 5px;font-size:11px}}@media(max-height:500px){.area-panel{top:55px}.area{padding:5px;font-size:11px}}
+
+/* 작은 화면에서 선택지를 겹치지 않게 배치하고, 팝업 안의 실패 원인을 즉시 보여준다. */
+.modal-root{padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom))}
+.modal{max-height:min(80dvh,calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)))}
+.modal-status:empty{display:none}
+.modal-status:not(:empty){margin:0 0 12px;padding:10px 12px;border-radius:13px;background:#f9e6b9;border:1px solid #e6bf79;color:#704d2a;font-size:13px;line-height:1.5;font-weight:700}
+.zone-choices,.save-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0}
+.zone-choices .link-button,.save-actions .link-button{min-width:0;min-height:48px;margin:0;padding:9px 6px;font-size:12px;line-height:1.4}
+.save-actions .link-button{min-height:54px}
+.modal .secondary-action{background:#e9e7d8;color:#5c6350;border:1px solid #cbd5b7}
+.modal .modal-note{font-size:12px;color:#697356;margin-top:13px}
+@media(max-width:359px){.zone-choices,.save-actions{grid-template-columns:1fr}.modal{padding:14px 12px}.zone-choices .link-button,.save-actions .link-button{min-height:40px}}
