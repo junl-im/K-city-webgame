@@ -1,4 +1,4 @@
-import { Application, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 import './style.css';
 
 type Zone = 'town' | 'farm';
@@ -249,10 +249,29 @@ async function start() {
   const art = { town: Texture.from(paintLandscape('town')), farm: Texture.from(paintLandscape('farm')) };
   const creatures: Record<Critter, Texture> = { fox: mascotTexture('fox'), bear: mascotTexture('bear'), cat: mascotTexture('cat'), rabbit: mascotTexture('rabbit') };
   const background = new Sprite(art[saveData.zone]);
+  const rasterAssets: Record<Zone, string> = {
+    town: 'town-scene-v1.png',
+    farm: 'farm-scene-v1.png',
+  };
+  const loadingRasters: Partial<Record<Zone, Promise<void>>> = {};
+  function loadRaster(zone: Zone): Promise<void> {
+    if (loadingRasters[zone]) return loadingRasters[zone];
+    // 고품질 원화는 해당 지역에 들어갈 때만 로드한다. 실패해도 기본 그림으로 플레이할 수 있다.
+    const url = `${import.meta.env.BASE_URL}assets/${rasterAssets[zone]}`;
+    const load = Assets.load<Texture>(url).then((texture) => {
+      art[zone] = texture;
+      if (saveData.zone === zone) background.texture = texture;
+    }).catch(() => {
+      // 오프라인 또는 저속 연결에서는 절차적 Canvas 배경을 그대로 사용한다.
+    });
+    loadingRasters[zone] = load;
+    return load;
+  }
   background.width = WORLD_WIDTH;
   background.height = WORLD_HEIGHT;
   background.eventMode = 'static';
   world.addChild(background);
+  void loadRaster(saveData.zone);
   const objects = new Container(); objects.sortableChildren = true; world.addChild(objects);
   const cropsLayer = new Container(); cropsLayer.zIndex = 5; objects.addChild(cropsLayer);
   const player = new Sprite(creatures.fox);
@@ -280,7 +299,7 @@ async function start() {
   for (let i = 0; i < 12; i++) {
     const plot = new Graphics();
     const col = i % 4, row = Math.floor(i / 4);
-    plot.position.set(333 + col * 151, 428 + row * 108);
+    plot.position.set(410 + col * 191, 476 + row * 105);
     plot.zIndex = 4 + row;
     plot.eventMode = 'static'; plot.cursor = 'pointer';
     plot.on('pointertap', () => interactPlot(i));
@@ -297,10 +316,9 @@ async function start() {
     plotViews.forEach((plot, i) => {
       const crop = saveData.plots[i];
       plot.clear();
-      plot.roundRect(-61, -19, 122, 70, 12).fill({ color: '#704c2d', alpha: .97 });
-      plot.roundRect(-55, -14, 110, 60, 10).fill({ color: '#976439' });
-      plot.roundRect(-48, -8, 96, 46, 8).fill({ color: '#84512f' });
-      for (let line = 0; line < 3; line++) plot.moveTo(-45, 2 + line * 13).lineTo(46, 2 + line * 13).stroke({ color: '#a9784b', alpha: .6, width: 3 });
+      plot.roundRect(-64, -26, 128, 75, 13).fill({ color: '#78411c', alpha: .22 });
+      plot.roundRect(-64, -26, 128, 75, 13).stroke({ color: '#f0d3a0', alpha: .76, width: 2 });
+      for (let line = 0; line < 3; line++) plot.moveTo(-54, -5 + line * 15).lineTo(54, -5 + line * 15).stroke({ color: '#6e401f', alpha: .35, width: 3 });
       if (crop.plantedAt !== null) {
         const percent = Math.min(1, Math.max(0, (Date.now() - crop.plantedAt) / GROW_TIME_MS));
         const scale = .55 + percent * .65;
@@ -337,6 +355,7 @@ async function start() {
     currentZone = next;
     saveData.zone = next;
     background.texture = art[next];
+    void loadRaster(next);
     px = next === 'farm' ? 218 : 940;
     py = 562; tx = px; ty = py;
     gateLabel.text = next === 'town' ? '큰 텃밭으로 →' : '← 중앙 마을로';
