@@ -394,6 +394,16 @@ async function start() {
     objects.addChild(sprite);
     return sprite;
   });
+  // 원화 속 가방·앞치마·목도리 위치가 좌우 반전되지 않도록 그림은 항상 한 방향을 바라본다.
+  // 발밑 그림자로 이동·부유감을 보여주고 캐릭터보다 낮은 깊이에 그린다.
+  const makeShadow = () => {
+    const shadow = new Graphics().ellipse(0, 0, 42, 13).fill({ color: '#2a4a30', alpha: .25 });
+    shadow.eventMode = 'none';
+    objects.addChild(shadow);
+    return shadow;
+  };
+  const playerShadow = makeShadow();
+  const npcShadows = npcKinds.map(() => makeShadow());
   let friendArtScale = 1;
   // 원화가 천천히 도착해도 즉시 플레이할 수 있도록 기존 캐릭터를 먼저 보여준다.
   // WebP 한 장의 4분면을 같은 GPU 텍스처로 공유해 모바일 다운로드와 메모리를 줄인다.
@@ -459,7 +469,6 @@ async function start() {
   let px = currentZone === 'town' ? 619 : 247;
   let py = 585;
   let tx = px, ty = py;
-  let facing = 1;
   let clock = 0;
   let lastCropRender = 0;
   let lastNurseryRender = 0;
@@ -730,16 +739,20 @@ async function start() {
     if (moving) {
       const step = Math.min(distance, 3.5 * dt);
       px += dx / distance * step; py += dy / distance * step;
-      if (dx < -1) facing = -1;
-      if (dx > 1) facing = 1;
-      player.rotation = dx < -1 ? -.012 : dx > 1 ? .012 : 0;
-    } else { player.rotation *= .8; }
+    }
+    // 이동 방향은 얼굴 반전이 아닌 미세한 몸 기울기만으로 표현한다.
+    const moveTilt = moving && !prefersReducedMotion ? Math.max(-1, Math.min(1, dx / distance)) * .034 : 0;
+    player.rotation += (moveTilt - player.rotation) * Math.min(1, dt * .18);
     // 발 좌표(py)는 고정하고 걷기 표현만 흔들어 카메라 떨림을 피한다.
     const perspective = .61 + Math.max(0, Math.min(1, (py - 350) / 450)) * .11;
     const playerBounce = prefersReducedMotion ? 0 : moving ? Math.abs(Math.sin(clock / 110)) * 3.3 : Math.sin(clock / 520) * .8;
-    player.scale.set(facing * perspective * friendArtScale, perspective * friendArtScale * (prefersReducedMotion ? 1 : 1 + Math.sin(clock / 440) * .009));
+    const walkingSquash = !prefersReducedMotion && moving ? Math.sin(clock / 102) * .012 : 0;
+    player.scale.set(perspective * friendArtScale * (1 + walkingSquash), perspective * friendArtScale * (prefersReducedMotion ? 1 : 1 + Math.sin(clock / 440) * .009 - walkingSquash));
     player.position.set(px, py - playerBounce);
     player.zIndex = py;
+    playerShadow.position.set(px, py + 4);
+    playerShadow.zIndex = py - .1;
+    playerShadow.scale.set(perspective * 1.18 * (1 - playerBounce / 22));
     if (walkMark.visible) {
       markAge += ticker.deltaMS;
       walkMark.alpha = Math.max(0, 1 - markAge / 850);
@@ -757,6 +770,9 @@ async function start() {
       sprite.rotation = prefersReducedMotion ? 0 : Math.sin(clock / (900 + i * 175) + i) * .014;
       sprite.position.set(x, y - (prefersReducedMotion ? 0 : Math.max(0, Math.sin(clock / (260 + i * 43) + i)) * 1.3));
       sprite.zIndex = y;
+      npcShadows[i].position.set(x, y + 4);
+      npcShadows[i].zIndex = y - .1;
+      npcShadows[i].scale.set(size * 1.15);
     });
     if (!prefersReducedMotion) {
       gate.position.y = 600 + Math.sin(clock / 750) * 2;
