@@ -1,6 +1,7 @@
 import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js';
 import './style.css';
 import { resolveHorizontalFacing, resolveWalkHeading, type HorizontalFacing, type WalkHeading } from './walk-motion';
+import { advanceMovement, calculateCameraTarget, smoothFollow } from './movement-camera';
 
 type Zone = 'town' | 'farm' | 'lab' | 'nursery';
 type MonsterKind = '잎새콩' | '방울몽' | '반짝몽';
@@ -724,6 +725,10 @@ async function start() {
     void loadRaster(next);
     px = next === 'farm' ? 218 : next === 'town' ? 940 : 610;
     py = 562; tx = px; ty = py;
+    walkHeading = 'down';
+    horizontalFacing = 1;
+    walkDistance = 0;
+    footstepDistance = 0;
     gateLabel.text = ZONE_NAV[NEXT_ZONE[next]] + ' →';
     gate.position.set(next === 'town' ? 1110 : next === 'farm' ? 154 : 1060, 600);
     plotViews.forEach((plot) => { plot.visible = next === 'farm'; });
@@ -733,18 +738,21 @@ async function start() {
     stationText.text = next === 'lab' ? '🧪 조합 시작' : '🥚 부화실 열기';
     const loc = next === 'farm' ? '큰 텃밭에 도착했어! 흙을 눌러 씨앗을 심어봐.' : next === 'lab' ? '토끼의 실험실이야! 수확한 열매로 신기한 조합을 해봐.' : next === 'nursery' ? '고양이가 돌보는 몬스터 연구소야. 알을 부화시켜봐!' : '햇살 마을에 돌아왔어. 여우 친구가 반겨줄 거야!';
     showGuide(loc); updateHud(); persist(); drawPlots();
-    resize();
+    refreshCamera(true);
   }
-  function resize() {
-    const width = Math.max(1, stageElement.clientWidth), height = Math.max(1, stageElement.clientHeight);
-    const portrait = width / height < .85;
-    const scale = portrait ? Math.max(width / 760, height / 930) : Math.min(width / WORLD_WIDTH, height / WORLD_HEIGHT);
-    world.scale.set(scale);
-    const worldWidth = WORLD_WIDTH * scale, worldHeight = WORLD_HEIGHT * scale;
-    let x = width * .52 - px * scale, y = height * .53 - py * scale;
-    x = worldWidth <= width ? (width - worldWidth) / 2 : Math.min(0, Math.max(width - worldWidth, x));
-    y = worldHeight <= height ? (height - worldHeight) / 2 : Math.min(0, Math.max(height - worldHeight, y));
-    world.position.set(x, y);
+  // Camera follows the character gently, but viewport or zone changes snap to a safe target.
+  function refreshCamera(instant = false, elapsedMs = 16.667) {
+    const width = Math.max(1, stageElement.clientWidth);
+    const height = Math.max(1, stageElement.clientHeight);
+    const target = calculateCameraTarget(width, height, WORLD_WIDTH, WORLD_HEIGHT, px, py);
+    if (Math.abs(world.scale.x - target.scale) > .0001) {
+      world.scale.set(target.scale);
+      instant = true;
+    }
+    world.position.set(
+      instant ? target.x : smoothFollow(world.x, target.x, elapsedMs, 120),
+      instant ? target.y : smoothFollow(world.y, target.y, elapsedMs, 120),
+    );
   }
   background.on('pointertap', (event) => {
     const local = world.toLocal(event.global);
@@ -757,8 +765,8 @@ async function start() {
     walkMark.scale.set(1);
     walkMark.visible = true;
   });
-  window.addEventListener('resize', resize);
-  window.visualViewport?.addEventListener('resize', resize);
+  window.addEventListener('resize', () => refreshCamera(true));
+  window.visualViewport?.addEventListener('resize', () => refreshCamera(true));
   townButton.addEventListener('click', () => switchZone('town'));
   farmButton.addEventListener('click', () => switchZone('farm'));
   labButton.addEventListener('click', () => switchZone('lab'));
@@ -771,31 +779,37 @@ async function start() {
 
   if (currentZone !== 'town') { const firstZone = currentZone; currentZone = 'town'; switchZone(firstZone); }
   else { gateLabel.text = ZONE_NAV[NEXT_ZONE.town] + ' →'; gate.position.set(1110, 600); plotViews.forEach((plot) => { plot.visible = false; }); station.visible = false; }
-  drawPlots(); updateHud(); resize();
+  drawPlots(); updateHud(); refreshCamera(true);
   app.ticker.add((ticker) => {
     const dt = Math.min(2.4, ticker.deltaTime);
     clock += ticker.deltaMS;
-    const dx = tx - px, dy = ty - py, distance = Math.hypot(dx, dy);
-    const moving = distance > 3;
-    if (moving) {
-      const step = Math.min(distance, 3.5 * dt);
-      const previousX = px, previousY = py;
-      px += dx / distance * step; py += dy / distance * step;
-      // 실제 프레임 이동 벡터로 방향을 판정한다. 목표까지 남은 거리로 판단하지 않는다.
-      walkHeading = resolveWalkHeading(px - previousX, py - previousY, walkHeading);
-      horizontalFacing = resolveHorizontalFacing(px - previousX, walkHeading, horizontalFacing);
+    // Tapping a menu cancels walking instead of leaving the fox moving under a dialog.
+    if (!modalRoot.classList.contains('hidden')) {
+      tx = px; ty = py;
+      walkMark.visible = false;
     }
+    const dx = tx - px, dy = ty - py, distance = Math.hypot(dx, dy);
+    const nextStep = advanceMovement(px, py, tx, ty, Math.min(ticker.deltaMS, 40));
+    const moving = nextStep.traveled > .001;
     if (moving) {
-      const traveled = Math.min(distance, 3.5 * dt);
-      walkDistance += traveled;
-      footstepDistance += traveled;
+      const moveX = nextStep.x - px;
+      const moveY = nextStep.y - py;
+      px = nextStep.x; py = nextStep.y;
+      // Actual world displacement, not a screen tap or remaining target, determines facing.
+      walkHeading = resolveWalkHeading(moveX, moveY, walkHeading);
+      horizontalFacing = resolveHorizontalFacing(moveX, walkHeading, horizontalFacing);
+      walkDistance += nextStep.traveled;
+      footstepDistance += nextStep.traveled;
       if (footstepDistance >= 27) {
         footstepDistance %= 27;
-        leaveFootprint(px, py, dx, dy);
+        leaveFootprint(px, py, moveX, moveY);
       }
-    } else footstepDistance = 0;
-    // 한 장의 캐릭터 이미지를 좌우 반전해 진행 방향을 즉시 구별한다.
-    // 상하 이동에서는 좌우 시선을 유지하고 걷기 속도·상하 기울기로 구분한다.
+    } else {
+      px = nextStep.x; py = nextStep.y;
+      footstepDistance = 0;
+    }
+    // 전용 4방향 원화는 원본 텍스처를 교체하고 거울 반전은 대체 원화에서만 사용한다.
+    // 상하 방향은 약한 자세 변화와 이동 거리 기반 걸음으로 표현한다.
     const moveTilt = moving && !prefersReducedMotion ? Math.max(-1, Math.min(1, dx / distance)) * .075 : 0;
     player.rotation += (moveTilt - player.rotation) * Math.min(1, dt * .23);
     const moveSkew = moving && !prefersReducedMotion ? (walkHeading === 'up' ? -.095 : walkHeading === 'down' ? .095 : 0) : 0;
@@ -908,7 +922,7 @@ async function start() {
         }
       }
     }
-    if (Math.abs(dx) + Math.abs(dy) > 4) resize();
+    refreshCamera(false, Math.min(ticker.deltaMS, 40));
   });
   showGuide(saveData.zone === 'farm' ? '밭을 눌러 씨앗을 심어봐!' : saveData.zone === 'lab' ? '조합대를 터치해 마법 정수를 만들어봐!' : saveData.zone === 'nursery' ? '부화실을 터치해 새 친구를 만나봐!' : '길을 클릭하거나 터치하면 걸어갈 수 있어!');
 }
