@@ -351,7 +351,33 @@ async function start() {
     return { glow, butterfly, x, y, phase: i * 1.74 };
   });
 
-  const objects = new Container(); objects.sortableChildren = true; world.addChild(objects);
+  const objects = new Container(); objects.sortableChildren = true; objects.zIndex = 1; world.addChild(objects);
+  const effectLayer = new Container(); effectLayer.eventMode = 'none'; effectLayer.zIndex = 2; world.addChild(effectLayer);
+  const bursts: { sprite: Graphics; vx: number; vy: number; age: number; life: number }[] = [];
+  function emitBurst(x: number, y: number, kind: 'seed' | 'berry' | 'alchemy' | 'egg' | 'hatch') {
+    if (prefersReducedMotion) return;
+    const colors: Record<typeof kind, string[]> = {
+      seed: ['#a9e477', '#fff3a8', '#74bf83'],
+      berry: ['#f76d7a', '#fff2a6', '#ffb2ca'],
+      alchemy: ['#9fe8ff', '#c4a7ff', '#fff8bf'],
+      egg: ['#d9b8ff', '#ffead7', '#f5b5d6'],
+      hatch: ['#ffdc7c', '#ffffff', '#ffb2d6'],
+    };
+    for (let i = 0; i < (kind === 'hatch' ? 18 : 8); i++) {
+      const sprite = new Graphics();
+      const radius = 3 + (i % 3) * 1.6;
+      sprite.circle(0, 0, radius).fill({ color: colors[kind][i % 3], alpha: .95 });
+      if (i % 3 === 0) sprite.circle(0, 0, radius + 3).stroke({ color: '#fffce4', alpha: .8, width: 1.5 });
+      sprite.position.set(x, y);
+      effectLayer.addChild(sprite);
+      const angle = -Math.PI + Math.PI * (i / Math.max(1, kind === 'hatch' ? 17 : 7));
+      bursts.push({ sprite, vx: Math.cos(angle) * (1.2 + (i % 3) * .75), vy: -1.6 - Math.abs(Math.sin(angle)) * 1.4, age: 0, life: 490 + (i % 4) * 110 });
+    }
+    while (bursts.length > 72) {
+      const old = bursts.shift();
+      old?.sprite.destroy();
+    }
+  }
   const player = new Sprite(creatures.fox);
   player.anchor.set(.5, 1);
   player.scale.set(.72);
@@ -411,16 +437,23 @@ async function start() {
   station.on('pointertap', () => { if (currentZone === 'lab') openLab(); else if (currentZone === 'nursery') openNursery(); });
 
   const plotViews: Graphics[] = [];
+  const cropArtViews: Graphics[] = [];
+  const ripePlots: boolean[] = Array(12).fill(false);
   for (let i = 0; i < 12; i++) {
     const plot = new Graphics();
     const col = i % 4, row = Math.floor(i / 4);
-    plot.position.set(410 + col * 191, 476 + row * 105);
+    plot.position.set(365 + col * 208, 443 + row * 98);
+    plot.hitArea = new Rectangle(-83, -58, 166, 105);
+    const cropArt = new Graphics();
+    cropArt.eventMode = 'none';
+    cropArt.position.set(0, 24);
+    plot.addChild(cropArt);
     // 밭과 캐릭터의 앞뒤 순서를 같은 발 위치 기준으로 계산한다.
     plot.zIndex = plot.position.y + 20;
     plot.eventMode = 'static'; plot.cursor = 'pointer';
     plot.on('pointertap', () => interactPlot(i));
     plot.visible = saveData.zone === 'farm';
-    objects.addChild(plot); plotViews.push(plot);
+    objects.addChild(plot); plotViews.push(plot); cropArtViews.push(cropArt);
   }
   let currentZone: Zone = saveData.zone;
   let px = currentZone === 'town' ? 619 : 247;
@@ -429,23 +462,43 @@ async function start() {
   let facing = 1;
   let clock = 0;
   let lastCropRender = 0;
+  let lastNurseryRender = 0;
 
   function drawPlots() {
     plotViews.forEach((plot, i) => {
       const crop = saveData.plots[i];
       plot.clear();
-      plot.roundRect(-64, -26, 128, 75, 13).fill({ color: '#78411c', alpha: .22 });
-      plot.roundRect(-64, -26, 128, 75, 13).stroke({ color: '#f0d3a0', alpha: .76, width: 2 });
-      for (let line = 0; line < 3; line++) plot.moveTo(-54, -5 + line * 15).lineTo(54, -5 + line * 15).stroke({ color: '#6e401f', alpha: .35, width: 3 });
+      const plant = cropArtViews[i];
+      plant.clear();
+      ripePlots[i] = false;
+      // 네모난 버튼 대신 원화 속 흙밭과 어울리는 낮은 둔덕을 사용한다.
+      plot.ellipse(0, 21, 75, 28).fill({ color: '#5a3317', alpha: .24 });
+      plot.ellipse(0, 14, 70, 23).fill({ color: '#925b30', alpha: .18 });
+      plot.moveTo(-55, 11).quadraticCurveTo(0, 26, 55, 11).stroke({ color: '#3e2412', alpha: .26, width: 2.5 });
+      plot.moveTo(-39, 0).quadraticCurveTo(0, 12, 39, 0).stroke({ color: '#d7a56b', alpha: .23, width: 2 });
       if (crop.plantedAt !== null) {
         const percent = Math.min(1, Math.max(0, (Date.now() - crop.plantedAt) / GROW_TIME_MS));
-        const scale = .55 + percent * .65;
+        const height = 12 + percent * 40;
+        const leaf = 5 + percent * 9;
+        ripePlots[i] = percent >= 1;
         for (let sprout = -1; sprout <= 1; sprout++) {
-          const sx = sprout * 27;
-          plot.moveTo(sx, 19).lineTo(sx, 15 - 27 * scale).stroke({ color: '#4a9654', width: 6 });
-          plot.ellipse(sx - 9, 9 - 20 * scale, 13 * scale, 7 * scale).fill({ color: '#65b95c' });
-          plot.ellipse(sx + 9, 8 - 22 * scale, 13 * scale, 7 * scale).fill({ color: '#34884d' });
-          if (percent >= 1) plot.circle(sx, 1, 9).fill({ color: '#ec5f6a' }).circle(sx - 3, -2, 3).fill({ color: '#fff3c8' });
+          const sx = sprout * 31;
+          plant.moveTo(sx, -1).quadraticCurveTo(sx + 3, -height * .55, sx, -height).stroke({ color: '#337d3f', width: 5 });
+          plant.ellipse(sx - leaf * .72, -height * .57, leaf, leaf * .54).fill('#6ab954');
+          plant.ellipse(sx + leaf * .72, -height * .73, leaf, leaf * .58).fill('#39994c');
+          if (percent > .34) plant.ellipse(sx - 6, -height * .98, leaf * .9, leaf * .45).fill('#8bd15e');
+          if (percent > .72) {
+            const berryRadius = 4 + Math.min(1, (percent - .72) / .28) * 5;
+            plant.circle(sx - 8, -height + 2, berryRadius).fill('#ed6477');
+            plant.circle(sx + 6, -height + 7, berryRadius * .88).fill('#d9465e');
+            plant.circle(sx - 10, -height, 2).fill('#fff6d1');
+            plant.moveTo(sx - 12, -height - 7).lineTo(sx - 7, -height - 11).lineTo(sx - 2, -height - 6).stroke({ color: '#6fb64f', width: 2 });
+          }
+        }
+        if (percent >= 1) {
+          plant.ellipse(0, -36, 64, 31).stroke({ color: '#ffe6a1', width: 3, alpha: .72 });
+          plant.circle(0, -66, 5).fill('#fff4bc');
+          plant.circle(32, -58, 3).fill('#ffffff');
         }
       }
     });
@@ -456,11 +509,13 @@ async function start() {
       if (saveData.seeds <= 0) { showGuide('씨앗이 부족해! 익은 열매를 수확하면 씨앗도 돌아와.'); return; }
       crop.plantedAt = Date.now();
       saveData.seeds -= 1;
+      emitBurst(plotViews[i].x, plotViews[i].y - 5, 'seed');
       showGuide('톡! 씨앗을 심었어. 잠시 후 예쁜 열매가 열릴 거야.');
     } else if (Date.now() - crop.plantedAt >= GROW_TIME_MS) {
       crop.plantedAt = null;
       saveData.seeds += 2;
       saveData.berries += 3;
+      emitBurst(plotViews[i].x, plotViews[i].y - 30, 'berry');
       showGuide('수확 성공! 🍓 열매 3개와 씨앗 2개를 얻었어!');
     } else {
       const remaining = Math.max(1, Math.ceil((GROW_TIME_MS - (Date.now() - crop.plantedAt)) / 1000));
@@ -493,11 +548,13 @@ async function start() {
   function openNursery() {
     const remaining = saveData.incubatingAt === null ? 0 : Math.max(0, Math.ceil((HATCH_TIME_MS - (Date.now() - saveData.incubatingAt)) / 1000));
     const hatchState = saveData.incubatingAt === null ? '알을 품을 준비가 됐어.' : remaining > 0 ? '고양이가 알을 돌보고 있어. 약 ' + remaining + '초 남았어.' : '알에서 빛이 나! 이제 부화시켜봐!';
+    const progress = saveData.incubatingAt === null ? 0 : Math.min(100, Math.floor((Date.now() - saveData.incubatingAt) / HATCH_TIME_MS * 100));
     openModal('🥚 포근한 몬스터 연구소',
       '<p>🐱 고양이 연구원: 어서 와! 무서운 괴물이 아니라 정원을 돕는 귀여운 친구가 태어날 거야.</p>' +
       '<p>🥚 보유 알 <b>' + saveData.eggs + '</b>개 · 🐾 발견 몬스터 <b>' + saveData.monsters.length + '</b>마리</p>' +
-      '<p>' + hatchState + '</p>' +
-      (saveData.incubatingAt === null ? '<button type="button" class="link-button" data-game-action="incubate">🥚 알 1개 부화실에 넣기</button>' : '<button type="button" class="link-button" data-game-action="hatch">🌟 부화 확인하기</button>') +
+      '<p id="hatch-live-status" aria-live="polite">' + hatchState + '</p>' +
+      '<div class="hatch-progress" role="progressbar" aria-label="알의 부화 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + progress + '"><span id="hatch-progress-fill" style="width:' + progress + '%"></span></div>' +
+      (saveData.incubatingAt === null ? '<button type="button" class="link-button" data-game-action="incubate">🥚 알 1개 부화실에 넣기</button>' : '<button type="button" class="link-button" data-game-action="hatch"' + (remaining > 0 ? ' disabled' : '') + '>🌟 ' + (remaining > 0 ? '알을 품고 있어…' : '부화 확인하기') + '</button>') +
       '<p>📖 현재 친구: ' + (saveData.monsters.length ? saveData.monsters.join(' · ') : '아직 없음') + '</p>');
   }
 
@@ -543,20 +600,24 @@ async function start() {
     if (action === 'brew') {
       if (saveData.berries < 3) { showGuide('🍓 열매 3개가 필요해! 텃밭에서 수확해봐.'); return; }
       saveData.berries -= 3; saveData.essence += 1;
+      emitBurst(660, 430, 'alchemy');
       showGuide('펑! 열매가 반짝이는 마법 정수로 변했어!'); openLab();
     } else if (action === 'craft-egg') {
       if (saveData.essence < 2) { showGuide('✨ 마법 정수 2개가 필요해!'); return; }
       saveData.essence -= 2; saveData.eggs += 1;
+      emitBurst(660, 430, 'egg');
       showGuide('앗! 신비한 알이 생겼어. 몬스터 연구소로 가져가 봐!'); openLab();
     } else if (action === 'incubate') {
       if (saveData.eggs < 1 || saveData.incubatingAt !== null) { showGuide('부화할 수 있는 알이 아직 없어!'); return; }
       saveData.eggs -= 1; saveData.incubatingAt = Date.now();
+      emitBurst(685, 430, 'egg');
       showGuide('고양이가 알을 포근한 이불에 눕혔어. 30초 동안 기다려봐!'); openNursery();
     } else if (action === 'hatch') {
       if (saveData.incubatingAt === null) return;
       if (Date.now() - saveData.incubatingAt < HATCH_TIME_MS) { showGuide('아직 깨어나는 중이야! 조금만 더 기다려줘.'); openNursery(); return; }
       const kind = MONSTER_KINDS[saveData.monsters.length % MONSTER_KINDS.length];
       saveData.monsters.push(kind); saveData.incubatingAt = null;
+      emitBurst(685, 415, 'hatch');
       showGuide('축하해! 🎉 ' + kind + '이(가) 정원의 새 친구가 됐어!'); openNursery();
     } else if (action === 'save-export') {
       try {
@@ -688,8 +749,8 @@ async function start() {
     npcs.forEach((sprite, i) => {
       const baseX = currentZone === 'town' ? [875, 1015, 620][i] : [946, 735, 330][i];
       const baseY = currentZone === 'town' ? [553, 577, 414][i] : [540, 385, 634][i];
-      const x = baseX + Math.sin(clock / (800 + i * 300)) * 8;
-      const y = baseY + Math.cos(clock / (320 + i * 100)) * 2;
+      const x = baseX + (prefersReducedMotion ? 0 : Math.sin(clock / (800 + i * 300)) * 8);
+      const y = baseY + (prefersReducedMotion ? 0 : Math.cos(clock / (320 + i * 100)) * 2);
       const size = .59 + Math.max(0, Math.min(1, (y - 350) / 450)) * .1;
       const breathe = prefersReducedMotion ? 1 : 1 + Math.sin(clock / (520 + i * 100) + i) * .018;
       sprite.scale.set(size * friendArtScale, size * friendArtScale * breathe);
@@ -697,6 +758,31 @@ async function start() {
       sprite.position.set(x, y - (prefersReducedMotion ? 0 : Math.max(0, Math.sin(clock / (260 + i * 43) + i)) * 1.3));
       sprite.zIndex = y;
     });
+    if (!prefersReducedMotion) {
+      gate.position.y = 600 + Math.sin(clock / 750) * 2;
+      if (station.visible) station.position.y = 485 + Math.sin(clock / 520) * 3;
+      if (currentZone === 'farm') {
+        cropArtViews.forEach((plant, i) => {
+          const planted = saveData.plots[i].plantedAt !== null;
+          plant.rotation = planted ? Math.sin(clock / (460 + i * 13) + i * .8) * .029 : 0;
+          const pulse = ripePlots[i] ? 1 + Math.sin(clock / 230 + i) * .045 : 1;
+          plant.scale.set(pulse);
+        });
+      }
+    }
+    for (let i = bursts.length - 1; i >= 0; i--) {
+      const burst = bursts[i];
+      burst.age += ticker.deltaMS;
+      const frameStep = Math.min(2, ticker.deltaMS / 16.667);
+      burst.sprite.position.x += burst.vx * frameStep;
+      burst.sprite.position.y += burst.vy * frameStep;
+      burst.sprite.alpha = Math.max(0, 1 - burst.age / burst.life);
+      burst.sprite.scale.set(.85 + burst.age / burst.life * .4);
+      if (burst.age >= burst.life) {
+        burst.sprite.destroy();
+        bursts.splice(i, 1);
+      }
+    }
     if (!prefersReducedMotion) {
       ambientItems.forEach(({ glow, butterfly, x, y, phase }) => {
         glow.visible = !butterfly || currentZone === 'town' || currentZone === 'farm';
@@ -706,7 +792,25 @@ async function start() {
         glow.scale.x = butterfly ? .72 + Math.abs(Math.sin(t * 10)) * .34 : 1;
       });
     }
-    if (clock - lastCropRender > 1100) { lastCropRender = clock; if (currentZone === 'farm') drawPlots(); }
+    if (clock - lastCropRender > 420) { lastCropRender = clock; if (currentZone === 'farm') drawPlots(); }
+    if (clock - lastNurseryRender > 500) {
+      lastNurseryRender = clock;
+      const liveStatus = document.getElementById('hatch-live-status');
+      const progressFill = document.getElementById('hatch-progress-fill');
+      if (liveStatus && progressFill && saveData.incubatingAt !== null) {
+        const age = Math.max(0, Date.now() - saveData.incubatingAt);
+        const remaining = Math.max(0, Math.ceil((HATCH_TIME_MS - age) / 1000));
+        const percent = Math.min(100, Math.floor(age / HATCH_TIME_MS * 100));
+        liveStatus.textContent = remaining ? `🐱 고양이가 알을 돌보는 중… ${remaining}초` : '✨ 알이 반짝반짝! 부화시켜봐!';
+        progressFill.style.width = percent + '%';
+        progressFill.parentElement?.setAttribute('aria-valuenow', String(percent));
+        const button = modalContent.querySelector<HTMLButtonElement>('button[data-game-action="hatch"]');
+        if (button) {
+          button.disabled = remaining > 0;
+          button.textContent = remaining > 0 ? '🥚 알을 품고 있어…' : '🌟 부화 확인하기';
+        }
+      }
+    }
     if (Math.abs(dx) + Math.abs(dy) > 4) resize();
   });
   showGuide(saveData.zone === 'farm' ? '밭을 눌러 씨앗을 심어봐!' : saveData.zone === 'lab' ? '조합대를 터치해 마법 정수를 만들어봐!' : saveData.zone === 'nursery' ? '부화실을 터치해 새 친구를 만나봐!' : '길을 클릭하거나 터치하면 걸어갈 수 있어!');
