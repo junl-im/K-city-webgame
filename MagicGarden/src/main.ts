@@ -858,7 +858,7 @@ async function start() {
       const breathe = prefersReducedMotion ? 1 : 1 + Math.sin(clock / (520 + i * 100) + i) * .018;
       // 반환점 부근에서 방향을 매 프레임 반전하지 않도록 작은 완충 구간을 둔다.
       const patrolVelocity = Math.cos(patrolPhase);
-      if (Math.abs(patrolVelocity) > .18) npcFacingMemory[i] = patrolVelocity > 0 ? 1 : -1;
+      if (!prefersReducedMotion && Math.abs(patrolVelocity) > .18) npcFacingMemory[i] = patrolVelocity > 0 ? 1 : -1;
       const npcFacing = npcFacingMemory[i];
       const npcStep = prefersReducedMotion ? 0 : Math.abs(Math.sin(patrolPhase * 5)) * 2.4;
       sprite.scale.set(npcFacing * size * friendArtScale, size * friendArtScale * breathe);
