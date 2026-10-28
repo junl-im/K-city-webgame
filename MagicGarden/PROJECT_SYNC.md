@@ -132,3 +132,12 @@
 - [검증 커밋 ca6f02e](https://github.com/junl-im/K-city-webgame/commit/ca6f02e0fa107d664d8a12c9fdb4af0640cec222): 33 원본 PNG·33 고유 WebP·리소스 해시 중복 부재·압축률·CSS 참조·border-image 무효화·100%×100% 비율 왜곡 금지 자동 검증. **Magic Garden CI 및 GitHub Pages 둘 다 성공** 확인.
 - **배포 브라우저 실측:** 4지역/하단 메뉴 8개 버튼의 computed style 이미지 URL이 .webp, borderImageSource=none, backgroundSize=contain, auto. 게임 장면·구역 버튼 색/종류를 육안 확인했고 GPU 미지원 환경의 정적 장면 미리보기에서 텃밭 전환 확인.
 - **여전히 미확인:** 실제 WebGL을 쓰는 PC Whale 게임 조작, 모달 안 실제 버튼·탭, 320/390px 휴대전화 레이아웃과 긴 글자 잘림. GPU 미지원 브라우저의 정적 미리보기는 플레이·기능 QA가 아니다. 기획·소스·33개 PNG 원본 및 파생 WebP 지식 자산의 권리는 **곰같은여우 사용자**에게 귀속된다.
+
+
+## v25 계곡 버튼 시인성·모바일 팝업 배치 보정 — 2026-10-29
+
+- 개별 원화 ui-v23-creek.webp는 그대로 사용하며, 계곡 산책 버튼에 독립적 크림→민트 바탕/가벼운 그림자/글자 그림자를 추가했다. 배경 글자 대비를 실제 데스크톱 배포 스크린샷으로 확인. 이미지 종횡비는 contain으로 유지한다.
+- 화면 폭 420px 이하에서 모달 행동 버튼의 background-size:contain, auto, 줄바꿈/최소 높이/읽기 쉬운 글자 크기를 적용하고 가방 탭도 같은 좁은 화면 적응형 규칙을 적용했다. **모든 행동과 탭의 개별 WebP 자산 33종은 그대로 유지**, SVG 생성·참조 없음.
+- [변경 커밋 92030cc](https://github.com/junl-im/K-city-webgame/commit/92030cc5d2a20ea6d651a90823c3a00fceb32910)의 Magic Garden CI 및 실제 GitHub Pages 배포 **둘 다 성공**. 브라우저의 계곡 버튼 계산 스타일 확인: 2개 레이어(전용 WebP/단색 계열 그래디언트), background-size=contain, cover, borderImageSource=none, 그림자 존재. 기존 4지역 및 하단 원화 회귀 없음.
+- **남은 실기기 과제:** 모바일 320/390px에서 실제 터치·오버플로·모달 텍스트 검수, Whale WebGL 플레이·연금/부화/가방 모달 기능·접근성 QA. 이번 점검 브라우저는 GPU 미지원 정적 풍경 미리보기로만 확인했으므로 게임 플레이 검증 완료를 주장하지 않는다.
+- 창작 자산의 모든 권리는 **곰같은여우**에게 귀속. GitHub/Notion/Google Drive는 저장 및 이력 정리 수단.
