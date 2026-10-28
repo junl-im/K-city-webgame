@@ -12,6 +12,7 @@ import { advanceMovement, calculateCameraTarget, smoothFollow } from './movement
 import { isWalkable, planGardenRoute, segmentIsWalkable, type Point } from './garden-navigation';
 import { creekSurfacePose, creekFallPose, creekShouldAnimate, creekSurfaceCount, creekCascadeCount } from './creek-flow';
 import { PAINTED_AMBIENCE, ambiencePose, type PaintedTile } from './painted-environment';
+import { FOREGROUND_PAINTINGS, foregroundDepth, foregroundMotion } from './garden-depth';
 
 type Zone = 'town' | 'farm' | 'lab' | 'nursery';
 type MonsterKind = '잎새콩' | '방울몽' | '반짝몽';
@@ -503,9 +504,26 @@ async function start() {
       ambience.addChild(sprite);
       ambientItems.push({sprite,anchor});
     });
+    // Foreground flowers are sorted using the same foot Y as the fox/NPCs.
+    // They cannot capture clicks and never cover an entire building or bridge.
+    FOREGROUND_PAINTINGS.forEach((anchor)=>{
+      const texture=paintedTiles[anchor.tile];
+      if(!texture)return;
+      const sprite=new Sprite(texture);
+      sprite.anchor.set(.5,1);
+      sprite.position.set(anchor.x,anchor.y);
+      sprite.width=anchor.size;sprite.height=anchor.size;
+      sprite.alpha=anchor.opacity;
+      sprite.zIndex=foregroundDepth(anchor);
+      sprite.eventMode='none';
+      sprite.visible=anchor.zone===saveData.zone;
+      objects.addChild(sprite);
+      foregroundItems.push({sprite,anchor});
+    });
   }).catch(()=>{ /* Painted environmental details are optional when offline. */ });
 
   const objects = new Container(); objects.sortableChildren = true; objects.zIndex = 1; world.addChild(objects);
+  const foregroundItems: {sprite:Sprite;anchor:(typeof FOREGROUND_PAINTINGS)[number]}[]=[];
   const effectLayer = new Container(); effectLayer.eventMode = 'none'; effectLayer.zIndex = 2; world.addChild(effectLayer);
   const bursts: {sprite:Sprite;vx:number;vy:number;age:number;life:number;baseScale:number}[] = [];
   function clearBurstEffects(){
@@ -636,7 +654,8 @@ async function start() {
   let markAge = 0;
 
   const gate = new Container();
-  gate.zIndex = 10_000; objects.addChild(gate);
+  // A wooden wayfinding sign should sit on the ground, not above everything.
+  gate.zIndex = footDepth(600)+18; objects.addChild(gate);
   const gateBackground = new Graphics().roundRect(-98, -30, 196, 60, 18).fill({ color: '#fff4d1', alpha: .96 }).roundRect(-98, -30, 196, 60, 18).stroke({ color: '#a78054', width: 4 });
   const gateLabel = new Text({ text: '큰 텃밭으로 →', style: { fontFamily: 'sans-serif', fontSize: 22, fontWeight: 'bold', fill: '#694a2e' } });
   gateLabel.anchor.set(.5);
@@ -645,7 +664,7 @@ async function start() {
   gate.on('pointertap', () => switchZone(NEXT_ZONE[currentZone]));
 
   const station = new Container();
-  station.zIndex = 10_001; objects.addChild(station);
+  station.zIndex = footDepth(485)+22; objects.addChild(station);
   const stationFrame = new Graphics().roundRect(-123, -39, 246, 78, 19).fill({ color: '#fff4cf', alpha: .96 }).roundRect(-123, -39, 246, 78, 19).stroke({ color: '#9e7547', width: 5 });
   const stationText = new Text({ text: '조합 시작', style: { fontFamily: 'sans-serif', fontSize: 26, fontWeight: 'bold', fill: '#684527' } });
   stationText.anchor.set(.5);
@@ -1056,6 +1075,7 @@ async function start() {
     saveData.zone = next;
     // Zone-specific art must never leak into the next painted room.
     for(const item of ambientItems) item.sprite.visible=item.anchor.zone===next;
+    for(const item of foregroundItems) item.sprite.visible=item.anchor.zone===next;
     clearBurstEffects();
     closeModal();
     creekOverlay.visible = next === 'town' && creekLoaded && !creekUserPaused && !prefersReducedMotion;
@@ -1074,10 +1094,12 @@ async function start() {
     footstepDistance = 0;
     gateLabel.text = ZONE_NAV[NEXT_ZONE[next]] + ' →';
     gate.position.set(next === 'town' ? 1110 : next === 'farm' ? 154 : 1060, 600);
+    gate.zIndex=footDepth(600)+18;
     plotViews.forEach((plot) => { plot.visible = next === 'farm'; });
     walkMark.visible = false;
     station.visible = next === 'lab' || next === 'nursery';
     station.position.set(next === 'lab' ? 660 : 685, 485);
+    station.zIndex=footDepth(485)+22;
     stationText.text = next === 'lab' ? '조합 시작' : '부화실 열기';
     const loc = next === 'farm' ? '큰 텃밭에 도착했어! 흙을 눌러 씨앗을 심어봐.' : next === 'lab' ? '토끼의 실험실이야! 수확한 열매로 신기한 조합을 해봐.' : next === 'nursery' ? '고양이가 돌보는 몬스터 연구소야. 알을 부화시켜봐!' : '햇살 마을에 돌아왔어. 여우 친구가 반겨줄 거야!';
     showGuide(loc); updateHud(); persist(); drawPlots();
@@ -1327,6 +1349,13 @@ async function start() {
         sprite.alpha=pose.alpha;
         const originalScale=anchor.size/180;
         sprite.scale.set(originalScale*pose.scale);
+      }
+      // Same 20fps budget as background ambience; only current zone updates.
+      for(const {sprite,anchor} of foregroundItems){
+        if(anchor.zone!==currentZone || !sprite.visible)continue;
+        const motion=foregroundMotion(anchor,clock,prefersReducedMotion);
+        sprite.rotation=motion.rotation;
+        sprite.alpha=motion.opacity;
       }
     }
     if (clock - lastCropRender > 420) { lastCropRender = clock; if (currentZone === 'farm') drawPlots(); }
