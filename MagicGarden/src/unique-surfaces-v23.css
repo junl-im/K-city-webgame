@@ -245,16 +245,16 @@
   background-size:contain,auto!important;
 }
 #app #town-button{
-  background-image:url('/assets/ui-v23-town.png'),linear-gradient(125deg,#fffaf0,#eed7b8)!important;
+  background-image:url('/assets/ui-v23-town.webp'),linear-gradient(125deg,#fffaf0,#eed7b8)!important;
 }
 #app #farm-button{
-  background-image:url('/assets/ui-v23-farm.png'),linear-gradient(140deg,#fbfff1,#d8edc7)!important;
+  background-image:url('/assets/ui-v23-farm.webp'),linear-gradient(140deg,#fbfff1,#d8edc7)!important;
 }
 #app #lab-button{
-  background-image:url('/assets/ui-v23-lab.png'),linear-gradient(127deg,#fbf7ff,#e8d9f4)!important;
+  background-image:url('/assets/ui-v23-lab.webp'),linear-gradient(127deg,#fbf7ff,#e8d9f4)!important;
 }
 #app #nursery-button{
-  background-image:url('/assets/ui-v23-nursery.png'),linear-gradient(142deg,#fffaf1,#f8dcd5)!important;
+  background-image:url('/assets/ui-v23-nursery.webp'),linear-gradient(142deg,#fffaf1,#f8dcd5)!important;
 }
 
 /* v23.2: individually painted HUD buttons, separate PNG files. */
@@ -267,10 +267,10 @@
   box-shadow:none!important;
   justify-content:flex-end;
 }
-#app #bag-button{background-image:url('/assets/ui-v23-menu-bag.png'),linear-gradient(135deg,#fff8e4,#f3dfb0)!important}
-#app #map-button{background-image:url('/assets/ui-v23-menu-map.png'),linear-gradient(135deg,#f6fff0,#d9efcf)!important}
-#app #book-button{background-image:url('/assets/ui-v23-menu-book.png'),linear-gradient(135deg,#f7fbff,#dce7f7)!important}
-#app #help-button{background-image:url('/assets/ui-v23-menu-help.png'),linear-gradient(135deg,#fffaff,#f0e1f1)!important}
+#app #bag-button{background-image:url('/assets/ui-v23-menu-bag.webp'),linear-gradient(135deg,#fff8e4,#f3dfb0)!important}
+#app #map-button{background-image:url('/assets/ui-v23-menu-map.webp'),linear-gradient(135deg,#f6fff0,#d9efcf)!important}
+#app #book-button{background-image:url('/assets/ui-v23-menu-book.webp'),linear-gradient(135deg,#f7fbff,#dce7f7)!important}
+#app #help-button{background-image:url('/assets/ui-v23-menu-help.webp'),linear-gradient(135deg,#fffaff,#f0e1f1)!important}
 #app .bottom-hud button .art-icon{display:none}
 #app .bottom-hud button small{
   display:block;flex:none;position:relative;z-index:1;
@@ -281,7 +281,7 @@
 
 /* v23.3: no shared stretched background — four independent painted HUD strips. */
 #app .brand{
-  background-image:url('/assets/ui-v23-hud-brand.png')!important;
+  background-image:url('/assets/ui-v23-hud-brand.webp')!important;
   background-position:center!important;background-size:100% auto!important;
   border:0!important;border-radius:0;box-shadow:none;
   padding:8px 12px 8px 20px;
@@ -293,11 +293,11 @@
   border:0!important;border-radius:0;box-shadow:none;
   padding-left:27px;
 }
-#app .hud-stats>span:first-child{background-image:url('/assets/ui-v23-hud-seed.png')!important}
-#app .hud-stats>span:nth-child(2){background-image:url('/assets/ui-v23-hud-berry.png')!important}
+#app .hud-stats>span:first-child{background-image:url('/assets/ui-v23-hud-seed.webp')!important}
+#app .hud-stats>span:nth-child(2){background-image:url('/assets/ui-v23-hud-berry.webp')!important}
 #app .hud-stats>span>.art-icon{display:none}
 #app .guide{
-  background-image:url('/assets/ui-v23-hud-guide.png')!important;
+  background-image:url('/assets/ui-v23-hud-guide.webp')!important;
   background-position:center!important;background-size:100% auto!important;
   border:0!important;border-radius:0;box-shadow:none;
   padding:9px 20px;
@@ -310,20 +310,20 @@
 
 /* v23.4: three independent PNG controls for creek and popup chrome. */
 #app .creek-visit{
-  background-image:url('/assets/ui-v23-creek.png')!important;
+  background-image:url('/assets/ui-v23-creek.webp')!important;
   background-position:center!important;background-size:100% auto!important;
   border:0!important;border-radius:0;box-shadow:none;
   padding-left:17px;
 }
 #app .creek-visit-picture{display:none}
 #app .modal-head{
-  background-image:url('/assets/ui-v23-modal-title.png')!important;
+  background-image:url('/assets/ui-v23-modal-title.webp')!important;
   background-position:center!important;background-size:100% auto!important;
   border:0!important;border-radius:0;box-shadow:none;
   padding-left:15px;
 }
 #app #modal-close{
-  background-image:url('/assets/ui-v23-close.png')!important;
+  background-image:url('/assets/ui-v23-close.webp')!important;
   background-position:center!important;background-size:auto 100%!important;
   background-color:transparent!important;
   border:0!important;border-radius:50%;box-shadow:none;
@@ -366,91 +366,91 @@
 
 /* v24: four separately painted action controls; images keep their aspect ratio. */
 #app .modal .link-button[data-game-action="brew"]{
-  background-image:url('/assets/ui-v24-action-brew.png'),linear-gradient(135deg,#f5eafb,#dccbeb)!important;
+  background-image:url('/assets/ui-v24-action-brew.webp'),linear-gradient(135deg,#f5eafb,#dccbeb)!important;
   background-position:center,center!important;background-size:100% auto,auto!important;
   padding-left:28px;border-color:transparent!important;box-shadow:none;
 }
 #app .modal .link-button[data-game-action="craft-egg"]{
-  background-image:url('/assets/ui-v24-action-craft-egg.png'),linear-gradient(135deg,#fff7ee,#f3cbd6)!important;
+  background-image:url('/assets/ui-v24-action-craft-egg.webp'),linear-gradient(135deg,#fff7ee,#f3cbd6)!important;
   background-position:center,center!important;background-size:100% auto,auto!important;
   padding-left:28px;border-color:transparent!important;box-shadow:none;
 }
 #app .modal .link-button[data-game-action="hatch"]{
-  background-image:url('/assets/ui-v24-action-hatch.png'),linear-gradient(135deg,#fff9e4,#f2dfaf)!important;
+  background-image:url('/assets/ui-v24-action-hatch.webp'),linear-gradient(135deg,#fff9e4,#f2dfaf)!important;
   background-position:center,center!important;background-size:100% auto,auto!important;
   padding-left:28px;border-color:transparent!important;box-shadow:none;color:#805b37;
 }
 #app .modal .link-button[data-game-action="save-export"]{
-  background-image:url('/assets/ui-v24-action-save-export.png'),linear-gradient(135deg,#f2fbff,#cce5f0)!important;
+  background-image:url('/assets/ui-v24-action-save-export.webp'),linear-gradient(135deg,#f2fbff,#cce5f0)!important;
   background-position:center,center!important;background-size:100% auto,auto!important;
   padding-left:28px;border-color:transparent!important;box-shadow:none;
 }
 
 /* v24.1: distinct incubation and save-import decision art, aspect preserved. */
 #app .modal .link-button[data-game-action="incubate"]{
-  background-image:url('/assets/ui-v24-action-incubate.png'),linear-gradient(135deg,#fff9e4,#f2dfaf)!important;
+  background-image:url('/assets/ui-v24-action-incubate.webp'),linear-gradient(135deg,#fff9e4,#f2dfaf)!important;
   background-position:center,center!important;background-size:100% auto,auto!important;
   border-color:transparent!important;box-shadow:none;padding-left:28px;
 }
 #app .modal .link-button[data-game-action="save-import"]{
-  background-image:url('/assets/ui-v24-action-save-import.png'),linear-gradient(135deg,#f2fbff,#cce5f0)!important;
+  background-image:url('/assets/ui-v24-action-save-import.webp'),linear-gradient(135deg,#f2fbff,#cce5f0)!important;
   background-position:center,center!important;background-size:100% auto,auto!important;
   border-color:transparent!important;box-shadow:none;padding-left:28px;
 }
 #app .modal .link-button[data-game-action="confirm-import"]{
-  background-image:url('/assets/ui-v24-action-confirm-import.png'),linear-gradient(135deg,#f4f7e7,#dce8ba)!important;
+  background-image:url('/assets/ui-v24-action-confirm-import.webp'),linear-gradient(135deg,#f4f7e7,#dce8ba)!important;
   background-position:center,center!important;background-size:100% auto,auto!important;
   border-color:transparent!important;box-shadow:none;padding-left:28px;color:#496545;
 }
 #app .modal .link-button[data-game-action="cancel-import"]{
-  background-image:url('/assets/ui-v24-action-cancel-import.png'),linear-gradient(135deg,#fffdf3,#f2e9d7)!important;
+  background-image:url('/assets/ui-v24-action-cancel-import.webp'),linear-gradient(135deg,#fffdf3,#f2e9d7)!important;
   background-position:center,center!important;background-size:100% auto,auto!important;
   border-color:transparent!important;box-shadow:none;padding-left:28px;color:#716450;
 }
 
 /* v24.2 separate storybook modal destination paintings. */
 #app .modal .link-button[data-game-action="zone-town"]{
-  background-image:url('/assets/ui-v24-action-zone-town.png'),linear-gradient(135deg,#fffaf0,#f1debf)!important;
+  background-image:url('/assets/ui-v24-action-zone-town.webp'),linear-gradient(135deg,#fffaf0,#f1debf)!important;
   background-position:center,center!important;background-size:100% auto,auto!important;
   border-color:transparent!important;box-shadow:none;padding-left:28px;color:#6d523c;
 }
 #app .modal .link-button[data-game-action="zone-farm"]{
-  background-image:url('/assets/ui-v24-action-zone-farm.png'),linear-gradient(135deg,#f9fff0,#dbeccf)!important;
+  background-image:url('/assets/ui-v24-action-zone-farm.webp'),linear-gradient(135deg,#f9fff0,#dbeccf)!important;
   background-position:center,center!important;background-size:100% auto,auto!important;
   border-color:transparent!important;box-shadow:none;padding-left:28px;color:#446b43;
 }
 #app .modal .link-button[data-game-action="zone-lab"]{
-  background-image:url('/assets/ui-v24-action-zone-lab.png'),linear-gradient(135deg,#fcf7ff,#e9daf4)!important;
+  background-image:url('/assets/ui-v24-action-zone-lab.webp'),linear-gradient(135deg,#fcf7ff,#e9daf4)!important;
   background-position:center,center!important;background-size:100% auto,auto!important;
   border-color:transparent!important;box-shadow:none;padding-left:28px;color:#685780;
 }
 #app .modal .link-button[data-game-action="zone-nursery"]{
-  background-image:url('/assets/ui-v24-action-zone-nursery.png'),linear-gradient(135deg,#fff9f2,#f4ded6)!important;
+  background-image:url('/assets/ui-v24-action-zone-nursery.webp'),linear-gradient(135deg,#fff9f2,#f4ded6)!important;
   background-position:center,center!important;background-size:100% auto,auto!important;
   border-color:transparent!important;box-shadow:none;padding-left:28px;color:#915d64;
 }
 
 /* v24.3: each inventory category tab has its own painted asset. */
 #app .garden-tabs .garden-tab[data-game-action="bag-tab-all"]{
-  background-image:url('/assets/ui-v24-tab-all.png'),linear-gradient(130deg,#fffaf0,#f1e2c5)!important;
+  background-image:url('/assets/ui-v24-tab-all.webp'),linear-gradient(130deg,#fffaf0,#f1e2c5)!important;
   background-size:contain,auto!important;background-position:center,center!important;
   border-color:transparent!important;border-radius:10px;box-shadow:none;
   color:#695138;text-shadow:0 1px #fff9ed!important;padding-left:11px;
 }
 #app .garden-tabs .garden-tab[data-game-action="bag-tab-crop"]{
-  background-image:url('/assets/ui-v24-tab-crop.png'),linear-gradient(130deg,#f7fff1,#d9edcb)!important;
+  background-image:url('/assets/ui-v24-tab-crop.webp'),linear-gradient(130deg,#f7fff1,#d9edcb)!important;
   background-size:contain,auto!important;background-position:center,center!important;
   border-color:transparent!important;border-radius:10px;box-shadow:none;
   color:#426941;text-shadow:0 1px #fff9ed!important;padding-left:11px;
 }
 #app .garden-tabs .garden-tab[data-game-action="bag-tab-magic"]{
-  background-image:url('/assets/ui-v24-tab-magic.png'),linear-gradient(130deg,#fbf6ff,#e4d8f3)!important;
+  background-image:url('/assets/ui-v24-tab-magic.webp'),linear-gradient(130deg,#fbf6ff,#e4d8f3)!important;
   background-size:contain,auto!important;background-position:center,center!important;
   border-color:transparent!important;border-radius:10px;box-shadow:none;
   color:#6f548a;text-shadow:0 1px #fff9ed!important;padding-left:11px;
 }
 #app .garden-tabs .garden-tab[data-game-action="bag-tab-friends"]{
-  background-image:url('/assets/ui-v24-tab-friends.png'),linear-gradient(130deg,#fff8f3,#f7e0da)!important;
+  background-image:url('/assets/ui-v24-tab-friends.webp'),linear-gradient(130deg,#fff8f3,#f7e0da)!important;
   background-size:contain,auto!important;background-position:center,center!important;
   border-color:transparent!important;border-radius:10px;box-shadow:none;
   color:#925e64;text-shadow:0 1px #fff9ed!important;padding-left:11px;
@@ -462,12 +462,12 @@
 
 /* v24.4: final named actions receive their own original PNG. */
 #app .modal .link-button[data-game-action="open-book"]{
-  background-image:url('/assets/ui-v24-action-open-book.png'),linear-gradient(135deg,#f7fbff,#d9e9f4)!important;
+  background-image:url('/assets/ui-v24-action-open-book.webp'),linear-gradient(135deg,#f7fbff,#d9e9f4)!important;
   background-size:100% auto,auto!important;background-position:center,center!important;
   border-color:transparent!important;box-shadow:none;padding-left:28px;color:#4b6986;
 }
 #app .modal .link-button[data-game-action="creek-toggle"]{
-  background-image:url('/assets/ui-v24-action-creek-toggle.png'),linear-gradient(135deg,#ecfffd,#cce9e4)!important;
+  background-image:url('/assets/ui-v24-action-creek-toggle.webp'),linear-gradient(135deg,#ecfffd,#cce9e4)!important;
   background-size:100% auto,auto!important;background-position:center,center!important;
   border-color:transparent!important;box-shadow:none;padding-left:28px;color:#38727a;
 }
