@@ -131,4 +131,4 @@
 - 전용 UI 원화 전체 다운로드 원본 약 **53.2 MiB → WebP 약 1.1 MiB**(약 98% 감소). 품질 82, 720×360 이내. 원본 PNG 저작권과 보관 유지. [WebP 파일 커밋](https://github.com/junl-im/K-city-webgame/commit/214a68255a5275e5bd2d1ae89a7227814f109bd8), [CSS 로딩 전환](https://github.com/junl-im/K-city-webgame/commit/76b06e20da3da8211be6090f2dfe486d6c8dd82d).
 - [검증 커밋 ca6f02e](https://github.com/junl-im/K-city-webgame/commit/ca6f02e0fa107d664d8a12c9fdb4af0640cec222): 33 원본 PNG·33 고유 WebP·리소스 해시 중복 부재·압축률·CSS 참조·border-image 무효화·100%×100% 비율 왜곡 금지 자동 검증. **Magic Garden CI 및 GitHub Pages 둘 다 성공** 확인.
 - **배포 브라우저 실측:** 4지역/하단 메뉴 8개 버튼의 computed style 이미지 URL이 .webp, borderImageSource=none, backgroundSize=contain, auto. 게임 장면·구역 버튼 색/종류를 육안 확인했고 GPU 미지원 환경의 정적 장면 미리보기에서 텃밭 전환 확인.
-- **여전히 미확인:** 실제 WebGL을 쓰는 PC Whale 게임 조작, 모달 안 실제 버튼·탭, 320/390px 휴대전화 레이아웃과 긴 글자 잘림. GPU 미지원 브라우저의 정적 미리보기는 플레이·기능 QA가 아니다. 기획·소스·33개 PNG 원본 및 파생 WebP 지식 자산의 권리는 **임현준 사용자**에게 귀속된다.
+- **여전히 미확인:** 실제 WebGL을 쓰는 PC Whale 게임 조작, 모달 안 실제 버튼·탭, 320/390px 휴대전화 레이아웃과 긴 글자 잘림. GPU 미지원 브라우저의 정적 미리보기는 플레이·기능 QA가 아니다. 기획·소스·33개 PNG 원본 및 파생 WebP 지식 자산의 권리는 **곰같은여우 사용자**에게 귀속된다.
