@@ -39,3 +39,13 @@ test('12개 단원, 공식 소유권·외부 라이선스 문서를 보존한다
   assert.ok(existsSync(join(root, 'OWNERSHIP.md')));
   assert.ok(existsSync(join(root, 'THIRD_PARTY_NOTICES.md')));
 });
+
+test('앱과 실험 모듈은 동일한 리비전으로 캐시를 분리한다', () => {
+  const html = readFileSync(join(dist, 'index.html'), 'utf8');
+  const app = readFileSync(join(dist, 'app.js'), 'utf8');
+  const htmlVersion = html.match(/src="\.\/app\.js\?rev=([a-z0-9-]+)"/);
+  const moduleVersion = app.match(/from '\.\/animated-experiments\.mjs\?rev=([a-z0-9-]+)'/);
+  assert.ok(htmlVersion, 'HTML entry script needs a versioned source URL');
+  assert.ok(moduleVersion, 'Physics animation import needs a versioned source URL');
+  assert.equal(htmlVersion[1], moduleVersion[1], 'App and physics module must load the same release revision');
+});

@@ -5,7 +5,7 @@ import { circuitReadings } from './circuit-core.mjs';
 import { mechanicsReadings } from './mechanics-core.mjs';
 import { magnetReading, soundReading } from './discovery-core.mjs';
 import { inertiaReading, frictionReading, buoyancyReading, pendulumReading, heatReading } from './everyday-core.mjs';
-import { drawEverydayScene } from './animated-experiments.mjs';
+import { drawEverydayScene } from './animated-experiments.mjs?rev=20261029-contact221';
 import {paintSurfaceTexture,surfaceTextureBounds} from './surface-materials.mjs';
 import { COMPANION_ART, companionCue } from './lab-companion.mjs';
 import { landingCue, groundShadowCue, wavefrontSpacing, magnetBallPosition, pulleySceneMotion, orbitalTrailCount, orbitToySizes, litBulbOpacity, celebrationCue, paintTwinkles } from './visual-effects.mjs';
