@@ -99,3 +99,9 @@ npm run dev
 - 팝업을 열면 자동 이동을 중단해 대화나 가방 사용 중 계속 걷지 않는다.
 - 4방향 여우 WebP 자산 유지. 모바일 원화·터치·저장 구조 불변. 공통 수학 함수는 테스트 스크립트에서 검사한다.
 - 사이트의 운영 버전은 GitHub 작업 브랜치와 다를 수 있으므로 별도 재배포 확인 전에는 배포 완료로 표시하지 않는다.
+
+### v8 (2026-10-28) — basic collision-aware walking
+- Sprite-foot collision shapes for the town cottage foundation, the 12 farm soil mounds, and the lab/nursery stations. These are intentionally conservative gameplay approximations and are not pixel-accurate to the final illustrated backgrounds.
+- Tap-to-move now calculates a detour using an A* walkable grid, checks each segment against the collision shapes, and redirects taps on an obstacle to a nearby walkable point.
+- The computed route is cleared on zone change, modal opening, or blocked movement. Farming touch areas remain interactive, and saved-game fields/keys are unchanged.
+- No SVG and no new large image assets. Real-device camera/collision alignment remains a required QA step; a successful GitHub build is not a live Sites redeployment.

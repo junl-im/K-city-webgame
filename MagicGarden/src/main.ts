@@ -2,6 +2,7 @@ import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Text
 import './style.css';
 import { resolveHorizontalFacing, resolveWalkHeading, type HorizontalFacing, type WalkHeading } from './walk-motion';
 import { advanceMovement, calculateCameraTarget, smoothFollow } from './movement-camera';
+import { isWalkable, planGardenRoute, type Point } from './garden-navigation';
 
 type Zone = 'town' | 'farm' | 'lab' | 'nursery';
 type MonsterKind = '잎새콩' | '방울몽' | '반짝몽';
@@ -490,6 +491,7 @@ async function start() {
   let px = currentZone === 'town' ? 619 : 247;
   let py = 585;
   let tx = px, ty = py;
+  let plannedRoute: Point[] = [];
   let clock = 0;
   let walkDistance = 0;
   let footstepDistance = 0;
@@ -725,6 +727,7 @@ async function start() {
     void loadRaster(next);
     px = next === 'farm' ? 218 : next === 'town' ? 940 : 610;
     py = 562; tx = px; ty = py;
+    plannedRoute = [];
     walkHeading = 'down';
     horizontalFacing = 1;
     walkDistance = 0;
@@ -755,12 +758,24 @@ async function start() {
     );
   }
   background.on('pointertap', (event) => {
+    if (!modalRoot.classList.contains('hidden')) return;
     const local = world.toLocal(event.global);
-    tx = Math.min(WORLD_WIDTH - 70, Math.max(70, local.x));
-    ty = Math.min(WORLD_HEIGHT - 58, Math.max(350, local.y));
+    const tapped = { x: Math.min(WORLD_WIDTH - 70, Math.max(70, local.x)), y: Math.min(WORLD_HEIGHT - 58, Math.max(350, local.y)) };
+    const route = planGardenRoute(currentZone, { x: px, y: py }, tapped);
+    if (!route.length) {
+      plannedRoute = [];
+      tx = px; ty = py;
+      walkMark.visible = false;
+      if (Math.hypot(tapped.x-px,tapped.y-py) > 5) showGuide('그곳으로 가는 길을 찾지 못했어. 다른 길을 눌러줘!');
+      return;
+    }
+    plannedRoute = route;
+    tx = route[0].x; ty = route[0].y;
+    const last = route[route.length-1];
+    if (!isWalkable(currentZone, tapped.x, tapped.y)) showGuide('그곳은 지나갈 수 없어서 가까운 길까지 안내할게!');
     markAge = 0;
-    walkMark.position.set(tx, ty);
-    walkMark.zIndex = ty + 2;
+    walkMark.position.set(last.x, last.y);
+    walkMark.zIndex = last.y + 2;
     walkMark.alpha = 1;
     walkMark.scale.set(1);
     walkMark.visible = true;
@@ -785,12 +800,19 @@ async function start() {
     clock += ticker.deltaMS;
     // Tapping a menu cancels walking instead of leaving the fox moving under a dialog.
     if (!modalRoot.classList.contains('hidden')) {
+      plannedRoute = [];
       tx = px; ty = py;
       walkMark.visible = false;
     }
     const dx = tx - px, dy = ty - py, distance = Math.hypot(dx, dy);
     const nextStep = advanceMovement(px, py, tx, ty, Math.min(ticker.deltaMS, 40));
-    const moving = nextStep.traveled > .001;
+    const validStep = isWalkable(currentZone,nextStep.x,nextStep.y);
+    if (!validStep) {
+      plannedRoute = [];
+      tx = px; ty = py;
+      walkMark.visible = false;
+    }
+    const moving = validStep && nextStep.traveled > .001;
     if (moving) {
       const moveX = nextStep.x - px;
       const moveY = nextStep.y - py;
@@ -805,8 +827,14 @@ async function start() {
         leaveFootprint(px, py, moveX, moveY);
       }
     } else {
-      px = nextStep.x; py = nextStep.y;
+      if (validStep) { px = nextStep.x; py = nextStep.y; }
       footstepDistance = 0;
+    }
+    // Consume a reached waypoint before the next ticker; no frame uses a diagonal shortcut through scenery.
+    if (validStep && plannedRoute.length && Math.hypot(px-tx,py-ty) <= 2.5) {
+      plannedRoute.shift();
+      if (plannedRoute.length) { tx=plannedRoute[0].x; ty=plannedRoute[0].y; }
+      else { tx=px; ty=py; }
     }
     // 전용 4방향 원화는 원본 텍스처를 교체하고 거울 반전은 대체 원화에서만 사용한다.
     // 상하 방향은 약한 자세 변화와 이동 거리 기반 걸음으로 표현한다.
@@ -846,7 +874,7 @@ async function start() {
       markAge += ticker.deltaMS;
       walkMark.alpha = Math.max(0, 1 - markAge / 850);
       walkMark.scale.set(.85 + markAge / 1400);
-      if (markAge >= 850 || !moving) walkMark.visible = false;
+      if (markAge >= 850 || (plannedRoute.length === 0 && !moving)) walkMark.visible = false;
     }
     npcs.forEach((sprite, i) => {
       const baseX = currentZone === 'town' ? [875, 1015, 620][i] : [946, 735, 330][i];
