@@ -1,0 +1,157 @@
+
+/* v16: four DIFFERENT painted button roles. No stretched dark wood everywhere.
+ * Dedicated transparent raster paintings + real HTML text. No SVG.
+ * This file loads last and deliberately resets all legacy border-image rules.
+ */
+#app .area,#app .bottom-hud button,#app .garden-tabs .garden-tab,
+#app .modal .link-button,#app #modal-close,#app .creek-visit,#app .modal-head{
+  border:0;border-image:none;border-radius:0;box-shadow:none;
+  background-color:transparent;background-position:center;background-repeat:no-repeat;
+  text-shadow:none;box-sizing:border-box;
+}
+#app .area{
+  background-image:url('/assets/ui-v16-region-cream.png');background-size:100% 100%;
+  color:#593923;min-height:66px;padding:4px 9px;
+  display:flex;align-items:center;justify-content:center;gap:3px;
+  overflow:visible;line-height:1.2;transition:transform .15s,filter .15s;
+}
+#app .area-panel{width:min(278px,44vw);gap:6px}
+#app .area span:not(.art-icon){
+  color:#593923;text-shadow:0 1px #fff8e5;font-size:12px;line-height:1.22;
+  font-weight:900;white-space:nowrap;
+}
+#app .area .art-icon{flex:none;transform:scale(.80);margin:-3px 0;
+  filter:drop-shadow(0 2px 1px #674b2f45)}
+#app .area.active{background-image:url('/assets/ui-v16-region-cream.png');filter:brightness(1.035)}
+#app .area.active span:not(.art-icon){color:#316b40;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+#app .area:hover{filter:brightness(1.06)}#app .area:active{transform:translateY(2px)}
+
+/* Lower menu: original illustrated icons centered on light wood medals. */
+#app .bottom-hud{
+  background:rgba(255,246,224,.93);border:1px solid #d7b484;
+  border-image:none;border-radius:21px;box-shadow:0 6px 18px #3d322438;
+  min-height:91px;padding:7px 9px 6px;gap:10px;
+}
+#app .bottom-hud button{
+  background-image:url('/assets/ui-v16-badge-wood.png');
+  background-size:69px 69px;background-position:center 0;
+  width:74px;min-width:0;max-width:77px;min-height:79px;padding:6px 1px 1px;
+  display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:0;
+  color:#5e3d27;transition:transform .15s,filter .15s;
+}
+#app .bottom-hud button .art-icon{transform:scale(.92);margin:3px 0 0;filter:drop-shadow(0 2px 1px #49332338)}
+#app .bottom-hud button small{
+  background:#fff5df;border:1px solid #c4a075;border-radius:10px;
+  color:#603d25;text-shadow:none;font-size:11px;font-weight:900;
+  white-space:nowrap;line-height:1.2;padding:2px 7px;
+}
+#app .bottom-hud button:hover{filter:brightness(1.07)}
+#app .bottom-hud button:active{transform:translateY(2px)}
+
+/* Classifier tabs: flat painted paper, not wooden CTA buttons. */
+#app .garden-tabs{gap:5px}
+#app .garden-tabs .garden-tab{
+  background-image:url('/assets/ui-v16-tab-paper.png');background-size:100% 100%;
+  min-width:0;min-height:46px;padding:6px 5px;color:#67452c;text-shadow:none;
+  font-size:13px;font-weight:900;filter:none;transition:filter .14s,transform .14s;
+}
+#app .garden-tabs .garden-tab.current,
+#app .garden-tabs .garden-tab.selected{
+  background-image:url('/assets/ui-v16-tab-selected.png');color:#336742;filter:none;
+}
+#app .garden-tabs .garden-tab:hover{filter:brightness(1.035)}
+#app .garden-tabs .garden-tab:active{transform:translateY(1px)}
+
+/* The only vivid controls: storybook rose / gold / sage action paintings. */
+#app .modal .link-button{
+  background-image:url('/assets/ui-v16-action-sage.png');background-size:100% 100%;
+  min-height:53px;padding:8px 12px;color:#fffdf1;
+  text-shadow:0 1px 2px #315b4080;font-size:14px;line-height:1.25;
+  font-weight:900;transition:filter .14s,transform .14s;
+}
+#app .modal .link-button[data-game-action="brew"],
+#app .modal .link-button[data-game-action="craft-egg"],
+#app .modal .link-button[data-game-action="confirm-import"]{
+  background-image:url('/assets/ui-v16-action-rose.png');color:#fffaf0;
+  text-shadow:0 1px 2px #76383f9c;
+}
+#app .modal .link-button[data-game-action="hatch"],
+#app .modal .link-button[data-game-action="incubate"]{
+  background-image:url('/assets/ui-v16-action-gold.png');color:#654024;
+  text-shadow:0 1px #fff7d7;
+}
+#app .modal .link-button.secondary-action,
+#app .modal .link-button.needs-items,
+#app .modal .link-button.insufficient{
+  background-image:url('/assets/ui-v16-tab-paper.png');color:#694932;
+  text-shadow:0 1px #fffbea;
+}
+#app .modal .link-button:hover:not(:disabled){filter:brightness(1.06)}
+#app .modal .link-button:active:not(:disabled){transform:translateY(2px)}
+#app .modal .link-button:disabled{opacity:.65;filter:saturate(.55);cursor:not-allowed}
+
+/* Header and closing control now share gentle painted paper/wood artwork. */
+#app .modal-head{
+  background-image:url('/assets/ui-v16-region-cream.png');background-size:100% 100%;
+  min-height:65px;padding:7px 9px 7px 17px;margin:0 -3px 13px;
+}
+#app .modal-head strong{
+  color:#543721;text-shadow:0 1px #fff9e8;
+  font-size:clamp(16px,3.5vw,20px);font-weight:900;line-height:1.2;
+}
+#app #modal-close{
+  background-image:url('/assets/ui-v16-badge-wood.png');background-size:100% 100%;
+  width:48px;min-width:48px;height:48px;min-height:48px;
+  padding:5px;margin-right:0;
+}
+#app #modal-close .art-icon{transform:scale(.78);filter:drop-shadow(0 1px 1px #573b2470)}
+/* A creek is a location sign, not a bright purchase or reward button. */
+#app .creek-visit{
+  background-image:url('/assets/ui-v16-region-cream.png');background-size:100% 100%;
+  color:#593c28;text-shadow:0 1px #fff5db;
+  min-height:53px;padding:5px 12px 5px 5px;
+}
+#app .creek-visit[hidden]{display:none}
+#app .creek-visit:active{transform:translateY(2px)}
+#app .area:focus-visible,#app .bottom-hud button:focus-visible,#app .garden-tabs .garden-tab:focus-visible,
+#app .modal .link-button:focus-visible,#app #modal-close:focus-visible,#app .creek-visit:focus-visible{
+  outline:3px solid #237351;outline-offset:1px;
+}
+/* Smaller screens: preserve native icon shapes and minimum tappable sizes. */
+@media(max-width:760px){
+  #app .area-panel{width:min(215px,56vw);gap:4px}
+  #app .area{min-height:62px;flex-direction:column;gap:0;padding:2px 2px}
+  #app .area .art-icon{transform:scale(.70);margin:-5px 0 -4px}
+  #app .area span:not(.art-icon){font-size:11px}
+  #app .bottom-hud{min-height:78px;padding:4px 5px;gap:3px}
+  #app .bottom-hud button{
+    width:63px;max-width:66px;min-height:69px;background-size:61px 61px;background-position:center top;
+    padding:3px 0 0;
+  }
+  #app .bottom-hud button .art-icon{transform:scale(.76);margin:0}
+  #app .bottom-hud button small{font-size:10px;padding:2px 6px}
+  #app .garden-tabs .garden-tab{min-height:44px;padding:4px 2px;font-size:12px}
+  #app .modal .link-button{min-height:50px;padding:5px 9px;font-size:13px}
+  #app .modal-head{min-height:58px;padding:6px 7px 6px 13px}
+  #app .modal-head strong{font-size:16px}
+  #app #modal-close{width:44px;min-width:44px;height:44px;min-height:44px;padding:4px}
+  #app .creek-visit{min-height:48px;padding:4px 9px 4px 4px}
+}
+@media(max-width:370px){
+  #app .area-panel{width:min(200px,59vw)}
+  #app .area{min-height:59px}
+  #app .area .art-icon{transform:scale(.65)}
+  #app .area span:not(.art-icon){font-size:10px}
+  #app .bottom-hud{gap:1px;padding:4px 2px}
+  #app .bottom-hud button{width:57px;max-width:60px;min-height:64px;background-size:56px 56px}
+  #app .bottom-hud button small{font-size:10px;padding:2px 4px}
+  #app .garden-tabs .garden-tab{font-size:11px}
+}
+@media(max-width:760px) and (max-height:610px){
+  #app .area{flex-direction:row;gap:0;min-height:45px;padding:1px 3px}
+  #app .area .art-icon{transform:scale(.60);margin:-7px -6px}
+  #app .area span:not(.art-icon){font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+  #app .area,#app .bottom-hud button,#app .garden-tabs .garden-tab,#app .modal .link-button{transition:none}
+}

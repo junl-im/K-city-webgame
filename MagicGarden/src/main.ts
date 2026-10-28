@@ -4,6 +4,7 @@ import './theme-art.css';
 import './illustrated-content.css';
 import './painted-layout.css';
 import './visual-polish.css';
+import './button-art-v16.css';
 import { resolveHorizontalFacing, resolveWalkHeading, type HorizontalFacing, type WalkHeading } from './walk-motion';
 import { advanceMovement, calculateCameraTarget, smoothFollow } from './movement-camera';
 import { isWalkable, planGardenRoute, segmentIsWalkable, type Point } from './garden-navigation';
