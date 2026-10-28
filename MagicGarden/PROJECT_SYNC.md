@@ -45,3 +45,13 @@
 4. 실기기 검증 기록을 기준으로 디자인 문제를 우선순위 순서대로 제거.
 
 **참고:** 이 문서의 SHA와 검사 결과는 2026-10-28 당시 v16 **기준점**이다. 이후 커밋이 생기면 반드시 GitHub 최신 main/Actions 확인 결과를 우선한다.
+
+## v17 진행 체크포인트 — 2026-10-28
+
+- **최신 기능 커밋:** [715d654](https://github.com/junl-im/K-city-webgame/commit/715d654cba15020acb28cdb8b93d34973460ed6a) — `src/button-proportions-v17.css`, `scripts/check-button-proportions.mjs`; v16 PNG 7종 원화는 변형·교체하지 않고 사용.
+- **직접 확인된 자동화:** [소스 CI #40665522246](https://github.com/junl-im/K-city-webgame/actions/runs/40665522246) **성공**, [공식 Pages #40665522270](https://github.com/junl-im/K-city-webgame/actions/runs/40665522270) **성공**.
+- **실제 개선:** 크림 지역 표지판, 작은 양피지 탭, 분홍/연두/금빛 행동 버튼, 가방/연구소 모달 제목판, 계곡 산책 버튼의 **배경 강제 가로세로 확대를 차단**하고 PNG `border-image` 9분할로 전환. 원형 하단 배지는 1:1 그림 비율 유지. 모바일 좁은 화면 테두리 두께와 터치 44px 이상 유지.
+- **남은 점검:** 실제 Android/iOS/PC 화면에서 원화 보임·모서리 선명도·팝업 탭 글씨/공간·눌림/비활성 상태 시각 확인 미완료. CSS 계약 검사와 실제 기기 육안 QA를 혼동하지 않는다.
+- **정책:** SVG 및 SVG처럼 보이는 기본 아이콘 금지 유지. 실제 새 자산이 필요해지면 승인된 동화풍 PNG/WebP 원화를 확보한 뒤 적용. 기존 12칸 농사·조합·부화·몬스터 JSON, Soul Online archive, 60초 놀이터 독립 파일 불변.
+
+위 문단은 아래의 최초 v16 기록을 **역사적 기준점으로 유지한 채 추가한 최신 상태**다. 다음 작업은 이 체크포인트부터 이어 가며 Notion/Google Drive에도 동일한 커밋을 기록한다.
