@@ -1,7 +1,7 @@
 name: Magic Garden — independent GitHub Pages build
 
-# This workflow exists ONLY on the MagicGarden working branch.
-# Soul Online's main branch, Firebase workflow, and production site are untouched.
+# Main is now the dedicated Magic Garden source. Soul Online is backed up on archive/soul-online-20261028.
+# Publish only built assets to magic-garden-pages, never to main.
 on:
   push:
     branches:
@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 18
     steps:
-      - name: Checkout dedicated garden source branch
+      - name: Checkout the Magic Garden main source
         uses: actions/checkout@v4
 
       - name: Node.js 22
