@@ -22,7 +22,16 @@ function walk(file) {
   const relativePath = relative(root, file).replaceAll('\\', '/');
   if (extname(file).toLowerCase() === imageSuffix) errors.push(relativePath + ': forbidden image');
   const extension = extname(file).toLowerCase();
-  if (['.html', '.css', '.ts', '.tsx', '.js', '.jsx', '.mjs', '.json', '.vue'].includes(extension)) {
+  // Authored source must be SVG-free, including JS/JSON strings.
+// Vite's dist JS contains bundled third-party PixiJS internals that can
+// *mention* SVG as a supported format; rejecting that string would falsely
+// fail a game whose authored art, HTML and CSS are completely raster-only.
+// For dist, still ban every physical .svg asset and any SVG reference in
+// generated HTML/CSS. Check authored src imports before bundling.
+const inspected = scan === 'dist'
+  ? ['.html', '.css'].includes(extension)
+  : ['.html', '.css', '.ts', '.tsx', '.js', '.jsx', '.mjs', '.json', '.vue'].includes(extension);
+if (inspected) {
     const contents = readFileSync(file, 'utf8').toLowerCase();
     if (contents.includes(inlineMarker) || contents.includes(dataMarker) || contents.includes(imageSuffix)) errors.push(relativePath + ': forbidden image reference');
   }
