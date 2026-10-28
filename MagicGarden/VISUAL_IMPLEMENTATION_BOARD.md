@@ -145,3 +145,10 @@
 - [x] 최신 [ca6f02e](https://github.com/junl-im/K-city-webgame/commit/ca6f02e0fa107d664d8a12c9fdb4af0640cec222) 기준 빌드 Guard/CI·Pages **성공** 확인. 고유 PNG 33 + 고유 WebP 33, 중복 해시, 압축률/참조/비율 금지 규칙 점검.
 - [x] 배포 브라우저 지역 4개와 하단 4개의 WebP 계산 스타일·border-image 없음·자연 비율 표시 확인, GPU 미지원 정적 풍경의 지역 미리보기 전환 확인.
 - [ ] Whale에서 실제 WebGL 플레이와 모달 액션/가방 4개 탭, 모바일 320/390px 문구/터치/잘림 육안 확인. 정적 미리보기로 플레이 검증 대체 금지.
+
+
+### v25 좁은 화면 행동 버튼·계곡 안내 개선 — 2026-10-29
+- [x] 계곡 산책 전용 WebP 비율 유지(contain) + 배경 대비/글자 그림자·부드러운 그림자 보정. 배포 화면에서 확인.
+- [x] 420px 이하 행동 버튼/구역 선택/저장 버튼/가방 탭의 줄바꿈, 최소 높이, 배경 전체 표시 CSS 적용. 개별 원화 33개 유지, SVG 0개.
+- [x] [92030cc](https://github.com/junl-im/K-city-webgame/commit/92030cc5d2a20ea6d651a90823c3a00fceb32910) **CI 및 Pages 성공**. computed style에서 전용 WebP+반투명 바탕, border-image none, 그림자 확인.
+- [ ] 320/390px 모바일 실기기에서 실제 글씨·이미지·터치 영역 검증. GPU 미지원 테스트 브라우저에선 모달 작동·게임 플레이 QA 불가.
