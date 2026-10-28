@@ -1,0 +1,90 @@
+
+/* v11: functional inventory, recipes, incubator, and encyclopedia in the approved painted storybook style. */
+.modal:has(.garden-bag),.modal:has(.garden-recipe),.modal:has(.garden-scene),.modal:has(.garden-friends){width:min(730px,100%)}
+.modal h3{color:#503322;font-size:15px;font-weight:900;line-height:1.4;margin:0 0 9px}
+.garden-intro{font-weight:700;color:#583c28;margin:0 0 12px}
+.garden-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:10px 0 12px}
+.garden-tabs .garden-tab{border:0;min-height:45px;border-radius:12px;background:#c69c65 url('/assets/ui-button-wood-v1.webp') center/100% 100% no-repeat;color:#fff6dd;font-size:13px;font-weight:900;text-shadow:0 1px 2px #4a2e21;cursor:pointer}
+.garden-tabs .garden-tab.current{background-image:url('/assets/ui-button-green-v1.webp');box-shadow:0 0 0 2px #fdf2cd,0 4px 9px #61452b3b}
+.garden-bag{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(180px,1fr);gap:12px;margin:10px 0 16px}
+.garden-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-content:start;min-height:255px;border-radius:17px;padding:9px;border:2px solid #d5ae7b;background:#f0d8afbb;box-shadow:inset 0 3px 8px #76502b1c}
+.garden-slot{position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;min-width:0;min-height:104px;padding:7px 3px;border:2px solid #d7b58b;border-radius:13px;color:#4a2e1d;background:#fff0d0 url('/assets/ui-parchment-v1.webp') center/100% 100%;box-shadow:0 3px 0 #b28a57;cursor:pointer}
+.garden-slot.current{border-color:#a75b4c;box-shadow:0 0 0 2px #f0b18e,0 3px 0 #a16f4b}
+.garden-slot:active,.garden-tab:active{transform:translateY(1px)}
+.garden-slot:focus-visible,.garden-tab:focus-visible{outline:3px solid #216950;outline-offset:2px}
+.garden-slot .slot-illustration{width:60px;height:56px;display:grid;place-items:center}
+.slot-illustration .art-icon{transform:scale(1.45);filter:drop-shadow(0 3px 3px #5b382c44)}
+.garden-slot strong{font-size:12px;line-height:1.24;word-break:keep-all}
+.slot-quantity{position:absolute;top:4px;right:4px;min-width:24px;padding:3px 5px;border-radius:12px;background:#754b30;color:#fff6e0;font-size:12px;font-weight:900;font-variant-numeric:tabular-nums}
+.garden-detail{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;min-width:0;border:2px solid #e0b780;border-radius:17px;background:#fff2d8b8;padding:15px 11px}
+.garden-detail-picture{width:102px;height:102px;display:grid;place-items:center;background:#fff9e7;border:3px solid #dfbd85;border-radius:50%;box-shadow:inset 0 3px 15px #e0bc9244}
+.garden-detail-picture .art-icon{transform:scale(2.28);filter:drop-shadow(0 4px 3px #70473333)}
+.garden-detail h3{font-size:16px;margin:0}
+.garden-detail .garden-owned{font-size:12px;font-weight:800;margin:0;padding:6px 13px;border-radius:20px;background:#eed4a9;color:#503421}
+.garden-detail>p:not(.garden-owned){font-size:13px;line-height:1.6;flex:1;margin:4px 0;color:#473222}
+.modal .garden-detail>.link-button{min-height:48px;font-size:13px;padding:8px 5px;width:100%}
+.modal .save-actions{border-top:1px solid #cda573;padding-top:14px}
+.modal .save-actions .link-button{display:flex;align-items:center;justify-content:center;gap:3px;font-size:12px}
+.modal .save-actions .art-icon{transform:scale(.8);margin:-8px -4px}
+.garden-scene{position:relative;isolation:isolate;min-height:160px;border-radius:18px;margin:0 0 12px;overflow:hidden;border:3px solid #a97a4e;box-shadow:inset 0 0 18px #4f25183c,0 4px 13px #76553e2e;background-size:cover;background-position:center}
+.garden-scene::before{position:absolute;content:'';inset:0;z-index:-1;background:linear-gradient(90deg,#28190a07,#24140745)}
+.garden-lab{background-image:url('/assets/lab-scene-v1.webp')}
+.garden-nursery{background-image:url('/assets/nursery-scene-v1.webp');display:grid;place-items:center}
+.scene-caption{position:absolute;bottom:10px;right:10px;display:flex;flex-direction:column;align-items:center;gap:2px;max-width:53%;padding:8px 11px;border-radius:14px;background:#fff3d8ed;box-shadow:0 3px 15px #37231966;color:#492d1d;text-align:center}
+.scene-caption .art-icon{transform:scale(.9)}
+.scene-caption strong{font-size:14px;line-height:1.3}
+.scene-caption small{font-size:11px;line-height:1.4;color:#5f442f}
+.garden-counts{display:flex;justify-content:center;flex-wrap:wrap;gap:7px;margin:11px 0}
+.garden-counts>span{display:flex;align-items:center;gap:2px;min-height:36px;padding:2px 11px 2px 1px;border-radius:23px;background:#f4ddba;border:1px solid #cfa670;color:#543927;font-size:13px;font-weight:800}
+.garden-counts .art-icon{transform:scale(.72);margin:-5px}
+.garden-counts b{font-size:15px;font-variant-numeric:tabular-nums}
+.garden-recipe{margin:12px 0;padding:12px;border-radius:16px;border:2px solid #d3af7c;background:#fff7e8d9;box-shadow:inset 0 2px 7px #e3bd8d38}
+.garden-recipe-visual{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.garden-ingredient,.garden-result{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;min-height:100px;border:1px solid #d9b18a;border-radius:14px;background:#fffae6;text-align:center;padding:8px}
+.garden-result{background:#ecf1dc}
+.garden-ingredient.lacking{filter:saturate(.6);opacity:.82}
+.ingredient-icon{height:52px;display:grid;place-items:center}
+.ingredient-icon .art-icon,.garden-result>.art-icon{transform:scale(1.35)}
+.garden-ingredient strong,.garden-result strong{font-size:13px;color:#4c3424;line-height:1.35}
+.garden-ingredient small,.garden-result small{color:#795136;font-size:11px;font-weight:800}
+.garden-recipe .link-button{display:flex;align-items:center;justify-content:center;gap:5px;max-width:340px;margin:10px auto 0;min-height:52px;width:100%}
+.garden-recipe .link-button .art-icon{transform:scale(.8);margin:-9px -4px}
+.garden-recipe .needs-items{background-image:url('/assets/ui-button-wood-v1.webp');color:#fff7dd;filter:saturate(.7)}
+.garden-egg{width:144px;min-height:139px;margin:7px auto;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff5d4d9;border:3px solid #d7a879;border-radius:48% 48% 35% 35%;box-shadow:0 0 22px #fff3be7a,inset 0 0 18px #efb4a9}
+.garden-egg>.art-icon{transform:scale(2.25);filter:drop-shadow(0 3px 3px #b67b80)}
+.garden-egg small{display:block;font-size:11px;font-weight:900;color:#62452a;margin-top:23px;text-align:center}
+.garden-egg.awakening{animation:garden-egg-breathe 2.4s ease-in-out infinite}
+.garden-hatch-status{text-align:center;font-size:14px;font-weight:800;background:#fff4d9b8;padding:9px;margin:10px 0}
+.garden-discoveries{margin:16px 0 10px;border-top:2px dashed #d0ae7e;padding-top:12px}
+.garden-discovery-list{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.garden-discovery{display:inline-flex;align-items:center;min-height:42px;padding:3px 12px 3px 0;border:1px solid #ceaa7e;border-radius:13px;background:#f7e0b9;font-size:12px;font-weight:900;color:#593b27}
+.garden-discovery .art-icon{transform:scale(.76);margin:-4px -5px}
+.garden-empty{color:#76543d;font-size:13px;line-height:1.55}
+.garden-friends{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.garden-friend{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:12px;border-radius:14px;border:1px solid #d5b184;background:#fff4de}
+.garden-friend>.art-icon{transform:scale(1.23);margin:0 6px}
+.garden-friend strong{font-size:14px;color:#482d1d}
+.garden-friend small{font-size:11px;color:#6d4d34}
+@keyframes garden-egg-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.025)}}
+@media(max-width:600px){
+ .garden-bag{grid-template-columns:1fr}
+ .garden-slots{min-height:auto;gap:6px}
+ .garden-slot{min-height:88px;padding:4px 2px}
+ .garden-slot .slot-illustration{height:48px}
+ .garden-slot strong{font-size:11px}
+ .garden-detail{display:grid;grid-template-columns:76px 1fr;grid-template-rows:repeat(3,auto);text-align:left;align-items:center;gap:4px 10px;padding:10px}
+ .garden-detail-picture{width:76px;height:76px;grid-row:span 3}
+ .garden-detail-picture .art-icon{transform:scale(1.6)}
+ .garden-detail>.link-button{grid-column:1/-1}
+ .garden-detail>p:not(.garden-owned){font-size:12px;margin:0}
+ .garden-detail .garden-owned{justify-self:start}
+ .garden-scene{min-height:143px}
+ .garden-friend{gap:2px;justify-content:center;text-align:center}
+ .garden-friend small{width:100%}
+}
+@media(max-width:359px){
+ .garden-slots{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .garden-tabs .garden-tab{font-size:12px}
+ .garden-ingredient strong,.garden-result strong{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){.garden-egg.awakening{animation:none}}

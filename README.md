@@ -1,33 +1,32 @@
-# Soul Online Alpha 1.10
+# 🦊 곰같은여우의 마법정원
 
-모바일 중심 웹 MMORPG 프로토타입입니다. 기기 회전을 강제하지 않고 실행 중인 화면 모드에 맞춰 UI를 재배치합니다.
+**이 저장소의 기본 프로젝트는 이제 《곰같은여우의 마법정원》입니다.**
 
-## 최신 패치 요약
+2026-10-28 Soul Online 원본을 먼저 `archive/soul-online-20261028` 브랜치에 전체 백업한 뒤, 이전 게임 소스·빌드 파일·Firebase 설정·Soul Online 전용 자동화 파일을 `main` 작업 트리에서 정리했습니다.
 
-Alpha 1.10은 사냥터 UI와 전투 루프를 우선 정리한 패치입니다.
+## 현재 구조
 
-- 첫 시작 화면 원화 배경 + 중앙 START 버튼 재정렬
-- 마을 UI 색상 난잡함 완화
-- 필드 미니맵 제거
-- 필드 골드/소울/전투력 스트립 제거
-- 몬스터 타겟 카드 HUD 아래 중앙 배치
-- 직업/성별 프로필 이미지 보강
-- 우측 하단 공격/자동/메뉴 버튼 겹침 제거, 가방/절전은 필드 HUD에서 제거
-- 스킬 버튼 우측 세로 스택 정리
-- 조이스틱/물약/퀘스트 카드 safe-area 재배치
-- 몬스터 밀도 및 난이도 상향
-- 자동사냥 포켓 순환 이동 보정
-- 초중반 사냥터 5종 추가
+| 브랜치 | 용도 |
+|---|---|
+| [`main`](https://github.com/junl-im/K-city-webgame/tree/main) | **마법정원 공식 소스**: [MagicGarden/](./MagicGarden), 원화, 테스트, Pages 자동 배포 |
+| [`magic-garden-pages`](https://github.com/junl-im/K-city-webgame/tree/magic-garden-pages) | GitHub Pages 서비스용 **빌드 결과물** — 직접 수정하지 않음 |
+| [`archive/soul-online-20261028`](https://github.com/junl-im/K-city-webgame/tree/archive/soul-online-20261028) | 2026-10-28 정리 전의 **Soul Online 전체 백업** (원본 SHA `3648a6854ebd972a6c3094aa67bf40b7b6f9753b`) |
+| [`planning/magic-garden-20261027`](https://github.com/junl-im/K-city-webgame/tree/planning/magic-garden-20261027) | 마법정원 기존 개발 이력/전환 전 스냅샷 |
 
-## 개발
+## 게임 확인
 
-```bash
-npm install
-npm run build
-```
+- 게임 공식 소스: [MagicGarden/](./MagicGarden)
+- 마법정원 비주얼 최종 기준: [VISUAL_MASTER.md](./MagicGarden/VISUAL_MASTER.md)
+- 배포 및 점검: [MagicGarden/DEPLOY_PAGES.md](./MagicGarden/DEPLOY_PAGES.md)
+- GitHub Pages 주소(활성화 후): https://junl-im.github.io/K-city-webgame/
+- 관리자 최초 1회 [Pages 설정](https://github.com/junl-im/K-city-webgame/settings/pages): Source `Deploy from a branch`, Branch `magic-garden-pages`, Folder `/(root)`
 
-Firebase Hosting 배포:
+`main`에 마법정원 변경사항을 푸시하면 [전용 Actions](https://github.com/junl-im/K-city-webgame/actions)에서 자동 빌드·SVG 금지 검사 후 `magic-garden-pages`를 교체합니다. Actions 아티팩트는 업로드하지 않습니다.
 
-```bash
-firebase deploy --only hosting
-```
+## 보존한 원칙
+
+- 전체 게임 무료 운영 및 모바일 최적화.
+- 확정된 손그림 동화풍 WebP/PNG 원화, SVG 금지.
+- 기존 12칸 텃밭·조합·부화·몬스터·JSON 백업 규칙.
+- **Firebase 프로젝트/원격 Hosting 데이터를 삭제한 것은 아닙니다.** 이 GitHub `main` 트리에서 Soul Online 관련 설정·소스만 정리했습니다.
+- Git 이력 자체의 전체 용량이 바로 줄어들지는 않습니다. 원본은 백업 브랜치에 남아 있으므로 복구 가능합니다.
