@@ -278,3 +278,32 @@
   color:#584632;font-size:11px;text-shadow:0 1px #fff9eb!important;
 }
 @media(max-width:760px){#app .bottom-hud button small{font-size:10px;padding-bottom:3px}}
+
+/* v23.3: no shared stretched background — four independent painted HUD strips. */
+#app .brand{
+  background-image:url('/assets/ui-v23-hud-brand.png')!important;
+  background-position:center!important;background-size:100% auto!important;
+  border:0!important;border-radius:0;box-shadow:none;
+  padding:8px 12px 8px 20px;
+}
+#app .brand-mark{display:none}
+#app .brand strong,#app .brand small{position:relative;z-index:1}
+#app .hud-stats>span{
+  background-position:center!important;background-size:contain!important;
+  border:0!important;border-radius:0;box-shadow:none;
+  padding-left:27px;
+}
+#app .hud-stats>span:first-child{background-image:url('/assets/ui-v23-hud-seed.png')!important}
+#app .hud-stats>span:nth-child(2){background-image:url('/assets/ui-v23-hud-berry.png')!important}
+#app .hud-stats>span>.art-icon{display:none}
+#app .guide{
+  background-image:url('/assets/ui-v23-hud-guide.png')!important;
+  background-position:center!important;background-size:100% auto!important;
+  border:0!important;border-radius:0;box-shadow:none;
+  padding:9px 20px;
+}
+@media(max-width:760px){
+  #app .brand{padding:7px 8px 7px 12px}
+  #app .hud-stats>span{padding-left:21px}
+  #app .guide{padding:8px 11px}
+}
