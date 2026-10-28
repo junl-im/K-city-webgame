@@ -648,7 +648,9 @@ async function start() {
           if (picture.texture !== cropTextures[stage]) picture.texture = cropTextures[stage];
           picture.visible = true;
           picture.alpha = 1;
-          picture.scale.set(1);
+          // Keep every atlas frame at the same calibrated in-world size, not its raw pixel size.
+          picture.width = 116;
+          picture.height = 108;
         } else {
           const height = 12 + percent * 40;
           const leaf = 5 + percent * 9;
