@@ -1,0 +1,122 @@
+/*
+ * Magic Garden v15 — small-area polish against approved visual master
+ * Keeps the illustrated buttons / real parchment textures but respects the
+ * 400x105 source corner aspect ratio and gives narrow controls breathing room.
+ * Decorative frames belong to main containers, not every item cell.
+ * All graphics are existing painted WebP; no SVG or system icon replacement.
+ */
+#app{--garden-text:#463122;--garden-subtext:#62442e;--garden-light:#fff6df}
+#app button{word-break:keep-all;overflow-wrap:normal}
+#app .area,#app .bottom-hud button,#app .garden-tabs .garden-tab,
+#app .modal .link-button,#app .creek-visit,#app #modal-close,#app .modal-head{
+  /* 48px wide source corners vs 28px tall source corners: preserve proportions */
+  border-image-width:12px 20px;
+}
+#app .modal-head{border-image-width:13px 22px;padding-right:3px}
+#app #modal-close{border-image-width:10px 17px}
+#app .modal .link-button{border-image-width:11px 19px}
+#app .area{border-image-width:10px 17px;overflow:hidden;min-height:61px;padding:1px 0;line-height:1.15}
+#app .area .art-icon{width:36px;height:36px;margin:0;transform:scale(.88)}
+#app .area span:not(.art-icon){display:block;min-width:0;max-width:100%;font-weight:900;letter-spacing:-.035em;text-align:center}
+#app .area-panel{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;width:min(287px,43vw)}
+#app .bottom-hud{gap:8px}
+#app .bottom-hud button{min-height:70px;min-width:71px;max-width:83px;padding:0 1px;gap:1px}
+#app .bottom-hud button .art-icon{margin:-2px 0;transform:scale(.93)}
+#app .bottom-hud button small{font-size:12px;letter-spacing:-.025em;line-height:1.17}
+#app .brand{max-width:min(55vw,400px)}
+#app .brand strong{letter-spacing:-.045em;text-wrap:pretty}
+#app .hud-stats>span{box-shadow:0 4px 12px #37271925;white-space:nowrap}
+#app .guide{text-wrap:pretty;color:#4c3020;font-weight:850;text-shadow:0 1px #fff8e8}
+#app .modal{scrollbar-gutter:stable;scrollbar-width:auto;scrollbar-color:auto}
+#app .modal-head{gap:4px;min-width:0}
+#app .modal-head strong{flex:1;min-width:0;line-height:1.22;letter-spacing:-.04em}
+#app #modal-close{margin-right:-6px;flex:none}
+#app .modal p,#app .modal li{line-height:1.65;color:#493321;letter-spacing:-.013em}
+#app .modal h3{color:#51331f;font-weight:900}
+#app .modal .link-button{padding:5px 12px;font-size:14px;white-space:normal;line-height:1.24}
+#app .garden-tabs .garden-tab{min-width:0;padding:2px 4px;font-size:12px;line-height:1.15}
+#app .garden-tabs{gap:5px;align-items:stretch}
+/* Inventory cards are quiet paper surfaces; they are not tiny title plaques. */
+#app .garden-slot{
+  background:#fff1d6;
+  border:2px solid #dfbd8d;
+  border-image:none;
+  border-radius:13px;
+  padding:8px 4px 6px;
+  box-shadow:0 3px 0 #c69f6b,inset 0 3px 8px #fffbee;
+  gap:4px;
+  min-height:109px;
+  overflow:hidden;
+}
+#app .garden-slot.current{outline:2px solid #ab6950;outline-offset:-3px;background:#fff5e1}
+#app .garden-slot strong{color:#4d3120;text-shadow:0 1px #fffaf0;line-height:1.25;font-size:12px}
+#app .garden-slot .slot-quantity{font-weight:900;color:#fff9e9;background:#755034}
+#app .garden-slots{background:#e8cba8b5;border:2px solid #d1a979;border-radius:15px;box-shadow:inset 0 2px 9px #9a71402a}
+#app .garden-detail{border:2px solid #e0bd8d;background:#fff6e4;border-radius:15px}
+#app .garden-detail .garden-owned{color:#533925;background:#efd7b4}
+#app .garden-recipe{background:#fff4dbeb;border:2px solid #dfb986}
+#app .garden-ingredient,#app .garden-result{border:1px solid #e1be94;background:#fff8e8;border-radius:12px;box-shadow:0 2px 7px #77552f1c}
+#app .garden-result{background:#f0ecd5}
+#app .garden-ingredient strong,#app .garden-result strong{color:#513726}
+#app .garden-friend{border:1px solid #ddb788;background:#fff1d9;box-shadow:0 2px 8px #73503817;border-radius:13px}
+#app .garden-discovery{color:#563923;background:#f4ddb9}
+#app .garden-empty{color:#64472d}
+#app .garden-hatch-status{color:#553823;background:#fff4dcdf}
+#app .modal-note{color:#64492d;line-height:1.6}
+#app .creek-help{border-color:#c9a577;background-color:#fff2d9}
+#app .creek-help-copy p{color:#59412b}
+#app .creek-visit{padding:0 7px 0 1px;max-width:182px}
+#app .creek-visit-picture{flex:none}
+#app .area:focus-visible,#app .bottom-hud button:focus-visible,
+#app .garden-slot:focus-visible,#app .garden-tabs .garden-tab:focus-visible,
+#app .modal .link-button:focus-visible,#app .creek-visit:focus-visible{outline:3px solid #2b7757;outline-offset:2px}
+/* Phone portrait: maintain a clear 2x2 regional selector, never squeeze icon+text horizontally. */
+@media(max-width:760px){
+ #app .brand{max-width:calc(100% - 111px)}
+ #app .area-panel{top:calc(86px + env(safe-area-inset-top));right:6px;width:min(214px,54vw);gap:4px}
+ #app .area{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:0;min-height:64px;border-width:9px;border-image-width:9px 15px;padding:0 1px;overflow:hidden}
+ #app .area .art-icon{width:36px;height:36px;min-width:36px;min-height:36px;margin:-3px 0 -5px;transform:scale(.72)}
+ #app .area span:not(.art-icon){font-size:11px;white-space:nowrap;line-height:1.25}
+ #app .bottom-hud{gap:3px;min-height:75px;padding:0 3px}
+ #app .bottom-hud button{min-width:0;width:63px;min-height:64px;max-width:65px;border-width:9px;border-image-width:9px 15px}
+ #app .bottom-hud button .art-icon{margin:-4px 0 -5px;transform:scale(.77)}
+ #app .bottom-hud button small{font-size:11px}
+ #app .hud-stats>span{box-shadow:0 2px 7px #39291922}
+ #app .garden-slot{min-height:91px;padding:6px 3px 4px;gap:1px}
+ #app .garden-slot .slot-illustration{height:44px}
+ #app .garden-slot strong{font-size:11px}
+ #app .garden-detail{padding:10px}
+ #app .garden-tabs .garden-tab{border-width:9px;border-image-width:9px 15px;font-size:12px;min-height:44px}
+ #app .modal{scrollbar-gutter:auto}
+ #app .modal .link-button{border-width:10px;border-image-width:10px 17px;font-size:13px;min-height:48px;padding:4px 6px}
+ #app .creek-visit{border-width:9px;border-image-width:9px 15px;min-height:47px;min-width:114px}
+ #app .guide{min-height:42px}
+}
+@media(max-width:370px){
+ #app .brand{max-width:calc(100% - 98px)}
+ #app .area-panel{width:min(197px,59vw);top:calc(83px + env(safe-area-inset-top))}
+ #app .area{min-height:61px;border-image-width:8px 13px}
+ #app .area span:not(.art-icon){font-size:10px}
+ #app .bottom-hud{gap:1px}
+ #app .bottom-hud button{width:58px;min-height:60px;border-image-width:8px 13px}
+ #app .garden-slots{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #app .garden-tabs .garden-tab{font-size:11px;border-image-width:8px 13px}
+ #app .modal-head strong{font-size:15px}
+}
+@media(max-width:760px) and (max-height:610px){
+ #app .area-panel{top:calc(75px + env(safe-area-inset-top));width:min(214px,56vw)}
+ #app .area{min-height:49px;flex-direction:row;gap:0;border-image-width:8px 13px}
+ #app .area .art-icon{transform:scale(.61);margin:-7px -6px}
+ #app .area span:not(.art-icon){font-size:10px}
+ #app .guide{display:none}
+ #app .creek-visit{bottom:calc(83px + env(safe-area-inset-bottom))}
+}
+@media(max-height:470px) and (min-width:761px){
+ #app .area-panel{top:calc(63px + env(safe-area-inset-top))}
+ #app .area{min-height:44px}
+ #app .bottom-hud button{min-height:53px}
+ #app .guide{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+ #app button{transition:none!important}
+}
