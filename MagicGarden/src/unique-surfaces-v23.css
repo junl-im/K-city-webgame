@@ -350,3 +350,16 @@
   }
   #app .brand strong{font-size:clamp(10px,3.2vw,14px)}
 }
+
+/* GPU-restricted browsers: honest non-interactive painted scenery preview. */
+#app.garden-renderer-preview #stage{background-color:#d9e9bb}
+#app .garden-renderer-notice{
+  position:absolute;z-index:1;left:50%;bottom:calc(153px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);width:max-content;max-width:min(560px,88vw);
+  margin:0;padding:8px 13px;border:1px solid #e3d2aa;border-radius:12px;
+  background:#fff9ebed;color:#625342;box-shadow:0 4px 14px #3d443128;
+  text-align:center;font:700 12px/1.4 system-ui,sans-serif;pointer-events:none;
+}
+@media(max-width:760px){
+  #app .garden-renderer-notice{bottom:calc(135px + env(safe-area-inset-bottom));font-size:11px;padding:6px 9px}
+}
