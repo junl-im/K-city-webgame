@@ -459,3 +459,15 @@
   outline:2px solid #659e71;outline-offset:-2px;
   box-shadow:0 0 0 1px #ffffffe8!important;
 }
+
+/* v24.4: final named actions receive their own original PNG. */
+#app .modal .link-button[data-game-action="open-book"]{
+  background-image:url('/assets/ui-v24-action-open-book.png'),linear-gradient(135deg,#f7fbff,#d9e9f4)!important;
+  background-size:100% auto,auto!important;background-position:center,center!important;
+  border-color:transparent!important;box-shadow:none;padding-left:28px;color:#4b6986;
+}
+#app .modal .link-button[data-game-action="creek-toggle"]{
+  background-image:url('/assets/ui-v24-action-creek-toggle.png'),linear-gradient(135deg,#ecfffd,#cce9e4)!important;
+  background-size:100% auto,auto!important;background-position:center,center!important;
+  border-color:transparent!important;box-shadow:none;padding-left:28px;color:#38727a;
+}
