@@ -85,3 +85,12 @@
 - 저장키 gomfox.magic-garden.prototype.v1, 12칸 텃밭, 조합/알/부화/몬스터, JSON, Soul Online 백업 브랜치 및 60초 놀이터 독립 소스 변경 없음.
 - 최초 v20 CI #40692086727에서 footDepth import가 누락되어 TypeScript 실패 후 수정. 최종 소스 CI https://github.com/junl-im/K-city-webgame/actions/runs/40692214924 성공, Pages https://github.com/junl-im/K-city-webgame/actions/runs/40692214936 성공. check-garden-depth-v20.mjs 회귀검사 73건 통과.
 - 미완료: 전체가 하나의 배경 이미지인 건물/큰 나무/다리 난간의 픽셀 단위 가림은 미구현. 분리된 전경 원화를 확보한 뒤 마스크를 정합해야 함. 실제 Chrome/Whale/Android/iPhone의 그림 위치·캐릭터 겹침 실기기 스크린샷 검수도 미실시. 배포 성공과 육안 QA를 구분.
+
+## v21 팝업 키보드 초점 안정화 — 2026-10-28
+
+- 문제: 가방/도감/조합/연구소 모달의 `aria-modal`과 달리 키보드 초점이 원래 지역/하단 게임 버튼에 남거나 Tab으로 모달 밖으로 빠질 수 있었음. 모달 내부 액션으로 화면 재구성 시 초점이 사라지는 경우도 있었음.
+- 구현: `src/main.ts`의 모달 열기에서 닫기 버튼으로 초기 초점 이동, Tab/Shift+Tab의 팝업 내부 순환, Escape·닫기·배경 클릭 시 호출 버튼 초점 복귀, 모달 안에서 동일 액션 재그리기 시 해당 액션 초점 유지. 새 아트 및 SVG 없음.
+- GitHub 변경: [기능 `7d42dd0`](https://github.com/junl-im/K-city-webgame/commit/7d42dd0325d1cfe0699cc1dff08118e25e8c1e2b), [계약검사 `270abc6`](https://github.com/junl-im/K-city-webgame/commit/270abc6b7ab6515832788850df6b64a9fb57b74b), [빌드 연결 `e5fe4da`](https://github.com/junl-im/K-city-webgame/commit/e5fe4da2059e10483be45c3d8747b5cfc7dacbf2).
+- 검증: GitHub 소스 읽기 재확인 및 11개 정적 계약 항목 통과. 실행 환경 이용 불가로 로컬 `npm run build` 미실행, GitHub Actions 실행/결과는 확인 도구에서 결과가 비어 있어 **CI·Pages 성공 미확인**, PC/Android/iOS 실제 Tab/Shift+Tab·화면 QA 미실시.
+- 기존 저장 키 `gomfox.magic-garden.prototype.v1`, 12칸 밭·조합·부화·몬스터·JSON 저장 형식, 라스터 원화, Soul Online 백업 및 60초 놀이터/꽃맞고 독립 코드는 변경하지 않음.
+- 다음 단계: 실제 Actions/Pages 성공 확인, 키보드 탭순서·패널 스크롤 및 작은 모바일 화면 확인, 배경 원화의 다리·건물·큰 나무 전경 분리/오클루전 원화 QA.
