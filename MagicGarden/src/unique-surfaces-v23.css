@@ -333,3 +333,20 @@
   #app .creek-visit{padding-left:12px}
   #app .modal-head{padding-left:10px}
 }
+
+/* v23.5 visual QA: keep live title clear of the cottage painting. */
+#app .brand{
+  width:292px;max-width:min(52vw,330px);min-height:66px;
+  padding:9px 13px 8px 78px;
+  display:flex;align-items:center;justify-content:flex-start;
+}
+#app .brand>div{min-width:0}
+#app .brand strong{font-size:15px;line-height:1.23;white-space:normal}
+#app .brand small{font-size:11px}
+@media(max-width:760px){
+  #app .brand{
+    width:calc(100% - 109px);max-width:calc(100% - 109px);
+    min-height:60px;padding:7px 6px 7px 56px;
+  }
+  #app .brand strong{font-size:clamp(10px,3.2vw,14px)}
+}
