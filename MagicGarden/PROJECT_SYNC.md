@@ -94,3 +94,12 @@
 - 검증: GitHub 소스 읽기 재확인 및 11개 정적 계약 항목 통과. 실행 환경 이용 불가로 로컬 `npm run build` 미실행, GitHub Actions 실행/결과는 확인 도구에서 결과가 비어 있어 **CI·Pages 성공 미확인**, PC/Android/iOS 실제 Tab/Shift+Tab·화면 QA 미실시.
 - 기존 저장 키 `gomfox.magic-garden.prototype.v1`, 12칸 밭·조합·부화·몬스터·JSON 저장 형식, 라스터 원화, Soul Online 백업 및 60초 놀이터/꽃맞고 독립 코드는 변경하지 않음.
 - 다음 단계: 실제 Actions/Pages 성공 확인, 키보드 탭순서·패널 스크롤 및 작은 모바일 화면 확인, 배경 원화의 다리·건물·큰 나무 전경 분리/오클루전 원화 QA.
+
+## v22 손그림 버튼 테두리 최소화 — 2026-10-29
+
+- 사용자 지적: 이전 버튼의 테두리가 크고 투박하며 마법정원 원화와 어울리지 않음. `src/button-proportions-v17.css`의 좁은 버튼에도 두꺼운 PNG 9분할 `border-image`가 적용되던 것이 직접적인 코드 원인.
+- 수정: [기능 커밋 `6b02d4c`](https://github.com/junl-im/K-city-webgame/commit/6b02d4c86db5572eaa209cb353df36e523b5f72d) — v17 호환 스타일시트를 v22의 조용한 원화 프레임 디자인으로 정리. `border-image` 9분할 및 100%×100% 원화 왜곡 제거, 승인된 v16 크림/양피지/분홍·초록·금빛/원형 배지 PNG 7종을 `background-size:cover`로 비율 보존하며 중앙 질감만 잘라 사용. 얇은 1px 반투명 선, 부드러운 그림자·모서리, 용도별 버튼 구분. 하단 이름표와 컨테이너의 이중 장식 제거. 한국어 HTML과 기존 원화 아이콘 보존.
+- 검사: [정적 계약 수정 `1c05968`](https://github.com/junl-im/K-city-webgame/commit/1c059688f86444b66426261e3be4afc8cd50fb12). GitHub 원격 소스 재읽기 결과 9분할/강제 왜곡/SVG 참조 없음, 기존 7종 PNG 참조 유지, 모바일 44px 최소 높이와 reduced-motion 처리 확인.
+- **미확인:** 실행 환경 사용 불가로 로컬 `npm run build` 및 브라우저 화면 캡처 미실시, GitHub Actions 실행 결과 조회가 빈 목록이라 CI·Pages 자동 게시 성공 여부 미확인. CSS 소스 수정과 실제 화면 품질 승인/배포를 동일시하지 않음.
+- 보호: 저장 키 `gomfox.magic-garden.prototype.v1`, 12칸 농사·조합·부화·몬스터·JSON 데이터, 기존 원화 원본 및 Soul Online 보관/60초 놀이터/꽃맞고 전혀 변경하지 않음.
+- 다음: Actions/Pages 성공 확인 → 사용자의 PC Whale/Android/iPhone 실제 가방·지역·도감/실험실·연구소 팝업 버튼 테두리와 텍스트/터치 스크린샷 비교. 필요하면 그림 자체를 기준 3장에 맞춰 전용 PNG/WebP로 재제작.
