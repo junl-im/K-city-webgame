@@ -103,3 +103,14 @@
 - **미확인:** 실행 환경 사용 불가로 로컬 `npm run build` 및 브라우저 화면 캡처 미실시, GitHub Actions 실행 결과 조회가 빈 목록이라 CI·Pages 자동 게시 성공 여부 미확인. CSS 소스 수정과 실제 화면 품질 승인/배포를 동일시하지 않음.
 - 보호: 저장 키 `gomfox.magic-garden.prototype.v1`, 12칸 농사·조합·부화·몬스터·JSON 데이터, 기존 원화 원본 및 Soul Online 보관/60초 놀이터/꽃맞고 전혀 변경하지 않음.
 - 다음: Actions/Pages 성공 확인 → 사용자의 PC Whale/Android/iPhone 실제 가방·지역·도감/실험실·연구소 팝업 버튼 테두리와 텍스트/터치 스크린샷 비교. 필요하면 그림 자체를 기준 3장에 맞춰 전용 PNG/WebP로 재제작.
+
+
+## v23 원화 전면 개별화 및 렌더러 제한 환경 보완 — 2026-10-29
+
+- 소유권: 마법정원 소스, 기획, 원화와 파생 디자인 등 이 프로젝트의 지식·창작 자산은 **임현준 사용자**에게 귀속된다. GitHub, Notion, Google Drive는 작업·백업·동기화를 위한 위치이지 소유권 이전이 아니다.
+- 사용자 지적: 마을·텃밭·실험실·연구소, 하단 메뉴, 상단 띠, 모달 제목과 닫기 등에서 같은 그림을 늘리거나 재사용하면 그림책 게임의 질감이 망가진다. **SVG 파일/태그/데이터 URI·SVG풍 임시 아이콘 절대 사용 금지.**
+- 구현: 최종 로드 src/unique-surfaces-v23.css로 과거 border-image 중복과 과한 목재 테두리를 덮어쓰고, 각 컨트롤의 배경·실루엣·색을 분리. public/assets/ui-v23-*.png의 서로 다른 손그림 원화 **15개**를 버튼 역할별로 1:1 연결한다. 4지역, 가방·지도·도감·도움말 4개, 게임 제목·씨앗·열매·안내 4개, 계곡·모달 제목·닫기 3개다.
+- QA: 실제 GitHub Pages 1366px 데스크톱 스크린샷에서 4지역과 하단 PNG가 분리돼 보이고 border-image 계산값이 none인 것을 확인했다. 게임 제목이 작은 집 그림에 겹치던 부분은 330591f에서 패딩·너비 조정. 통합 검증 scripts/check-unique-surfaces-v23.mjs가 15개 PNG 실파일·서로 다른 해시·각 CSS 참조·늘림 금지 규칙을 보조 확인한다. 85e220f 기준 Magic Garden CI와 GitHub Pages 배포가 **둘 다 성공**했다.
+- 환경 제한: 테스트용 클라우드 Chrome은 PixiJS GPU 렌더러를 지원하지 않아 CanvasRenderer is not yet implemented 오류로 풍경이 빈 화면이었고, 이는 사용자 Whale 환경의 동일한 오류를 입증하지 않는다. 14c82ed/14264b1에서 원본 4지역 WebP를 보여 주는 **시각 미리보기만** 추가(게임 플레이 대체 아님). 이 후속 변경의 Actions·배포·스크린샷 검증 상태는 별도 추적한다.
+- **미완료:** 작은 모바일 실기기 검수, 모든 팝업 액션/탭 개별 원화 추가 제작, PNG 용량 최적화와 구형 브라우저/WebGL 실사용 QA. 원화 생성/소스 적용/배포 성공과 최종 디자인 승인을 혼동하지 않는다.
+- 보호: 저장 키 gomfox.magic-garden.prototype.v1, 12칸 농사·재료·연금·부화·JSON 내보내기/불러오기, SixtySecondPlayground/, FlowerMatgo/, archive/soul-online-20261028은 건드리지 않았다.
