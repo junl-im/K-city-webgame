@@ -7,7 +7,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "npm run guard && tsc --noEmit && vite build && npm run guard:dist",
     "preview": "vite preview --host 0.0.0.0",
-    "guard": "node scripts/check-no-svg.mjs && node scripts/check-scene-art.mjs && node scripts/check-walk-motion.mjs && node scripts/check-movement-camera.mjs && node scripts/check-garden-navigation.mjs && node scripts/check-illustrated-ui.mjs && node scripts/check-illustrated-content.mjs && node scripts/check-creek-flow.mjs && node scripts/check-painted-layout.mjs && node scripts/check-visual-polish.mjs && node scripts/check-button-redesign.mjs && node scripts/check-button-proportions.mjs && node scripts/check-illustrated-items-v18.mjs && node scripts/check-painted-environment-v19.mjs && node scripts/check-garden-depth-v20.mjs && node scripts/check-modal-focus-v21.mjs",
+    "guard": "node scripts/check-no-svg.mjs && node scripts/check-scene-art.mjs && node scripts/check-walk-motion.mjs && node scripts/check-movement-camera.mjs && node scripts/check-garden-navigation.mjs && node scripts/check-illustrated-ui.mjs && node scripts/check-illustrated-content.mjs && node scripts/check-creek-flow.mjs && node scripts/check-painted-layout.mjs && node scripts/check-visual-polish.mjs && node scripts/check-button-redesign.mjs && node scripts/check-button-proportions.mjs && node scripts/check-illustrated-items-v18.mjs && node scripts/check-painted-environment-v19.mjs && node scripts/check-garden-depth-v20.mjs && node scripts/check-modal-focus-v21.mjs && node scripts/check-unique-surfaces-v23.mjs",
     "guard:dist": "node scripts/check-no-svg.mjs dist && node scripts/check-scene-art.mjs dist"
   },
   "dependencies": {
