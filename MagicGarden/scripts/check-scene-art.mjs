@@ -36,11 +36,13 @@ const optimized = [
   'nursery-scene-v1.webp',
   'friends-atlas-v1.webp',
   'fox-four-directions-v1.webp',
+  'creek-shimmer-v1.webp',
+  'creek-cascade-v1.webp',
 ];
 for (const name of optimized) {
   const file = join(projectRoot, outputRoot, 'assets', name);
   const size = statSync(file).size;
-  if (size < 20_000 || size > 3_000_000) throw new Error(`${name}: unexpected optimized image size (${size} bytes)`);
+  if (size < (name.startsWith('creek-') ? 10_000 : 20_000) || size > 3_000_000) throw new Error(`${name}: unexpected optimized image size (${size} bytes)`);
   const fd = openSync(file, 'r');
   const header = Buffer.alloc(16);
   let length;

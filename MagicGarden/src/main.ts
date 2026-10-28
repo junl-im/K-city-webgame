@@ -5,6 +5,7 @@ import './illustrated-content.css';
 import { resolveHorizontalFacing, resolveWalkHeading, type HorizontalFacing, type WalkHeading } from './walk-motion';
 import { advanceMovement, calculateCameraTarget, smoothFollow } from './movement-camera';
 import { isWalkable, planGardenRoute, segmentIsWalkable, type Point } from './garden-navigation';
+import { creekSurfacePose, creekFallPose, creekShouldAnimate, creekSurfaceCount, creekCascadeCount } from './creek-flow';
 
 type Zone = 'town' | 'farm' | 'lab' | 'nursery';
 type MonsterKind = '잎새콩' | '방울몽' | '반짝몽';
@@ -374,6 +375,65 @@ async function start() {
   background.eventMode = 'static';
   world.addChild(background);
   void loadRaster(saveData.zone);
+
+  // 손그림 투명 WebP 물결이 마을에만 흐른다. 클릭/터치 이벤트와는 무관하다.
+  // 납작한 배경의 실제 그림 위로 덮이므로 마스크로 개울 가장자리와 폭포만 제한한다.
+  const creekOverlay = new Container();
+  creekOverlay.zIndex = .3;
+  creekOverlay.eventMode = 'none';
+  world.addChild(creekOverlay);
+  const creekMask = new Graphics();
+  creekMask.eventMode = 'none';
+  // 교량 그림 주변은 일부러 비워 두어 흐름이 다리 난간 위를 칠하지 않도록 한다.
+  creekMask.moveTo(0, 509).quadraticCurveTo(100, 452, 192, 539)
+    .stroke({ color: 0xffffff, width: 69, cap: 'round' });
+  creekMask.moveTo(334, 672).quadraticCurveTo(401, 738, 481, 795)
+    .stroke({ color: 0xffffff, width: 88, cap: 'round' });
+  creekMask.poly([164, 177, 330, 172, 334, 307, 163, 313]).fill(0xffffff);
+  world.addChild(creekMask);
+  creekOverlay.mask = creekMask;
+  creekOverlay.visible = saveData.zone === 'town';
+  const creekSprites: { sprite: Sprite; index: number; waterfall: boolean }[] = [];
+  let creekElapsed = 0;
+  let creekUpdateElapsed = 0;
+  let creekLoaded = false;
+  let creekLoading: Promise<void> | null = null;
+  const loadCreekArt = () => {
+    if (creekLoading) return creekLoading;
+    const base = import.meta.env.BASE_URL;
+    creekLoading = Promise.all([
+      Assets.load<Texture>(`${base}assets/creek-shimmer-v1.webp`),
+      Assets.load<Texture>(`${base}assets/creek-cascade-v1.webp`),
+    ]).then(([surface, waterfall]) => {
+      if (creekLoaded) return;
+      creekLoaded = true;
+      for (let i=0;i<creekSurfaceCount(false);i++) {
+        const sprite=new Sprite(surface);
+        sprite.anchor.set(.5);
+        sprite.width=48+(i%4)*9;
+        sprite.height=15+(i%3)*2;
+        sprite.alpha=.34+(i%4)*.055;
+        sprite.eventMode='none';
+        creekOverlay.addChild(sprite);
+        creekSprites.push({ sprite, index:i, waterfall:false });
+      }
+      for (let i=0;i<creekCascadeCount(false);i++) {
+        const sprite=new Sprite(waterfall);
+        sprite.anchor.set(.5);
+        sprite.width=18+(i%3)*4;
+        sprite.height=90+(i%3)*8;
+        sprite.alpha=.3+(i%3)*.08;
+        sprite.eventMode='none';
+        creekOverlay.addChild(sprite);
+        creekSprites.push({ sprite, index:i, waterfall:true });
+      }
+    }).catch(() => {
+      // 연결이 끊겨도 기존 채색된 마을 배경과 게임 진행은 그대로 유지한다.
+      creekLoading=null;
+    });
+    return creekLoading;
+  };
+  if (saveData.zone === 'town' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) void loadCreekArt();
 
   // 그림 위의 빛 먼지·작은 나비는 별도의 가벼운 레이어로 그린다.
   // 클릭을 가로채지 않으므로 밭과 이동 조작은 그대로 작동한다.
@@ -922,6 +982,8 @@ async function start() {
     currentZone = next;
     saveData.zone = next;
     closeModal();
+    creekOverlay.visible = next === 'town';
+    if (next === 'town' && !prefersReducedMotion) void loadCreekArt();
     background.texture = art[next];
     background.width = WORLD_WIDTH;
     background.height = WORLD_HEIGHT;
@@ -1002,6 +1064,24 @@ async function start() {
   app.ticker.add((ticker) => {
     const dt = Math.min(2.4, ticker.deltaTime);
     clock += ticker.deltaMS;
+    // 30fps 이하로만 좌표를 갱신해 모바일 GPU/CPU 사용량을 억제한다.
+    if (creekShouldAnimate(currentZone, prefersReducedMotion, creekLoaded && creekOverlay.visible)) {
+      creekElapsed += Math.min(ticker.deltaMS, 66.7);
+      creekUpdateElapsed += ticker.deltaMS;
+      if (creekUpdateElapsed >= 33.33) {
+        creekUpdateElapsed = 0;
+        for (const particle of creekSprites) {
+          const pos = particle.waterfall ?
+            creekFallPose(particle.index, creekElapsed) :
+            creekSurfacePose(particle.index, creekElapsed);
+          particle.sprite.position.set(pos.x,pos.y);
+          particle.sprite.rotation = particle.waterfall ? 0 : pos.angle;
+          // 투명 수면 반짝임은 수시로 옅어져 반복 패턴의 기계적인 느낌을 줄인다.
+          particle.sprite.alpha = (particle.waterfall ? .29 : .33) +
+            Math.sin(creekElapsed / 650 + particle.index * 1.93) * .085;
+        }
+      }
+    }
     // Tapping a menu cancels walking instead of leaving the fox moving under a dialog.
     if (!modalRoot.classList.contains('hidden')) {
       plannedRoute = [];
