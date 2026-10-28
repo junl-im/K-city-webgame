@@ -1,33 +1,13 @@
-# Soul Online Alpha 1.10
+# Magic Garden Pages — deployment output only
+This branch is **not** Soul Online and should never be merged into `main`.
 
-모바일 중심 웹 MMORPG 프로토타입입니다. 기기 회전을 강제하지 않고 실행 중인 화면 모드에 맞춰 UI를 재배치합니다.
+Builds originate from `planning/magic-garden-20261027` → `MagicGarden/`.
+The GitHub Actions workflow `.github/workflows/magic-garden-pages.yml` publishes only `MagicGarden/dist/` here.
 
-## 최신 패치 요약
+For GitHub Pages, use:
+- Settings → Pages → Deploy from a branch
+- Branch: `magic-garden-pages`
+- Folder: `/(root)`
 
-Alpha 1.10은 사냥터 UI와 전투 루프를 우선 정리한 패치입니다.
-
-- 첫 시작 화면 원화 배경 + 중앙 START 버튼 재정렬
-- 마을 UI 색상 난잡함 완화
-- 필드 미니맵 제거
-- 필드 골드/소울/전투력 스트립 제거
-- 몬스터 타겟 카드 HUD 아래 중앙 배치
-- 직업/성별 프로필 이미지 보강
-- 우측 하단 공격/자동/메뉴 버튼 겹침 제거, 가방/절전은 필드 HUD에서 제거
-- 스킬 버튼 우측 세로 스택 정리
-- 조이스틱/물약/퀘스트 카드 safe-area 재배치
-- 몬스터 밀도 및 난이도 상향
-- 자동사냥 포켓 순환 이동 보정
-- 초중반 사냥터 5종 추가
-
-## 개발
-
-```bash
-npm install
-npm run build
-```
-
-Firebase Hosting 배포:
-
-```bash
-firebase deploy --only hosting
-```
+Expected URL after Pages is enabled: https://junl-im.github.io/K-city-webgame/
+Do not interpret this placeholder as the playable site; the actual build must replace it.
