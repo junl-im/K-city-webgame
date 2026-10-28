@@ -100,3 +100,15 @@
 /* Chromium prefers standard scrollbar-color over artwork; reserve it for Firefox only. */
 .modal,#modal-content{scrollbar-color:auto}
 @supports (-moz-appearance:none){.modal,#modal-content{scrollbar-color:#8d6c45 #e8d5aa}}
+
+/* v13: water art troubleshooting belongs inside the painted help parchment, not a generic debug HUD. */
+.creek-help{margin:16px 0 4px;padding:14px 13px 10px;border:2px solid #bd9363;border-radius:19px;
+  background:#fff2d7 url('/assets/ui-parchment-v1.webp') center/100% 100% no-repeat;
+  display:grid;grid-template-columns:70px minmax(0,1fr);gap:7px 10px;align-items:center;}
+.creek-paint{display:block;width:66px;height:52px;background:url('/assets/creek-shimmer-v1.webp') center/contain no-repeat;
+  filter:drop-shadow(0 2px 2px #244d6040);}
+.creek-help-copy strong{color:#4e3523;font-weight:900;font-size:14px;}
+.creek-help-copy p{color:#55452f;font-size:12px;line-height:1.6;margin:3px 0;}
+.creek-help .link-button,.creek-help .modal-note{grid-column:1/-1;}
+.creek-help .link-button{font-size:13px;margin-top:3px;min-height:48px;}
+.creek-help .modal-note{margin:2px 0 0;line-height:1.5;}

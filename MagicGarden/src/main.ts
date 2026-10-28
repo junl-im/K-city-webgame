@@ -392,7 +392,20 @@ async function start() {
   creekMask.poly([164, 177, 330, 172, 334, 307, 163, 313]).fill(0xffffff);
   world.addChild(creekMask);
   creekOverlay.mask = creekMask;
-  creekOverlay.visible = saveData.zone === 'town';
+  creekOverlay.visible = false; // Shown only when the illustrated effect has actually loaded.
+  let creekUserPaused = false;
+  let creekLoadFailed = false;
+  function creekStatusText(): string {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return '기기의 움직임 줄이기 설정에 따라 정지해 있어.';
+    if (creekUserPaused) return '잠시 멈춘 상태야. 다시 흐르게 할 수 있어.';
+    if (creekLoadFailed) return '물결 원화를 불러오지 못했어. 다시 시도해줘.';
+    if (!creekLoaded) return '마을의 물결 원화를 준비하는 중이야.';
+    return '계곡 잔물결과 폭포가 흐르고 있어!';
+  }
+  function syncCreekStatus() {
+    const label = document.getElementById('creek-state');
+    if (label) label.textContent = creekStatusText();
+  }
   const creekSprites: { sprite: Sprite; index: number; waterfall: boolean }[] = [];
   let creekElapsed = 0;
   let creekUpdateElapsed = 0;
@@ -407,12 +420,17 @@ async function start() {
     ]).then(([surface, waterfall]) => {
       if (creekLoaded) return;
       creekLoaded = true;
+      creekLoadFailed = false;
       for (let i=0;i<creekSurfaceCount(false);i++) {
         const sprite=new Sprite(surface);
         sprite.anchor.set(.5);
-        sprite.width=48+(i%4)*9;
-        sprite.height=15+(i%3)*2;
-        sprite.alpha=.34+(i%4)*.055;
+        // Larger painted highlights are deliberately visible against the high-detail town painting.
+        sprite.width=76+(i%4)*11;
+        sprite.height=20+(i%3)*3;
+        sprite.alpha=.59+(i%4)*.04;
+        const surfacePos=creekSurfacePose(i,creekElapsed);
+        sprite.position.set(surfacePos.x,surfacePos.y);
+        sprite.rotation=surfacePos.angle;
         sprite.eventMode='none';
         creekOverlay.addChild(sprite);
         creekSprites.push({ sprite, index:i, waterfall:false });
@@ -420,16 +438,23 @@ async function start() {
       for (let i=0;i<creekCascadeCount(false);i++) {
         const sprite=new Sprite(waterfall);
         sprite.anchor.set(.5);
-        sprite.width=18+(i%3)*4;
-        sprite.height=90+(i%3)*8;
-        sprite.alpha=.3+(i%3)*.08;
+        sprite.width=25+(i%3)*4;
+        sprite.height=106+(i%3)*9;
+        sprite.alpha=.53+(i%3)*.055;
+        const fallPos=creekFallPose(i,creekElapsed);
+        sprite.position.set(fallPos.x,fallPos.y);
         sprite.eventMode='none';
         creekOverlay.addChild(sprite);
         creekSprites.push({ sprite, index:i, waterfall:true });
       }
+      creekOverlay.visible = saveData.zone === 'town' && !creekUserPaused &&
+        !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      syncCreekStatus();
     }).catch(() => {
-      // 연결이 끊겨도 기존 채색된 마을 배경과 게임 진행은 그대로 유지한다.
+      // Leave the hand-painted background intact and explain missing assets in Help.
+      creekLoadFailed = true;
       creekLoading=null;
+      syncCreekStatus();
     });
     return creekLoading;
   };
@@ -933,6 +958,15 @@ async function start() {
       return;
     } else if (action==='open-book') {
       openBook();return;
+    } else if (action === 'creek-toggle') {
+      if (prefersReducedMotion) {
+        showGuide('움직임 줄이기 설정을 사용 중이라 계곡 물빛은 정지 상태야.'); return;
+      }
+      creekUserPaused = creekLoadFailed ? false : !creekUserPaused;
+      creekLoadFailed = false;
+      creekOverlay.visible = !creekUserPaused && creekLoaded && currentZone === 'town';
+      if (!creekUserPaused && !creekLoaded && currentZone === 'town') void loadCreekArt();
+      openHelp(); return;
     } else if (action === 'save-export') {
       try {
         const blob = new Blob([JSON.stringify(saveArchive(), null, 2)], { type: 'application/json;charset=utf-8' });
@@ -982,8 +1016,8 @@ async function start() {
     currentZone = next;
     saveData.zone = next;
     closeModal();
-    creekOverlay.visible = next === 'town';
-    if (next === 'town' && !prefersReducedMotion) void loadCreekArt();
+    creekOverlay.visible = next === 'town' && creekLoaded && !creekUserPaused && !prefersReducedMotion;
+    if (next === 'town' && !prefersReducedMotion && !creekUserPaused) void loadCreekArt();
     background.texture = art[next];
     background.width = WORLD_WIDTH;
     background.height = WORLD_HEIGHT;
@@ -1056,7 +1090,16 @@ async function start() {
   (document.getElementById('map-button') as HTMLButtonElement).addEventListener('click', () => openModal('🗺️ 마법정원 월드', '<p>가고 싶은 지역을 눌러 바로 이동해봐!</p><div class="zone-choices"><button class="link-button" type="button" data-game-action="zone-town">🏡 중앙 마을</button><button class="link-button" type="button" data-game-action="zone-farm">🌿 큰 텃밭</button><button class="link-button" type="button" data-game-action="zone-lab">🧪 실험실</button><button class="link-button" type="button" data-game-action="zone-nursery">🥚 연구소</button></div><p class="modal-note">🌲 나무숲 · 💧 폭포와 호수 · 🌉 나무다리 · 🏠 집/뒤뜰은 준비 중이야.</p>'));
 
   (document.getElementById('book-button') as HTMLButtonElement).addEventListener('click', openBook);
-  (document.getElementById('help-button') as HTMLButtonElement).addEventListener('click', () => openModal('💡 어떻게 놀까?', '<ul><li>빈 땅을 누르면 여우가 4방향으로 걸어가! 장애물이 있으면 반짝이는 길 표시를 따라 돌아가며, 막힌 곳은 가까운 안전한 위치로 이동해.</li><li>여우·곰·고양이·토끼를 누르면 각자의 이야기를 듣고 관련 지역으로 이동할 수 있어.</li><li>지역 버튼이나 화면의 길 안내판, 지도 메뉴로 4개 구역을 오갈 수 있어.</li><li>텃밭에 씨앗을 심고 자라면 다시 눌러 수확해.</li><li>실험실에서 열매를 정수로, 정수를 알로 조합해!</li><li>연구소에서 알을 품으면 30초 후 친구가 부화해.</li><li>가방에서 JSON 저장파일을 내려받고 다른 기기로 불러올 수 있어.</li><li>진행 내용은 이 브라우저에 자동 저장돼.</li></ul>'));
+  function openHelp() {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const switchLabel = creekUserPaused || creekLoadFailed ? '계곡 물결 다시 켜기' : '계곡 물결 잠시 멈추기';
+    openModal('💡 어떻게 놀까?', '<ul><li>빈 땅을 누르면 여우가 4방향으로 걸어가! 장애물이 있으면 반짝이는 길 표시를 따라 돌아가며, 막힌 곳은 가까운 안전한 위치로 이동해.</li><li>여우·곰·고양이·토끼를 누르면 각자의 이야기를 듣고 관련 지역으로 이동할 수 있어.</li><li>지역 버튼이나 화면의 길 안내판, 지도 메뉴로 4개 구역을 오갈 수 있어.</li><li>텃밭에 씨앗을 심고 자라면 다시 눌러 수확해.</li><li>실험실에서 열매를 정수로, 정수를 알로 조합해!</li><li>연구소에서 알을 품으면 30초 후 친구가 부화해.</li><li>가방에서 JSON 저장파일을 내려받고 다른 기기로 불러올 수 있어.</li><li>진행 내용은 이 브라우저에 자동 저장돼.</li></ul>' +
+      '<section class="creek-help" aria-label="계곡 물결 효과"><span class="creek-paint" aria-hidden="true"></span><div class="creek-help-copy"><strong>마을의 살아 있는 계곡</strong><p id="creek-state">' + creekStatusText() + '</p></div>' +
+      '<button class="link-button secondary-action" type="button" data-game-action="creek-toggle"' +
+      (reduced ? ' disabled title="움직임 줄이기가 설정되어 있어요"' : '') + '>' + switchLabel + '</button>' +
+      '<p class="modal-note">마을에 가서 물가를 살펴봐. 움직임 줄이기를 사용하면 물의 움직임은 자동으로 꺼져.</p></section>');
+  }
+  (document.getElementById('help-button') as HTMLButtonElement).addEventListener('click', openHelp);
 
   if (currentZone !== 'town') { const firstZone = currentZone; currentZone = 'town'; switchZone(firstZone); }
   else { gateLabel.text = ZONE_NAV[NEXT_ZONE.town] + ' →'; gate.position.set(1110, 600); plotViews.forEach((plot) => { plot.visible = false; }); station.visible = false; }
@@ -1065,9 +1108,9 @@ async function start() {
     const dt = Math.min(2.4, ticker.deltaTime);
     clock += ticker.deltaMS;
     // 30fps 이하로만 좌표를 갱신해 모바일 GPU/CPU 사용량을 억제한다.
-    if (creekShouldAnimate(currentZone, prefersReducedMotion, creekLoaded && creekOverlay.visible)) {
+    if (creekShouldAnimate(currentZone, prefersReducedMotion || creekUserPaused, creekLoaded && creekOverlay.visible)) {
       creekElapsed += Math.min(ticker.deltaMS, 66.7);
-      creekUpdateElapsed += ticker.deltaMS;
+      creekUpdateElapsed += Math.min(ticker.deltaMS, 66.7);
       if (creekUpdateElapsed >= 33.33) {
         creekUpdateElapsed = 0;
         for (const particle of creekSprites) {
@@ -1077,8 +1120,8 @@ async function start() {
           particle.sprite.position.set(pos.x,pos.y);
           particle.sprite.rotation = particle.waterfall ? 0 : pos.angle;
           // 투명 수면 반짝임은 수시로 옅어져 반복 패턴의 기계적인 느낌을 줄인다.
-          particle.sprite.alpha = (particle.waterfall ? .29 : .33) +
-            Math.sin(creekElapsed / 650 + particle.index * 1.93) * .085;
+          particle.sprite.alpha = (particle.waterfall ? .54 : .60) +
+            Math.sin(creekElapsed / 730 + particle.index * 1.93) * .075;
         }
       }
     }

@@ -34,5 +34,6 @@ export function creekFallPose(index: number, elapsedMs: number): CreekPoint {
 export function creekShouldAnimate(zone: string, reducedMotion: boolean, visible: boolean): boolean {
   return zone === 'town' && !reducedMotion && visible;
 }
-export function creekSurfaceCount(reducedMotion: boolean): number { return reducedMotion ? 0 : 20; }
-export function creekCascadeCount(reducedMotion: boolean): number { return reducedMotion ? 0 : 9; }
+// More visible watercolor glints; still one small shared texture per water type.
+export function creekSurfaceCount(reducedMotion: boolean): number { return reducedMotion ? 0 : 32; }
+export function creekCascadeCount(reducedMotion: boolean): number { return reducedMotion ? 0 : 12; }
