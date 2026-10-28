@@ -77,10 +77,10 @@ const run=async()=>{
     // Inject the ACTUAL Vite-generated DOM and CSS directly into about:blank,
     // keeping font, media query and real control geometry checks deterministic.
     const builtHTML=await readFile(join(dist,'index.html'),'utf8');
-    const body=builtHTML.match(/<body[^>]*>([\\s\\S]*?)<\\/body>/i)?.[1];
-    const stylesheet=builtHTML.match(/href="(\\.?\\/assets\\/[^"]+\\.css)"/)?.[1];
+    const body=builtHTML.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1];
+    const stylesheet=builtHTML.match(/href="(\.?\/assets\/[^"]+\.css)"/)?.[1];
     assert.ok(body && stylesheet,'Built HTML or stylesheet not present');
-    const builtCSS=await readFile(join(dist,stylesheet.replace(/^\\.?\\//,'')),'utf8');
+    const builtCSS=await readFile(join(dist,stylesheet.replace(/^\.?\//,'')),'utf8');
     const injected=await evalJS('(()=>{document.body.innerHTML='+JSON.stringify(body)+';const s=document.createElement("style");s.textContent='+JSON.stringify(builtCSS)+';document.head.appendChild(s);return true;})()');
     assert.equal(injected,true,'Could not inject built HTML/CSS');
     assert.ok(await evalJS("Boolean(document.querySelector('#app') && document.querySelector('#town-button'))"),'Built game HTML shell not loaded');
