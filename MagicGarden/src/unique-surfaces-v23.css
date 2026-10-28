@@ -429,3 +429,33 @@
   background-position:center,center!important;background-size:100% auto,auto!important;
   border-color:transparent!important;box-shadow:none;padding-left:28px;color:#915d64;
 }
+
+/* v24.3: each inventory category tab has its own painted asset. */
+#app .garden-tabs .garden-tab[data-game-action="bag-tab-all"]{
+  background-image:url('/assets/ui-v24-tab-all.png'),linear-gradient(130deg,#fffaf0,#f1e2c5)!important;
+  background-size:contain,auto!important;background-position:center,center!important;
+  border-color:transparent!important;border-radius:10px;box-shadow:none;
+  color:#695138;text-shadow:0 1px #fff9ed!important;padding-left:11px;
+}
+#app .garden-tabs .garden-tab[data-game-action="bag-tab-crop"]{
+  background-image:url('/assets/ui-v24-tab-crop.png'),linear-gradient(130deg,#f7fff1,#d9edcb)!important;
+  background-size:contain,auto!important;background-position:center,center!important;
+  border-color:transparent!important;border-radius:10px;box-shadow:none;
+  color:#426941;text-shadow:0 1px #fff9ed!important;padding-left:11px;
+}
+#app .garden-tabs .garden-tab[data-game-action="bag-tab-magic"]{
+  background-image:url('/assets/ui-v24-tab-magic.png'),linear-gradient(130deg,#fbf6ff,#e4d8f3)!important;
+  background-size:contain,auto!important;background-position:center,center!important;
+  border-color:transparent!important;border-radius:10px;box-shadow:none;
+  color:#6f548a;text-shadow:0 1px #fff9ed!important;padding-left:11px;
+}
+#app .garden-tabs .garden-tab[data-game-action="bag-tab-friends"]{
+  background-image:url('/assets/ui-v24-tab-friends.png'),linear-gradient(130deg,#fff8f3,#f7e0da)!important;
+  background-size:contain,auto!important;background-position:center,center!important;
+  border-color:transparent!important;border-radius:10px;box-shadow:none;
+  color:#925e64;text-shadow:0 1px #fff9ed!important;padding-left:11px;
+}
+#app .garden-tabs .garden-tab.current{
+  outline:2px solid #659e71;outline-offset:-2px;
+  box-shadow:0 0 0 1px #ffffffe8!important;
+}
