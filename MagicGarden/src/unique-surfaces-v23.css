@@ -407,3 +407,25 @@
   background-position:center,center!important;background-size:100% auto,auto!important;
   border-color:transparent!important;box-shadow:none;padding-left:28px;color:#716450;
 }
+
+/* v24.2 separate storybook modal destination paintings. */
+#app .modal .link-button[data-game-action="zone-town"]{
+  background-image:url('/assets/ui-v24-action-zone-town.png'),linear-gradient(135deg,#fffaf0,#f1debf)!important;
+  background-position:center,center!important;background-size:100% auto,auto!important;
+  border-color:transparent!important;box-shadow:none;padding-left:28px;color:#6d523c;
+}
+#app .modal .link-button[data-game-action="zone-farm"]{
+  background-image:url('/assets/ui-v24-action-zone-farm.png'),linear-gradient(135deg,#f9fff0,#dbeccf)!important;
+  background-position:center,center!important;background-size:100% auto,auto!important;
+  border-color:transparent!important;box-shadow:none;padding-left:28px;color:#446b43;
+}
+#app .modal .link-button[data-game-action="zone-lab"]{
+  background-image:url('/assets/ui-v24-action-zone-lab.png'),linear-gradient(135deg,#fcf7ff,#e9daf4)!important;
+  background-position:center,center!important;background-size:100% auto,auto!important;
+  border-color:transparent!important;box-shadow:none;padding-left:28px;color:#685780;
+}
+#app .modal .link-button[data-game-action="zone-nursery"]{
+  background-image:url('/assets/ui-v24-action-zone-nursery.png'),linear-gradient(135deg,#fff9f2,#f4ded6)!important;
+  background-position:center,center!important;background-size:100% auto,auto!important;
+  border-color:transparent!important;box-shadow:none;padding-left:28px;color:#915d64;
+}
