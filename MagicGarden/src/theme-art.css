@@ -50,7 +50,7 @@
 .modal-root{background:rgba(23,30,19,.65);backdrop-filter:blur(3px)}
 .modal{width:min(488px,100%);border:0;max-height:min(87dvh,calc(100dvh - 22px));background:#fff1cd url('/assets/ui-parchment-v1.webp') center/100% 100% no-repeat;box-shadow:0 17px 70px #17251a8c;padding:35px clamp(25px,6vw,41px) 41px;border-radius:28px;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;color:var(--ink)}
 .modal-head{position:sticky;top:-4px;z-index:1;align-items:center;gap:4px;margin:0 0 14px;min-height:44px;}
-.modal-head strong{font-size:clamp(17px,4.4vw,22px);line-height:1.28;color:#47301c;text-shadow:0 1px 0 #fffef0;display:flex;align-items:center;flex-wrap:wrap;gap:2px}
+.modal-head strong{font-size:clamp(17px,4.4vw,22px);line-height:1.28;color:#fff8df;text-shadow:0 2px 2px #52321f,0 0 3px #392115;display:flex;align-items:center;flex-wrap:wrap;gap:2px}
 .modal-head .art-icon{margin:-2px 0}
 #modal-close{display:flex;align-items:center;justify-content:center;width:46px;height:46px;min-width:46px;margin-right:-7px;border-radius:15px;background-image:url('/assets/ui-button-pink-v1.webp')}
 #modal-close .art-icon{margin:0}
