@@ -32,9 +32,9 @@
     {name:'하늘',icon:'☁️',items:['☁️','🌪️','🌬️','🪁']}
   ];
   const SPOT_ICON_SETS = [
-    ['🐱','🐰','🦊','🐻','🦄','🐸','🐼','🐧','🐨','🐙','🐢','🦋','🐬','🐷','🐵','🐤'],
-    ['🐱','🐯','🐰','🐇','🦊','🐺','🐻','🐼','🐨','🐹','🐭','🐿️','🐶','🐔','🐣','🐥','🐦','🦆'],
-    ['🐱','🐈','🐯','🐆','🐰','🐇','🐻','🐼','🐨','🐹','🐭','🐿️','🦊','🐺','🐶','🐕','🐔','🐣','🐥','🐦']
+    ['cat','rabbit','fox','bear','unicorn','frog','panda','penguin','koala','octopus','turtle','butterfly','dolphin','pig','monkey','chick'],
+    ['cat','rabbit','fox','bear','frog','panda','penguin','koala','octopus','turtle','dolphin','pig','monkey','chick','tiger','wolf','hamster','dog'],
+    ['cat','rabbit','fox','bear','unicorn','frog','panda','penguin','koala','octopus','turtle','butterfly','dolphin','pig','monkey','chick','tiger','wolf','hamster','dog']
   ];
   const MYSTERY_QUIZ = {
     1:[
@@ -73,6 +73,13 @@
       {q:'10에서 3을 두 번 빼면?',a:['4','3','7']},
       {q:'모든 달에 최소한 존재하는 날짜는?',a:['28일','30일','31일']}
     ]
+  };
+  // 5×4 PNG/WebP 원화 아틀라스 순서. 게임판에는 운영체제별 이모지를 표시하지 않는다.
+  const SPOT_ART = {
+    cat:[0,'고양이'],rabbit:[1,'토끼'],fox:[2,'여우'],bear:[3,'곰'],unicorn:[4,'유니콘'],
+    frog:[5,'개구리'],panda:[6,'판다'],penguin:[7,'펭귄'],koala:[8,'코알라'],octopus:[9,'문어'],
+    turtle:[10,'거북이'],butterfly:[11,'나비'],dolphin:[12,'돌고래'],pig:[13,'아기 돼지'],monkey:[14,'원숭이'],
+    chick:[15,'병아리'],tiger:[16,'호랑이'],wolf:[17,'늑대'],hamster:[18,'햄스터'],dog:[19,'강아지']
   };
   const gameById = function (id) { return GAMES.find(function (g) { return g.id === id; }); };
   const PETS = {
@@ -162,6 +169,14 @@
     const alternatives=icons.filter(function(icon){return !base.includes(icon);});
     right[changed]=alternatives[rand(alternatives.length)];
     return {base:base,right:right,changed:changed};
+  }
+  function paintSpotCell(cell,icon){
+    const art=SPOT_ART[icon];
+    if(!art)throw new Error('Unknown spot artwork: '+icon);
+    const sprite=document.createElement('span');sprite.className='spot-sprite';
+    sprite.style.backgroundPosition=(art[0]%5*25)+'% '+(Math.floor(art[0]/5)*100/3)+'%';
+    sprite.setAttribute('aria-hidden','true');cell.append(sprite);
+    return art[1];
   }
   function drawWithoutRepeats(s,key,items){
     s.bags=s.bags||{};s.lastPick=s.lastPick||{};
@@ -618,14 +633,14 @@
         wrap.setAttribute('aria-label',side===0?'왼쪽 기준 그림':'오른쪽에서 다른 그림을 선택');
         board.forEach(function(icon,i){
           if(side===0){
-            const sample=document.createElement('span');sample.className='spot-cell spot-sample';sample.textContent=icon;
+            const sample=document.createElement('span');sample.className='spot-cell spot-sample';paintSpotCell(sample,icon);
             sample.setAttribute('aria-hidden','true');wrap.append(sample);return;
           }
-          const b=choiceButton(icon,function(){
+          const b=choiceButton('',function(){
             if(s.locked)return;
             revealAnswer(b,rightCells[changed]);
             feedback(i===changed,i===changed?'찾았다! ✨':'이 친구는 똑같아!',100,b);after(500);
-          },'spot-cell');rightCells.push(b);wrap.append(b);
+          },'spot-cell');b.setAttribute('aria-label',paintSpotCell(b,icon)+' 그림 선택');rightCells.push(b);wrap.append(b);
         });
         pair.append(wrap);
       });arena.append(pair);break;
