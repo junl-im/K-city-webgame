@@ -26,7 +26,7 @@ for(const name of assets){
  if(!css.includes("url('/assets/ui-v23-"+name+".png')"))throw Error('Painting not mapped: '+name);
 }
 const actionHashes=new Set(hashes);
-for(const name of ['brew','craft-egg','hatch','save-export','incubate','save-import','confirm-import','cancel-import','zone-town','zone-farm','zone-lab','zone-nursery']){
+for(const name of ['brew','craft-egg','hatch','save-export','incubate','save-import','confirm-import','cancel-import','zone-town','zone-farm','zone-lab','zone-nursery','open-book','creek-toggle']){
  const p='public/assets/ui-v24-action-'+name+'.png';
  const content=readFileSync(new URL('../'+p,import.meta.url));
  if(content.subarray(1,4).toString()!=='PNG')throw Error('Not a PNG '+p);
@@ -44,4 +44,4 @@ for(const name of ['all','crop','magic','friends']){
  actionHashes.add(hash);
  if(!css.includes("url('/assets/ui-v24-tab-"+name+".png')"))throw Error('Tab art not mapped: '+name);
 }
-console.log('v24 unique art: 31 distinct PNGs and no stretched background frames');
+console.log('v24 unique art: 33 distinct PNGs and no stretched background frames');
