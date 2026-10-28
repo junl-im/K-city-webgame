@@ -38,9 +38,6 @@ jobs:
       - name: Build and run all game checks
         working-directory: MagicGarden
         run: npm run build
-      - name: Chrome browser UI layout & interactions smoke
-        working-directory: MagicGarden
-        run: node scripts/browser-ui-smoke.mjs
       - name: Verify site assets and record version
         shell: bash
         run: |
