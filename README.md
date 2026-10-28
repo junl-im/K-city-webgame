@@ -41,9 +41,11 @@
 
 ## 독립 운영: 곰같은여우의 꽃맞고
 
-- [꽃맞고 개발 기준 소스](./FlowerMatgo/) — 동물 친구 화투패 v19, 싱글 맞고 게임 엔진, 모바일 UI, 자동모드·효과 및 회귀 테스트.
-- 꽃맞고의 CI는 `.github/workflows/flower-matgo-ci.yml`로 별도 구분하며, 기존 마법정원과 60초 놀이터의 Pages 배포 설정은 변경하지 않습니다.
-- 현재 꽃맞고 서비스는 [기존 Sites 주소](https://gomfox-flower-matgo.x7x8.chatgpt.site)를 그대로 사용합니다. GitHub Pages 이전 배포는 별도 검증 후 연결합니다.
+- [꽃맞고 개발 기준 소스](./FlowerMatgo/) — 동물 친구 화투패 v19, 모바일 맞고 게임판, 선 고르기·패섞기·자동모드·특수패 연출 및 186개 회귀 테스트.
+- [꽃맞고 GitHub Pages](https://junl-im.github.io/K-city-webgame/FlowerMatgo/) — 기존 세 게임과 충돌하지 않는 독립 하위 경로 (첫 자동 배포 후 접속).
+- [꽃맞고 저작권 및 지식 자산 고지](./FlowerMatgo/OWNERSHIP.md) — **© 2026 임현준(곰같은여우). All rights reserved.** 자체 창작 소스·캐릭터·일러스트·디자인·UI/UX의 권리는 임현준에게 있으며, 외부 오픈소스는 별도 라이선스를 따릅니다.
+- 꽃맞고 전용 CI는 `.github/workflows/flower-matgo-ci.yml`을 이용하며, 기존 Pages 워크플로에 전용 빌드와 `FlowerMatgo/` 경로만 추가합니다.
+- [기존 Sites 백업 주소](https://gomfox-flower-matgo.x7x8.chatgpt.site)는 접근 정책을 변경하지 않고 보존합니다.
 
 ## 함께 운영하는 살아있는 물리도감
 

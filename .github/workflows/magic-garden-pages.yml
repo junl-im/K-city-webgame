@@ -9,6 +9,7 @@ on:
       - 'MagicGarden/**'
       - 'SixtySecondPlayground/**'
       - 'PhysicsPopbook/**'
+      - 'FlowerMatgo/**'
       - '.github/workflows/magic-garden-pages.yml'
   workflow_dispatch:
 
@@ -75,6 +76,21 @@ jobs:
           cp -a PhysicsPopbook/dist/. MagicGarden/dist/PhysicsPopbook/
           test -s MagicGarden/dist/PhysicsPopbook/assets/fox-professor-v03.webp
           echo "Independent physics popbook staged at /PhysicsPopbook/"
+      - name: Test, build, and stage Flower Matgo at its own Pages path
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd FlowerMatgo && npm ci --no-audit --no-fund)
+          (cd FlowerMatgo && npm test)
+          (cd FlowerMatgo && npm run build -- --base=/K-city-webgame/FlowerMatgo/)
+          test -s FlowerMatgo/dist/index.html
+          test -s FlowerMatgo/dist/assets/hwatu-character-original-v19.webp
+          test -s FlowerMatgo/dist/assets/flower-game-floor-mat-v18.webp
+          grep -q '/K-city-webgame/FlowerMatgo/assets/' FlowerMatgo/dist/index.html
+          mkdir -p MagicGarden/dist/FlowerMatgo
+          cp -a FlowerMatgo/dist/. MagicGarden/dist/FlowerMatgo/
+          test -s MagicGarden/dist/FlowerMatgo/assets/hwatu-character-original-v19.webp
+          echo "Independent Flower Matgo staged at /FlowerMatgo/"
       - name: Upload short-lived Pages deployment artifact
         uses: actions/upload-pages-artifact@v4
         with:

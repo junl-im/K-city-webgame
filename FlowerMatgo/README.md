@@ -2,6 +2,8 @@
 
 귀여운 동물 친구들이 등장하는 무료 싱글 맞고 웹게임입니다. 모바일 우선으로 제작하며, 게임머니는 실제 현금과 교환되지 않습니다.
 
+**자체 창작 소스·캐릭터·일러스트·UI/UX 및 지식 자산의 권리자: 임현준(곰같은여우).** 공개 저장소는 무단 사용 허가가 아닙니다. 세부 범위와 외부 MIT 코드 예외는 [저작권 및 지식 자산 소유권 고지](./OWNERSHIP.md)를 확인하세요.
+
 ## 관리 원칙
 
 - 이 폴더 `FlowerMatgo/`가 앞으로 **개발 기준본**입니다. `MagicGarden/` 및 `SixtySecondPlayground/`와 코드를 공유하거나 덮어쓰지 않습니다.
@@ -28,8 +30,9 @@ npm run dev
 ## 운영 및 배포
 
 - 기존 Sites 플레이 주소: https://gomfox-flower-matgo.x7x8.chatgpt.site
-- **GitHub 소스 이식 자체는 기존 비공개 Sites 운영 주소와 접근 권한을 변경하지 않습니다.**
-- `MagicGarden/`의 GitHub Pages 워크플로는 건드리지 않았습니다. 꽃맞고를 GitHub Pages의 별도 경로로 게시하려면 `FlowerMatgo` 전용 빌드와 경로를 별도로 검증·연결해야 합니다.
+- **GitHub Pages 공개 주소:** https://junl-im.github.io/K-city-webgame/FlowerMatgo/ (Pages 워크플로 배포 성공 후 사용 가능)
+- `main`의 `.github/workflows/magic-garden-pages.yml`이 꽃맞고를 테스트하고 전용 경로에 함께 배포합니다. 마법정원·60초 놀이터·물리도감의 기존 주소는 그대로 유지됩니다.
+- 기존 비공개 Sites 운영 주소 및 접근 권한은 변경하지 않습니다. GitHub는 이제 개발·배포 기준본입니다.
 - 기존 노션 MASTER GAME PLAN과 구글드라이브 개발일지는 계속 유지합니다. 확정 설계/개발 기록은 그곳에도 동기화합니다.
 
 ## 코드 및 자산 출처
