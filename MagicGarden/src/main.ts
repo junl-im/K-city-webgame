@@ -1420,6 +1420,37 @@ async function start() {
   showGuide(saveData.zone === 'farm' ? '밭을 눌러 씨앗을 심어봐!' : saveData.zone === 'lab' ? '조합대를 터치해 마법 정수를 만들어봐!' : saveData.zone === 'nursery' ? '부화실을 터치해 새 친구를 만나봐!' : '길을 클릭하거나 터치하면 걸어갈 수 있어!');
 }
 start().catch((error: unknown) => {
+  // Pixi v8 needs GPU rendering. On restricted browsers, show the raster
+  // scenery as an explicitly limited preview, without changing saved progress.
   const message = error instanceof Error ? error.message : String(error);
-  stageElement.textContent = '정원을 열지 못했어. 새로고침 후 다시 시도해 줘. (' + message + ')';
+  const fallbackImages: Record<Zone, string> = {
+    town: 'town-scene-v1.webp',
+    farm: 'farm-scene-v1.webp',
+    lab: 'lab-scene-v1.webp',
+    nursery: 'nursery-scene-v1.webp',
+  };
+  gardenRoot.classList.add('garden-renderer-preview');
+  const note = document.createElement('p');
+  note.className = 'garden-renderer-notice';
+  note.setAttribute('role', 'status');
+  note.textContent = '그래픽 가속을 사용할 수 없는 브라우저라 풍경 미리보기만 표시 중이야. 게임 조작은 그래픽 지원 브라우저에서 이용해 줘.';
+  stageElement.replaceChildren(note);
+  const buttons: Record<Zone, HTMLButtonElement> = {
+    town: townButton, farm: farmButton, lab: labButton, nursery: nurseryButton,
+  };
+  const showPreview = (zone: Zone) => {
+    stageElement.style.backgroundImage = 'url("' + import.meta.env.BASE_URL + 'assets/' + fallbackImages[zone] + '")';
+    stageElement.style.backgroundPosition = 'center';
+    stageElement.style.backgroundSize = 'cover';
+    stageElement.style.backgroundRepeat = 'no-repeat';
+    zoneNameElement.textContent = ZONE_LABELS[zone];
+    for (const key of Object.keys(buttons) as Zone[]) {
+      buttons[key].classList.toggle('active', key === zone);
+    }
+  };
+  for (const zone of Object.keys(buttons) as Zone[]) {
+    buttons[zone].addEventListener('click', () => showPreview(zone));
+  }
+  showPreview(saveData.zone);
+  console.warn('Garden renderer preview mode:', message);
 });
