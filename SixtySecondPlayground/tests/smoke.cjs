@@ -99,6 +99,7 @@ assert.ok(!/data:image\/svg\+xml|<svg\b/i.test(html + css + js), 'SVG 삽입 금
 assert.match(css, /ui-atlas-v16\.webp/, '일러스트 UI 아이콘 아틀라스 필요');
 assert.match(css, /game-whack-icons-atlas-v19\.webp/, '몬스터 콩콩 전용 게임 원화 아틀라스 필요');
 assert.match(css, /game-spot-animals-atlas-v23\.webp/, '다른 그림 찾기 전용 동물 원화 아틀라스 필요');
+assert.match(css, /clip-path:circle\(42% at 50% 50%\)/, '다른 동물의 그림 조각이 칸에 섞이지 않게 자르기');
 assert.match(js, /paintSpotCell\(sample,icon\)/, '왼쪽 기준 그림도 전용 원화로 렌더링해야 합니다');
 assert.match(js, /paintSpotCell\(b,icon\)/, '오른쪽 정답 버튼도 전용 원화로 렌더링해야 합니다');
 assert.match(js, /function paintWhackCell\(button,symbol\)/, '몬스터 게임 타일에는 이모지 대신 원화 연결 필요');
