@@ -86,10 +86,10 @@ export function storyMotion(lesson, progress, reading, settings = {}) {
         sliding: reading.sliding };
     }
     case 'buoyancy':
-      // The stone art is 146px tall and starts at objY-60. At a sink of 205px,
-      // its lower edge aligns with the aquarium pebble bed at y=154.
+      // The 146px sprite rectangle contains about 16px of transparent bottom padding.
+      // Finish at 221px so the visible stone, not the empty sprite edge, touches the pebble bed (y=154).
       return { depth: reading.floats ? reading.submergedFraction : 1,
-        sink: reading.floats ? 0 : 205 * (1 - Math.pow(1 - p, 2)),
+        sink: reading.floats ? 0 : 221 * (1 - Math.pow(1 - p, 2)),
         bob: reading.floats ? Math.sin(p * 5 * PI) * Math.min(7, p * 26) : 0 };
     case 'pendulum': {
       const elapsedSeconds = 3.5 * p;
@@ -243,7 +243,7 @@ function buoyancy(ctx, atlas, materialAtlas, p, data, settings) {
   ctx.fillStyle=depthTint;ctx.fillRect(x+8,y+hh-42,ww-16,42);
   // Water refracts soft glints over the pebbles; the stone casts a shadow
   // toward that bed before touching it. No dynamics are fed back to buoyancy.
-  const stoneShadow=waterbedShadowCue(isDuck?0:motion.sink/205);
+  const stoneShadow=waterbedShadowCue(isDuck?0:motion.sink/221);
   ctx.save();
   const stoneShade=ctx.createRadialGradient(0,y+hh-30,0,0,y+hh-30,stoneShadow.radiusX);
   stoneShade.addColorStop(0,`rgba(6,40,66,${isDuck?.03:stoneShadow.opacity})`);

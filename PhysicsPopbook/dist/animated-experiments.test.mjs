@@ -42,12 +42,13 @@ assert.equal(feltContact.trailAlpha,0,'A stationary shoe leaves no moving skid t
 assert.ok(frictionFootprintCue('ice',1,true).trailAlpha>frictionFootprintCue('ice',0,true).trailAlpha);
 
 assert.equal(storyMotion('buoyancy',1,buoyancyReading('duck',0)).sink,0);
-assert.equal(storyMotion('buoyancy',1,buoyancyReading('stone',0)).sink,205);
+assert.equal(storyMotion('buoyancy',1,buoyancyReading('stone',0)).sink,221);
 const stoneAtRest = storyMotion('buoyancy',1,buoyancyReading('stone',0));
 const tankPebbleTop = -133+326-39;
-const stonePaintedBottom = (-137+stoneAtRest.sink)-60+146;
-assert.equal(stonePaintedBottom,tankPebbleTop,'Sinking stone must rest on top of pebbles rather than inside the bed');
-assert.equal(waterbedShadowCue(stoneAtRest.sink/205).opacity,waterbedShadowCue(1).opacity);
+// The source atlas stone leaves about 16px of transparent padding below its visible paint.
+const stoneVisibleBottom = (-137+stoneAtRest.sink)-60+(146-16);
+assert.equal(stoneVisibleBottom,tankPebbleTop,'Visible rock pixels should touch the aquarium pebble bed');
+assert.equal(waterbedShadowCue(stoneAtRest.sink/221).opacity,waterbedShadowCue(1).opacity);
 for(const salinity of [0,15,30]){
   const reading=buoyancyReading('duck',salinity);
   const placement=floatingObjectPlacement(reading.submergedFraction);
