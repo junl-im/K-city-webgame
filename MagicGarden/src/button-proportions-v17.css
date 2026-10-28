@@ -1,0 +1,228 @@
+/*
+ * v17 hand-painted raster frame aspect correction.
+ * v16 correctly introduced four different picture styles, but stretching their
+ * backgrounds to 100% 100% distorted the flowers and frame corners in modals.
+ * Use real nine-sliced PNG border art: original painted corners stay intact,
+ * the deliberately quiet center is the only horizontally stretchable area.
+ * No new icons, CSS pseudo-icon shapes, SVG, or text rasterization.
+ */
+#app .area,
+#app .garden-tabs .garden-tab,
+#app .modal .link-button,
+#app .modal-head,
+#app .creek-visit{
+  background-image:none;
+  background-color:transparent;
+  background-size:auto;
+  background-repeat:no-repeat;
+  border-style:solid;
+  border-color:transparent;
+  border-image-repeat:stretch;
+  border-radius:0;
+  box-shadow:none;
+  box-sizing:border-box;
+}
+#app .area{
+  border-width:12px 17px;
+  border-image-source:url('/assets/ui-v16-region-cream.png');
+  border-image-slice:27 41 29 41 fill;
+  border-image-width:12px 17px 12px 17px;
+  min-height:68px;
+  padding:0 1px;
+  overflow:visible;
+  color:#4f3625;
+  filter:none;
+}
+#app .area.active{
+  background-image:none;
+  border-image-source:url('/assets/ui-v16-region-cream.png');
+  filter:brightness(1.02);
+}
+#app .area:hover{filter:brightness(1.035)}
+#app .area span:not(.art-icon){color:#4e3424;text-shadow:0 1px 0 #fff9ec}
+#app .area.active span:not(.art-icon){color:#315b39;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px}
+#app .garden-tabs .garden-tab{
+  border-width:9px 11px;
+  border-image-source:url('/assets/ui-v16-tab-paper.png');
+  border-image-slice:19 26 19 26 fill;
+  border-image-width:9px 11px 9px 11px;
+  min-height:46px;
+  padding:2px 1px;
+  color:#523924;
+  white-space:normal;
+  line-height:1.25;
+}
+#app .garden-tabs .garden-tab.current,
+#app .garden-tabs .garden-tab.selected{
+  background-image:none;
+  border-image-source:url('/assets/ui-v16-tab-selected.png');
+  color:#315c3b;
+  filter:none;
+}
+#app .modal .link-button{
+  border-width:12px 18px;
+  border-image-source:url('/assets/ui-v16-action-sage.png');
+  border-image-slice:30 47 30 47 fill;
+  border-image-width:12px 18px 12px 18px;
+  min-height:54px;
+  padding:2px 6px;
+  color:#fffdf3;
+  white-space:normal;
+  line-height:1.3;
+  word-break:keep-all;
+}
+#app .modal .link-button[data-game-action="brew"],
+#app .modal .link-button[data-game-action="craft-egg"],
+#app .modal .link-button[data-game-action="confirm-import"]{
+  background-image:none;
+  border-image-source:url('/assets/ui-v16-action-rose.png');
+  color:#fffaf2;
+}
+#app .modal .link-button[data-game-action="hatch"],
+#app .modal .link-button[data-game-action="incubate"]{
+  background-image:none;
+  border-image-source:url('/assets/ui-v16-action-gold.png');
+  color:#5a3623;
+}
+#app .modal .link-button.secondary-action,
+#app .modal .link-button.needs-items,
+#app .modal .link-button.insufficient{
+  background-image:none;
+  border-width:9px 13px;
+  border-image-source:url('/assets/ui-v16-tab-paper.png');
+  border-image-slice:19 26 19 26 fill;
+  border-image-width:9px 13px 9px 13px;
+  color:#563b27;
+  text-shadow:0 1px 0 #fffaf0;
+}
+#app .modal .link-button:disabled{
+  opacity:.68;
+  filter:saturate(.62);
+  cursor:not-allowed;
+}
+#app .modal-head{
+  border-width:12px 22px;
+  border-image-source:url('/assets/ui-v16-region-cream.png');
+  border-image-slice:27 41 29 41 fill;
+  border-image-width:12px 22px 12px 22px;
+  min-height:66px;
+  padding:0 1px 0 6px;
+  margin:0 -3px 13px;
+  background-image:none;
+  color:#4b3122;
+  gap:5px;
+}
+#app .modal-head strong{
+  min-width:0;
+  max-width:100%;
+  overflow-wrap:break-word;
+  word-break:keep-all;
+  color:#493223;
+  text-shadow:0 1px 0 #fff9e9;
+}
+#app #modal-close{
+  flex:none;
+  background-image:url('/assets/ui-v16-badge-wood.png');
+  background-size:contain;
+  background-repeat:no-repeat;
+  background-position:center;
+  border:0;
+  min-width:46px;
+  width:46px;
+  height:46px;
+  min-height:46px;
+  padding:4px;
+}
+#app .creek-visit{
+  border-width:10px 14px;
+  border-image-source:url('/assets/ui-v16-region-cream.png');
+  border-image-slice:27 41 29 41 fill;
+  border-image-width:10px 14px 10px 14px;
+  min-height:54px;
+  padding:0 2px 0 0;
+  color:#543925;
+  text-shadow:0 1px 0 #fff9ec;
+}
+#app .creek-visit[hidden]{display:none}
+/* The illustrated lower medals are square paintings; keep them square instead
+ * of using the same rectangular parchment/wood strip as the other buttons. */
+#app .bottom-hud button{
+  background-image:url('/assets/ui-v16-badge-wood.png');
+  background-position:center top;
+  background-repeat:no-repeat;
+  background-size:69px 69px;
+  border:0;
+  border-image:none;
+  padding:5px 1px 1px;
+}
+#app .bottom-hud button small{
+  position:relative;
+  z-index:1;
+  color:#503724;
+  background:#fff5df;
+  border-color:#b99469;
+}
+#app .bottom-hud button:focus-visible,
+#app .area:focus-visible,
+#app .garden-tabs .garden-tab:focus-visible,
+#app .modal .link-button:focus-visible,
+#app .modal-head #modal-close:focus-visible,
+#app .creek-visit:focus-visible{outline:3px solid #287757;outline-offset:2px}
+/* For narrow phones use thinner borders; keep minimum hit targets.
+ * Preserve image proportions regardless of title length or orientation. */
+@media(max-width:760px){
+  #app .area{
+    min-height:62px;
+    border-width:9px 12px;
+    border-image-width:9px 12px 9px 12px;
+    padding:0 1px;
+  }
+  #app .garden-tabs .garden-tab{
+    border-width:8px 9px;
+    border-image-width:8px 9px 8px 9px;
+    min-height:44px;
+    font-size:12px;
+    padding:1px;
+  }
+  #app .modal .link-button{
+    border-width:10px 14px;
+    border-image-width:10px 14px 10px 14px;
+    min-height:48px;
+    padding:1px 3px;
+    font-size:13px;
+  }
+  #app .modal .link-button.secondary-action,
+  #app .modal .link-button.needs-items,
+  #app .modal .link-button.insufficient{
+    border-width:8px 10px;
+    border-image-width:8px 10px 8px 10px;
+  }
+  #app .modal-head{
+    border-width:10px 17px;
+    border-image-width:10px 17px 10px 17px;
+    min-height:60px;
+    padding:0 1px 0 3px;
+  }
+  #app #modal-close{width:44px;height:44px;min-width:44px;min-height:44px}
+  #app .creek-visit{
+    border-width:9px 12px;
+    border-image-width:9px 12px 9px 12px;
+    padding:0 1px 0 0;
+    min-height:48px;
+  }
+  #app .bottom-hud button{
+    border:0;
+    border-image:none;
+    background-size:61px 61px;
+    padding:3px 0 0;
+  }
+}
+@media(max-width:370px){
+  #app .area{border-width:8px 10px;border-image-width:8px 10px 8px 10px}
+  #app .garden-tabs .garden-tab{font-size:11px}
+  #app .bottom-hud button{background-size:56px 56px}
+}
+/* Both low-motion and disabled states remain functional; avoid ghost button glows. */
+@media(prefers-reduced-motion:reduce){
+  #app .area,#app .garden-tabs .garden-tab,#app .modal .link-button{transition:none}
+}
