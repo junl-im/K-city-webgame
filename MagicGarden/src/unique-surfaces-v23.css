@@ -1,0 +1,239 @@
+/* v23: remove the stretched shared frame artwork. Every control owns a separate surface.
+   No SVG, nine-slicing, cover crop, shared button texture, or raster distortion.
+   UI labels remain live Korean text; illustrated icons remain native painted sprites. */
+#app .brand,#app .hud-stats>span,#app .guide,#app .bottom-hud,
+#app .area,#app .creek-visit,#app .modal,#app .modal-head,
+#app .garden-tabs .garden-tab,#app .modal .link-button,#app #modal-close,
+#app .garden-slot,#app .garden-slots,#app .garden-detail,
+#app .garden-ingredient,#app .garden-result,#app .garden-friend {
+  border-image:none!important;border-image-source:none!important;
+  background-size:auto!important;background-repeat:no-repeat!important;
+  box-sizing:border-box;
+}
+#app .brand,#app .hud-stats>span,#app .guide,#app .bottom-hud,
+#app .area,#app .creek-visit,#app .modal,#app .modal-head,
+#app .garden-tabs .garden-tab,#app .modal .link-button,#app #modal-close {
+  background-color:transparent!important;background-image:none!important;
+  text-shadow:none!important;backdrop-filter:none;
+}
+#app .brand{
+  border:1px solid #e5ca9d!important;border-radius:18px 12px 17px 13px;
+  background-image:linear-gradient(130deg,#fffdf1,#f4e7cd)!important;
+  min-height:58px;padding:7px 11px 7px 7px;gap:5px;
+  box-shadow:0 5px 15px #4c513322,inset 0 1px #fff;
+}
+#app .brand strong{color:#503a27;text-shadow:none;font-weight:900}
+#app .brand small{color:#756349}
+#app .brand-mark{flex:none;width:32px;height:35px}
+#app .hud-stats{gap:6px}
+#app .hud-stats>span{
+  border:1px solid #c5d7a6!important;border-radius:15px 11px 13px 10px;
+  background-image:linear-gradient(135deg,#faffee,#dcebbb)!important;
+  height:46px;min-width:78px;padding:4px 8px 4px 2px;color:#527140;
+  box-shadow:0 3px 9px #4353351d;
+}
+#app .hud-stats>span:nth-child(2){
+  border-color:#e9bfb1!important;border-radius:10px 15px 12px 17px;
+  background-image:linear-gradient(135deg,#fff8ee,#f7d7d5)!important;color:#98586a;
+}
+#app .guide{
+  min-height:39px;min-width:0;max-width:min(540px,92vw);padding:8px 15px;
+  border:1px solid #d4dfb8!important;border-radius:17px 19px 16px 21px;
+  background-image:linear-gradient(110deg,#fffdf4,#ebf1db)!important;
+  color:#496347;box-shadow:0 4px 13px #3d4f311e;
+}
+#app .area-panel{gap:6px;width:min(279px,44vw)}
+#app .area{
+  display:flex;flex-direction:row;align-items:center;justify-content:center;gap:2px;
+  min-height:61px;min-width:0;padding:5px 4px;overflow:hidden;
+  border:1px solid #dbc2a3!important;border-radius:15px;
+  background-image:linear-gradient(130deg,#fffaf0,#efdfc8)!important;
+  box-shadow:0 3px 0 #92745239,0 5px 10px #493a2614;
+  color:#604634;filter:none!important;
+}
+#app #town-button{
+  border-color:#d9b39a!important;border-radius:17px 12px 15px 11px;
+  background-image:linear-gradient(125deg,#fffaf0,#eed7b8)!important;color:#79533d;
+}
+#app #farm-button{
+  border-color:#b7d4a4!important;border-radius:12px 17px 11px 15px;
+  background-image:linear-gradient(140deg,#fbfff1,#d8edc7)!important;color:#3c6b48;
+}
+#app #lab-button{
+  border-color:#d6c2e2!important;border-radius:15px 11px 17px 13px;
+  background-image:linear-gradient(127deg,#fbf7ff,#e8d9f4)!important;color:#745689;
+}
+#app #nursery-button{
+  border-color:#e9c5b8!important;border-radius:11px 16px 14px 17px;
+  background-image:linear-gradient(142deg,#fffaf1,#f8dcd5)!important;color:#965d60;
+}
+#app .area.active{
+  box-shadow:0 0 0 2px #ffffffe5,0 0 0 4px #63916e,0 5px 13px #295d3921;
+  filter:none!important;
+}
+#app .area .art-icon{margin:0;transform:scale(.80);flex:none}
+#app .area span:not(.art-icon),#app .area.active span:not(.art-icon){
+  color:inherit;text-shadow:none!important;text-decoration:none;
+  font-size:12px;font-weight:900;line-height:1.23;word-break:keep-all;white-space:nowrap;
+}
+#app .area:hover{filter:brightness(1.025)!important}
+#app .creek-visit{
+  border:1px solid #a3d0cb!important;border-radius:19px 12px 18px 12px;
+  background-image:linear-gradient(125deg,#f1fffd,#c9e7e5)!important;
+  color:#376c75;min-height:51px;padding:4px 9px;gap:3px;
+  box-shadow:0 4px 12px #44706b22;
+}
+#app .creek-visit[hidden]{display:none}
+#app .bottom-hud{
+  border:1px solid #ead4b6!important;border-radius:20px 17px 21px 16px;
+  background-image:linear-gradient(110deg,#fffdf1ef,#faecd6ef)!important;
+  padding:6px 9px;gap:7px;min-height:78px;box-shadow:0 5px 18px #3946322d;
+}
+#app .bottom-hud button{
+  flex:0 1 76px;min-width:0;max-width:79px;min-height:68px;padding:3px 2px 2px;
+  justify-content:space-between;gap:0;color:#614b38;
+  border:1px solid #e4c9a7!important;border-radius:15px 13px 16px 12px;
+  background-image:linear-gradient(135deg,#fffbf2,#edddc6)!important;
+  background-color:transparent!important;box-shadow:0 2px 6px #5840241a;
+}
+#app #bag-button{
+  border-color:#ddbb91!important;border-radius:14px 18px 12px 16px;
+  background-image:linear-gradient(135deg,#fff8e4,#f3dfb0)!important;
+}
+#app #map-button{
+  border-color:#b5d5ae!important;border-radius:17px 12px 16px 12px;
+  background-image:linear-gradient(135deg,#f6fff0,#d9efcf)!important;
+}
+#app #book-button{
+  border-color:#bbcee4!important;border-radius:12px 17px 14px 18px;
+  background-image:linear-gradient(135deg,#f7fbff,#dce7f7)!important;
+}
+#app #help-button{
+  border-color:#ddc2e4!important;border-radius:18px 13px 16px 11px;
+  background-image:linear-gradient(135deg,#fffaff,#f0e1f1)!important;
+}
+#app .bottom-hud button .art-icon{margin:-2px 0 -5px;transform:scale(.85)}
+#app .bottom-hud button small{
+  background:transparent!important;border:0!important;border-radius:0!important;
+  color:#5f4a38;text-shadow:none!important;padding:1px 3px 2px;font-size:11px;
+}
+#app .modal{
+  border:1px solid #e3c69f!important;border-radius:21px;
+  background-image:linear-gradient(145deg,#fffaf0,#f6e7cd)!important;
+  background-color:#fff6e8!important;box-shadow:0 17px 55px #18201991;
+  padding:15px clamp(10px,3vw,22px) 21px;
+}
+#app .modal-head{
+  border:1px solid #e2c8aa!important;border-radius:13px 10px 15px 11px;
+  background-image:linear-gradient(130deg,#fffaf1,#f0dfc7)!important;
+  min-height:55px;padding:5px 6px 5px 10px;margin:0 0 12px;gap:5px;
+  box-shadow:0 2px 7px #7454371b;
+}
+#app .modal:has(.garden-bag) .modal-head{
+  border-color:#ddc397!important;background-image:linear-gradient(140deg,#fffaf0,#f3e1b9)!important;
+}
+#app .modal:has(.garden-recipe) .modal-head{
+  border-color:#d3bedf!important;background-image:linear-gradient(140deg,#fcf7ff,#e8ddf4)!important;
+}
+#app .modal:has(.garden-friends) .modal-head{
+  border-color:#e7bfbe!important;background-image:linear-gradient(140deg,#fffaf4,#f2dcda)!important;
+}
+#app .modal-head strong{color:#523c2b!important;text-shadow:none!important}
+#app #modal-close{
+  display:grid;place-items:center;flex:none;margin:0;padding:0;
+  width:44px;height:44px;min-width:44px;min-height:44px;
+  border:1px solid #e1b8b8!important;border-radius:50%;
+  background-image:linear-gradient(135deg,#fff6f3,#f3d0d0)!important;
+  box-shadow:0 2px 6px #73473721;
+}
+#app .garden-tabs .garden-tab{
+  min-height:44px;padding:6px 5px;
+  border:1px solid #ddccb3!important;border-radius:12px 10px 11px 13px;
+  background-image:linear-gradient(135deg,#fffaf1,#f0e6d4)!important;
+  color:#765942;box-shadow:none;
+}
+#app .garden-tabs .garden-tab.current,#app .garden-tabs .garden-tab.selected{
+  border-color:#a6c7a1!important;
+  background-image:linear-gradient(135deg,#f5fce9,#d9ebd0)!important;color:#41704b;
+}
+#app .modal .link-button{
+  border:1px solid #a9c6a1!important;border-radius:13px 11px 14px 10px;
+  background-image:linear-gradient(140deg,#eaf6e1,#cce4c1)!important;
+  background-color:transparent!important;box-shadow:0 3px 0 #809d7740;
+  color:#3e6648;text-shadow:none!important;
+  min-height:48px;padding:7px 10px;margin-top:9px;
+}
+#app .modal .link-button[data-game-action="brew"],
+#app .modal .link-button[data-game-action="zone-lab"]{
+  border-color:#c9b5df!important;border-radius:11px 15px 10px 14px;
+  background-image:linear-gradient(135deg,#f5eafb,#dccbeb)!important;color:#685282;
+}
+#app .modal .link-button[data-game-action="craft-egg"],
+#app .modal .link-button[data-game-action="hatch"]{
+  border-color:#e9b5c0!important;border-radius:15px 11px 13px 11px;
+  background-image:linear-gradient(135deg,#fff7ee,#f3cbd6)!important;color:#965267;
+}
+#app .modal .link-button[data-game-action="incubate"],
+#app .modal .link-button[data-game-action="zone-nursery"]{
+  border-color:#e6cb99!important;border-radius:10px 15px 11px 16px;
+  background-image:linear-gradient(135deg,#fff9e4,#f2dfaf)!important;color:#8e693e;
+}
+#app .modal .link-button[data-game-action="save-export"]{
+  border-color:#a9cbdc!important;background-image:linear-gradient(135deg,#f2fbff,#cce5f0)!important;color:#426c82;
+}
+#app .modal .link-button[data-game-action="save-import"],
+#app .modal .link-button[data-game-action="confirm-import"]{
+  border-color:#c9b6df!important;background-image:linear-gradient(135deg,#fcf8ff,#e6d5f0)!important;color:#71548b;
+}
+#app .modal .link-button.secondary-action,#app .modal .link-button.needs-items,
+#app .modal .link-button.insufficient,#app .modal .link-button[data-game-action="cancel-import"]{
+  border-color:#dfceb8!important;background-image:linear-gradient(135deg,#fffcf5,#f1e8d9)!important;color:#79664f;
+}
+#app .garden-slot,#app .garden-slots,#app .garden-detail,#app .garden-ingredient,
+#app .garden-result,#app .garden-friend{
+  border:1px solid #e6d0b1!important;border-radius:13px;
+  background-image:linear-gradient(140deg,#fffdf7,#f7ecd8)!important;
+  box-shadow:0 2px 7px #805b3214;
+}
+#app .garden-slot:nth-child(3n + 2){
+  border-color:#cbd9bb!important;background-image:linear-gradient(140deg,#fbfff7,#eaf2df)!important;
+}
+#app .garden-slot:nth-child(3n){
+  border-color:#e4cddd!important;background-image:linear-gradient(140deg,#fffafd,#f5e8f2)!important;
+}
+#app .area:focus-visible,#app .bottom-hud button:focus-visible,
+#app .creek-visit:focus-visible,#app .modal button:focus-visible{
+  outline:3px solid #3a9066;outline-offset:3px;
+}
+@media(max-width:760px){
+  #app .brand{min-height:54px;max-width:calc(100% - 108px);padding:4px 6px;gap:2px}
+  #app .brand-mark{width:27px;height:30px}
+  #app .brand strong{font-size:clamp(11px,3.1vw,15px)}
+  #app .hud-stats{width:100px;gap:3px}
+  #app .hud-stats>span{width:100px;min-width:0;height:36px;min-height:36px;padding:0 3px}
+  #app .area-panel{width:min(225px,56vw);top:calc(84px + env(safe-area-inset-top));gap:5px}
+  #app .area{min-height:58px;flex-direction:column;padding:2px;gap:0}
+  #app .area .art-icon{transform:scale(.70);margin:-4px 0 -5px}
+  #app .area span:not(.art-icon){font-size:11px}
+  #app .bottom-hud{min-height:73px;padding:5px;gap:4px}
+  #app .bottom-hud button{width:60px;max-width:65px;min-height:63px;padding:1px 0 2px}
+  #app .bottom-hud button .art-icon{transform:scale(.75);margin:-5px 0 -6px}
+  #app .bottom-hud button small{font-size:10px}
+  #app .guide{min-height:38px;padding:7px 10px;font-size:12px}
+  #app .creek-visit{min-height:46px;min-width:112px;padding:3px 6px}
+  #app .modal{padding:9px 8px 13px;border-radius:17px}
+  #app .modal-head{min-height:50px}
+  #app .garden-tabs .garden-tab{min-height:44px;font-size:12px;padding:4px 2px}
+  #app .modal .link-button{min-height:47px;font-size:13px;padding:6px 8px}
+}
+@media(max-width:370px){
+  #app .area-panel{width:min(198px,58vw)}
+  #app .area{min-height:55px}
+  #app .bottom-hud{gap:2px;padding:4px}
+  #app .bottom-hud button{width:56px;min-height:58px}
+}
+@media(max-width:760px) and (max-height:610px){
+  #app .area-panel{top:calc(75px + env(safe-area-inset-top))}
+  #app .area{min-height:45px;flex-direction:row;padding:1px 2px}
+  #app .area .art-icon{transform:scale(.59);margin:-6px}
+}
