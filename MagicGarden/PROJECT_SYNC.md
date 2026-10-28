@@ -55,3 +55,12 @@
 - **정책:** SVG 및 SVG처럼 보이는 기본 아이콘 금지 유지. 실제 새 자산이 필요해지면 승인된 동화풍 PNG/WebP 원화를 확보한 뒤 적용. 기존 12칸 농사·조합·부화·몬스터 JSON, Soul Online archive, 60초 놀이터 독립 파일 불변.
 
 위 문단은 아래의 최초 v16 기록을 **역사적 기준점으로 유지한 채 추가한 최신 상태**다. 다음 작업은 이 체크포인트부터 이어 가며 Notion/Google Drive에도 동일한 커밋을 기록한다.
+
+## v18 실게임 아이템·몬스터 전용 원화 체크포인트 — 2026-10-28
+
+- 기능 커밋: [27ba8c2](https://github.com/junl-im/K-city-webgame/commit/27ba8c2b7ed3376e061798cbee4d8cf1440f7e0e). `public/assets/illustrated-items-v18.webp` 신규 720×360 투명 아틀라스 8종. 실제 가방/조합/알 연구소/몬스터 도감에 연결.
+- 원본 제작/재사용: 사용자 승인 동화풍에 맞춰 제작한 일러스트 콘셉트에서 씨앗·딸기·분홍 정수·알 둥지·잎새콩·방울몽·반짝몽·꽃을 분리하고 주변 종이 배경을 제거. **[Google Drive 보관된 WebP 원본](https://drive.google.com/file/d/1utuMe5wCOrrqh0bA_wwz5tnUHLbiPAsd/view)**, GitHub 배포용 25,316B로 동일 파일. SVG/기본 벡터 아이콘 자산 신규 0.
+- 자동 검증: [소스 CI #40667749953](https://github.com/junl-im/K-city-webgame/actions/runs/40667749953) 성공, [공식 Pages #40667749976](https://github.com/junl-im/K-city-webgame/actions/runs/40667749976) 성공. `scripts/check-illustrated-items-v18.mjs`에서 WebP 파일 헤더/720x360/크기/게임 실제 아이템 연동·3종 몬스터 그림 구분 검사.
+- 보존: `gomfox.magic-garden.prototype.v1`, 농사 12칸/조합/부화 타이머·몬스터 JSON·Soul Online 백업 및 60초 놀이터 독립 경로 보존.
+- 다음 QA: 기기 브라우저에서 도감/연구소의 투명 아트 경계·아이콘 사이즈, 가방·조합 탭 터치와 패널 스크롤, 세계 배경의 실제 오클루전/계곡 물길 위치/지역별 오브젝트 원화 보강.
+- **완료 구분**: GitHub 코드·CI·배포 성공이 확인되었고, 실제 iPhone/Android/Whale/Chrome 육안 플레이 스크린샷 QA는 아직 미완료. 3곳 로그를 같은 커밋으로 기록하며 동기화는 업데이트 시 수동 교차 저장.
