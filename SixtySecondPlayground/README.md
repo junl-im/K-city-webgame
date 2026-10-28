@@ -1,23 +1,36 @@
 # 🦊 곰같은여우와 함께하는 오늘의 60초 놀이터
 
-마법정원과 **같은 GitHub 저장소** 안에서 각자 독립된 디렉터리와 공개 주소를 사용하는 경량 미니게임입니다.
+**이제 GitHub가 이 게임의 공식 소스·개발·배포 기준입니다.** ChatGPT Sites 배포본은 이전 자료로만 남겨 두며, 새 수정과 버전 배포는 GitHub에서만 진행합니다.
 
-- GitHub Pages: https://junl-im.github.io/K-city-webgame/SixtySecondPlayground/
-- 마법정원: https://junl-im.github.io/K-city-webgame/
-- 공식 브랜드명: **곰같은여우와 함께하는 오늘의 60초 놀이터**
-- 메인 페이지의 짧은 제목: **오늘의 60초 놀이터**
-- 7종 60초 게임 · 동물 친구 4명 · 모바일 반응형 · 로그인 없는 무료 플레이
+- 공식 GitHub Pages: https://junl-im.github.io/K-city-webgame/SixtySecondPlayground/
+- 소스 위치: `K-city-webgame/SixtySecondPlayground/`
+- 브랜드: **곰같은여우와 함께하는 오늘의 60초 놀이터**
+- 화면 제목: **오늘의 60초 놀이터**
+- 7종 60초 게임 · 동물 친구 4명 · 모바일 반응형 · 가입 없는 무료 플레이
 
-## 구조
+## 파일 구성
 
-- `dist/index.html` — 시작 화면 및 7개 게임 선택 화면
-- `dist/style.css` — UI/UX, 크기별 버튼 원화, 모바일 레이아웃
-- `dist/app.js` — 게임 로직, 일일 도전, 기록
-- `dist/assets/*.webp` — 실행에 필요한 압축 일러스트 원화
-- `tests/smoke.cjs` — 오프라인 검증 (실행: `node SixtySecondPlayground/tests/smoke.cjs`)
+- `dist/index.html` — 홈 및 7가지 게임 선택 화면
+- `dist/style.css` — 원화 기반 UI와 모바일 대응
+- `dist/app.js` — 60초 게임, 공식 도전, 브라우저 기록
+- `dist/assets/*.webp` — 배포용 경량 일러스트
+- `tests/smoke.cjs` — 오프라인 회귀 검사
+- `source-assets/*.png` — 편집용 고화질 PNG 원본 (GitHub 이전 진행 대상)
 
-`main` 브랜치의 이 폴더를 변경하면 `.github/workflows/magic-garden-pages.yml`에서 정적 파일을 검사한 뒤 마법정원 빌드 결과의 `SixtySecondPlayground/` 하위 경로에 합쳐 공개합니다. 마법정원 자체 코드는 변경하지 않습니다.
+## 개발 및 배포
 
-원본 고해상도 편집용 PNG는 기존 제작 프로젝트에 보존하며, 이 GitHub 폴더는 배포에 필요한 최적화 WebP를 관리합니다. 이 폴더와 기존 Sites 버전 사이에는 자동 양방향 동기화가 설정되어 있지 않습니다.
+1. 이 폴더에서 실행 파일과 원화를 수정합니다.
+2. `node SixtySecondPlayground/tests/smoke.cjs`로 7개 게임과 에셋의 기본 검사를 실행합니다.
+3. `main`에 반영하면 저장소 루트의 `.github/workflows/magic-garden-pages.yml`이 마법정원과 이 놀이터를 **서로 다른 경로로** 묶어서 GitHub Pages에 게시합니다.
+4. 마법정원 공식 홈은 `/`, 60초 놀이터는 `/SixtySecondPlayground/`입니다. 놀이터 수정 시 마법정원 게임 소스는 건드리지 않습니다.
 
-**원칙:** SVG 금지, 무료 운영, 기본 아이콘 대신 일러스트화된 UI, 화면 전체를 누르는 게임 선택, 작은 화면 배려.
+모든 이미지·CSS·JS는 상대 경로를 사용합니다. 게임 기록은 이용자 브라우저의 localStorage에 남고, 서버 계정이나 별도 API 키는 없습니다.
+
+## 다음 개선 방향
+
+- 실제 게임판의 남은 이모지 요소를 기존 원화 톤의 소품으로 순차 교체
+- 7가지 게임의 반복 피로도와 난이도 곡선 조정
+- 작은 스마트폰에서 60초 플레이 및 게임 선택 한 화면 검증
+- 원본 고해상도 PNG 파일을 GitHub에 완전히 보관
+
+**원칙:** SVG 자산 금지 · 원화 기반 시각 디자인 · 전체 게임 카드 클릭 가능 · 모바일 우선 · 무료 플레이.
