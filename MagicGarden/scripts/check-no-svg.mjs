@@ -22,7 +22,7 @@ function walk(file) {
   const relativePath = relative(root, file).replaceAll('\\', '/');
   if (extname(file).toLowerCase() === imageSuffix) errors.push(relativePath + ': forbidden image');
   const extension = extname(file).toLowerCase();
-  if (['.html', '.css', '.ts', '.tsx'].includes(extension)) {
+  if (['.html', '.css', '.ts', '.tsx', '.js', '.jsx', '.mjs', '.json', '.vue'].includes(extension)) {
     const contents = readFileSync(file, 'utf8').toLowerCase();
     if (contents.includes(inlineMarker) || contents.includes(dataMarker) || contents.includes(imageSuffix)) errors.push(relativePath + ': forbidden image reference');
   }

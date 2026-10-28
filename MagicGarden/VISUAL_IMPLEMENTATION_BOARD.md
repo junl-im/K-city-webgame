@@ -1,6 +1,6 @@
 # 마법정원 — VISUAL MASTER 실행 보드
 
-**최상위 기준:** [VISUAL_MASTER.md](./VISUAL_MASTER.md). 아래 항목은 v13.1 기준의 **기능/UI 현황을 보수적으로 기록**한 것이며, 시안에 보인 기능을 구현한 것으로 간주하지 않는다.
+**최상위 기준:** [VISUAL_MASTER.md](./VISUAL_MASTER.md). 아래 항목은 v16 기준의 **기능/UI 현황을 보수적으로 기록**한 것이며, 시안에 보인 기능을 구현한 것으로 간주하지 않는다.
 
 | 구역/모듈 | 현재 `main` 개발 상태 | 목표 대비 부족한 것 | 우선도 |
 |---|---|---|---|
@@ -11,10 +11,10 @@
 | 캐릭터 | 여우 4방향 원화, NPC 4명, 동물 대화 얼굴 아틀라스 | 프레임 걷기, 세계 속 크기·빛·가방/복장 일관성, 표정·위치·가림 | P0 |
 | 가방·재료 | 아이템 수량·JSON 백업, 일러스트 모달 일부 | 시안처럼 탭별 격자/상세 카드, 아이템 전용 삽화 전수화, 스크롤 검수 | P1 |
 | 지역/지도/도감/대화 | 작동하는 메뉴·일부 일러스트 | 지역 축소도/몬스터 상세 도감/프레임을 시안 품질로 제작 | P1 |
-| 전체 버튼/아이콘 | v10 라스터 아틀라스·나무/분홍/초록 버튼 | 모든 상황/경고/비활성 상태의 아이콘·문구 점검, 여백·가독성 | P1 |
+| 전체 버튼/아이콘 | **v16 역할별 버튼 PNG 7종 / `button-art-v16.css` / 기존 동물·아이템 WebP 아틀라스** 적용. 지역/하단/탭/행동 역할 분리. | 실제 PC·모바일 육안 비교 및 활성·비활성·긴 한글/다크 배경·스크롤바·남은 기본 도형 전수 조사 | P1 |
 | 퀘스트/레벨/재화/상점 | 원본 게임에 실제 데이터 기반 시스템 없음 | 규칙/보상/무료 정책 설계 후 UI 개발. 시안 숫자 그대로 넣지 않음 | P2 |
 | Android/iOS/PC | CI와 분리된 실기기 검수 미완료 | 실제 화면/터치/중첩/스크롤/성능 영상 확인 | 필수 |
-| GitHub Pages | `magic-garden-pages` 배포 브랜치 최신 main SHA 게시 성공 | Pages 공개 설정/실제 브라우저 접속 검증 및 스크린샷 QA 남음 | 필수 |
+| GitHub Pages | 공식 **GitHub Actions `deploy-pages`** 경로로 v16 배포 성공 확인. 운영 사이트는 `https://junl-im.github.io/K-city-webgame/` | 배포 성공과 별개로 Chrome/Whale/iOS/Android 실제 UI 시각·터치 검수 필요. 예전 `magic-garden-pages`는 이전 스냅샷 | 필수 |
 
 ### 완성 판정 원칙
 1. **원화 품질 = 사용자가 승인한 3장의 실사이즈를 대조**하여 평가.
@@ -49,3 +49,17 @@
 - [x] GitHub v14 코드 172c4b2a4a5b4415656a54696a430548a85368a8 메인 CI 성공.
 - [ ] 공식 GitHub Pages 최신 배포 성공 및 외부 기기 Chrome/Whale/Android/iOS에서 실제 UI 스크린샷·터치 간섭/가독성 확인.
 - [ ] 기준 3장과 각 실제 지역의 그림 품질/아이콘 매칭/세계 속 원화 완성도 실측 비교. 빌드만으로 완료 주장 금지.
+
+### v16 기준 복구·동기화 체크리스트 (2026-10-28)
+- [x] 원본 디자인 3장(Drive)과 GitHub `main/MagicGarden/VISUAL_MASTER.md` 공식 기준 확인
+- [x] GitHub `main` 최신 v16 코드 `dc9946bacb1ce0a7075fa025bea2baea946b62c6` 및 별도 원화 PNG 7종 연결 기록
+- [x] [GitHub CI #40662266213](https://github.com/junl-im/K-city-webgame/actions/runs/40662266213) · [GitHub Pages #40662266260](https://github.com/junl-im/K-city-webgame/actions/runs/40662266260) 성공 이력 보존
+- [x] Notion MASTER GAME PLAN·Google Drive MASTER GAME PLAN 문서 각각의 위치/역할·동기화 절차 정리
+- [x] **SVG/벡터풍/이모지 UI 금지**, 사용 가능한 실제 아트 파일 PNG·WebP, 새 자산이 없으면 먼저 제작하도록 명시
+- [x] Soul Online GitHub 아카이브와 60초 놀이터 독립 서브페이지 보호 지침 고정
+- [ ] PC Chrome/Whale + Android/iPhone 실제 버튼 배경, 테두리, 글자·터치 검사
+- [ ] 4개 지역 배경에서 자산 누락/엉뚱한 이모지·임시 아이콘·단순 도형 찾고 교체
+- [ ] 계곡 물 이펙트의 실제 원화 위치/다리 가림 정렬
+- [ ] 이후 코드·아트 변경마다 commit → CI/Pages → Notion/Drive 변경 기록 및 읽기 확인
+
+**교차 참조:** [PROJECT_SYNC.md](./PROJECT_SYNC.md), [AGENTS.md](./AGENTS.md). 과거 v12~v14 기록은 역사적 기록이며 현재 운영 기준은 v16 이상으로 해석한다.

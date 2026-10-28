@@ -1,0 +1,47 @@
+# MagicGarden 개발 지속성·3곳 동기화 기준 (2026-10-28)
+
+이 문서는 **GitHub + Notion + Google Drive**의 연결 기준과 최신 검증 상태를 담는 중단 복구용 시작점이다. 외부 앱의 실시간 자동 복제를 주장하지 않는다.
+
+## 현재 기준과 링크
+
+| 구분 | 기준 |
+| --- | --- |
+| 공식 코드 저장소 | [junl-im/K-city-webgame](https://github.com/junl-im/K-city-webgame) |
+| 게임 소스 | `main/MagicGarden/` — 마지막 확인된 게임 v16 커밋 `dc9946bacb1ce0a7075fa025bea2baea946b62c6` (2026-10-28 18:11 KST) |
+| 실제 서비스 | [GitHub Pages](https://junl-im.github.io/K-city-webgame/) — `actions/deploy-pages` 공식 게시 방식 |
+| 마지막 확인된 v16 CI | [GitHub Actions #40662266213](https://github.com/junl-im/K-city-webgame/actions/runs/40662266213) 성공 |
+| 마지막 확인된 v16 Pages | [GitHub Actions #40662266260](https://github.com/junl-im/K-city-webgame/actions/runs/40662266260) 성공 |
+| 확정 디자인 | [VISUAL_MASTER.md](./VISUAL_MASTER.md) · 사용자 확정 일러스트 원본 3장 |
+| 원화/UI 소스 | `public/assets/`, `src/button-art-v16.css`; v16의 PNG 버튼 7종, 다른 WebP 원화 아틀라스 |
+| 구현·미완성 상태 | [VISUAL_IMPLEMENTATION_BOARD.md](./VISUAL_IMPLEMENTATION_BOARD.md) |
+| Notion 기획·설정 기준 | [《곰같은여우의 마법정원》 MASTER GAME PLAN](https://app.notion.com/p/406fff243ec981739bfada13ffaad4ef) |
+| Google Drive 기획/개발 로그 | [《곰같은여우의 마법정원》 MASTER GAME PLAN](https://docs.google.com/document/d/1-IeCgJppEqYLXUMu4aMXG1AFIrm2lp_ygXf5kQCKFv8/edit) |
+| 원본 일러스트 3장 | [종합 UI/마을](https://drive.google.com/file/d/1x5zCG430ZlC6OODD-yanvB8GrH9k1tpg/view) · [4지역](https://drive.google.com/file/d/13nIhAG-PC9r9E1F5R8XPmjzrNm2bvPjq/view) · [아이콘/버튼](https://drive.google.com/file/d/1CLOZJbvsh2c5NjzoE0S8f9giS4vnXZ_p/view) |
+| 이전 Soul Online | `archive/soul-online-20261028` — 복구용; 현재 `main` 프로젝트 아님 |
+| 함께 배포하는 독립 게임 | `SixtySecondPlayground/` (독립 서브페이지, 덮어쓰기 금지) |
+
+## 우선순위가 고정된 규칙
+
+- **SVG 절대 금지**: 파일·태그·데이터 URI·벡터 아이콘/로고와 기본 SVG처럼 보이는 선형 픽토그램까지 디자인에서 사용하지 않는다. 새 아이콘·버튼·배경은 원화를 확보해 PNG/WebP로 구현한다.
+- 캐릭터·소품·농장·솥·알·둥지/몬스터까지 원본 그림 3장의 2.5D 동화풍을 실제 게임 안에서도 유지.
+- 기존 `gomfox.magic-garden.prototype.v1` 저장 키와 12칸 텃밭, 조합, 부화, 몬스터 수량, JSON 내보내기/불러오기 보존.
+- 빌드/검사 통과, Pages 실제 게시 완료, PC/모바일 실제 화면 QA **세 가지는 서로 다른 완료 상태**. 미검수는 미검수라고 표기한다.
+- 서비스가 자체 요구하는 OAuth/권한 팝업은 시스템이 강제할 수 있다. 이미 제공된 사용자의 작업 동의를 자꾸 재확인하지 않지만 인증·접근 승인 절차를 우회할 수는 없다.
+
+## 변경 하나가 완료되는 기준 (매 작업 적용)
+
+1. GitHub `main` 최신 상태 및 Notion/Drive 최신 기록을 읽고 이전 결정과 충돌이 없는지 대조.
+2. 새 자산이 필요하면 PNG/WebP 제작/검증/원본 보관 → 코드·CSS 반영.
+3. `npm run build` → 라스터 자산·SVG 금지·게임 테스트·Vite 빌드.
+4. GitHub 커밋 SHA 확인 → 공식 Pages 자동 배포 결과 확인. UI를 보지 않았다면 '육안 검수' 완료로 표시하지 않음.
+5. `VISUAL_IMPLEMENTATION_BOARD.md`와 Notion MASTER/Google Docs MASTER에 동일한 날짜·커밋·변경·아트 자산·검증 결과·미완료 항목 반영.
+6. Notion/Drive 내용 읽어 기록 반영 검증. 한곳이 실패하면 GitHub에는 성공/미완료 상태를 남기고 사용자에게 정직하게 전달.
+
+## 다음 개발 우선순위
+
+1. 사용자가 어색하다고 지적한 **실제 v16 버튼/테두리**를 PC/모바일 화면에서 비교 검수. 화풍이 안 맞는 원화·눌림/중복배경/잘림·가독성 다시 수정.
+2. 마을·농장·조합실·몬스터 연구소의 고유 소품/캐릭터·작물·알/솥/둥지·몬스터 실게임 원화 완성도 향상.
+3. 계곡 물 마스크의 실제 원화 위치·다리 가림과 모바일 동선 검수.
+4. 실기기 검증 기록을 기준으로 디자인 문제를 우선순위 순서대로 제거.
+
+**참고:** 이 문서의 SHA와 검사 결과는 2026-10-28 당시 v16 **기준점**이다. 이후 커밋이 생기면 반드시 GitHub 최신 main/Actions 확인 결과를 우선한다.
