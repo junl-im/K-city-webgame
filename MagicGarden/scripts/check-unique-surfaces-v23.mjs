@@ -25,4 +25,14 @@ for(const name of assets){
  hashes.add(hash);
  if(!css.includes("url('/assets/ui-v23-"+name+".png')"))throw Error('Painting not mapped: '+name);
 }
-console.log('v23 unique art: 15 distinct PNGs and no stretched background frames');
+const actionHashes=new Set(hashes);
+for(const name of ['brew','craft-egg','hatch','save-export']){
+ const p='public/assets/ui-v24-action-'+name+'.png';
+ const content=readFileSync(new URL('../'+p,import.meta.url));
+ if(content.subarray(1,4).toString()!=='PNG')throw Error('Not a PNG '+p);
+ const hash=createHash('sha256').update(content).digest('hex');
+ if(actionHashes.has(hash))throw Error('Duplicate art reused: '+name);
+ actionHashes.add(hash);
+ if(!css.includes("url('/assets/ui-v24-action-"+name+".png')"))throw Error('Action art not mapped: '+name);
+}
+console.log('v24 unique art: 19 distinct PNGs and no stretched background frames');
