@@ -2794,3 +2794,26 @@ button:disabled { cursor: not-allowed; opacity:.48; }
   .scene--game .action-chip--auto,
   .scene--game .action-chip--auto.is-on {min-height:29px;padding:3px 7px;font-size:10px;}
 }
+
+/* v33 — on small screens, a real hand-painted petal contact replaces the
+   geometric contact rings. The card remains legible and the effect ends
+   before the captured cards reach the collection rack. */
+@media (max-width:650px) {
+  .turn-pair-contact {
+    width:72px;height:72px;margin:-36px 0 0 -36px;
+    background:url('/assets/flower-special-burst-v22.webp') center / contain no-repeat;
+    filter:drop-shadow(0 3px 4px #344e4059);
+    animation:flower-card-contact-v33 .43s cubic-bezier(.2,.75,.28,1) both;
+  }
+  .turn-pair-contact::before,.turn-pair-contact::after,
+  .turn-pair-contact i {display:none;}
+}
+@keyframes flower-card-contact-v33 {
+  0% {opacity:0;transform:scale(.48) rotate(-10deg);}
+  30% {opacity:.82;transform:scale(.94) rotate(2deg);}
+  65% {opacity:.57;transform:scale(1.08) rotate(5deg);}
+  100% {opacity:0;transform:scale(1.24) rotate(8deg);}
+}
+@media (prefers-reduced-motion:reduce) {
+  .turn-pair-contact {animation:none;opacity:0;}
+}

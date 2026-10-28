@@ -874,6 +874,13 @@ document.addEventListener('pointerdown',e=>{
   if (turnTransition || app.screen !== 'game' || app.game?.currentPlayer !== 'human') return;
   const hand = e.target.closest?.('.my-hand button[data-action="play"][data-card]');
   if (!hand || !ROOT.contains(hand)) return;
+  // On a narrow phone the hand overlaps. Hold this exact card as the pointer
+  // target even while its pressed animation moves, so the eventual click
+  // cannot be misdirected to the adjacent card or the hand background.
+  if (e.pointerType === 'touch' || e.pointerType === 'pen') {
+    try { hand.setPointerCapture?.(e.pointerId); }
+    catch { /* Pointer capture is optional; a normal single tap still works. */ }
+  }
   clearPressedCardPreview();
   const matching = new Set(getMatchingFloorCards(app.game.floorCards,hand.dataset.card));
   const floor = [...ROOT.querySelectorAll('.floor-area [data-card]')]
