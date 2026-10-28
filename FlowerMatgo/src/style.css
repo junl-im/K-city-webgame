@@ -2592,3 +2592,48 @@ button:disabled { cursor: not-allowed; opacity:.48; }
   }
   .scene--game .floor-area .hwatu--finger-match:not(.hwatu--departing) {filter:none;}
 }
+
+/* v31 — three distinct, palm-size hand-painted contact beats. The flowers
+   briefly touch the card positions, never obscure the table or alter cards. */
+.turn-special-tap {
+  position:fixed;z-index:60;pointer-events:none;
+  width:72px;height:72px;margin:-36px 0 0 -36px;
+  background:url('/assets/flower-special-burst-v22.webp') center / contain no-repeat;
+  filter:drop-shadow(0 2px 3px #634e3f55);
+  animation:flower-bomb-card-tap .48s cubic-bezier(.18,.8,.25,1) both;
+}
+.turn-special-tap--bomb {width:82px;height:82px;margin:-41px 0 0 -41px;}
+.turn-special-tap--ttadak {
+  width:62px;height:62px;margin:-31px 0 0 -31px;
+  filter:hue-rotate(315deg) saturate(.8) drop-shadow(0 2px 3px #724b6455);
+  animation-name:flower-ttadak-card-tap;
+}
+.turn-special-tap--ppeok {
+  width:70px;height:70px;margin:-35px 0 0 -35px;
+  filter:hue-rotate(205deg) saturate(.65) drop-shadow(0 2px 3px #58607166);
+  animation-name:flower-ppeok-card-rebound;
+}
+@keyframes flower-bomb-card-tap {
+  0% {opacity:0;transform:scale(.28) rotate(-17deg);}
+  35% {opacity:.9;transform:scale(1.03) rotate(5deg);}
+  100% {opacity:0;transform:scale(1.32) rotate(12deg);}
+}
+@keyframes flower-ttadak-card-tap {
+  0% {opacity:0;transform:scale(.38) translateY(8px) rotate(-8deg);}
+  35% {opacity:.92;transform:scale(.9) translateY(0) rotate(2deg);}
+  100% {opacity:0;transform:scale(1.13) translateY(-5px) rotate(7deg);}
+}
+@keyframes flower-ppeok-card-rebound {
+  0% {opacity:0;transform:scale(.6) translateY(-12px);}
+  32% {opacity:.84;transform:scale(1.08) translateY(8px);}
+  59% {opacity:.65;transform:scale(.88) translateY(-9px);}
+  100% {opacity:0;transform:scale(1.05) translateY(-4px);}
+}
+@media (max-width:650px) {
+  .turn-special-tap {width:58px;height:58px;margin:-29px 0 0 -29px;}
+  .turn-special-tap--bomb {width:66px;height:66px;margin:-33px 0 0 -33px;}
+  .turn-special-tap--ttadak {width:52px;height:52px;margin:-26px 0 0 -26px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .turn-special-tap {display:none;}
+}

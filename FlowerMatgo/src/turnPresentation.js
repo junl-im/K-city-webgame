@@ -16,6 +16,7 @@ export const TURN_PRESENTATION_MS = TURN_STAGES.complete;
 export const CARD_ASPECT = Object.freeze({width:248,height:340});
 export const MAX_CAPTURE_SPRITES = 6;
 export const CAPTURE_STAGGER_MS = 38;
+export const SPECIAL_CONTACT_MS = 480;
 export function cardHeightForWidth(width) {
   return width * CARD_ASPECT.height / CARD_ASPECT.width;
 }
@@ -102,6 +103,24 @@ export function stackedLandingRect(rect, hasMatch) {
     left: rect.left + Math.min(11, Math.max(4, rect.width * .15)),
     top: rect.top - Math.min(8, Math.max(3, rect.height * .07))
   };
+}
+
+// Deliberately tiny, painted contact beats: a bomb lands card-by-card,
+// ttadak answers twice, and ppeok springs backward. Never delay or mutate
+// the underlying game turn to play these effects.
+export function specialContactBeats(kind, bombCount = 1, throwGap = 0) {
+  if (kind === 'bomb') return Array.from({ length: Math.min(4, Math.max(1, bombCount)) }, (_, i) => ({
+    at: TURN_STAGES.land + i * throwGap,
+    dx: (i % 2 ? -7 : 7),
+    dy: -i * 3,
+    kind
+  }));
+  if (kind === 'ttadak') return [
+    { at: TURN_STAGES.collect, dx: -15, dy: -3, kind },
+    { at: TURN_STAGES.collect + 95, dx: 15, dy: 3, kind }
+  ];
+  if (kind === 'ppeok') return [{ at: TURN_STAGES.collect, dx: 0, dy: 0, kind }];
+  return [];
 }
 
 function sceneTarget(root, cue) {
@@ -294,6 +313,22 @@ function spawnImpact(root, target, text, delay, kind = 'land') {
   }, delay);
 }
 
+function spawnSpecialContacts(root, target, beats) {
+  if (!target) return;
+  for (const beat of beats) {
+    setTimeout(() => {
+      if (!root.querySelector('.scene--game.is-resolving')) return;
+      const stamp = document.createElement('span');
+      stamp.className = `turn-special-tap turn-special-tap--${beat.kind}`;
+      stamp.setAttribute('aria-hidden', 'true');
+      stamp.style.left = `${target.left + target.width / 2 + beat.dx}px`;
+      stamp.style.top = `${target.top + target.height / 2 + beat.dy}px`;
+      root.appendChild(stamp);
+      setTimeout(() => stamp.remove(), SPECIAL_CONTACT_MS);
+    }, beat.at);
+  }
+}
+
 function cheerOnSpecial(root,player,kind,delay) {
   if (!['bomb','sweep','ttadak','jjok','bright','double'].includes(kind)) return;
   setTimeout(() => {
@@ -346,6 +381,7 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
   const playedTarget = stackedLandingRect(target, hasPlayedMatch);
   const throwGap = bombThrows.length > 1
     ? Math.min(65, Math.floor((TURN_STAGES.draw - TURN_STAGES.land - 16) / (bombThrows.length - 1))) : 0;
+  spawnSpecialContacts(root, target, specialContactBeats(cue.visualKind, bombThrows.length, throwGap));
   bombThrows.forEach((id,index) => {
     const handCard = player === 'human' ? humanHand.find(element => element.dataset.card === id) : null;
     if (index && handCard) handCard.classList.add('hwatu--departing');
