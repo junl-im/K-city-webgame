@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#7855c5" />
+  <meta name="description" content="곰같은여우와 함께하는 오늘의 60초 놀이터. 귀여운 동물 친구들과 매일 새로운 60초 도전, 7가지 자유 플레이!" />
+  <title>곰같은여우와 함께하는 오늘의 60초 놀이터</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body data-view="home">
+  <div class="sky-glow sky-glow-a" aria-hidden="true"></div>
+  <div class="sky-glow sky-glow-b" aria-hidden="true"></div>
+  <div class="app-shell">
+    <header class="site-header">
+      <a class="brand" href="./index.html" aria-label="곰같은여우와 함께하는 오늘의 60초 놀이터 홈">
+        <span class="brand-mark"><span class="ui-art-icon ui-icon-star" aria-hidden="true"></span></span>
+        <span class="brand-copy"><strong><span>곰같은여우와 함께하는</span><span>오늘의 60초 놀이터</span></strong><small>Wonderland Mini Arcade</small></span>
+      </a>
+      <div class="header-actions">
+        <span class="today-label" id="todayLabel">오늘의 모험</span>
+        <button id="soundToggle" class="icon-button" title="효과음 켜기 또는 끄기" aria-label="효과음 켜기 또는 끄기"><span class="ui-art-icon ui-icon-music" aria-hidden="true"></span></button>
+        <button id="recordToggle" class="pill-button ghost"><span class="ui-art-icon ui-icon-trophy" aria-hidden="true"></span> 나의 기록</button>
+      </div>
+    </header>
+
+    <main id="home">
+      <nav class="page-nav" id="pageNav" aria-label="페이지 이동" hidden>
+        <button class="page-back" id="backHome" type="button"><span class="ui-art-icon ui-icon-leaf" aria-hidden="true"></span> 메인 화면으로</button>
+        <span class="page-location">홈 / <strong>전체 게임 둘러보기</strong></span>
+      </nav>
+      <section class="hero">
+        <div class="hero-stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="hero-content">
+          <span class="eyebrow"><span class="live-dot"></span> 매일 자정 새 미션 OPEN</span>
+          <h1 tabindex="-1">오늘의 <em>60초 놀이터</em></h1>
+          <p>오늘도 딱 60초, 신나는 모험이 시작돼!<br />루루·모모·코코·두두와 함께하는 반짝반짝 판타지 놀이공원</p>
+          <div class="hero-cta">
+            <button class="main-button illustrated-cta" id="heroDaily"><span class="button-label"><span class="ui-art-icon ui-icon-play" aria-hidden="true"></span>오늘의 도전 시작</span><span class="click-hand" aria-hidden="true"></span></button>
+            <button class="outline-button" id="heroExplore"><span class="ui-art-icon ui-icon-scroll" aria-hidden="true"></span> 전체 게임 둘러보기</button>
+          </div>
+          <div class="hero-meta"><span><span class="ui-art-icon ui-icon-leaf" aria-hidden="true"></span>가입 없이 무료</span><span><span class="ui-art-icon ui-icon-star" aria-hidden="true"></span>모바일 OK</span><span><span class="ui-art-icon ui-icon-play" aria-hidden="true"></span>60초 집중!</span></div>
+        </div>
+        <div class="park-stage" aria-label="신비로운 판타지 놀이공원 풍경">
+          <div class="park-moon"></div>
+          <div class="sparkle sparkle-one"></div><div class="sparkle sparkle-two"></div><div class="sparkle sparkle-three"></div>
+          <div class="park-lanterns" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="park-guide" id="parkGuide" aria-hidden="true"><strong id="guideName">모모의 초대장</strong><span id="guideLine">어서 와! 오늘도 신나는 60초야!</span></div>
+          <div class="castle"><div class="tower left-tower"><b></b></div><div class="tower main-tower"><b></b><span class="castle-window">✦</span></div><div class="tower right-tower"><b></b></div></div>
+          <div class="ferris"><div class="wheel"><span class="spoke s1"></span><span class="spoke s2"></span><span class="spoke s3"></span><span class="spoke s4"></span><i class="gondola g1"></i><i class="gondola g2"></i><i class="gondola g3"></i><i class="gondola g4"></i><i class="gondola g5"></i><i class="gondola g6"></i></div><div class="wheel-base"></div></div>
+          <div class="hill hill-back"></div><div class="hill hill-front"></div>
+          <div class="mascot-lineup">
+            <button class="mascot mascot-cat" data-mascot="cat" aria-label="고양이 루루 소개"><span class="mascot-icon"><img src="./assets/lulu.webp" alt="" width="90" height="95" decoding="async" fetchpriority="high" /></span><span class="mascot-tag">루루</span></button>
+            <button class="mascot mascot-rabbit" data-mascot="rabbit" aria-label="토끼 모모 소개"><span class="mascot-icon"><img src="./assets/momo.webp" alt="" width="90" height="95" decoding="async" fetchpriority="high" /></span><span class="mascot-tag">모모</span></button>
+            <button class="mascot mascot-fox" data-mascot="fox" aria-label="여우 코코 소개"><span class="mascot-icon"><img src="./assets/coco.webp" alt="" width="90" height="95" decoding="async" fetchpriority="high" /></span><span class="mascot-tag">코코</span></button>
+            <button class="mascot mascot-bear" data-mascot="bear" aria-label="곰 두두 소개"><span class="mascot-icon"><img src="./assets/dudu.webp" alt="" width="90" height="95" decoding="async" fetchpriority="high" /></span><span class="mascot-tag">두두</span></button>
+          </div>
+          <div class="stage-cloud cloud-one"></div><div class="stage-cloud cloud-two"></div>
+        </div>
+      </section>
+
+      <section class="content-section dashboard" aria-labelledby="todayTitle">
+        <div class="section-heading compact"><div><span class="tiny-heading">TODAY'S CHALLENGE</span><h2 id="todayTitle">오늘의 반짝 도전 <span class="ui-art-icon ui-icon-star" aria-hidden="true"></span></h2></div><span class="section-note">오늘의 기록은 하루에 한 번!</span></div>
+        <div class="dashboard-grid">
+          <article class="daily-card">
+            <div class="daily-card-copy"><span class="daily-tag"><span class="ui-art-icon ui-icon-scroll" aria-hidden="true"></span>오늘만의 60초 미션</span><h3 id="dailyGameName">오늘의 미션</h3><p id="dailyGameDesc">새로운 모험이 기다리고 있어!</p><div class="daily-card-footer"><button class="mini-cta illustrated-cta" id="dailyCardStart"><span class="button-label"><span class="ui-art-icon ui-icon-play" aria-hidden="true"></span>도전하기</span><span class="click-hand" aria-hidden="true"></span></button><span id="dailyStatus" class="daily-status">아직 도전 전</span></div></div>
+            <div class="daily-illustration"><div id="dailyEmoji">⚡</div><span>60s</span></div>
+          </article>
+          <div class="stat-group"><div class="stat-card"><span class="stat-icon yellow"><span class="ui-art-icon ui-icon-trophy" aria-hidden="true"></span></span><div><span>나의 최고 점수</span><strong id="bestScore">0<small>점</small></strong></div></div><div class="stat-card"><span class="stat-icon pink"><span class="ui-art-icon ui-icon-star" aria-hidden="true"></span></span><div><span>연속 도전</span><strong id="streakCount">0<small>일</small></strong></div></div><div class="stat-card"><span class="stat-icon lilac"><span class="ui-art-icon ui-icon-medal" aria-hidden="true"></span></span><div><span>모은 배지</span><strong id="badgeCount">0<small>개</small></strong></div></div></div>
+        </div>
+      </section>
+
+      <section class="catalog-intro" id="catalogIntro" aria-label="게임 선택 화면 소개">
+        <div><span class="tiny-heading">THE WONDERLAND GAME MAP</span><h2>오늘은 어떤 60초 모험을 떠날까?</h2><p>마음에 드는 게임을 고르면 바로 놀이법을 볼 수 있어. 일곱 가지 게임 모두 무료야!</p></div>
+        <img src="./assets/momo.webp" alt="토끼 모모가 게임을 안내해요" width="112" height="112" loading="lazy" decoding="async" />
+      </section>
+      <section class="content-section games" id="games" aria-labelledby="gamesTitle">
+        <div class="section-heading"><div><span class="tiny-heading">EXPLORE THE PARK</span><h2 id="gamesTitle" tabindex="-1">7가지 반짝 게임 <span class="ui-art-icon ui-icon-star" aria-hidden="true"></span></h2><p>마음에 드는 게임을 골라서 언제든 무제한으로 즐겨봐!</p></div><div class="filter-pills" role="group" aria-label="게임 종류 필터"><button data-filter="all" class="active">전체</button><button data-filter="reflex">순발력</button><button data-filter="brain">두뇌</button><button data-filter="observation">관찰·추리</button></div></div>
+        <div class="game-grid" id="gameGrid"></div>
+      </section>
+
+      <section class="content-section friends" id="friends" aria-labelledby="friendsTitle">
+        <div class="section-heading"><div><span class="tiny-heading">OUR LITTLE FRIENDS</span><h2 id="friendsTitle">놀이공원의 네 친구들 <span class="ui-art-icon ui-icon-leaf" aria-hidden="true"></span></h2><p>친구를 눌러 오늘의 응원을 들어봐!</p></div></div>
+        <div class="friend-grid">
+          <button class="friend-card f-cat" data-mascot="cat"><span class="friend-art"><img src="./assets/lulu.webp" alt="" loading="lazy" width="110" height="110" /></span><span class="friend-role">마법 도서관</span><strong>루루</strong><small>호기심 가득 고양이 마법사</small></button>
+          <button class="friend-card f-rabbit" data-mascot="rabbit"><span class="friend-art"><img src="./assets/momo.webp" alt="" loading="lazy" width="110" height="110" /></span><span class="friend-role">번개 경기장</span><strong>모모</strong><small>빠르고 씩씩한 토끼 탐험가</small></button>
+          <button class="friend-card f-fox" data-mascot="fox"><span class="friend-art"><img src="./assets/coco.webp" alt="" loading="lazy" width="110" height="110" /></span><span class="friend-role">미스터리 하우스</span><strong>코코</strong><small>장난꾸러기 여우 마술사</small></button>
+          <button class="friend-card f-bear" data-mascot="bear"><span class="friend-art"><img src="./assets/dudu.webp" alt="" loading="lazy" width="110" height="110" /></span><span class="friend-role">보물 창고</span><strong>두두</strong><small>다정하고 든든한 곰 수호자</small></button>
+        </div>
+      </section>
+      <div class="notice-banner"><span class="ui-art-icon ui-icon-star" aria-hidden="true"></span><p><strong>하루에 1분, 작은 즐거움!</strong> 공식 도전은 매일 한국시간 자정에 새로 열리고, 자유 플레이는 횟수 제한 없이 즐길 수 있어.</p></div>
+    </main>
+    <footer><span><span class="ui-art-icon ui-icon-star" aria-hidden="true"></span> 곰같은여우와 함께하는 오늘의 60초 놀이터</span><span>매일 반짝이는 나만의 작은 모험 · 시제품 v2.2</span></footer>
+  </div>
+
+  <div class="overlay hidden" id="overlay" aria-hidden="true"><div class="overlay-backdrop" id="overlayBackdrop"></div><section class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-top"><span class="modal-mark">WONDERLAND GAME</span><div class="modal-actions"><button class="help-button hidden" id="modalHelp" type="button" aria-label="게임 놀이법 보기" title="놀이법 (게임 일시정지)"><span class="ui-art-icon ui-icon-help" aria-hidden="true"></span></button><button class="pause-button hidden" id="modalPause" type="button" aria-label="게임 잠깐 쉬기"><span class="ui-art-icon ui-icon-music-off" aria-hidden="true"></span>잠깐 쉬기</button><button class="close-button" id="modalClose" type="button" aria-label="닫기"><span class="ui-art-icon ui-icon-close" aria-hidden="true"></span></button></div></div><div id="modalBody"></div></section><div class="pause-screen hidden" id="pauseScreen" role="dialog" aria-modal="true" aria-labelledby="pauseTitle" aria-hidden="true"><div class="pause-card"><span class="pause-icon" aria-hidden="true"><img id="pauseMascot" src="./assets/dudu.webp" alt="" width="98" height="98" /></span><h2 id="pauseTitle">잠깐 쉬어 가자!</h2><p id="pauseText">게임과 타이머가 잠시 멈췄어.</p><div class="pause-controls"><button class="action-button illustrated-primary" id="pauseResume" type="button"><span class="ui-art-icon ui-icon-play" aria-hidden="true"></span>게임 계속하기</button><button class="action-button secondary pause-exit" id="pauseExit" type="button"><span class="ui-art-icon ui-icon-scroll" aria-hidden="true"></span>놀이공원으로 나가기</button></div><small id="pauseHint">멈춘 동안에는 시간이 줄어들지 않아.</small></div></div></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js" defer></script>
+</body>
+</html>

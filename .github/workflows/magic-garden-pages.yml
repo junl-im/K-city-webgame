@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - 'MagicGarden/**'
+      - 'SixtySecondPlayground/**'
       - '.github/workflows/magic-garden-pages.yml'
   workflow_dispatch:
 
@@ -48,6 +49,18 @@ jobs:
           test -s MagicGarden/dist/assets/fox-four-directions-v1.webp
           printf '%s\n' "${GITHUB_SHA}" > MagicGarden/dist/deployed-source-sha.txt
           touch MagicGarden/dist/.nojekyll
+      - name: Verify 60-second playground and stage a separate subpage
+        shell: bash
+        run: |
+          set -euo pipefail
+          node SixtySecondPlayground/tests/smoke.cjs
+          test -s SixtySecondPlayground/dist/index.html
+          test -s SixtySecondPlayground/dist/style.css
+          test -s SixtySecondPlayground/dist/app.js
+          mkdir -p MagicGarden/dist/SixtySecondPlayground
+          cp -a SixtySecondPlayground/dist/. MagicGarden/dist/SixtySecondPlayground/
+          test -s MagicGarden/dist/SixtySecondPlayground/assets/park-v3.webp
+          echo "Independent arcade staged at /SixtySecondPlayground/"
       - name: Upload short-lived Pages deployment artifact
         uses: actions/upload-pages-artifact@v4
         with:
