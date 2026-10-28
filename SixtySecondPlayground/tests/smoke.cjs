@@ -254,7 +254,7 @@ revealAnswer(wrong,answer);
 assert.ok(wrong.classes.has('answer-wrong'),'오답 선택 시 분홍색 강조');
 assert.ok(answer.classes.has('answer-reveal'),'오답 시 진짜 정답도 표시');
 
-const quizText = js.split('const MYSTERY_QUIZ = ')[1].split('\n  const gameById')[0].trim().replace(/;$/, '');
+const quizText = js.split('const MYSTERY_QUIZ = ')[1].split('\n  // 5×4 PNG/WebP')[0].trim().replace(/;$/, '');
 const quizzes = vm.runInNewContext(`(${quizText})`);
 const questions = [];
 for (const level of [1, 2, 3]) {
