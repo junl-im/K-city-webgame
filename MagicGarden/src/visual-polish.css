@@ -120,3 +120,7 @@
 @media(prefers-reduced-motion:reduce){
  #app button{transition:none!important}
 }
+
+/* v15.1: the incubation live text uses the cat/potion paintings, not native emoji. */
+#app .garden-hatch-status .art-icon{transform:scale(.72);vertical-align:middle;margin:-8px -5px;line-height:1}
+#app .modal .modal-note{color:#64492d;word-break:keep-all}

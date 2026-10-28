@@ -67,8 +67,8 @@ function restored(): SaveData {
 
 // UI illustrations use one compact WebP atlas, never generic emoji/system glyphs or SVG.
 const GARDEN_UI_PICTURES: Record<string, string> = {
-  '🏡':'town', '🏠':'town', '🌿':'farm', '🌱':'farm', '🌲':'farm',
-  '🧪':'lab', '💧':'lab', '🥚':'nursery', '🗺️':'map', '🌉':'map',
+  '🏡':'town', '🏠':'town', '🌿':'farm', '🌱':'farm',
+  '🧪':'lab', '🥚':'nursery', '🗺️':'map',
   '🎒':'bag', '📖':'book', '💡':'help', '🍓':'berry', '✨':'potion',
   '🌟':'potion', '🐾':'event', '📤':'gift', '📥':'bag', '🐰':'rabbit',
   '🦊':'fox', '🐻':'bear', '🐱':'cat', '🎉':'gift',
@@ -1105,7 +1105,7 @@ async function start() {
   labButton.addEventListener('click', () => switchZone('lab'));
   nurseryButton.addEventListener('click', () => switchZone('nursery'));
   (document.getElementById('bag-button') as HTMLButtonElement).addEventListener('click', openBag);
-  (document.getElementById('map-button') as HTMLButtonElement).addEventListener('click', () => openModal('🗺️ 마법정원 월드', '<p>가고 싶은 지역을 눌러 바로 이동해봐!</p><div class="zone-choices"><button class="link-button" type="button" data-game-action="zone-town">🏡 중앙 마을</button><button class="link-button" type="button" data-game-action="zone-farm">🌿 큰 텃밭</button><button class="link-button" type="button" data-game-action="zone-lab">🧪 실험실</button><button class="link-button" type="button" data-game-action="zone-nursery">🥚 연구소</button></div><p class="modal-note">🌲 나무숲 · 💧 폭포와 호수 · 🌉 나무다리 · 🏠 집/뒤뜰은 준비 중이야.</p>'));
+  (document.getElementById('map-button') as HTMLButtonElement).addEventListener('click', () => openModal('🗺️ 마법정원 월드', '<p>가고 싶은 지역을 눌러 바로 이동해봐!</p><div class="zone-choices"><button class="link-button" type="button" data-game-action="zone-town">🏡 중앙 마을</button><button class="link-button" type="button" data-game-action="zone-farm">🌿 큰 텃밭</button><button class="link-button" type="button" data-game-action="zone-lab">🧪 실험실</button><button class="link-button" type="button" data-game-action="zone-nursery">🥚 연구소</button></div><p class="modal-note">숲길·계곡·나무다리는 마을 풍경에 일부 있어. 별도의 탐험 지역과 집 안 공간은 아직 준비 중이야.</p>'));
 
   (document.getElementById('book-button') as HTMLButtonElement).addEventListener('click', openBook);
   function openHelp() {
@@ -1294,7 +1294,7 @@ async function start() {
         const age = Math.max(0, Date.now() - saveData.incubatingAt);
         const remaining = Math.max(0, Math.ceil((HATCH_TIME_MS - age) / 1000));
         const percent = Math.min(100, Math.floor(age / HATCH_TIME_MS * 100));
-        liveStatus.textContent = remaining ? `🐱 고양이가 알을 돌보는 중… ${remaining}초` : '✨ 알이 반짝반짝! 부화시켜봐!';
+        setGuideIllustrations(liveStatus, remaining ? `🐱 고양이가 알을 돌보는 중… ${remaining}초` : '✨ 알이 반짝반짝! 부화시켜봐!');
         progressFill.style.width = percent + '%';
         progressFill.parentElement?.setAttribute('aria-valuenow', String(percent));
         const button = modalContent.querySelector<HTMLButtonElement>('button[data-game-action="hatch"]');

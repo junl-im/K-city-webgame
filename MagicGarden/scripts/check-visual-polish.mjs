@@ -19,3 +19,7 @@ for(const name of ['town-button','farm-button','lab-button','nursery-button','ba
  assert.ok(html.includes('id="'+name+'"'),'Navigation target missing: '+name);count++;
 }
 console.log('v15 illustrated design hierarchy and mobile regression: '+count+' assertions passed.');
+
+assert.ok(src.includes("setGuideIllustrations(liveStatus,"),'Incubation live status must use painted raster icon, not a native emoji');count++;
+assert.ok(!src.includes("'🌲':'farm'") && !src.includes("'💧':'lab'") && !src.includes("'🌉':'map'"),'No misleading illustrated icon substitutions for nature landmarks');count++;
+assert.ok(stylesheet.includes('.garden-hatch-status .art-icon'),'Real incubation illustration must not alter text line height');count++;
