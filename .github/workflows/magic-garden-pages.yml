@@ -8,6 +8,7 @@ on:
     paths:
       - 'MagicGarden/**'
       - 'SixtySecondPlayground/**'
+      - 'PhysicsPopbook/**'
       - '.github/workflows/magic-garden-pages.yml'
   workflow_dispatch:
 
@@ -61,6 +62,19 @@ jobs:
           cp -a SixtySecondPlayground/dist/. MagicGarden/dist/SixtySecondPlayground/
           test -s MagicGarden/dist/SixtySecondPlayground/assets/park-v3.webp
           echo "Independent arcade staged at /SixtySecondPlayground/"
+      - name: Verify living physics popbook and stage a separate subpage
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd PhysicsPopbook && node --test *.test.mjs dist/*.test.mjs)
+          test -s PhysicsPopbook/dist/index.html
+          test -s PhysicsPopbook/dist/app.js
+          test -s PhysicsPopbook/dist/assets/physics-surface-atlas-v17.webp
+          test -s PhysicsPopbook/dist/assets/science-nav-icons-v20.webp
+          mkdir -p MagicGarden/dist/PhysicsPopbook
+          cp -a PhysicsPopbook/dist/. MagicGarden/dist/PhysicsPopbook/
+          test -s MagicGarden/dist/PhysicsPopbook/assets/fox-professor-v03.webp
+          echo "Independent physics popbook staged at /PhysicsPopbook/"
       - name: Upload short-lived Pages deployment artifact
         uses: actions/upload-pages-artifact@v4
         with:

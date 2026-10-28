@@ -38,3 +38,17 @@
 - [마법정원](https://junl-im.github.io/K-city-webgame/) — 기존 기본 주소 유지
 - [오늘의 60초 놀이터](https://junl-im.github.io/K-city-webgame/SixtySecondPlayground/) — 7개 반짝 미니게임
 - `main`의 각 프로젝트를 따로 관리하고, 기존 공식 GitHub Pages 워크플로가 두 게임을 하나의 사이트에 서로 다른 경로로 게시합니다.
+
+## 독립 운영: 곰같은여우의 꽃맞고
+
+- [꽃맞고 개발 기준 소스](./FlowerMatgo/) — 동물 친구 화투패 v19, 싱글 맞고 게임 엔진, 모바일 UI, 자동모드·효과 및 회귀 테스트.
+- 꽃맞고의 CI는 `.github/workflows/flower-matgo-ci.yml`로 별도 구분하며, 기존 마법정원과 60초 놀이터의 Pages 배포 설정은 변경하지 않습니다.
+- 현재 꽃맞고 서비스는 [기존 Sites 주소](https://gomfox-flower-matgo.x7x8.chatgpt.site)를 그대로 사용합니다. GitHub Pages 이전 배포는 별도 검증 후 연결합니다.
+
+## 함께 운영하는 살아있는 물리도감
+
+[PhysicsPopbook/](./PhysicsPopbook/)에 **《곰같은여우의 살아있는 물리도감》** v2.6의 소스, 자체 제작 WebP 원화, 과학 계산 모형, 회귀 테스트를 독립 보관합니다.
+
+- [물리도감 GitHub Pages](https://junl-im.github.io/K-city-webgame/PhysicsPopbook/) — 마법정원·60초 놀이터와 경로 분리
+- [물리도감 지식 자산 및 저작권 고지](./PhysicsPopbook/OWNERSHIP.md)
+- **© 2026 임현준(곰같은여우). All rights reserved.** 본 프로젝트의 자체 창작 소스·캐릭터·삽화·디자인·콘텐츠 등 지식 자산의 권리는 임현준에게 귀속되며 공개 저장소라는 이유로 무단 이용이 허용되지 않습니다. 외부 오픈소스는 별도 라이선스를 따릅니다.
