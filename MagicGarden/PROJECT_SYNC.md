@@ -64,3 +64,14 @@
 - 보존: `gomfox.magic-garden.prototype.v1`, 농사 12칸/조합/부화 타이머·몬스터 JSON·Soul Online 백업 및 60초 놀이터 독립 경로 보존.
 - 다음 QA: 기기 브라우저에서 도감/연구소의 투명 아트 경계·아이콘 사이즈, 가방·조합 탭 터치와 패널 스크롤, 세계 배경의 실제 오클루전/계곡 물길 위치/지역별 오브젝트 원화 보강.
 - **완료 구분**: GitHub 코드·CI·배포 성공이 확인되었고, 실제 iPhone/Android/Whale/Chrome 육안 플레이 스크린샷 QA는 아직 미완료. 3곳 로그를 같은 커밋으로 기록하며 동기화는 업데이트 시 수동 교차 저장.
+
+## v19 세계가 살아 움직이는 라스터 환경·반응 효과 — 2026-10-28
+
+- **실제 구현 커밋:** [6b05128](https://github.com/junl-im/K-city-webgame/commit/6b051284899c0bd65f4c8d647f701a60bd2bad31). `src/painted-environment.ts` 신규, `src/main.ts` 환경/효과를 기존 라스터 원화 위주로 교체.
+- **원화 소스:** v18에 제작하고 Google Drive에 보관한 투명 [8종 WebP](https://drive.google.com/file/d/1utuMe5wCOrrqh0bA_wwz5tnUHLbiPAsd/view). 시드·딸기·정수·알·잎새콩/방울몽/반짝몽·꽃. 신규 이미지/SVG/기본 선형 아이콘 **0개**.
+- **지역별 환경**: 마을 꽃/마법빛 5개, 큰 텃밭 꽃/새싹/딸기 5개, 조합실 정수/꽃 4개, 연구소 알/꽃 4개. 원화 컷아웃이 은은히 이동·명도 호흡하며 다른 지역은 숨김. 그림은 캐릭터 아래 레이어에 표시되고 포인터 이벤트를 가로채지 않음.
+- **플레이 반응**: 씨앗 심기·수확·마법 정수·알 제작·부화 효과도 이전 PixiJS Graphics의 원형 벡터풍 파티클 대신 손그림 WebP 조각 스프라이트 사용. 파티클 60개 상한, 지역 이동 때 남은 효과 해제, 보조 원화 로딩이 안 되면 게임 진행 자체는 가능.
+- **모바일**: 환경 좌표 갱신 최대 20fps, 현재 지역만 갱신, `prefers-reduced-motion`에서 환경은 정지 삽화로 표시·보상 움직임 중단. 저장 데이터 키 `gomfox.magic-garden.prototype.v1`, 12칸 농사/조합/부화/몬스터/JSON 스키마 변경 없음. Soul Online/60초 놀이터 별도 영역도 보존.
+- **자동 검증:** [v19 소스 CI #40677134127](https://github.com/junl-im/K-city-webgame/actions/runs/40677134127) 성공, [공식 Pages #40677134149](https://github.com/junl-im/K-city-webgame/actions/runs/40677134149) 성공. `scripts/check-painted-environment-v19.mjs`가 라스터 공유/지역별 앵커/기하학 아이콘 제거/모션·터치/상한 조건 검사.
+- **남은 QA**: 환경 삽화 위치가 원화 속 실제 정원길/건물/다리·캐릭터와 겹치지 않는지 Chrome/Whale/iOS/Android 스크린샷 직접 비교. 계곡 수면/다리 가림과 솥·둥지 자체 애니메이션/환경 물리 충돌은 별도 작업으로 남아 있음. **CI와 배포 성공만으로 실화면 검수 완료라고 말하지 않는다.**
+- **3곳 동기화:** 최신 v19 구현 SHA와 위 검사/원화 보관 링크/QA 미완료를 이 파일, Notion MASTER, Google Docs MASTER에 같은 날짜로 기록.
