@@ -15,13 +15,13 @@
 
 ## 게임 확인
 
-- 게임 공식 소스: [MagicGarden/](./MagicGarden)
-- 마법정원 비주얼 최종 기준: [VISUAL_MASTER.md](./MagicGarden/VISUAL_MASTER.md)
-- 배포 및 점검: [MagicGarden/DEPLOY_PAGES.md](./MagicGarden/DEPLOY_PAGES.md)
-- GitHub Pages 주소(활성화 후): https://junl-im.github.io/K-city-webgame/
-- 관리자 최초 1회 [Pages 설정](https://github.com/junl-im/K-city-webgame/settings/pages): Source `Deploy from a branch`, Branch `magic-garden-pages`, Folder `/(root)`
+- 공식 게임 소스: [MagicGarden/](./MagicGarden)
+- 비주얼 기준: [VISUAL_MASTER.md](./MagicGarden/VISUAL_MASTER.md)
+- [실제 GitHub Pages 배포 안내](./MagicGarden/DEPLOY_PAGES.md)
+- 예상 접속 주소: https://junl-im.github.io/K-city-webgame/
 
-`main`에 마법정원 변경사항을 푸시하면 [전용 Actions](https://github.com/junl-im/K-city-webgame/actions)에서 자동 빌드·SVG 금지 검사 후 `magic-garden-pages`를 교체합니다. Actions 아티팩트는 업로드하지 않습니다.
+**실제 사이트 배포에는 저장소 관리자가 Pages의 Source를 `GitHub Actions`로 설정해야 한다.**  
+파일을 `magic-garden-pages` 브랜치에 올린 것만으로 GitHub Pages가 열리지 않는 문제가 확인되어, `main` 자동화는 공식 `actions/deploy-pages` 방식으로 교체했다. 이전 브랜치는 보관 스냅샷이며 자동 사이트 게시를 수행하지 않는다.
 
 ## 보존한 원칙
 

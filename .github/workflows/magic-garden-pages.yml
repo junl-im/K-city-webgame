@@ -1,7 +1,6 @@
-name: Magic Garden — independent GitHub Pages build
+name: Magic Garden — actual GitHub Pages deployment
 
-# Main is now the dedicated Magic Garden source. Soul Online is backed up on archive/soul-online-20261028.
-# Publish only built assets to magic-garden-pages, never to main.
+# Publishing build files to a branch with GITHUB_TOKEN is not a Pages deployment.
 on:
   push:
     branches:
@@ -12,35 +11,33 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: magic-garden-site-publish
-  cancel-in-progress: true
+  group: magic-garden-real-pages
+  cancel-in-progress: false
 
 jobs:
-  publish-magic-garden:
+  build:
     if: github.repository == 'junl-im/K-city-webgame' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 18
     steps:
-      - name: Checkout the Magic Garden main source
+      - name: Checkout Magic Garden only
         uses: actions/checkout@v4
-
-      - name: Node.js 22
+      - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-
-      - name: Install only Magic Garden dependencies
+      - name: Install game dependencies
         working-directory: MagicGarden
         run: npm install --no-audit --no-fund
-
-      - name: Build and verify game
+      - name: Build and run all game checks
         working-directory: MagicGarden
         run: npm run build
-
-      - name: Verify painted creek and stand-alone output
+      - name: Verify site assets and record version
         shell: bash
         run: |
           set -euo pipefail
@@ -51,13 +48,23 @@ jobs:
           test -s MagicGarden/dist/assets/fox-four-directions-v1.webp
           printf '%s\n' "${GITHUB_SHA}" > MagicGarden/dist/deployed-source-sha.txt
           touch MagicGarden/dist/.nojekyll
-          echo "MagicGarden complete raster-only build ready for Pages"
-
-      - name: Publish only the game build to the isolated site branch
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Upload short-lived Pages deployment artifact
+        uses: actions/upload-pages-artifact@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: magic-garden-pages
-          publish_dir: ./MagicGarden/dist
-          commit_message: "deploy(magic-garden): ${{ github.sha }}"
-          enable_jekyll: false
+          path: MagicGarden/dist
+          retention-days: 1
+
+  deploy:
+    name: Publish actual GitHub Pages website
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.publish.outputs.page_url }}
+    steps:
+      - name: Verify GitHub Pages is enabled
+        uses: actions/configure-pages@v5
+      - name: Deploy website to GitHub Pages
+        id: publish
+        uses: actions/deploy-pages@v4
