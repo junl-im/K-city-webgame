@@ -237,3 +237,22 @@
   #app .area{min-height:45px;flex-direction:row;padding:1px 2px}
   #app .area .art-icon{transform:scale(.59);margin:-6px}
 }
+
+/* v23.1: separate actual PNG paintings. Never stretch their pixel geometry. */
+#app #town-button,#app #farm-button,#app #lab-button,#app #nursery-button{
+  background-position:center,center!important;
+  background-repeat:no-repeat!important;
+  background-size:contain,auto!important;
+}
+#app #town-button{
+  background-image:url('/assets/ui-v23-town.png'),linear-gradient(125deg,#fffaf0,#eed7b8)!important;
+}
+#app #farm-button{
+  background-image:url('/assets/ui-v23-farm.png'),linear-gradient(140deg,#fbfff1,#d8edc7)!important;
+}
+#app #lab-button{
+  background-image:url('/assets/ui-v23-lab.png'),linear-gradient(127deg,#fbf7ff,#e8d9f4)!important;
+}
+#app #nursery-button{
+  background-image:url('/assets/ui-v23-nursery.png'),linear-gradient(142deg,#fffaf1,#f8dcd5)!important;
+}
