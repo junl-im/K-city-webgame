@@ -307,3 +307,29 @@
   #app .hud-stats>span{padding-left:21px}
   #app .guide{padding:8px 11px}
 }
+
+/* v23.4: three independent PNG controls for creek and popup chrome. */
+#app .creek-visit{
+  background-image:url('/assets/ui-v23-creek.png')!important;
+  background-position:center!important;background-size:100% auto!important;
+  border:0!important;border-radius:0;box-shadow:none;
+  padding-left:17px;
+}
+#app .creek-visit-picture{display:none}
+#app .modal-head{
+  background-image:url('/assets/ui-v23-modal-title.png')!important;
+  background-position:center!important;background-size:100% auto!important;
+  border:0!important;border-radius:0;box-shadow:none;
+  padding-left:15px;
+}
+#app #modal-close{
+  background-image:url('/assets/ui-v23-close.png')!important;
+  background-position:center!important;background-size:auto 100%!important;
+  background-color:transparent!important;
+  border:0!important;border-radius:50%;box-shadow:none;
+}
+#app #modal-close .art-icon{display:none}
+@media(max-width:760px){
+  #app .creek-visit{padding-left:12px}
+  #app .modal-head{padding-left:10px}
+}
