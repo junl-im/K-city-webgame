@@ -161,17 +161,50 @@ function updateHud() {
   nurseryButton.classList.toggle('active', saveData.zone === 'nursery');
   creekVisitButton.hidden = saveData.zone !== 'town';
 }
+// Keep keyboard interaction inside the picture-book panel, including on rerenders.
+const modalCloseButton = document.getElementById('modal-close') as HTMLButtonElement;
+let focusBeforeModal: HTMLElement | null = null;
 function openModal(title: string, content: string) {
-  if (modalRoot.classList.contains('hidden') || modalTitle.dataset.modalTitle !== title) modalStatus.textContent = '';
+  const opening = modalRoot.classList.contains('hidden');
+  const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  const previousAction = !opening && active && modalContent.contains(active) ? active.dataset.gameAction : undefined;
+  if (opening) focusBeforeModal = active;
+  if (opening || modalTitle.dataset.modalTitle !== title) modalStatus.textContent = '';
   modalTitle.dataset.modalTitle = title;
   modalTitle.innerHTML = illustratedText(title);
   modalContent.innerHTML = illustratedText(content);
   modalRoot.classList.remove('hidden');
+  if (opening) modalCloseButton.focus();
+  else if (previousAction) {
+    const replacement = Array.from(modalContent.querySelectorAll<HTMLElement>('[data-game-action]'))
+      .find((item) => item.dataset.gameAction === previousAction && !item.hasAttribute('disabled'));
+    (replacement ?? modalCloseButton).focus();
+  } else if (!modalRoot.contains(document.activeElement)) modalCloseButton.focus();
 }
-function closeModal() { modalRoot.classList.add('hidden'); }
-(document.getElementById('modal-close') as HTMLButtonElement).addEventListener('click', closeModal);
+function closeModal() {
+  if (modalRoot.classList.contains('hidden')) return;
+  modalRoot.classList.add('hidden');
+  const original = focusBeforeModal;
+  focusBeforeModal = null;
+  if (original?.isConnected && !modalRoot.contains(original)) original.focus();
+}
+modalCloseButton.addEventListener('click', closeModal);
 modalRoot.addEventListener('click', (event) => { if (event.target === modalRoot) closeModal(); });
-window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !modalRoot.classList.contains('hidden')) closeModal(); });
+window.addEventListener('keydown', (event) => {
+  if (modalRoot.classList.contains('hidden')) return;
+  if (event.key === 'Escape') { event.preventDefault(); closeModal(); return; }
+  if (event.key !== 'Tab') return;
+  const focusable = Array.from(modalRoot.querySelectorAll<HTMLElement>(
+    'button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex]:not([tabindex="-1"])'
+  )).filter((item) => item.tabIndex >= 0 && item.getClientRects().length > 0);
+  if (!focusable.length) { event.preventDefault(); modalCloseButton.focus(); return; }
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  if (event.shiftKey && (document.activeElement === first || !modalRoot.contains(document.activeElement))) {
+    event.preventDefault(); last.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || !modalRoot.contains(document.activeElement))) {
+    event.preventDefault(); first.focus();
+  }
+});
 
 function rand(seed: number) {
   let current = seed >>> 0;
