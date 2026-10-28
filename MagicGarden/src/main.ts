@@ -7,6 +7,7 @@ import './visual-polish.css';
 import './button-art-v16.css';
 import './button-proportions-v17.css';
 import './illustrated-items-v18.css';
+import './unique-surfaces-v23.css';
 import { resolveHorizontalFacing, resolveWalkHeading, type HorizontalFacing, type WalkHeading } from './walk-motion';
 import { advanceMovement, calculateCameraTarget, smoothFollow } from './movement-camera';
 import { isWalkable, planGardenRoute, segmentIsWalkable, type Point } from './garden-navigation';
