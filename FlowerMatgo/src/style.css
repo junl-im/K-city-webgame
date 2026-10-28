@@ -2817,3 +2817,37 @@ button:disabled { cursor: not-allowed; opacity:.48; }
 @media (prefers-reduced-motion:reduce) {
   .turn-pair-contact {animation:none;opacity:0;}
 }
+
+/* v34 — use the otherwise empty phone-table width for the cards themselves.
+   Do not change the original raster artwork, board, or arrangement. Compact
+   short phones keep v32's tested dimensions so their capture rack and hand do
+   not collide. A visible 10-card fan always fits inside 320–430px viewports. */
+@media (max-width:650px) and (min-height:701px) {
+  .scene--game .my-hand .hwatu {
+    width:clamp(58px,18.6vw,80px);
+    margin-left:clamp(-43px,-10vw,-32px);
+  }
+  .scene--game .my-hand .hwatu:first-child {margin-left:0;}
+  .scene--game .floor-area[data-density="normal"] .hwatu {width:clamp(55px,17.3vw,74px);}
+  .scene--game .floor-area[data-density="busy"] .hwatu {width:clamp(48px,15.2vw,65px);}
+  .scene--game .floor-area[data-density="packed"] .hwatu {width:clamp(43px,13.2vw,57px);}
+}
+@media (max-width:650px) and (min-height:561px) and (max-height:700px) {
+  .scene--game .my-hand .hwatu {
+    width:clamp(54px,17.2vw,69px);
+    margin-left:clamp(-39px,-9.5vw,-30px);
+  }
+  .scene--game .my-hand .hwatu:first-child {margin-left:0;}
+  .scene--game .floor-area[data-density="normal"] .hwatu {width:clamp(49px,15.8vw,63px);}
+}
+/* Folded screens under 320px need a tighter fan than regular phones. */
+@media (max-width:319px) and (min-height:561px) {
+  .scene--game .my-hand .hwatu {width:clamp(45px,16vw,52px);margin-left:-27px;}
+  .scene--game .my-hand .hwatu:first-child {margin-left:0;}
+}
+/* Touch devices must not retain a desktop hover rise over a neighbouring card. */
+@media (hover:none) and (pointer:coarse) {
+  .scene--game .my-hand .hwatu--interactive:hover:not(.hwatu--finger-pressed) {
+    transform:none;
+  }
+}
