@@ -75,3 +75,13 @@
 - **자동 검증:** [v19 소스 CI #40677134127](https://github.com/junl-im/K-city-webgame/actions/runs/40677134127) 성공, [공식 Pages #40677134149](https://github.com/junl-im/K-city-webgame/actions/runs/40677134149) 성공. `scripts/check-painted-environment-v19.mjs`가 라스터 공유/지역별 앵커/기하학 아이콘 제거/모션·터치/상한 조건 검사.
 - **남은 QA**: 환경 삽화 위치가 원화 속 실제 정원길/건물/다리·캐릭터와 겹치지 않는지 Chrome/Whale/iOS/Android 스크린샷 직접 비교. 계곡 수면/다리 가림과 솥·둥지 자체 애니메이션/환경 물리 충돌은 별도 작업으로 남아 있음. **CI와 배포 성공만으로 실화면 검수 완료라고 말하지 않는다.**
 - **3곳 동기화:** 최신 v19 구현 SHA와 위 검사/원화 보관 링크/QA 미완료를 이 파일, Notion MASTER, Google Docs MASTER에 같은 날짜로 기록.
+
+## v20 손그림 전경 화단·안내판 Y-깊이 개선 — 2026-10-28
+
+- 기능 커밋: https://github.com/junl-im/K-city-webgame/commit/032bce4f4431118209a17ba5e20cbc78fe05badc ; TypeScript import 교정: https://github.com/junl-im/K-city-webgame/commit/ae5312ca17b0e841d70bd61b60a6171c4537da95 .
+- v19 환경 꽃이 캐릭터 뒤에 고정되고 안내판 gate/station은 zIndex 10000/10001로 무조건 앞에 떠 있던 문제 개선.
+- src/garden-depth.ts : 네 지역 실제 손그림 전경 꽃/새싹/열매 총 10개 앵커, 캐릭터의 발 위치와 동일한 Y 기준 깊이 정렬. 마을/농장/실험실/연구소에 각각 고유 장식. 길 안내판과 조합/부화 안내판도 접지 좌표 기준으로 깊이 보정.
+- 신규 그림이나 SVG 없음. 기존 v18 WebP 8컷 아틀라스(Drive https://drive.google.com/file/d/1utuMe5wCOrrqh0bA_wwz5tnUHLbiPAsd/view ) 재사용. 그림의 터치 투과, 지역별 표시/숨김, 저속 20fps 갱신 공유, OS 움직임 줄이기 지원.
+- 저장키 gomfox.magic-garden.prototype.v1, 12칸 텃밭, 조합/알/부화/몬스터, JSON, Soul Online 백업 브랜치 및 60초 놀이터 독립 소스 변경 없음.
+- 최초 v20 CI #40692086727에서 footDepth import가 누락되어 TypeScript 실패 후 수정. 최종 소스 CI https://github.com/junl-im/K-city-webgame/actions/runs/40692214924 성공, Pages https://github.com/junl-im/K-city-webgame/actions/runs/40692214936 성공. check-garden-depth-v20.mjs 회귀검사 73건 통과.
+- 미완료: 전체가 하나의 배경 이미지인 건물/큰 나무/다리 난간의 픽셀 단위 가림은 미구현. 분리된 전경 원화를 확보한 뒤 마스크를 정합해야 함. 실제 Chrome/Whale/Android/iPhone의 그림 위치·캐릭터 겹침 실기기 스크린샷 검수도 미실시. 배포 성공과 육안 QA를 구분.
