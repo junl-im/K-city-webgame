@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import {inertiaReading,frictionReading,buoyancyReading,pendulumReading,heatReading} from './dist/everyday-core.mjs';
+
+assert.ok(inertiaReading(5,'gentle').stopDistanceMeters > inertiaReading(5,'sudden').stopDistanceMeters);
+assert.ok(inertiaReading(5,'sudden').stopDistanceMeters > inertiaReading(2,'sudden').stopDistanceMeters);
+assert.throws(()=>inertiaReading(-1));
+assert.equal(frictionReading('rough',10).sliding,false);
+assert.equal(frictionReading('ice',10).sliding,true);
+assert.ok(frictionReading('rough',40).accelerationMetersPerSecondSquared > 0);
+assert.throws(()=>frictionReading('wood',20));
+assert.equal(buoyancyReading('duck',0).floats,true);
+assert.equal(buoyancyReading('stone',30).floats,false);
+assert.ok(buoyancyReading('duck',30).submergedFraction < buoyancyReading('duck',0).submergedFraction);
+assert.ok(pendulumReading(1.6,'earth').periodSeconds > pendulumReading(.4,'earth').periodSeconds);
+assert.ok(pendulumReading(1,'moon').periodSeconds > pendulumReading(1,'earth').periodSeconds);
+assert.ok(Math.abs(pendulumReading(1,'earth').periodSeconds-2.006)<.01);
+assert.ok(heatReading(10,70,200).meltedFraction < 1);
+assert.equal(heatReading(70,15,200).allMelted,true);
+assert.ok(heatReading(70,15,200).finalTempC > heatReading(30,15,200).finalTempC);
+assert.throws(()=>heatReading(70,15,300));
+console.log('PASS: inertia, friction, buoyancy, pendulum, heat model calculations');

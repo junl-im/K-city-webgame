@@ -1,0 +1,607 @@
+:root{--ink:#f5f7ff;--muted:#afb9d5;--deep:#071226;--line:rgba(174,198,255,.17);--mint:#8de7d4;--gold:#f2d194;--panel:rgba(16,29,59,.88);font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;color:var(--ink);background:var(--deep)}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0}body{overflow:hidden}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:2px solid #fff;outline-offset:3px}button:disabled{opacity:.45;cursor:not-allowed}[hidden]{display:none!important}
+.app-shell{position:relative;isolation:isolate;min-height:100svh;height:100dvh;overflow:hidden;background:radial-gradient(ellipse at 50% 36%,#243c68 0%,#121f43 32%,#09142e 68%,#050c1e 100%)}
+.starfield{position:absolute;inset:0;pointer-events:none;opacity:.8;background-image:radial-gradient(1px 1px at 8% 13%,#fff 98%,transparent),radial-gradient(1px 1px at 22% 34%,#b7f5ec 98%,transparent),radial-gradient(2px 2px at 82% 15%,#ffe7a2 98%,transparent),radial-gradient(1px 1px at 64% 7%,#fff 98%,transparent),radial-gradient(1px 1px at 74% 55%,#fff 98%,transparent),radial-gradient(1px 1px at 12% 75%,#fff 98%,transparent),radial-gradient(2px 2px at 90% 78%,#b6c5ff 98%,transparent)}
+.screen{position:absolute;inset:0;min-height:0}.home-screen{display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:max(18px,env(safe-area-inset-top)) 24px max(15px,env(safe-area-inset-bottom));background:radial-gradient(ellipse at 50% 80%,rgba(27,139,150,.16),transparent 56%)}
+.home-topbar{display:flex;justify-content:space-between;align-items:center;width:min(1180px,100%);gap:12px;font-size:13px;color:#e7eefa}.brand{font-weight:750;letter-spacing:-.03em}.brand-emblem{display:inline-grid;place-items:center;width:31px;height:31px;border:1px solid #a9bfdd70;border-radius:50%;color:var(--gold);background:#24385e;margin-right:8px}.version-pill{border:1px solid var(--line);padding:7px 12px;border-radius:40px;color:#bcc9df;background:#ffffff0b;white-space:nowrap}
+.home-content{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;flex-direction:column;width:min(760px,100%);position:relative;text-align:center;gap:0}.eyebrow,.overline{letter-spacing:.12em;color:var(--mint);font-size:12px;font-weight:800}.eyebrow{margin:0 0 9px}.home-content h1{font-family:Georgia,"Nanum Myeongjo",serif;line-height:1.13;font-size:clamp(44px,6vw,72px);font-weight:800;letter-spacing:-.065em;margin:0;text-shadow:0 4px 32px #0008}.home-content h1 span{color:#ffe2a1;text-shadow:0 0 30px #ffd98855}.home-intro{margin:15px 0 0;color:#c7d2ea;font-size:clamp(13px,1.7vw,17px);line-height:1.65}
+.hero-art{position:relative;flex:0 1 auto;width:min(670px,100%);height:clamp(210px,33vh,330px);margin-top:0;perspective:950px;filter:drop-shadow(0 24px 45px #0007)}.book-glow{position:absolute;bottom:7%;left:17%;width:66%;height:65%;background:radial-gradient(ellipse,#85ffe6a8 0%,#d9bcff3f 35%,transparent 70%);filter:blur(25px);animation:glow 5s ease-in-out infinite}
+.book-base{position:absolute;left:10%;right:10%;bottom:8%;height:35%;transform:rotateX(39deg);filter:drop-shadow(0 24px 15px #000a)}.book-page{position:absolute;bottom:0;width:50%;height:100%;border:6px solid #e2bf80;border-bottom:15px solid #977443;box-shadow:inset 0 -7px 0 #d8c29e,inset 0 0 28px #f8e8b6; background:repeating-linear-gradient(0deg,transparent 0px,transparent 16px,#d8c09336 17px),linear-gradient(135deg,#fff4d6,#f4e7c7 65%,#ead3a9);border-radius:10px 60px 9px 12px}.left-page{left:0;transform:skewY(-7deg);border-radius:70px 14px 10px 10px}.right-page{right:0;transform:skewY(7deg)}.book-spine{position:absolute;left:49%;width:2%;top:0;bottom:0;background:linear-gradient(90deg,#4d402e,#fff1bb,#635238);filter:blur(1px)}
+.planet{position:absolute;border-radius:50%;box-shadow:inset -12px -13px 18px #0008,0 0 24px #64fff788;animation:bob 5s ease-in-out infinite}.planet-a{width:26%;aspect-ratio:1;left:18%;top:12%;background:radial-gradient(circle at 28% 24%,#b6fff0,#63c7c7 33%,#246b99 60%,#122957 100%)}.planet-a:after{content:"";position:absolute;inset:20% 20% 55% 5%;background:#b6d782;border-radius:61% 23% 64% 18%;transform:rotate(-20deg);opacity:.75}.planet-b{width:19%;aspect-ratio:1;right:22%;top:24%;background:radial-gradient(circle at 30% 25%,#fff2c5,#e9a679 55%,#aa5680)}.planet-b:after{content:"";position:absolute;left:-34%;top:43%;width:170%;height:22%;border:8px solid #f6dba8cc;border-radius:50%;transform:rotate(-25deg)}.planet-c{width:9%;aspect-ratio:1;left:55%;top:6%;background:radial-gradient(circle at 25% 25%,#fff5cc,#8ad9ef 40%,#5268c0 95%);animation-delay:-2s}
+.orbit{position:absolute;border:1px solid #b0fef54d;border-radius:50%;transform:rotate(-14deg);pointer-events:none}.orbit-a{width:57%;height:46%;left:18%;top:27%}.orbit-b{width:38%;height:65%;left:32%;top:14%;transform:rotate(32deg)}.magic-dust{position:absolute;color:#fff3bf;text-shadow:0 0 20px #ffe49b;font-size:30px;animation:twinkle 3s infinite}.dust-one{left:10%;top:34%}.dust-two{right:7%;top:10%;animation-delay:1s}.dust-three{left:62%;top:65%;font-size:16px;animation-delay:2s}
+.home-action-group{position:relative;z-index:2}.btn{border:1px solid transparent;min-height:49px;padding:12px 19px;border-radius:14px;font-weight:850;letter-spacing:-.025em;transition:transform .16s ease,filter .16s ease}.btn:active{transform:scale(.97)}.btn-primary{background:linear-gradient(135deg,#f8d39d,#f5ae72);color:#302134;box-shadow:0 10px 24px #ecb46e2e}.btn-primary:hover{filter:brightness(1.07)}.btn-large{min-width:235px;padding:15px 27px;border-radius:18px;font-size:17px}.free-note{font-size:12px;color:#9db0cb;margin:11px 0 0}.mascot-strip{display:flex;gap:14px;justify-content:center;align-items:center;padding-top:10px}.mascot{display:flex;align-items:center;gap:6px;font-size:23px;filter:drop-shadow(0 4px 8px #0008)}.mascot small{font-size:11px;color:#b4c7d8}
+.lab-screen{display:flex;flex-direction:column;padding:max(12px,env(safe-area-inset-top)) max(16px,3vw) max(9px,env(safe-area-inset-bottom));gap:12px}.lab-header{display:flex;align-items:center;gap:15px;min-height:55px;max-width:1500px;width:100%;margin:auto}.lab-heading{flex:1}.lab-heading h2{margin:1px 0 0;font-size:21px;letter-spacing:-.05em}.overline{font-size:10px;color:#80d5d0}.icon-button{min-width:41px;height:41px;border-radius:13px;color:#f3f6ff;background:#ffffff15;border:1px solid var(--line);font-weight:900;font-size:21px}.lab-body{min-height:0;flex:1;max-width:1500px;width:100%;margin:auto;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(290px,.8fr);gap:16px}.lab-main{min-height:0;display:flex;flex-direction:column;gap:9px}.mission-bubble{display:flex;align-items:center;gap:12px;background:linear-gradient(120deg,#1c3b5dc9,#1f284bcc);border:1px solid #75d0d53d;padding:10px 15px;border-radius:18px}.fox-avatar{font-size:33px;flex:none}.mission-bubble strong{font-size:12px;color:#f5deb0}.mission-bubble p{font-size:14px;font-weight:750;line-height:1.3;margin:3px 0 0}.scene-frame{position:relative;min-height:0;flex:1;overflow:hidden;border-radius:22px;border:1px solid #9fd6e445;box-shadow:inset 0 0 45px #6fc0cb14,0 20px 35px #0005;background:radial-gradient(ellipse at 52% 43%,#1a5970a3,#183152 37%,#111d3b 72%,#101a31)}#sceneCanvas{display:block;width:100%;height:100%;touch-action:none}.scene-topline,.scene-bottomline{position:absolute;left:13px;right:13px;display:flex;justify-content:space-between;align-items:center;gap:9px;pointer-events:none}.scene-topline{top:12px}.scene-bottomline{bottom:12px;color:#9fbed2;font-size:11px}.scene-bottomline button{pointer-events:auto;color:#d4ebf5;border:1px solid #a3c8dc42;background:#0c2339a9;border-radius:10px;padding:6px 10px;font-size:11px}.scene-topline>span:first-child{font-size:12px;font-weight:800;color:#e2f4ff;padding:8px 11px;border-radius:12px;background:#0c2748b7}.scene-tag{font-size:10px;color:#94e6da;background:#0a304083;padding:6px 9px;border-radius:30px;letter-spacing:.1em}.object-label{position:absolute;font-size:12px;display:flex;gap:7px;align-items:center;background:#061b30ac;border:1px solid #ffffff21;padding:7px 10px;border-radius:10px;pointer-events:none;top:23%}.object-label strong{color:#e3fbd2}.label-ball{left:9%}.label-feather{right:9%}.time-chip{position:absolute;left:50%;transform:translateX(-50%);bottom:42px;font-size:12px;white-space:nowrap;background:#091c35a8;border:1px solid #a3e6dd41;border-radius:22px;padding:8px 12px}.time-chip strong{color:#f6d699;margin-left:6px}.status-ribbon{text-align:center;border:1px solid #a9cde62b;border-radius:13px;background:#0e233fa6;color:#c9deee;padding:9px 12px;min-height:38px;font-size:12px}.status-ribbon b{color:var(--gold)}.scene-fallback{position:absolute;bottom:78px;left:50%;transform:translateX(-50%);font-size:11px;line-height:1.5;text-align:center;background:#352634e8;padding:8px 12px;border-radius:12px;width:min(80%,320px)}
+.control-panel{display:flex;min-height:0;flex-direction:column;gap:14px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#59738a transparent;border-radius:22px;padding:19px;background:var(--panel);border:1px solid var(--line);box-shadow:0 20px 45px #0004}.control-panel-heading{display:flex;justify-content:space-between;align-items:center}.control-panel h3{margin:3px 0 0;font-size:21px;letter-spacing:-.045em}.panel-star{font-size:28px;color:var(--gold)}.control-group{display:flex;flex-direction:column;gap:8px}.group-label,.range-label{font-size:13px;font-weight:750;color:#e0ebf5}.segmented{display:flex;gap:5px;border-radius:13px;background:#0b1935c7;padding:5px}.choice{border:1px solid transparent;flex:1;background:transparent;border-radius:10px;min-height:40px;color:#aebed4;font-size:13px;font-weight:750}.choice.active{color:#152739;background:linear-gradient(130deg,#9ceadf,#b4e9e3);box-shadow:0 5px 14px #60ccb641}.control-help{font-size:11px;line-height:1.5;color:#9daccc;margin:0}.range-label{display:flex;justify-content:space-between}.range-label strong{color:var(--mint)}input[type=range]{accent-color:#94e8d6;width:100%;cursor:pointer}.range-endpoints{display:flex;justify-content:space-between;font-size:10px;color:#8ea4bd}.action-row{display:flex;gap:9px;margin-top:auto}.action-row .btn-secondary{background:#172949;border-color:#5c799859;color:#e1e9fa;min-width:105px}.action-row .btn-primary{flex:1}.why-button{font-size:12px;color:#f6dcaf;background:#553c282f;border:1px solid #f4c77b47;padding:10px;border-radius:12px;font-weight:800}.lab-footer{display:flex;justify-content:space-between;gap:10px;color:#8eabc2;font-size:10px;max-width:1500px;width:100%;margin:auto}
+.science-dialog{max-width:min(450px,calc(100vw - 30px));border-radius:24px;padding:23px;border:1px solid #9be4d779;box-shadow:0 28px 90px #000b;background:linear-gradient(155deg,#172e4c,#13223c 70%,#1f2341);color:white}.science-dialog::backdrop{background:#010916c9;backdrop-filter:blur(8px)}.dialog-header{display:flex;justify-content:space-between;align-items:center}.dialog-eyebrow{font-size:12px;color:var(--mint);font-weight:800}.dialog-close{width:35px;height:35px;border:1px solid #a1b6cd4f;border-radius:50%;background:#253954;color:white;font-size:23px}.science-dialog h2{font-size:23px;letter-spacing:-.04em}.science-dialog p{font-size:14px;line-height:1.75;color:#d6e2f0}.formula-card{display:flex;flex-direction:column;align-items:center;gap:7px;padding:16px;background:#8ff0dc15;border:1px solid #8ff0dc45;border-radius:16px}.formula-card span,.formula-card small{font-size:11px;color:#aed8d0}.formula-card strong{font-size:24px;color:#fff1bd;font-family:Georgia,serif}.science-dialog .science-note{font-size:12px;color:#a2b5cc}.dialog-confirm{width:100%;margin-top:8px}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}@keyframes twinkle{0%,100%{opacity:.55;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}@keyframes glow{0%,100%{opacity:.55}50%{opacity:.95}}
+@media(max-width:760px){.home-screen{padding-left:14px;padding-right:14px}.home-topbar{font-size:11px}.brand-emblem{width:27px;height:27px;margin-right:3px}.version-pill{font-size:10px;padding:6px 8px}.home-content h1{font-size:clamp(42px,10vw,58px)}.home-intro{font-size:13px}.hero-art{height:min(35vh,290px);min-height:185px;width:100%;margin-top:7px}.mascot-strip{gap:12px}.mascot{flex-direction:column;gap:0;font-size:23px}.mascot small{font-size:9px}.lab-screen{padding:env(safe-area-inset-top) 10px max(8px,env(safe-area-inset-bottom));gap:7px}.lab-header{min-height:50px;gap:9px}.lab-heading h2{font-size:17px}.lab-body{display:flex;flex-direction:column;gap:8px}.lab-main{flex:1 1 auto;min-height:180px;gap:7px}.mission-bubble{padding:7px 10px;border-radius:13px}.fox-avatar{font-size:24px}.mission-bubble strong{font-size:10px}.mission-bubble p{font-size:12px}.scene-frame{min-height:180px;border-radius:16px}.object-label{font-size:10px;top:23%;padding:5px 6px;gap:3px}.label-ball{left:4%}.label-feather{right:4%}.scene-topline{top:8px;left:8px;right:8px}.scene-topline>span:first-child{font-size:10px;padding:5px 7px}.scene-tag{font-size:9px}.time-chip{bottom:28px;font-size:11px;padding:5px 9px}.scene-bottomline{bottom:6px;left:8px;right:8px;font-size:9px}.scene-bottomline button{padding:3px 6px;font-size:9px}.status-ribbon{font-size:10px;padding:6px;min-height:29px}.control-panel{flex:0 0 auto;max-height:38vh;border-radius:17px;padding:11px;gap:9px;overflow-y:auto}.control-panel-heading h3{font-size:16px}.control-panel-heading .overline{font-size:9px}.panel-star{font-size:18px}.control-group{gap:5px}.group-label,.range-label{font-size:11px}.segmented{padding:3px}.choice{min-height:33px;font-size:11px}.control-help{font-size:10px}.action-row .btn{min-height:38px;padding:8px;font-size:12px}.why-button{font-size:11px;padding:8px}.lab-footer{font-size:9px}.scene-fallback{font-size:10px;bottom:50px}}
+@media(max-width:760px) and (max-height:720px){.home-content .home-intro{margin-top:8px}.hero-art{height:27vh;min-height:150px}.mascot-strip{padding-top:2px}.lab-footer{display:none}.control-panel{max-height:36vh}.mission-bubble{display:none}.scene-frame{min-height:160px}.lab-header{min-height:40px}}
+@media(max-height:560px) and (orientation:landscape){.home-content{flex-direction:row;flex-wrap:wrap;gap:4px}.home-content h1{font-size:32px}.hero-art{width:45%;height:58vh;min-height:100px}.home-action-group{width:46%}.mascot-strip{display:none}.lab-body{grid-template-columns:1fr 320px;display:grid}.control-panel{max-height:none}.mission-bubble{display:none}}
+@media(prefers-reduced-motion:reduce){.planet,.magic-dust,.book-glow{animation:none}.btn{transition:none}}
+
+/* v0.2: tappable pop-up textbook chapters, adaptive 3D/2D science lab, discovery quiz. */
+.book-screen{display:flex;flex-direction:column;align-items:center;padding:max(16px,env(safe-area-inset-top)) 18px max(12px,env(safe-area-inset-bottom));background:radial-gradient(ellipse at 50% 45%,#1b3e58a1 0%,#111f3d88 65%,transparent 95%)}
+.book-header{width:min(1040px,100%);display:flex;align-items:center;gap:14px;min-height:50px}.book-header .overline{flex:1;letter-spacing:.01em;font-size:12px}.book-progress{padding:8px 12px;color:#ffe0a8;background:#ffffff11;border:1px solid #ffdda855;border-radius:30px;font-size:12px;font-weight:850;white-space:nowrap}
+.book-content{flex:1;width:min(940px,100%);min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0 8px;scrollbar-width:thin;scrollbar-color:#64889c transparent}
+.book-content h2{font-family:Georgia,"Nanum Myeongjo",serif;font-size:clamp(30px,5vw,48px);line-height:1.17;letter-spacing:-.07em;margin:5px 0 0;text-align:center}.book-content h2 span{color:#f3d499}.book-subtitle{font-size:14px;color:#c1d6e7;margin:10px 0 23px;text-align:center}
+.chapter-grid{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:19px}.chapter-card{position:relative;text-align:left;display:flex;flex-direction:column;min-width:0;min-height:320px;overflow:hidden;padding:23px 25px 18px;border:1px solid #b7e5db5f;border-radius:23px;background:linear-gradient(145deg,#225372bb,#16294add);color:#f8f9fb;box-shadow:inset 0 1px #ffffff31,0 15px 35px #0005;transition:transform .16s,border-color .16s}.chapter-card:hover{transform:translateY(-4px);border-color:#f6daa1}.chapter-card:focus-visible{outline:3px solid #fff3b2}.orbit-cover{background:linear-gradient(145deg,#4a3c73c9,#152a53db);border-color:#d1a9f080}.chapter-corner{font-size:11px;font-weight:850;letter-spacing:.04em;color:#94e7de}.orbit-cover .chapter-corner{color:#efd0fd}.chapter-card>strong{font-size:clamp(19px,2.4vw,29px);line-height:1.23;letter-spacing:-.05em;z-index:1}.chapter-card>small{color:#bcd8dc;font-size:12px;margin-top:7px;z-index:1}.chapter-bottom{border-top:1px solid #ffffff28;margin-top:auto;padding-top:15px;display:flex;justify-content:space-between;align-items:center;gap:8px;color:#ffe7ac;font-size:12px;font-weight:900}.chapter-stamp{font-size:11px;color:#9eb5ce}.chapter-stamp.earned{color:#8ff9bf}.book-note{font-size:12px;color:#b5c9d5;margin:18px 0 0;text-align:center}
+.chapter-illustration{position:relative;display:block;align-self:flex-end;width:51%;height:115px;margin:-8px 3px 7px 0}.gravity-illustration:after{content:"";position:absolute;inset:78% 5% 13%;border:3px solid #94e3cfaa;border-radius:50%;transform:rotate(-8deg)}.tiny-sphere{position:absolute;top:10%;left:19%;width:43px;aspect-ratio:1;background:radial-gradient(circle at 25% 20%,#fff,#abc3e6 30%,#416280 70%,#1b264c);border-radius:50%;box-shadow:0 8px 25px #a9eeffc2;animation:bob 3s ease-in-out infinite}.tiny-feather{position:absolute;right:12%;top:5%;font-size:51px;color:#b2fce0;filter:drop-shadow(0 5px 12px #81ffdec3);animation:bob 4s ease-in-out infinite}.gravity-trail{position:absolute;top:52%;left:29%;height:43px;border-left:2px dotted #d4f9e780}
+.orbit-illustration{margin-right:5%;height:118px}.tiny-orbit{position:absolute;inset:14% 0;border:2px solid #e5b5fbd1;border-radius:50%;transform:rotate(-23deg)}.tiny-sun{position:absolute;left:34%;top:29%;height:60px;width:60px;border-radius:50%;background:radial-gradient(circle at 33% 25%,#fff4b9,#f7ab45 55%,#d06936);box-shadow:0 0 30px #ffb855bd}.tiny-earth{position:absolute;top:10%;right:5%;height:29px;width:29px;border-radius:50%;background:radial-gradient(circle at 33% 22%,#ddfff5,#60bbe9 52%,#36509c);box-shadow:0 0 14px #86e9ff9c;animation:bob 3s ease-in-out infinite}
+.story-taps{display:flex;gap:6px;overflow-x:auto;flex:0 0 auto;padding-bottom:1px;scrollbar-width:none}.story-taps::-webkit-scrollbar{display:none}.story-tap{flex:1 0 auto;border:1px solid #7a9fbb50;border-radius:12px;background:#162847de;color:#d5e2f4;font-size:12px;font-weight:750;min-height:37px;padding:7px 12px;transition:background .15s}.story-tap.active{border-color:#e9d293;background:linear-gradient(120deg,#80634f80,#274b5d9e);color:#fff0c7}.story-tap:active{transform:scale(.98)}
+.lesson-controls{display:flex;flex-direction:column;gap:14px}.orbit-data{padding:15px 17px;border-radius:14px;border:1px solid #ba9cea66;background:linear-gradient(120deg,#755fa342,#34245142);display:flex;flex-direction:column;gap:3px}.orbit-data span{font-size:12px;color:#c6d2ed;font-weight:750}.orbit-data strong{font-size:28px;color:#ffe9bb}.orbit-data small{color:#b5afcf;font-size:11px}.quiz-button{border:1px solid #bca0ed85;background:#7657a243;border-radius:13px;padding:10px;color:#f8eaff;font-weight:850;font-size:12px}.quiz-button.quiz-ready{box-shadow:inset 0 0 0 1px #e7c5ff,0 0 18px #bb81ee42}
+.label-orbit{left:50%;transform:translateX(-50%);top:23%;border-color:#f1bff577}.label-orbit strong{color:#ffe7ff}.scene-toolbox{display:flex;gap:6px}.lite-canvas{position:absolute;inset:0;display:block;width:100%;height:100%;pointer-events:none}.scene-bottomline .scene-toolbox{pointer-events:auto}.scene-bottomline .scene-toolbox button{min-width:70px}.scene-bottomline .scene-toolbox button:disabled{opacity:.4}.scene-fallback{pointer-events:none}
+.quiz-answers{display:flex;flex-direction:column;gap:10px;margin:14px 0}.quiz-answer{min-height:45px;text-align:left;padding:12px 14px;border:1px solid #a9c7e04a;border-radius:12px;background:#162e4c;color:#f4f9ff;font-size:13px;font-weight:750}.quiz-answer:hover:not(:disabled){background:#254963}.quiz-answer.correct{background:#205d4e;border-color:#8df1ba;color:#bdf6d9}.quiz-answer.incorrect{opacity:.45;border-color:#f4a3ac}.quiz-feedback{font-size:12px!important;min-height:28px;color:#ffdaaa!important}.quiz-feedback.correct{color:#aeefc5!important}
+@media(max-width:760px){.book-header{gap:9px}.book-header .overline{font-size:10px}.book-progress{font-size:10px;padding:6px 8px}.book-content h2{font-size:35px}.book-subtitle{font-size:12px;margin:7px 0 17px}.chapter-grid{gap:9px}.chapter-card{padding:15px 12px 12px;min-height:288px;border-radius:17px}.chapter-card>strong{font-size:clamp(16px,4.8vw,22px)}.chapter-card>small{font-size:10px}.chapter-corner{font-size:9px}.chapter-illustration{width:88%;height:120px;margin:1px auto 6px}.chapter-bottom{font-size:10px;flex-direction:column;align-items:flex-start;gap:5px;padding-top:11px}.chapter-stamp{font-size:9px}.book-note{font-size:10px;margin-top:14px}.story-tap{font-size:10px;min-height:32px;padding:5px 9px}.story-taps{margin:0 -1px}.scene-bottomline{gap:5px}.scene-bottomline .scene-toolbox{gap:3px}.scene-bottomline .scene-toolbox button{min-width:auto;padding:4px 5px;font-size:9px}.scene-bottomline #sceneInstruction{font-size:9px;max-width:37%}.label-orbit{left:50%;font-size:10px}.lesson-controls{gap:9px}.orbit-data{padding:10px}.orbit-data strong{font-size:22px}.quiz-button{font-size:11px;min-height:37px}.control-panel{gap:8px}}
+@media(max-width:760px) and (max-height:700px){.book-content h2{font-size:28px}.book-subtitle{margin:3px 0 8px}.chapter-card{min-height:225px}.chapter-illustration{height:65px}.tiny-sun{height:45px;width:45px}.tiny-sphere{height:33px;width:33px}.tiny-feather{font-size:35px}.book-note{margin-top:7px}.story-taps{min-height:28px}.story-tap{min-height:28px}.lab-header{min-height:38px}}
+.hero-artwork{position:absolute;z-index:4;inset:0;display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 24px 30px #0008)}.hero-art.raster-ready .book-base,.hero-art.raster-ready .planet,.hero-art.raster-ready .orbit,.hero-art.raster-ready .magic-dust,.hero-art.raster-ready .book-glow{display:none}
+
+/* v0.3: third light-and-mirror chapter plus original raster fox professor. */
+.chapter-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.chapter-card{min-height:305px;padding:21px 19px 17px}.chapter-illustration{width:81%}.light-cover{background:linear-gradient(145deg,#73518ab9,#162b52e8);border-color:#ffceba88}.light-cover .chapter-corner{color:#ffe6b9}.light-illustration{width:89%;height:118px;margin:0 auto 7px;filter:drop-shadow(0 4px 10px #f5cfaf58)}
+.tiny-mirror{position:absolute;width:67%;height:19px;bottom:16%;left:16%;border:3px solid #e9d0b3;border-radius:8px;background:linear-gradient(145deg,#add3e7,#607ca4,#c5ddf1);box-shadow:0 7px 14px #81cdea33}.tiny-light-source{position:absolute;width:6px;height:73%;left:37%;top:5%;border-radius:99px;background:linear-gradient(#fff2c6,#ffc36e);box-shadow:0 0 16px #ffe7a7;transform:rotate(-37deg);transform-origin:center bottom}.tiny-light-reflection{position:absolute;width:6px;height:73%;left:62%;top:5%;border-radius:99px;background:linear-gradient(#a5ffea,#68b8d9);box-shadow:0 0 16px #aefff1;transform:rotate(37deg);transform-origin:center bottom}.tiny-light-impact{position:absolute;width:14px;height:14px;border-radius:50%;background:#fff7c6;box-shadow:0 0 19px #ffe6aa;left:calc(50% - 7px);bottom:17%}
+.mascot-fox img{width:35px;height:37px;object-fit:contain;filter:drop-shadow(0 4px 5px #0007)}.fox-avatar{display:grid;place-items:center;flex:none;width:47px;height:50px}.fox-avatar img{width:47px;height:50px;object-fit:contain;filter:drop-shadow(0 3px 4px #0009)}.light-data{background:linear-gradient(120deg,#8a62794d,#2d577352);border-color:#ffd1b475}.light-data strong{color:#ffe9a2}
+@media(max-width:760px){.chapter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.chapter-card{padding:15px 12px 12px;min-height:276px}.light-cover{grid-column:1/-1;display:grid;grid-template-columns:1.25fr .75fr;grid-template-rows:auto 1fr auto auto;align-items:start;min-height:170px}.light-cover .chapter-corner{grid-column:1;grid-row:1}.light-cover .chapter-illustration{grid-column:2;grid-row:1/4;width:95%;height:95px;margin:0;align-self:center}.light-cover>strong{grid-column:1;grid-row:2;align-self:end;margin-top:8px}.light-cover>small{grid-column:1;grid-row:3}.light-cover .chapter-bottom{grid-column:1/-1;grid-row:4;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding-top:7px;margin-top:9px}.tiny-light-source,.tiny-light-reflection{height:78%}.tiny-mirror{bottom:10%}.tiny-light-impact{bottom:11%}.mascot-fox img{width:29px;height:32px}.fox-avatar,.fox-avatar img{width:38px;height:41px}.mission-bubble{min-height:50px}}
+@media(max-width:760px) and (max-height:700px){.chapter-card{min-height:222px}.light-cover{min-height:132px}.light-cover .chapter-illustration{height:69px}.light-cover .chapter-bottom{margin-top:4px}}
+@media(max-width:760px) and (max-height:760px){.book-content{justify-content:flex-start;padding-top:16px}.book-content h2{flex-shrink:0}.book-content .chapter-grid{flex-shrink:0}.book-note{flex-shrink:0;padding-bottom:9px}}
+
+/* v0.4: four chapter covers, accessible circuit controls and raster-free CSS miniatures. */
+.chapter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.chapter-card{min-height:235px;padding:17px 21px 14px}.chapter-illustration{height:74px;margin:0 6px 2px 0}.chapter-card>strong{font-size:clamp(18px,2.2vw,24px)}.chapter-bottom{padding-top:9px}.light-cover{display:flex;grid-column:auto;grid-template-columns:none;grid-template-rows:none}.light-cover .chapter-illustration{width:81%;height:74px;align-self:flex-end;margin:0 6px 2px 0}.light-cover .chapter-corner,.light-cover>strong,.light-cover>small,.light-cover .chapter-bottom{grid-column:auto;grid-row:auto;margin-top:0}.light-cover>small,.chapter-card>small{margin-top:6px}.light-cover .chapter-bottom{margin-top:auto;display:flex;flex-direction:row;align-items:center;justify-content:space-between;padding-top:9px}
+.circuit-cover{background:linear-gradient(145deg,#246955b8,#172e4ddd);border-color:#9ef0b579}.circuit-cover .chapter-corner{color:#b5f4cc}.circuit-illustration{height:80px;width:82%;margin:0 10px 0 auto}.tiny-wire{position:absolute;inset:11% 5% 8%;border:4px solid #6bf2c2;border-radius:17px;box-shadow:0 0 14px #62edc76e}.tiny-battery{position:absolute;left:-1%;top:27%;width:39px;height:40px;border:3px solid #e3c583;border-radius:8px;background:linear-gradient(90deg,#8c5c73,#e5a36d);font-size:10px;font-weight:900;display:grid;place-items:center;color:#3a1b32}.tiny-bulb{position:absolute;right:-1%;top:15%;width:51px;height:51px;border-radius:52% 52% 42% 42%;border:3px solid #fff3b5;background:radial-gradient(circle at 36% 32%,#fff,#ffea90 35%,#eab75c 80%);box-shadow:0 0 27px #ffed898c;animation:circuit-glimmer 3s infinite}.tiny-switch{position:absolute;top:0;left:48%;width:40px;height:16px;border-radius:10px;background:linear-gradient(#efc6aa,#6bc4b5);transform:rotate(-24deg);border:2px solid #e8ffe5}
+@keyframes circuit-glimmer{50%{box-shadow:0 0 34px #ffe18cee;filter:brightness(1.16)}}
+.circuit-scene-switch{position:absolute;z-index:4;right:13px;top:54px;max-width:58%;background:linear-gradient(110deg,#435274ec,#193d4ee8);border:1px solid #e3c7a58c;border-radius:13px;color:#fff6db;min-height:41px;padding:9px 11px;font-size:12px;font-weight:850;box-shadow:0 8px 18px #0006}.circuit-scene-switch[aria-pressed="true"]{background:linear-gradient(110deg,#2b7969f2,#194a4eee);border-color:#9affd6;color:#d7ffea}.label-circuit-current{left:9%;top:25%;border-color:#a1f5d36a}.label-circuit-power{right:9%;top:25%;border-color:#ffe4ad77}.circuit-data{background:linear-gradient(120deg,#246f615c,#1d506e4b);border-color:#9ef3cb66}.circuit-data strong{color:#cbffd8}
+@media(max-width:760px){.chapter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.chapter-card{min-height:220px;padding:12px 11px 10px}.chapter-card>strong{font-size:clamp(15px,4.3vw,20px)}.chapter-illustration,.light-cover .chapter-illustration{width:90%;height:66px;margin:0 auto 2px}.chapter-bottom,.light-cover .chapter-bottom{flex-direction:column;align-items:flex-start;gap:3px;padding-top:7px}.tiny-wire{border-width:3px}.tiny-battery{height:31px;width:31px}.tiny-bulb{width:40px;height:40px}.tiny-switch{height:12px;width:31px}.circuit-scene-switch{right:8px;top:42px;min-height:36px;max-width:65%;font-size:10px;padding:7px}.label-circuit-current,.label-circuit-power{top:32%;font-size:9px;padding:5px 7px}.label-circuit-current{left:3%}.label-circuit-power{right:3%}}
+@media(max-width:760px) and (max-height:700px){.chapter-card{min-height:188px}.chapter-illustration,.light-cover .chapter-illustration{height:42px}.tiny-bulb{width:30px;height:30px}.tiny-battery{height:25px;width:26px}.chapter-card>small{font-size:9px}.chapter-bottom,.light-cover .chapter-bottom{padding-top:5px}.book-content{justify-content:flex-start}}
+@media(prefers-reduced-motion:reduce){.tiny-bulb{animation:none}}
+
+/* v0.5: original transparent WebP signature animals and fifth mechanics chapter. */
+.mascot-strip{gap:17px}.mascot{display:flex;align-items:center;gap:5px}.mascot img,.mascot-fox img{width:46px;height:49px;object-fit:contain;filter:drop-shadow(0 5px 8px #0008);transition:transform .2s}.mascot:hover img{transform:translateY(-4px)}.mascot small{font-size:11px;font-weight:700}
+.book-content{justify-content:flex-start;padding-top:11px}.chapter-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.chapter-card{min-height:217px;padding:15px 16px 12px}.chapter-illustration,.light-cover .chapter-illustration{height:65px}.chapter-card>strong{font-size:clamp(17px,2.1vw,23px)}
+.mechanics-cover{grid-column:span 2;display:grid;grid-template-columns:1.2fr .8fr;grid-template-rows:auto 1fr auto auto;align-items:start;min-height:217px;background:linear-gradient(140deg,#6a482cdb,#24485de8);border-color:#ffd5a677}.mechanics-cover .chapter-corner{grid-column:1;grid-row:1;color:#ffddad}.mechanics-cover .chapter-illustration{grid-column:2;grid-row:1/4;align-self:center;width:100%;height:130px;margin:0}.mechanics-cover>strong{grid-column:1;grid-row:2;align-self:center}.mechanics-cover>small{grid-column:1;grid-row:3}.mechanics-cover .chapter-bottom{grid-column:1/-1;grid-row:4;width:100%}
+.mechanics-illustration{position:relative}.tiny-fulcrum{position:absolute;bottom:8%;left:43%;width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;border-bottom:0;border-top:49px solid #ffca94;filter:drop-shadow(0 3px 6px #ffbd9d8a)}.tiny-lever{position:absolute;width:85%;height:12px;left:5%;top:29%;border-radius:99px;background:linear-gradient(#fff1cb,#a96d45);transform:rotate(-13deg);box-shadow:0 0 16px #f9d6aa7a}.tiny-machine-weight{position:absolute;right:12%;top:1%;width:43px;height:43px;border-radius:11px;background:linear-gradient(145deg,#b5e4ec,#477a9d);border:3px solid #e1fbfb;box-shadow:0 6px 13px #0005}.tiny-pulley{position:absolute;width:38px;height:38px;border:7px solid #e7b778;border-radius:50%;left:5%;top:5%;box-shadow:0 0 15px #fed6a969;background:radial-gradient(circle,#ffedcc,#7c5772)}.tiny-pulley-rope{position:absolute;left:calc(5% + 18px);top:38px;width:3px;height:59px;background:#e7d6b1;transform:rotate(-7deg)}
+.label-mechanics-effort{left:8%;top:25%;border-color:#f5c79291}.label-mechanics-advantage{right:8%;top:25%;border-color:#b1e6f7a1}.mechanics-data{background:linear-gradient(120deg,#ba7d5363,#2e607255);border-color:#ffd9ab6a}.mechanics-data strong{color:#ffdfac}
+@media(max-width:760px){.mascot-strip{gap:clamp(5px,2vw,12px)}.mascot{min-width:58px}.mascot img,.mascot-fox img{width:38px;height:40px}.mascot small{font-size:9px}.chapter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.chapter-card{min-height:209px;padding:12px 11px 10px}.chapter-illustration,.light-cover .chapter-illustration{height:56px}.chapter-card>strong{font-size:clamp(15px,4.1vw,19px)}.mechanics-cover{grid-column:span 2;grid-template-columns:1.2fr .8fr;min-height:153px}.mechanics-cover .chapter-illustration{height:95px}.tiny-fulcrum{border-left-width:15px;border-right-width:15px;border-top-width:36px}.tiny-machine-weight{width:32px;height:32px}.tiny-pulley{width:27px;height:27px;border-width:5px}.tiny-pulley-rope{top:26px;height:46px;left:calc(5% + 13px)}.label-mechanics-effort,.label-mechanics-advantage{top:32%;font-size:9px;padding:5px 7px}.label-mechanics-effort{left:3%}.label-mechanics-advantage{right:3%}}
+@media(max-width:760px) and (max-height:700px){.chapter-card{min-height:179px}.mechanics-cover{min-height:125px}.chapter-illustration,.light-cover .chapter-illustration{height:37px}.mechanics-cover .chapter-illustration{height:65px}.mascot img,.mascot-fox img{width:31px;height:33px}.mascot-strip{gap:6px}}
+@media(prefers-reduced-motion:reduce){.mascot img{transition:none}}
+.mechanics-cover .tiny-fulcrum{border-top:0;border-bottom:42px solid #ffca94}
+
+/* v0.6: hand-painted 3D-animation storybook, raster dioramas and lively friends.
+   The intentionally simple older CSS miniature illustrations are no longer used. */
+.app-shell{background:#0d2d53 url('./assets/playful-sky-v06.webp') center center/cover no-repeat}
+.starfield{opacity:.23;mix-blend-mode:screen}
+.home-screen{background:linear-gradient(180deg,#0a2b526b 0%,#112b5950 38%,#1e2b6680 100%)}
+.book-screen{background:linear-gradient(180deg,#102653b0,#0d3158bc 50%,#1e2e61b4)}
+.lab-screen{background:linear-gradient(125deg,#0b2545c4,#17335bd5 50%,#29284eca)}
+.brand-emblem{border:2px solid #fff1c1b5;background:linear-gradient(145deg,#fae3a5,#a77652);color:#6f4465;box-shadow:0 3px 0 #694b57,0 0 17px #ffe3ad44}
+.version-pill{border:1px solid #fff1c483;background:#162e5bb8;color:#fff0cf;box-shadow:0 4px 14px #06112666}
+.home-content h1,.book-content h2{text-shadow:0 5px 15px #061229c5,0 0 16px #6e8df733}
+.eyebrow{color:#fff1c7;text-shadow:0 2px 9px #061e3c}
+.home-intro,.book-subtitle{color:#edf5ff;text-shadow:0 2px 7px #071c37}
+.hero-art{filter:drop-shadow(0 20px 25px #04122f99)}
+.hero-artwork{animation:heroHover 5.8s ease-in-out infinite;transform-origin:center 78%}
+@keyframes heroHover{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-8px) rotate(1deg)}}
+.btn-primary{border:2px solid #fff0b4;background:linear-gradient(180deg,#fff2b9 0%,#ffd479 58%,#eda267 100%);color:#593a38;text-shadow:0 1px #fff6cf;box-shadow:inset 0 3px #fff9d1,0 5px 0 #a96851,0 13px 22px #060d2599;border-radius:19px}
+.btn-primary:hover{filter:saturate(1.12) brightness(1.04);transform:translateY(-2px)}
+.btn-primary:active{transform:translateY(3px);box-shadow:inset 0 2px #fff9d1,0 2px 0 #a96851,0 7px 16px #060d2577}
+.mascot-strip{padding:5px 17px;background:linear-gradient(90deg,transparent,#16396588 14%,#1a3c7294 83%,transparent);border-radius:50px;max-width:100%;box-shadow:inset 0 1px #ffeac228}
+.mascot{transition:transform .25s;animation:buddyDance 3.8s ease-in-out infinite;transform-origin:50% 90%}
+.mascot:nth-child(2){animation-delay:-.9s}.mascot:nth-child(3){animation-delay:-1.7s}.mascot:nth-child(4){animation-delay:-2.5s}
+.mascot:hover{transform:scale(1.12)}
+.mascot img{filter:drop-shadow(0 8px 4px #07152988)}
+.mascot small{color:#fff7d6;text-shadow:0 2px 3px #061b3b;font-weight:800}
+@keyframes buddyDance{0%,100%{translate:0 0;rotate:-2deg}45%{translate:0 -6px;rotate:2deg}70%{translate:0 -2px;rotate:0deg}}
+.book-header{background:#0c2e5691;border:1px solid #e9ce9a52;border-radius:18px;padding:5px 12px;box-shadow:inset 0 1px #fff6d139}
+.book-progress{background:linear-gradient(155deg,#fff0bb,#edac79);border:2px solid #fff3c8;color:#634056;box-shadow:0 3px 0 #976b69;font-weight:950}
+.chapter-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.chapter-card,.mechanics-cover,.light-cover{display:flex;grid-column:auto;grid-template-columns:none;grid-template-rows:none;min-height:229px;padding:12px 13px 12px;border-radius:24px;border:2px solid #fff4d18c;background:radial-gradient(circle at 78% 16%,#8be4ef57,transparent 62%),linear-gradient(160deg,#377293db,#254875f4 58%,#243c6bee);box-shadow:inset 0 2px #ffffff64,inset 0 -5px #071d3959,0 7px 0 #0b244a91,0 17px 25px #06152b93;transition:transform .25s cubic-bezier(.2,1.7,.5,1),filter .2s,border-color .2s}
+.chapter-card:hover,.chapter-card:focus-visible{transform:translateY(-5px) rotate(-.6deg);border-color:#fff5c6;filter:brightness(1.12)}
+.chapter-card:active{transform:translateY(2px) scale(.985)}
+.chapter-card:nth-child(2){background:radial-gradient(circle at 70% 20%,#f9c4fd58,transparent 56%),linear-gradient(155deg,#575793e9,#314a82f5)}
+.chapter-card:nth-child(3){background:radial-gradient(circle at 70% 20%,#ffcfaa79,transparent 56%),linear-gradient(155deg,#796090df,#35547be8)}
+.chapter-card:nth-child(4){background:radial-gradient(circle at 70% 20%,#afffd256,transparent 56%),linear-gradient(155deg,#3d8186de,#24516dea)}
+.chapter-card:nth-child(5){background:radial-gradient(circle at 70% 20%,#ffd8ac79,transparent 56%),linear-gradient(155deg,#6c688bd9,#305675ea)}
+.chapter-card:nth-child(6){background:radial-gradient(circle at 70% 20%,#c0bafc76,transparent 56%),linear-gradient(155deg,#587ca8e9,#344871e9)}
+.chapter-card:nth-child(7){background:radial-gradient(circle at 70% 20%,#e6c3fc76,transparent 56%),linear-gradient(155deg,#8164a9dc,#385783f1)}
+.chapter-card .chapter-corner{font-size:10px;color:#fff2c2;text-shadow:0 1px 5px #05234a}
+.chapter-illustration.physics-picture,.light-cover .chapter-illustration.physics-picture,.mechanics-cover .chapter-illustration.physics-picture{display:flex;align-self:center;grid-column:auto;grid-row:auto;align-items:center;justify-content:center;position:relative;width:100%;height:101px;min-height:0;margin:0;overflow:visible;filter:none}
+.physics-picture img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 8px 6px #06173980);animation:toyFloat 3.6s ease-in-out infinite;pointer-events:none}
+.chapter-card:nth-child(even) .physics-picture img{animation-delay:-1.3s}
+.chapter-card:nth-child(3n) .physics-picture img{animation-delay:-2.6s}
+@keyframes toyFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-7px) rotate(2deg)}}
+.chapter-card>strong,.mechanics-cover>strong{grid-column:auto;grid-row:auto;align-self:auto;margin:0;font-size:clamp(15px,1.55vw,19px);line-height:1.26;text-shadow:0 2px 8px #081d47b8;min-height:47px}
+.chapter-card>small,.mechanics-cover>small{grid-column:auto;grid-row:auto;margin-top:5px;color:#e2f3f6;font-size:10px;line-height:1.4}
+.chapter-card .chapter-bottom,.mechanics-cover .chapter-bottom,.light-cover .chapter-bottom{grid-column:auto;grid-row:auto;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:4px;margin-top:auto;padding-top:9px;width:100%;border-top:1px solid #fff5cf48;font-size:10px;color:#ffe0ac}
+.chapter-stamp{color:#d8e8f3}.chapter-stamp.earned{color:#b1ffce;text-shadow:0 0 10px #83e6c788}
+.book-note{color:#ffedca;text-shadow:0 2px 6px #13244c;margin-top:13px}
+.icon-button{border:2px solid #f9e6b295;border-radius:15px;background:linear-gradient(140deg,#3f658d,#1a3a62);box-shadow:inset 0 2px #fff4c429,0 4px 0 #0b244f;color:#ffe8b9}
+.mission-bubble{background:linear-gradient(115deg,#304f83e8,#33506edc);border:2px solid #f5d59b97;box-shadow:inset 0 2px #fffbd92c,0 5px 15px #06152b7c}
+.fox-avatar img{animation:buddyDance 4s ease-in-out infinite}
+.story-tap{border:2px solid #b9ccdf61;border-radius:15px;background:linear-gradient(160deg,#406087e8,#263b65ed);box-shadow:inset 0 1px #fff9dd1b,0 3px 0 #122b4a;color:#fff4dd}
+.story-tap.active{border-color:#ffdd91;background:linear-gradient(140deg,#f3d994,#c98f85);color:#443252;text-shadow:0 1px #fff2c7;box-shadow:inset 0 1px #fff8db,0 3px 0 #815f6d}
+.scene-frame{border:4px solid #efd49bbd;border-radius:27px;background:radial-gradient(ellipse at 50% 42%,#447d9a96,#193c6891 60%,#19294bb8),url('./assets/playful-sky-v06.webp') center 55%/cover no-repeat;box-shadow:inset 0 0 16px #e7c6bd36,inset 0 0 60px #134467a5,0 12px 24px #030e2a8c}
+.scene-topline>span:first-child,.scene-tag,.object-label,.time-chip{background:#0c2f55d9;border:1px solid #ffedc17d;color:#fff4dd;box-shadow:0 3px 10px #071f4470}
+.status-ribbon{background:#1e4668d9;border:1px solid #ffddaa80;border-radius:14px;color:#f6f2ed}
+.control-panel{border:3px solid #efd6aaab;border-radius:27px;background:linear-gradient(160deg,#244f78f2,#293e68f3 64%,#394071ec);box-shadow:inset 0 3px #fffbd52c,inset 0 0 20px #638db436,0 14px 23px #061025a8}
+.control-panel h3{font-family:Georgia,"Nanum Myeongjo",serif;color:#ffecba;text-shadow:0 2px 5px #0a1f4a}
+.panel-star img{width:52px;height:55px;object-fit:contain;filter:drop-shadow(0 4px 6px #061b3d);animation:buddyDance 3.3s ease-in-out infinite}
+.segmented{background:#152f59b6;border:1px solid #fff1ce4a;border-radius:15px}
+.choice{border-radius:12px;color:#e4edff}.choice.active{background:linear-gradient(150deg,#fff0b8,#aadfeb);color:#314367;box-shadow:inset 0 2px #fffef1,0 3px 0 #4d768d}
+.orbit-data{background:#476d9b85;border:1px solid #d8e5ff80;box-shadow:inset 0 1px #fffbd633}
+.why-button,.quiz-button{border:2px solid #e4c5db8d;background:linear-gradient(150deg,#785f99a6,#4a5b8ac9);color:#fff2d5;box-shadow:0 3px 0 #24365b}
+.quiz-answer{border:2px solid #e6d8b773;background:linear-gradient(140deg,#476991,#243c61);box-shadow:0 3px 0 #0d2e4a;color:#fff2dc}
+.quiz-answer.correct{animation:correctPop .5s cubic-bezier(.2,1.8,.3,1)}
+@keyframes correctPop{50%{transform:scale(1.04)}}
+.science-dialog{border:3px solid #ffdea8;background:linear-gradient(145deg,#365681,#303e6c 67%,#665b87);box-shadow:inset 0 2px #fff4bd48,0 20px 65px #061029d9}
+.science-dialog h2{color:#fff0c8}.formula-card{background:#1e416899;border-color:#f4cf9a91}
+.magnet-cover .chapter-corner,.sound-cover .chapter-corner{color:#fff3d8}
+.magnet-data,.sound-data{background:linear-gradient(140deg,#486ab1a1,#53658b83);border-color:#dfc5f7b0}.magnet-data strong,.sound-data strong{color:#fff0ad}
+.label-magnet-result,.label-sound-result{top:25%;left:50%;transform:translateX(-50%);white-space:nowrap;border-color:#ffdeabaf}
+@media(max-width:760px){
+  .app-shell{background-position:center;background-size:auto 100%}
+  .home-screen{background:linear-gradient(#142c55a1,#10285894)}
+  .home-content h1{font-size:clamp(39px,10vw,55px)}
+  .mascot-strip{gap:5px;padding:4px 5px}.mascot{min-width:0;gap:2px}.mascot img,.mascot-fox img{width:31px;height:34px}.mascot small{font-size:8px}
+  .book-screen{padding-left:11px;padding-right:11px}.book-header{gap:5px;padding:3px 6px}.book-header .overline{font-size:9px}
+  .chapter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .chapter-card,.mechanics-cover,.light-cover{min-height:216px;padding:10px 10px 9px;border-radius:18px}
+  .chapter-illustration.physics-picture,.light-cover .chapter-illustration.physics-picture,.mechanics-cover .chapter-illustration.physics-picture{height:87px;min-height:87px}
+  .chapter-card>strong,.mechanics-cover>strong{font-size:clamp(14px,4vw,18px);min-height:38px}
+  .chapter-card>small,.mechanics-cover>small{font-size:9px}
+  .chapter-card .chapter-bottom,.mechanics-cover .chapter-bottom,.light-cover .chapter-bottom{font-size:9px;gap:3px;flex-direction:row;align-items:center}
+  .chapter-stamp{font-size:9px}.book-note{font-size:10px}
+  .sound-cover{grid-column:span 2;min-height:157px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr auto auto;align-items:center}
+  .sound-cover .chapter-corner{grid-column:1;grid-row:1}.sound-cover .physics-picture{grid-column:2;grid-row:1/4;align-self:center;width:96%;height:119px}
+  .sound-cover>strong{grid-column:1;grid-row:2}.sound-cover>small{grid-column:1;grid-row:3}
+  .sound-cover .chapter-bottom{grid-column:1/-1;grid-row:4}
+  .scene-frame{border-width:3px;border-radius:20px}.control-panel{border-width:2px;border-radius:19px;padding:10px}
+  .panel-star img{width:35px;height:37px}.control-panel h3{font-size:16px}
+  .label-magnet-result,.label-sound-result{top:27%}
+}
+@media(max-width:760px) and (max-height:700px){.chapter-card,.mechanics-cover,.light-cover{min-height:187px}.chapter-illustration.physics-picture,.light-cover .chapter-illustration.physics-picture,.mechanics-cover .chapter-illustration.physics-picture{height:62px;min-height:62px}.sound-cover{min-height:130px}.mascot-strip{padding:0 4px}}
+@media(prefers-reduced-motion:reduce){.hero-artwork,.mascot,.mascot img,.fox-avatar img,.physics-picture img{animation:none!important}}
+
+/* v0.7: new everyday physics adventures use the same hand-painted toy family. */
+.chapter-card:nth-child(8){background:radial-gradient(circle at 66% 11%,#ffded87a,transparent 56%),linear-gradient(155deg,#9a6b97ee,#3c6084ee)}
+.chapter-card:nth-child(9){background:radial-gradient(circle at 65% 15%,#ffe7b973,transparent 56%),linear-gradient(155deg,#6685a3ee,#2b537bef)}
+.chapter-card:nth-child(10){background:radial-gradient(circle at 65% 11%,#c3ffee65,transparent 58%),linear-gradient(155deg,#458c9aee,#35528bea)}
+.chapter-card:nth-child(11){background:radial-gradient(circle at 66% 16%,#eac4ff78,transparent 58%),linear-gradient(155deg,#6f71a7ef,#364b7ceb)}
+.chapter-card:nth-child(12){background:radial-gradient(circle at 66% 10%,#ffe0ab92,transparent 58%),linear-gradient(155deg,#987092eb,#455785f1)}
+.label-everyday-result{top:14%;left:auto;right:4%;transform:none;white-space:nowrap;border-color:#fff0b9ca;max-width:88%;font-size:11px}
+.label-everyday-result strong{color:#fff3b7}
+#extraControls .orbit-data{background:linear-gradient(145deg,#496bada0,#7b64988f);border:1px solid #ffe1b4b8}
+#extraControls .orbit-data strong{font-size:clamp(17px,1.5vw,21px);color:#fff0ba;line-height:1.25}
+#extraModeGroup .choice{padding:5px 7px;line-height:1.22;min-width:0}
+@media(max-width:760px){
+  .sound-cover{grid-column:auto;display:flex;grid-template-columns:none;grid-template-rows:none;min-height:216px}
+  .sound-cover .chapter-corner,.sound-cover>strong,.sound-cover>small,.sound-cover .chapter-bottom{grid-column:auto;grid-row:auto}
+  .sound-cover .physics-picture{grid-column:auto;grid-row:auto;align-self:center;width:100%;height:87px;min-height:87px}
+  .label-everyday-result{top:25%;font-size:10px;padding:5px 7px}
+  #extraControls .orbit-data strong{font-size:18px}
+}
+@media(max-width:760px) and (max-height:700px){.sound-cover{min-height:187px}.sound-cover .physics-picture{height:62px;min-height:62px}}
+
+/* v0.8 · portrait phone: make the illustration the stage and controls thumb-friendly. */
+.mobile-dock,.mobile-sheet-toggle,.mobile-advanced-toggle,.mobile-story-slot{display:none}
+.story-home-slot{display:contents}
+@media(max-width:760px) and (orientation:portrait){
+  .lab-screen{--mobile-sheet-height:clamp(250px,46dvh,370px);padding:max(6px,env(safe-area-inset-top)) 9px max(5px,env(safe-area-inset-bottom));gap:6px}
+  .lab-header{flex:0 0 46px;min-height:46px;max-height:46px;gap:8px}
+  .lab-header .icon-button{width:42px;height:42px;min-width:42px;border:2px solid #ffe3b077;border-radius:15px}
+  .lab-header .lab-heading h2{font-size:clamp(16px,4.4vw,21px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lab-header .overline{font-size:9px;letter-spacing:.02em}
+  .lab-body{display:block;position:relative;flex:1 1 auto;min-height:0;width:100%;overflow:hidden}
+  .lab-main{position:absolute;inset:0 0 64px 0;min-height:0;display:flex;flex-direction:column;gap:6px;transition:bottom .2s ease}
+  .lab-screen[data-mobile-sheet="open"] .lab-main{bottom:var(--mobile-sheet-height)}
+  .lab-main .mission-bubble,.story-home-slot{display:none}
+  .lab-main .scene-frame{flex:1 1 auto;min-height:0;border-radius:19px;border:3px solid #ffebb375;box-shadow:inset 0 1px #fff3c04d,0 6px 14px #081b3587}
+  .lab-main .status-ribbon{flex:0 0 auto;max-height:39px;min-height:28px;overflow:hidden;font-size:11px;padding:6px 8px;line-height:1.3}
+  .lab-screen .scene-topline{left:7px;right:7px;top:8px}
+  .lab-screen .scene-topline>span:first-child{font-size:10px;max-width:68%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lab-screen .scene-tag{font-size:9px;white-space:nowrap}
+  .lab-screen .time-chip{bottom:38px}
+  .lab-screen .scene-bottomline{bottom:5px}
+  .lab-screen .object-label{font-size:10px;padding:5px 7px;top:24%;max-width:76%}
+  .control-panel{position:absolute;z-index:3;left:0;right:0;bottom:0;flex:none;width:100%;height:var(--mobile-sheet-height);max-height:none;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#e3bd8c #213659;padding:0 12px 13px;gap:12px;border:2px solid #f7d8a795;border-radius:24px 24px 10px 10px;background:linear-gradient(170deg,#324b75f7,#202f57fa 62%,#172a50fc);box-shadow:0 -5px 26px #07142bce,inset 0 2px #fff6ca3c;transition:height .2s ease}
+  .lab-screen[data-mobile-sheet="closed"] .control-panel{height:64px;overflow:hidden;padding-bottom:0}
+  .mobile-sheet-toggle{display:flex;flex:0 0 61px;position:sticky;top:0;z-index:4;align-items:center;justify-content:center;gap:7px;width:100%;min-height:61px;padding:15px 8px 5px;border:0;border-bottom:1px solid #ecd6b345;color:#fff0cf;background:linear-gradient(180deg,#3b567dfc,#304971fc);font-size:14px;font-weight:900;letter-spacing:-.02em;text-shadow:0 1px 5px #06142a;touch-action:none}
+  .mobile-sheet-grip{position:absolute;top:7px;left:calc(50% - 22px);width:44px;height:5px;border-radius:50px;background:linear-gradient(90deg,#c1e6fb,#ffdda3);box-shadow:0 1px 6px #fff9c155}
+  .mobile-sheet-arrow{margin-left:auto;font-size:20px;color:#ffe0a4}
+  .control-panel-heading{display:none}
+  .control-panel .lesson-controls{gap:11px}
+  .control-panel .group-label,.control-panel .range-label{font-size:13px;font-weight:800}
+  .control-panel .control-group{gap:7px}
+  .control-panel .choice{min-height:46px;line-height:1.2;font-size:13px;border-radius:13px}
+  .control-panel .segmented{gap:5px;padding:4px;border:1px solid #9ab7ce45}
+  .control-panel input[type=range]{height:36px;min-height:36px;touch-action:pan-x}
+  .control-panel .orbit-data{padding:11px 12px;border-radius:14px}
+  .control-panel .orbit-data strong{font-size:clamp(18px,5.6vw,23px)}
+  .mobile-advanced-toggle{display:block;width:100%;min-height:46px;border-radius:14px;border:2px solid #ffdfac88;background:linear-gradient(140deg,#455e8b,#374975);color:#fff0cf;font-weight:850;font-size:13px}
+  .lab-screen[data-mobile-detail="simple"] .mobile-extra-option{display:none!important}
+  .lab-screen[data-mobile-pane="story"] .control-panel>:not(.mobile-sheet-toggle):not(.mobile-story-slot){display:none!important}
+  .lab-screen[data-mobile-pane="controls"] .mobile-story-slot{display:none!important}
+  .mobile-story-slot:not([hidden]){display:block}
+  .mobile-story-slot .story-taps{display:flex;flex-direction:column;gap:9px;overflow:visible;margin:0;padding-bottom:8px}
+  .mobile-story-slot .story-tap{flex:none;min-height:51px;text-align:left;padding:12px 14px;font-size:14px}
+  .mobile-dock:not([hidden]){display:grid;flex:0 0 62px;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(103px,1.28fr);gap:6px;width:100%;height:62px;align-items:stretch}
+  .mobile-dock button{min-width:0;min-height:56px;border:2px solid #b2cbd579;border-radius:16px;box-shadow:0 4px 0 #081a35b5;font-weight:850}
+  .mobile-dock-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-size:18px;color:#f2eddb;background:linear-gradient(150deg,#405b84,#243f67)}
+  .mobile-dock-tab span{font-size:11px}
+  .mobile-dock-tab.active{border-color:#ffe4b1;color:#3c2d43;background:linear-gradient(150deg,#ffe9b0,#f5b886)}
+  .mobile-dock-run{padding:6px 4px;border-color:#fff1bb!important;font-size:13px;color:#3e2d43;background:linear-gradient(145deg,#fff0b9,#f2b777)}
+  .lab-footer{display:none}
+}
+@media(max-width:760px) and (orientation:portrait) and (max-height:680px){
+  .lab-screen{--mobile-sheet-height:clamp(238px,43dvh,300px);gap:4px}
+  .lab-header{flex-basis:42px;min-height:42px;max-height:42px}
+  .lab-screen .time-chip{bottom:28px;font-size:10px;padding:4px 7px}
+  .lab-screen .scene-bottomline #sceneInstruction{display:none}
+  .lab-screen .scene-bottomline .scene-toolbox{margin-left:auto}
+  .lab-main .status-ribbon{font-size:10px;max-height:28px}
+  .mobile-dock:not([hidden]){flex-basis:58px;height:58px}
+  .mobile-dock button{min-height:52px}
+}
+@media(prefers-reduced-motion:reduce){.lab-main,.control-panel{transition:none!important}}
+
+/* The animal friends react inside the scene without covering its controls. */
+.scene-companion{position:absolute;left:clamp(10px,2.5%,22px);bottom:72px;z-index:7;display:flex;align-items:flex-end;gap:2px;width:min(40%,260px);min-width:190px;pointer-events:none;filter:drop-shadow(0 8px 11px #08152788)}
+.scene-companion-portrait{position:relative;display:block;flex:0 0 clamp(67px,8vw,88px);height:clamp(76px,8.7vw,101px);align-self:flex-end}
+.scene-companion-portrait img{position:absolute;width:100%;height:100%;object-fit:contain;object-position:center bottom;bottom:0;left:0;animation:companion-idle 2.7s ease-in-out infinite;transform-origin:center 85%}
+.scene-companion-twinkle{position:absolute;top:2px;right:0;color:#fff2aa;font-size:23px;text-shadow:0 0 10px #ffe6a6;animation:companion-spark 1.7s ease-in-out infinite}
+.scene-companion-speech{display:flex;flex:1;flex-direction:column;gap:3px;min-width:0;margin-bottom:18px;padding:8px 10px;border:1px solid #ffecb7a8;border-radius:15px 15px 15px 4px;background:linear-gradient(145deg,#223c65ed,#23315adc);color:#fff5de;box-shadow:0 4px 0 #0e1b40a8;backdrop-filter:blur(8px)}
+.scene-companion-speech b{font-size:10px;color:#ffde9c;letter-spacing:-.03em}
+.scene-companion-speech span{font-size:11px;line-height:1.4;font-weight:800;letter-spacing:-.04em;overflow-wrap:break-word;text-wrap:pretty}
+.scene-companion[data-mood="yay"] .scene-companion-portrait img{animation:companion-cheer .69s ease-in-out infinite alternate}
+.scene-companion[data-mood="excited"] .scene-companion-portrait img{animation:companion-hop 1.1s ease-in-out infinite}
+.scene-companion[data-mood="yay"] .scene-companion-twinkle{color:#fff5a9;font-size:27px;animation-duration:.8s}
+@keyframes companion-idle{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(2deg)}}
+@keyframes companion-hop{0%,100%{transform:translateY(0) scale(1)}45%{transform:translateY(-11px) scale(1.065)}68%{transform:translateY(-3px) rotate(4deg)}}
+@keyframes companion-cheer{from{transform:translateY(0) rotate(-7deg) scale(1)}to{transform:translateY(-11px) rotate(8deg) scale(1.09)}}
+@keyframes companion-spark{0%,100%{opacity:.35;transform:scale(.7) rotate(-15deg)}50%{opacity:1;transform:scale(1.17) rotate(13deg)}}
+@media(max-width:760px) and (orientation:portrait){
+  .scene-companion{left:auto;right:8px;bottom:57px;min-width:0;width:min(51%,172px);gap:0;filter:drop-shadow(0 4px 7px #08152788)}
+  .scene-fallback{display:none!important}
+  .scene-companion-portrait{flex-basis:49px;height:60px}
+  .scene-companion-speech{margin-bottom:8px;padding:6px 7px;border-radius:12px 12px 12px 3px;gap:1px}
+  .scene-companion-speech b{font-size:9px}
+  .scene-companion-speech span{font-size:11px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .scene-companion-twinkle{font-size:15px}
+}
+@media(max-width:370px) and (orientation:portrait){
+  .scene-companion{width:116px;bottom:10px;right:4px;filter:drop-shadow(0 2px 4px #08152777)}
+  .scene-companion-portrait{flex-basis:35px;height:42px}
+  .scene-companion-speech{padding:4px 5px;margin-bottom:2px}
+  .scene-companion-speech b{font-size:8px}
+  .scene-companion-speech span{font-size:9px}
+}
+/* Keep the mechanical action and the load unobstructed on narrow phones. */
+@media(max-width:760px) and (orientation:portrait){
+  .lab-screen[data-lesson="mechanics"] .scene-companion{left:5px;right:auto;bottom:7px;width:min(34%,129px);min-width:0}
+  .lab-screen[data-lesson="mechanics"] .scene-companion-portrait{flex-basis:35px;height:44px}
+  .lab-screen[data-lesson="mechanics"] .scene-companion-speech{margin-bottom:3px;padding:4px 6px}
+  .lab-screen[data-lesson="mechanics"] .scene-companion-speech b{font-size:8px}
+  .lab-screen[data-lesson="mechanics"] .scene-companion-speech span{font-size:9px;line-height:1.2}
+}
+/* Dense science drawings must stay legible: the status strip already narrates the mascot's words. */
+@media(max-width:760px) and (orientation:portrait){
+  .lab-screen[data-lesson="light"] .scene-companion,
+  .lab-screen[data-lesson="circuit"] .scene-companion,
+  .lab-screen[data-lesson="orbit"] .scene-companion,
+  .lab-screen[data-lesson="friction"] .scene-companion,
+  .lab-screen[data-lesson="buoyancy"] .scene-companion{display:none}
+  .lab-screen[data-lesson="inertia"] .label-everyday-result,
+  .lab-screen[data-lesson="friction"] .label-everyday-result,
+  .lab-screen[data-lesson="buoyancy"] .label-everyday-result,
+  .lab-screen[data-lesson="pendulum"] .label-everyday-result,
+  .lab-screen[data-lesson="heat"] .label-everyday-result{display:none}
+  .lab-screen[data-lesson="inertia"] .time-chip,
+  .lab-screen[data-lesson="friction"] .time-chip,
+  .lab-screen[data-lesson="buoyancy"] .time-chip,
+  .lab-screen[data-lesson="pendulum"] .time-chip,
+  .lab-screen[data-lesson="heat"] .time-chip{display:none}
+  .lab-screen[data-lesson="light"] .time-chip,
+  .lab-screen[data-lesson="circuit"] .time-chip{display:none}
+}
+@media(prefers-reduced-motion:reduce){.scene-companion-portrait img,.scene-companion-twinkle{animation:none!important}}
+
+/* v1.6: one compressed 3x3 raster atlas replaces decorative emoji and generic UI pictograms. */
+.toy-ui-icon{
+  display:inline-block;flex:none;width:32px;height:32px;vertical-align:middle;
+  background-image:url('./assets/science-ui-icons-v16.webp');background-repeat:no-repeat;
+  background-size:300% 300%;filter:drop-shadow(0 2px 3px #10234566);
+}
+.toy-ui-icon-book{background-position:0% 0%}
+.toy-ui-icon-play{background-position:50% 0%}
+.toy-ui-icon-controls{background-position:100% 0%}
+.toy-ui-icon-apple{background-position:0% 50%}
+.toy-ui-icon-cart{background-position:50% 50%}
+.toy-ui-icon-ice{background-position:100% 50%}
+.toy-ui-icon-duck{background-position:0% 100%}
+.toy-ui-icon-stone{background-position:50% 100%}
+.toy-ui-icon-mirror{background-position:100% 100%}
+/* v2.6: mode icons show the actual physical materials, not an unrelated cart.
+   Preserve the source-painted raster atlas and avoid vector stand-ins. */
+.toy-ui-icon-felt-path,.toy-ui-icon-ice-path{
+  background-image:url('./assets/physics-surface-atlas-v17.webp');
+  background-size:200% 200%;
+  border:2px solid rgba(255,244,211,.72);
+  border-radius:10px;
+  box-shadow:inset 0 0 0 1px rgba(21,35,67,.18),0 2px 5px rgba(12,19,55,.3);
+}
+.toy-ui-icon-felt-path{background-position:0% 0%}
+.toy-ui-icon-ice-path{background-position:100% 0%}
+.toy-ui-icon-floating-duck{background-position:0% 100%}
+.toy-ui-icon-sinking-stone{background-position:50% 100%}
+.lab-screen[data-lesson="friction"] .scene-topline #sceneMode::before{
+  background-image:url('./assets/physics-surface-atlas-v17.webp');background-size:200% 200%;
+  border:1px solid rgba(255,246,214,.75);border-radius:6px;
+}
+.lab-screen[data-lesson="friction"] #sceneMode[data-extra-mode="rough"]::before{background-position:0% 0%}
+.lab-screen[data-lesson="friction"] #sceneMode[data-extra-mode="ice"]::before{background-position:100% 0%}
+.lab-screen[data-lesson="buoyancy"] #sceneMode[data-extra-mode="duck"]::before{background-position:0% 100%}
+.lab-screen[data-lesson="buoyancy"] #sceneMode[data-extra-mode="stone"]::before{background-position:50% 100%}
+.lab-screen[data-lesson="friction"] .story-tap[data-story="rough"]::before,
+.lab-screen[data-lesson="friction"] .story-tap[data-story="ice"]::before{
+  background-image:url('./assets/physics-surface-atlas-v17.webp');background-size:200% 200%;
+  border-radius:7px;border:1px solid rgba(255,235,194,.78);
+}
+.lab-screen[data-lesson="friction"] .story-tap[data-story="rough"]::before{background-position:0% 0%}
+.lab-screen[data-lesson="friction"] .story-tap[data-story="ice"]::before{background-position:100% 0%}
+.lab-screen[data-lesson="buoyancy"] .story-tap[data-story="duck"]::before{background-position:0% 100%}
+.lab-screen[data-lesson="buoyancy"] .story-tap[data-story="stone"]::before{background-position:50% 100%}
+.lab-screen[data-lesson="pendulum"] .story-tap[data-story="moon"]::before{background-image:url('./assets/science-condition-icons-v18.webp');background-size:400% 400%;background-position:33.3333% 0%}
+.hero-eyebrow{display:flex;align-items:center;justify-content:center;gap:5px;letter-spacing:.04em}
+.hero-eyebrow img{width:29px;height:29px;object-fit:contain;filter:drop-shadow(0 2px 4px #15234a77)}
+#enterBtn{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+#enterBtn .toy-ui-icon{width:38px;height:38px;margin:-9px 0}
+.story-tap{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.story-tap::before{
+  content:"";display:inline-block;flex:none;width:28px;height:28px;
+  background:url('./assets/science-ui-icons-v16.webp') 0% 0% / 300% 300% no-repeat;
+  filter:drop-shadow(0 2px 2px #10234555);
+}
+.choice-illustrated{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:4px 7px}
+.choice-illustrated .toy-ui-icon{width:35px;height:35px}
+.illustrated-action{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.illustrated-action .toy-ui-icon{width:31px;height:31px;margin:-7px 0}
+#mobileSheetTitle{display:inline-flex;align-items:center;gap:6px}
+#mobileSheetTitle::before{content:"";width:30px;height:30px;flex:none;background:url('./assets/science-ui-icons-v16.webp') 100% 0% / 300% 300% no-repeat;filter:drop-shadow(0 2px 3px #11254b55)}
+.lab-screen[data-mobile-pane="story"] #mobileSheetTitle::before{background-position:0% 0%}
+.lab-screen[data-lesson="light"] #mobileExplainBtn .toy-ui-icon,
+.lab-screen[data-lesson="light"] #explainBtn .toy-ui-icon{background-position:100% 100%}
+#mobileRunBtn[data-play="true"]{display:flex;align-items:center;justify-content:center;gap:3px}
+#mobileRunBtn[data-play="true"]::before{
+  content:"";width:33px;height:33px;flex:none;background:url('./assets/science-ui-icons-v16.webp') 50% 0% / 300% 300% no-repeat;
+  filter:drop-shadow(0 2px 3px #6b473955)
+}
+@media(max-width:760px){
+  .hero-eyebrow{max-width:100%;font-size:10px;letter-spacing:0;white-space:normal}
+  .hero-eyebrow img{width:25px;height:25px}
+  #enterBtn .toy-ui-icon{width:32px;height:32px}
+  .story-tap::before{width:25px;height:25px}
+  .choice-illustrated .toy-ui-icon{width:34px;height:34px}
+}
+@media(max-width:760px) and (orientation:portrait){
+  .mobile-dock-tab .toy-ui-icon{width:34px;height:34px}
+  .mobile-story-slot .story-tap{justify-content:flex-start}
+  .mobile-story-slot .story-tap::before{width:32px;height:32px}
+  .mobile-dock-tab{gap:0}
+}
+@media(max-width:360px){
+  .mobile-dock-tab .toy-ui-icon{width:29px;height:29px}
+  .choice-illustrated{gap:3px;padding:3px 4px}
+  .choice-illustrated .toy-ui-icon{width:28px;height:28px}
+  #mobileRunBtn[data-play="true"]::before{width:29px;height:29px}
+}
+
+/* Illustrated floors can run behind this caption; keep it legible on every material. */
+#sceneInstruction{
+  display:inline-block;max-width:48%;padding:4px 7px;border-radius:9px;
+  color:#eff8ff;background:rgba(8,27,52,.79);
+  text-shadow:0 1px 4px #071426;line-height:1.35;
+}
+@media(max-width:760px){#sceneInstruction{max-width:47%;font-size:9px}}
+
+/* v1.8: replace generic emoji and Unicode symbols with a unified toy prop atlas.
+   Purely visual pseudo-elements preserve button names and keyboard interaction. */
+.lesson-controls .segmented > .choice:is([data-planet],[data-air],[data-circuit],[data-mechanics-mode],[data-pulley],[data-material],.choice-condition-illustrated){
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  min-width:0;line-height:1.2;white-space:normal;text-wrap:balance;
+}
+.lesson-controls .segmented > .choice:is([data-planet],[data-air],[data-circuit],[data-mechanics-mode],[data-pulley],[data-material],.choice-condition-illustrated)::before,
+#hearSoundBtn::before{
+  content:"";display:inline-block;flex:none;width:34px;height:34px;
+  background-image:url('./assets/science-condition-icons-v18.webp');
+  background-size:400% 400%;background-repeat:no-repeat;
+  filter:drop-shadow(0 2px 3px #06193255);
+}
+.choice[data-planet="earth"]::before{background-position:0% 0%}
+.choice[data-planet="moon"]::before{background-position:33.3333% 0%}
+.choice.choice-condition-illustrated[data-extra-mode="earth"]::before{background-position:0% 0%}
+.choice.choice-condition-illustrated[data-extra-mode="moon"]::before{background-position:33.3333% 0%}
+.choice[data-air="on"]::before{background-position:66.6667% 0%}
+.choice[data-air="off"]::before{background-position:100% 0%}
+.choice[data-circuit="open"]::before{background-position:0% 33.3333%}
+.choice[data-circuit="closed"]::before{background-position:33.3333% 33.3333%}
+.choice[data-mechanics-mode="lever"]::before{background-position:66.6667% 33.3333%}
+.choice[data-mechanics-mode="pulley"]::before{background-position:100% 33.3333%}
+.choice[data-pulley="fixed"]::before{background-position:0% 66.6667%}
+.choice[data-pulley="moving"]::before{background-position:33.3333% 66.6667%}
+.choice[data-material="iron"]::before{background-position:66.6667% 66.6667%}
+.choice[data-material="wood"]::before{background-position:100% 66.6667%}
+#hearSoundBtn{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+#hearSoundBtn::before{background-position:0% 100%}
+@media(max-width:760px){
+  .lesson-controls .segmented > .choice:is([data-planet],[data-air],[data-circuit],[data-mechanics-mode],[data-pulley],[data-material],.choice-condition-illustrated){gap:3px;padding:3px 4px}
+  .lesson-controls .segmented > .choice:is([data-planet],[data-air],[data-circuit],[data-mechanics-mode],[data-pulley],[data-material],.choice-condition-illustrated)::before{width:30px;height:30px}
+  #hearSoundBtn::before{width:29px;height:29px}
+}
+@media(max-width:360px){
+  .lesson-controls .segmented > .choice:is([data-planet],[data-air],[data-circuit],[data-mechanics-mode],[data-pulley],[data-material],.choice-condition-illustrated)::before{width:27px;height:27px}
+}
+
+/* v1.9: unambiguous paired artwork for gentle/sudden braking and one/two cups.
+   One 2x2 alpha WebP atlas replaces the misleading apple and Unicode emoji. */
+#extraModeGroup > .choice.choice-extra-v19{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  min-width:0;line-height:1.2;white-space:normal;text-wrap:balance;
+}
+#extraModeGroup > .choice.choice-extra-v19::before{
+  content:"";display:inline-block;flex:none;width:34px;height:34px;
+  background-image:url('./assets/physics-extra-icons-v19.webp');
+  background-size:200% 200%;background-repeat:no-repeat;
+  filter:drop-shadow(0 2px 3px #06193255);
+}
+#extraModeGroup > .choice.choice-extra-v19[data-extra-mode="gentle"]::before{background-position:0% 0%}
+#extraModeGroup > .choice.choice-extra-v19[data-extra-mode="sudden"]::before{background-position:100% 0%}
+#extraModeGroup > .choice.choice-extra-v19[data-extra-mode="200"]::before{background-position:0% 100%}
+#extraModeGroup > .choice.choice-extra-v19[data-extra-mode="400"]::before{background-position:100% 100%}
+@media(max-width:760px){
+  #extraModeGroup > .choice.choice-extra-v19{gap:4px;padding:3px 5px}
+  #extraModeGroup > .choice.choice-extra-v19::before{width:31px;height:31px}
+}
+@media(max-width:360px){#extraModeGroup > .choice.choice-extra-v19::before{width:27px;height:27px}}
+
+/* v2.0: original raster toy artwork replaces leftover text-arrow UI glyphs.
+   Their parent buttons keep semantic aria-labels and full-sized tap targets. */
+.toy-nav-icon{
+  display:inline-block;flex:none;width:27px;height:27px;
+  background-image:url('./assets/science-nav-icons-v20.webp');
+  background-repeat:no-repeat;background-size:200% 200%;
+  filter:drop-shadow(0 1px 2px #091c4366);
+}
+.toy-nav-back{background-position:0% 0%}
+.toy-nav-help{background-position:100% 0%}
+.toy-nav-reset{background-position:0% 100%}
+.toy-nav-close{background-position:100% 100%}
+#bookBackBtn,#backBtn,#helpBtn,.dialog-close{
+  display:inline-flex;align-items:center;justify-content:center;padding:0;
+}
+#bookBackBtn .toy-nav-icon,#backBtn .toy-nav-icon,#helpBtn .toy-nav-icon{width:30px;height:30px}
+.dialog-close .toy-nav-icon{width:25px;height:25px}
+#resetBtn{display:inline-flex;align-items:center;justify-content:center;gap:4px}
+#resetBtn .toy-nav-icon{width:28px;height:28px}
+@media(max-width:360px){
+  #bookBackBtn .toy-nav-icon,#backBtn .toy-nav-icon,#helpBtn .toy-nav-icon{width:27px;height:27px}
+  #resetBtn .toy-nav-icon{width:24px;height:24px}
+}
+/* In the 2D fallback on narrow phones, unavailable camera buttons must not
+   cover the illustrated floor or the reading cue. */
+@media(max-width:760px) and (orientation:portrait){
+  .scene-bottomline .scene-toolbox button:disabled{display:none}
+  .scene-bottomline #sceneInstruction{max-width:100%}
+}
+
+/* v2.1: reuse the original transparent toy paintings for the remaining text-only HUD.
+   Every icon is a cropped raster WebP; the label stays readable without the artwork. */
+.brand-emblem{overflow:hidden}
+.brand-emblem img{width:30px;height:30px;object-fit:contain;filter:drop-shadow(0 1px 2px #091d4466)}
+.book-note{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:7px 13px;line-height:1.45}
+.book-buddy{display:inline-flex;align-items:center;gap:3px;white-space:nowrap;font-weight:750}
+.book-buddy img{width:27px;height:27px;object-fit:contain;filter:drop-shadow(0 2px 3px #06112666)}
+.book-note-end{display:inline-block;white-space:nowrap;color:#f8e8af;font-weight:850}
+.scene-topline #sceneMode{display:inline-flex;align-items:center;gap:5px;max-width:78%;line-height:1.2}
+#sceneMode::before,.object-label::before{
+  content:"";display:inline-block;flex:none;width:22px;height:22px;
+  background-image:url('./assets/physics-toys-atlas-v10.webp');
+  background-size:300% 300%;background-repeat:no-repeat;
+  filter:drop-shadow(0 1px 2px #0006);
+}
+.lab-screen[data-lesson="gravity"] #sceneMode::before{background-image:url('./assets/science-condition-icons-v18.webp');background-size:400% 400%;background-position:0% 0%}
+.lab-screen[data-lesson="gravity"] #sceneMode[data-planet="moon"]::before{background-position:33.3333% 0%}
+.lab-screen[data-lesson="orbit"] #sceneMode::before{background-position:100% 0%}
+.lab-screen[data-lesson="light"] #sceneMode::before{background-position:50% 50%}
+.lab-screen[data-lesson="circuit"] #sceneMode::before{background-position:0% 100%}
+.lab-screen[data-lesson="mechanics"] #sceneMode::before{background-image:url('./assets/science-condition-icons-v18.webp');background-size:400% 400%;background-position:66.6667% 33.3333%}
+.lab-screen[data-lesson="mechanics"] #sceneMode[data-mechanics="pulley"]::before{background-position:100% 33.3333%}
+.lab-screen[data-lesson="magnet"] #sceneMode::before{background-position:100% 100%}
+.lab-screen[data-lesson="sound"] #sceneMode::before{background-image:url('./assets/science-condition-icons-v18.webp');background-size:400% 400%;background-position:0% 100%}
+.lab-screen[data-lesson="inertia"] #sceneMode::before{background-image:url('./assets/science-ui-icons-v16.webp');background-position:50% 50%}
+.lab-screen[data-lesson="friction"] #sceneMode::before{background-image:url('./assets/science-ui-icons-v16.webp');background-position:100% 50%}
+.lab-screen[data-lesson="buoyancy"] #sceneMode::before{background-image:url('./assets/science-ui-icons-v16.webp');background-position:0% 100%}
+.lab-screen[data-lesson="pendulum"] #sceneMode::before{background-position:0% 0%}
+.lab-screen[data-lesson="heat"] #sceneMode::before{background-image:url('./assets/science-condition-icons-v18.webp');background-size:400% 400%;background-position:66.6667% 100%}
+#ballLabel::before{background-position:0% 0%}
+#featherLabel::before{background-position:50% 0%}
+#orbitLabel::before{background-position:0% 50%}
+#lightIncidenceLabel::before{background-position:100% 50%}
+#lightReflectionLabel::before{background-position:50% 50%}
+#circuitCurrentLabel::before{background-position:0% 100%}
+#circuitPowerLabel::before{background-position:50% 100%}
+#mechanicsEffortLabel::before{background-image:url('./assets/science-condition-icons-v18.webp');background-size:400% 400%;background-position:66.6667% 33.3333%}
+#mechanicsAdvantageLabel::before{background-image:url('./assets/science-condition-icons-v18.webp');background-size:400% 400%;background-position:33.3333% 66.6667%}
+#magnetLabel::before{background-position:100% 100%}
+#soundLabel::before{background-image:url('./assets/science-condition-icons-v18.webp');background-size:400% 400%;background-position:0% 100%}
+#everydayLabel::before{background-image:url('./assets/science-ui-icons-v16.webp');background-position:0% 0%}
+.dialog-eyebrow{display:inline-flex;align-items:center;gap:6px}
+.dialog-eyebrow .toy-ui-icon,.dialog-eyebrow img{width:29px;height:29px;flex:none;object-fit:contain}
+#runBtn{display:inline-flex;align-items:center;justify-content:center;gap:5px;line-height:1.15}
+#runBtn::before{
+  content:"";display:inline-block;flex:none;width:34px;height:34px;
+  background:url('./assets/science-ui-icons-v16.webp') 50% 0% / 300% 300% no-repeat;
+  filter:drop-shadow(0 1px 2px #53304a55)
+}
+#runBtn[data-action="replay"]::before,#mobileRunBtn[data-action="replay"]::before{
+  background-image:url('./assets/science-nav-icons-v20.webp');
+  background-size:200% 200%;background-position:0% 100%;
+}
+#runBtn[data-action="pause"]::before,#mobileRunBtn[data-action="pause"]::before{display:none}
+#mobileRunBtn[data-action="replay"]{display:flex;align-items:center;justify-content:center;gap:3px}
+#mobileRunBtn[data-action="replay"]::before{content:"";display:inline-block;width:32px;height:32px;flex:none;filter:drop-shadow(0 1px 2px #53304a55)}
+@media(max-width:760px){
+  #sceneMode::before,.object-label::before{width:18px;height:18px}
+  .book-note{gap:5px 9px}
+  .book-buddy img{width:24px;height:24px}
+  #runBtn::before{width:27px;height:27px}
+}
+@media(max-width:360px){
+  .object-label::before{width:15px;height:15px}
+  .object-label{gap:3px}
+  .book-buddy img{width:22px;height:22px}
+}
+
+/* v2.2: remove the last action arrows and switch-circle glyphs.
+   Reuse the established watercolor/enameled raster atlas at legible sizes. */
+.chapter-cta{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.chapter-cta::after{
+  content:"";width:23px;height:23px;flex:none;display:inline-block;
+  background:url('./assets/science-ui-icons-v16.webp') 50% 0% / 300% 300% no-repeat;
+  filter:drop-shadow(0 2px 3px #10162c77);
+}
+.circuit-scene-switch{display:inline-flex;align-items:center;justify-content:center;gap:7px;line-height:1.3}
+.circuit-scene-switch::before{
+  content:"";width:29px;height:29px;flex:none;display:inline-block;
+  background:url('./assets/science-condition-icons-v18.webp') 0% 33.3333% / 400% 400% no-repeat;
+  filter:drop-shadow(0 2px 2px #071a3666);
+}
+.circuit-scene-switch[aria-pressed="true"]::before{background-position:33.3333% 33.3333%}
+@media(max-width:760px){
+  .chapter-cta::after{width:20px;height:20px}
+  .circuit-scene-switch{gap:4px;padding:5px 7px}
+  .circuit-scene-switch::before{width:25px;height:25px}
+}
+@media(max-width:760px) and (orientation:portrait){
+  #mobileSheetArrow{
+    display:inline-block;flex:none;width:28px;height:28px;margin-left:auto;
+    transform:rotate(-90deg);transition:transform .2s ease;
+    filter:drop-shadow(0 1px 2px #111d3b77);
+  }
+  #mobileSheetToggle[aria-expanded="false"] #mobileSheetArrow{transform:rotate(90deg)}
+  #mobileAdvancedBtn{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  #mobileAdvancedBtn::before{
+    content:"";width:30px;height:30px;flex:none;
+    background:url('./assets/science-ui-icons-v16.webp') 100% 0% / 300% 300% no-repeat;
+    filter:drop-shadow(0 2px 3px #07193366);
+  }
+  /* The falling ball/feather end at 33% and 67% of the scene width.
+     Keep the animated mascot in the slim left gutter, without a speech overlay. */
+  .lab-screen[data-lesson="gravity"] .scene-companion{
+    left:4px;right:auto;bottom:30px;min-width:0;width:37px;gap:0;
+    filter:drop-shadow(0 2px 4px #0815278c);
+  }
+  .lab-screen[data-lesson="gravity"] .scene-companion-portrait{flex-basis:37px;height:45px}
+  .lab-screen[data-lesson="gravity"] .scene-companion-speech,
+  .lab-screen[data-lesson="gravity"] .scene-companion-twinkle{display:none}
+}
+@media(max-width:360px) and (orientation:portrait){
+  .chapter-cta::after{width:19px;height:19px}
+  .lab-screen[data-lesson="gravity"] .scene-companion{left:2px;bottom:26px;width:33px}
+  .lab-screen[data-lesson="gravity"] .scene-companion-portrait{flex-basis:33px;height:40px}
+}
