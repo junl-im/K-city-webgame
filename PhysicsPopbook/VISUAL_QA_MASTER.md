@@ -1,6 +1,6 @@
 # 살아있는 물리도감 — 이미지·모바일 품질 검수 기준
 
-기준 소스: `K-city-webgame/PhysicsPopbook/`. 현재 운영 기준 v2.6, 12개 실험. 저작권 및 지식 자산: © 2026 임현준(곰같은여우). All rights reserved. 외부 라이브러리는 각 라이선스 적용.
+기준 소스: `K-city-webgame/PhysicsPopbook/`. 현재 운영 기준 v2.6, 12개 실험. 저작권 및 지식 자산: © 2026 곰같은여우. All rights reserved. 외부 라이브러리는 각 라이선스 적용.
 
 ## 이번 점검 (2026-10-29)
 
