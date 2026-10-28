@@ -31,6 +31,7 @@ const townButton = document.getElementById('town-button') as HTMLButtonElement;
 const farmButton = document.getElementById('farm-button') as HTMLButtonElement;
 const labButton = document.getElementById('lab-button') as HTMLButtonElement;
 const nurseryButton = document.getElementById('nursery-button') as HTMLButtonElement;
+const creekVisitButton = document.getElementById('creek-visit-button') as HTMLButtonElement;
 const modalRoot = document.getElementById('modal-root') as HTMLElement;
 const modalTitle = document.getElementById('modal-title') as HTMLElement;
 const modalContent = document.getElementById('modal-content') as HTMLElement;
@@ -151,6 +152,7 @@ function updateHud() {
   farmButton.classList.toggle('active', saveData.zone === 'farm');
   labButton.classList.toggle('active', saveData.zone === 'lab');
   nurseryButton.classList.toggle('active', saveData.zone === 'nursery');
+  creekVisitButton.hidden = saveData.zone !== 'town';
 }
 function openModal(title: string, content: string) {
   if (modalRoot.classList.contains('hidden') || modalTitle.dataset.modalTitle !== title) modalStatus.textContent = '';
@@ -1055,10 +1057,7 @@ async function start() {
       instant ? target.y : smoothFollow(world.y, target.y, elapsedMs, 120),
     );
   }
-  background.on('pointertap', (event) => {
-    if (!modalRoot.classList.contains('hidden')) return;
-    const local = world.toLocal(event.global);
-    const tapped = { x: Math.min(WORLD_WIDTH - 70, Math.max(70, local.x)), y: Math.min(WORLD_HEIGHT - 58, Math.max(350, local.y)) };
+  function guideFoxTo(tapped: Point) {
     const route = planGardenRoute(currentZone, { x: px, y: py }, tapped);
     if (!route.length) {
       plannedRoute = [];
@@ -1071,7 +1070,7 @@ async function start() {
     plannedRoute = route;
     showRouteHints({ x: px, y: py }, route);
     tx = route[0].x; ty = route[0].y;
-    const last = route[route.length-1];
+    const last = route[route.length - 1];
     if (!isWalkable(currentZone, tapped.x, tapped.y)) showGuide('그곳은 지나갈 수 없어서 가까운 길까지 안내할게!');
     markAge = 0;
     walkMark.position.set(last.x, last.y);
@@ -1079,6 +1078,23 @@ async function start() {
     walkMark.alpha = 1;
     walkMark.scale.set(1);
     walkMark.visible = true;
+  }
+  background.on('pointertap', (event) => {
+    if (!modalRoot.classList.contains('hidden')) return;
+    const local = world.toLocal(event.global);
+    guideFoxTo({
+      x: Math.min(WORLD_WIDTH - 70, Math.max(70, local.x)),
+      y: Math.min(WORLD_HEIGHT - 58, Math.max(350, local.y)),
+    });
+  });
+  // The brook lies left of the default town spawn and is off-screen on portrait phones.
+  // This painted button follows the same collision-aware walking path, then the camera follows.
+  creekVisitButton.addEventListener('click', () => {
+    if (currentZone !== 'town') return;
+    if (!modalRoot.classList.contains('hidden')) closeModal();
+    guideFoxTo({ x: 528, y: 675 });
+    showGuide('계곡 쪽으로 산책해보자! 물빛이 반짝이는 곳까지 걸어갈게.');
+    if (!prefersReducedMotion && !creekUserPaused) void loadCreekArt();
   });
   window.addEventListener('resize', () => refreshCamera(true));
   window.visualViewport?.addEventListener('resize', () => refreshCamera(true));

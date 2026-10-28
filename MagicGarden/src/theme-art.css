@@ -112,3 +112,17 @@
 .creek-help .link-button,.creek-help .modal-note{grid-column:1/-1;}
 .creek-help .link-button{font-size:13px;margin-top:3px;min-height:48px;}
 .creek-help .modal-note{margin:2px 0 0;line-height:1.5;}
+
+/* v13.1: painted creek wayfinding, shown only in town so it does not crowd other zones. */
+.creek-visit{position:absolute;z-index:4;right:14px;bottom:calc(112px + env(safe-area-inset-bottom));
+ display:flex;align-items:center;justify-content:center;gap:3px;min-width:128px;min-height:54px;padding:6px 12px 6px 6px;
+ border:0;border-radius:14px;color:#fff9e1;text-shadow:0 2px 2px #442619;font:900 13px/1.3 "Pretendard","Noto Sans KR",system-ui,sans-serif;
+ background:#795332 url('/assets/ui-button-wood-v1.webp') center/100% 100% no-repeat;
+ box-shadow:0 4px 10px #34251666;cursor:pointer;touch-action:manipulation;}
+.creek-visit-picture{display:inline-block;flex:none;width:44px;height:32px;background:url('/assets/creek-shimmer-v1.webp') center/contain no-repeat;filter:drop-shadow(0 2px 1px #1f302f48);}
+.creek-visit[hidden]{display:none}
+.creek-visit:focus-visible{outline:3px solid #216b58;outline-offset:2px;}
+.creek-visit:active{transform:translateY(2px)}
+@media(max-width:600px){.creek-visit{right:7px;bottom:calc(101px + env(safe-area-inset-bottom));min-width:112px;min-height:48px;padding:4px 8px 4px 3px;font-size:12px}.creek-visit-picture{width:38px;height:28px}}
+@media(max-height:540px){.creek-visit{bottom:calc(62px + env(safe-area-inset-bottom));min-height:44px}}
+@media(prefers-reduced-motion:reduce){.creek-visit{transition:none}}
