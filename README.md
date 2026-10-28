@@ -38,3 +38,9 @@
 - [마법정원](https://junl-im.github.io/K-city-webgame/) — 기존 기본 주소 유지
 - [오늘의 60초 놀이터](https://junl-im.github.io/K-city-webgame/SixtySecondPlayground/) — 7개 반짝 미니게임
 - `main`의 각 프로젝트를 따로 관리하고, 기존 공식 GitHub Pages 워크플로가 두 게임을 하나의 사이트에 서로 다른 경로로 게시합니다.
+
+## 독립 운영: 곰같은여우의 꽃맞고
+
+- [꽃맞고 개발 기준 소스](./FlowerMatgo/) — 동물 친구 화투패 v19, 싱글 맞고 게임 엔진, 모바일 UI, 자동모드·효과 및 회귀 테스트.
+- 꽃맞고의 CI는 `.github/workflows/flower-matgo-ci.yml`로 별도 구분하며, 기존 마법정원과 60초 놀이터의 Pages 배포 설정은 변경하지 않습니다.
+- 현재 꽃맞고 서비스는 [기존 Sites 주소](https://gomfox-flower-matgo.x7x8.chatgpt.site)를 그대로 사용합니다. GitHub Pages 이전 배포는 별도 검증 후 연결합니다.
