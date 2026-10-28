@@ -90,3 +90,13 @@
 @media(max-width:350px){.brand small{display:none}.area-panel{width:200px}.bottom-hud button{width:54px}.brand strong{font-size:11px}.hud-stats>span{min-width:48px}}
 @media(max-height:530px){.guide{display:none}.area-panel{top:calc(54px + env(safe-area-inset-top))}.bottom-hud button{min-height:48px}.modal{max-height:92dvh}}
 @media(prefers-reduced-motion:reduce){.area,.bottom-hud button,.modal .link-button{transition:none}.modal-root{backdrop-filter:none}}
+
+/* Dedicated animal portrait paintings — reused in all character dialogue panels. */
+.art-icon[data-art="fox"],.art-icon[data-art="bear"],.art-icon[data-art="cat"],.art-icon[data-art="rabbit"]{background-image:url('/assets/ui-friends-v1.webp');background-size:144px 36px;background-repeat:no-repeat}
+.art-icon[data-art="fox"]{background-position:0 0}
+.art-icon[data-art="bear"]{background-position:-36px 0}
+.art-icon[data-art="cat"]{background-position:-72px 0}
+.art-icon[data-art="rabbit"]{background-position:-108px 0}
+/* Chromium prefers standard scrollbar-color over artwork; reserve it for Firefox only. */
+.modal,#modal-content{scrollbar-color:auto}
+@supports (-moz-appearance:none){.modal,#modal-content{scrollbar-color:#8d6c45 #e8d5aa}}

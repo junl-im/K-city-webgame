@@ -15,7 +15,7 @@ for(const icon of ['town','farm','lab','nursery','bag','map','book','help','berr
 for(const target of ['contextmenu','dragstart','selectstart','setGuideIllustrations','illustratedText','theme-art.css']){
  assert.ok(script.includes(target),target+' interaction protection absent');count++;
 }
-for(const name of ['ui-icons-v1.webp','ui-parchment-v1.webp','ui-button-green-v1.webp','ui-button-pink-v1.webp','ui-button-wood-v1.webp','ui-scroll-track-v1.webp','ui-scroll-thumb-v1.webp','ui-crop-stages-v1.webp']){
+for(const name of ['ui-icons-v1.webp','ui-parchment-v1.webp','ui-button-green-v1.webp','ui-button-pink-v1.webp','ui-button-wood-v1.webp','ui-scroll-track-v1.webp','ui-scroll-thumb-v1.webp','ui-crop-stages-v1.webp','ui-friends-v1.webp']){
  const bytes=readFileSync(join(root,'public/assets',name));
  assert.ok(bytes.byteLength>=200 && bytes.subarray(0,4).toString()==='RIFF' && bytes.subarray(8,12).toString()==='WEBP',name+' raster is invalid');
  count++;

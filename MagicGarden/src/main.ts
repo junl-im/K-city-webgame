@@ -65,8 +65,8 @@ const GARDEN_UI_PICTURES: Record<string, string> = {
   '🏡':'town', '🏠':'town', '🌿':'farm', '🌱':'farm', '🌲':'farm',
   '🧪':'lab', '💧':'lab', '🥚':'nursery', '🗺️':'map', '🌉':'map',
   '🎒':'bag', '📖':'book', '💡':'help', '🍓':'berry', '✨':'potion',
-  '🌟':'potion', '🐾':'event', '📤':'gift', '📥':'bag', '🐰':'farm',
-  '🦊':'town', '🐻':'materials', '🐱':'nursery', '🎉':'gift',
+  '🌟':'potion', '🐾':'event', '📤':'gift', '📥':'bag', '🐰':'rabbit',
+  '🦊':'fox', '🐻':'bear', '🐱':'cat', '🎉':'gift',
 };
 const GARDEN_EMOJI = Object.keys(GARDEN_UI_PICTURES).sort((a,b) => b.length - a.length);
 function illustratedText(html: string): string {
