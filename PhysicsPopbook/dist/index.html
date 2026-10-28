@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1530">
+  <meta name="description" content="귀여운 여우·곰·고양이·토끼 친구들과 12가지 신나는 물리 실험! 장난감 같은 애니메이션을 만지며 배우는 무료 물리도감.">
+  <title>곰같은여우의 살아있는 물리도감 · v2.6</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <div class="starfield" aria-hidden="true"></div>
+    <section id="homeScreen" class="screen home-screen" aria-labelledby="homeTitle">
+      <header class="home-topbar">
+        <span class="brand"><span class="brand-emblem"><img src="./assets/fox-professor-v03.webp" alt="" width="26" height="26" decoding="async"></span> 곰같은여우의 AI 놀이터</span>
+        <span class="version-pill">v2.6 · 반짝이는 장난감 실험실</span>
+      </header>
+
+      <div class="home-content">
+        <p class="eyebrow hero-eyebrow"><img src="./assets/fox-professor-v03.webp" width="30" height="30" alt="" decoding="async"> 우리 친구들과 함께 떠나는 반짝반짝 과학 여행!</p>
+        <h1 id="homeTitle">살아있는<br><span>물리도감</span></h1>
+        <p class="home-intro">책 속에 숨은 비밀을 콕! 눌러봐요.<br>귀여운 친구들과 직접 움직이며 발견하는 12가지 실험!</p>
+
+        <div class="hero-art" id="heroArt" aria-label="빛나는 마법책에서 행성과 과학 모형이 솟아오르는 장식 장면">
+          <div class="planet planet-a"></div>
+          <div class="planet planet-b"></div>
+          <div class="planet planet-c"></div>
+          <div class="orbit orbit-a"></div>
+          <div class="orbit orbit-b"></div>
+          <div class="magic-dust dust-one">✦</div>
+          <div class="magic-dust dust-two">✧</div>
+          <div class="magic-dust dust-three">✦</div>
+          <div class="book-glow"></div>
+          <div class="book-base"><div class="book-page left-page"></div><div class="book-page right-page"></div><div class="book-spine"></div></div>
+          <img id="heroArtwork" class="hero-artwork" src="./assets/magic-science-book.webp" alt="" width="1200" height="800" decoding="async" fetchpriority="high">
+        </div>
+
+        <div class="home-action-group">
+          <button class="btn btn-primary btn-large" id="enterBtn" type="button"><span class="toy-ui-icon toy-ui-icon-book" aria-hidden="true"></span> 친구들과 과학책 펼치기</button>
+          <p class="free-note">가입 없이 무료 · 모바일에서도 바로 체험</p>
+        </div>
+      </div>
+
+      <div class="mascot-strip" aria-label="동물 친구들의 인사">
+        <span class="mascot mascot-fox" title="여우 박사"><img src="./assets/fox-professor-v03.webp" width="42" height="44" alt="" decoding="async"><small>여우 박사</small></span>
+        <span class="mascot mascot-bear" title="곰 연구원"><img src="./assets/bear-researcher-v05.webp" width="42" height="44" alt="" decoding="async"><small>곰 연구원</small></span>
+        <span class="mascot mascot-cat" title="고양이 탐험가"><img src="./assets/cat-adventurer-v05.webp" width="42" height="44" alt="" decoding="async"><small>고양이 탐험가</small></span>
+        <span class="mascot mascot-rabbit" title="토끼 도전자"><img src="./assets/rabbit-adventurer-v05.webp" width="42" height="44" alt="" decoding="async"><small>토끼 도전자</small></span>
+      </div>
+    </section>
+
+    <section id="bookScreen" class="screen book-screen" aria-labelledby="bookTitle" hidden>
+      <header class="book-header"><button class="icon-button" id="bookBackBtn" type="button" aria-label="첫 화면으로"><span class="toy-nav-icon toy-nav-back" aria-hidden="true"></span></button><span class="overline">곰같은여우의 살아있는 물리도감</span><span class="book-progress" id="bookProgress">0 / 12 발견</span></header>
+      <div class="book-content">
+        <p class="eyebrow">마법책의 목차</p>
+        <h2 id="bookTitle">궁금한 페이지를 <span>톡!</span></h2>
+        <p class="book-subtitle">마음에 드는 장면을 톡! 친구들이 실험을 보여줄게요.</p>
+        <div class="chapter-grid">
+          <button type="button" class="chapter-card gravity-cover" data-lesson="gravity" aria-label="제1장 중력의 비밀 열기">
+            <span class="chapter-corner">제1장 · 힘과 운동</span>
+            <span class="chapter-illustration physics-picture" aria-hidden="true"><img src="./assets/science-toy-v06-0.webp" alt="" decoding="async"></span>
+            <strong>무거우면<br>더 빨리 떨어질까?</strong>
+            <small>쇠구슬 · 깃털 · 공기 · 달</small>
+            <span class="chapter-bottom"><span class="chapter-stamp" id="gravityStamp">아직 발견 전</span><span class="chapter-cta">실험하기</span></span>
+          </button>
+          <button type="button" class="chapter-card orbit-cover" data-lesson="orbit" aria-label="제2장 행성의 비밀 열기">
+            <span class="chapter-corner">제2장 · 우주와 운동</span>
+            <span class="chapter-illustration physics-picture" aria-hidden="true"><img src="./assets/science-toy-v06-1.webp" alt="" decoding="async"></span>
+            <strong>멀리 있는 행성은<br>왜 천천히 돌까?</strong>
+            <small>태양 · 공전 · 거리 · 시간</small>
+            <span class="chapter-bottom"><span class="chapter-stamp" id="orbitStamp">아직 발견 전</span><span class="chapter-cta">실험하기</span></span>
+          </button>
+          <button type="button" class="chapter-card light-cover" data-lesson="light" aria-label="제3장 빛과 거울 열기">
+            <span class="chapter-corner">제3장 · 빛과 파동</span>
+            <span class="chapter-illustration physics-picture" aria-hidden="true"><img src="./assets/science-toy-v06-2.webp" alt="" decoding="async"></span>
+            <strong>빛을 비추면<br>어디로 튕길까?</strong>
+            <small>거울 · 법선 · 입사각 · 반사각</small>
+            <span class="chapter-bottom"><span class="chapter-stamp" id="lightStamp">아직 발견 전</span><span class="chapter-cta">실험하기</span></span>
+          </button>
+          <button type="button" class="chapter-card circuit-cover" data-lesson="circuit" aria-label="제4장 전기회로 열기">
+            <span class="chapter-corner">제4장 · 전기와 에너지</span>
+            <span class="chapter-illustration physics-picture" aria-hidden="true"><img src="./assets/science-toy-v06-3.webp" alt="" decoding="async"></span>
+            <strong>전구는 어떻게<br>반짝 켜질까?</strong>
+            <small>건전지 · 스위치 · 전류 · 저항</small>
+            <span class="chapter-bottom"><span class="chapter-stamp" id="circuitStamp">아직 발견 전</span><span class="chapter-cta">실험하기</span></span>
+          </button>
+          <button type="button" class="chapter-card mechanics-cover" data-lesson="mechanics" aria-label="제5장 지레와 도르래 열기">
+            <span class="chapter-corner">제5장 · 힘과 도구</span>
+            <span class="chapter-illustration physics-picture" aria-hidden="true"><img src="./assets/science-toy-v06-4.webp" alt="" decoding="async"></span>
+            <strong>적은 힘으로<br>무거운 걸 들 수 있을까?</strong>
+            <small>지레 · 받침점 · 고정도르래 · 움직도르래</small>
+            <span class="chapter-bottom"><span class="chapter-stamp" id="mechanicsStamp">아직 발견 전</span><span class="chapter-cta">실험하기</span></span>
+          </button>
+          <button type="button" class="chapter-card magnet-cover" data-lesson="magnet" aria-label="제6장 자석의 비밀 열기">
+            <span class="chapter-corner">제6장 · 자석과 힘</span>
+            <span class="chapter-illustration physics-picture" aria-hidden="true"><img src="./assets/new-science-toy-v06-0.webp" alt="" decoding="async"></span>
+            <strong>자석은 왜<br>철구를 끌어당길까?</strong>
+            <small>자석 · 철 · 나무 · 거리</small>
+            <span class="chapter-bottom"><span class="chapter-stamp" id="magnetStamp">아직 발견 전</span><span class="chapter-cta">실험하기</span></span>
+          </button>
+          <button type="button" class="chapter-card sound-cover" data-lesson="sound" aria-label="제7장 소리와 파동 열기">
+            <span class="chapter-corner">제7장 · 소리와 진동</span>
+            <span class="chapter-illustration physics-picture" aria-hidden="true"><img src="./assets/new-science-toy-v06-1.webp" alt="" decoding="async"></span>
+            <strong>높은 소리와 낮은 소리는<br>무엇이 다를까?</strong>
+            <small>진동 · 진동수 · 파장</small>
+            <span class="chapter-bottom"><span class="chapter-stamp" id="soundStamp">아직 발견 전</span><span class="chapter-cta">실험하기</span></span>
+          </button>
+          <button type="button" class="chapter-card inertia-cover" data-lesson="inertia" aria-label="제8장 관성의 비밀 열기">
+            <span class="chapter-corner">제8장 · 관성과 운동</span>
+            <span class="chapter-illustration physics-picture" aria-hidden="true"><img src="./assets/toy-inertia-v07.webp" alt="" decoding="async" loading="lazy"></span>
+            <strong>수레가 멈췄는데<br>왜 앞으로 쏠릴까?</strong>
+            <small>관성 · 속도 · 멈추는 거리</small>
+            <span class="chapter-bottom"><span class="chapter-stamp" id="inertiaStamp">아직 발견 전</span><span class="chapter-cta">실험하기</span></span>
+          </button>
+          <button type="button" class="chapter-card friction-cover" data-lesson="friction" aria-label="제9장 마찰의 비밀 열기">
+            <span class="chapter-corner">제9장 · 마찰과 미끄럼</span>
+            <span class="chapter-illustration physics-picture" aria-hidden="true"><img src="./assets/toy-friction-v07.webp" alt="" decoding="async" loading="lazy"></span>
+            <strong>얼음길에서는<br>왜 더 잘 미끄러질까?</strong>
+            <small>경사 · 표면 · 마찰력</small>
+            <span class="chapter-bottom"><span class="chapter-stamp" id="frictionStamp">아직 발견 전</span><span class="chapter-cta">실험하기</span></span>
+          </button>
+          <button type="button" class="chapter-card buoyancy-cover" data-lesson="buoyancy" aria-label="제10장 부력의 비밀 열기">
+            <span class="chapter-corner">제10장 · 물과 부력</span>
+            <span class="chapter-illustration physics-picture" aria-hidden="true"><img src="./assets/toy-buoyancy-v07.webp" alt="" decoding="async" loading="lazy"></span>
+            <strong>장난감 오리는<br>왜 물에 둥둥 뜰까?</strong>
+            <small>뜨기 · 가라앉기 · 물의 밀도</small>
+            <span class="chapter-bottom"><span class="chapter-stamp" id="buoyancyStamp">아직 발견 전</span><span class="chapter-cta">실험하기</span></span>
+          </button>
+          <button type="button" class="chapter-card pendulum-cover" data-lesson="pendulum" aria-label="제11장 진자의 비밀 열기">
+            <span class="chapter-corner">제11장 · 흔들흔들 진자</span>
+            <span class="chapter-illustration physics-picture" aria-hidden="true"><img src="./assets/toy-pendulum-v07.webp" alt="" decoding="async" loading="lazy"></span>
+            <strong>긴 그네는<br>왜 천천히 흔들릴까?</strong>
+            <small>길이 · 중력 · 왕복 시간</small>
+            <span class="chapter-bottom"><span class="chapter-stamp" id="pendulumStamp">아직 발견 전</span><span class="chapter-cta">실험하기</span></span>
+          </button>
+          <button type="button" class="chapter-card heat-cover" data-lesson="heat" aria-label="제12장 열과 얼음 열기">
+            <span class="chapter-corner">제12장 · 열과 온도</span>
+            <span class="chapter-illustration physics-picture" aria-hidden="true"><img src="./assets/toy-heat-v07.webp" alt="" decoding="async" loading="lazy"></span>
+            <strong>따뜻한 물을 만나면<br>얼음은 얼마나 녹을까?</strong>
+            <small>열 · 온도 · 얼음 녹이기</small>
+            <span class="chapter-bottom"><span class="chapter-stamp" id="heatStamp">아직 발견 전</span><span class="chapter-cta">실험하기</span></span>
+          </button>
+        </div>
+        <div class="book-note" aria-label="여우 박사, 곰 연구원, 고양이 탐험가, 토끼 도전자와 실험해요!">
+          <span class="book-buddy"><img src="./assets/fox-professor-v03.webp" alt="" width="26" height="26" loading="lazy">여우 박사</span>
+          <span class="book-buddy"><img src="./assets/bear-researcher-v05.webp" alt="" width="26" height="26" loading="lazy">곰 연구원</span>
+          <span class="book-buddy"><img src="./assets/cat-adventurer-v05.webp" alt="" width="26" height="26" loading="lazy">고양이 탐험가</span>
+          <span class="book-buddy"><img src="./assets/rabbit-adventurer-v05.webp" alt="" width="26" height="26" loading="lazy">토끼 도전자</span>
+          <span class="book-note-end">친구들과 실험해요!</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="labScreen" class="screen lab-screen" aria-labelledby="labTitle" hidden>
+      <header class="lab-header">
+        <button class="icon-button back-button" id="backBtn" type="button" aria-label="첫 화면으로 돌아가기"><span class="toy-nav-icon toy-nav-back" aria-hidden="true"></span></button>
+        <div class="lab-heading">
+          <span class="overline" id="chapterNum">제1장 · 힘과 운동</span>
+          <h2 id="labTitle">중력의 비밀</h2>
+        </div>
+        <button class="icon-button" id="helpBtn" type="button" aria-label="실험 설명 보기"><span class="toy-nav-icon toy-nav-help" aria-hidden="true"></span></button>
+      </header>
+
+      <div class="lab-body">
+        <div class="lab-main">
+          <div class="mission-bubble"><span class="fox-avatar" aria-hidden="true"><img src="./assets/fox-professor-v03.webp" width="50" height="52" alt="" decoding="async"></span><div><strong>여우 박사의 질문</strong><p id="missionQuestion">쇠구슬과 깃털, 누가 먼저 바닥에 닿을까요?</p></div></div>
+          <div class="story-home-slot" id="storyHomeSlot"><div class="story-taps" id="storyTaps" role="group" aria-label="움직이는 교과서 문장">
+            <button type="button" class="story-tap active" data-story="air">공기가 있으면 깃털은?</button>
+            <button type="button" class="story-tap" data-story="vacuum">공기를 없애면?</button>
+            <button type="button" class="story-tap" data-story="moon">달에서는?</button>
+          </div></div>
+          <div class="scene-frame" id="sceneFrame">
+            <canvas id="sceneCanvas" aria-label="회전 가능한 3D 낙하 실험 장면"></canvas>
+            <canvas id="liteCanvas" class="lite-canvas" aria-label="간편한 2D 실험 장면" hidden></canvas>
+            <div class="scene-topline"><span id="sceneMode" data-planet="earth">지구 · 공기 있음</span><span class="scene-tag" id="renderMode">3D 실험</span></div>
+            <div class="object-label label-ball" id="ballLabel">쇠구슬 <strong id="ballDistance">0.0 m</strong></div>
+            <div class="object-label label-feather" id="featherLabel">깃털 <strong id="featherDistance">0.0 m</strong></div>
+            <div class="object-label label-orbit" id="orbitLabel" hidden>탐사 행성 <strong id="orbitDistance">1.0 AU</strong></div>
+            <div class="object-label label-ball" id="lightIncidenceLabel" hidden>입사각 <strong id="lightIncidence">40°</strong></div>
+            <div class="object-label label-feather" id="lightReflectionLabel" hidden>반사각 <strong id="lightReflection">40°</strong></div>
+            <div class="object-label label-circuit-current" id="circuitCurrentLabel" hidden>전류 <strong id="circuitCurrent">0.00 A</strong></div>
+            <div class="object-label label-circuit-power" id="circuitPowerLabel" hidden>전력 <strong id="circuitPower">0.00 W</strong></div>
+            <div class="object-label label-mechanics-effort" id="mechanicsEffortLabel" hidden>필요한 힘 <strong id="mechanicsEffort">60 N</strong></div>
+            <div class="object-label label-mechanics-advantage" id="mechanicsAdvantageLabel" hidden>힘의 이득 <strong id="mechanicsAdvantage">2배</strong></div>
+            <div class="object-label label-magnet-result" id="magnetLabel" hidden>끌어당기는 힘 <strong id="magnetPull">철구에 작용</strong></div>
+            <div class="object-label label-sound-result" id="soundLabel" hidden>파장 <strong id="soundWaveLabel">1.00 m</strong></div>
+            <div class="object-label label-everyday-result" id="everydayLabel" hidden>오늘의 발견 <strong id="everydaySceneResult">실험 준비!</strong></div>
+            <div class="scene-companion" id="sceneCompanion" data-mood="curious" aria-hidden="true">
+              <span class="scene-companion-portrait"><img id="sceneCompanionImage" src="./assets/bear-researcher-v05.webp" width="100" height="100" alt="" decoding="async"><span class="scene-companion-twinkle">✦</span></span>
+              <span class="scene-companion-speech"><b id="sceneCompanionName">곰 연구원</b><span id="sceneCompanionText">함께 실험해 볼까?</span></span>
+            </div>
+            <button class="circuit-scene-switch" id="circuitSceneSwitch" type="button" aria-pressed="false" hidden>스위치 열림 · 눌러 연결</button>
+            <div class="time-chip"><span id="timeUnit">실험 시간</span> <strong id="timeValue">0.00초</strong></div>
+            <div class="scene-bottomline"><span id="sceneInstruction">손가락으로 드래그해 관찰해 보세요</span><div class="scene-toolbox"><button type="button" id="liteBtn" aria-pressed="false">2D 경량모드</button><button type="button" id="cameraBtn">시점 초기화</button></div></div>
+            <div id="sceneFallback" class="scene-fallback" hidden>3D를 불러오지 못해 2D 실험 모드로 전환했어요.</div>
+          </div>
+          <div class="status-ribbon" id="statusRibbon" role="status" aria-live="polite">조건을 고르고 <b>실험 시작</b>을 눌러보세요!</div>
+        </div>
+
+        <aside class="control-panel" id="controlPanel" aria-label="실험 조건">
+          <button class="mobile-sheet-toggle" id="mobileSheetToggle" type="button" aria-controls="controlPanel" aria-expanded="true"><span class="mobile-sheet-grip" aria-hidden="true"></span><span id="mobileSheetTitle">토끼의 실험 조작실</span><span class="mobile-sheet-arrow toy-nav-icon toy-nav-back" id="mobileSheetArrow" aria-hidden="true"></span></button>
+          <div class="mobile-story-slot" id="mobileStorySlot" hidden></div>
+          <div class="control-panel-heading"><div><span class="overline">토끼 도전자가 준비했어요!</span><h3>우리의 실험 놀이</h3></div><span class="panel-star" aria-hidden="true"><img src="./assets/rabbit-adventurer-v05.webp" width="56" height="59" alt="" decoding="async"></span></div>
+          <div id="gravityControls" class="lesson-controls">
+            <div class="control-group"><div class="group-label">어디에서 실험할까요?</div><div class="segmented" role="group" aria-label="행성 선택"><button class="choice active" type="button" data-planet="earth" aria-pressed="true">지구</button><button class="choice" type="button" data-planet="moon" aria-pressed="false">달</button></div></div>
+            <div class="control-group"><div class="group-label">공기의 영향</div><div class="segmented" role="group" aria-label="공기 선택"><button class="choice active" type="button" data-air="on" aria-pressed="true">공기 있음</button><button class="choice" type="button" data-air="off" aria-pressed="false">진공</button></div><p class="control-help" id="airHint">공기가 있으면 가벼운 깃털이 천천히 떨어져요.</p></div>
+            <div class="control-group range-group"><label for="heightRange" class="range-label"><span>낙하 높이</span><strong id="heightLabel">10 m</strong></label><input id="heightRange" type="range" min="2" max="20" step="1" value="10"><div class="range-endpoints"><span>2m</span><span>20m</span></div></div>
+          </div>
+          <div id="orbitControls" class="lesson-controls" hidden>
+            <div class="control-group range-group"><label for="orbitRadiusRange" class="range-label"><span>태양과 행성 사이 거리</span><strong id="orbitRadiusLabel">1.0 AU</strong></label><input id="orbitRadiusRange" type="range" min="0.6" max="1.8" step="0.1" value="1"><div class="range-endpoints"><span>가까움 · 0.6 AU</span><span>멀어짐 · 1.8 AU</span></div></div>
+            <div class="orbit-data"><span>탐사 행성의 공전 주기</span><strong id="orbitPeriod">1.00년</strong><small>지구 기준: 1 AU에서 1년</small></div>
+            <p class="control-help">태양 주변의 원형 궤도를 가정한 학습 모형이에요. 실제 행성의 궤도와 크기는 다를 수 있어요.</p>
+          </div>
+          <div id="lightControls" class="lesson-controls" hidden>
+            <div class="control-group range-group"><label for="lightAngleRange" class="range-label"><span>빛이 들어오는 각도</span><strong id="lightAngleLabel">40°</strong></label><input id="lightAngleRange" type="range" min="10" max="70" step="5" value="40"><div class="range-endpoints"><span>법선에 가까이 · 10°</span><span>옆으로 기울게 · 70°</span></div></div>
+            <div class="orbit-data light-data"><span>거울에 부딪힌 빛의 반사각</span><strong id="lightAngleResult">40°</strong><small>입사각과 반사각은 법선을 기준으로 측정해요.</small></div>
+            <p class="control-help">실험용 평면거울 모형입니다. 빛의 진행 방향은 광선으로 표현하며, 실제 빛의 속도는 이 애니메이션과 다릅니다.</p>
+          </div>
+          <div id="circuitControls" class="lesson-controls" hidden>
+            <div class="control-group"><div class="group-label">전선 연결하기</div><div class="segmented" role="group" aria-label="스위치 상태"><button class="choice active" type="button" data-circuit="open" aria-pressed="true">열림</button><button class="choice" type="button" data-circuit="closed" aria-pressed="false">닫힘</button></div></div>
+            <div class="control-group range-group"><label for="voltageRange" class="range-label"><span>건전지 전압</span><strong id="voltageLabel">4.5 V</strong></label><input id="voltageRange" type="range" min="1.5" max="9" step="1.5" value="4.5"><div class="range-endpoints"><span>1.5 V</span><span>9 V</span></div></div>
+            <div class="control-group range-group"><label for="resistanceRange" class="range-label"><span>전구의 가상 저항</span><strong id="resistanceLabel">6 Ω</strong></label><input id="resistanceRange" type="range" min="3" max="12" step="1" value="6"><div class="range-endpoints"><span>3 Ω</span><span>12 Ω</span></div></div>
+            <div class="orbit-data circuit-data"><span>전류와 전력 · 스위치 상태를 바꿔보세요</span><strong id="circuitResult">0.00 A · 꺼짐</strong><small>전구의 밝기는 계산된 전력에 따른 학습용 연출이에요.</small></div>
+          </div>
+          <div id="mechanicsControls" class="lesson-controls" hidden>
+            <div class="control-group"><div class="group-label">어떤 도구를 볼까요?</div><div class="segmented" role="group" aria-label="도구 종류"><button class="choice active" type="button" data-mechanics-mode="lever" aria-pressed="true">지레</button><button class="choice" type="button" data-mechanics-mode="pulley" aria-pressed="false">도르래</button></div></div>
+            <div class="control-group range-group"><label for="loadRange" class="range-label"><span>들어 올릴 물체의 무게</span><strong id="loadLabel">120 N</strong></label><input id="loadRange" type="range" min="60" max="240" step="30" value="120"><div class="range-endpoints"><span>60 N</span><span>240 N</span></div></div>
+            <div class="control-group range-group" id="leverArmControl"><label for="effortArmRange" class="range-label"><span>지레 힘점과 받침점 거리</span><strong id="effortArmLabel">2 m</strong></label><input id="effortArmRange" type="range" min="1" max="4" step="1" value="2"><div class="range-endpoints"><span>1 m</span><span>4 m · 더 긴 지레</span></div></div>
+            <div class="control-group" id="pulleyTypeControl" hidden><div class="group-label">도르래 방식</div><div class="segmented" role="group" aria-label="도르래 방식"><button class="choice active" type="button" data-pulley="fixed" aria-pressed="true">고정도르래</button><button class="choice" type="button" data-pulley="moving" aria-pressed="false">움직도르래</button></div></div>
+            <div class="orbit-data mechanics-data"><span>이상적인 조건에서 필요한 힘</span><strong id="mechanicsResult">60 N · 2배 이득</strong><small id="mechanicsTravel">힘점 이동 거리 1.0 m · 물체 이동 0.5 m</small></div>
+            <p class="control-help" id="mechanicsHelp">마찰과 장치 무게를 무시한 학습 모형이에요. 작은 힘을 쓰는 대신 더 긴 거리를 움직여요.</p>
+          </div>
+          <div id="magnetControls" class="lesson-controls" hidden>
+            <div class="control-group"><div class="group-label">자석 앞에 무엇을 둘까요?</div><div class="segmented" role="group" aria-label="자석에 가까이 놓을 물체"><button class="choice active" type="button" data-material="iron" aria-pressed="true">철구</button><button class="choice" type="button" data-material="wood" aria-pressed="false">나무 구슬</button></div></div>
+            <div class="control-group range-group"><label for="magnetDistanceRange" class="range-label"><span>자석과 구슬 사이 거리</span><strong id="magnetDistanceLabel">2 cm</strong></label><input id="magnetDistanceRange" type="range" min="1" max="5" step="1" value="2"><div class="range-endpoints"><span>가까이 · 1 cm</span><span>멀리 · 5 cm</span></div></div>
+            <div class="control-group range-group"><label for="magnetStrengthRange" class="range-label"><span>자석의 세기 · 놀이 단계</span><strong id="magnetStrengthLabel">3 단계</strong></label><input id="magnetStrengthRange" type="range" min="1" max="5" step="1" value="3"><div class="range-endpoints"><span>약하게</span><span>강하게</span></div></div>
+            <div class="orbit-data magnet-data"><span>우리의 발견</span><strong id="magnetResult">철구가 끌려와요!</strong><small>실제 자기력 수치가 아닌 관찰용 애니메이션이에요.</small></div>
+          </div>
+          <div id="soundControls" class="lesson-controls" hidden>
+            <div class="control-group range-group"><label for="soundFrequencyRange" class="range-label"><span>소리의 높이 · 진동수</span><strong id="soundFrequencyLabel">340 Hz</strong></label><input id="soundFrequencyRange" type="range" min="170" max="680" step="170" value="340"><div class="range-endpoints"><span>낮은 소리</span><span>높은 소리</span></div></div>
+            <div class="control-group range-group"><label for="soundVolumeRange" class="range-label"><span>소리의 크기 · 진폭 놀이</span><strong id="soundVolumeLabel">3 단계</strong></label><input id="soundVolumeRange" type="range" min="1" max="5" step="1" value="3"><div class="range-endpoints"><span>작게</span><span>크게</span></div></div>
+            <div class="orbit-data sound-data"><span>공기 중 소리의 파장 · 약 20℃</span><strong id="soundResult">약 1.00 m</strong><small>같은 공기 중에서는 높은 소리일수록 파장이 짧아져요.</small></div>
+            <button type="button" class="why-button" id="hearSoundBtn">소리 높이 들어보기</button>
+          </div>
+          <div id="extraControls" class="lesson-controls" hidden>
+            <div class="control-group"><div class="group-label" id="extraModeCaption">오늘은 어떤 조건으로 해볼까요?</div><div class="segmented" id="extraModeGroup" role="group" aria-label="실험 조건 선택"></div></div>
+            <div class="control-group range-group"><label for="extraARange" class="range-label"><span id="extraALabel">조건 1</span><strong id="extraAValue">0</strong></label><input id="extraARange" type="range" min="0" max="10" step="1" value="0"><div class="range-endpoints"><span id="extraAMin">낮게</span><span id="extraAMax">높게</span></div></div>
+            <div class="control-group range-group" id="extraBControl"><label for="extraBRange" class="range-label"><span id="extraBLabel">조건 2</span><strong id="extraBValue">0</strong></label><input id="extraBRange" type="range" min="0" max="10" step="1" value="0"><div class="range-endpoints"><span id="extraBMin">낮게</span><span id="extraBMax">높게</span></div></div>
+            <div class="orbit-data"><span id="extraResultCaption">오늘의 발견</span><strong id="extraResult">준비!</strong><small id="extraHint">조건을 바꾸어 비교해봐요.</small></div>
+          </div>
+          <button class="mobile-advanced-toggle" id="mobileAdvancedBtn" type="button" aria-expanded="false">자세히 조작하기</button>
+          <div class="control-group mobile-extra-option"><div class="group-label">실험 속도</div><div class="segmented speed-row" role="group" aria-label="재생 속도"><button class="choice" type="button" data-speed="0.25" aria-pressed="false">느리게</button><button class="choice active" type="button" data-speed="1" aria-pressed="true">보통</button><button class="choice" type="button" data-speed="3" aria-pressed="false">3배속</button></div></div>
+          <div class="action-row mobile-extra-option"><button class="btn btn-secondary" id="resetBtn" type="button"><span class="toy-nav-icon toy-nav-reset" aria-hidden="true"></span> 초기화</button><button class="btn btn-primary" id="runBtn" data-action="start" type="button">실험 시작</button></div>
+          <button class="why-button mobile-extra-option illustrated-action" id="explainBtn" type="button"><span class="toy-ui-icon toy-ui-icon-book" aria-hidden="true"></span> 왜 이런 결과가 나올까요?</button>
+          <button class="quiz-button mobile-extra-option illustrated-action" id="quizBtn" type="button"><span class="toy-ui-icon toy-ui-icon-apple" aria-hidden="true"></span> 여우 박사의 발견 문제 풀기</button>
+        </aside>
+      </div>
+      <nav class="mobile-dock" id="mobileDock" aria-label="모바일 실험 조작" hidden>
+        <button type="button" class="mobile-dock-tab" id="mobileStoryBtn" aria-pressed="false"><span class="toy-ui-icon toy-ui-icon-book" aria-hidden="true"></span><span>이야기</span></button>
+        <button type="button" class="mobile-dock-tab active" id="mobileControlsBtn" aria-pressed="true"><span class="toy-ui-icon toy-ui-icon-controls" aria-hidden="true"></span><span>조작</span></button>
+        <button type="button" class="mobile-dock-tab" id="mobileExplainBtn"><span class="toy-ui-icon toy-ui-icon-book" aria-hidden="true"></span><span>원리</span></button>
+        <button type="button" class="mobile-dock-run" id="mobileRunBtn" data-play="true">시작</button>
+      </nav>
+      <footer class="lab-footer"><span id="modelDescription">우리 친구들이 알려주는 쉬운 물리</span><span>© 2026 임현준(곰같은여우) · 자체 제작 지식 자산 권리 보유</span></footer>
+    </section>
+  </div>
+
+  <dialog id="explanationDialog" class="science-dialog" aria-labelledby="dialogTitle">
+    <div class="dialog-header"><span class="dialog-eyebrow"><span class="toy-ui-icon toy-ui-icon-book" aria-hidden="true"></span> 과학 발견 노트</span><button class="dialog-close" id="closeDialog" aria-label="닫기" type="button"><span class="toy-nav-icon toy-nav-close" aria-hidden="true"></span></button></div>
+    <h2 id="dialogTitle">무거우면 더 빨리 떨어질까요?</h2>
+    <p id="explanationLead">진공에서는 같은 중력가속도로 떨어집니다.</p>
+    <div class="formula-card"><span id="formulaCaption">이상적인 낙하 거리</span><strong id="formulaValue">s = ½gt²</strong><small id="formulaHint">g: 중력가속도, t: 경과 시간</small></div>
+    <p id="explanationBody">공기 저항은 낙하 속도를 바꿉니다.</p>
+    <p class="science-note" id="explanationNote">이해를 돕기 위한 단순화 모델입니다.</p>
+    <button class="btn btn-primary dialog-confirm" id="dialogOk" type="button">이해했어요!</button>
+  </dialog>
+
+  <dialog id="quizDialog" class="science-dialog quiz-dialog" aria-labelledby="quizTitle">
+    <div class="dialog-header"><span class="dialog-eyebrow"><img src="./assets/fox-professor-v03.webp" alt="" width="29" height="29" decoding="async"> 여우 박사의 발견 문제</span><button class="dialog-close" id="quizClose" aria-label="닫기" type="button"><span class="toy-nav-icon toy-nav-close" aria-hidden="true"></span></button></div>
+    <h2 id="quizTitle">배운 내용을 확인해 볼까요?</h2>
+    <p id="quizQuestion">공기가 없는 곳에서는 어떻게 될까요?</p>
+    <div class="quiz-answers" id="quizAnswers"></div>
+    <p class="quiz-feedback" id="quizFeedback" role="status" aria-live="polite">정답을 골라 주세요!</p>
+    <button class="btn btn-primary dialog-confirm" id="quizDone" type="button" hidden>도감으로 돌아가기</button>
+  </dialog>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
