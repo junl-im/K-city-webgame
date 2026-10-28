@@ -39,7 +39,7 @@ export function segmentIsWalkable(zone: GardenZone, a: Point, b: Point): boolean
   const dx = b.x - a.x, dy = b.y - a.y;
   const distance = Math.hypot(dx, dy);
   if (!Number.isFinite(distance)) return false;
-  const samples = Math.max(1, Math.ceil(distance / 8));
+  const samples = Math.max(1, Math.ceil(distance / 6));
   for (let i = 0; i <= samples; i++) {
     const t = i / samples;
     if (!isWalkable(zone, a.x + dx * t, a.y + dy * t)) return false;
@@ -155,4 +155,15 @@ export function planGardenRoute(zone: GardenZone, start: Point, desired: Point):
     index = farthest;
   }
   return route;
+}
+
+/** Validate every route edge, not just its endpoints. */
+export function routeIsWalkable(zone: GardenZone, start: Point, route: readonly Point[]): boolean {
+  let previous = start;
+  if (!isWalkable(zone, previous.x, previous.y)) return false;
+  for (const point of route) {
+    if (!segmentIsWalkable(zone, previous, point)) return false;
+    previous = point;
+  }
+  return true;
 }

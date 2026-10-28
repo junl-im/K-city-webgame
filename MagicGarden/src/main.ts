@@ -2,7 +2,7 @@ import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Text
 import './style.css';
 import { resolveHorizontalFacing, resolveWalkHeading, type HorizontalFacing, type WalkHeading } from './walk-motion';
 import { advanceMovement, calculateCameraTarget, smoothFollow } from './movement-camera';
-import { isWalkable, planGardenRoute, type Point } from './garden-navigation';
+import { isWalkable, planGardenRoute, segmentIsWalkable, type Point } from './garden-navigation';
 
 type Zone = 'town' | 'farm' | 'lab' | 'nursery';
 type MonsterKind = '잎새콩' | '방울몽' | '반짝몽';
@@ -448,6 +448,32 @@ async function start() {
   const walkMark = new Graphics().circle(0, 0, 17).stroke({ color: '#fffbee', width: 4, alpha: .95 }).circle(0, 0, 10).stroke({ color: '#6aa873', width: 3, alpha: .85 });
   walkMark.visible = false; walkMark.eventMode = 'none';
   objects.addChild(walkMark);
+  // Dotted wayfinding hints render behind characters; they never capture touches.
+  const routeHints = new Graphics();
+  routeHints.eventMode = 'none';
+  routeHints.zIndex = 340;
+  objects.addChild(routeHints);
+  function showRouteHints(start: Point, route: Point[]) {
+    routeHints.clear();
+    let from = start, drawn = 0;
+    for (const to of route) {
+      const length = Math.hypot(to.x - from.x, to.y - from.y);
+      const samples = Math.floor(length / 38);
+      for (let i = 1; i <= samples && drawn < 48; i++) {
+        const t = i * 38 / length;
+        const x = from.x + (to.x - from.x) * t;
+        const y = from.y + (to.y - from.y) * t;
+        routeHints.circle(x, y + 3, 7).fill({ color: '#405e3c', alpha: .12 });
+        routeHints.circle(x, y, 3.2).fill({ color: '#fff3c2', alpha: .8 });
+        routeHints.circle(x - 1, y - 1, 1.1).fill({ color: '#ffffff', alpha: .95 });
+        drawn++;
+      }
+      from = to;
+    }
+    routeHints.alpha = .85;
+    routeHints.visible = drawn > 0;
+  }
+  function clearRouteHints() { routeHints.clear(); routeHints.visible = false; }
   let markAge = 0;
 
   const gate = new Container();
@@ -728,6 +754,7 @@ async function start() {
     px = next === 'farm' ? 218 : next === 'town' ? 940 : 610;
     py = 562; tx = px; ty = py;
     plannedRoute = [];
+    clearRouteHints();
     walkHeading = 'down';
     horizontalFacing = 1;
     walkDistance = 0;
@@ -764,12 +791,14 @@ async function start() {
     const route = planGardenRoute(currentZone, { x: px, y: py }, tapped);
     if (!route.length) {
       plannedRoute = [];
+      clearRouteHints();
       tx = px; ty = py;
       walkMark.visible = false;
       if (Math.hypot(tapped.x-px,tapped.y-py) > 5) showGuide('그곳으로 가는 길을 찾지 못했어. 다른 길을 눌러줘!');
       return;
     }
     plannedRoute = route;
+    showRouteHints({ x: px, y: py }, route);
     tx = route[0].x; ty = route[0].y;
     const last = route[route.length-1];
     if (!isWalkable(currentZone, tapped.x, tapped.y)) showGuide('그곳은 지나갈 수 없어서 가까운 길까지 안내할게!');
@@ -790,7 +819,7 @@ async function start() {
   (document.getElementById('map-button') as HTMLButtonElement).addEventListener('click', () => openModal('🗺️ 마법정원 월드', '<p>가고 싶은 지역을 눌러 바로 이동해봐!</p><div class="zone-choices"><button class="link-button" type="button" data-game-action="zone-town">🏡 중앙 마을</button><button class="link-button" type="button" data-game-action="zone-farm">🌿 큰 텃밭</button><button class="link-button" type="button" data-game-action="zone-lab">🧪 실험실</button><button class="link-button" type="button" data-game-action="zone-nursery">🥚 연구소</button></div><p class="modal-note">🌲 나무숲 · 💧 폭포와 호수 · 🌉 나무다리 · 🏠 집/뒤뜰은 준비 중이야.</p>'));
 
   (document.getElementById('book-button') as HTMLButtonElement).addEventListener('click', () => openModal('📖 첫 정원 도감', '<ul><li>🦊 여우 — 호기심 많은 탐험가</li><li>🐻 곰 — 정원의 듬직한 친구</li><li>🐱 고양이 — 몬스터 돌봄 담당</li><li>🐰 토끼 — 씨앗과 조합 담당</li></ul><p>🐾 발견한 몬스터: ' + (saveData.monsters.length ? saveData.monsters.join(' · ') : '아직 발견하지 못했어') + '</p>'));
-  (document.getElementById('help-button') as HTMLButtonElement).addEventListener('click', () => openModal('💡 어떻게 놀까?', '<ul><li>빈 땅을 누르면 여우가 그곳으로 걸어가! 좌우 이동은 바라보는 쪽이 바뀌고, 위아래 이동도 발걸음과 자세로 표현돼.</li><li>여우·곰·고양이·토끼를 누르면 각자의 이야기를 듣고 관련 지역으로 이동할 수 있어.</li><li>지역 버튼이나 화면의 길 안내판, 지도 메뉴로 4개 구역을 오갈 수 있어.</li><li>텃밭에 씨앗을 심고 자라면 다시 눌러 수확해.</li><li>실험실에서 열매를 정수로, 정수를 알로 조합해!</li><li>연구소에서 알을 품으면 30초 후 친구가 부화해.</li><li>가방에서 JSON 저장파일을 내려받고 다른 기기로 불러올 수 있어.</li><li>진행 내용은 이 브라우저에 자동 저장돼.</li></ul>'));
+  (document.getElementById('help-button') as HTMLButtonElement).addEventListener('click', () => openModal('💡 어떻게 놀까?', '<ul><li>빈 땅을 누르면 여우가 4방향으로 걸어가! 장애물이 있으면 반짝이는 길 표시를 따라 돌아가며, 막힌 곳은 가까운 안전한 위치로 이동해.</li><li>여우·곰·고양이·토끼를 누르면 각자의 이야기를 듣고 관련 지역으로 이동할 수 있어.</li><li>지역 버튼이나 화면의 길 안내판, 지도 메뉴로 4개 구역을 오갈 수 있어.</li><li>텃밭에 씨앗을 심고 자라면 다시 눌러 수확해.</li><li>실험실에서 열매를 정수로, 정수를 알로 조합해!</li><li>연구소에서 알을 품으면 30초 후 친구가 부화해.</li><li>가방에서 JSON 저장파일을 내려받고 다른 기기로 불러올 수 있어.</li><li>진행 내용은 이 브라우저에 자동 저장돼.</li></ul>'));
 
   if (currentZone !== 'town') { const firstZone = currentZone; currentZone = 'town'; switchZone(firstZone); }
   else { gateLabel.text = ZONE_NAV[NEXT_ZONE.town] + ' →'; gate.position.set(1110, 600); plotViews.forEach((plot) => { plot.visible = false; }); station.visible = false; }
@@ -801,14 +830,16 @@ async function start() {
     // Tapping a menu cancels walking instead of leaving the fox moving under a dialog.
     if (!modalRoot.classList.contains('hidden')) {
       plannedRoute = [];
+      clearRouteHints();
       tx = px; ty = py;
       walkMark.visible = false;
     }
     const dx = tx - px, dy = ty - py, distance = Math.hypot(dx, dy);
     const nextStep = advanceMovement(px, py, tx, ty, Math.min(ticker.deltaMS, 40));
-    const validStep = isWalkable(currentZone,nextStep.x,nextStep.y);
+    const validStep = segmentIsWalkable(currentZone, { x: px, y: py }, { x: nextStep.x, y: nextStep.y });
     if (!validStep) {
       plannedRoute = [];
+      clearRouteHints();
       tx = px; ty = py;
       walkMark.visible = false;
     }
@@ -834,7 +865,7 @@ async function start() {
     if (validStep && plannedRoute.length && Math.hypot(px-tx,py-ty) <= 2.5) {
       plannedRoute.shift();
       if (plannedRoute.length) { tx=plannedRoute[0].x; ty=plannedRoute[0].y; }
-      else { tx=px; ty=py; }
+      else { tx=px; ty=py; clearRouteHints(); }
     }
     // 전용 4방향 원화는 원본 텍스처를 교체하고 거울 반전은 대체 원화에서만 사용한다.
     // 상하 방향은 약한 자세 변화와 이동 거리 기반 걸음으로 표현한다.
@@ -871,10 +902,17 @@ async function start() {
       }
     }
     if (walkMark.visible) {
-      markAge += ticker.deltaMS;
-      walkMark.alpha = Math.max(0, 1 - markAge / 850);
-      walkMark.scale.set(.85 + markAge / 1400);
-      if (markAge >= 850 || (plannedRoute.length === 0 && !moving)) walkMark.visible = false;
+      if (plannedRoute.length > 0) {
+        markAge = 0;
+        walkMark.alpha = prefersReducedMotion ? .85 : .75 + .1 * Math.sin(clock / 250);
+        walkMark.scale.set(prefersReducedMotion ? 1 : 1 + .06 * Math.sin(clock / 220));
+        if (routeHints.visible) routeHints.alpha = prefersReducedMotion ? .68 : .65 + .15 * Math.sin(clock / 250);
+      } else {
+        markAge += ticker.deltaMS;
+        walkMark.alpha = Math.max(0, 1 - markAge / 450);
+        walkMark.scale.set(.95 + markAge / 1800);
+        if (markAge >= 450) walkMark.visible = false;
+      }
     }
     npcs.forEach((sprite, i) => {
       const baseX = currentZone === 'town' ? [875, 1015, 620][i] : [946, 735, 330][i];

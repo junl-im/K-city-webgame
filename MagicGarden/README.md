@@ -105,3 +105,10 @@ npm run dev
 - Tap-to-move now calculates a detour using an A* walkable grid, checks each segment against the collision shapes, and redirects taps on an obstacle to a nearby walkable point.
 - The computed route is cleared on zone change, modal opening, or blocked movement. Farming touch areas remain interactive, and saved-game fields/keys are unchanged.
 - No SVG and no new large image assets. Real-device camera/collision alignment remains a required QA step; a successful GitHub build is not a live Sites redeployment.
+
+### v9 (2026-10-28) — 경로 표시와 이동 구간 전체 충돌 검사
+- 반짝이는 작은 점으로 우회 경로 표시. 이동 종료·팝업·지역 변경·막힘 시 정리, 터치 입력은 통과.
+- 한 프레임의 이동 구간 전체를 6 단위 간격으로 검사하여 빠른 프레임에서 콜라이더를 뚫고 지나가는 위험 완화.
+- 목적지 표시 유지 시간을 이동 완료 기준으로 바꾸고, 움직임 줄이기 설정은 정적인 표시로 처리.
+- 전체 이동 경로 유효성 회귀 테스트 확대. 원화와의 충돌 정밀 정렬·실기기 QA는 별도 과제.
+- 저장 키, 농장 데이터, 본편 main 및 Firebase 보존. 새 코드와 운영 Sites 재배포는 별도 상태.
