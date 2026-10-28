@@ -81,7 +81,7 @@ const run=async()=>{
     const stylesheet=builtHTML.match(/href="(\.?\/assets\/[^"]+\.css)"/)?.[1];
     assert.ok(body && stylesheet,'Built HTML or stylesheet not present');
     const builtCSS=await readFile(join(dist,stylesheet.replace(/^\.?\//,'')),'utf8');
-    const injected=await evalJS('(()=>{document.body.innerHTML='+JSON.stringify(body)+';const s=document.createElement("style");s.textContent='+JSON.stringify(builtCSS)+';document.head.appendChild(s);return true;})()');
+    const injected=await evalJS('(()=>{document.body.innerHTML='+JSON.stringify(body)+';const s=document.createElement("style");s.textContent='+JSON.stringify(builtCSS)+';document.head.appendChild(s);const v=document.createElement("meta");v.name="viewport";v.content="width=device-width,initial-scale=1,maximum-scale=1";document.head.appendChild(v);return true;})()');
     assert.equal(injected,true,'Could not inject built HTML/CSS');
     assert.ok(await evalJS("Boolean(document.querySelector('#app') && document.querySelector('#town-button'))"),'Built game HTML shell not loaded');
     const booted=false; // Deliberate: scripts are not executed by offline HTML injection.
@@ -99,6 +99,7 @@ const run=async()=>{
         return {screen:innerWidth+'x'+innerHeight,errors:out,buttonCount:bounds.length,paintedFrame:panel.includes('ui-button'),paintedIcon:art.includes('ui-icons'),scrollX:document.documentElement.scrollWidth-innerWidth};
       })()`);
       console.log('UI '+report.screen+': '+report.buttonCount+' painted controls, overflow '+report.scrollX+'px');
+      assert.ok(Math.abs(Number(report.screen.split('x')[0])-width)<=1,'Wrong CSS viewport: expected '+width+'px, got '+report.screen);
       assert.deepEqual(report.errors,[],'Controls overflow or shrink on '+report.screen+': '+JSON.stringify(report.errors));
       assert.ok(report.paintedFrame&&report.paintedIcon,'Painted button/icon missing on '+report.screen);
       assert.ok(report.scrollX<=2,'Horizontal document overflow '+report.scrollX+' at '+report.screen);
