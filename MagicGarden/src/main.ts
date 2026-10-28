@@ -12,7 +12,7 @@ import { advanceMovement, calculateCameraTarget, smoothFollow } from './movement
 import { isWalkable, planGardenRoute, segmentIsWalkable, type Point } from './garden-navigation';
 import { creekSurfacePose, creekFallPose, creekShouldAnimate, creekSurfaceCount, creekCascadeCount } from './creek-flow';
 import { PAINTED_AMBIENCE, ambiencePose, type PaintedTile } from './painted-environment';
-import { FOREGROUND_PAINTINGS, foregroundDepth, foregroundMotion } from './garden-depth';
+import { FOREGROUND_PAINTINGS, footDepth, foregroundDepth, foregroundMotion } from './garden-depth';
 
 type Zone = 'town' | 'farm' | 'lab' | 'nursery';
 type MonsterKind = '잎새콩' | '방울몽' | '반짝몽';
