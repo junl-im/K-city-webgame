@@ -14,6 +14,7 @@ const asset = file => path.join(dist, 'assets', file);
 new vm.Script(js, {filename: 'app.js'});
 assert.match(html, /시제품 v2\.2/);
 assert.match(html, /<title>곰같은여우와 함께하는 오늘의 60초 놀이터<\/title>/, '게임 정식 제목은 정확해야 합니다');
+assert.match(html, /\.\/style\.css\?v=20261029-spot-art-fix/, '배포 후 오래된 CSS 캐시를 재사용하지 않아야 합니다');
 assert.match(html, /<h1 tabindex="-1">오늘의 <em>60초 놀이터<\/em><\/h1>/, '메인 제목은 오늘의 60초 놀이터여야 합니다');
 assert.match(html, /<span>곰같은여우와 함께하는<\/span><span>오늘의 60초 놀이터<\/span>/, '상위 브랜드는 전체 제목을 유지해야 합니다');
 assert.match(js, /<button type="button" class="game-card" data-game=/, '게임 카드 전체를 누르면 열려야 합니다');
