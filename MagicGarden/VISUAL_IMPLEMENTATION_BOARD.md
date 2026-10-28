@@ -137,3 +137,11 @@
 - [ ] 최신 33개 원화 빌드/Pages 배포 성공 확인 및 실제 모달의 잘림/문구 겹침 QA.
 - [ ] Whale/Android/iOS 실기기와 최소 320px 화면에서 팝업, Tab/Escape, 다중 텍스트 길이 검증.
 - [ ] PNG→WebP 파생 파일 및 다운로드 용량 최적화. 원본 사용자 원화는 보존.
+
+
+### v24.1 PNG 원본 보존 + 고유 WebP 전면 전환 — 2026-10-29
+- [x] 33개 서로 다른 투명 PNG 원본 보존, 대응하는 **33개 별도 WebP** 생성·배포(한 장 돌려쓰기 없음).
+- [x] 총 원화 약 **53.2 MiB → 1.1 MiB** 경량화. 이미지 크기 비율 유지·background-size:contain 적용, CSS의 UI 자산 경로를 WebP로 전환. SVG 0개.
+- [x] 최신 [ca6f02e](https://github.com/junl-im/K-city-webgame/commit/ca6f02e0fa107d664d8a12c9fdb4af0640cec222) 기준 빌드 Guard/CI·Pages **성공** 확인. 고유 PNG 33 + 고유 WebP 33, 중복 해시, 압축률/참조/비율 금지 규칙 점검.
+- [x] 배포 브라우저 지역 4개와 하단 4개의 WebP 계산 스타일·border-image 없음·자연 비율 표시 확인, GPU 미지원 정적 풍경의 지역 미리보기 전환 확인.
+- [ ] Whale에서 실제 WebGL 플레이와 모달 액션/가방 4개 탭, 모바일 320/390px 문구/터치/잘림 육안 확인. 정적 미리보기로 플레이 검증 대체 금지.
