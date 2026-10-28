@@ -35,4 +35,13 @@ for(const name of ['brew','craft-egg','hatch','save-export','incubate','save-imp
  actionHashes.add(hash);
  if(!css.includes("url('/assets/ui-v24-action-"+name+".png')"))throw Error('Action art not mapped: '+name);
 }
-console.log('v24 unique art: 27 distinct PNGs and no stretched background frames');
+for(const name of ['all','crop','magic','friends']){
+ const p='public/assets/ui-v24-tab-'+name+'.png';
+ const content=readFileSync(new URL('../'+p,import.meta.url));
+ if(content.subarray(1,4).toString()!=='PNG')throw Error('Not a PNG '+p);
+ const hash=createHash('sha256').update(content).digest('hex');
+ if(actionHashes.has(hash))throw Error('Duplicate art reused: '+name);
+ actionHashes.add(hash);
+ if(!css.includes("url('/assets/ui-v24-tab-"+name+".png')"))throw Error('Tab art not mapped: '+name);
+}
+console.log('v24 unique art: 31 distinct PNGs and no stretched background frames');
