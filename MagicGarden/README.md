@@ -197,3 +197,8 @@ npm run dev
 - 씨앗·열매·마법정수·둥지 속 알 4종, 부화한 잎새콩·방울몽·반짝몽의 서로 다른 고유 얼굴 3종 및 정원 꽃 1종으로 구분. CSS sprite를 통해 실제 보유수량/레시피/부화/도감 모두 기존 상태 데이터에 맞춰 표시.
 - 아틀라스 원본은 [Google Drive](https://drive.google.com/file/d/1utuMe5wCOrrqh0bA_wwz5tnUHLbiPAsd/view)와 GitHub에 교차 보관. 기존 시스템 아이콘이나 SVG 불사용.
 - `scripts/check-illustrated-items-v18.mjs`이 원화 포맷·용량·크기·3몬스터 고유 원화·기능 연결 확인. 외부 브라우저 실제 화상 QA 별도.
+
+### v19 — 4구역 살아 있는 손그림 환경 & 파티클 (2026-10-28)
+- 가짜 원형 빛/기하학적 나비를 삭제하고 v18 손그림 `illustrated-items-v18.webp`의 꽃·씨앗·병·알 삽화 18점을 4개 지역에 맞춰 배치.
+- 느린 바람·명도 호흡과 파티클 수확·조합·부화 반응은 라스터 Sprites만 사용. 저전력/모바일: 정원 환경 20fps 위치 갱신, 비활성 구역 표시/갱신 제외, 효과 60개 상한, 모션 감소 시 정지 원화만 보임.
+- `src/painted-environment.ts`/검사 추가, 데이터 형식 및 기존 v18 PNG/WebP 자산 유지. 실제 모바일 그림 겹침·원근/배치 육안 검수는 별도.

@@ -11,6 +11,7 @@ import { resolveHorizontalFacing, resolveWalkHeading, type HorizontalFacing, typ
 import { advanceMovement, calculateCameraTarget, smoothFollow } from './movement-camera';
 import { isWalkable, planGardenRoute, segmentIsWalkable, type Point } from './garden-navigation';
 import { creekSurfacePose, creekFallPose, creekShouldAnimate, creekSurfaceCount, creekCascadeCount } from './creek-flow';
+import { PAINTED_AMBIENCE, ambiencePose, type PaintedTile } from './painted-environment';
 
 type Zone = 'town' | 'farm' | 'lab' | 'nursery';
 type MonsterKind = '잎새콩' | '방울몽' | '반짝몽';
@@ -467,60 +468,77 @@ async function start() {
   };
   if (saveData.zone === 'town' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) void loadCreekArt();
 
-  // 그림 위의 빛 먼지·작은 나비는 별도의 가벼운 레이어로 그린다.
-  // 클릭을 가로채지 않으므로 밭과 이동 조작은 그대로 작동한다.
+  // v19: all floating petals, potion glints and nursery lights are painted
+  // cutouts from the v18 transparent WebP, never Graphics() placeholder shapes.
+  // A single tiny atlas is also shared by planting/brewing/hatching rewards.
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ambience = new Container();
   ambience.eventMode = 'none';
+  ambience.zIndex = .55;
   world.addChild(ambience);
-  const ambientItems = Array.from({ length: prefersReducedMotion ? 7 : 15 }, (_, i) => {
-    const butterfly = i < 4;
-    const glow = new Graphics();
-    if (butterfly) {
-      const wing = i % 2 ? '#ffeaa1' : '#f6b7ce';
-      glow.ellipse(-5, -3, 7, 5).fill({ color: wing, alpha: .85 });
-      glow.ellipse(5, -3, 7, 5).fill({ color: wing, alpha: .85 });
-      glow.ellipse(-3, 4, 5, 4).fill({ color: '#fff4d8', alpha: .86 });
-      glow.ellipse(3, 4, 5, 4).fill({ color: '#fff4d8', alpha: .86 });
-      glow.ellipse(0, 0, 2, 7).fill('#6e7259');
-    } else {
-      glow.circle(0, 0, i % 4 === 0 ? 5 : 3).fill({ color: i % 3 === 0 ? '#fff9ca' : '#ffffff', alpha: .8 });
-      glow.circle(0, 0, i % 4 === 0 ? 9 : 6).fill({ color: '#fff8c0', alpha: .15 });
-    }
-    const x = 120 + ((i * 311 + 61) % 1040);
-    const y = 355 + ((i * 137 + 47) % 280);
-    glow.position.set(x, y);
-    glow.alpha = .5;
-    ambience.addChild(glow);
-    return { glow, butterfly, x, y, phase: i * 1.74 };
-  });
+  const ambientItems: { sprite:Sprite; anchor:(typeof PAINTED_AMBIENCE)[number] }[] = [];
+  const paintedTiles:Partial<Record<PaintedTile,Texture>> = {};
+  let ambientUpdateElapsed = 0;
+  const tileSequence:PaintedTile[] = ['seed','berry','essence','egg','leafbud','bubble','sparkle','flower'];
+  void Assets.load<Texture>(`${import.meta.env.BASE_URL}assets/illustrated-items-v18.webp`).then((sheet)=>{
+    const frameWidth=Math.floor(sheet.width/4),frameHeight=Math.floor(sheet.height/2);
+    if(frameWidth<80||frameHeight<80) return;
+    tileSequence.forEach((tile,index)=>{
+      paintedTiles[tile]=new Texture({
+        source:sheet.source,
+        frame:new Rectangle((index%4)*frameWidth,Math.floor(index/4)*frameHeight,frameWidth,frameHeight),
+      });
+    });
+    PAINTED_AMBIENCE.forEach((anchor)=>{
+      const texture=paintedTiles[anchor.tile];
+      if(!texture) return;
+      const sprite=new Sprite(texture);
+      sprite.anchor.set(.5);
+      sprite.width=anchor.size;sprite.height=anchor.size;
+      const pos=ambiencePose(anchor,0,prefersReducedMotion);
+      sprite.position.set(pos.x,pos.y);
+      sprite.alpha=pos.alpha;
+      sprite.eventMode='none';
+      sprite.visible=anchor.zone===saveData.zone;
+      ambience.addChild(sprite);
+      ambientItems.push({sprite,anchor});
+    });
+  }).catch(()=>{ /* Painted environmental details are optional when offline. */ });
 
   const objects = new Container(); objects.sortableChildren = true; objects.zIndex = 1; world.addChild(objects);
   const effectLayer = new Container(); effectLayer.eventMode = 'none'; effectLayer.zIndex = 2; world.addChild(effectLayer);
-  const bursts: { sprite: Graphics; vx: number; vy: number; age: number; life: number }[] = [];
-  function emitBurst(x: number, y: number, kind: 'seed' | 'berry' | 'alchemy' | 'egg' | 'hatch') {
-    if (prefersReducedMotion) return;
-    const colors: Record<typeof kind, string[]> = {
-      seed: ['#a9e477', '#fff3a8', '#74bf83'],
-      berry: ['#f76d7a', '#fff2a6', '#ffb2ca'],
-      alchemy: ['#9fe8ff', '#c4a7ff', '#fff8bf'],
-      egg: ['#d9b8ff', '#ffead7', '#f5b5d6'],
-      hatch: ['#ffdc7c', '#ffffff', '#ffb2d6'],
+  const bursts: {sprite:Sprite;vx:number;vy:number;age:number;life:number;baseScale:number}[] = [];
+  function clearBurstEffects(){
+    for(const effect of bursts) effect.sprite.destroy();
+    bursts.length=0;
+  }
+  function emitBurst(x:number,y:number,kind:'seed'|'berry'|'alchemy'|'egg'|'hatch'){
+    if(prefersReducedMotion) return;
+    const tileChoices:Record<typeof kind,PaintedTile[]> = {
+      seed:['seed','flower'],berry:['berry','flower'],
+      alchemy:['essence','flower'],egg:['egg','flower'],
+      hatch:['leafbud','bubble','sparkle','flower'],
     };
-    for (let i = 0; i < (kind === 'hatch' ? 18 : 8); i++) {
-      const sprite = new Graphics();
-      const radius = 3 + (i % 3) * 1.6;
-      sprite.circle(0, 0, radius).fill({ color: colors[kind][i % 3], alpha: .95 });
-      if (i % 3 === 0) sprite.circle(0, 0, radius + 3).stroke({ color: '#fffce4', alpha: .8, width: 1.5 });
-      sprite.position.set(x, y);
+    const choices=tileChoices[kind];
+    // The same original paintings used in the inventory now become tiny
+    // floating rewards. No vector dots, circles or CSS-created icons.
+    for(let i=0;i<(kind==='hatch'?12:7);i++){
+      const texture=paintedTiles[choices[i%choices.length]];
+      if(!texture) continue;
+      const sprite=new Sprite(texture);
+      sprite.anchor.set(.5);
+      const size=20+(i%3)*6;
+      sprite.width=size;sprite.height=size;
+      sprite.position.set(x,y);
+      sprite.alpha=.92;
+      sprite.eventMode='none';
       effectLayer.addChild(sprite);
-      const angle = -Math.PI + Math.PI * (i / Math.max(1, kind === 'hatch' ? 17 : 7));
-      bursts.push({ sprite, vx: Math.cos(angle) * (1.2 + (i % 3) * .75), vy: -1.6 - Math.abs(Math.sin(angle)) * 1.4, age: 0, life: 490 + (i % 4) * 110 });
+      const angle=-Math.PI+Math.PI*(i/Math.max(1,kind==='hatch'?11:6));
+      bursts.push({sprite,vx:Math.cos(angle)*(1.15+(i%3)*.7),
+        vy:-1.55-Math.abs(Math.sin(angle))*1.3,age:0,life:490+(i%4)*105,
+        baseScale:sprite.scale.x});
     }
-    while (bursts.length > 72) {
-      const old = bursts.shift();
-      old?.sprite.destroy();
-    }
+    while(bursts.length>60)bursts.shift()?.sprite.destroy();
   }
   const player = new Sprite(creatures.fox);
   player.anchor.set(.5, 1);
@@ -1036,6 +1054,9 @@ async function start() {
     if (currentZone === next) return;
     currentZone = next;
     saveData.zone = next;
+    // Zone-specific art must never leak into the next painted room.
+    for(const item of ambientItems) item.sprite.visible=item.anchor.zone===next;
+    clearBurstEffects();
     closeModal();
     creekOverlay.visible = next === 'town' && creekLoaded && !creekUserPaused && !prefersReducedMotion;
     if (next === 'town' && !prefersReducedMotion && !creekUserPaused) void loadCreekArt();
@@ -1287,20 +1308,26 @@ async function start() {
       burst.sprite.position.x += burst.vx * frameStep;
       burst.sprite.position.y += burst.vy * frameStep;
       burst.sprite.alpha = Math.max(0, 1 - burst.age / burst.life);
-      burst.sprite.scale.set(.85 + burst.age / burst.life * .4);
+      burst.sprite.scale.set(burst.baseScale*(.85+burst.age/burst.life*.4));
       if (burst.age >= burst.life) {
         burst.sprite.destroy();
         bursts.splice(i, 1);
       }
     }
-    if (!prefersReducedMotion) {
-      ambientItems.forEach(({ glow, butterfly, x, y, phase }) => {
-        glow.visible = !butterfly || currentZone === 'town' || currentZone === 'farm';
-        const t = clock / 1000 + phase;
-        glow.position.set(x + Math.sin(t * (butterfly ? .7 : .28)) * (butterfly ? 29 : 13), y + Math.sin(t * (butterfly ? 1.3 : .61)) * (butterfly ? 15 : 9));
-        glow.alpha = (butterfly ? .63 : currentZone === 'town' || currentZone === 'farm' ? .35 : .15) + (Math.sin(t * 2.1) + 1) * (butterfly ? .12 : .2);
-        glow.scale.x = butterfly ? .72 + Math.abs(Math.sin(t * 10)) * .34 : 1;
-      });
+    ambientUpdateElapsed+=Math.min(ticker.deltaMS,66.7);
+    // At most 20 position updates per second; frozen decorative originals
+    // remain visible when the user enables reduced-motion accessibility.
+    if(ambientUpdateElapsed>=50){
+      ambientUpdateElapsed=0;
+      for(const {sprite,anchor} of ambientItems){
+        if(anchor.zone!==currentZone || !sprite.visible) continue;
+        const pose=ambiencePose(anchor,clock,prefersReducedMotion);
+        sprite.position.set(pose.x,pose.y);
+        sprite.rotation=pose.rotation;
+        sprite.alpha=pose.alpha;
+        const originalScale=anchor.size/180;
+        sprite.scale.set(originalScale*pose.scale);
+      }
     }
     if (clock - lastCropRender > 420) { lastCropRender = clock; if (currentZone === 'farm') drawPlots(); }
     if (clock - lastNurseryRender > 500) {
