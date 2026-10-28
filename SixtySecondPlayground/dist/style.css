@@ -518,6 +518,11 @@ footer .ui-art-icon{width:22px;height:22px}
 @media(max-width:430px){.game-foot .play-button{min-width:70px;min-height:34px;padding:5px 7px;font-size:10px}.game-foot .play-button .ui-art-icon{width:16px;height:16px}#modalBody>.action-button.illustrated-primary{width:min(262px,100%);min-height:54px;font-size:13px;padding:9px 25px}#modalBody>.action-button.secondary,#pauseExit{min-height:45px}.mini-cta.illustrated-cta{min-width:121px;font-size:11px}}
 @media(max-width:360px){.main-button.illustrated-cta{min-width:178px}#modalBody>.action-button.illustrated-primary{width:min(246px,100%)}.game-foot .play-button{min-width:65px}}
 
+/* 다른 그림 찾기: 5×4 원화 스프라이트로 이모지 대신 일관된 동물 그림 사용 */
+.arena[data-game="spot"] .spot-cell{overflow:hidden;padding:1px;isolation:isolate}
+.spot-sprite{display:block;width:100%;height:100%;aspect-ratio:1;background-image:url('./assets/game-spot-animals-atlas-v23.webp');background-size:500% 400%;background-repeat:no-repeat;pointer-events:none;user-select:none;filter:drop-shadow(0 1px 2px #74528d20)}
+.arena[data-game="spot"] .spot-board:first-child .spot-sprite{filter:drop-shadow(0 1px 1px #74528d1e)}
+@media(max-width:430px){.arena[data-game="spot"] .spot-cell{padding:0}}
 /* v1.9 · '몬스터 콩콩!' 전용 장난감 일러스트: 3×2 WebP 스프라이트 + 기존 네 친구 원화 */
 .arena[data-game="whack"] .tap-cell{overflow:hidden;padding:2px;isolation:isolate;touch-action:manipulation}
 .whack-sprite{display:block;flex:none;width:91%;aspect-ratio:1;background-image:url('./assets/game-whack-icons-atlas-v19.webp');background-repeat:no-repeat;background-size:300% 200%;pointer-events:none;user-select:none;filter:drop-shadow(0 3px 3px #74528d20)}
