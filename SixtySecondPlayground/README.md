@@ -34,3 +34,11 @@
 - 이미 이전한 고해상도 PNG 원본을 기반으로 게임판 전용 그래픽 추가 제작
 
 **원칙:** SVG 자산 금지 · 원화 기반 시각 디자인 · 전체 게임 카드 클릭 가능 · 모바일 우선 · 무료 플레이.
+
+## 작업 체크포인트와 복구 백업 (2026-10-28)
+
+- [Notion MASTER 개발·동기화 허브](https://app.notion.com/p/407fff243ec98116a720e480a11e5d7d?pvs=204) — 고정 원칙, 마지막 작업, 다음 작업, 검증 이력
+- [Google Drive 프로젝트 백업 폴더](https://drive.google.com/drive/folders/1FTqJxJa3FgBL1VfZHFOA6qvAQFGz-h15) — 실행본·원본 PNG·테스트가 들어간 스냅샷
+- [2026-10-28 기준 tar 백업](https://drive.google.com/file/d/1cdN-1wENKsUokRh4LsYprACrAL8Dzn-A/view?usp=drivesdk) — `3277f7724acd97d9a33fc3c197b1ff38d48e55e9` 기준, 45,219,840바이트
+
+**GitHub만 공식 수정·배포 기준**으로 사용합니다. Notion과 Drive는 체크포인트·백업이며 GitHub 소스를 자동으로 덮어쓰지 않습니다. **SVG는 파일·코드·인라인·데이터 URI 모두 금지**하고, 필요한 디자인 자산은 PNG/WebP로 제작·보존합니다.
