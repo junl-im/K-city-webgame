@@ -43,7 +43,7 @@
 
 - [꽃맞고 개발 기준 소스](./FlowerMatgo/) — 동물 친구 화투패 v19, 모바일 맞고 게임판, 선 고르기·패섞기·자동모드·특수패 연출 및 186개 회귀 테스트.
 - [꽃맞고 GitHub Pages](https://junl-im.github.io/K-city-webgame/FlowerMatgo/) — 기존 세 게임과 충돌하지 않는 독립 하위 경로 (첫 자동 배포 후 접속).
-- [꽃맞고 저작권 및 지식 자산 고지](./FlowerMatgo/OWNERSHIP.md) — **© 2026 임현준(곰같은여우). All rights reserved.** 자체 창작 소스·캐릭터·일러스트·디자인·UI/UX의 권리는 임현준에게 있으며, 외부 오픈소스는 별도 라이선스를 따릅니다.
+- [꽃맞고 저작권 및 지식 자산 고지](./FlowerMatgo/OWNERSHIP.md) — **© 2026 곰같은여우. All rights reserved.** 자체 창작 소스·캐릭터·일러스트·디자인·UI/UX의 권리는 곰같은여우에게 있으며, 외부 오픈소스는 별도 라이선스를 따릅니다.
 - 꽃맞고 전용 CI는 `.github/workflows/flower-matgo-ci.yml`을 이용하며, 기존 Pages 워크플로에 전용 빌드와 `FlowerMatgo/` 경로만 추가합니다.
 - [기존 Sites 백업 주소](https://gomfox-flower-matgo.x7x8.chatgpt.site)는 접근 정책을 변경하지 않고 보존합니다.
 
@@ -53,4 +53,4 @@
 
 - [물리도감 GitHub Pages](https://junl-im.github.io/K-city-webgame/PhysicsPopbook/) — 마법정원·60초 놀이터와 경로 분리
 - [물리도감 지식 자산 및 저작권 고지](./PhysicsPopbook/OWNERSHIP.md)
-- **© 2026 임현준(곰같은여우). All rights reserved.** 본 프로젝트의 자체 창작 소스·캐릭터·삽화·디자인·콘텐츠 등 지식 자산의 권리는 임현준에게 귀속되며 공개 저장소라는 이유로 무단 이용이 허용되지 않습니다. 외부 오픈소스는 별도 라이선스를 따릅니다.
+- **© 2026 곰같은여우. All rights reserved.** 본 프로젝트의 자체 창작 소스·캐릭터·삽화·디자인·콘텐츠 등 지식 자산의 권리는 곰같은여우에게 귀속되며 공개 저장소라는 이유로 무단 이용이 허용되지 않습니다. 외부 오픈소스는 별도 라이선스를 따릅니다.
