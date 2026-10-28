@@ -363,3 +363,25 @@
 @media(max-width:760px){
   #app .garden-renderer-notice{bottom:calc(135px + env(safe-area-inset-bottom));font-size:11px;padding:6px 9px}
 }
+
+/* v24: four separately painted action controls; images keep their aspect ratio. */
+#app .modal .link-button[data-game-action="brew"]{
+  background-image:url('/assets/ui-v24-action-brew.png'),linear-gradient(135deg,#f5eafb,#dccbeb)!important;
+  background-position:center,center!important;background-size:100% auto,auto!important;
+  padding-left:28px;border-color:transparent!important;box-shadow:none;
+}
+#app .modal .link-button[data-game-action="craft-egg"]{
+  background-image:url('/assets/ui-v24-action-craft-egg.png'),linear-gradient(135deg,#fff7ee,#f3cbd6)!important;
+  background-position:center,center!important;background-size:100% auto,auto!important;
+  padding-left:28px;border-color:transparent!important;box-shadow:none;
+}
+#app .modal .link-button[data-game-action="hatch"]{
+  background-image:url('/assets/ui-v24-action-hatch.png'),linear-gradient(135deg,#fff9e4,#f2dfaf)!important;
+  background-position:center,center!important;background-size:100% auto,auto!important;
+  padding-left:28px;border-color:transparent!important;box-shadow:none;color:#805b37;
+}
+#app .modal .link-button[data-game-action="save-export"]{
+  background-image:url('/assets/ui-v24-action-save-export.png'),linear-gradient(135deg,#f2fbff,#cce5f0)!important;
+  background-position:center,center!important;background-size:100% auto,auto!important;
+  padding-left:28px;border-color:transparent!important;box-shadow:none;
+}
