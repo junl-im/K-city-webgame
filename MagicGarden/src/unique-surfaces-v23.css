@@ -256,3 +256,25 @@
 #app #nursery-button{
   background-image:url('/assets/ui-v23-nursery.png'),linear-gradient(142deg,#fffaf1,#f8dcd5)!important;
 }
+
+/* v23.2: individually painted HUD buttons, separate PNG files. */
+#app .area .art-icon{display:none}
+#app .bottom-hud button{
+  background-position:center center,center center!important;
+  background-repeat:no-repeat!important;
+  background-size:contain,auto!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  justify-content:flex-end;
+}
+#app #bag-button{background-image:url('/assets/ui-v23-menu-bag.png'),linear-gradient(135deg,#fff8e4,#f3dfb0)!important}
+#app #map-button{background-image:url('/assets/ui-v23-menu-map.png'),linear-gradient(135deg,#f6fff0,#d9efcf)!important}
+#app #book-button{background-image:url('/assets/ui-v23-menu-book.png'),linear-gradient(135deg,#f7fbff,#dce7f7)!important}
+#app #help-button{background-image:url('/assets/ui-v23-menu-help.png'),linear-gradient(135deg,#fffaff,#f0e1f1)!important}
+#app .bottom-hud button .art-icon{display:none}
+#app .bottom-hud button small{
+  display:block;flex:none;position:relative;z-index:1;
+  line-height:1.2;padding:2px 2px 4px;
+  color:#584632;font-size:11px;text-shadow:0 1px #fff9eb!important;
+}
+@media(max-width:760px){#app .bottom-hud button small{font-size:10px;padding-bottom:3px}}
