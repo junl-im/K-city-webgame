@@ -1,5 +1,6 @@
 import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js';
 import './style.css';
+import './theme-art.css';
 import { resolveHorizontalFacing, resolveWalkHeading, type HorizontalFacing, type WalkHeading } from './walk-motion';
 import { advanceMovement, calculateCameraTarget, smoothFollow } from './movement-camera';
 import { isWalkable, planGardenRoute, segmentIsWalkable, type Point } from './garden-navigation';
@@ -9,7 +10,7 @@ type MonsterKind = '잎새콩' | '방울몽' | '반짝몽';
 const MONSTER_KINDS: MonsterKind[] = ['잎새콩', '방울몽', '반짝몽'];
 const ZONE_LABELS: Record<Zone, string> = { town: '햇살 중앙 마을', farm: '바람의 큰 텃밭', lab: '이상한 조합 실험실', nursery: '포근한 몬스터 연구소' };
 const NEXT_ZONE: Record<Zone, Zone> = { town: 'farm', farm: 'lab', lab: 'nursery', nursery: 'town' };
-const ZONE_NAV: Record<Zone, string> = { town: '🏡 마을', farm: '🌿 큰 텃밭', lab: '🧪 조합 실험실', nursery: '🥚 몬스터 연구소' };
+const ZONE_NAV: Record<Zone, string> = { town: '마을', farm: '큰 텃밭', lab: '조합 실험실', nursery: '몬스터 연구소' };
 type Plot = { plantedAt: number | null };
 type SaveData = { zone: Zone; seeds: number; berries: number; plots: Plot[]; essence: number; eggs: number; incubatingAt: number | null; monsters: MonsterKind[] };
 type Critter = 'fox' | 'bear' | 'cat' | 'rabbit';
@@ -58,6 +59,52 @@ function restored(): SaveData {
   }
 }
 
+
+// UI illustrations use one compact WebP atlas, never generic emoji/system glyphs or SVG.
+const GARDEN_UI_PICTURES: Record<string, string> = {
+  '🏡':'town', '🏠':'town', '🌿':'farm', '🌱':'farm', '🌲':'farm',
+  '🧪':'lab', '💧':'lab', '🥚':'nursery', '🗺️':'map', '🌉':'map',
+  '🎒':'bag', '📖':'book', '💡':'help', '🍓':'berry', '✨':'potion',
+  '🌟':'potion', '🐾':'event', '📤':'gift', '📥':'bag', '🐰':'farm',
+  '🦊':'town', '🐻':'materials', '🐱':'nursery', '🎉':'gift',
+};
+const GARDEN_EMOJI = Object.keys(GARDEN_UI_PICTURES).sort((a,b) => b.length - a.length);
+function illustratedText(html: string): string {
+  let output = html;
+  for (const pictogram of GARDEN_EMOJI) {
+    output = output.split(pictogram).join('<span class="art-icon" data-art="' + GARDEN_UI_PICTURES[pictogram] + '" aria-hidden="true"></span>');
+  }
+  return output;
+}
+function setGuideIllustrations(node: HTMLElement, text: string) {
+  const fragments: Node[] = [];
+  let rest = text;
+  while (rest.length) {
+    let best = -1, icon = '';
+    for (const pictogram of GARDEN_EMOJI) {
+      const at = rest.indexOf(pictogram);
+      if (at >= 0 && (best < 0 || at < best)) { best = at; icon = pictogram; }
+    }
+    if (best < 0) { fragments.push(document.createTextNode(rest)); break; }
+    if (best > 0) fragments.push(document.createTextNode(rest.slice(0,best)));
+    const art = document.createElement('span');
+    art.className = 'art-icon';
+    art.dataset.art = GARDEN_UI_PICTURES[icon];
+    art.setAttribute('aria-hidden','true');
+    fragments.push(art);
+    rest = rest.slice(best + icon.length);
+  }
+  node.replaceChildren(...fragments);
+}
+// Stop right-click menus and draggable UI artifacts without blocking scroll, focus or input editing.
+const gardenRoot = document.getElementById('app') as HTMLElement;
+gardenRoot.addEventListener('contextmenu',(e) => e.preventDefault());
+gardenRoot.addEventListener('dragstart',(e) => e.preventDefault());
+gardenRoot.addEventListener('selectstart',(e) => {
+  const target = e.target as HTMLElement;
+  if (!target.closest('input,textarea,[contenteditable="true"]')) e.preventDefault();
+});
+
 const saveData = restored();
 
 type SaveArchive = { app: 'gomfox.magic-garden'; version: 1; exportedAt: string; data: SaveData };
@@ -89,10 +136,10 @@ function persist(): boolean {
   catch { showGuide('저장 공간이 부족해서 이번 변경을 저장하지 못했어.'); return false; }
 }
 function showGuide(message: string) {
-  guideElement.textContent = message;
+  setGuideIllustrations(guideElement, message);
   if (!modalRoot.classList.contains('hidden')) modalStatus.textContent = message;
   window.clearTimeout(guideTimeout);
-  guideTimeout = window.setTimeout(() => { guideElement.textContent = saveData.zone === 'farm' ? '밭을 눌러 심고, 자라면 다시 눌러 수확해!' : saveData.zone === 'lab' ? '조합대에서 열매를 마법 정수로 바꿔봐!' : saveData.zone === 'nursery' ? '따뜻한 부화실에서 새 친구를 만나봐!' : '길을 눌러 움직이고, 큰 텃밭으로 여행해봐!'; }, 5000);
+  guideTimeout = window.setTimeout(() => { setGuideIllustrations(guideElement, saveData.zone === 'farm' ? '밭을 눌러 심고, 자라면 다시 눌러 수확해!' : saveData.zone === 'lab' ? '조합대에서 열매를 마법 정수로 바꿔봐!' : saveData.zone === 'nursery' ? '따뜻한 부화실에서 새 친구를 만나봐!' : '길을 눌러 움직이고, 큰 텃밭으로 여행해봐!'); }, 5000);
 }
 function updateHud() {
   seedElement.textContent = String(saveData.seeds);
@@ -104,9 +151,10 @@ function updateHud() {
   nurseryButton.classList.toggle('active', saveData.zone === 'nursery');
 }
 function openModal(title: string, content: string) {
-  if (modalRoot.classList.contains('hidden') || modalTitle.textContent !== title) modalStatus.textContent = '';
-  modalTitle.textContent = title;
-  modalContent.innerHTML = content;
+  if (modalRoot.classList.contains('hidden') || modalTitle.dataset.modalTitle !== title) modalStatus.textContent = '';
+  modalTitle.dataset.modalTitle = title;
+  modalTitle.innerHTML = illustratedText(title);
+  modalContent.innerHTML = illustratedText(content);
   modalRoot.classList.remove('hidden');
 }
 function closeModal() { modalRoot.classList.add('hidden'); }
@@ -488,11 +536,25 @@ async function start() {
   const station = new Container();
   station.zIndex = 10_001; objects.addChild(station);
   const stationFrame = new Graphics().roundRect(-123, -39, 246, 78, 19).fill({ color: '#fff4cf', alpha: .96 }).roundRect(-123, -39, 246, 78, 19).stroke({ color: '#9e7547', width: 5 });
-  const stationText = new Text({ text: '🧪 조합 시작', style: { fontFamily: 'sans-serif', fontSize: 26, fontWeight: 'bold', fill: '#684527' } });
+  const stationText = new Text({ text: '조합 시작', style: { fontFamily: 'sans-serif', fontSize: 26, fontWeight: 'bold', fill: '#684527' } });
   stationText.anchor.set(.5);
   station.addChild(stationFrame, stationText);
   station.eventMode = 'static'; station.cursor = 'pointer';
   station.on('pointertap', () => { if (currentZone === 'lab') openLab(); else if (currentZone === 'nursery') openNursery(); });
+  // Painted 9-slice-like wooden signs replace the prototype rectangles once images load.
+  const loadSignArt = (filename: string, parent: Container, fallback: Graphics, width: number, height: number) => {
+    void Assets.load<Texture>(`${import.meta.env.BASE_URL}assets/${filename}`).then((texture) => {
+      const artwork = new Sprite(texture);
+      artwork.anchor.set(.5);
+      artwork.width = width; artwork.height = height;
+      artwork.eventMode = 'none';
+      parent.addChildAt(artwork, 0);
+      fallback.visible = false;
+    }).catch(() => { /* Fallback remains playable offline. */ });
+  };
+  loadSignArt('ui-button-wood-v1.webp', gate, gateBackground, 196, 60);
+  loadSignArt('ui-button-green-v1.webp', station, stationFrame, 246, 78);
+
 
   const plotViews: Graphics[] = [];
   const cropArtViews: Graphics[] = [];
@@ -765,7 +827,7 @@ async function start() {
     walkMark.visible = false;
     station.visible = next === 'lab' || next === 'nursery';
     station.position.set(next === 'lab' ? 660 : 685, 485);
-    stationText.text = next === 'lab' ? '🧪 조합 시작' : '🥚 부화실 열기';
+    stationText.text = next === 'lab' ? '조합 시작' : '부화실 열기';
     const loc = next === 'farm' ? '큰 텃밭에 도착했어! 흙을 눌러 씨앗을 심어봐.' : next === 'lab' ? '토끼의 실험실이야! 수확한 열매로 신기한 조합을 해봐.' : next === 'nursery' ? '고양이가 돌보는 몬스터 연구소야. 알을 부화시켜봐!' : '햇살 마을에 돌아왔어. 여우 친구가 반겨줄 거야!';
     showGuide(loc); updateHud(); persist(); drawPlots();
     refreshCamera(true);
