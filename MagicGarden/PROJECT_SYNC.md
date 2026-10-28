@@ -123,3 +123,12 @@
 - scripts/check-unique-surfaces-v23.mjs는 33개 물리 PNG 실재·SHA-256 해시 중복 부재·CSS 참조·최종 스타일 우선순위·늘림 금지를 빌드에서 검사한다. 전체 MagicGarden 물리 SVG 파일 0개.
 - 실제 모달 열기/키보드·320px 모바일 시각 QA는 **미완료**. 클라우드 Chrome은 WebGL 미지원이라 정적 풍경 미리보기만 가능하다. 각 팝업에서 버튼 원화/글자 겹침 확인 전에는 디자인 최종 승인이라 하지 않는다.
 - 원화 33장의 용량 최적화(파생 WebP)도 후속 과제. 원본 PNG·사용자 저작권·기존 게임 데이터/별도 게임 소스 보존.
+
+
+## v24.1 전용 버튼 원화 WebP 경량화·실배포 확인 — 2026-10-29
+
+- **33개 고유 PNG 원본은 삭제하지 않고 보존**했다. 투명 여백을 잘라 각 원화를 1:1 대응하는 **33개 독립 투명 WebP 파생 이미지**로 변환했다. 코드가 사용하는 UI 이미지만 WebP로 전환했으며 원화 하나를 여러 버튼에 확대 재사용하거나 가로·세로 100% 강제 늘림하지 않았다.
+- 전용 UI 원화 전체 다운로드 원본 약 **53.2 MiB → WebP 약 1.1 MiB**(약 98% 감소). 품질 82, 720×360 이내. 원본 PNG 저작권과 보관 유지. [WebP 파일 커밋](https://github.com/junl-im/K-city-webgame/commit/214a68255a5275e5bd2d1ae89a7227814f109bd8), [CSS 로딩 전환](https://github.com/junl-im/K-city-webgame/commit/76b06e20da3da8211be6090f2dfe486d6c8dd82d).
+- [검증 커밋 ca6f02e](https://github.com/junl-im/K-city-webgame/commit/ca6f02e0fa107d664d8a12c9fdb4af0640cec222): 33 원본 PNG·33 고유 WebP·리소스 해시 중복 부재·압축률·CSS 참조·border-image 무효화·100%×100% 비율 왜곡 금지 자동 검증. **Magic Garden CI 및 GitHub Pages 둘 다 성공** 확인.
+- **배포 브라우저 실측:** 4지역/하단 메뉴 8개 버튼의 computed style 이미지 URL이 .webp, borderImageSource=none, backgroundSize=contain, auto. 게임 장면·구역 버튼 색/종류를 육안 확인했고 GPU 미지원 환경의 정적 장면 미리보기에서 텃밭 전환 확인.
+- **여전히 미확인:** 실제 WebGL을 쓰는 PC Whale 게임 조작, 모달 안 실제 버튼·탭, 320/390px 휴대전화 레이아웃과 긴 글자 잘림. GPU 미지원 브라우저의 정적 미리보기는 플레이·기능 QA가 아니다. 기획·소스·33개 PNG 원본 및 파생 WebP 지식 자산의 권리는 **임현준 사용자**에게 귀속된다.
