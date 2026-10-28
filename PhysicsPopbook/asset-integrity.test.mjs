@@ -8,13 +8,13 @@ const root = dirname(fileURLToPath(import.meta.url));
 const dist = join(root, 'dist');
 const customSources = ['index.html', 'styles.css', 'app.js', ...readdirSync(dist)
   .filter(name => name.endsWith('.mjs') && !name.endsWith('.test.mjs'))];
-const imagePattern = /(?:[./]?)assets\\/([a-zA-Z0-9_.-]+\\.(?:png|webp))/g;
+const imagePattern = /(?:[./]?)assets\/([a-zA-Z0-9_.-]+\.(?:png|webp))/g;
 
 test('물리도감 사용자 화면에 SVG 파일 또는 인라인 SVG가 없다', () => {
   for (const filename of customSources) {
     const contents = readFileSync(join(dist, filename), 'utf8');
-    assert.doesNotMatch(contents, /<svg(?:\\s|>)/i, `${filename}: inline SVG forbidden`);
-    assert.doesNotMatch(contents, /\\.svg(?:['"\\s?#]|$)/i, `${filename}: SVG asset forbidden`);
+    assert.doesNotMatch(contents, /<svg(?:\s|>)/i, `${filename}: inline SVG forbidden`);
+    assert.doesNotMatch(contents, /\.svg(?:['"\s?#]|$)/i, `${filename}: SVG asset forbidden`);
   }
   const assetNames = readdirSync(join(dist, 'assets'));
   assert.equal(assetNames.filter(name => name.toLowerCase().endsWith('.svg')).length, 0);
