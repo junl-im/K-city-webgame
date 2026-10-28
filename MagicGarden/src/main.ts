@@ -575,6 +575,27 @@ async function start() {
     plot.visible = saveData.zone === 'farm';
     objects.addChild(plot); plotViews.push(plot); cropArtViews.push(cropArt);
   }
+  const cropSprites = cropArtViews.map((plant) => {
+    const image = new Sprite(Texture.WHITE);
+    image.anchor.set(.5, 1);
+    image.position.set(0, 0);
+    image.width = 116; image.height = 113;
+    image.visible = false;
+    image.eventMode = 'none';
+    plant.addChild(image);
+    return image;
+  });
+  const cropTextures: Texture[] = [];
+  void Assets.load<Texture>(`${import.meta.env.BASE_URL}assets/ui-crop-stages-v1.webp`).then((sheet) => {
+    const w = Math.floor(sheet.width / 2), h = Math.floor(sheet.height / 2);
+    for (let i = 0; i < 4; i++) {
+      cropTextures.push(new Texture({
+        source: sheet.source,
+        frame: new Rectangle((i % 2) * w, Math.floor(i / 2) * h, w, h),
+      }));
+    }
+    drawPlots();
+  }).catch(() => { /* Existing crops remain playable if art cannot load. */ });
   let currentZone: Zone = saveData.zone;
   let px = currentZone === 'town' ? 619 : 247;
   let py = 585;
@@ -611,6 +632,7 @@ async function start() {
       plot.clear();
       const plant = cropArtViews[i];
       plant.clear();
+      cropSprites[i].visible = false;
       ripePlots[i] = false;
       // 네모난 버튼 대신 원화 속 흙밭과 어울리는 낮은 둔덕을 사용한다.
       plot.ellipse(0, 21, 75, 28).fill({ color: '#5a3317', alpha: .24 });
@@ -619,10 +641,18 @@ async function start() {
       plot.moveTo(-39, 0).quadraticCurveTo(0, 12, 39, 0).stroke({ color: '#d7a56b', alpha: .23, width: 2 });
       if (crop.plantedAt !== null) {
         const percent = Math.min(1, Math.max(0, (Date.now() - crop.plantedAt) / GROW_TIME_MS));
-        const height = 12 + percent * 40;
-        const leaf = 5 + percent * 9;
         ripePlots[i] = percent >= 1;
-        for (let sprout = -1; sprout <= 1; sprout++) {
+        if (cropTextures.length === 4) {
+          const stage = Math.min(3, Math.floor(percent * 4));
+          const picture = cropSprites[i];
+          if (picture.texture !== cropTextures[stage]) picture.texture = cropTextures[stage];
+          picture.visible = true;
+          picture.alpha = 1;
+          picture.scale.set(1);
+        } else {
+          const height = 12 + percent * 40;
+          const leaf = 5 + percent * 9;
+          for (let sprout = -1; sprout <= 1; sprout++) {
           const sx = sprout * 31;
           plant.moveTo(sx, -1).quadraticCurveTo(sx + 3, -height * .55, sx, -height).stroke({ color: '#337d3f', width: 5 });
           plant.ellipse(sx - leaf * .72, -height * .57, leaf, leaf * .54).fill('#6ab954');
@@ -640,6 +670,7 @@ async function start() {
           plant.ellipse(0, -36, 64, 31).stroke({ color: '#ffe6a1', width: 3, alpha: .72 });
           plant.circle(0, -66, 5).fill('#fff4bc');
           plant.circle(32, -58, 3).fill('#ffffff');
+        }
         }
       }
     });
