@@ -1,0 +1,63 @@
+name: Magic Garden — independent GitHub Pages build
+
+# This workflow exists ONLY on the MagicGarden working branch.
+# Soul Online's main branch, Firebase workflow, and production site are untouched.
+on:
+  push:
+    branches:
+      - planning/magic-garden-20261027
+    paths:
+      - 'MagicGarden/**'
+      - '.github/workflows/magic-garden-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: magic-garden-site-publish
+  cancel-in-progress: true
+
+jobs:
+  publish-magic-garden:
+    if: github.repository == 'junl-im/K-city-webgame'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Checkout dedicated garden source branch
+        uses: actions/checkout@v4
+
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install only Magic Garden dependencies
+        working-directory: MagicGarden
+        run: npm install --no-audit --no-fund
+
+      - name: Build and verify game
+        working-directory: MagicGarden
+        run: npm run build
+
+      - name: Verify painted creek and stand-alone output
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s MagicGarden/dist/index.html
+          test -s MagicGarden/dist/assets/town-scene-v1.webp
+          test -s MagicGarden/dist/assets/creek-shimmer-v1.webp
+          test -s MagicGarden/dist/assets/creek-cascade-v1.webp
+          test -s MagicGarden/dist/assets/fox-four-directions-v1.webp
+          printf '%s\n' "${GITHUB_SHA}" > MagicGarden/dist/deployed-source-sha.txt
+          touch MagicGarden/dist/.nojekyll
+          echo "MagicGarden complete raster-only build ready for Pages"
+
+      - name: Publish only the game build to the isolated site branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: magic-garden-pages
+          publish_dir: ./MagicGarden/dist
+          commit_message: "deploy(magic-garden): ${{ github.sha }}"
+          enable_jekyll: false
