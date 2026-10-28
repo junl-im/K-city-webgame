@@ -1,6 +1,7 @@
 import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js';
 import './style.css';
 import './theme-art.css';
+import './illustrated-content.css';
 import { resolveHorizontalFacing, resolveWalkHeading, type HorizontalFacing, type WalkHeading } from './walk-motion';
 import { advanceMovement, calculateCameraTarget, smoothFollow } from './movement-camera';
 import { isWalkable, planGardenRoute, segmentIsWalkable, type Point } from './garden-navigation';
@@ -711,35 +712,104 @@ async function start() {
       '<button type="button" class="link-button" data-game-action="zone-' + friend.place + '">🗺️ ' + ZONE_LABELS[friend.place] + ' 이동하기</button>');
   }
 
+
+  // UI values come from live saveData, not from the approved visual mockup.
+  type BagKey = 'seeds' | 'berries' | 'essence' | 'eggs' | 'monsters';
+  type BagTab = 'all' | 'crop' | 'magic' | 'friends';
+  const bagList: {key:BagKey;tab:BagTab;name:string;art:string;detail:string;destination:string;label:string}[] = [
+    {key:'seeds',tab:'crop',name:'새싹 씨앗',art:'farm',detail:'큰 텃밭에 심어 열매를 키우는 씨앗이야.',destination:'zone-farm',label:'텃밭에서 심기'},
+    {key:'berries',tab:'crop',name:'달콤한 열매',art:'berry',detail:'세 개를 모으면 조합실에서 마법 정수로 바꿀 수 있어.',destination:'zone-lab',label:'마법 정수 조합'},
+    {key:'essence',tab:'magic',name:'마법 정수',art:'potion',detail:'두 개를 모으면 신비한 알을 만들 수 있어.',destination:'zone-lab',label:'신비한 알 만들기'},
+    {key:'eggs',tab:'magic',name:'신비한 알',art:'egg',detail:'고양이가 있는 연구소에서 30초 동안 품어봐.',destination:'zone-nursery',label:'연구소에서 부화'},
+    {key:'monsters',tab:'friends',name:'발견한 친구',art:'event',detail:'부화한 몬스터들의 이름을 도감에 기록했어.',destination:'open-book',label:'정원 도감 열기'},
+  ];
+  let bagTab:BagTab='all', bagChoice:BagKey='berries';
+  const iconHTML = (icon:string):string => '<span class="art-icon" data-art="' + icon + '" aria-hidden="true"></span>';
+  const amount = (key:BagKey):number => key==='monsters' ? saveData.monsters.length : saveData[key];
+  function openBag() {
+    const visible = bagList.filter(item=>bagTab==='all'||item.tab===bagTab);
+    if(!visible.some(item=>item.key===bagChoice)) bagChoice=visible[0].key;
+    const selected = bagList.find(item=>item.key===bagChoice)!;
+    const tabs: {key:BagTab;label:string}[] = [
+      {key:'all',label:'전체'},{key:'crop',label:'작물'},{key:'magic',label:'마법'},{key:'friends',label:'친구'}
+    ];
+    const tabsHTML=tabs.map(tab=>'<button type="button" class="garden-tab'+(tab.key===bagTab?' current':'')+
+      '" aria-pressed="'+(tab.key===bagTab)+'" data-game-action="bag-tab-'+tab.key+'">'+tab.label+'</button>').join('');
+    const gridHTML=visible.map(item=>'<button type="button" class="garden-slot'+(item.key===bagChoice?' current':'')+
+      '" aria-pressed="'+(item.key===bagChoice)+'" data-game-action="bag-item-'+item.key+'">'+
+      '<span class="slot-illustration">'+iconHTML(item.art)+'</span><strong>'+item.name+'</strong>'+
+      '<span class="slot-quantity">'+amount(item.key)+'</span></button>').join('');
+    openModal('🎒 나의 가방',
+      '<p class="garden-intro">정원에서 모은 보물들이야. 그림을 눌러 자세히 살펴봐!</p>'+
+      '<div class="garden-tabs" role="group" aria-label="아이템 분류">'+tabsHTML+'</div>'+
+      '<div class="garden-bag"><div class="garden-slots" role="group" aria-label="실제 보유 아이템">'+gridHTML+'</div>'+
+      '<section class="garden-detail"><div class="garden-detail-picture">'+iconHTML(selected.art)+'</div>'+
+      '<h3>'+selected.name+'</h3><p class="garden-owned">보유 수량 <b>'+amount(selected.key)+'</b></p>'+
+      '<p>'+selected.detail+'</p>'+
+      '<button type="button" class="link-button" data-game-action="'+selected.destination+'">'+selected.label+'</button></section></div>'+
+      '<div class="save-actions"><button type="button" class="link-button secondary-action" data-game-action="save-export">'+iconHTML('gift')+' 저장파일 내보내기</button>'+
+      '<button type="button" class="link-button secondary-action" data-game-action="save-import">'+iconHTML('bag')+' 저장파일 불러오기</button></div>'+
+      '<p class="modal-note">실제 진행 내용은 브라우저에 자동 저장돼. 다른 기기로 옮길 때는 저장파일을 사용해줘.</p>');
+  }
+  function ingredient(icon:string,name:string,have:number,need:number):string {
+    return '<div class="garden-ingredient'+(have<need?' lacking':'')+'">'+
+      '<span class="ingredient-icon">'+iconHTML(icon)+'</span><strong>'+name+'</strong>'+
+      '<small>'+have+' / '+need+'개</small></div>';
+  }
+  function recipe(heading:string,inputArt:string,inputName:string,have:number,need:number,outputArt:string,outputName:string,action:string):string {
+    return '<section class="garden-recipe"><h3>'+heading+'</h3><div class="garden-recipe-visual">'+
+      ingredient(inputArt,inputName,have,need)+
+      '<div class="garden-result"><small>완성</small>'+iconHTML(outputArt)+'<strong>'+outputName+'</strong></div></div>'+
+      '<button type="button" class="link-button'+(have<need?' needs-items':'')+'" data-game-action="'+action+'">'+
+      iconHTML(outputArt)+(have<need ? '재료가 부족해 ('+need+'개 필요)' : outputName+' 만들기')+'</button></section>';
+  }
   function openLab() {
     openModal('🧪 이상한 조합 실험실',
-      '<p>🐰 토끼가 준비한 첫 실험! 수확한 열매를 마법 정수로 바꾸고, 정수를 모아 알을 만들어봐.</p>' +
-      '<p>🍓 열매 <b>' + saveData.berries + '</b>개 · ✨ 정수 <b>' + saveData.essence + '</b>개 · 🥚 알 <b>' + saveData.eggs + '</b>개</p>' +
-      '<button type="button" class="link-button" data-game-action="brew">🍓 열매 3개 → ✨ 마법 정수 1개</button>' +
-      '<button type="button" class="link-button" data-game-action="craft-egg">✨ 정수 2개 → 🥚 신비한 알 1개</button>' +
-      '<p>재료가 부족하면 큰 텃밭으로 돌아가 수확해봐!</p>');
+      '<div class="garden-scene garden-lab"><div class="scene-caption">'+iconHTML('lab')+
+      '<strong>토끼의 마법 조합</strong><small>열매를 정수로, 정수를 알로!</small></div></div>'+
+      '<div class="garden-counts"><span>'+iconHTML('berry')+' 열매 <b>'+saveData.berries+'</b></span>'+
+      '<span>'+iconHTML('potion')+' 정수 <b>'+saveData.essence+'</b></span>'+
+      '<span>'+iconHTML('egg')+' 알 <b>'+saveData.eggs+'</b></span></div>'+
+      recipe('첫 번째 조합 · 반짝이는 정수','berry','달콤한 열매',saveData.berries,3,'potion','마법 정수 1개','brew')+
+      recipe('두 번째 조합 · 신비한 알','potion','마법 정수',saveData.essence,2,'egg','신비한 알 1개','craft-egg')+
+      '<button type="button" class="link-button secondary-action" data-game-action="zone-farm">'+iconHTML('farm')+' 큰 텃밭에서 재료 모으기</button>');
   }
   function openNursery() {
-    const remaining = saveData.incubatingAt === null ? 0 : Math.max(0, Math.ceil((HATCH_TIME_MS - (Date.now() - saveData.incubatingAt)) / 1000));
-    const hatchState = saveData.incubatingAt === null ? '알을 품을 준비가 됐어.' : remaining > 0 ? '고양이가 알을 돌보고 있어. 약 ' + remaining + '초 남았어.' : '알에서 빛이 나! 이제 부화시켜봐!';
-    const progress = saveData.incubatingAt === null ? 0 : Math.min(100, Math.floor((Date.now() - saveData.incubatingAt) / HATCH_TIME_MS * 100));
+    const incubating=saveData.incubatingAt!==null;
+    const remaining=!incubating?0:Math.max(0,Math.ceil((HATCH_TIME_MS-(Date.now()-saveData.incubatingAt!))/1000));
+    const progress=!incubating?0:Math.min(100,Math.floor((Date.now()-saveData.incubatingAt!)/HATCH_TIME_MS*100));
+    const status=!incubating?'신비한 알을 기다리는 포근한 둥지야.' :
+      remaining>0 ? '고양이가 알을 돌보는 중… '+remaining+'초 남았어.' : '알이 반짝반짝! 이제 부화시켜봐!';
+    const friends=saveData.monsters.length
+      ? saveData.monsters.map(kind=>'<span class="garden-discovery">'+iconHTML('event')+kind+'</span>').join('')
+      : '<span class="garden-empty">첫 친구를 부화시키면 이곳에 기록돼.</span>';
     openModal('🥚 포근한 몬스터 연구소',
-      '<p>🐱 고양이 연구원: 어서 와! 무서운 괴물이 아니라 정원을 돕는 귀여운 친구가 태어날 거야.</p>' +
-      '<p>🥚 보유 알 <b>' + saveData.eggs + '</b>개 · 🐾 발견 몬스터 <b>' + saveData.monsters.length + '</b>마리</p>' +
-      '<p id="hatch-live-status" aria-live="polite">' + hatchState + '</p>' +
-      '<div class="hatch-progress" role="progressbar" aria-label="알의 부화 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + progress + '"><span id="hatch-progress-fill" style="width:' + progress + '%"></span></div>' +
-      (saveData.incubatingAt === null ? '<button type="button" class="link-button" data-game-action="incubate">🥚 알 1개 부화실에 넣기</button>' : '<button type="button" class="link-button" data-game-action="hatch"' + (remaining > 0 ? ' disabled' : '') + '>🌟 ' + (remaining > 0 ? '알을 품고 있어…' : '부화 확인하기') + '</button>') +
-      '<p>📖 현재 친구: ' + (saveData.monsters.length ? saveData.monsters.join(' · ') : '아직 없음') + '</p>');
+      '<div class="garden-scene garden-nursery"><div class="garden-egg'+(incubating?' awakening':'')+'">'+
+      iconHTML('egg')+'<small>'+(incubating?'알이 깨어나는 중':'따뜻한 알 둥지')+'</small></div></div>'+
+      '<div class="garden-counts"><span>'+iconHTML('egg')+' 보유 알 <b>'+saveData.eggs+'</b></span>'+
+      '<span>'+iconHTML('event')+' 만난 친구 <b>'+saveData.monsters.length+'</b></span></div>'+
+      '<p class="garden-hatch-status" id="hatch-live-status" aria-live="polite">'+status+'</p>'+
+      '<div class="hatch-progress" role="progressbar" aria-label="알의 부화 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+progress+'">'+
+      '<span id="hatch-progress-fill" style="width:'+progress+'%"></span></div>'+
+      (!incubating?'<button type="button" class="link-button" data-game-action="incubate">'+iconHTML('egg')+' 알 한 개 둥지에 넣기</button>':
+      '<button type="button" class="link-button" data-game-action="hatch"'+(remaining>0?' disabled':'')+'>'+
+      iconHTML('egg')+(remaining>0?'알을 품고 있어…':'부화 확인하기')+'</button>')+
+      '<section class="garden-discoveries"><h3>발견한 정원 친구</h3><div class="garden-discovery-list">'+friends+'</div></section>'+
+      '<button type="button" class="link-button secondary-action" data-game-action="zone-lab">'+iconHTML('lab')+' 실험실로 돌아가기</button>');
   }
-
-  function openBag() {
-    openModal('🎒 나의 가방',
-      '<p>🌱 씨앗: <b>' + saveData.seeds + '개</b> · 🍓 열매: <b>' + saveData.berries + '개</b></p>' +
-      '<p>✨ 마법 정수: <b>' + saveData.essence + '개</b> · 🥚 신비한 알: <b>' + saveData.eggs + '개</b></p>' +
-      '<p>🐾 몬스터: <b>' + saveData.monsters.length + '마리</b></p>' +
-      '<div class="save-actions"><button type="button" class="link-button" data-game-action="save-export">📤 저장파일 내보내기</button>' +
-      '<button type="button" class="link-button" data-game-action="save-import">📥 저장파일 불러오기</button></div>' +
-      '<p class="modal-note">현재 진행은 이 브라우저에 자동 저장돼. 다른 기기로 옮길 때는 JSON 저장파일을 사용해줘.</p>');
+  function openBook() {
+    const friends=[['fox','여우','정원 탐험가'],['bear','곰','텃밭의 친구'],['cat','고양이','알의 연구원'],['rabbit','토끼','조합 담당']];
+    const portraits=friends.map(([art,name,role])=>'<div class="garden-friend">'+iconHTML(art)+
+      '<strong>'+name+'</strong><small>'+role+'</small></div>').join('');
+    const monsters=saveData.monsters.length ? saveData.monsters.map(kind=>
+      '<span class="garden-discovery">'+iconHTML('event')+kind+'</span>').join('') :
+      '<span class="garden-empty">아직 발견한 몬스터가 없어. 연구소에서 만나봐!</span>';
+    openModal('📖 첫 정원 도감','<p class="garden-intro">정원의 친구들과 발견한 생명을 기록하는 책이야.</p>'+
+      '<div class="garden-friends">'+portraits+'</div>'+
+      '<section class="garden-discoveries"><h3>발견한 몬스터 · '+saveData.monsters.length+'마리</h3>'+
+      '<div class="garden-discovery-list">'+monsters+'</div></section>'+
+      '<p class="modal-note">몬스터별 전용 원화는 제작 중이며, 발견 목록은 실제 플레이 기록이야.</p>'+
+      '<button type="button" class="link-button secondary-action" data-game-action="zone-nursery">'+iconHTML('nursery')+' 연구소에서 친구 만나기</button>');
   }
   let pendingImport: SaveData | null = null;
   const importInput = document.createElement('input');
@@ -793,6 +863,16 @@ async function start() {
       saveData.monsters.push(kind); saveData.incubatingAt = null;
       emitBurst(685, 415, 'hatch');
       showGuide('축하해! 🎉 ' + kind + '이(가) 정원의 새 친구가 됐어!'); openNursery();
+    } else if (action?.startsWith('bag-tab-')) {
+      const key=action.slice(8);
+      if(key==='all'||key==='crop'||key==='magic'||key==='friends'){bagTab=key;openBag();}
+      return;
+    } else if (action?.startsWith('bag-item-')) {
+      const key=action.slice(9);
+      if(bagList.some(item=>item.key===key)){bagChoice=key as BagKey;openBag();}
+      return;
+    } else if (action==='open-book') {
+      openBook();return;
     } else if (action === 'save-export') {
       try {
         const blob = new Blob([JSON.stringify(saveArchive(), null, 2)], { type: 'application/json;charset=utf-8' });
@@ -913,7 +993,7 @@ async function start() {
   (document.getElementById('bag-button') as HTMLButtonElement).addEventListener('click', openBag);
   (document.getElementById('map-button') as HTMLButtonElement).addEventListener('click', () => openModal('🗺️ 마법정원 월드', '<p>가고 싶은 지역을 눌러 바로 이동해봐!</p><div class="zone-choices"><button class="link-button" type="button" data-game-action="zone-town">🏡 중앙 마을</button><button class="link-button" type="button" data-game-action="zone-farm">🌿 큰 텃밭</button><button class="link-button" type="button" data-game-action="zone-lab">🧪 실험실</button><button class="link-button" type="button" data-game-action="zone-nursery">🥚 연구소</button></div><p class="modal-note">🌲 나무숲 · 💧 폭포와 호수 · 🌉 나무다리 · 🏠 집/뒤뜰은 준비 중이야.</p>'));
 
-  (document.getElementById('book-button') as HTMLButtonElement).addEventListener('click', () => openModal('📖 첫 정원 도감', '<ul><li>🦊 여우 — 호기심 많은 탐험가</li><li>🐻 곰 — 정원의 듬직한 친구</li><li>🐱 고양이 — 몬스터 돌봄 담당</li><li>🐰 토끼 — 씨앗과 조합 담당</li></ul><p>🐾 발견한 몬스터: ' + (saveData.monsters.length ? saveData.monsters.join(' · ') : '아직 발견하지 못했어') + '</p>'));
+  (document.getElementById('book-button') as HTMLButtonElement).addEventListener('click', openBook);
   (document.getElementById('help-button') as HTMLButtonElement).addEventListener('click', () => openModal('💡 어떻게 놀까?', '<ul><li>빈 땅을 누르면 여우가 4방향으로 걸어가! 장애물이 있으면 반짝이는 길 표시를 따라 돌아가며, 막힌 곳은 가까운 안전한 위치로 이동해.</li><li>여우·곰·고양이·토끼를 누르면 각자의 이야기를 듣고 관련 지역으로 이동할 수 있어.</li><li>지역 버튼이나 화면의 길 안내판, 지도 메뉴로 4개 구역을 오갈 수 있어.</li><li>텃밭에 씨앗을 심고 자라면 다시 눌러 수확해.</li><li>실험실에서 열매를 정수로, 정수를 알로 조합해!</li><li>연구소에서 알을 품으면 30초 후 친구가 부화해.</li><li>가방에서 JSON 저장파일을 내려받고 다른 기기로 불러올 수 있어.</li><li>진행 내용은 이 브라우저에 자동 저장돼.</li></ul>'));
 
   if (currentZone !== 'town') { const firstZone = currentZone; currentZone = 'town'; switchZone(firstZone); }
@@ -1079,7 +1159,11 @@ async function start() {
         const button = modalContent.querySelector<HTMLButtonElement>('button[data-game-action="hatch"]');
         if (button) {
           button.disabled = remaining > 0;
-          button.textContent = remaining > 0 ? '🥚 알을 품고 있어…' : '🌟 부화 확인하기';
+          const renderState = remaining > 0 ? 'waiting' : 'ready';
+          if (button.dataset.renderState !== renderState) {
+            button.dataset.renderState = renderState;
+            button.innerHTML = iconHTML('egg') + (remaining > 0 ? '알을 품고 있어…' : '부화 확인하기');
+          }
         }
       }
     }
