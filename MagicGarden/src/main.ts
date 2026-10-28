@@ -6,6 +6,7 @@ import './painted-layout.css';
 import './visual-polish.css';
 import './button-art-v16.css';
 import './button-proportions-v17.css';
+import './illustrated-items-v18.css';
 import { resolveHorizontalFacing, resolveWalkHeading, type HorizontalFacing, type WalkHeading } from './walk-motion';
 import { advanceMovement, calculateCameraTarget, smoothFollow } from './movement-camera';
 import { isWalkable, planGardenRoute, segmentIsWalkable, type Point } from './garden-navigation';
@@ -816,6 +817,20 @@ async function start() {
   ];
   let bagTab:BagTab='all', bagChoice:BagKey='berries';
   const iconHTML = (icon:string):string => '<span class="art-icon" data-art="' + icon + '" aria-hidden="true"></span>';
+  // Hand-painted items share one 25 KiB transparent WebP: keep them separate
+  // from the 36px navigation icons so large inventory images stay crisp.
+  type PaintedItem = 'seed'|'berry'|'essence'|'egg'|'leafbud'|'bubble'|'sparkle'|'flower';
+  const itemPaintings:Record<string,PaintedItem> = {
+    farm:'seed',berry:'berry',potion:'essence',egg:'egg',event:'leafbud',
+    seed:'seed',essence:'essence',leafbud:'leafbud',bubble:'bubble',
+    sparkle:'sparkle',flower:'flower',
+  };
+  const monsterPaintings:Record<MonsterKind,PaintedItem> = {
+    잎새콩:'leafbud',방울몽:'bubble',반짝몽:'sparkle',
+  };
+  const itemHTML = (key:string):string =>
+    '<span class="painted-item painted-'+(itemPaintings[key] || 'flower')+'" aria-hidden="true"></span>';
+  const monsterHTML = (kind:MonsterKind):string => itemHTML(monsterPaintings[kind]);
   const amount = (key:BagKey):number => key==='monsters' ? saveData.monsters.length : saveData[key];
   function openBag() {
     const visible = bagList.filter(item=>bagTab==='all'||item.tab===bagTab);
@@ -828,13 +843,13 @@ async function start() {
       '" aria-pressed="'+(tab.key===bagTab)+'" data-game-action="bag-tab-'+tab.key+'">'+tab.label+'</button>').join('');
     const gridHTML=visible.map(item=>'<button type="button" class="garden-slot'+(item.key===bagChoice?' current':'')+
       '" aria-pressed="'+(item.key===bagChoice)+'" data-game-action="bag-item-'+item.key+'">'+
-      '<span class="slot-illustration">'+iconHTML(item.art)+'</span><strong>'+item.name+'</strong>'+
+      '<span class="slot-illustration">'+itemHTML(item.art)+'</span><strong>'+item.name+'</strong>'+
       '<span class="slot-quantity">'+amount(item.key)+'</span></button>').join('');
     openModal('🎒 나의 가방',
       '<p class="garden-intro">정원에서 모은 보물들이야. 그림을 눌러 자세히 살펴봐!</p>'+
       '<div class="garden-tabs" role="group" aria-label="아이템 분류">'+tabsHTML+'</div>'+
       '<div class="garden-bag"><div class="garden-slots" role="group" aria-label="실제 보유 아이템">'+gridHTML+'</div>'+
-      '<section class="garden-detail"><div class="garden-detail-picture">'+iconHTML(selected.art)+'</div>'+
+      '<section class="garden-detail"><div class="garden-detail-picture">'+itemHTML(selected.art)+'</div>'+
       '<h3>'+selected.name+'</h3><p class="garden-owned">보유 수량 <b>'+amount(selected.key)+'</b></p>'+
       '<p>'+selected.detail+'</p>'+
       '<button type="button" class="link-button" data-game-action="'+selected.destination+'">'+selected.label+'</button></section></div>'+
@@ -844,15 +859,15 @@ async function start() {
   }
   function ingredient(icon:string,name:string,have:number,need:number):string {
     return '<div class="garden-ingredient'+(have<need?' lacking':'')+'">'+
-      '<span class="ingredient-icon">'+iconHTML(icon)+'</span><strong>'+name+'</strong>'+
+      '<span class="ingredient-icon">'+itemHTML(icon)+'</span><strong>'+name+'</strong>'+
       '<small>'+have+' / '+need+'개</small></div>';
   }
   function recipe(heading:string,inputArt:string,inputName:string,have:number,need:number,outputArt:string,outputName:string,action:string):string {
     return '<section class="garden-recipe"><h3>'+heading+'</h3><div class="garden-recipe-visual">'+
       ingredient(inputArt,inputName,have,need)+
-      '<div class="garden-result"><small>완성</small>'+iconHTML(outputArt)+'<strong>'+outputName+'</strong></div></div>'+
+      '<div class="garden-result"><small>완성</small>'+itemHTML(outputArt)+'<strong>'+outputName+'</strong></div></div>'+
       '<button type="button" class="link-button'+(have<need?' needs-items':'')+'" data-game-action="'+action+'">'+
-      iconHTML(outputArt)+(have<need ? '재료가 부족해 ('+need+'개 필요)' : outputName+' 만들기')+'</button></section>';
+      itemHTML(outputArt)+(have<need ? '재료가 부족해 ('+need+'개 필요)' : outputName+' 만들기')+'</button></section>';
   }
   function openLab() {
     openModal('🧪 이상한 조합 실험실',
@@ -872,13 +887,13 @@ async function start() {
     const status=!incubating?'신비한 알을 기다리는 포근한 둥지야.' :
       remaining>0 ? '고양이가 알을 돌보는 중… '+remaining+'초 남았어.' : '알이 반짝반짝! 이제 부화시켜봐!';
     const friends=saveData.monsters.length
-      ? saveData.monsters.map(kind=>'<span class="garden-discovery">'+iconHTML('event')+kind+'</span>').join('')
+      ? saveData.monsters.map(kind=>'<span class="garden-discovery">'+monsterHTML(kind)+kind+'</span>').join('')
       : '<span class="garden-empty">첫 친구를 부화시키면 이곳에 기록돼.</span>';
     openModal('🥚 포근한 몬스터 연구소',
       '<div class="garden-scene garden-nursery"><div class="garden-egg'+(incubating?' awakening':'')+'">'+
-      iconHTML('egg')+'<small>'+(incubating?'알이 깨어나는 중':'따뜻한 알 둥지')+'</small></div></div>'+
+      itemHTML('egg')+'<small>'+(incubating?'알이 깨어나는 중':'따뜻한 알 둥지')+'</small></div></div>'+
       '<div class="garden-counts"><span>'+iconHTML('egg')+' 보유 알 <b>'+saveData.eggs+'</b></span>'+
-      '<span>'+iconHTML('event')+' 만난 친구 <b>'+saveData.monsters.length+'</b></span></div>'+
+      '<span>'+itemHTML('leafbud')+' 만난 친구 <b>'+saveData.monsters.length+'</b></span></div>'+
       '<p class="garden-hatch-status" id="hatch-live-status" aria-live="polite">'+status+'</p>'+
       '<div class="hatch-progress" role="progressbar" aria-label="알의 부화 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+progress+'">'+
       '<span id="hatch-progress-fill" style="width:'+progress+'%"></span></div>'+
@@ -893,13 +908,13 @@ async function start() {
     const portraits=friends.map(([art,name,role])=>'<div class="garden-friend">'+iconHTML(art)+
       '<strong>'+name+'</strong><small>'+role+'</small></div>').join('');
     const monsters=saveData.monsters.length ? saveData.monsters.map(kind=>
-      '<span class="garden-discovery">'+iconHTML('event')+kind+'</span>').join('') :
+      '<span class="garden-discovery">'+monsterHTML(kind)+kind+'</span>').join('') :
       '<span class="garden-empty">아직 발견한 몬스터가 없어. 연구소에서 만나봐!</span>';
     openModal('📖 첫 정원 도감','<p class="garden-intro">정원의 친구들과 발견한 생명을 기록하는 책이야.</p>'+
       '<div class="garden-friends">'+portraits+'</div>'+
       '<section class="garden-discoveries"><h3>발견한 몬스터 · '+saveData.monsters.length+'마리</h3>'+
       '<div class="garden-discovery-list">'+monsters+'</div></section>'+
-      '<p class="modal-note">몬스터별 전용 원화는 제작 중이며, 발견 목록은 실제 플레이 기록이야.</p>'+
+      '<p class="modal-note">발견한 몬스터는 각자의 작은 손그림으로 기록돼. 친구를 더 만나보자!</p>'+
       '<button type="button" class="link-button secondary-action" data-game-action="zone-nursery">'+iconHTML('nursery')+' 연구소에서 친구 만나기</button>');
   }
   let pendingImport: SaveData | null = null;

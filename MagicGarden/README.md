@@ -191,3 +191,9 @@ npm run dev
 ## 개발 중 끊김 방지와 3곳 동기화 (2026-10-28)
 
 개발/디자인 기준과 현재 백업·배포 위치는 [PROJECT_SYNC.md](./PROJECT_SYNC.md), 작업 인계와 **SVG 절대 금지**·원화 확보 우선 정책은 [AGENTS.md](./AGENTS.md), 콘텐츠별 미완성/실기기 QA는 [VISUAL_IMPLEMENTATION_BOARD.md](./VISUAL_IMPLEMENTATION_BOARD.md)에서 관리한다. GitHub 커밋/배포 검사 이후 Notion MASTER와 Google Docs MASTER에 같은 변경을 동기화 기록하며, 외부 서비스에 상시 자동 동기화가 이미 구성된 것으로 주장하지 않는다.
+
+### v18 — 가방/조합/둥지/몬스터별 고유 원화 8종 (2026-10-28)
+- 기존 PNG/WebP 원화 기반의 작은 메뉴용 아이콘을 가방과 조합·연구소에 억지로 확대하던 문제 개선. 별도 손그림 8컷 투명 WebP 한 장 `public/assets/illustrated-items-v18.webp` 신규(720x360, 약 25KiB).
+- 씨앗·열매·마법정수·둥지 속 알 4종, 부화한 잎새콩·방울몽·반짝몽의 서로 다른 고유 얼굴 3종 및 정원 꽃 1종으로 구분. CSS sprite를 통해 실제 보유수량/레시피/부화/도감 모두 기존 상태 데이터에 맞춰 표시.
+- 아틀라스 원본은 [Google Drive](https://drive.google.com/file/d/1utuMe5wCOrrqh0bA_wwz5tnUHLbiPAsd/view)와 GitHub에 교차 보관. 기존 시스템 아이콘이나 SVG 불사용.
+- `scripts/check-illustrated-items-v18.mjs`이 원화 포맷·용량·크기·3몬스터 고유 원화·기능 연결 확인. 외부 브라우저 실제 화상 QA 별도.

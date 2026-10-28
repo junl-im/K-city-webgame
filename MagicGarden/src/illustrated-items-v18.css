@@ -1,0 +1,53 @@
+/*
+ * v18 illustrated treasures and monsters. This REAL transparent 720x360 WebP
+ * sheet was extracted and hand-cleaned from our original painted garden mockup.
+ * Eight separate painted subjects, not default icons, SVG or CSS-drawn objects.
+ * Each transparent atlas tile is 180x180, 4 columns x 2 rows.
+ */
+#app .painted-item{
+  width:54px;height:54px;min-width:54px;min-height:54px;
+  display:inline-block;vertical-align:middle;flex:none;
+  background-image:url('/assets/illustrated-items-v18.webp');
+  background-size:400% 200%;background-repeat:no-repeat;
+  filter:drop-shadow(0 2px 2px rgba(86,56,35,.17));
+  pointer-events:none;
+  -webkit-user-drag:none;user-select:none;-webkit-user-select:none;
+}
+#app .painted-seed{background-position:0% 0%}
+#app .painted-berry{background-position:33.333333% 0%}
+#app .painted-essence{background-position:66.666667% 0%}
+#app .painted-egg{background-position:100% 0%}
+#app .painted-leafbud{background-position:0% 100%}
+#app .painted-bubble{background-position:33.333333% 100%}
+#app .painted-sparkle{background-position:66.666667% 100%}
+#app .painted-flower{background-position:100% 100%}
+#app .garden-slot .slot-illustration{width:75px;height:64px}
+#app .garden-slot .painted-item{width:68px;height:68px;min-width:68px;min-height:68px}
+#app .garden-slot{min-height:119px}
+#app .garden-slot strong{font-size:12px;font-weight:900;line-height:1.22}
+#app .garden-detail-picture{border-color:#e6c79f;background:#fff5dfe8;overflow:visible}
+#app .garden-detail-picture .painted-item{width:103px;height:103px;min-width:103px;min-height:103px;filter:drop-shadow(0 4px 4px rgba(83,46,33,.16))}
+#app .garden-ingredient .painted-item,#app .garden-result .painted-item{width:68px;height:68px;min-width:68px;min-height:68px}
+#app .garden-ingredient .ingredient-icon{min-height:71px}
+#app .garden-ingredient,#app .garden-result{min-height:120px;padding:9px 6px;overflow:visible}
+#app .garden-result strong,#app .garden-ingredient strong{font-size:13px;line-height:1.4}
+#app .garden-recipe .link-button .painted-item{width:33px;height:33px;min-width:33px;min-height:33px;margin:-8px -3px;filter:drop-shadow(0 1px 1px #34251d45)}
+#app .garden-egg{width:min(220px,64vw);min-height:183px;border:0;border-radius:0;box-shadow:none;background:transparent;padding:0;margin:5px auto}
+#app .garden-egg>.painted-item{width:182px;height:182px;min-width:182px;min-height:182px;filter:drop-shadow(0 5px 7px #52322555)}
+#app .garden-egg small{font-size:12px;margin-top:-17px;color:#4b2f22;text-shadow:0 1px 2px #fff2d3,0 -1px 3px #fff2d3;z-index:1}
+#app .garden-discovery{gap:3px;padding:0 10px 0 2px;min-height:53px;line-height:1.2;color:#543624}
+#app .garden-discovery>.painted-item{width:52px;height:52px;min-width:52px;min-height:52px}
+#app .garden-counts .painted-item{width:36px;height:36px;min-width:36px;min-height:36px}
+#app .garden-discovery-list{align-items:stretch}
+#app .garden-egg.awakening{animation:garden-egg-breathe 2.4s ease-in-out infinite}
+@media(max-width:600px){
+ #app .garden-slot{min-height:104px}
+ #app .garden-slot .slot-illustration{width:65px;height:57px}
+ #app .garden-slot .painted-item{width:58px;height:58px;min-width:58px;min-height:58px}
+ #app .garden-detail-picture .painted-item{width:77px;height:77px;min-width:77px;min-height:77px}
+ #app .garden-ingredient .painted-item,#app .garden-result .painted-item{width:57px;height:57px;min-width:57px;min-height:57px}
+ #app .garden-egg>.painted-item{width:158px;height:158px;min-width:158px;min-height:158px}
+ #app .garden-egg{min-height:164px}
+ #app .garden-discovery>.painted-item{width:42px;height:42px;min-width:42px;min-height:42px}
+}
+@media(prefers-reduced-motion:reduce){#app .garden-egg.awakening{animation:none}}
