@@ -70,7 +70,7 @@ const required = [
   'friends-celebration-v06.webp',
   'ui-pointer-v16.webp', 'ui-atlas-v16.webp', 'ui-button-v16.webp', 'ui-button-soft-v17.webp',
   'ui-button-compact-v18.webp', 'ui-button-daily-v18.webp', 'ui-button-action-v18.webp', 'ui-button-secondary-v18.webp',
-  'game-whack-icons-atlas-v19.webp'
+  'game-whack-icons-atlas-v19.webp', 'game-spot-animals-atlas-v23.webp'
 ];
 for (const name of required) {
   assert.ok(fs.existsSync(asset(name)), `필수 원화 없음: ${name}`);
@@ -94,9 +94,13 @@ function checkNoSvg(dir) {
   }
 }
 checkNoSvg(dist);
+checkNoSvg(path.join(project, 'source-assets'));
 assert.ok(!/data:image\/svg\+xml|<svg\b/i.test(html + css + js), 'SVG 삽입 금지');
 assert.match(css, /ui-atlas-v16\.webp/, '일러스트 UI 아이콘 아틀라스 필요');
 assert.match(css, /game-whack-icons-atlas-v19\.webp/, '몬스터 콩콩 전용 게임 원화 아틀라스 필요');
+assert.match(css, /game-spot-animals-atlas-v23\.webp/, '다른 그림 찾기 전용 동물 원화 아틀라스 필요');
+assert.match(js, /paintSpotCell\(sample,icon\)/, '왼쪽 기준 그림도 전용 원화로 렌더링해야 합니다');
+assert.match(js, /paintSpotCell\(b,icon\)/, '오른쪽 정답 버튼도 전용 원화로 렌더링해야 합니다');
 assert.match(js, /function paintWhackCell\(button,symbol\)/, '몬스터 게임 타일에는 이모지 대신 원화 연결 필요');
 assert.match(js, /paintWhackCell\(cell,symbol\)/, '몬스터 게임은 매 판 원화로 렌더링해야 합니다');
 assert.match(css, /\.filter-pills button\[data-filter="observation"\]::before/, '탐색 필터마다 별도 그림 장식 필요');
@@ -250,7 +254,7 @@ revealAnswer(wrong,answer);
 assert.ok(wrong.classes.has('answer-wrong'),'오답 선택 시 분홍색 강조');
 assert.ok(answer.classes.has('answer-reveal'),'오답 시 진짜 정답도 표시');
 
-const quizText = js.split('const MYSTERY_QUIZ = ')[1].split('\n  const gameById')[0].trim().replace(/;$/, '');
+const quizText = js.split('const MYSTERY_QUIZ = ')[1].split('\n  // 5×4 PNG/WebP')[0].trim().replace(/;$/, '');
 const quizzes = vm.runInNewContext(`(${quizText})`);
 const questions = [];
 for (const level of [1, 2, 3]) {
@@ -274,10 +278,16 @@ assert.match(js, /drawWithoutRepeats\(s,'sort-'\+picked\.name,picked\.items\)/, 
 
 const spotText = js.split('const SPOT_ICON_SETS = ')[1].split('\n  const MYSTERY_QUIZ')[0].trim().replace(/;$/, '');
 const spotSets = vm.runInNewContext(`(${spotText})`);
+const spotArtText = js.split('const SPOT_ART = ')[1].split('\n  const gameById')[0].trim().replace(/;$/, '');
+const spotArt = vm.runInNewContext(`(${spotArtText})`);
+assert.equal(Object.keys(spotArt).length, 20, '20종 동물 원화가 모두 연결되어야 합니다');
+assert.equal(new Set(Object.values(spotArt).map(item => item[0])).size, 20, '각 동물의 원화 칸은 중복되면 안 됩니다');
+assert.ok(Object.values(spotArt).every(item => item[0]>=0 && item[0]<20 && item[1]), '원화 인덱스와 접근성 이름 필요');
 assert.equal(spotSets.length, 3, '다른 그림 3단계 아이콘 목록');
 for (const icons of spotSets) {
   assert.ok(icons.length >= 16, '아이콘 후보가 충분해야 합니다');
   assert.equal(new Set(icons).size, icons.length, '같은 단계에 중복 아이콘이 없어야 합니다');
+  assert.ok(icons.every(icon => spotArt[icon]), '모든 퍼즐 대상에 해당하는 원화가 있어야 합니다');
 }
 const indexSource = js.match(/function pickDifferentIndex\(size,previous\)\{[\s\S]*?\n  \}/)?.[0];
 assert.ok(indexSource, '같은 정답 위치 연속 등장 방지 함수 필요');

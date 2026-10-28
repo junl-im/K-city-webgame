@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+artwork/archived-style-luxe/
+# Intermediate rejected art iterations and redundant sprite slices.
+artwork/concepts/hwatu-cute-months10-12-v1.png
+artwork/concepts/hwatu-cute-months10-12-portrait-v2.png
+artwork/concepts/hwatu-strict90-months10-12-raw-v2.png
+public/assets/bonus-pee-*-v1.webp

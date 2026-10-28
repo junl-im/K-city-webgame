@@ -1,0 +1,2594 @@
+:root {
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  color: #fff7e8;
+  background: #172f2b;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+* { box-sizing: border-box; }
+html, body, #app { min-height: 100%; margin: 0; }
+html, body, #app, #app * { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+img, .hwatu, .mascot { -webkit-user-drag:none; }
+body { overscroll-behavior: none; }
+button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action:manipulation; }
+button:focus-visible { outline: 3px solid #fce1a3; outline-offset: 3px; }
+button:disabled { cursor: not-allowed; opacity:.48; }
+.scene {
+  width: 100%; min-height: 100dvh; position: relative; isolation: isolate;
+  background: #13392f url('/assets/table-bg.png') center center / cover no-repeat;
+  overflow: hidden;
+}
+.top-safe { padding-top: max(env(safe-area-inset-top), 15px); }
+.bottom-safe { padding-bottom: max(env(safe-area-inset-bottom), 12px); }
+.scene--home::before, .scene--select::before {
+  content:''; position:absolute; z-index:-1; inset:0;
+  background:linear-gradient(90deg,rgba(16,29,30,.9) 0%,rgba(20,40,35,.66) 38%,rgba(11,42,31,.18) 80%),
+    linear-gradient(0deg,rgba(9,32,26,.42),transparent 50%);
+}
+.nav {
+  width: 100%; position: relative; z-index: 4; display:flex; align-items:center;
+  justify-content:space-between; padding: max(env(safe-area-inset-top),20px) clamp(20px,4vw,68px) 12px; gap:12px;
+}
+.brand { display:flex; align-items:center; gap:8px; font-size:clamp(15px,1.65vw,21px); white-space:nowrap; letter-spacing:-.7px; text-shadow:0 2px 8px #202b23; }
+.brand b { color:#ffe0a0; font-size:1.16em; }
+.brand__bloom { display:grid; place-items:center; width:37px; height:37px; color:#ffe5a8; border-radius:50%; border:1px solid rgba(255,219,164,.55); background:rgba(85,56,28,.45); box-shadow:0 0 25px rgba(245,182,107,.16); font-size:22px; }
+.ui-icon {display:inline-block;flex:none;vertical-align:middle;width:24px;height:24px;background-image:url('/assets/game-ui-icons-sheet.webp');background-size:300% 200%;background-repeat:no-repeat;filter:drop-shadow(0 2px 2px #001b1988);}
+.ui-icon--home {background-position:0% 0%;}
+.ui-icon--album {background-position:50% 0%;}
+.ui-icon--bell {background-position:100% 0%;}
+.ui-icon--help {background-position:0% 100%;}
+.ui-icon--bloom {background-position:50% 100%;}
+.ui-icon--coins {background-position:100% 100%;}
+.brand__bloom .ui-icon {width:33px;height:33px;}
+.sound-control {display:inline-flex;align-items:center;justify-content:center;gap:3px;}
+.sound-control .ui-icon {width:19px;height:19px;}
+.top-pill { color:#ffe5bd; font-size:12px; border:1px solid #fbe4aa60; background:rgba(18,36,32,.55); padding:10px 15px; border-radius:22px; backdrop-filter:blur(10px); }
+.eyebrow { font-size:11px; font-weight:800; letter-spacing:3px; text-transform:uppercase; color:#f5d5a0; }
+.scene--home { display:flex; flex-direction:column; }
+.home-content { flex:1; display:flex; align-items:center; position:relative; padding:30px 8vw 72px; }
+.hero-copy { z-index:2; max-width:590px; }
+.hero-copy h1 { font-family:Georgia,"Nanum Myeongjo",serif; margin:10px 0 25px; font-size:clamp(48px,6.1vw,96px); line-height:1.07; letter-spacing:-4px; font-weight:900; text-shadow:0 7px 25px #0e231b80; }
+.hero-copy h1 em { font-style:normal; color:#ffd9a0; text-shadow:0 4px 20px #4b1e0380; }
+.lead { font-size:clamp(17px,1.8vw,23px); color:#f8ecd6; font-weight:450; line-height:1.8; text-shadow:0 2px 8px #0006; }
+.home-actions { margin-top:33px; display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; border:1px solid #fff2d589; padding:13px 22px; border-radius:16px; background:#fff2d7; color:#433124; font-weight:850; text-shadow:0 1px #ffffff7a;box-shadow:inset 0 2px 1px #ffffff5c,0 4px 10px #06181059;transition:transform .18s ease,filter .18s ease,box-shadow .18s ease; }
+.btn:hover { transform:translateY(-2px); filter:brightness(1.05); }
+.btn:active { transform:translateY(1px) scale(.97); }
+.btn--primary { background:radial-gradient(ellipse at 30% 0%,#fff4c77a,transparent 60%),linear-gradient(155deg,#ffe7a5,#efa95b 83%);border-color:#ffebaf;color:#583116; box-shadow:inset 0 2px 1px #fff8,0 6px 0 #976439,0 12px 26px #0007; }
+.btn--warm { background:linear-gradient(145deg,#ffcbba,#e57d66); color:#65291e; box-shadow:0 6px 20px #361c1960; }
+.btn--huge { padding:19px 35px; font-size:clamp(18px,1.7vw,23px); border-radius:19px; }
+.btn--ghost { color:#fff5df; border:1px solid #f5dfb766; background:rgba(30,52,45,.63); backdrop-filter:blur(10px); }
+.btn--quiet { color:#f5e9cf; border:1px solid #ffffff40; background:rgba(36,38,34,.55); padding:10px 17px; font-size:13px; }
+.btn--wide { width:100%; }
+.mascot {
+  display:inline-block; flex:none;
+  width:180px; aspect-ratio: .82;
+  background-image:url('/assets/mascots.png');
+  background-size:300% 100%; background-repeat:no-repeat;
+  filter:drop-shadow(0 18px 20px #091e1680);
+}
+.mascot--bear { background-position:0% 50%; }
+.mascot--fox { background-position:50% 50%; }
+.mascot--cat { background-position:100% 50%; }
+.hero-animals { position:absolute; right:1.4vw; bottom:5%; display:flex; align-items:end; z-index:1; pointer-events:none; }
+.hero-animals .mascot { width:clamp(155px,18vw,318px); animation:floaty 4.2s ease-in-out infinite; }
+.hero-animals .hero-fox { width:clamp(170px,20.3vw,350px); margin-left:-45px; transform:translateY(-25px); animation-delay:-1.3s; z-index:2; }
+.hero-animals .hero-cat { margin-left:-43px; animation-delay:-2.5s; }
+@keyframes floaty { 0%,100%{translate:0 0} 50%{translate:0 -8px} }
+.home-footer { position:relative; z-index:4; padding:8px clamp(20px,4vw,68px) max(env(safe-area-inset-bottom),16px); display:flex; justify-content:flex-end; color:#e7d7c8b0; font-size:12px; }
+.text-button { border:0; background:none; color:inherit; }
+
+/* Difficulty and point selection */
+.scene--select { overflow-y:auto; }
+.scene--select::before { background:linear-gradient(100deg,#0c2929d9,#143e33c0 50%,#1d3025af),linear-gradient(0deg,#071f20bb,transparent); }
+.setup-wrap { max-width:1100px; width:calc(100% - 35px); margin:clamp(20px,4vh,50px) auto 50px; padding:25px; border-radius:32px; background:linear-gradient(140deg,rgba(35,55,49,.94),rgba(19,40,36,.95)); border:1px solid #f3d49a38; box-shadow:0 30px 100px #091b19ad,inset 0 1px #fff2; backdrop-filter:blur(18px); }
+.setup-heading { text-align:center; margin-bottom:20px; }
+.setup-heading h2 { font-family:Georgia,"Nanum Myeongjo",serif; font-size:clamp(27px,3.5vw,42px); margin:5px 0 7px; letter-spacing:-1px; }
+.setup-heading p { margin:0; color:#d4dcca; font-size:14px; }
+.opponents { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.opponent-card { position:relative; overflow:hidden; text-align:center; color:inherit; border-radius:23px; border:1px solid #f8e1b837; padding:5px 10px 17px; background:linear-gradient(160deg,#4564547c,#1d352ec9); min-width:0; transition:transform .18s,border-color .18s,background .18s; }
+.opponent-card:hover { transform:translateY(-4px); }
+.opponent-card.is-active { border:2px solid #ffdd96; background:linear-gradient(165deg,#6b7455a8,#264a3beb); box-shadow:inset 0 0 30px #f2cf8730,0 4px 25px #0004; }
+.opponent-card .mascot { display:block; width:min(150px,80%); margin:0 auto -1px; height:auto; }
+.opponent-card__text strong { color:#ffdfa5; display:block; font-size:20px; margin:1px 0 4px; }
+.opponent-card__text span { display:block; font-size:13px; font-weight:750; }
+.opponent-card__text small { color:#ccdecf; display:block; margin-top:7px; font-size:11px; }
+.opponent-card__check { position:absolute; top:12px; right:13px; color:#ffe0a3; font-size:18px; }
+.stakes { margin-top:20px; display:flex; gap:18px; justify-content:space-between; align-items:center; padding:19px 20px; border:1px solid #fff3; border-radius:19px; background:#0f272c80; }
+.stakes h3 { margin:0 0 4px; font-size:17px; }
+.stakes small { font-size:11px; color:#bed2c4; }
+.stake-row { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; min-width:48%; }
+.stake { background:#294640; color:#eee4cc; border:1px solid #ffffff38; border-radius:13px; padding:12px 9px; font-size:17px; font-weight:900; box-shadow:0 3px 0 #102c27; }
+.stake small { font-size:11px; padding-left:2px; color:inherit; }
+.stake.is-active { color:#593622; border-color:#ffdf9a; background:linear-gradient(145deg,#ffedb5,#edb978); box-shadow:inset 0 2px 0 #fff9,0 3px 0 #a67b52; }
+.stake-limit { color:#fce3a7;font-size:12px;line-height:1.45;margin:9px 0 0; }
+.stake-limit b { color:#fff6d9; }
+.stake.is-locked { position:relative;opacity:.43;filter:grayscale(.7);border-style:dashed;box-shadow:none; }
+.stake-lock { display:block;font-size:10px;font-weight:700;line-height:1.4; }
+.setup-bottom { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-top:20px; }
+.wallet { display:flex; align-items:center; flex-wrap:wrap; gap:12px; font-size:13px; color:#d1ddcf; }
+.wallet strong { color:#ffe7ae; font-size:20px; white-space:nowrap; }
+.wallet button { color:#3d553e; background:#c5e9c7; border:0; border-radius:10px; padding:9px 13px; font-weight:850; }
+.wallet .emergency-charge {color:#492410;background:linear-gradient(160deg,#ffe7af,#eeb66e);border:1px solid #fff0c5;box-shadow:inset 0 1px 0 #fff9,0 3px 12px #0005;animation:emergency-glow 2.5s ease-in-out infinite;}
+@keyframes emergency-glow {0%,100%{box-shadow:inset 0 1px 0 #fff9,0 3px 12px #0005}50%{box-shadow:inset 0 1px 0 #fff9,0 0 20px #ffce7e99}}
+.setup-footer { text-align:center; font-size:12px; color:#dfeddf; padding-bottom:24px; }
+
+/* The game board */
+.scene--game { height:100dvh; min-height:610px; overflow:hidden; background-position:center center; }
+.scene--game::before { content:''; position:absolute; inset:0; background:linear-gradient(to bottom,#05262499 0%,transparent 38%,transparent 67%,#0a2823c9 100%); z-index:-1; }
+.game-top { position:absolute; top:0; left:0; width:100%; height:90px; z-index:3; display:flex; gap:17px; align-items:center; padding: max(env(safe-area-inset-top),12px) max(18px,3.5vw) 8px; background:linear-gradient(#102820de,#10282000); }
+.nav-round { display:grid; place-items:center; width:42px; height:42px; flex:none; border:1px solid #f4ddb0a8; border-radius:50%; background:radial-gradient(circle at 40% 25%,#47664bc2,#153c34ed 75%);color:#ffedca;font-weight:bold;font-size:21px;box-shadow:inset 0 1px #ffebb27d,0 4px 11px #07181389; }
+.nav-round .ui-icon {width:29px;height:29px;}
+.game-title { flex:1; display:flex; gap:9px; align-items:center; }
+.game-title .brand { font-size:clamp(13px,1.3vw,18px); }
+.game-title .brand__bloom { width:31px;height:31px;font-size:17px; }
+.game-title small { color:#ffe5c8; background:#284f42ac; border:1px solid #ffffff30; border-radius:20px; padding:7px 10px; white-space:nowrap; }
+.game-wallet { display:flex; flex-direction:column; gap:1px; align-items:flex-end; min-width:110px; }
+.game-wallet span { color:#e4dccd; font-size:11px; }
+.game-wallet b { color:#ffe3a8; font-size:clamp(14px,1.6vw,20px); white-space:nowrap; }
+.opponent-hud { position:absolute; z-index:2; top:11%; left:3.5%; display:flex; height:105px; align-items:center; gap:12px; }
+.opponent-avatar { width:85px; align-self:end; }
+.hud-text { display:flex; flex-direction:column; gap:6px; text-shadow:0 2px 7px #0008; }
+.hud-text b { font-size:17px; color:#fff0cd; }
+.hud-text span { font-size:12px; color:#f6d7b1; }
+.score-badge { margin-left:9px; min-width:54px; aspect-ratio:1; border:2px solid #f8dba3; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:radial-gradient(#a26b3b,#613c29); box-shadow:0 5px 15px #0007; }
+.score-badge strong { line-height:1; font-size:27px; }
+.score-badge small { font-size:10px; }
+.opponent-hand { position:absolute; display:flex; gap:0; top:8px; left:calc(100% + 30px); white-space:nowrap; align-items:center; opacity:.96; }
+.opponent-hand .hwatu { margin-left:-21px; transform:rotate(5deg); }
+.opponent-hand .hwatu:first-child { margin-left:0; }
+.table-play { position:absolute; top:23%; bottom:max(37%,252px); left:50%; transform:translateX(-50%); width:min(900px,90%); display:flex; flex-direction:column; justify-content:center; align-items:center; gap:6px; }
+.center-status { z-index:1; background:#10382bcf; border:1px solid #fce5bd60; border-radius:28px; padding:7px 14px; color:#ffe4a7; font-size:13px; font-weight:900; letter-spacing:.1px; white-space:nowrap; box-shadow:0 5px 15px #071e17aa; }
+.turn-clock {display:inline-flex;align-items:center;gap:6px;margin-left:11px;padding-left:9px;border-left:1px solid #fce5bd52;vertical-align:middle;}
+.turn-clock__time {font-size:12px;font-weight:850;font-variant-numeric:tabular-nums;color:#fff5dc;}
+.turn-clock__time strong {font-size:15px;color:#fff0a6;}
+.turn-clock__rail {display:inline-block;width:54px;height:6px;overflow:hidden;border-radius:99px;background:#122b28;border:1px solid #f5d99580;}
+.turn-clock__fill {display:block;width:100%;height:100%;background:linear-gradient(90deg,#d7e8a8,#ffcc67);border-radius:99px;transition:width .15s linear;}
+.turn-clock__rail.is-urgent .turn-clock__fill {background:#f07555;box-shadow:0 0 7px #ff725a;}
+.decision-timer {font-size:12px!important;color:#ffdaa0!important;margin:6px 0 2px!important;}
+.decision-timer strong {font-size:15px;font-variant-numeric:tabular-nums;color:#fff5c0;}
+.field-heading { width:100%;display:flex;gap:10px;align-items:center;justify-content:center;font-size:12px;color:#fff5d6; }
+.field-heading strong {background:#c18b58;color:#30231e;padding:4px 10px;border-radius:10px;font-size:12px; }
+.field-heading span {color:#ecdfc4;font-size:11px;text-shadow:0 2px 5px #0008; }
+.status-orb { display:inline-block; width:7px;height:7px;margin-right:7px;border-radius:50%; background:#f3c874;box-shadow:0 0 12px #fce093; }
+.round-counter { margin-left:8px; font-weight:500; font-size:11px; color:#c4dec4; }
+.field-row { display:flex; width:100%; justify-content:center; align-items:center; gap:30px; min-height:145px; }
+.floor-area { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; align-content:center; gap:5px 7px; width:min(700px,77%); min-height:130px;max-height:210px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#e9bd76 transparent; }
+.deck-pile { display:flex; flex-direction:column; align-items:center; gap:6px; color:#ffeccc; font-size:11px; white-space:nowrap; text-shadow:0 2px 4px #0008; }
+.deck-pile .hwatu { transform:rotate(-8deg); box-shadow:5px 4px #c19d68,8px 7px #553b26,12px 10px 10px #0005; }
+.empty-floor { color:#fae4c3c4; font-family:Georgia,serif; font-size:15px; padding:35px 0; }
+.captured-grid { width:min(500px,100%); display:flex; align-items:center; justify-content:center; gap:12px; margin-top:4px; }
+.capture-summary { flex:1; min-width:0; background:#10382ebd; border:1px solid #f1e0be41; border-radius:12px; padding:7px 12px; box-shadow:0 6px 16px #0004; }
+.capture-title { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:11px; }
+.capture-title b { color:#ffe69c; font-size:18px; }
+.capture-open {border:0;padding:0;background:none;color:#fce8bf;text-align:left;font-size:12px;font-weight:800;}
+.capture-open span {display:inline-block;margin-left:7px;font-size:10px;color:#e0d1b1;font-weight:500;}
+.capture-cats { display:flex; justify-content:space-between; font-size:10px; color:#dde5d4; gap:5px; margin-top:4px; }
+.game-message { font-size:12px; text-align:center; color:#fff3d7; background:#163428ba; padding:5px 13px; border-radius:14px; max-width:97%; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; }
+.player-area { position:absolute; bottom:0; left:0; right:0; z-index:2; height:37%; min-height:252px; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; padding:9px 20px max(env(safe-area-inset-bottom),10px); background:linear-gradient(0deg,#092720f5,#0b3028ed 70%,#0b3028a0 93%,transparent 100%); }
+.player-status { display:flex; justify-content:center; align-items:center; gap:18px; color:#f6e8c8; font-size:12px; margin-bottom:9px; }
+.player-status div { display:flex; align-items:center; gap:8px; }
+.player-status strong { color:#ffe4a6;font-size:21px; }
+.me-badge { background:#a85d42; border-radius:30px; font-weight:900; padding:4px 11px; }
+.go-count { color:#f3ce95; }
+.collection-rack { width:min(900px,100%); border:1px solid #e9ce975f; border-radius:16px; background:linear-gradient(125deg,#1a483ba8,#122f29c9); padding:7px 10px 8px; box-shadow:0 4px 16px #0005,inset 0 1px #fff3; }
+.collection-head { display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:#ffe6ad;margin-bottom:6px; }
+.collection-head small {font-size:11px;color:#f1e3c7;margin-left:4px;}
+.collection-head button {border:0;background:#8d6440;color:#fff3d8;border-radius:9px;padding:4px 9px;font-size:10px;font-weight:800;}
+.collection-groups {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px; }
+.collection-group {display:flex;align-items:center;justify-content:space-between;min-width:0;gap:7px;padding:5px 7px;border:1px solid #f7dbab40;border-radius:10px;background:#071e1eb5;color:#fff6e4;text-align:left;min-height:54px;overflow:hidden;}
+.collection-group:focus-visible,.collection-group:hover {border-color:#ffe4a4;background:#2d4f3f;}
+.collection-name {white-space:nowrap;font-weight:800;font-size:12px; }
+.collection-name strong {font-size:11px;color:#f5cc7e;padding-left:2px; }
+.collection-preview {display:flex;justify-content:flex-end;align-items:center;min-width:0;flex:1;white-space:nowrap; }
+.collection-preview .hwatu {margin-left:-13px;}
+.collection-preview .hwatu:first-child {margin-left:0;}
+.collection-preview i {color:#c6bca7;font-size:18px;font-style:normal;}
+.collection-preview em {position:relative;z-index:1;margin-left:-10px;color:#fff4e1;font-size:9px;background:#91633f;border-radius:10px;padding:2px 4px;font-style:normal;}
+.hand-heading {width:min(900px,100%);display:flex;gap:9px;justify-content:space-between;align-items:center;font-size:12px;margin-top:5px;color:#fbe5b4;}
+.hand-heading span {font-size:10px;color:#d4e0d3;}
+.my-hand { display:flex; justify-content:center; align-items:end; min-height:93px; width:min(100%,900px); padding-left:15px; }
+.my-hand .hwatu { margin-left:-8px; }
+.my-hand .hwatu:first-child { margin-left:0; }
+.my-hand .hwatu--interactive:hover, .my-hand .hwatu--interactive:focus-visible { transform:translateY(-22px) scale(1.04) rotate(-1deg); z-index:9; }
+.no-cards { font-size:13px; color:#fbe7c5; padding:35px; }
+.action-row { display:flex; gap:8px; align-items:center; justify-content:center; max-width:100%; overflow-x:auto; scrollbar-width:none; padding-top:10px; min-height:43px; }
+.action-row::-webkit-scrollbar { display:none; }
+.action-chip { white-space:nowrap; font-size:12px; font-weight:850; padding:7px 11px; border:1px solid #c6dfb79d; border-radius:13px; color:#f9efd6; background:linear-gradient(155deg,#38735f,#174736);box-shadow:inset 0 1px #fff3,0 2px 7px #001b1b7a; }
+.action-chip--warm { background:#9b5135; border-color:#ffb591; }
+.action-chip--muted { background:#29463dbd; color:#d1dacd; }
+.action-chip--auto {border-color:#e0c8a1;background:linear-gradient(155deg,#694d38,#493b33);color:#ffedd6;}
+.action-chip--auto.is-on {background:linear-gradient(155deg,#d6a64c,#8b542c);border-color:#fff0b7;color:#fff7d5;box-shadow:0 0 0 1px #ffdb7e83,0 0 14px #f6a84e6b;}
+.scene--game.is-resolving .hwatu--interactive {pointer-events:none;}
+.hwatu.hwatu--departing {opacity:0!important;pointer-events:none;}
+
+/* v19: one front-facing 4×12 atlas. The old photographed/experimental atlases
+   remain archived in the repo but are never requested by game card faces. */
+.hwatu {
+  display:inline-block; position:relative; padding:0; flex:none;
+  width:clamp(47px,5.5vw,72px); aspect-ratio:248 / 340; height:auto;
+  border:2px solid #35100e; border-radius:5px; overflow:hidden;
+  background:#aa4132; box-shadow:inset 0 0 0 1px #fff5,0 5px 8px #001b1b85;
+  transform-origin:bottom center; transition:transform .17s cubic-bezier(.2,.8,.2,1),filter .17s;
+  touch-action:manipulation;
+}
+.hwatu__face {
+  position:absolute; inset:0; display:block;
+  background-image:url('/assets/hwatu-character-original-v19.webp');
+  background-size:400% 1200%;
+  background-position:var(--card-x,0%) var(--card-y,0%);
+  background-repeat:no-repeat;
+}
+.hwatu--month-08.hwatu--ordinal-03 .hwatu__face,.hwatu--month-08.hwatu--ordinal-04 .hwatu__face {filter:contrast(1.17);}
+/* Two special double-junk faces retain their distinguishable red-and-black
+   printed marks, without disturbing the month's original flower artwork. */
+.hwatu--month-11.hwatu--ordinal-02 .hwatu__face::after {
+  content:'';position:absolute;inset:auto 4% 2%;height:20%;
+  background:#ed2219;border-top:2px solid #1c1010;
+}
+.hwatu--month-12.hwatu--ordinal-04 .hwatu__face::after {
+  content:'';position:absolute;left:4%;right:4%;bottom:3%;height:24%;
+  border:2px solid #100b0b;
+  background:
+    radial-gradient(circle at 25% 50%,#fff 0 11%,transparent 12%),
+    radial-gradient(circle at 75% 50%,#fff 0 11%,transparent 12%),
+    linear-gradient(90deg,#080707 0 50%,#df241b 50% 100%);
+}
+.hwatu__bright-mark,.hwatu__ribbon-mark,.hwatu__double-mark {position:absolute;z-index:1;pointer-events:none;font-weight:950;line-height:1;text-align:center;text-shadow:0 1px 2px #380e06a1;}
+.hwatu__bright-mark {right:4%;bottom:3%;width:32%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:#b11715;color:#fff9d6;border:1px solid #fff7e9;font-family:serif;font-size:clamp(11px,1.6vw,17px);box-shadow:0 1px 2px #20100a77;}
+.hwatu--month-01 .hwatu__bright-mark,.hwatu--month-08 .hwatu__bright-mark,.hwatu--month-12 .hwatu__bright-mark {left:4%;right:auto;}
+/* Exactly six printed words are already baked into the v3 raster art. */
+.hwatu__double-mark {right:3%;bottom:3%;background:#fff5dcef;color:#862520;padding:2px 3px;border:1px solid #902317;border-radius:3px;font-size:clamp(8px,.85vw,10px);text-shadow:none;box-shadow:0 1px 3px #14060677;}
+/* Traditional red/black double-pi artwork is its own label. Keep the white
+   dots and red band uncovered; the accessible card name still says 쌍피. */
+.hwatu--month-11.hwatu--ordinal-02 .hwatu__double-mark,
+.hwatu--month-12.hwatu--ordinal-04 .hwatu__double-mark {display:none;}
+.hwatu--converted .hwatu__double-mark {background:#e2fff1;color:#155b46;border-color:#155b46;}
+.hwatu--small .hwatu__double-mark {font-size:7px;padding:1px;}
+.hwatu--tiny .hwatu__double-mark {font-size:6px;padding:1px;}
+.hwatu--tiny .hwatu__bright-mark {font-size:8px;}
+.hwatu::after { content:''; position:absolute; inset:1px; pointer-events:none; border-radius:2px; box-shadow:inset 2px 2px 3px #fff7,inset -2px -3px 6px #0004; }
+.hwatu--interactive { border-color:#3f1715; }
+.hwatu--interactive:active { filter:brightness(1.22); }
+.hwatu--hint { box-shadow:0 0 0 1px #ffdc7d,0 0 14px #ffe2a87b,0 5px 8px #001b1b85; }
+.hwatu--back .hwatu__face {background-image:url('/assets/hwatu-back-mascots-v1.webp');background-size:100% 100%;background-position:center;}
+.hwatu--small { width:37px; border-width:1px; border-radius:3px; }
+.hwatu--tiny {width:30px;border-width:1px;border-radius:2px;box-shadow:0 2px 5px #0009;}
+.hwatu--bonus {background:#fff1dc;border:2px solid #b6251a;}
+.hwatu--bonus .hwatu__face {background-image:url('/assets/hwatu-bonus-atlas-v1.webp');background-size:300% 100%;background-position:var(--bonus-x,0%) center;}
+.hwatu__bonus-mark {position:absolute;z-index:1;right:6%;top:10%;width:31%;aspect-ratio:1;display:grid;place-items:center;color:#891d16;font-size:clamp(8px,1vw,11px);font-weight:950;letter-spacing:-1px;line-height:1;text-shadow:0 1px #fff4;pointer-events:none;}
+.hwatu--tiny .hwatu__bonus-mark {font-size:7px;}
+
+/* 350ms table-shot animation. Standalone visual clones are never game cards. */
+.turn-flight {position:fixed;z-index:60;pointer-events:none;transform-origin:center center;will-change:transform,opacity;filter:drop-shadow(1px 9px 8px #070d0ca8);}
+.turn-flight .hwatu {width:100%;height:100%;border-radius:5px;box-shadow:0 0 0 1px #ffdc92b0,0 6px 12px #0009;transition:none;}
+.turn-flight--draw {filter:drop-shadow(0 7px 10px #120a06ad);perspective:550px;}
+.turn-flight--collect {z-index:62;filter:drop-shadow(0 4px 9px #000c);}
+.turn-flight--collect .hwatu {box-shadow:0 0 0 1px #ffedab,0 6px 15px #0009;}
+.turn-deck-flip {position:fixed;z-index:62;pointer-events:none;display:block;perspective:570px;}
+.turn-deck-flip__spin {display:block;position:relative;width:100%;height:100%;transform-style:preserve-3d;animation:turn-flip .245s cubic-bezier(.18,.7,.2,1) both;}
+.turn-deck-flip__side {position:absolute;inset:0;display:block;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+.turn-deck-flip__side--front {transform:rotateY(180deg);}
+.turn-deck-flip .hwatu {width:100%;height:100%;border-radius:5px;box-shadow:0 5px 15px #0009;}
+@keyframes turn-flip {0%{transform:rotateY(0deg) scale(.85);filter:brightness(.95)}45%{transform:rotateY(83deg) scale(1.12);filter:brightness(1.38)}76%{transform:rotateY(167deg) scale(1.06);filter:brightness(1.15)}100%{transform:rotateY(180deg) scale(1);filter:brightness(1)}}
+.turn-impact {position:fixed;z-index:61;pointer-events:none;width:0;height:0;display:grid;place-items:center;}
+.turn-impact__ring {position:absolute;left:0;top:0;width:82px;height:82px;border:3px solid #ffe5ac;border-radius:50%;box-shadow:0 0 18px #ff9d53aa,inset 0 0 20px #ffc7807a;animation:turn-ring .48s ease-out both;}
+.turn-impact__text {position:absolute;left:0;bottom:12px;min-width:85px;white-space:nowrap;padding:6px 11px;border-radius:99px;background:linear-gradient(135deg,#481f12ed,#a24b25e8);border:1px solid #ffe2ad;color:#fff9da;font-size:clamp(12px,1.8vw,17px);font-weight:950;text-align:center;letter-spacing:-.4px;text-shadow:0 2px #492513;box-shadow:0 5px 14px #0006;animation:turn-callout .52s ease-out both;}
+.turn-impact__petal {position:absolute;left:0;top:0;width:8px;height:13px;border-radius:80% 15% 80% 15%;background:linear-gradient(120deg,#fff4c9,#ffbd8d);box-shadow:0 1px 4px #fb9b67a6;animation:turn-petal .55s ease-out both;pointer-events:none;}
+.turn-impact--bright .turn-impact__ring {border-color:#fff9bf;box-shadow:0 0 28px #fff4a5,inset 0 0 23px #ffeb85ab;}
+.turn-impact--bright .turn-impact__text {color:#5d4014;background:linear-gradient(135deg,#fff6ba,#ffc65e);border-color:#fffce3;text-shadow:0 1px #fff9;}
+.turn-impact--bright .turn-impact__petal {background:linear-gradient(120deg,#fff8d4,#ffcf45);}
+.turn-impact--double .turn-impact__ring {border-color:#ffb6a4;box-shadow:0 0 23px #f45b6d99,inset 0 0 18px #ffb1ae91;}
+.turn-impact--double .turn-impact__text {background:linear-gradient(135deg,#a92237,#e36c52);border-color:#ffcead;}
+.turn-impact--double .turn-impact__petal {background:linear-gradient(120deg,#ffe6a2,#e7535c);}
+.turn-impact--bomb .turn-impact__ring {width:110px;height:110px;border:4px solid #ffa665;box-shadow:0 0 30px #ff7642dd,inset 0 0 25px #ffba6aab;animation-duration:.5s;}
+.turn-impact--bomb .turn-impact__text {background:linear-gradient(135deg,#80251d,#ed6a26);border-color:#ffcc79;font-size:clamp(15px,2.4vw,22px);}
+.turn-impact--bomb .turn-impact__petal {width:12px;height:18px;background:linear-gradient(120deg,#fff2aa,#fc713a);}
+.turn-impact--ppeok .turn-impact__ring {border-color:#bcc6ce;box-shadow:0 0 22px #8992b5b3,inset 0 0 18px #9daabc80;}
+.turn-impact--ppeok .turn-impact__text {background:linear-gradient(135deg,#343e52,#75748a);border-color:#d9d5dc;}
+.turn-impact--ppeok .turn-impact__petal {background:linear-gradient(120deg,#dce7ea,#8a9bb0);}
+.turn-impact--sweep .turn-impact__ring {width:95px;height:95px;border-color:#a6ffe9;box-shadow:0 0 28px #65f3c6b5,inset 0 0 18px #bbfce1b5;}
+.turn-impact--sweep .turn-impact__text {background:linear-gradient(135deg,#126e61,#4eae8c);border-color:#cafbe3;}
+.turn-impact--sweep .turn-impact__petal {background:linear-gradient(120deg,#e5ffe1,#58d6af);}
+.turn-impact--ttadak .turn-impact__ring,.turn-impact--jjok .turn-impact__ring {border-color:#ffc7e3;box-shadow:0 0 19px #ff9bc4b8,inset 0 0 17px #ffc7e4a3;}
+.turn-impact--ttadak .turn-impact__text,.turn-impact--jjok .turn-impact__text {background:linear-gradient(135deg,#8c3457,#ca6d92);border-color:#ffdceb;}
+.turn-impact--ttadak .turn-impact__petal,.turn-impact--jjok .turn-impact__petal {background:linear-gradient(120deg,#ffe9f8,#ffa5c8);}
+.score-gain {position:fixed;z-index:65;pointer-events:none;transform:translate(-50%,-50%);font-size:clamp(19px,3.7vw,30px);font-weight:1000;white-space:nowrap;letter-spacing:-.6px;color:#fff7cd;text-shadow:0 2px 0 #8a481e,0 4px 12px #000a;filter:drop-shadow(0 0 7px #fac96d);animation:score-rise .94s cubic-bezier(.2,.7,.3,1) both;}
+.score-gain--computer {color:#fbe3c7;text-shadow:0 2px 0 #6d412e,0 4px 10px #000a;filter:drop-shadow(0 0 6px #df9f66);}
+@keyframes score-rise {0%{opacity:0;transform:translate(-50%,2px) scale(.5)}22%{opacity:1;transform:translate(-50%,-25px) scale(1.2)}63%{opacity:1;transform:translate(-50%,-51px) scale(1)}100%{opacity:0;transform:translate(-50%,-78px) scale(.9)}}
+@keyframes turn-petal {0%{opacity:1;transform:translate(-50%,-50%) rotate(var(--angle)) translateY(0) scale(.7)}100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--angle)) translateY(calc(-1 * var(--distance))) scale(1)}}
+@keyframes turn-ring {0%{opacity:1;transform:translate(-50%,-50%) scale(.16)}65%{opacity:.8}100%{opacity:0;transform:translate(-50%,-50%) scale(1.35)}}
+@keyframes turn-callout {0%{opacity:0;transform:translate(-50%,13px) scale(.55)}28%{opacity:1;transform:translate(-50%,-8px) scale(1.12)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-32px) scale(.96)}}
+
+/* Modals and game feedback */
+.modal-shade { position:absolute; z-index:12; inset:0; display:grid; place-items:center; padding:20px; background:#071d1cbf; backdrop-filter:blur(7px); }
+.modal-box { width:min(450px,100%); text-align:center; color:#fff4dc; border:2px solid #ddba7e; border-radius:26px; background:linear-gradient(140deg,#315348,#132e2a 92%); padding:28px 25px; box-shadow:inset 0 1px #fff4,0 30px 75px #000a; animation:pop-in .23s ease-out; }
+.modal-box h2 { font-family:Georgia,"Nanum Myeongjo",serif; font-size:clamp(23px,3.5vw,33px); margin:7px 0 12px; letter-spacing:-1px; }
+.modal-box p { color:#e3decc; line-height:1.65; font-size:14px; }
+.modal-flower { color:#f7d898;font-size:38px; }
+.choice-actions { display:grid; grid-template-columns:1fr 1fr;gap:11px;margin-top:22px; }
+.choice-actions .btn { padding:17px 11px; font-size:16px; }
+.match-choices { display:flex;align-items:center;justify-content:center;gap:17px;margin:18px auto 22px; }
+.match-choices .hwatu { width:90px; }
+.help-box { text-align:left; }
+.help-box h2 { text-align:center; }
+.help-box ol { padding-left:22px;line-height:1.8;color:#f0e6cf;font-size:14px; }
+.help-mini { background:#17392c; border-radius:12px; padding:13px; font-size:12px;line-height:1.6;color:#e3d5b5;margin:18px 0; }
+.gallery-box {width:min(780px,100%);max-height:calc(100dvh - 36px);overflow-y:auto;text-align:left;padding:20px 24px;scrollbar-width:thin;}
+.gallery-heading {display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.gallery-heading h2 {margin:0 0 9px;}
+.gallery-heading h2 small {font-family:sans-serif;font-size:15px;color:#ffe2aa;}
+.gallery-heading .eyebrow {margin:0 0 6px;}
+.gallery-close {height:40px;min-width:40px;border:1px solid #ffeda87c;border-radius:50%;color:#ffecbf;background:#294e41;font-size:20px;}
+.gallery-note {margin:0 0 14px;font-size:12px!important;}
+.gallery-section {padding:10px 13px;margin:9px 0;border:1px solid #f6d3a142;border-radius:14px;background:#0f2e2bd9;}
+.gallery-section-head {display:flex;gap:9px;align-items:center;margin-bottom:8px;}
+.gallery-section-head strong {color:#ffe7a6;font-size:16px;}
+.gallery-section-head span {color:#e1dbc9;font-size:12px;}
+.gallery-cards {display:flex;flex-wrap:wrap;gap:8px;min-height:37px;}
+.gallery-cards .hwatu {width:clamp(57px,7vw,78px);}
+.gallery-empty {font-size:12px;color:#c6c6b9;padding:7px 0;}
+.cardbook-box {width:min(890px,100%);max-height:calc(100dvh - 28px);overflow-y:auto;text-align:left;padding:21px 25px;scrollbar-width:thin;}
+.cardbook-intro {display:flex;gap:14px;align-items:center;justify-content:space-between;margin:10px 0 17px;}
+.cardbook-intro p {font-size:12px;line-height:1.55;margin:0;max-width:530px;}
+.cardbook-months {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:15px;}
+.cardbook-month {padding:10px 11px;border:1px solid #d6dba444;border-radius:14px;background:#14342d;min-width:0;}
+.cardbook-month h3 {margin:0 0 8px;color:#ffe0a6;font-size:15px;}
+.cardbook-month h3 span {font-size:12px;color:#d4e0ca;font-weight:500;margin-left:5px;}
+.cardbook-row {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;align-items:start;}
+.cardbook-cell {display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;}
+.cardbook-cell .hwatu {width:min(100%,70px);}
+.cardbook-cell small {text-align:center;color:#f5e4c8;font-size:10px;line-height:1.3;min-height:25px;}
+.cardbook-legend {display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:8px 0 16px;}
+.cardbook-legend span {border:1px solid #eadca86e;border-radius:999px;padding:5px 8px;background:#fff7d20d;color:#f9ead0;font-size:10px;}
+.cardbook-legend b {color:#fff2b3;}
+.result-box .result-star { font-size:44px;filter:drop-shadow(0 5px 6px #0005); }
+.result-stats { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:20px 0 12px; }
+.result-stats>div { border:1px solid #ecd3a951;border-radius:14px;padding:13px 6px;background:#0a2826aa; }
+.result-stats span { display:block;font-size:11px;color:#cbd7ce;margin-bottom:7px; }
+.result-stats strong {font-size:19px;white-space:nowrap;color:#f4d8b1}
+.result-stats strong.positive {color:#ffe29e}
+.result-wallet { margin:10px 0 20px; font-size:13px;color:#e3ddc9; }
+.result-wallet b { color:#ffe6ac;font-size:17px; }
+.result-box .btn {margin-top:9px; }
+.effect-burst { position:absolute;left:50%;top:42%;z-index:10;translate:-50% -50%;padding:15px 25px;min-width:160px;text-align:center;border-radius:25px;background:linear-gradient(135deg,#f8d692,#f6ae77);box-shadow:0 0 35px #f4dfaa8b,0 15px 30px #0007;border:2px solid #fff6d4;color:#7b4028;font-size:clamp(24px,4vw,45px);font-weight:950;white-space:nowrap;text-shadow:0 1px #fff9;animation:burst .95s ease-out forwards;pointer-events:none; }
+.effect-burst span { display:block;font-size:16px;letter-spacing:15px;margin-top:6px;color:#9b5f36; }
+.effect-burst--bomb {background:linear-gradient(135deg,#ffd994,#ff824c);border-color:#fff0b4;color:#743025;box-shadow:0 0 37px #ff8743ad,0 15px 30px #0007;}
+.effect-burst--ppeok {background:linear-gradient(135deg,#d0c4d0,#9e9fad);border-color:#f7edf1;color:#414052;box-shadow:0 0 28px #b4a5c79b,0 15px 30px #0007;}
+.effect-burst--sweep {background:linear-gradient(135deg,#c6ffe6,#65dcb8);border-color:#effff8;color:#1e6656;box-shadow:0 0 35px #7cf5c5ad,0 15px 30px #0007;}
+.effect-burst--ttadak,.effect-burst--jjok {background:linear-gradient(135deg,#ffe0f0,#f6abc9);border-color:#ffeff8;color:#853451;box-shadow:0 0 29px #ffb2dca3,0 15px 30px #0007;}
+.effect-burst--bomb span,.effect-burst--ppeok span,.effect-burst--sweep span,.effect-burst--ttadak span,.effect-burst--jjok span {color:inherit;opacity:.7;}
+@keyframes burst {0% {opacity:0;transform:scale(.3) rotate(-8deg)}18%{opacity:1;transform:scale(1.15) rotate(2deg)}40%{transform:scale(1)}85%{opacity:1}100%{opacity:0;transform:translateY(-20px) scale(1.08)}}
+@keyframes pop-in {from{opacity:0;transform:translateY(20px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+@media(max-width:1000px){
+  .hero-animals { right:-5%; bottom:5%; opacity:.88; }
+  .hero-animals .mascot {width:clamp(155px,22vw,240px);}
+  .hero-animals .hero-fox {width:clamp(165px,24vw,265px);}
+  .game-title small {display:none;}
+  .opponent-hand { left:calc(100% + 10px); }
+}
+@media(max-width:650px){
+  .scene--home { min-height:0;height:100dvh;overflow:hidden; }
+  .scene--home::before {background:linear-gradient(180deg,#162d2fe5 0%,#19342eab 53%,#0a3329b6 100%);}
+  .nav {padding: max(env(safe-area-inset-top),14px) 18px 4px;}
+  .top-pill {font-size:9px;padding:7px 9px;white-space:nowrap;}
+  .brand {font-size:14px;gap:5px;}
+  .brand__bloom {width:28px;height:28px;font-size:18px;}
+  .brand__bloom .ui-icon {width:24px;height:24px;}
+  .home-content {display:block;flex:1;min-height:0;overflow:hidden;padding:clamp(9px,3dvh,28px) 16px 0;text-align:center;}
+  .hero-copy h1 { font-size:clamp(42px,10.8vw,68px);line-height:1.12;letter-spacing:-3px;margin:10px 0 12px; }
+  .lead {font-size:16px;line-height:1.65;}
+  .home-actions {justify-content:center;margin-top:16px;gap:7px;}
+  .home-actions .btn--huge { width:100%;max-width:270px; }
+  .home-actions .btn {padding:10px 15px;min-height:42px;}
+  .hero-animals {left:0;right:0;bottom:4%;justify-content:center;opacity:1;}
+  .hero-animals .mascot {width:34%;max-width:200px;}
+  .hero-animals .hero-fox {width:38%;margin-left:-6%;transform:none;}
+  .hero-animals .hero-cat {margin-left:-6%;}
+  .home-footer {font-size:10px; padding:5px 17px max(env(safe-area-inset-bottom),9px);}
+  .setup-wrap {width:calc(100% - 22px); margin:20px auto 30px; padding:18px 12px;border-radius:20px;}
+  .setup-heading h2 {font-size:28px;}
+  .setup-heading p {font-size:12px;}
+  .opponents {gap:7px;}
+  .opponent-card {padding:6px 5px 10px;border-radius:15px;}
+  .opponent-card .mascot {width:100%;}
+  .opponent-card__text strong {font-size:16px;margin-top:1px;}
+  .opponent-card__text span {font-size:10px;}
+  .opponent-card__text small {display:none;}
+  .opponent-card__check {top:6px;right:6px;font-size:11px;}
+  .stakes {display:block;padding:14px 10px;}
+  .stakes h3 {font-size:14px;}
+  .stake-row {margin-top:12px;gap:5px;}
+  .stake {font-size:15px;padding:11px 2px;border-radius:10px;}
+  .stake-lock {font-size:9px;}
+  .stake-limit {font-size:11px;}
+  .setup-bottom {display:block;}
+  .wallet {justify-content:center;margin-bottom:18px;gap:7px;}
+  .wallet strong {font-size:17px;}
+  .setup-bottom .btn {width:100%;}
+  .setup-footer {font-size:11px;}
+  .scene--game {min-height:0;height:100dvh;height:100svh;display:grid;grid-template-rows:clamp(48px,8svh,63px) clamp(64px,11svh,82px) minmax(0,1fr) clamp(216px,38svh,268px);overflow:hidden;}
+  .game-top {position:relative;top:auto;left:auto;width:100%;height:100%;gap:5px;padding: max(env(safe-area-inset-top),5px) 6px 4px;}
+  .nav-round {width:33px;height:33px;font-size:16px;}
+  .nav-round .ui-icon {width:25px;height:25px;}
+  .game-title {min-width:0;}
+  .game-title .brand {display:none;}
+  .game-title::before {content:'꽃맞고';font-size:13px;font-weight:950;color:#ffdf9f;white-space:nowrap;}
+  .game-title .brand__bloom {display:none;}
+  .game-wallet {min-width:76px;}
+  .game-wallet b {font-size:13px;}
+  .game-wallet span {font-size:9px;}
+  .opponent-hud {position:relative;top:auto;left:auto;height:100%;min-width:0;margin-left:clamp(8px,6vw,24px);gap:7px;align-items:center;}
+  .opponent-avatar {width:63px;}
+  .hud-text b {font-size:13px;}
+  .hud-text span {display:none;}
+  .score-badge {min-width:45px;margin-left:6px;}
+  .score-badge strong {font-size:23px;}
+  .opponent-hand {top:50%;left:min(57%,195px);transform:translateY(-50%) scale(.60);transform-origin:left center;}
+  .opponent-hand .hwatu {margin-left:-13px;}
+  .table-play {position:relative;top:auto;bottom:auto;left:auto;transform:none;width:100%;height:100%;min-height:0;padding:0 8px;gap:3px;justify-content:center;overflow:hidden;}
+  .center-status {font-size:11px;padding:5px 10px;}
+  .turn-clock {gap:4px;margin-left:6px;padding-left:6px;}
+  .turn-clock__time {font-size:10px;}
+  .turn-clock__time strong {font-size:12px;}
+  .turn-clock__rail {width:36px;height:5px;}
+  .field-heading {gap:6px;}
+  .field-heading strong {font-size:10px;padding:3px 7px;}
+  .field-heading span {font-size:9px;}
+  .field-row {gap:8px;min-height:0;flex:1;overflow:hidden;}
+  .floor-area {gap:3px 4px;width:83%;min-height:0;max-height:100%;overflow-y:auto;}
+  .hwatu {width:clamp(44px,12vw,62px);border-radius:4px;}
+  .floor-area .hwatu {width:clamp(34px,10.6vw,49px);}
+  .deck-pile {font-size:9px;}
+  .captured-grid {max-width:75%;gap:7px;margin-top:0;}
+  .capture-summary {padding:4px 8px;border-radius:9px;}
+  .capture-title {font-size:9px;}
+  .capture-title b {font-size:16px;}
+  .capture-open {font-size:10px;}
+  .capture-open span {font-size:9px;}
+  .capture-cats {font-size:9px;gap:3px;margin-top:1px;}
+  .game-message {max-width:97%;font-size:10px;padding:3px 8px;}
+  .player-area {position:relative;bottom:auto;left:auto;right:auto;height:100%;min-height:0;padding:4px 7px max(env(safe-area-inset-bottom),5px);justify-content:flex-end;overflow:hidden;}
+  .player-status {font-size:10px;gap:9px;margin-bottom:3px;}
+  .player-status strong {font-size:18px;}
+  .player-status div {gap:5px;}
+  .collection-rack {padding:4px 6px;border-radius:12px;flex:none;}
+  .collection-head {font-size:11px;margin-bottom:4px;}
+  .collection-head small {font-size:10px;}
+  .collection-head button {font-size:9px;padding:3px 7px;}
+  .collection-groups {gap:3px;}
+  .collection-group {flex-direction:column;align-items:flex-start;justify-content:space-between;gap:2px;padding:3px;min-height:45px;border-radius:7px;}
+  .collection-name {font-size:10px;}
+  .collection-name strong {font-size:9px;}
+  .collection-preview {justify-content:flex-start;width:100%;}
+  .collection-preview .hwatu {width:27px;margin-left:-11px;}
+  .collection-preview i {font-size:13px;}
+  .collection-preview em {font-size:8px;margin-left:-6px;}
+  .hand-heading {font-size:10px;margin-top:4px;}
+  .hand-heading span {font-size:9px;}
+  .my-hand {min-height:0;height:clamp(61px,12svh,89px);padding-left:0;overflow:visible;flex-shrink:1;}
+  .my-hand .hwatu {width:clamp(39px,11.9vw,55px);margin-left:clamp(-18px,-4.5vw,-10px);}
+  .my-hand .hwatu:first-child {margin-left:0;}
+  .action-row {min-height:29px;padding-top:3px;max-width:100%;justify-content:flex-start;flex-shrink:0;}
+  .action-chip {font-size:11px;padding:6px 8px;}
+  .gallery-box {padding:16px 12px;}
+  .gallery-section {padding:8px;}
+  .gallery-cards {gap:5px;}
+  .gallery-cards .hwatu {width:clamp(52px,16vw,69px);}
+  .cardbook-box {padding:15px 10px;}
+  .cardbook-months {grid-template-columns:1fr;gap:7px;}
+  .cardbook-intro {display:block;}
+  .cardbook-intro p {margin-bottom:10px;}
+  .cardbook-month {padding:9px;}
+  .cardbook-cell .hwatu {width:min(100%,65px);}
+  .cardbook-cell small {font-size:9px;}
+  .cardbook-row {gap:4px;}
+  .modal-box {padding:22px 17px;border-radius:20px;}
+  .modal-box {max-height:calc(100svh - 24px);overflow-y:auto;}
+  .effect-burst {max-width:88%;overflow:hidden;text-overflow:ellipsis;font-size:29px;}
+}
+@media(max-width:650px) and (max-height:680px){
+  .scene--game {grid-template-rows:clamp(43px,8svh,56px) 59px minmax(0,1fr) clamp(194px,38svh,230px);}
+  .opponent-avatar {width:54px;}
+  .score-badge {min-width:39px;}
+  .score-badge strong {font-size:19px;}
+  .opponent-hand {transform:translateY(-50%) scale(.51);}
+  .center-status {padding:3px 9px;font-size:10px;}
+  .turn-clock__rail {width:24px;}
+  .field-heading span {display:none;}
+  .captured-grid {max-width:84%;}
+  .capture-cats {font-size:8px;}
+  .player-status>span {display:none;}
+  .collection-head small {display:none;}
+  .collection-group {min-height:39px;}
+  .collection-preview .hwatu {width:22px;margin-left:-9px;}
+  .my-hand {height:clamp(55px,11svh,70px);}
+  .my-hand .hwatu {width:clamp(36px,11vw,47px);}
+  .hero-copy h1 {font-size:clamp(38px,10.2vw,55px);}
+  .lead {font-size:14px;line-height:1.4;}
+  .hero-animals {opacity:.73;bottom:2%;}
+}
+/* Folded phones and landscape browser chrome leave very little vertical
+   space. Compress decoration before allowing the hand/action bar to clip. */
+@media(max-width:650px) and (max-height:560px){
+  .scene--game {grid-template-rows:40px 51px minmax(0,1fr) max(175px,36svh);}
+  .game-top {padding-top:2px;}
+  .opponent-avatar {width:44px;}
+  .opponent-hand {transform:translateY(-50%) scale(.45);}
+  .score-badge {min-width:36px;}
+  .score-badge strong {font-size:17px;}
+  .table-play {gap:2px;padding:0 5px;}
+  .field-heading strong {font-size:9px;padding:2px 6px;}
+  .floor-area .hwatu {width:clamp(28px,8.8vw,39px);}
+  .deck-pile .hwatu {width:36px;}
+  .captured-grid {max-width:83%;}
+  .capture-summary {padding:3px 6px;}
+  .capture-cats {font-size:7px;}
+  .game-message {padding:2px 6px;}
+  .player-area {padding:2px 5px max(env(safe-area-inset-bottom),2px);}
+  .player-status {margin-bottom:0;}
+  .collection-head {margin-bottom:2px;}
+  .collection-group {min-height:30px;padding:2px;}
+  .collection-name {font-size:9px;}
+  .collection-preview .hwatu {width:20px;margin-left:-8px;}
+  .hand-heading {margin-top:1px;}
+  .my-hand {height:48px;}
+  .my-hand .hwatu {width:clamp(33px,9.6vw,41px);margin-left:clamp(-15px,-4.4vw,-10px);}
+  .action-row {min-height:25px;padding-top:2px;}
+  .action-chip {font-size:10px;padding:4px 7px;}
+}
+@media(max-width:370px){
+  .top-pill {display:none;}
+  .game-title .brand {font-size:11px;}
+  .opponent-hud {left:4%;}
+  .my-hand .hwatu {width:39px;margin-left:-15px;}
+  .floor-area {gap:3px;}
+  .floor-area .hwatu {width:41px;}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after {animation-duration:.01ms!important;transition-duration:.01ms!important;}
+}
+
+/* 꽃놀이마당: the mascots, controls and table now share one bright storybook
+   festival language. Actual hwatu faces and their recognition colors are fixed. */
+.scene {background-color:#236b5b;background-image:url('/assets/flower-festival-table-v1.webp');background-position:center center;}
+.scene--home::before {background:linear-gradient(90deg,#0b403bd9 0%,#165c4ab0 37%,#245f4a34 77%),linear-gradient(0deg,#174e3a66,transparent 49%);}
+.scene--select::before {background:linear-gradient(108deg,#0b473fd9,#1d6f57b8 56%,#2a6757a6),linear-gradient(0deg,#09332c77,transparent);}
+.brand {font-weight:820;filter:drop-shadow(0 2px 8px #0e4b3c65);}
+.brand b {color:#ffde92;text-shadow:0 2px 0 #a06543b5;}
+.brand__bloom {background:linear-gradient(155deg,#fff1bf,#f3b486);border:2px solid #fff7df;box-shadow:0 3px 0 #b66f55,0 8px 20px #052f2670;}
+.brand__bloom .ui-icon {filter:drop-shadow(0 2px 2px #ae5d505a);}
+.top-pill {color:#fff4d7;background:#16624ac9;border:1px solid #fff1bc9c;box-shadow:0 4px 0 #0f51398a,0 8px 20px #052f263f;font-weight:800;}
+.home-content {padding-left:clamp(26px,6vw,100px);padding-right:5vw;}
+.hero-copy {position:relative;max-width:590px;padding:clamp(22px,3.5vw,45px);border:2px solid #f7e5b98a;border-radius:39px 48px 45px 33px;background:linear-gradient(148deg,#0a4e44c7,#125b4cc4 67%,#184b3d77);box-shadow:inset 0 2px #ffffff31,0 22px 55px #073f3560;backdrop-filter:blur(3px);}
+.hero-copy::after {content:'✿';position:absolute;top:-18px;right:23px;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;font-size:27px;color:#f7a4ad;background:#fff0d7;border:3px solid #fed8a7;box-shadow:0 6px 0 #95583780,0 10px 18px #113b2f59;transform:rotate(16deg);}
+.eyebrow-dot {color:#ffc0bd;font-size:15px;letter-spacing:0;}
+.hero-copy .eyebrow {color:#ffedbe;font-size:12px;letter-spacing:1.1px;}
+.hero-copy h1 {font-weight:950;line-height:1.09;letter-spacing:-3.8px;color:#fffaea;text-shadow:0 4px 0 #16493666,0 12px 23px #103d3680;}
+.hero-copy h1 em {color:#ffdb8b;text-shadow:0 3px 0 #ae654f,0 10px 25px #063b2d77;}
+.hero-copy .lead {line-height:1.55;margin-bottom:7px;color:#f8f5df;}
+.hero-copy .lead strong {color:#ffdc8b;font-weight:950;}
+.home-invite {margin:11px 0 0;color:#f4eccd;font-size:clamp(11px,1.06vw,13px);font-weight:750;letter-spacing:-.2px;}
+.home-actions {margin-top:23px;gap:10px;}
+.home-actions .btn--primary {min-width:230px;}
+.home-actions .btn--primary .ui-icon {width:27px;height:27px;filter:drop-shadow(0 2px 2px #aa573b80);}
+.btn {border-radius:17px;box-shadow:inset 0 2px #ffffffab,0 4px 0 #5a47338c,0 9px 20px #073b3261;}
+.btn:hover {transform:translateY(-3px);filter:brightness(1.07) saturate(1.08);}
+.btn:active {transform:translateY(2px) scale(.97);box-shadow:inset 0 2px #ffffff64,0 2px 0 #674c3780;}
+.btn--primary {color:#6d351f;background:radial-gradient(ellipse at 24% 9%,#fffcd5ba,transparent 65%),linear-gradient(160deg,#ffe99c 0%,#ffc878 48%,#ff9f78 100%);border:2px solid #fff7cc;box-shadow:inset 0 2px #fffac8,0 6px 0 #b7714d,0 12px 21px #093c2f72;}
+.btn--ghost {color:#fff6db;border:2px solid #ffeeb099;background:linear-gradient(150deg,#378573cf,#11533acb);box-shadow:inset 0 2px #ffffff2c,0 4px 0 #0a513c,0 8px 18px #0a372e66;}
+.btn--quiet {background:#fff1d4e8;color:#5b573e;border:1px solid #fffdf0;}
+.hero-animals {right:3vw;bottom:2.3%;filter:drop-shadow(0 12px 14px #113a2b3b);}
+.hero-animals .mascot {animation:floaty 3.8s ease-in-out infinite;}
+.hero-card-fan {position:absolute;right:8%;bottom:74%;display:flex;align-items:center;z-index:0;transform:rotate(-13deg);filter:drop-shadow(0 9px 12px #103a3155);animation:hero-card-float 4s ease-in-out infinite;}
+.hero-card-fan .hwatu {width:clamp(49px,5.1vw,73px);margin-left:-22px;border-radius:7px;box-shadow:0 3px 0 #f6d8a7,0 9px 18px #093d326b;}
+.hero-card-fan .hwatu:nth-child(1) {transform:rotate(-19deg) translateY(8px);}
+.hero-card-fan .hwatu:nth-child(2) {transform:translateY(-10px);z-index:2;}
+.hero-card-fan .hwatu:nth-child(3) {transform:rotate(21deg) translateY(9px);}
+.hero-speech {position:absolute;z-index:5;top:5%;right:9%;padding:11px 16px;border-radius:23px 23px 10px 23px;border:2px solid #ffe3ab;background:#fff8e6;color:#795039;font-size:clamp(12px,1.15vw,16px);font-weight:950;white-space:nowrap;box-shadow:0 5px 0 #eaa57d,0 10px 23px #1a4c3954;transform:rotate(6deg);animation:speech-wiggle 4.2s ease-in-out infinite;}
+.hero-speech::after {content:'';position:absolute;right:18px;bottom:-12px;border-width:12px 2px 0 12px;border-style:solid;border-color:#fff8e6 transparent transparent transparent;}
+@keyframes hero-card-float {0%,100%{translate:0 0}50%{translate:0 -9px}}
+@keyframes speech-wiggle {0%,100%{rotate:-2deg}50%{rotate:3deg}}
+.setup-wrap {border:2px solid #fff1c582;background:linear-gradient(146deg,#105748eb,#0d3c38f2);box-shadow:inset 0 2px #ffffff2a,0 24px 65px #07352aa1;}
+.setup-heading h2 {color:#fff2d5;text-shadow:0 4px 0 #103e36a8;}
+.setup-heading .eyebrow {letter-spacing:1.5px;color:#ffdcb5;}
+.opponent-card {background:linear-gradient(155deg,#f1f6dc,#d9e9cf);border:3px solid #fffbe8;color:#2e503f;box-shadow:0 7px 0 #709c7980,0 14px 18px #0b372b61;}
+.opponent-card--bear {background:linear-gradient(160deg,#e6f0ff,#b7d8d4);}
+.opponent-card--fox {background:linear-gradient(155deg,#fff1e4,#ffd0c9);}
+.opponent-card--cat {background:linear-gradient(155deg,#e7fff0,#c0e4c6);}
+.opponent-card:hover {transform:translateY(-5px) rotate(-.5deg);}
+.opponent-card.is-active {border:3px solid #ffe28f;background:linear-gradient(160deg,#fffad9,#ffe6af);box-shadow:0 0 0 2px #f5bb7299,0 7px 0 #b78645,0 17px 22px #0d403370;}
+.opponent-card .mascot {margin-top:23px;filter:drop-shadow(0 8px 9px #496c5a45);}
+.opponent-card__speech {position:absolute;z-index:2;top:9px;left:9px;display:block;max-width:calc(100% - 35px);padding:6px 10px;border:1px solid #ffefd0;border-radius:16px 16px 16px 3px;background:#fffef0d9;color:#6d6041;font-size:11px;font-weight:850;white-space:nowrap;box-shadow:0 4px 9px #3e705134;}
+.opponent-card__text strong {color:#b36747;font-size:21px;}
+.opponent-card__text span {color:#225648;}
+.opponent-card__text small {color:#657761;}
+.opponent-card__check {color:#aa7a54;font-weight:1000;}
+.opponent-card.is-active .opponent-card__check {color:#e68648;}
+.stakes {background:#104b41b2;border-color:#fae3af80;}
+.stake {background:linear-gradient(155deg,#f4e7ca,#dbd6af);color:#4c503c;border:1px solid #fff8db;box-shadow:0 4px 0 #8c95717d;}
+.stake.is-active {background:linear-gradient(155deg,#ffedb3,#ffb884);border:2px solid #fff7d0;box-shadow:0 4px 0 #aa624c,0 7px 12px #051f1a65;}
+.wallet strong {color:#ffe29d;}
+.scene--game::before {background:linear-gradient(to bottom,#07564f8c,transparent 27%,transparent 61%,#115746ae 100%);}
+.game-top {background:linear-gradient(180deg,#0d594ccb,#10644a6e 82%,transparent);}
+.nav-round {background:linear-gradient(155deg,#fff0c2,#e9ba8a);border:2px solid #fff6d9;color:#6b4935;box-shadow:0 4px 0 #a76f4c,0 7px 15px #07372c8c;}
+.nav-round:hover {filter:brightness(1.08);transform:translateY(-2px);}
+.game-wallet {padding:6px 10px;border-radius:14px;background:#14624c9e;border:1px solid #ffeca371;}
+.game-wallet span {color:#e9e9ce;}
+.game-wallet b {color:#ffe7a7;}
+.opponent-hud {border:1px solid #d6eab9ad;border-radius:22px 25px 25px 18px;padding:4px 14px;background:linear-gradient(135deg,#155f4ecf,#0a3d34be);box-shadow:inset 0 1px #fff4,0 8px 20px #0b483864;}
+.opponent-avatar {filter:drop-shadow(0 6px 9px #0c463a6d);}
+.hud-text b {color:#fff3c2;}
+.hud-text span {position:relative;align-self:flex-start;padding:5px 9px;border-radius:12px 12px 12px 2px;background:#fff2d6;color:#625039;text-shadow:none;font-size:11px;font-weight:700;}
+.score-badge {background:radial-gradient(circle at 32% 25%,#ffdb9b,#e79b76 80%);border:3px solid #fff4cf;color:#6a3b29;box-shadow:0 4px 0 #a96e4e,0 8px 15px #0a43386a;}
+.center-status {background:#fff7ddd9;color:#145c4c;border:2px solid #ffecb6;font-size:13px;box-shadow:0 4px 0 #d8a67594,0 8px 16px #15453767;}
+.status-orb {background:#f89d73;box-shadow:0 0 7px #f8b685;}
+.round-counter {color:#387c68;font-weight:800;}
+.turn-clock {border-left-color:#c5aa82;}
+.turn-clock__time,.turn-clock__time strong {color:#9b5538;}
+.turn-clock__rail {border-color:#ad9775;background:#e2d6b8;}
+.field-heading strong {background:#fff1c9;border:2px solid #fff8e7;border-radius:16px;color:#386048;box-shadow:0 3px 0 #d8b585;font-weight:950;}
+.field-heading span {color:#f7fbe1;font-weight:700;text-shadow:0 2px 7px #0b4f3d;}
+.capture-summary {border:2px solid #fff3c6;border-radius:17px;background:linear-gradient(152deg,#fffae9ed,#eeeacded);box-shadow:0 4px 0 #9baa83a1,0 8px 16px #114b3b57;}
+.capture-open {color:#426d55;font-weight:900;}
+.capture-open span {color:#967e62;}
+.capture-title b {color:#db7950;}
+.capture-cats {color:#51705e;font-weight:750;}
+.game-message {background:#fff1d5e3;border:1px solid #fff7df;color:#5c5a42;font-weight:850;box-shadow:0 3px 0 #b6b99d8c;}
+.player-area {border-top:2px solid #f7e6b965;background:linear-gradient(0deg,#0d5948f5,#126c54ec 70%,#1b7754b0 95%,transparent 100%);box-shadow:0 -7px 24px #09533b4a;}
+.player-status {color:#f7f4d9;}
+.player-status strong {color:#ffe4a0;text-shadow:0 2px 0 #095a4599;}
+.me-badge {background:linear-gradient(150deg,#ffa982,#db705d);border:2px solid #ffd3aa;box-shadow:0 3px 0 #a7564b;}
+.collection-rack {background:linear-gradient(140deg,#fff8e4f5,#f7e4c9f0);border:2px solid #fff4d6;box-shadow:0 5px 0 #a8aa7d9e,0 9px 17px #083e315f;}
+.collection-head {color:#6f593d;}
+.collection-head small {color:#aa7053;}
+.collection-head button {background:#43846c;color:#fffaf0;border:1px solid #cde9bd;}
+.collection-group {background:linear-gradient(145deg,#fffdf3,#ebf2d9);border:1px solid #d3d5a8;color:#315b49;box-shadow:0 2px 0 #c6cba0b0;}
+.collection-group:hover,.collection-group:focus-visible {background:#fff5d8;border-color:#edb27e;}
+.collection-name strong {color:#db8054;}
+.hand-heading strong::before {content:'✿';display:inline-block;margin-right:5px;color:#ffc29d;}
+.action-chip {color:#27644e;border:2px solid #fff7d5;border-radius:15px;background:linear-gradient(155deg,#f7ffdf,#c4e5c5);box-shadow:inset 0 1px #ffffff8f,0 3px 0 #659e85,0 6px 11px #07392c66;}
+.action-chip:hover {filter:brightness(1.09);transform:translateY(-2px);}
+.action-chip:active {transform:translateY(1px);box-shadow:0 2px 0 #659e85;}
+.action-chip--warm {background:linear-gradient(155deg,#ffe2aa,#ffae89);color:#733d2b;border-color:#fff2c5;box-shadow:0 3px 0 #bd7a56;}
+.action-chip--muted {background:#edf2dce8;color:#53705e;border-color:#fff2db;}
+.action-chip--auto {background:linear-gradient(155deg,#fff8e4,#e4d9b6);color:#7d6244;border-color:#fff4d3;}
+.action-chip--auto.is-on {color:#7a4328;background:linear-gradient(155deg,#ffedb7,#ffc67d);box-shadow:0 3px 0 #bc764d,0 0 15px #ffd28272;}
+.modal-box {border:3px solid #fff2c6;background:linear-gradient(150deg,#266f5b,#104a42 88%);box-shadow:inset 0 2px #ffffff37,0 7px 0 #ad815e,0 20px 55px #092e267c;}
+.modal-flower {color:#ffd08f;}
+.result-box {position:relative;overflow:hidden;}
+.result-box::before {content:'✿  ✿  ✿';position:absolute;top:18px;left:0;right:0;z-index:0;text-align:center;letter-spacing:20px;color:#ffd5aa80;font-size:24px;pointer-events:none;}
+.result-mascot {position:relative;z-index:1;height:120px;display:grid;place-items:center;margin:-8px auto -13px;}
+.result-mascot .mascot {width:112px;filter:drop-shadow(0 4px 8px #002d275e);animation:floaty 2.6s ease-in-out infinite;}
+.result-box .result-star {position:relative;z-index:1;font-size:32px;}
+.result-stats>div {background:#fffae41c;border-color:#ffe6a57b;}
+
+@media(max-width:1000px){
+  .hero-animals {right:0;}
+  .hero-speech {right:8%;top:-4%;}
+}
+@media(max-width:650px){
+  .scene--home::before {background:linear-gradient(180deg,#0c5a4ecb,#1a775aac 51%,#135945b0);}
+  .scene--home .top-pill {font-size:9px;padding:7px 8px;}
+  .home-content {display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 12px 0;overflow:hidden;}
+  .hero-copy {width:100%;max-width:450px;flex:none;padding:14px 12px 16px;border-radius:27px 30px 24px 28px;text-align:center;}
+  .hero-copy::after {width:30px;height:30px;top:-10px;right:10px;font-size:18px;border-width:2px;}
+  .hero-copy .eyebrow {font-size:10px;letter-spacing:.4px;margin:0;}
+  .hero-copy h1 {font-size:clamp(32px,9vw,50px);letter-spacing:-2px;margin:8px 0;line-height:1.06;}
+  .hero-copy .lead {font-size:13px;line-height:1.4;margin:6px 0;}
+  .home-invite {font-size:10px;margin:5px 0 0;}
+  .home-actions {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:13px;}
+  .home-actions .btn--primary {grid-column:1/-1;min-width:0;width:100%;}
+  .home-actions .btn {width:100%;min-height:39px;padding:7px 5px;font-size:11px;border-radius:13px;}
+  .home-actions .btn--huge {max-width:none;font-size:16px;min-height:47px;}
+  .home-actions .btn--ghost .ui-icon {width:17px;height:17px;}
+  .hero-animals {position:relative;flex:1;left:auto;right:auto;bottom:auto;width:100%;min-height:0;justify-content:center;align-items:flex-end;overflow:visible;margin-top:4px;}
+  .hero-animals .mascot {width:min(32vw,145px);max-width:none;}
+  .hero-animals .hero-fox {width:min(36vw,163px);margin-left:-6%;}
+  .hero-animals .hero-cat {margin-left:-6%;}
+  .hero-card-fan {right:5%;bottom:84%;}
+  .hero-card-fan .hwatu {width:40px;margin-left:-13px;}
+  .hero-speech {top:2%;right:0;padding:7px 10px;font-size:11px;border-width:1px;}
+  .setup-wrap {border-width:1px;}
+  .opponent-card {border-width:2px;box-shadow:0 4px 0 #709c7980;}
+  .opponent-card.is-active {border-width:2px;box-shadow:0 4px 0 #a97342,0 10px 12px #063e3155;}
+  .opponent-card .mascot {margin-top:5px;}
+  .opponent-card__speech {display:none;}
+  .opponent-card__text strong {font-size:16px;}
+  .scene--game {background-position:center 47%;}
+  .game-top {border-bottom:1px solid #ffffff32;}
+  .game-wallet {padding:3px 5px;}
+  .opponent-hud {height:100%;max-width:75%;padding:2px 7px;margin-left:5px;border-radius:17px;}
+  .opponent-avatar {width:55px;}
+  .score-badge {min-width:42px;border-width:2px;}
+  .hud-text b {font-size:11px;}
+  .center-status {font-size:10px;padding:4px 7px;border-width:1px;}
+  .field-heading strong {border-width:1px;box-shadow:0 2px 0 #d8b585;}
+  .capture-summary {border-width:1px;border-radius:10px;}
+  .player-area {border-top-width:1px;}
+  .collection-rack {border-width:1px;box-shadow:0 3px 0 #a8aa7d9e,0 5px 12px #083e315f;}
+  .action-chip {border-width:1px;border-radius:11px;}
+  .result-mascot {height:95px;}
+  .result-mascot .mascot {width:90px;}
+}
+@media(max-width:650px) and (max-height:680px){
+  .hero-copy {padding:10px 10px 12px;}
+  .hero-copy h1 {font-size:clamp(29px,8.6vw,42px);margin:5px 0;}
+  .home-invite {display:none;}
+  .home-actions {margin-top:8px;}
+  .home-actions .btn {min-height:34px;padding:5px;}
+  .home-actions .btn--huge {min-height:42px;}
+  .hero-card-fan {display:none;}
+  .hero-speech {top:-3%;}
+}
+@media(max-width:650px) and (max-height:560px){
+  .hero-copy .eyebrow,.hero-speech {display:none;}
+  .hero-copy .lead {font-size:11px;}
+  .hero-copy h1 {font-size:clamp(28px,8vw,37px);}
+  .home-actions .btn {min-height:32px;}
+  .home-actions .btn--huge {min-height:38px;}
+}
+
+/* v15 — 라니팡에서 배운 풍성한 원화/UI 통일성.
+   카드 48장 원판·카드 연출 시간·게임 엔진은 건드리지 않는다. */
+.scene--home {
+  background-color:#6fc4de;
+  background-image:url('/assets/flower-playful-home-v15.webp');
+  background-position:center center;
+  background-size:cover;
+}
+.scene--home::before {
+  background:linear-gradient(90deg,#eefaff76 0%,#fff4e02e 36%,transparent 70%),
+    linear-gradient(0deg,#217b7190,transparent 28%);
+}
+.scene--home::after {
+  content:'✿   ✦   ✿   ✧   ✿';
+  position:absolute;z-index:0;top:12%;left:0;right:0;
+  color:#fff2e5a3;letter-spacing:clamp(15px,5vw,75px);font-size:clamp(16px,3vw,30px);
+  text-align:center;pointer-events:none;
+  text-shadow:0 3px 6px #ee79a250;
+  animation:petal-drift 9s ease-in-out infinite alternate;
+}
+@keyframes petal-drift {from{translate:-3% -5px;opacity:.48}to{translate:3% 14px;opacity:.87}}
+.scene--home .nav {z-index:5;}
+.scene--home .brand {
+  padding:7px 14px 7px 9px;border-radius:999px;
+  background:linear-gradient(135deg,#fff9eafa,#ffedc9e9);
+  border:2px solid #fffdf1;
+  box-shadow:0 5px 0 #a5a06a80,0 12px 25px #28685438;
+  color:#4c7a53;text-shadow:none;font-weight:1000;
+}
+.scene--home .brand b {color:#d26d7a;text-shadow:0 1px 0 #fff;}
+.scene--home .brand__bloom {width:31px;height:31px;box-shadow:0 2px 0 #aa7657;}
+.scene--home .top-pill {color:#7c564a;background:#fff5ddea;border:2px solid #fffdf2;box-shadow:0 5px 0 #d9a88173,0 8px 20px #1f755b2f;}
+.scene--home .home-content {padding-bottom:56px;}
+.scene--home .hero-copy {
+  z-index:3;max-width:580px;padding:8px 0 10px;
+  border:0;border-radius:0;background:none;
+  box-shadow:none;backdrop-filter:none;
+  filter:drop-shadow(0 9px 13px #2b80513a);
+}
+.scene--home .hero-copy::after {display:none;}
+.scene--home .hero-copy .eyebrow {
+  display:inline-block;border-radius:99px;
+  background:#fffaf2e9;color:#bc7480;border:2px solid #fff;
+  box-shadow:0 4px 0 #e9a69b80;
+  padding:7px 15px;letter-spacing:.5px;
+}
+.scene--home .home-logo {display:flex;flex-direction:column;align-items:flex-start;margin:17px 0 5px;line-height:.98;}
+.scene--home .home-logo small {
+  font-family:"Pretendard","Malgun Gothic",sans-serif;
+  font-size:clamp(16px,2vw,25px);font-weight:1000;letter-spacing:2px;color:#fff4d5;
+  -webkit-text-stroke:1px #93664c;
+  text-shadow:0 3px 0 #976b62,0 6px 10px #285d5d7d;
+  margin-left:10px;margin-bottom:8px;
+}
+.scene--home .home-logo>span {
+  font-family:"Pretendard","Malgun Gothic",sans-serif;
+  font-size:clamp(70px,8.2vw,132px);font-weight:1000;letter-spacing:-8px;
+  white-space:nowrap;
+  -webkit-text-stroke:clamp(2px,.32vw,5px) #fff8e7;
+  paint-order:stroke fill;
+  filter:drop-shadow(0 7px 0 #8f537f);
+}
+.scene--home .home-logo i {
+  font-style:normal;color:#ff8fa8;
+  text-shadow:0 5px 0 #d04e8f,0 10px 0 #9b5c8c,0 16px 17px #1d737c8c;
+}
+.scene--home .home-logo em {
+  font-style:normal;color:#ffca52;
+  text-shadow:0 5px 0 #f08a55,0 10px 0 #bc6485,0 16px 17px #1d737c8c;
+}
+.scene--home .hero-hook {
+  display:inline-block;margin:14px 0 5px;padding:7px 15px;
+  border-radius:24px;background:#fffaf2ef;
+  border:2px solid #fffdf3;color:#96505a;
+  box-shadow:0 4px 0 #edb3a58f,0 9px 18px #3f887843;
+  font-size:clamp(15px,1.9vw,24px);font-weight:950;
+}
+.scene--home .lead {color:#fffdf1;font-size:clamp(17px,1.7vw,22px);font-weight:850;line-height:1.45;text-shadow:0 3px 0 #447864,0 5px 12px #1b5b5aa6;}
+.scene--home .lead strong {color:#ffe8a8;}
+.scene--home .home-invite {color:#fff9e8;text-shadow:0 2px 7px #266e62;font-weight:850;}
+.scene--home .home-actions {display:flex;flex-direction:column;align-items:flex-start;margin-top:10px;gap:3px;}
+.btn--jewel,
+.scene--home .home-actions .btn--jewel {
+  width:clamp(270px,29vw,390px);min-width:0;max-width:100%;
+  height:clamp(85px,9vw,109px);min-height:0;padding:0 35px 5px;
+  border:0;border-radius:0;
+  background:transparent url('/assets/flower-jewel-button-v15.webp') center / 100% 100% no-repeat;
+  box-shadow:none;color:#fff9da;
+  text-shadow:0 3px 0 #145e2a,0 5px 7px #134a2bd9;
+  font-size:clamp(23px,2.3vw,31px);font-weight:1000;
+  filter:drop-shadow(0 8px 7px #34634276);
+  animation:jewel-breathe 2.7s ease-in-out infinite;
+}
+@keyframes jewel-breathe {50%{filter:drop-shadow(0 10px 12px #1a6a4d8a) brightness(1.1);}}
+.scene--home .btn--jewel:hover {transform:translateY(-4px) scale(1.03);filter:drop-shadow(0 12px 12px #34634290) brightness(1.12);}
+.scene--home .btn--jewel:active {transform:translateY(3px) scale(.97);filter:brightness(.92);}
+.scene--home .btn--jewel .ui-icon {width:34px;height:34px;filter:drop-shadow(0 2px 3px #064c27a3);}
+.home-quick-links {display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:2px 8px;}
+.scene--home .home-quick-links .btn {
+  border:2px solid #fffdf0;border-radius:22px;padding:10px 17px;
+  background:linear-gradient(155deg,#fff9e7,#ffdfb4);
+  color:#976150;box-shadow:0 4px 0 #d88c798a,0 8px 15px #286f563d;
+  font-size:13px;font-weight:950;text-shadow:0 1px 0 #fff;
+}
+.scene--home .home-footer {color:#fff9ec;filter:drop-shadow(0 3px 4px #267056);}
+.scene--home .hero-animals {bottom:2%;right:1vw;filter:drop-shadow(0 16px 13px #43876365);}
+.scene--home .hero-animals .mascot {width:clamp(165px,18.5vw,340px);}
+.scene--home .hero-animals .hero-fox {width:clamp(180px,21vw,370px);}
+.scene--home .hero-speech {color:#a95c65;background:#fff9e9;border-color:#fff;box-shadow:0 6px 0 #efa2ac,0 12px 24px #457f664f;}
+
+/* Mode selection is a bright illustrated toy menu instead of a dark form. */
+.scene--select {background-image:url('/assets/flower-playful-home-v15.webp');}
+.scene--select::before {background:linear-gradient(105deg,#e8ffef8f,#fff4e38c);}
+.scene--select .brand,.scene--select .setup-footer {text-shadow:0 2px 6px #2d625b;}
+.scene--select .setup-wrap {
+  max-width:1050px;padding:clamp(14px,2.4vw,28px);
+  border:4px solid #fff8dc;
+  border-radius:35px;
+  background:linear-gradient(160deg,#fff9eaf5,#effbd9f2);
+  box-shadow:0 8px 0 #b0be84,0 25px 55px #2a785963,inset 0 3px #fff;
+}
+.scene--select .setup-heading h2 {color:#a05a57;text-shadow:0 2px 0 #fff;}
+.scene--select .setup-heading .eyebrow {color:#db7891;}
+.scene--select .setup-heading p {color:#58715d;font-weight:800;}
+.scene--select .opponent-card {box-shadow:0 6px 0 #a2ba9699,0 10px 18px #356e5650;}
+.scene--select .opponent-card.is-active {box-shadow:0 0 0 3px #ffa96e90,0 6px 0 #c88f53,0 12px 20px #38745b59;}
+.scene--select .stakes {background:#e4f3db;border:2px solid #c5d6a8;box-shadow:inset 0 2px #fff;}
+.scene--select .stakes h3 {color:#4e7358;}
+.scene--select .stakes small,.scene--select .stake-limit {color:#6b7864;}
+.scene--select .stake-limit b {color:#aa654f;}
+.scene--select .wallet>span {color:#4d7259;font-weight:850;}
+.scene--select .wallet strong {color:#b65f50;text-shadow:0 1px #fff;}
+.scene--select .setup-bottom>.btn--primary {background:linear-gradient(160deg,#79d99a,#28a768);color:#fffbe4;border:3px solid #fff;box-shadow:0 5px 0 #397f59,0 9px 14px #225f4b66;text-shadow:0 2px 0 #267343;}
+
+/* Playing-table controls remain readable and never cover the approved cards. */
+.scene--game .game-top {background:linear-gradient(#145d4edb,#0b5e493a);}
+.scene--game .nav-round {background:linear-gradient(145deg,#fff8d8,#ffd9a9);border:2px solid #fff;box-shadow:0 3px 0 #c98f63,0 6px 11px #10492e88;}
+.scene--game .center-status {background:linear-gradient(140deg,#fffcee,#ffeccc);border-color:#fff;box-shadow:0 4px 0 #d8a8799e,0 8px 12px #174f3f66;}
+.scene--game .collection-rack {background:linear-gradient(135deg,#fff9e7,#ffecce);border-color:#fff;box-shadow:0 4px 0 #b2a57ba9,0 7px 14px #0d4c3b55;}
+.scene--game .action-chip {background:linear-gradient(160deg,#ffffff,#d5f7d9);border-color:#fff;box-shadow:0 3px 0 #92be91,0 7px 11px #0b3e3073;}
+.scene--game .action-chip--warm {background:linear-gradient(150deg,#ffe2ab,#ffae81);box-shadow:0 3px 0 #d07a58;}
+.scene--game .action-chip--auto.is-on {background:linear-gradient(150deg,#fff3b6,#ffc370);box-shadow:0 3px 0 #c58b4d,0 0 14px #ffc75b87;}
+.modal-box {border-color:#fff9e7;box-shadow:inset 0 2px #ffffff52,0 7px 0 #c19367,0 20px 55px #092e267c;}
+
+@media (max-width:1000px) {
+  .scene--home .hero-animals {right:-4%;}
+  .scene--home .hero-animals .mascot {width:clamp(135px,21vw,240px);}
+  .scene--home .hero-animals .hero-fox {width:clamp(150px,24vw,265px);}
+}
+@media (max-width:650px) {
+  .scene--home {height:100svh;min-height:0;background-position:54% center;}
+  .scene--home::before {background:linear-gradient(180deg,#e8fbffc9 0%,#fef9ed5c 36%,#176e4c19 70%,#257d5773 100%);}
+  .scene--home::after {top:13%;font-size:16px;letter-spacing:17px;}
+  .scene--home .nav {padding: max(env(safe-area-inset-top),8px) 12px 0;}
+  .scene--home .brand {font-size:12px;padding:4px 8px 4px 5px;border-width:1px;}
+  .scene--home .brand__bloom {width:25px;height:25px;}
+  .scene--home .top-pill {font-size:9px;padding:6px 8px;border-width:1px;}
+  .scene--home .home-content {display:block;position:relative;min-height:0;flex:1;padding:4px 9px 0;text-align:center;overflow:hidden;}
+  .scene--home .hero-copy {width:100%;max-width:420px;margin:0 auto;padding:0;filter:none;}
+  .scene--home .hero-copy .eyebrow {font-size:9px;margin:2px 0 0;padding:4px 9px;}
+  .scene--home .home-logo {align-items:center;margin:6px 0 2px;}
+  .scene--home .home-logo small {font-size:clamp(12px,3.8vw,16px);margin:0 0 4px;letter-spacing:1px;}
+  .scene--home .home-logo>span {font-size:clamp(58px,15vw,83px);letter-spacing:-5px;-webkit-text-stroke:3px #fff9e3;}
+  .scene--home .hero-hook {font-size:clamp(13px,3.5vw,17px);margin:10px 0 3px;padding:5px 12px;}
+  .scene--home .lead {font-size:clamp(11px,3.3vw,14px);line-height:1.38;margin:5px 0;text-shadow:0 2px 8px #196f58;}
+  .scene--home .home-invite {display:none;}
+  .scene--home .home-actions {align-items:center;gap:1px;margin-top:4px;}
+  .scene--home .home-actions .btn--jewel {grid-column:auto;width:min(86vw,330px);height:clamp(68px,18vw,91px);font-size:clamp(21px,5.6vw,27px);padding:0 25px 3px;}
+  .scene--home .btn--jewel .ui-icon {width:30px;height:30px;}
+  .scene--home .home-quick-links {display:grid;grid-template-columns:1fr 1fr;width:min(94%,340px);padding:0;gap:6px;}
+  .scene--home .home-quick-links .btn {font-size:clamp(10px,2.8vw,12px);min-height:37px;padding:6px 7px;border-radius:18px;}
+  .scene--home .hero-animals {position:absolute;z-index:1;left:0;right:0;bottom:1%;height:auto;width:100%;display:flex;align-items:flex-end;justify-content:center;overflow:visible;pointer-events:none;}
+  .scene--home .hero-animals .mascot {width:min(34vw,160px);}
+  .scene--home .hero-animals .hero-fox {width:min(38vw,177px);margin-left:-6%;}
+  .scene--home .hero-animals .hero-cat {margin-left:-6%;}
+  .scene--home .hero-card-fan {bottom:88%;right:8%;}
+  .scene--home .hero-speech {top:-10%;right:2%;padding:6px 9px;font-size:10px;}
+  .scene--home .home-footer {z-index:4;padding:2px 10px max(env(safe-area-inset-bottom),3px);font-size:10px;}
+  .scene--select .setup-wrap {margin:12px auto 20px;border-width:2px;border-radius:23px;}
+  .scene--select .setup-heading h2 {font-size:clamp(23px,6vw,30px);}
+  .scene--game .center-status {max-width:98%;font-size:10px;}
+}
+@media (max-width:650px) and (max-height:710px) {
+  .scene--home .hero-copy .eyebrow {display:none;}
+  .scene--home .home-logo>span {font-size:clamp(51px,13.8vw,71px);}
+  .scene--home .hero-hook {margin-top:6px;}
+  .scene--home .lead {font-size:11px;line-height:1.2;margin:3px 0;}
+  .scene--home .home-actions .btn--jewel {height:clamp(59px,15vw,73px);}
+  .scene--home .home-quick-links .btn {min-height:31px;padding:3px 5px;}
+  .scene--home .hero-animals .mascot {width:min(31vw,140px);}
+  .scene--home .hero-animals .hero-fox {width:min(35vw,160px);}
+  .scene--home .hero-card-fan,.scene--home .hero-speech {display:none;}
+}
+@media (max-width:650px) and (max-height:530px) {
+  .scene--home .hero-hook,.scene--home .lead {display:none;}
+  .scene--home .home-logo {margin:3px 0 0;}
+  .scene--home .home-quick-links .btn {min-height:28px;}
+  .scene--home .hero-animals .mascot {width:min(28vw,116px);}
+  .scene--home .hero-animals .hero-fox {width:min(32vw,134px);}
+}
+@media(prefers-reduced-motion:reduce) {
+  .scene--home::after,.scene--home .btn--jewel {animation:none;}
+}
+
+/* v16 — 꽃놀이마당 인게임 아트 디렉션: 원판 화투 48장은 단 1픽셀도 바꾸지 않는다.
+   A warm toy-game HUD, raised ivory collection shelf and lively mascot react
+   above the same familiar card faces. The entire board remains touchable. */
+.scene--game::before {
+  background:linear-gradient(180deg,#073b3696 0%,#1a6f5240 17%,transparent 34%,transparent 63%,#04624735 78%,#0b5c4dcc 100%);
+}
+.scene--game .game-top {
+  border-bottom:2px solid #fff6d75e;
+  background:linear-gradient(180deg,#185a4af0,#237b5fcc 75%,#237b5f18);
+  box-shadow:0 7px 18px #0e51433d;
+}
+.scene--game .game-title .brand {
+  font-weight:950;color:#fff9e9;text-shadow:0 2px 0 #367663,0 4px 8px #0a3f3488;
+}
+.scene--game .game-title .brand b {color:#ffce7c;}
+.scene--game .game-title small {
+  color:#8a5538;background:linear-gradient(#fff9e8,#ffe5ba);
+  border:2px solid #fff9d8;box-shadow:0 3px 0 #b88c629c;
+  font-weight:950;
+}
+.scene--game .game-wallet {
+  background:linear-gradient(160deg,#fff9e6,#ffe4b5);
+  border:2px solid #fff5d5;border-radius:18px;
+  padding:6px 13px;box-shadow:0 4px 0 #b9885bb3,0 7px 13px #073f3873;
+  transform:rotate(1deg);
+}
+.scene--game .game-wallet span {color:#946e51;font-weight:800;}
+.scene--game .game-wallet b {color:#a05237;text-shadow:0 1px 0 #fff;}
+.scene--game .nav-round {transition:transform .16s ease,filter .16s ease;}
+.scene--game .nav-round:active {transform:translateY(3px) scale(.94);filter:brightness(.93);}
+
+/* Opponent is a character at the table rather than an anonymous score label. */
+.scene--game .opponent-hud {
+  isolation:isolate;
+  color:#5b4839;
+  border:3px solid #fff9e6;
+  background:linear-gradient(135deg,#fff5d7f5 0%,#f8e6c3f2 62%,#e5f2d1ef 100%);
+  box-shadow:0 5px 0 #b77e54,0 10px 22px #16453584,inset 0 2px 0 #fff;
+  border-radius:23px 28px 28px 23px;
+  padding:4px 15px 4px 7px;
+}
+.opponent-hud__flower {
+  position:absolute;left:-9px;top:-15px;z-index:4;
+  width:31px;height:31px;display:grid;place-items:center;
+  color:#fff9c7;background:radial-gradient(#ffa7bc,#dc628c);
+  border:2px solid #fff7d8;border-radius:50%;font-size:24px;
+  box-shadow:0 3px 0 #ad5b72,0 6px 8px #1e513970;
+}
+.opponent-hud__sparkle {
+  position:absolute;right:-8px;bottom:-12px;z-index:4;
+  color:#ffd166;font-size:29px;
+  filter:drop-shadow(0 2px 0 #b5693e) drop-shadow(0 4px 4px #153f376c);
+  animation:opponent-sparkle 2.9s ease-in-out infinite alternate;
+}
+.scene--game .opponent-avatar {
+  margin-top:-17px;margin-bottom:-3px;
+  filter:drop-shadow(0 5px 4px #765c456b);
+  animation:mascot-game-breathe 3.4s ease-in-out infinite;
+}
+.scene--game .opponent-hud--thinking .opponent-avatar {animation:mascot-game-thinking 1.9s ease-in-out infinite;}
+.scene--game .opponent-hud--victory .opponent-avatar {animation:mascot-game-victory .66s ease-in-out 3;}
+.scene--game .opponent-hud--surprised .opponent-avatar {animation:mascot-game-surprised .53s ease-out 2;}
+.scene--game .hud-text {text-shadow:none;gap:8px;max-width:185px;}
+.scene--game .hud-text b {font-size:clamp(14px,1.45vw,19px);color:#905346;text-shadow:0 1px 0 #fff;white-space:nowrap;}
+.scene--game .hud-text span {
+  position:relative;color:#4b825c;background:#fffdf0;
+  border:1px solid #f3d7b2;border-radius:13px;padding:5px 9px;
+  font-size:11px;font-weight:850;text-shadow:none;white-space:nowrap;
+  box-shadow:0 3px 0 #debd96;
+}
+.scene--game .score-badge {
+  background:radial-gradient(circle at 25% 20%,#fff6bf,#ffbf73 55%,#f39a71 100%);
+  border:3px solid #fffae7;color:#915039;
+  box-shadow:0 4px 0 #c78051,0 7px 13px #76543c68,inset 0 2px #fff9;
+  margin-left:3px;
+}
+.scene--game .score-badge strong {font-weight:1000;text-shadow:0 1px #fff;}
+.scene--game .score-badge small {font-weight:900;}
+.scene--game .opponent-hand {filter:drop-shadow(0 5px 5px #173b3275);}
+@keyframes mascot-game-breathe {50%{transform:translateY(-5px) rotate(1.4deg)}}
+@keyframes mascot-game-thinking {50%{transform:translateY(1px) rotate(-3deg)}}
+@keyframes mascot-game-victory {50%{transform:translateY(-13px) rotate(6deg) scale(1.055)}}
+@keyframes mascot-game-surprised {50%{transform:translateY(-8px) rotate(-6deg)}}
+@keyframes opponent-sparkle {to{transform:rotate(26deg) scale(1.19);opacity:.66}}
+
+/* A very subtle floral stage: keep original green felt and card artwork clear. */
+.scene--game .table-play::before {
+  content:'';position:absolute;inset:-15px -18px;z-index:-1;pointer-events:none;
+  border-radius:48%;
+  background:radial-gradient(ellipse at center,#c5ffa50e,transparent 68%);
+  border:1px solid #ffe7aa2a;
+  box-shadow:inset 0 0 30px #f9dc9c15;
+}
+.table-play__flower {
+  position:absolute;z-index:-1;pointer-events:none;
+  color:#ffdbb9a3;font-size:42px;text-shadow:0 2px 5px #b2677791;
+  opacity:.65;
+}
+.table-play__flower--left {left:-3%;top:32%;transform:rotate(-20deg);}
+.table-play__flower--right {right:-3%;bottom:19%;transform:rotate(18deg);}
+.scene--game .center-status {
+  color:#4d7854;font-weight:1000;
+  border:2px solid #fffdf1;border-radius:24px;
+  background:linear-gradient(160deg,#fffef0,#ffedca);
+  box-shadow:0 4px 0 #caa67f,0 7px 13px #154d4272,inset 0 2px #fff;
+  text-shadow:0 1px 0 #fff;
+}
+.scene--game .status-orb {background:#ff98b1;box-shadow:0 0 0 2px #ffe1ad,0 0 9px #ff9eac;}
+.scene--game .round-counter {color:#b47e59;font-weight:900;}
+.scene--game .turn-clock {border-color:#d6aa806a;}
+.scene--game .turn-clock__time {color:#976d4d;}
+.scene--game .turn-clock__time strong {color:#d36748;}
+.scene--game .turn-clock__rail {background:#e3cfad;border-color:#fff;}
+.scene--game .turn-clock__fill {background:linear-gradient(90deg,#64c5a1,#9ce9aa);}
+.scene--game .field-heading strong {
+  color:#895842;background:linear-gradient(135deg,#fff7da,#ffe0a3);
+  border:2px solid #fff8e4;border-radius:13px;
+  box-shadow:0 3px 0 #ba895de6,0 5px 9px #234e3f66;
+}
+.scene--game .field-heading span {font-weight:750;color:#fffbe3;text-shadow:0 2px 5px #285543;}
+.scene--game .deck-pile small {color:#fff9dc;text-shadow:0 2px 6px #0f3c33;}
+.scene--game .deck-pile .hwatu {filter:drop-shadow(0 3px 4px #082c2769);}
+.scene--game .capture-summary {
+  color:#8a6b4c;background:linear-gradient(130deg,#fffbeadf,#fff1cfe8);
+  border:2px solid #fff9e2;border-radius:18px;
+  box-shadow:0 4px 0 #b8a17c,0 8px 17px #124b3c63;
+}
+.scene--game .capture-open {color:#5d795d;font-weight:950;}
+.scene--game .capture-open span {color:#9f8166;}
+.scene--game .capture-title b {color:#d97551;text-shadow:0 1px #fff;}
+.scene--game .capture-cats {color:#697d5f;font-weight:800;}
+.scene--game .game-message {
+  color:#6a6450;background:#fffce8e9;border:1px solid #fff8de;
+  box-shadow:0 3px 0 #bb9f7696,0 5px 12px #0c48384c;
+  font-weight:800;
+}
+
+/* Hand area is a colorful, touch-friendly wooden toy shelf. */
+.scene--game .player-area {
+  border-top:3px solid #ffe9af;
+  background:linear-gradient(0deg,#0d6955f8 0%,#208867f2 60%,#38936fde 88%,#4cae7c55 100%);
+  box-shadow:inset 0 2px 0 #fff5b351,0 -8px 22px #063f3261;
+}
+.scene--game .player-status {
+  font-weight:850;color:#fffcdf;text-shadow:0 2px 5px #155b4ca8;
+}
+.scene--game .player-status>div {
+  background:#11644d86;border:1px solid #ffffff40;border-radius:24px;
+  padding:3px 10px 3px 4px;
+}
+.scene--game .player-status strong {color:#ffe49a;text-shadow:0 2px 3px #0d5142;}
+.scene--game .me-badge {
+  background:linear-gradient(150deg,#ffbcc0,#f2859c);
+  border:2px solid #fff8d7;color:#9a4e60;
+  box-shadow:0 3px 0 #ba6984;text-shadow:0 1px #fff;
+}
+.scene--game .go-count {color:#fff1c4;font-weight:800;}
+.scene--game .player-status__hint {font-size:12px;color:#fffce4;}
+.scene--game .collection-rack {
+  color:#695747;
+  background:linear-gradient(145deg,#fffced,#fce9c8);
+  border:3px solid #fff9e2;
+  box-shadow:0 5px 0 #a7a17c,0 11px 20px #1349387c,inset 0 2px #fff;
+  border-radius:19px;
+}
+.scene--game .collection-head {color:#8d684e;font-weight:950;}
+.scene--game .collection-head small {color:#b97a56;}
+.scene--game .collection-head button {
+  color:#fffbea;background:linear-gradient(150deg,#63b892,#3c9b7d);
+  border:1px solid #b3e8bc;border-radius:13px;
+  box-shadow:0 3px 0 #36856b;font-weight:850;
+}
+.scene--game .collection-group {
+  background:linear-gradient(145deg,#f6f8df,#d9eed8);
+  border:1px solid #e9f6dd;border-radius:11px;
+  box-shadow:inset 0 1px #fff,0 2px 0 #bad1ae;
+  color:#486b52;
+}
+.scene--game .collection-group:hover,.scene--game .collection-group:focus-visible {
+  background:linear-gradient(145deg,#e8ffdf,#c4ecc9);border-color:#9fd2a4;
+}
+.scene--game .collection-name strong {color:#df806c;}
+.scene--game .collection-preview i {color:#afbea4;}
+.scene--game .collection-preview em {background:#e59d7d;color:#fffdf2;}
+.scene--game .hand-heading {color:#fff6cf;font-weight:950;}
+.scene--game .hand-heading span {color:#ecffe9;}
+.scene--game .my-hand {
+  position:relative;isolation:isolate;
+  border-radius:24px 24px 10px 10px;
+  background:linear-gradient(0deg,#fff0b12b,#e9ffdd16 45%,transparent 90%);
+  box-shadow:inset 0 -3px 0 #ffe3a965;
+}
+.scene--game .my-hand .hwatu--interactive {
+  box-shadow:inset 0 0 0 1px #fff7,0 4px 0 #5c3229,0 8px 10px #063d3285;
+}
+.scene--game .my-hand .hwatu--hint:not(.hwatu--departing) {
+  box-shadow:0 0 0 2px #fff0a1,0 5px 0 #b88a3b,0 0 19px #ffe998b9;
+}
+.scene--game .action-row {padding-bottom:3px;gap:9px;}
+.scene--game .action-chip {
+  color:#43705a;background:linear-gradient(170deg,#faffec,#d8f3d6);
+  border:2px solid #fff9db;border-radius:16px;
+  box-shadow:0 4px 0 #8eba89,0 8px 12px #073d3158,inset 0 2px #fff;
+  font-weight:950;text-shadow:0 1px #fff;
+  transition:transform .14s ease,filter .14s ease;
+}
+.scene--game .action-chip--warm {
+  color:#91523b;background:linear-gradient(165deg,#ffecd1,#ffbf90);
+  border-color:#fff8e4;box-shadow:0 4px 0 #d78560,0 8px 12px #073d3158;
+}
+.scene--game .action-chip--auto {
+  color:#885f56;background:linear-gradient(160deg,#fff9ee,#ffe7ce);
+  box-shadow:0 4px 0 #d7ad86,0 8px 12px #073d3158;
+}
+.scene--game .action-chip--auto.is-on {
+  color:#785036;background:linear-gradient(150deg,#fff7c0,#ffd170);
+  box-shadow:0 4px 0 #c08c4e,0 0 18px #ffca6ba3;
+}
+.scene--game .action-chip:active {transform:translateY(3px) scale(.96);filter:brightness(.96);}
+
+/* Celebration and decision cards feel like a game reward, not an admin dialog. */
+.modal-shade {background:#143f3b9e;backdrop-filter:blur(8px) saturate(.9);}
+.modal-box {
+  color:#7e5545;
+  background:linear-gradient(160deg,#fffdf0 0%,#ffe9c9 100%);
+  border:4px solid #fff9e6;border-radius:30px;
+  box-shadow:inset 0 2px #fff,0 7px 0 #c59d77,0 18px 0 #6c846648,0 28px 60px #103d35b5;
+}
+.modal-box h2 {font-family:"Pretendard","Malgun Gothic",sans-serif;color:#9b6153;font-weight:1000;text-shadow:0 2px 0 #fff;}
+.modal-box p {color:#7b7361;font-weight:650;}
+.modal-box .eyebrow {color:#da8a91;}
+.modal-flower {color:#ec9e9b;filter:drop-shadow(0 3px #e0aa6c);}
+.modal-box .decision-timer {color:#a27b62!important;}
+.modal-box .decision-timer strong {color:#d66d55;}
+.modal-box .btn--quiet,.modal-box .btn--ghost {color:#7e614b;background:#fff7e8;border:1px solid #dfba91;}
+.modal-box .btn--primary {color:#fff9dd;text-shadow:0 2px #387b55;background:linear-gradient(150deg,#82d9a0,#39ab70);border:2px solid #fff9d6;box-shadow:0 5px 0 #438d61,0 9px 16px #7b704b71;}
+.modal-box .btn--warm {background:linear-gradient(150deg,#ffedbc,#ffa87d);color:#9b5742;border:2px solid #fff9e3;box-shadow:0 5px 0 #cb8966;}
+.modal-box .result-star {animation:result-medal-bounce 1.3s ease-in-out infinite alternate;}
+.result-box .result-mascot .mascot {filter:drop-shadow(0 7px 6px #a0775960);}
+.result-stats>div {background:#fff6de;border:2px solid #fff;box-shadow:0 3px 0 #d7b68e;}
+.result-stats span {color:#9b826b;font-weight:750;}
+.result-stats strong {color:#a45d48;}
+.result-stats strong.positive {color:#259f70;}
+.result-wallet {color:#97765b;}
+.result-wallet b {color:#ca8051;}
+.help-box ol {color:#6a6f55;}
+.help-mini {background:#f6eecf;color:#6e805d;border:1px solid #e8d6af;}
+.gallery-heading h2 small,.gallery-section h3 {color:#b77d5d;}
+.gallery-close {color:#9b7554;background:#fff8e8;border:2px solid #eac99f;}
+.gallery-section,.cardbook-month {background:linear-gradient(135deg,#f0f3d9,#e4efd8);border-color:#d3dfb8;}
+.gallery-section-head strong,.cardbook-month h3 {color:#4e775a;}
+.gallery-section-head span,.cardbook-month h3 span {color:#a58a6b;}
+.cardbook-cell small {color:#6d755d;}
+.cardbook-legend span {background:#fff9df;color:#947659;border-color:#e0ceaa;}
+.cardbook-legend b {color:#558463;}
+.gallery-empty {color:#9a9b82;}
+@keyframes result-medal-bounce {50%{transform:translateY(-6px) rotate(7deg)}}
+
+.turn-impact__text {
+  color:#9b5b42;background:linear-gradient(160deg,#fff9df,#ffd49f);
+  border:3px solid #fff9e8;border-radius:20px;
+  box-shadow:0 5px 0 #c48557,0 9px 16px #18433880;
+  text-shadow:0 1px 0 #fff;font-weight:1000;
+}
+.turn-impact__ring {border-width:4px;border-color:#ffe1ad;box-shadow:0 0 22px #ffcc83aa,inset 0 0 18px #fff7b7b5;}
+.effect-burst {
+  border:4px solid #fff9e5;border-radius:26px;
+  background:linear-gradient(155deg,#fff3bd,#ffbe91);
+  box-shadow:0 7px 0 #cf947a,0 15px 30px #114335a8,0 0 30px #ffe68e8c;
+  text-shadow:0 2px #fff;
+}
+
+@media (max-width:650px) {
+  .scene--game {min-height:0;height:100svh;max-height:100svh;}
+  .scene--game .game-top {box-shadow:0 3px 6px #0a493a42;border-bottom-width:1px;}
+  .scene--game .game-title::before {color:#ffedbf;text-shadow:0 2px #1c6758;font-size:15px;}
+  .scene--game .game-wallet {min-width:0;padding:3px 7px;border-radius:10px;border-width:1px;box-shadow:0 2px 0 #b9885b;}
+  .scene--game .game-wallet b {font-size:12px;}
+  .scene--game .opponent-hud {margin-left:5px;padding:2px 6px 2px 3px;border-width:2px;border-radius:17px;box-shadow:0 3px 0 #b77e54,0 5px 8px #16453565;max-width:69%;}
+  .scene--game .opponent-avatar {width:54px;margin-top:-6px;margin-bottom:0;}
+  .scene--game .hud-text {gap:2px;min-width:0;}
+  .scene--game .hud-text b {font-size:11px;max-width:108px;overflow:hidden;text-overflow:ellipsis;}
+  .scene--game .hud-text span {display:none;}
+  .scene--game .score-badge {min-width:37px;margin-left:1px;border-width:2px;}
+  .scene--game .score-badge strong {font-size:19px;}
+  .opponent-hud__flower {font-size:14px;width:20px;height:20px;left:-5px;top:-8px;border-width:1px;}
+  .opponent-hud__sparkle {font-size:16px;right:-5px;bottom:-7px;}
+  .scene--game .opponent-hand {left:calc(100% + 10px);transform:translateY(-50%) scale(.46);}
+  .scene--game .table-play::before {inset:3px 2px;border-width:0;}
+  .table-play__flower {font-size:16px;opacity:.36;}
+  .scene--game .center-status {padding:3px 7px;border-width:1px;box-shadow:0 2px 0 #caa67f;font-size:10px;}
+  .scene--game .field-heading strong {padding:2px 7px;font-size:10px;border-width:1px;box-shadow:0 2px 0 #ba895d;}
+  .scene--game .capture-summary {border-width:1px;border-radius:10px;box-shadow:0 2px 0 #b8a17c;padding:3px 5px;}
+  .scene--game .capture-title b {font-size:14px;}
+  .scene--game .game-message {font-size:9px;padding:2px 8px;box-shadow:0 2px 0 #bb9f76;}
+  .scene--game .player-area {border-top-width:2px;background:linear-gradient(0deg,#0f7158,#21896c 78%,#5daf7a55);}
+  .scene--game .player-status {margin-bottom:3px;gap:7px;font-size:10px;}
+  .scene--game .player-status>div {padding:1px 7px 1px 1px;}
+  .scene--game .player-status strong {font-size:15px;}
+  .scene--game .me-badge {padding:2px 6px;border-width:1px;box-shadow:0 2px 0 #ba6984;}
+  .scene--game .collection-rack {padding:3px 5px;border-width:2px;border-radius:11px;box-shadow:0 3px 0 #a7a17c,0 5px 9px #13493854;}
+  .scene--game .collection-head {margin-bottom:2px;}
+  .scene--game .collection-head button {padding:2px 5px;font-size:9px;box-shadow:0 2px 0 #36856b;}
+  .scene--game .collection-group {padding:2px;gap:1px;box-shadow:none;border-radius:7px;}
+  .scene--game .my-hand {border-radius:12px 12px 4px 4px;box-shadow:inset 0 -2px 0 #ffe3a965;}
+  .scene--game .action-row {gap:5px;padding:3px 2px 2px;}
+  .scene--game .action-chip {padding:4px 7px;border-width:1px;border-radius:9px;box-shadow:0 2px 0 #8eba89;font-size:10px;}
+  .scene--game .action-chip--warm {box-shadow:0 2px 0 #d78560;}
+  .scene--game .action-chip--auto {box-shadow:0 2px 0 #d7ad86;}
+  .scene--game .action-chip--auto.is-on {box-shadow:0 2px 0 #c08c4e,0 0 9px #ffca6b;}
+  .scene--game .my-hand .hwatu--hint:not(.hwatu--departing) {box-shadow:0 0 0 1px #ffeb94,0 2px 0 #a47c48,0 0 9px #ffe998a1;}
+  .modal-box {border-width:3px;border-radius:21px;padding:17px 12px;}
+  .modal-box h2 {font-size:clamp(19px,5.2vw,26px);}
+  .modal-box p {font-size:12px;}
+  .result-box .result-mascot {height:84px;}
+  .result-box .result-mascot .mascot {width:81px;}
+  .result-stats {margin:11px 0 7px;}
+  .result-stats>div {padding:8px 3px;}
+  .result-wallet {margin:7px 0 11px;}
+  .modal-box .btn {padding:10px 10px;}
+}
+@media (max-width:650px) and (max-height:680px) {
+  .scene--game .opponent-avatar {width:45px;}
+  .scene--game .opponent-hud {max-width:72%;}
+  .scene--game .collection-head {font-size:10px;}
+  .scene--game .collection-group {min-height:33px;}
+  .scene--game .my-hand {height:clamp(51px,11svh,66px);}
+}
+@media (max-width:650px) and (max-height:530px) {
+  .scene--game .opponent-avatar {width:38px;}
+  .scene--game .opponent-hud {padding:1px 4px;}
+  .scene--game .score-badge {min-width:32px;}
+  .scene--game .collection-group {min-height:27px;}
+  .scene--game .collection-head button {font-size:8px;}
+  .scene--game .my-hand {height:46px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .opponent-avatar,.opponent-hud__sparkle,.result-box .result-star {animation:none!important;}
+}
+
+/* v17 — a readable card-to-card collision and a cheering player mascot. */
+.scene--game .player-status>div {position:relative;min-height:38px;padding-left:49px;}
+.player-mini-avatar {
+  position:absolute;left:-4px;bottom:-5px;z-index:1;
+  width:49px;height:auto;aspect-ratio:.82;
+  filter:drop-shadow(0 3px 3px #135f498c);
+  pointer-events:none;
+  animation:player-mascot-idle 3.2s ease-in-out infinite;
+}
+.player-mini-avatar.mascot--cheering,.opponent-avatar.mascot--cheering {
+  animation:mascot-score-cheer .64s cubic-bezier(.2,.8,.3,1) both!important;
+}
+@keyframes player-mascot-idle {50%{transform:rotate(-3deg) translateY(-3px)}}
+@keyframes mascot-score-cheer {
+  0%,100%{transform:rotate(0deg) translateY(0) scale(1)}
+  25%{transform:rotate(-9deg) translateY(-10px) scale(1.14)}
+  55%{transform:rotate(8deg) translateY(-12px) scale(1.11)}
+  75%{transform:rotate(-4deg) translateY(-3px) scale(1.04)}
+}
+.turn-pair-contact {
+  position:fixed;left:0;top:0;z-index:62;
+  pointer-events:none;width:0;height:0;
+  filter:drop-shadow(0 0 8px #fff1aeb3);
+}
+.turn-pair-contact::before,.turn-pair-contact::after {
+  content:'';position:absolute;left:-23px;top:-23px;
+  width:46px;height:46px;border-radius:50%;
+  border:3px solid #fff9dc;
+  box-shadow:0 0 0 2px #f8b25b88,0 0 15px #ffeeb0aa;
+  animation:pair-contact-ring .45s ease-out both;
+}
+.turn-pair-contact::after {
+  left:-12px;top:-12px;width:24px;height:24px;
+  border-color:#ffd08c;animation-delay:.035s;
+}
+.turn-pair-contact i {
+  position:absolute;left:-4px;top:-4px;width:8px;height:19px;
+  border-radius:60% 30% 60% 30%;
+  background:linear-gradient(#fffde2,#ffb970);
+  box-shadow:0 2px 3px #c4825d50;
+  transform-origin:4px 4px;
+  animation:pair-contact-petal .42s ease-out both;
+}
+.turn-pair-contact i:nth-child(1){--a:-38deg;--d:39px;}
+.turn-pair-contact i:nth-child(2){--a:51deg;--d:42px;}
+.turn-pair-contact i:nth-child(3){--a:143deg;--d:38px;}
+.turn-pair-contact i:nth-child(4){--a:236deg;--d:43px;}
+@keyframes pair-contact-ring {
+  from{opacity:.85;transform:scale(.2)}
+  to{opacity:0;transform:scale(2.15)}
+}
+@keyframes pair-contact-petal {
+  from{opacity:1;transform:rotate(var(--a)) translateY(0) scale(.6)}
+  to{opacity:0;transform:rotate(var(--a)) translateY(calc(-1 * var(--d))) scale(1.15)}
+}
+/* The paired floor card and played sprite stay separate by a few pixels so
+   the player sees the collision. This is a transient overlay only. */
+.turn-flight:not(.turn-flight--draw) .hwatu {
+  box-shadow:0 2px 0 #9b5d41,0 8px 12px #123e3780,inset 0 1px #fff8;
+}
+.turn-flight--collect .hwatu {
+  box-shadow:0 2px 0 #86533e,0 6px 13px #1e443985;
+}
+@media (max-width:650px) {
+  .scene--game .player-status>div {min-height:27px;padding-left:26px;}
+  .player-mini-avatar {left:0;bottom:-4px;width:28px;}
+  .turn-pair-contact {transform:scale(.78);}
+}
+@media (max-width:650px) and (max-height:560px) {
+  .player-mini-avatar {width:23px;bottom:-3px;}
+  .scene--game .player-status>div {padding-left:21px;min-height:22px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .player-mini-avatar,.player-mini-avatar.mascot--cheering,
+  .opponent-avatar.mascot--cheering,.turn-pair-contact,
+  .turn-pair-contact::before,.turn-pair-contact::after,
+  .turn-pair-contact i {animation:none!important;}
+}
+
+/* v17 painted UI revision — hand-drawn hanji and muted festival wood, NOT
+   shiny candy, thick digital outlines, luminous pills or vector art.
+   Bitmaps are purpose-made watercolour assets; the 48 card atlas is untouched. */
+.scene--home::before {
+  background:linear-gradient(90deg,#f4f7e8a3,#eef9e43d 52%,transparent 78%),
+    linear-gradient(0deg,#1a61494a,transparent 42%);
+}
+.scene--home::after {opacity:.28;font-size:15px;letter-spacing:30px;}
+.scene--home .brand,.scene--home .top-pill {
+  border:1px solid #e7d5b6;
+  background:#f7f0def2 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  color:#52694e;text-shadow:none;
+  box-shadow:0 3px 9px #4d655d32;
+}
+.scene--home .brand b {color:#b96e67;text-shadow:none;}
+.scene--home .brand__bloom {box-shadow:none;border:0;background:transparent;}
+.scene--home .hero-copy .eyebrow,
+.scene--home .hero-hook,.scene--home .hero-speech {
+  color:#745c4b;background:#f6eedcdb url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #e4d2b3;
+  box-shadow:0 3px 11px #44664a2d;
+  text-shadow:none;
+}
+.scene--home .home-logo small {
+  color:#745b4a;-webkit-text-stroke:0;
+  text-shadow:0 1px 3px #fff8d5;
+}
+.scene--home .home-logo>span {
+  -webkit-text-stroke:0;
+  filter:none;
+}
+.scene--home .home-logo i {
+  color:#c8787c;
+  text-shadow:0 3px 0 #7f6a5b82,0 8px 15px #456b5680;
+}
+.scene--home .home-logo em {
+  color:#b38a56;
+  text-shadow:0 3px 0 #826d548a,0 8px 15px #456b5680;
+}
+.scene--home .lead {color:#fffbed;text-shadow:0 2px 5px #37674cbd;font-weight:800;}
+.scene--home .lead strong {color:#fff1d1;}
+.scene--home .hero-animals {filter:saturate(.84) drop-shadow(0 8px 9px #38664f4b);}
+/* Ink and paper carry the home title; remove the plastic extrusion. */
+.scene--home::after {display:none;}
+.scene--home .hero-copy {
+  padding:clamp(16px,2.5vw,28px);
+  border:1px solid #e3d6b7;border-radius:29px 27px 32px 25px;
+  background:#f7efdbeb url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  box-shadow:0 9px 26px #31534245;filter:none;
+}
+.scene--home .home-logo small {color:#836d5b;text-shadow:none;-webkit-text-stroke:0;letter-spacing:1px;}
+.scene--home .home-logo>span {
+  font-family:'Nanum Myeongjo',Georgia,serif;font-size:clamp(60px,7.4vw,111px);
+  letter-spacing:-5px;font-weight:900;text-shadow:0 2px 1px #faf4e5;
+}
+.scene--home .home-logo i {text-shadow:0 2px 1px #faf4e5;color:#b96978;}
+.scene--home .home-logo em {text-shadow:0 2px 1px #faf4e5;color:#aa8053;}
+.scene--home .lead,.scene--home .home-invite {color:#566b57;text-shadow:none;font-weight:750;}
+.scene--home .lead strong {color:#ad7859;}
+.scene--home .hero-speech {transform:rotate(2deg);animation:none;}
+.scene--home .home-actions .btn--jewel,.btn--jewel {
+  background:transparent url('/assets/flower-handpainted-button-v17.webp') center / 100% 100% no-repeat;
+  width:clamp(264px,29vw,385px);height:clamp(79px,8.2vw,101px);
+  border:0;border-radius:0;padding:0 34px 4px;
+  color:#375b45;text-shadow:0 1px 0 #f7f1d4;
+  box-shadow:none;filter:none;
+  animation:none;
+  font-size:clamp(21px,2.1vw,27px);
+}
+.scene--home .btn--jewel:hover {transform:translateY(-1px);filter:brightness(1.035);}
+.scene--home .btn--jewel:active {transform:translateY(1px);filter:brightness(.97);}
+.scene--home .btn--jewel .ui-icon {filter:none;width:25px;height:25px;}
+.scene--home .home-quick-links .btn {
+  border:1px solid #e7d2ae;border-radius:17px;
+  color:#5e7058;text-shadow:none;
+  background:#f7efdd url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  box-shadow:0 2px 6px #34624c40;
+  font-weight:850;
+}
+.scene--home .hero-speech {border-radius:20px;}
+
+/* Every panel uses a real scanned-looking watercolor paper texture. */
+.scene--select .setup-wrap,.modal-box,
+.scene--game .opponent-hud,.scene--game .collection-rack,
+.scene--game .capture-summary {
+  background:#f7f1df url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #dbc9a7;
+  box-shadow:0 4px 16px #3d534344;
+}
+.scene--select .setup-wrap {border-radius:27px 30px 26px 31px;backdrop-filter:none;}
+.scene--select .setup-heading h2 {color:#745c4c;text-shadow:none;}
+.scene--select .setup-heading .eyebrow {color:#b97a74;}
+.scene--select .setup-heading p {color:#5d6f57;}
+.scene--select .opponent-card {
+  background:#f7f1e2 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #dcccac;border-radius:18px;
+  box-shadow:0 2px 8px #46645138;
+  color:#63765c;
+}
+.scene--select .opponent-card.is-active {
+  border:2px solid #97af80;
+  background:#eef2dd url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  box-shadow:0 0 0 2px #fef8e4b8,0 3px 10px #4f70543b;
+}
+.scene--select .opponent-card__text strong {color:#8b6151;}
+.scene--select .opponent-card__text span {color:#536c56;}
+.scene--select .opponent-card__check {color:#6e916c;text-shadow:none;}
+.scene--select .stakes {background:#e9ead7a8;border:1px solid #d6d3af;box-shadow:none;}
+.scene--select .stakes h3,.scene--select .stakes small {color:#617259;}
+.scene--select .stake,.scene--select .stake.is-active {
+  color:#6c6755;background:#f4eedc url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #d6c8a8;border-radius:12px;
+  box-shadow:0 2px 5px #4c5e4a33;
+}
+.scene--select .stake.is-active {border:2px solid #8cac78;background-color:#e8efd6;color:#4e735a;}
+.scene--select .stake-limit,.scene--select .stake-limit b {color:#70816d;}
+.scene--select .wallet .emergency-charge {
+  color:#8d6d50;
+  background:#f0e6d1 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #d5c3a2;border-radius:12px;
+  box-shadow:0 2px 5px #5370523f;animation:none;
+}
+.scene--select .setup-bottom>.btn--primary {
+  color:#375943;text-shadow:none;
+  background:transparent url('/assets/flower-handpainted-button-v17.webp') center / 100% 100% no-repeat;
+  border:0;border-radius:0;box-shadow:none;
+  min-height:65px;padding:13px 23px;
+}
+
+.btn,.scene--game .action-chip,.scene--game .nav-round {
+  transition:transform .13s ease,filter .13s ease;
+}
+.btn:active,.scene--game .action-chip:active {transform:translateY(1px);filter:brightness(.96);}
+.scene--game .game-top {
+  border:0;background:linear-gradient(180deg,#255c51c7,#255c5120);
+  box-shadow:none;
+}
+.scene--game::before {
+  background:linear-gradient(to bottom,#1a4a3d7a,transparent 32%,transparent 63%,#214b40a3);
+  backdrop-filter:saturate(.82);
+}
+.scene--game .nav-round {
+  color:#54735a;background:#f3ead7 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #e3d1ad;box-shadow:0 2px 7px #17473b4a;
+}
+.scene--game .game-title .brand {color:#f9f0d6;text-shadow:0 1px 4px #28644a;}
+.scene--game .game-title .brand b {color:#ffe4b9;}
+.scene--game .game-title small,
+.scene--game .game-wallet {
+  color:#617359;background:#f6eedb url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #dcccaa;box-shadow:0 2px 6px #21584454;
+  transform:none;
+}
+.scene--game .game-wallet b {color:#8a684f;text-shadow:none;}
+.scene--game .opponent-hud {border-radius:22px 25px 25px 20px;padding:3px 11px;}
+.opponent-hud__flower,.opponent-hud__sparkle {display:none;}
+.scene--game .opponent-avatar {filter:saturate(.9) drop-shadow(0 3px 4px #6a5f476b);}
+.scene--game .hud-text b {color:#786453;text-shadow:none;}
+.scene--game .hud-text span {
+  color:#5e745c;background:#f5eedde8;
+  border:1px solid #e1d2b2;box-shadow:none;
+}
+.scene--game .score-badge {
+  color:#80634e;background:#eee1c7;
+  border:1px solid #cdb89a;box-shadow:0 2px 5px #4f6c5445;
+}
+.scene--game .score-badge strong {text-shadow:none;}
+.scene--game .status-orb {background:#bcaa78;box-shadow:none;}
+.scene--game .table-play::before {display:none;}
+.table-play__flower {display:none;}
+.scene--game .floor-area {
+  background:rgba(29,69,53,.12) url('/assets/flower-game-floor-mat-v18.webp') center / 100% 100% no-repeat;
+  border-radius:24px;
+}
+.scene--game .center-status {
+  color:#54715e;background:#f5efdc url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #d9c7a7;border-radius:15px;
+  text-shadow:none;box-shadow:0 2px 7px #26584548;
+}
+.scene--game .round-counter {color:#91745f;}
+.scene--game .field-heading strong {
+  color:#786550;background:#f4e9d1 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #ddc7a3;border-radius:11px;box-shadow:0 2px 5px #32634848;
+}
+.scene--game .capture-summary {border-radius:13px;padding:6px 10px;}
+.scene--game .capture-open {color:#55715c;}
+.scene--game .capture-title b {color:#a37259;text-shadow:none;}
+.scene--game .capture-cats {color:#6b7a63;}
+.scene--game .game-message {
+  color:#657463;background:#eee8d4e3;border:1px solid #e1d4b9;
+  border-radius:12px;box-shadow:0 2px 6px #38664a37;
+}
+.scene--game .player-area {
+  background:linear-gradient(0deg,#285d4bfa,#386c56ed 78%,#557d6355);
+  border-top:1px solid #e2ca9b75;
+  box-shadow:none;
+}
+.scene--game .player-status>div {background:#245a49a3;border:1px solid #e6dcbd73;box-shadow:none;}
+.scene--game .me-badge {
+  color:#775e50;background:#e8cfba;border:1px solid #f3ddc3;
+  text-shadow:none;box-shadow:none;
+}
+.scene--game .player-status strong {color:#f5e6bc;text-shadow:0 1px 3px #255d4b;}
+.scene--game .collection-rack {border-radius:14px;padding:7px 10px;}
+.scene--game .collection-head {color:#735e4e;}
+.scene--game .collection-head button {
+  color:#566d54;background:#e4e9d2;
+  border:1px solid #ccd5bc;box-shadow:none;
+}
+.scene--game .collection-group {
+  color:#56715a;background:#e8ead9a6;
+  border:1px solid #ddd6be;border-radius:9px;box-shadow:none;
+}
+.scene--game .collection-group:hover,.scene--game .collection-group:focus-visible {
+  color:#3c624c;background:#e1edda;border-color:#9cba95;
+}
+.scene--game .collection-name strong {color:#a67a5c;}
+.scene--game .my-hand {background:none;box-shadow:none;}
+.scene--game .my-hand .hwatu--interactive {box-shadow:0 3px 7px #08372d70;}
+.scene--game .my-hand .hwatu--hint:not(.hwatu--departing) {
+  box-shadow:0 0 0 1px #e9deb3,0 4px 9px #092b246c;
+}
+.scene--game .action-row {gap:7px;}
+.scene--game .action-chip,
+.scene--game .action-chip--warm,
+.scene--game .action-chip--auto,
+.scene--game .action-chip--auto.is-on {
+  color:#54705b;background:#f1ead7 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #dbc9a9;border-radius:11px;
+  text-shadow:none;box-shadow:0 2px 5px #1d514242;
+  font-weight:850;
+}
+.scene--game .action-chip--warm {color:#9b6753;background-color:#f4e3d3;}
+.scene--game .action-chip--auto.is-on {
+  color:#3d6e55;border:1px solid #98b390;
+  background-color:#e1e9d1;
+}
+.modal-shade {background:#173e398c;backdrop-filter:blur(6px);}
+.modal-box {color:#705e51;border-radius:23px 27px 24px 26px;}
+.modal-box h2 {color:#795f4e;text-shadow:none;}
+.modal-box p {color:#706e5e;}
+.modal-box .eyebrow {color:#a67d72;}
+.modal-box .btn--primary,
+.modal-box .btn--warm,
+.modal-box .btn--ghost,
+.modal-box .btn--quiet {
+  color:#526d57;background:#f4ebd7 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #d7c7a9;border-radius:13px;
+  text-shadow:none;box-shadow:0 2px 6px #59684d3b;
+}
+.modal-box .btn--primary {background:transparent url('/assets/flower-handpainted-button-v17.webp') center / 100% 100% no-repeat;border:0;min-height:64px;box-shadow:none;}
+.modal-box .btn--warm {color:#946d58;background-color:#f1e0ce;}
+.modal-box .result-star {animation:none;filter:none;}
+.result-stats>div {
+  background:#ece8d8aa;border:1px solid #d9cbb1;
+  box-shadow:none;
+}
+.turn-impact__text {
+  color:#795f4e;background:#f5eacf url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #e1c9a8;border-radius:13px;
+  box-shadow:0 3px 9px #28544380;text-shadow:none;
+}
+.turn-impact__ring {border:2px solid #e2c7a0;box-shadow:none;}
+.turn-pair-contact::before,.turn-pair-contact::after {
+  border:1px solid #e8d2a3a6;box-shadow:none;
+}
+.turn-pair-contact i {background:#eacb9e;box-shadow:none;}
+.effect-burst {
+  color:#785e52;background:#f5e6c9 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #dfc7a1;border-radius:19px;
+  box-shadow:0 7px 17px #1e413487;text-shadow:none;
+}
+.effect-burst--bomb {color:#a46a4a;background-color:#f2debf;}
+.effect-burst--ppeok {color:#706879;background-color:#e6e1de;}
+.effect-burst--sweep {color:#4a7966;background-color:#dcebd9;}
+.effect-burst--ttadak,.effect-burst--jjok {color:#aa7076;background-color:#f1dfd6;}
+@media (max-width:650px) {
+  .scene--home .hero-copy {padding:14px 17px;border-radius:22px;}
+  .scene--home .home-logo>span {font-size:clamp(55px,15vw,79px);letter-spacing:-3px;}
+  .scene--home .home-actions .btn--jewel {height:clamp(64px,18vw,84px);font-size:22px;}
+  .scene--home .home-logo>span {-webkit-text-stroke:0;}
+  .scene--select .setup-wrap {border-radius:21px;}
+  .scene--game .opponent-hud {padding:2px 5px;border:1px solid #ddccac;}
+  .scene--game .collection-rack {padding:4px 6px;border-radius:11px;}
+  .scene--game .floor-area {background-size:100% auto;border-radius:12px;}
+  .scene--game .capture-summary {padding:3px 6px;}
+  .scene--game .center-status {border-radius:11px;}
+  .scene--game .action-row {gap:5px;}
+  .scene--game .action-chip {padding:5px 7px;border-radius:9px;box-shadow:0 1px 3px #24503f5a;}
+  .modal-box .btn--primary {min-height:50px;}
+}
+
+/* v20: adapt the *playable* cards, not the page viewport. The 48-card original
+   artwork is unchanged. Crowded floor rows shrink only when the table fills. */
+.scene--game .my-hand .hwatu--interactive:focus-visible {
+  outline:2px solid #e9cd8d;outline-offset:2px;z-index:12;
+  transform:translateY(-6px);
+}
+.scene--game .my-hand .hwatu--interactive:active {
+  z-index:12;transform:translateY(-8px) rotate(-2deg);
+}
+@media (max-width:650px) {
+  .scene--game .floor-area[data-density="busy"] {
+    gap:2px 3px;align-content:center;
+  }
+  .scene--game .floor-area[data-density="busy"] .hwatu {
+    width:clamp(28px,8.4vw,36px);
+  }
+  .scene--game .floor-area[data-density="packed"] {
+    gap:2px;align-content:center;
+  }
+  .scene--game .floor-area[data-density="packed"] .hwatu {
+    width:clamp(25px,7.4vw,33px);
+  }
+}
+@media (max-width:650px) and (max-height:560px) {
+  .scene--game .floor-area[data-density="busy"] .hwatu {width:clamp(25px,7.6vw,31px);}
+  .scene--game .floor-area[data-density="packed"] .hwatu {width:clamp(23px,7.1vw,29px);}
+}
+@media (prefers-reduced-motion:reduce) {
+  .scene--game .my-hand .hwatu--interactive:active {transform:none;}
+}
+
+/* v21 — matte handpainted garden table. The familiar 48 original card faces
+   are deliberately left untouched; only the surrounding environment changes. */
+.scene--game {
+  background-color:#286651;
+  background-image:url('/assets/flower-festival-table-handpainted-v21.webp');
+  background-position:center center;
+  background-size:cover;
+}
+.scene--game::before {
+  background:linear-gradient(180deg,#234b4070 0%,#23544222 27%,transparent 49%,#244b4055 80%,#224c3ea6 100%);
+  backdrop-filter:none;
+}
+.scene--game .game-top {
+  background:linear-gradient(180deg,#325447b8,#31574664 80%,transparent);
+}
+.scene--game .player-area {
+  background:
+    linear-gradient(0deg,#204b3cea,#345a46e5 76%,#456b4cb2),
+    url('/assets/flower-handpainted-paper-v17.webp') center / 480px auto;
+  border-top:1px solid #d2bc96;
+  box-shadow:0 -3px 12px #163f3033;
+}
+.scene--game .collection-rack {
+  border:1px solid #d7c4a3;
+  box-shadow:0 3px 11px #153c3048;
+}
+.scene--game .collection-group {
+  background:#eff0dce9 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border-color:#dbd7be;
+}
+.scene--game .action-chip,
+.scene--game .action-chip--warm,
+.scene--game .action-chip--auto,
+.scene--game .action-chip--auto.is-on {
+  box-shadow:0 2px 4px #203d342c;
+  border-color:#d6c9af;
+  border-radius:12px;
+}
+.scene--game .action-chip--auto.is-on {
+  border-color:#83a687;
+  box-shadow:inset 0 0 0 1px #c9ddba,0 2px 4px #203d342c;
+}
+.scene--game .action-chip:focus-visible,
+.scene--game .nav-round:focus-visible,
+.scene--game .collection-group:focus-visible {
+  outline:2px solid #ffe1a8;
+  outline-offset:2px;
+}
+.scene--game .floor-area {
+  scrollbar-width:thin;
+  scrollbar-color:#c7a67e #3b6e5680;
+}
+.scene--game .floor-area::-webkit-scrollbar {width:5px;}
+.scene--game .floor-area::-webkit-scrollbar-thumb {
+  background:#c7a67e;
+  border:1px solid #e8cfaa;
+  border-radius:10px;
+}
+
+@media (max-width:650px) {
+  .scene--game {background-position:50% center;}
+  .scene--game .game-top {box-shadow:none;}
+  .scene--game .player-area {box-shadow:0 -2px 6px #153c3035;}
+  .scene--game .action-chip,
+  .scene--game .action-chip--warm,
+  .scene--game .action-chip--auto,
+  .scene--game .action-chip--auto.is-on {
+    min-height:29px;
+    border-radius:10px;
+    box-shadow:0 1px 3px #203d342b;
+  }
+  .scene--game .field-row {min-width:0;}
+  .scene--game .floor-area {min-width:0;}
+  .scene--game .floor-area[data-density="normal"] .hwatu {
+    width:clamp(30px,9.8vw,44px);
+  }
+}
+@media (max-width:370px) {
+  .scene--game .floor-area[data-density="normal"] .hwatu {
+    width:clamp(27px,9.2vw,35px);
+  }
+  .scene--game .game-title::before {font-size:12px;}
+  .scene--game .game-wallet b {font-size:11px;}
+}
+@media (max-width:650px) and (max-height:600px) {
+  .scene--game .action-chip,
+  .scene--game .action-chip--warm,
+  .scene--game .action-chip--auto,
+  .scene--game .action-chip--auto.is-on {min-height:26px;}
+  .scene--game .floor-area[data-density="normal"] .hwatu {width:clamp(27px,8.8vw,36px);}
+}
+
+/* v22 — special situations are the only dramatic UI moments. Genuine raster
+   watercolor flowers replace the old digital burst; card faces stay fixed. */
+.scene--game .effect-burst {
+  z-index:10;
+  width:min(470px,92vw);
+  min-width:0;
+  max-width:92vw;
+  padding:30px 12px 25px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  text-shadow:none;
+  white-space:normal;
+  overflow:visible;
+  animation:flower-special-reveal 1.54s cubic-bezier(.22,.76,.24,1) both;
+}
+.scene--game .effect-burst__illustration {
+  position:absolute;
+  z-index:0;
+  left:50%;top:50%;
+  margin:0;
+  letter-spacing:normal;
+  width:clamp(210px,34vw,350px);
+  height:clamp(210px,34vw,350px);
+  transform:translate(-50%,-50%);
+  background:url('/assets/flower-special-burst-v22.webp') center / contain no-repeat;
+  pointer-events:none;
+  filter:drop-shadow(0 5px 8px #3b493446);
+}
+.scene--game .effect-burst__headline {
+  position:relative;
+  z-index:1;
+  padding:8px 19px;
+  min-width:min(180px,65vw);
+  color:#9b533e;
+  font-family:'Pretendard','Malgun Gothic',sans-serif;
+  font-size:clamp(27px,4vw,42px);
+  font-weight:1000;
+  line-height:1.15;
+  letter-spacing:-1.3px;
+  background:#f8eed9 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:2px solid #e6cba6;
+  border-radius:20px 16px 19px 16px;
+  box-shadow:0 3px 9px #314f3c59;
+  text-align:center;
+  text-wrap:balance;
+  word-break:keep-all;
+}
+.scene--game .effect-burst__detail {
+  position:relative;
+  z-index:1;
+  max-width:min(350px,78vw);
+  padding:6px 13px;
+  font-size:clamp(11px,1.8vw,15px);
+  line-height:1.3;
+  font-weight:850;
+  letter-spacing:-.2px;
+  color:#5e7158;
+  text-shadow:none;
+  background:#f5eedde8 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #dfd2b4;
+  border-radius:10px;
+  white-space:normal;
+  text-wrap:balance;
+  word-break:keep-all;
+  overflow-wrap:anywhere;
+}
+.scene--game .effect-burst--major .effect-burst__illustration {
+  width:clamp(270px,44vw,430px);
+  height:clamp(270px,44vw,430px);
+}
+.scene--game .effect-burst--major .effect-burst__headline {
+  font-size:clamp(35px,5vw,55px);
+  color:#ae523d;
+  border-color:#e3b989;
+}
+.scene--game .effect-burst--sweep .effect-burst__illustration {
+  filter:hue-rotate(85deg) saturate(.7) drop-shadow(0 5px 8px #3b493446);
+}
+.scene--game .effect-burst--ppeok .effect-burst__illustration {
+  filter:hue-rotate(215deg) saturate(.58) drop-shadow(0 5px 8px #3b493446);
+}
+.scene--game .effect-burst--ppeok .effect-burst__headline {color:#726079;}
+.scene--game .effect-burst--ttadak .effect-burst__headline,
+.scene--game .effect-burst--jjok .effect-burst__headline {color:#a86d83;}
+.scene--game .effect-burst--special .effect-burst__illustration {
+  width:180px;height:180px;opacity:.42;
+}
+.scene--game .effect-burst--special .effect-burst__headline {font-size:clamp(24px,3.2vw,34px);}
+@keyframes flower-special-reveal {
+  0% {opacity:0;transform:translateY(28px) scale(.62) rotate(-5deg);}
+  22% {opacity:1;transform:translateY(-8px) scale(1.10) rotate(1deg);}
+  39%,75% {opacity:1;transform:translateY(0) scale(1) rotate(0);}
+  100% {opacity:0;transform:translateY(-28px) scale(1.04);}
+}
+.turn-impact__illustration {
+  position:absolute;
+  z-index:0;
+  left:-85px;top:-85px;
+  width:170px;height:170px;
+  background:url('/assets/flower-special-burst-v22.webp') center / contain no-repeat;
+  opacity:.9;
+  animation:flower-impact-paint .75s ease-out both;
+}
+.turn-impact--bomb .turn-impact__illustration {
+  left:-112px;top:-112px;width:224px;height:224px;
+}
+.turn-impact--sweep .turn-impact__illustration {filter:hue-rotate(85deg) saturate(.7);}
+.turn-impact--ppeok .turn-impact__illustration {filter:hue-rotate(215deg) saturate(.55);}
+.turn-impact--bright .turn-impact__illustration {filter:hue-rotate(45deg) saturate(.7);}
+.turn-impact--double .turn-impact__illustration {filter:hue-rotate(-20deg) saturate(.7);}
+.turn-impact__ring {opacity:.38;}
+.turn-impact__text {
+  z-index:2;
+  max-width:min(75vw,240px);
+  min-width:70px;
+  white-space:normal;
+  word-break:keep-all;
+  line-height:1.15;
+}
+@keyframes flower-impact-paint {
+  0% {opacity:0;transform:scale(.3) rotate(-25deg);}
+  28% {opacity:1;transform:scale(1.10) rotate(8deg);}
+  100% {opacity:0;transform:scale(1.30) rotate(20deg);}
+}
+@media (max-width:650px) {
+  .scene--game .effect-burst {top:40%;padding:20px 6px 18px;gap:5px;}
+  .scene--game .effect-burst__illustration {width:220px;height:220px;}
+  .scene--game .effect-burst--major .effect-burst__illustration {width:260px;height:260px;}
+  .scene--game .effect-burst__headline {font-size:clamp(26px,8vw,36px);padding:7px 14px;}
+  .scene--game .effect-burst--major .effect-burst__headline {font-size:clamp(34px,10vw,46px);}
+  .scene--game .effect-burst__detail {font-size:11px;max-width:80vw;}
+  .turn-impact__illustration {left:-67px;top:-67px;width:134px;height:134px;}
+  .turn-impact--bomb .turn-impact__illustration {left:-86px;top:-86px;width:172px;height:172px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .scene--game .effect-burst {animation:none;opacity:1;}
+  .turn-impact__illustration {animation:none;opacity:.75;}
+}
+
+/* v23 — brush-painted echoes and mascot celebration for true special turns.
+   No extra card redraw, SVG shapes or large permanent controls. */
+.turn-impact__echo {
+  position:absolute;
+  z-index:1;
+  width:152px;
+  height:152px;
+  left:-76px;
+  top:-76px;
+  pointer-events:none;
+  background:url('/assets/flower-special-burst-v22.webp') center / contain no-repeat;
+  opacity:0;
+  animation:flower-special-echo .7s cubic-bezier(.16,.78,.22,1) both;
+}
+.turn-impact__echo--1 {animation-delay:.07s;}
+.turn-impact__echo--2 {animation-delay:.19s;transform:rotate(40deg);}
+.turn-impact--bomb .turn-impact__echo {width:190px;height:190px;left:-95px;top:-95px;}
+.turn-impact--sweep .turn-impact__echo {filter:hue-rotate(85deg) saturate(.7);}
+@keyframes flower-special-echo {
+  0% {opacity:0;scale:.25;rotate:-20deg;}
+  25% {opacity:.78;scale:.72;rotate:0deg;}
+  100% {opacity:0;scale:1.42;rotate:19deg;}
+}
+.player-mini-avatar.mascot--big-win,.opponent-avatar.mascot--big-win {
+  transform-origin:50% 90%;
+  animation:mascot-flower-celebration .9s cubic-bezier(.2,.85,.3,1) both!important;
+}
+@keyframes mascot-flower-celebration {
+  0%,100% {transform:translateY(0) rotate(0) scale(1);}
+  18% {transform:translateY(-8px) rotate(-11deg) scale(1.13);}
+  37% {transform:translateY(-16px) rotate(9deg) scale(1.19);}
+  58% {transform:translateY(-10px) rotate(-8deg) scale(1.12);}
+  79% {transform:translateY(-3px) rotate(5deg) scale(1.07);}
+}
+@media (max-width:650px) {
+  .turn-impact__echo {width:120px;height:120px;left:-60px;top:-60px;}
+  .turn-impact--bomb .turn-impact__echo {width:146px;height:146px;left:-73px;top:-73px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .turn-impact__echo {animation:none;opacity:0;}
+  .player-mini-avatar.mascot--big-win,.opponent-avatar.mascot--big-win {animation:none!important;}
+}
+
+/* v24 — play surface is the hero: readable real card faces, unobtrusive HUD.
+   The handpainted felt and all original card artwork remain unchanged. */
+.scene--game .opponent-hand__count {
+  align-self:center;margin-left:8px;padding:3px 6px;border-radius:7px;
+  color:#eae0bd;background:#254c3dbb;font-size:11px;font-weight:900;
+  letter-spacing:-.3px;white-space:nowrap;text-shadow:0 1px #1a3b2b;
+}
+.scene--game .field-heading span {opacity:.76;}
+@media (min-width:651px) {
+  .scene--game .game-top {height:73px;padding-top:max(env(safe-area-inset-top),7px);}
+  .scene--game .opponent-hud {top:8.7%;height:86px;}
+  .scene--game .opponent-avatar {width:72px;}
+  .scene--game .table-play {
+    top:19%;bottom:max(34%,235px);width:min(1120px,96%);gap:4px;
+  }
+  .scene--game .field-row {flex:1;min-height:0;gap:16px;}
+  .scene--game .floor-area {
+    width:min(960px,88%);min-height:0;max-height:100%;gap:5px 6px;
+  }
+  .scene--game .floor-area .hwatu {width:clamp(56px,6.2vw,83px);}
+  .scene--game .field-heading span {display:none;}
+  .scene--game .player-area {height:34%;min-height:235px;padding-top:4px;}
+  .scene--game .player-status {margin-bottom:4px;}
+  .scene--game .collection-rack {padding:4px 8px;}
+  .scene--game .collection-head {margin-bottom:3px;}
+  .scene--game .collection-group {min-height:41px;}
+  .scene--game .my-hand {min-height:0;height:clamp(85px,10.5svh,113px);}
+  .scene--game .my-hand .hwatu {width:clamp(53px,6.2vw,78px);}
+  .scene--game .action-row {padding-top:3px;min-height:32px;}
+}
+@media (max-width:650px) {
+  .scene--game {
+    grid-template-rows:clamp(42px,6.5svh,54px) clamp(52px,8.5svh,68px)
+      minmax(0,1fr) clamp(195px,33svh,255px);
+  }
+  .scene--game .table-play {
+    justify-content:flex-start;gap:3px;padding:5px 5px 3px;min-height:0;
+  }
+  .scene--game .field-heading {display:none;}
+  .scene--game .game-message {
+    position:absolute;width:1px;height:1px;padding:0;margin:0;overflow:hidden;
+    clip-path:inset(50%);white-space:nowrap;
+  }
+  .scene--game .center-status {flex:none;}
+  .scene--game .field-row {flex:1;min-height:0;gap:7px;}
+  .scene--game .floor-area {
+    width:calc(100% - 58px);max-width:none;min-width:0;max-height:100%;
+    gap:4px 5px;align-content:center;
+  }
+  .scene--game .floor-area[data-density="normal"] .hwatu {width:clamp(42px,12.5vw,54px);}
+  .scene--game .floor-area[data-density="busy"] .hwatu {width:clamp(39px,11.5vw,50px);}
+  .scene--game .floor-area[data-density="packed"] .hwatu {width:clamp(36px,10.3vw,46px);}
+  .scene--game .deck-pile .hwatu {width:clamp(37px,11.3vw,48px);}
+  .scene--game .captured-grid {width:min(100%,380px);max-width:96%;flex:none;}
+  .scene--game .capture-summary {padding:2px 7px;}
+  .scene--game .capture-cats {margin-top:0;}
+  .scene--game .opponent-hand {opacity:.8;}
+  .scene--game .opponent-hand__count {font-size:10px;margin-left:5px;}
+  .scene--game .player-area {
+    min-height:0;padding:2px 6px max(env(safe-area-inset-bottom),4px);
+    justify-content:flex-end;
+  }
+  .scene--game .player-status {margin-bottom:2px;}
+  .scene--game .player-status__hint {display:none;}
+  .scene--game .collection-rack {padding:3px 5px;}
+  .scene--game .collection-head {margin-bottom:2px;}
+  .scene--game .collection-group {
+    min-height:37px;flex-direction:row;align-items:center;gap:2px;padding:2px 3px;
+  }
+  .scene--game .collection-name {font-size:9px;}
+  .scene--game .collection-preview {justify-content:flex-end;width:auto;}
+  .scene--game .collection-preview .hwatu {width:clamp(20px,5vw,26px);margin-left:-10px;}
+  .scene--game .hand-heading {margin-top:2px;}
+  .scene--game .my-hand {height:clamp(58px,11svh,83px);flex-shrink:0;}
+  .scene--game .my-hand .hwatu {
+    width:clamp(39px,12.8vw,54px);margin-left:clamp(-16px,-3.6vw,-9px);
+  }
+  .scene--game .my-hand .hwatu:first-child {margin-left:0;}
+  .scene--game .action-row {padding-top:2px;min-height:29px;}
+}
+@media (max-width:650px) and (max-height:600px) {
+  .scene--game {
+    grid-template-rows:40px 50px minmax(0,1fr) clamp(165px,32svh,204px);
+  }
+  .scene--game .collection-group {min-height:29px;}
+  .scene--game .collection-head {font-size:10px;}
+  .scene--game .my-hand {height:clamp(48px,10svh,64px);}
+  .scene--game .floor-area[data-density="normal"] .hwatu {width:clamp(37px,11.6vw,48px);}
+  .scene--game .floor-area[data-density="busy"] .hwatu {width:clamp(35px,10.9vw,43px);}
+  .scene--game .floor-area[data-density="packed"] .hwatu {width:clamp(32px,9.8vw,40px);}
+}
+@media (min-width:651px) and (max-height:600px) {
+  .scene--game .opponent-hud {top:10%;height:60px;}
+  .scene--game .table-play {top:25%;bottom:170px;}
+  .scene--game .player-area {height:170px;min-height:170px;}
+  .scene--game .floor-area .hwatu {width:clamp(38px,4vw,54px);}
+  .scene--game .my-hand {height:65px;}
+  .scene--game .my-hand .hwatu {width:clamp(39px,4.6vw,53px);}
+  .scene--game .collection-group {min-height:30px;}
+}
+
+/* v25 — a small painted kiss where identical cards meet. Reuse the existing
+   watercolor asset; no vector rings, stock icons or modified card faces. */
+.turn-pair-contact {filter:none;}
+.turn-pair-contact::before {
+  left:-43px;top:-43px;width:86px;height:86px;
+  border:0;border-radius:0;box-shadow:none;
+  background:url('/assets/flower-special-burst-v22.webp') center / contain no-repeat;
+  filter:drop-shadow(0 2px 3px #9e76544d);
+  animation:pair-paint-kiss .44s cubic-bezier(.16,.8,.24,1) both;
+}
+.turn-pair-contact::after,.turn-pair-contact i {display:none;}
+@keyframes pair-paint-kiss {
+  0% {opacity:0;transform:scale(.32) rotate(-14deg);}
+  30% {opacity:.65;transform:scale(1.02) rotate(5deg);}
+  100% {opacity:0;transform:scale(1.35) rotate(12deg);}
+}
+.score-set {
+  position:fixed;z-index:66;pointer-events:none;white-space:nowrap;
+  transform:translate(-50%,-50%);padding:6px 13px;
+  color:#875440;font-weight:950;font-size:clamp(12px,2.1vw,17px);
+  border:1px solid #d8ba8e;border-radius:13px 11px 14px 12px;
+  background:#f8efd9 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  box-shadow:0 5px 12px #1b403e62;
+  animation:score-set-arrive 1.28s cubic-bezier(.2,.75,.3,1) both;
+}
+.score-set--computer {color:#6d7856;}
+.scene--game .game-message {
+  max-width:min(520px,88vw);padding:4px 11px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:11px;opacity:.86;
+}
+@keyframes score-set-arrive {
+  0% {opacity:0;transform:translate(-50%,12px) scale(.82);}
+  17%,70% {opacity:1;transform:translate(-50%,-50%) scale(1.04);}
+  100% {opacity:0;transform:translate(-50%,-90%) scale(.96);}
+}
+@media (max-width:650px) {
+  .turn-pair-contact::before {left:-35px;top:-35px;width:70px;height:70px;}
+  .score-set {padding:5px 9px;font-size:12px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .turn-pair-contact::before,.score-set {animation:none!important;}
+}
+
+/* v26 — each special capture has a different watercolor gesture, not a
+   generic flashing icon. All motion uses the existing painted bitmap. */
+.turn-impact--jjok .turn-impact__illustration::before,
+.turn-impact--jjok .turn-impact__illustration::after,
+.turn-impact--ttadak .turn-impact__illustration::before,
+.turn-impact--ttadak .turn-impact__illustration::after {
+  content:'';position:absolute;inset:12%;
+  background:url('/assets/flower-special-burst-v22.webp') center / contain no-repeat;
+  pointer-events:none;opacity:0;
+}
+.turn-impact--jjok .turn-impact__illustration::before {
+  animation:flower-jjok-left .52s ease-out both;
+}
+.turn-impact--jjok .turn-impact__illustration::after {
+  animation:flower-jjok-right .52s ease-out both;
+}
+.turn-impact--ttadak .turn-impact__illustration::before {
+  animation:flower-ttadak-print .49s ease-out both;
+}
+.turn-impact--ttadak .turn-impact__illustration::after {
+  animation:flower-ttadak-print .49s ease-out .11s both;
+}
+.turn-impact--ppeok .turn-impact__illustration {
+  animation:flower-ppeok-rebound .69s ease-out both;
+}
+.turn-impact--sweep .turn-impact__illustration {
+  animation:flower-sweep-brush .76s cubic-bezier(.17,.75,.25,1) both;
+}
+@keyframes flower-jjok-left {
+  0% {opacity:0;transform:translate(-32px,-5px) rotate(-35deg) scale(.48);}
+  41% {opacity:.82;transform:translate(-3px,0) rotate(-8deg) scale(.88);}
+  100% {opacity:0;transform:translate(0,0) rotate(0) scale(1.14);}
+}
+@keyframes flower-jjok-right {
+  0% {opacity:0;transform:translate(32px,5px) rotate(35deg) scale(.48);}
+  41% {opacity:.82;transform:translate(3px,0) rotate(8deg) scale(.88);}
+  100% {opacity:0;transform:translate(0,0) rotate(0) scale(1.14);}
+}
+@keyframes flower-ttadak-print {
+  0% {opacity:0;transform:scale(.4) rotate(-16deg);}
+  28% {opacity:.83;transform:scale(.84) rotate(4deg);}
+  100% {opacity:0;transform:scale(1.13) rotate(14deg);}
+}
+@keyframes flower-ppeok-rebound {
+  0% {opacity:0;transform:scale(.5) translateY(-22px) rotate(-9deg);}
+  34% {opacity:.92;transform:scale(1.05) translateY(13px) rotate(6deg);}
+  57% {opacity:.75;transform:scale(.85) translateY(-9px) rotate(-3deg);}
+  100% {opacity:0;transform:scale(1.16) translateY(4px) rotate(2deg);}
+}
+@keyframes flower-sweep-brush {
+  0% {opacity:0;transform:translateX(-48px) rotate(-35deg) scale(.68);}
+  38% {opacity:.95;transform:translateX(13px) rotate(8deg) scale(1.12);}
+  100% {opacity:0;transform:translateX(38px) rotate(30deg) scale(1.3);}
+}
+@media (max-width:650px) {
+  /* Captured categories remain accessible through the same '보기' button.
+     Use the saved space for larger, actually playable floor cards. */
+  .scene--game .captured-grid {width:min(310px,92%);max-width:92%;}
+  .scene--game .captured-grid .capture-summary {padding:3px 8px;}
+  .scene--game .captured-grid .capture-cats {display:none;}
+  .scene--game .captured-grid .capture-title {line-height:1.1;}
+  .scene--game .field-row {flex-grow:1;}
+}
+@media (max-width:650px) and (max-height:600px) {
+  .scene--game .captured-grid .capture-summary {padding:2px 7px;}
+  .scene--game .center-status {font-size:10px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .turn-impact--jjok .turn-impact__illustration::before,
+  .turn-impact--jjok .turn-impact__illustration::after,
+  .turn-impact--ttadak .turn-impact__illustration::before,
+  .turn-impact--ttadak .turn-impact__illustration::after {animation:none!important;opacity:0;}
+  .turn-impact--ppeok .turn-impact__illustration,
+  .turn-impact--sweep .turn-impact__illustration {animation:none!important;opacity:.65;}
+}
+
+/* v27 — Shin Matgo-inspired *play hierarchy*, original flower art.
+   The table cards and the player's hand lead; HUD and collection controls
+   remain available at the edges. Only existing painted bitmap assets are used.
+   Do not change the v19 character Hwatu atlas. */
+.scene--game .game-top {gap:9px;}
+.scene--game .game-title small {padding:5px 9px;}
+.scene--game .opponent-hud {z-index:4;}
+.scene--game .floor-area {
+  flex:1;min-width:0;scroll-padding:8px;
+  background-size:100% 100%;
+}
+.scene--game .deck-pile {flex:none;}
+.scene--game .center-status {
+  display:inline-flex;align-items:center;justify-content:center;
+  max-width:100%;gap:3px;
+}
+.scene--game .captured-grid {max-width:100%;}
+.scene--game .player-area {z-index:3;}
+.scene--game .collection-rack {width:min(960px,100%);}
+.scene--game .my-hand {width:min(1100px,100%);}
+.scene--game .my-hand .hwatu--interactive:hover {filter:brightness(1.07);}
+
+@media (min-width:651px) and (min-height:601px) {
+  .scene--game .game-top {height:63px;padding:6px max(14px,2.3vw) 5px;}
+  .scene--game .nav-round {width:37px;height:37px;}
+  .scene--game .nav-round .ui-icon {width:25px;height:25px;}
+  .scene--game .opponent-hud {top:7.2%;left:2.2%;height:77px;}
+  .scene--game .opponent-avatar {width:65px;}
+  .scene--game .table-play {
+    top:16.5%;bottom:max(29%,224px);width:min(1260px,98%);
+    justify-content:space-between;gap:5px;padding:5px 12px 1px;
+  }
+  .scene--game .field-row {gap:12px;flex:1;min-height:0;}
+  .scene--game .floor-area {
+    width:calc(100% - 104px);max-width:1120px;max-height:100%;
+    gap:7px 8px;align-content:center;
+  }
+  .scene--game .floor-area .hwatu {width:clamp(70px,7.2vw,98px);}
+  .scene--game .deck-pile .hwatu {width:clamp(60px,5.3vw,75px);}
+  .scene--game .captured-grid {width:min(480px,65%);margin-top:0;}
+  .scene--game .captured-grid .capture-summary {padding:3px 9px;}
+  .scene--game .game-message {margin:0;padding:3px 8px;max-width:420px;}
+  .scene--game .player-area {height:29%;min-height:224px;padding:4px 12px 8px;}
+  .scene--game .player-status {margin-bottom:2px;}
+  .scene--game .collection-rack {padding:3px 7px;}
+  .scene--game .collection-head {margin-bottom:1px;font-size:11px;}
+  .scene--game .collection-group {min-height:37px;padding:2px 6px;}
+  .scene--game .collection-preview .hwatu {width:26px;}
+  .scene--game .hand-heading {width:min(1100px,100%);margin-top:1px;}
+  .scene--game .my-hand {height:clamp(93px,12svh,122px);padding-left:0;}
+  .scene--game .my-hand .hwatu {width:clamp(62px,7vw,91px);margin-left:clamp(-12px,-.9vw,-7px);}
+  .scene--game .action-row {padding-top:2px;min-height:30px;}
+}
+
+@media (max-width:650px) {
+  .scene--game {
+    grid-template-rows:clamp(39px,6.1svh,49px) clamp(46px,7.2svh,59px)
+      minmax(0,1fr) clamp(194px,31svh,249px);
+  }
+  .scene--game .game-top {padding:3px 5px 2px;gap:3px;}
+  .scene--game .nav-round {width:30px;height:30px;}
+  .scene--game .nav-round .ui-icon {width:23px;height:23px;}
+  .scene--game .game-wallet {min-width:65px;padding:2px 5px;}
+  .scene--game .opponent-hud {margin-left:5px;padding:2px 5px;}
+  .scene--game .opponent-avatar {width:clamp(40px,12vw,54px);}
+  .scene--game .score-badge {min-width:39px;}
+  .scene--game .score-badge strong {font-size:20px;}
+  .scene--game .opponent-hand {left:min(61%,204px);transform:translateY(-50%) scale(.51);}
+  .scene--game .table-play {padding:3px 5px 1px;gap:3px;}
+  .scene--game .center-status {padding:4px 8px;font-size:11px;}
+  .scene--game .round-counter {margin-left:3px;}
+  .scene--game .field-row {gap:3px;}
+  .scene--game .deck-pile {width:clamp(37px,11vw,48px);font-size:9px;}
+  .scene--game .deck-pile .hwatu {width:clamp(36px,10.5vw,46px);}
+  .scene--game .floor-area {
+    width:calc(100% - 48px);padding:4px 0;max-height:100%;
+    align-items:center;align-content:center;gap:4px 4px;
+  }
+  .scene--game .floor-area[data-density="normal"] .hwatu {width:clamp(44px,13.5vw,57px);}
+  .scene--game .floor-area[data-density="busy"] .hwatu {width:clamp(41px,12.2vw,52px);}
+  .scene--game .floor-area[data-density="packed"] .hwatu {width:clamp(37px,10.9vw,47px);}
+  .scene--game .captured-grid {width:min(310px,90%);}
+  .scene--game .capture-summary {padding:2px 7px;}
+  .scene--game .player-area {padding:1px 4px max(env(safe-area-inset-bottom),3px);}
+  .scene--game .player-status {margin-bottom:1px;}
+  .scene--game .player-status strong {font-size:17px;}
+  .scene--game .collection-rack {padding:2px 4px;}
+  .scene--game .collection-head {margin-bottom:1px;font-size:10px;}
+  .scene--game .collection-group {min-height:31px;padding:2px;}
+  .scene--game .collection-preview .hwatu {width:clamp(19px,5vw,25px);}
+  .scene--game .hand-heading {margin-top:2px;}
+  .scene--game .my-hand {height:clamp(73px,13svh,99px);padding-left:0;}
+  .scene--game .my-hand .hwatu {
+    width:clamp(43px,14vw,58px);margin-left:clamp(-22px,-4.8vw,-12px);
+  }
+  .scene--game .my-hand .hwatu:first-child {margin-left:0;}
+  .scene--game .action-row {padding-top:2px;min-height:29px;}
+}
+
+@media (max-width:650px) and (max-height:600px) {
+  .scene--game {grid-template-rows:38px 44px minmax(0,1fr) clamp(155px,30svh,184px);}
+  .scene--game .floor-area[data-density="normal"] .hwatu {width:clamp(38px,11.7vw,46px);}
+  .scene--game .floor-area[data-density="busy"] .hwatu {width:clamp(35px,10.8vw,43px);}
+  .scene--game .floor-area[data-density="packed"] .hwatu {width:clamp(33px,10vw,39px);}
+  .scene--game .collection-group {min-height:27px;}
+  .scene--game .collection-name {font-size:8px;}
+  .scene--game .my-hand {height:clamp(51px,11svh,72px);}
+  .scene--game .my-hand .hwatu {width:clamp(40px,12.2vw,48px);margin-left:clamp(-19px,-4.2vw,-12px);}
+}
+
+/* v28 — playable first-deal ritual: mix cards, choose the lead, then deal.
+   Every card uses the existing bitmap Hwatu back and v19 character faces;
+   every surrounding surface is an existing hand-painted image. No SVG. */
+.scene--opening {
+  height:100svh;min-height:0;overflow:hidden;
+  background:#286651 url('/assets/flower-festival-table-handpainted-v21.webp') center / cover no-repeat;
+}
+.scene--opening::before {
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,#1d443ccf 0%,#16382ba6 47%,#1c4b3dbd 100%);
+}
+.opening-top {
+  position:absolute;z-index:3;top:0;left:0;right:0;height:65px;
+  display:flex;align-items:center;gap:13px;padding:8px clamp(12px,3vw,38px);
+  background:linear-gradient(180deg,#234d40b7,transparent);
+}
+.opening-top .nav-round {
+  width:37px;height:37px;background:#f2e8d4 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #e2caa9;box-shadow:0 3px 9px #0b29266e;
+}
+.opening-top .nav-round .ui-icon {width:26px;height:26px;}
+.opening-top .brand {font-size:clamp(14px,1.6vw,19px);}
+.opening-top__step {margin-left:auto;color:#f5e7cb;font-size:12px;font-weight:800;white-space:nowrap;}
+.opening-stage {
+  position:absolute;z-index:2;inset:clamp(70px,10svh,100px) 12px 7%;
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:7px;
+  overflow-y:auto;scrollbar-width:thin;scrollbar-color:#dcc392 transparent;
+}
+.opening-kicker {margin:0;color:#f0d6ad;font-size:13px;font-weight:900;letter-spacing:1px;text-shadow:0 2px 5px #143c31;}
+.opening-stage h1 {
+  margin:0;font-family:'Nanum Myeongjo',Georgia,serif;
+  font-size:clamp(26px,3.8vw,46px);letter-spacing:-1.4px;
+  color:#fff1cd;text-shadow:0 3px 10px #112d24c9;
+}
+.opening-description {max-width:580px;margin:0;color:#fff3e2;font-size:clamp(12px,1.5vw,16px);line-height:1.5;}
+.opening-shuffle {
+  width:min(330px,86vw);height:clamp(145px,24svh,210px);margin:22px auto 0;
+  position:relative;display:grid;place-items:center;perspective:900px;
+}
+.opening-shuffle__card {
+  position:absolute;display:block;will-change:transform;
+  animation:opening-card-shuffle .57s cubic-bezier(.3,.6,.2,1) infinite alternate;
+  animation-delay:calc(var(--shuffle-i) * -.09s);
+}
+.opening-shuffle__card .hwatu {width:clamp(65px,7vw,89px);box-shadow:0 9px 14px #061e1f88;}
+@keyframes opening-card-shuffle {
+  0% {transform:translate(var(--shuffle-left),-11px) rotate(var(--shuffle-rotate-left)) scale(.91);}
+  100% {transform:translate(var(--shuffle-right),8px) rotate(var(--shuffle-rotate-right)) scale(1.04);}
+}
+.opening-dealer-grid {
+  width:min(580px,100%);display:grid;grid-template-columns:repeat(6,minmax(0,1fr));
+  justify-items:center;gap:8px 4px;margin:16px auto 3px;
+}
+.opening-dealer-pick {border:0;background:transparent;padding:2px;transition:transform .16s;}
+.opening-dealer-pick .hwatu {width:clamp(54px,6.3vw,69px);}
+.opening-dealer-pick:hover,.opening-dealer-pick:focus-visible {transform:translateY(-8px);filter:brightness(1.16);}
+.opening-dealer-pick:active {transform:translateY(-2px) rotate(-5deg);}
+.opening-dealer-pick:focus-visible {outline:2px solid #ffdfa6;outline-offset:4px;}
+.opening-rule {margin:4px 0;color:#e8dbb8;font-size:12px;text-shadow:0 2px 5px #18402e;}
+.opening-reveal {display:flex;justify-content:center;align-items:center;gap:clamp(17px,4vw,42px);margin-top:18px;}
+.opening-reveal__choice {display:flex;flex-direction:column;align-items:center;gap:8px;min-width:106px;}
+.opening-reveal__choice b {font-size:14px;color:#f9eace;}
+.opening-reveal__choice .hwatu {width:clamp(75px,9vw,98px);box-shadow:0 10px 18px #061e1f8a;animation:opening-reveal-flip .55s ease-out both;}
+.opening-reveal__choice:nth-child(3) .hwatu {animation-delay:.15s;}
+.opening-reveal__choice span {color:#fff2d1;font-size:13px;font-weight:850;}
+.opening-reveal__choice.is-winner .hwatu {outline:3px solid #ffe4a2;outline-offset:3px;}
+.opening-reveal__vs {color:#efd29c;font-size:24px;font-family:Georgia,serif;text-shadow:0 3px 8px #102c23;}
+@keyframes opening-reveal-flip {from{opacity:0;transform:rotateY(90deg) scale(.8)}to{opacity:1;transform:rotateY(0) scale(1)}}
+.opening-winner {
+  margin:11px auto 0;padding:9px 23px;font-size:clamp(18px,2.8vw,27px);font-weight:950;
+  color:#75543d;background:#f6ead0 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:1px solid #e4cb9c;border-radius:13px;box-shadow:0 5px 16px #092e2566;
+}
+.opening-deal {display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:14px;width:min(600px,100%);}
+.opening-deal__label {font-size:12px;font-weight:850;color:#f8e8ce;}
+.opening-deal__hand {display:flex;align-items:center;justify-content:center;min-height:66px;width:100%;}
+.opening-deal__card {display:inline-block;margin-left:-16px;animation:opening-card-deal .49s cubic-bezier(.16,.72,.2,1) both;animation-delay:calc(var(--deal-i) * .105s);}
+.opening-deal__card:first-child {margin-left:0;}
+.opening-deal__card .hwatu {width:49px;box-shadow:0 4px 8px #112d2887;}
+.opening-deal__hand--computer .opening-deal__card {animation-name:opening-card-deal-computer;}
+.opening-deal__hand--human .opening-deal__card {animation-delay:calc(.26s + var(--deal-i) * .105s);}
+.opening-deal__deck {display:flex;align-items:center;gap:15px;color:#f2dcbb;font-size:12px;}
+.opening-deal__deck .hwatu {width:48px;transform:rotate(-9deg);}
+@keyframes opening-card-deal {from{opacity:0;transform:translate(0,-85px) scale(.55) rotate(-22deg)}to{opacity:1;transform:none}}
+@keyframes opening-card-deal-computer {from{opacity:0;transform:translate(0,85px) scale(.55) rotate(22deg)}to{opacity:1;transform:none}}
+.opening-skip {
+  margin-top:12px;padding:8px 14px;color:#efdfbf;font-size:12px;font-weight:800;
+  border:1px solid #f0dfbf78;border-radius:12px;background:#143f35a6;
+}
+.opening-skip:hover,.opening-skip:focus-visible {background:#265847;}
+.opening-friends {display:flex;position:absolute;z-index:1;left:0;right:0;bottom:-32px;justify-content:space-between;pointer-events:none;opacity:.73;padding:0 5%;}
+.opening-friends .mascot {width:clamp(95px,13vw,190px);}
+@media (max-width:650px) {
+  .opening-top {height:48px;gap:8px;padding:3px 9px;}
+  .opening-top .nav-round {width:31px;height:31px;}
+  .opening-top .brand {font-size:13px;}
+  .opening-top .brand__bloom {width:27px;height:27px;}
+  .opening-top__step {font-size:10px;}
+  .opening-stage {inset:clamp(62px,9svh,80px) 7px 7%;gap:5px;}
+  .opening-kicker {font-size:11px;}
+  .opening-stage h1 {font-size:clamp(24px,7.2vw,34px);}
+  .opening-description {font-size:12px;padding:0 10px;}
+  .opening-shuffle {margin-top:28px;height:170px;}
+  .opening-shuffle__card .hwatu {width:70px;}
+  .opening-dealer-grid {width:min(318px,96%);grid-template-columns:repeat(4,minmax(0,1fr));gap:5px 2px;margin-top:11px;}
+  .opening-dealer-pick .hwatu {width:clamp(51px,15.8vw,62px);}
+  .opening-rule {max-width:310px;font-size:10px;}
+  .opening-reveal {gap:10px;margin-top:13px;}
+  .opening-reveal__choice {min-width:98px;}
+  .opening-reveal__choice .hwatu {width:82px;}
+  .opening-winner {padding:8px 14px;font-size:20px;}
+  .opening-deal__hand {min-height:53px;}
+  .opening-deal__card {margin-left:-17px;}
+  .opening-deal__card .hwatu {width:42px;}
+  .opening-deal__deck .hwatu {width:43px;}
+  .opening-friends {bottom:-31px;padding:0;}
+  .opening-friends .mascot {width:clamp(92px,28vw,120px);}
+}
+@media (max-height:590px) {
+  .opening-stage {inset:52px 6px 4%;gap:3px;}
+  .opening-shuffle {height:115px;margin-top:4px;}
+  .opening-dealer-grid {width:min(350px,94%);gap:1px;margin-top:5px;}
+  .opening-dealer-pick .hwatu {width:clamp(40px,11vw,51px);}
+  .opening-rule {margin:0;}
+  .opening-friends {opacity:.42;}
+  .opening-deal {gap:3px;margin-top:4px;}
+  .opening-deal__hand {min-height:43px;}
+  .opening-deal__card .hwatu {width:35px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .opening-shuffle__card,.opening-reveal__choice .hwatu,.opening-deal__card {animation:none!important;}
+  .opening-dealer-pick {transition:none;}
+}
+
+/* v29 — portrait-first, card-led gameplay. Shin Matgo-inspired hierarchy,
+   but only Flower Matgo's own painted textures and the locked v19 card faces.
+   Cards and scores take the space; navigation and utilities stay peripheral. */
+@media (max-width:650px) {
+  .scene--game {
+    grid-template-rows:clamp(40px,5.8svh,47px) clamp(49px,7.1svh,57px)
+      minmax(0,1fr) clamp(205px,31svh,255px);
+  }
+  .scene--game .game-top {
+    padding:3px 6px 2px;gap:4px;
+    background:linear-gradient(180deg,#174b40e8,#174b407a 88%,transparent);
+  }
+  .scene--game .nav-round {width:32px;height:32px;}
+  .scene--game .game-title {gap:3px;min-width:0;}
+  .scene--game .game-title .brand {font-size:clamp(12px,3.7vw,15px);}
+  .scene--game .game-wallet {margin-left:auto;min-width:68px;padding:2px 5px;}
+  .scene--game .game-wallet span {font-size:9px;}
+  .scene--game .game-wallet b {font-size:clamp(10px,3.2vw,13px);}
+  .scene--game .opponent-hud {
+    margin-left:6px;max-width:76%;padding:1px 6px 1px 2px;
+    gap:5px;box-shadow:0 2px 5px #112f2852;
+  }
+  .scene--game .opponent-avatar {width:clamp(42px,12.3vw,53px);}
+  .scene--game .hud-text b {font-size:clamp(11px,3.3vw,13px);}
+  .scene--game .score-badge {min-width:43px;border-width:1px;}
+  .scene--game .score-badge strong {font-size:23px;}
+  .scene--game .opponent-hand {left:calc(100% + 6px);transform:translateY(-50%) scale(.42);}
+
+  .scene--game .table-play {
+    padding:3px 3px 1px;gap:4px;justify-content:space-between;
+  }
+  .scene--game .center-status {
+    padding:4px 10px;font-size:12px;min-height:29px;
+    border-radius:11px;box-shadow:0 2px 5px #173d3248;
+  }
+  .scene--game .round-counter {font-size:10px;}
+  .scene--game .turn-clock {margin-left:6px;padding-left:6px;gap:4px;}
+  .scene--game .turn-clock__rail {width:clamp(30px,9vw,47px);}
+  .scene--game .turn-clock__time {font-size:11px;}
+  .scene--game .turn-clock__time strong {font-size:15px;}
+  .scene--game .field-row {flex:1;gap:2px;min-height:0;width:100%;}
+  .scene--game .deck-pile {width:clamp(36px,10.5vw,46px);gap:4px;}
+  .scene--game .deck-pile .hwatu {width:clamp(35px,10vw,44px);}
+  .scene--game .floor-area {
+    width:calc(100% - 46px);max-height:100%;min-height:0;
+    padding:5px 2px;gap:5px 4px;align-content:center;
+    background-size:100% 100%;border-radius:13px;
+  }
+  .scene--game .floor-area[data-density="normal"] .hwatu {width:clamp(47px,15.2vw,62px);}
+  .scene--game .floor-area[data-density="busy"] .hwatu {width:clamp(44px,13.8vw,57px);}
+  .scene--game .floor-area[data-density="packed"] .hwatu {width:clamp(39px,12vw,51px);}
+  .scene--game .captured-grid {width:min(280px,88%);margin-top:0;}
+  .scene--game .captured-grid .capture-summary {padding:3px 7px;}
+  .scene--game .captured-grid .capture-title {font-size:10px;}
+  .scene--game .captured-grid .capture-title b {font-size:17px;}
+
+  .scene--game .player-area {
+    padding:2px 5px max(env(safe-area-inset-bottom),4px);
+    gap:0;background:linear-gradient(0deg,#104c3ff9,#1b6350f3 79%,#286b54b8 95%,transparent);
+  }
+  .scene--game .player-status {margin-bottom:2px;min-height:24px;gap:6px;}
+  .scene--game .player-status strong {font-size:19px;}
+  .scene--game .collection-rack {
+    padding:2px 4px 3px;border-width:1px;border-radius:10px;
+    box-shadow:0 2px 5px #173d3242;
+  }
+  .scene--game .collection-head {margin-bottom:1px;font-size:10px;line-height:1.2;}
+  .scene--game .collection-head button {padding:2px 7px;min-height:21px;}
+  .scene--game .collection-groups {gap:3px;}
+  .scene--game .collection-group {
+    min-height:32px;padding:2px 3px;gap:2px;
+    flex-direction:row;align-items:center;border-radius:7px;
+  }
+  .scene--game .collection-preview .hwatu {width:clamp(18px,4.7vw,23px);}
+  .scene--game .hand-heading {margin-top:2px;font-size:11px;line-height:1.1;}
+  .scene--game .my-hand {
+    height:clamp(87px,14.8svh,117px);min-height:0;
+    width:100%;padding:0 2px 2px;align-items:flex-end;
+    justify-content:center;overflow:visible;
+  }
+  .scene--game .my-hand .hwatu {
+    width:clamp(47px,15.35vw,63px);
+    margin-left:clamp(-29px,-6.6vw,-16px);
+  }
+  .scene--game .my-hand .hwatu:first-child {margin-left:0;}
+  .scene--game .my-hand .hwatu--interactive:focus-visible,
+  .scene--game .my-hand .hwatu--interactive:active {
+    z-index:10;transform:translateY(-10px) scale(1.025);
+  }
+  .scene--game .action-row {
+    min-height:38px;gap:5px;padding:3px 1px 1px;
+    width:100%;justify-content:center;overflow-x:auto;
+  }
+  .scene--game .action-chip,
+  .scene--game .action-chip--warm,
+  .scene--game .action-chip--auto,
+  .scene--game .action-chip--auto.is-on {
+    min-height:35px;padding:6px 9px;flex:none;
+    border-radius:9px;font-size:11px;
+    background-image:url('/assets/flower-handpainted-paper-v17.webp');
+    background-position:center;background-size:cover;
+    box-shadow:0 2px 4px #143f344c;
+  }
+  .scene--game .action-chip--auto.is-on {border-color:#a48052;color:#84633a;}
+  .scene--game .action-chip--warm {border-color:#b59475;color:#91523b;}
+}
+
+/* Compact/short phones: protect the board and the lowest action row from
+   browser chrome, without pushing the last cards below the visible viewport. */
+@media (max-width:650px) and (max-height:700px) {
+  .scene--game {
+    grid-template-rows:38px 43px minmax(0,1fr) clamp(169px,30svh,189px);
+  }
+  .scene--game .center-status {min-height:24px;padding:2px 6px;font-size:10px;}
+  .scene--game .floor-area {gap:3px;padding:2px;}
+  .scene--game .floor-area[data-density="normal"] .hwatu {width:clamp(40px,12.8vw,51px);}
+  .scene--game .floor-area[data-density="busy"] .hwatu {width:clamp(37px,11.7vw,47px);}
+  .scene--game .floor-area[data-density="packed"] .hwatu {width:clamp(34px,10.5vw,43px);}
+  .scene--game .player-status {min-height:19px;margin:0;}
+  .scene--game .player-status strong {font-size:16px;}
+  .scene--game .collection-rack {padding:1px 3px;}
+  .scene--game .collection-head {font-size:9px;margin:0;}
+  .scene--game .collection-head button {min-height:18px;padding:1px 6px;}
+  .scene--game .collection-group {min-height:24px;padding:1px 2px;}
+  .scene--game .collection-name {font-size:8px;}
+  .scene--game .collection-preview .hwatu {width:17px;}
+  .scene--game .hand-heading {margin-top:0;font-size:9px;}
+  .scene--game .my-hand {height:clamp(62px,12svh,77px);}
+  .scene--game .my-hand .hwatu {width:clamp(43px,13.5vw,54px);margin-left:clamp(-24px,-5.6vw,-14px);}
+  .scene--game .action-row {min-height:33px;padding:1px 0;gap:3px;}
+  .scene--game .action-chip,
+  .scene--game .action-chip--warm,
+  .scene--game .action-chip--auto,
+  .scene--game .action-chip--auto.is-on {min-height:31px;padding:4px 7px;font-size:10px;}
+}
+@media (max-width:340px) {
+  .scene--game .game-title .brand {font-size:11px;}
+  .scene--game .game-wallet {min-width:55px;padding:2px 3px;}
+  .scene--game .nav-round {width:29px;height:29px;}
+  .scene--game .floor-area {gap:3px;}
+  .scene--game .action-row {justify-content:flex-start;}
+}
+
+/* v30 — mobile finger contact: the chosen hand card lifts and its genuine
+   matching floor card warms up. No new art or game-state modification. */
+.scene--game .my-hand .hwatu--finger-pressed:not(.hwatu--departing) {
+  z-index:18;transform:translateY(-10px) rotate(-2deg) scale(1.045);
+  filter:brightness(1.09);
+  box-shadow:0 0 0 2px #f0d598,0 7px 15px #173e3280;
+}
+.scene--game .floor-area .hwatu--finger-match:not(.hwatu--departing) {
+  z-index:2;filter:brightness(1.1);
+  outline:2px solid #f7dfa8;outline-offset:2px;
+  box-shadow:0 3px 12px #f8d98b66,0 6px 9px #113e345c;
+}
+@media (max-width:650px) {
+  .scene--game .my-hand .hwatu--finger-pressed:not(.hwatu--departing) {
+    transform:translateY(-12px) rotate(-2deg) scale(1.05);
+  }
+  .scene--game .floor-area .hwatu--finger-match:not(.hwatu--departing) {
+    outline-width:2px;outline-offset:1px;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  .scene--game .my-hand .hwatu--finger-pressed:not(.hwatu--departing) {
+    transform:none;filter:none;
+  }
+  .scene--game .floor-area .hwatu--finger-match:not(.hwatu--departing) {filter:none;}
+}

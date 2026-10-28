@@ -97,3 +97,20 @@
 - [x] 게임 저장 형식 변경 없는 원화 활용. [check-garden-depth-v20.mjs](./scripts/check-garden-depth-v20.mjs) 자동 검사 추가.
 - [ ] 실제 네 지역의 원화 바닥/식물 겹침 정확도와 모바일/PC 움직임 검수.
 - [ ] 다리 난간·건물·큰 나무의 **원본 레이어 분리 이미지**가 아직 없어 픽셀 수준 전면 가림은 미완료. 손그림 원본 확보·아트 검수 없이 임의 마스크를 붙이지 않음.
+
+### v21 모달 키보드/접근성 QA — 2026-10-28
+- [x] 가방·조합·연구소·도감 등 기존 `aria-modal` 팝업 열기 시 닫기 버튼으로 키보드 초점 이동.
+- [x] Tab/Shift+Tab은 표시된 모달의 사용 가능한 버튼·입력에서 순환; Escape·닫기·배경 클릭 시 원래 호출 버튼으로 초점 복귀.
+- [x] 가방 탭/아이템 및 조합·부화 중 모달 내용 재구성 시 동일 `data-game-action` 버튼의 초점 최대한 유지. 저장 키·게임 수치·그림/자산/SVG 금지 규칙 변경 없음.
+- [x] 소스 11개 정적 계약 검사 일치 및 `npm run guard`에 `check-modal-focus-v21.mjs` 연결. [변경 SHA `e5fe4da`](https://github.com/junl-im/K-city-webgame/commit/e5fe4da2059e10483be45c3d8747b5cfc7dacbf2).
+- [ ] GitHub Actions CI·실제 Pages 배포 성공 **독립 확인 필요**: 현재 연결에서 실행 결과 조회 불가, 성공으로 기록하지 않음.
+- [ ] Chrome/Whale 실제 Tab·Shift+Tab·Escape·팝업 스크롤, Android/iPhone 터치/포커스 및 시각적 겹침 QA.
+- [ ] 원본 레이어가 없는 다리·큰 나무·건물의 픽셀 단위 가림은 기존 미완성. 실제 분리 원화 확보 뒤 적용.
+
+### v22 거친 버튼 테두리 제거·원화 질감 유지 — 2026-10-29
+- [x] 과한 9분할 PNG `border-image`를 최종 버튼 CSS에서 제거하고 100%×100% 늘림 없이 비율 보존 `background-size:cover` 적용. 버튼 원화의 중앙 질감만 노출, 과장된 테두리 꽃장식이 반복되지 않도록 정리.
+- [x] 지역 표지판은 밝은 크림, 하단은 원형 목재 그림, 분류 탭은 얇은 종이, 주요 조합/부화 동작은 연두·장밋빛·금빛. 기존 승인 v16 래스터 PNG 7종 모두 유지. 새 SVG·시스템 아이콘·기본 이모지 추가 없음.
+- [x] 모달 제목/닫기/계곡 산책/하단 이름표에서 두꺼운 장식과 이중 윤곽 완화. 모바일 320~760px에서 44px 이상 버튼, 키보드 포커스·reduced-motion 유지.
+- [x] 기능 [6b02d4c](https://github.com/junl-im/K-city-webgame/commit/6b02d4c86db5572eaa209cb353df36e523b5f72d), CSS 회귀 검사 [1c05968](https://github.com/junl-im/K-city-webgame/commit/1c059688f86444b66426261e3be4afc8cd50fb12), 원격 파일 재읽기로 9분할/강제 왜곡/SVG 미사용 확인.
+- [ ] 실행 환경 미가용: `npm run build` 및 실제 게임 화면 육안 캡처 미실시. GitHub Actions/Pages 최신 성공 여부도 별도 검증 필요.
+- [ ] PC Whale·Android·iOS 4지역과 모든 팝업을 승인된 MASTER 3장과 비교한 **디자인 최종 승인** 필요. 개선이 여전히 어색하면 해당 역할만 별도 손그림 PNG/WebP로 교체.

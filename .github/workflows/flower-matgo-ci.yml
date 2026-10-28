@@ -1,0 +1,48 @@
+name: Flower Matgo — isolated source validation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'FlowerMatgo/**'
+      - '.github/workflows/flower-matgo-ci.yml'
+  pull_request:
+    paths:
+      - 'FlowerMatgo/**'
+      - '.github/workflows/flower-matgo-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: FlowerMatgo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: FlowerMatgo/package-lock.json
+      - name: Install
+        run: npm ci --no-audit --no-fund
+      - name: Verify approved character card artwork
+        shell: bash
+        run: |
+          test -s public/assets/hwatu-character-original-v19.webp
+          test -s public/assets/flower-game-floor-mat-v18.webp
+      - name: Run gameplay and mobile regression tests
+        run: npm test
+      - name: Build web game
+        run: npm run build
+      - name: Verify built game
+        shell: bash
+        run: |
+          test -s dist/index.html
+          test -s dist/assets/hwatu-character-original-v19.webp
