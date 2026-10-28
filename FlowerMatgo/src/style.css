@@ -2637,3 +2637,160 @@ button:disabled { cursor: not-allowed; opacity:.48; }
 @media (prefers-reduced-motion:reduce) {
   .turn-special-tap {display:none;}
 }
+
+/* v32 — pocket-size, card-first table. Keep the original painted floor,
+   bitmap v19 faces and their exact artwork; devote the phone to playing.
+   On a narrow phone, the opponent's card count replaces decorative backs.
+   The four capture types still open their full galleries. */
+@media (max-width:650px) {
+  .scene--game {
+    height:100svh;min-height:0;overflow:hidden;
+    grid-template-rows:max(39px,calc(33px + env(safe-area-inset-top)))
+      clamp(45px,6.3svh,54px) minmax(0,1fr) clamp(202px,28.5svh,238px);
+  }
+  .scene--game .game-top {gap:4px;padding: max(2px,env(safe-area-inset-top)) 5px 2px;}
+  .scene--game .game-title {flex:1;min-width:0;}
+  .scene--game .game-title small {display:none;}
+  .scene--game .game-wallet {min-width:0;flex:none;padding:2px 5px;}
+  .scene--game .game-wallet span {display:none;}
+  .scene--game .game-wallet b {font-size:clamp(11px,3.4vw,14px);}
+  .scene--game .nav-round {width:clamp(29px,8.5vw,34px);height:clamp(29px,8.5vw,34px);}
+  .scene--game .nav-round .ui-icon {width:24px;height:24px;}
+  .scene--game .opponent-hud {
+    margin-left:4px;max-width:75%;min-height:0;padding:1px 7px 1px 2px;gap:5px;
+  }
+  .scene--game .opponent-avatar {width:clamp(40px,11.7vw,50px);}
+  .scene--game .hud-text {min-width:0;}
+  .scene--game .hud-text b {font-size:clamp(12px,3.5vw,15px);}
+  .scene--game .score-badge {min-width:41px;margin-left:3px;}
+  .scene--game .score-badge strong {font-size:24px;}
+  .scene--game .opponent-hand {
+    left:calc(100% + 6px);top:50%;transform:translateY(-50%);
+    opacity:.95;filter:none;
+  }
+  .scene--game .opponent-hand .hwatu {display:none;}
+  .scene--game .opponent-hand__count {
+    margin:0;padding:3px 7px;border-radius:8px;
+    background:#f8ebd3e8;color:#694d39;font-size:10px;font-weight:900;
+    box-shadow:0 2px 4px #193b3152;
+  }
+  .scene--game .table-play {padding:2px 4px 1px;gap:3px;justify-content:flex-start;}
+  .scene--game .round-counter {display:none;}
+  .scene--game .center-status {
+    min-height:28px;padding:3px 10px;font-size:12px;
+    text-overflow:ellipsis;overflow:hidden;
+  }
+  .scene--game .turn-clock__rail {width:clamp(33px,9.5vw,48px);}
+  .scene--game .turn-clock__time strong {font-size:15px;}
+  .scene--game .field-row {width:100%;gap:3px;min-height:0;}
+  .scene--game .deck-pile {width:clamp(34px,10vw,43px);gap:3px;}
+  .scene--game .deck-pile .hwatu {width:clamp(34px,10vw,43px);}
+  .scene--game .deck-pile small {font-size:9px;}
+  .scene--game .floor-area {
+    width:calc(100% - 46px);min-width:0;min-height:0;max-height:100%;
+    gap:4px 3px;padding:3px 2px;align-content:center;
+    overflow-y:auto;overscroll-behavior:contain;
+  }
+  .scene--game .floor-area[data-density="normal"] .hwatu {width:clamp(50px,15.8vw,68px);}
+  .scene--game .floor-area[data-density="busy"] .hwatu {width:clamp(45px,14.1vw,60px);}
+  .scene--game .floor-area[data-density="packed"] .hwatu {width:clamp(42px,12.5vw,55px);}
+  .scene--game .captured-grid {width:min(300px,94%);max-width:94%;}
+  .scene--game .capture-summary {padding:2px 8px;}
+  .scene--game .capture-title b {font-size:17px;}
+  .scene--game .capture-cats {font-size:9px;}
+  .scene--game .player-area {
+    display:grid;grid-template-rows:24px 48px minmax(0,1fr) 38px;
+    align-items:stretch;justify-items:center;justify-content:stretch;
+    padding:2px 5px max(env(safe-area-inset-bottom),4px);
+    gap:0;overflow:hidden;
+  }
+  .scene--game .player-status {min-height:0;margin:0;gap:0;}
+  .scene--game .player-status>div {min-height:22px;padding:0 8px 0 36px;}
+  .scene--game .player-mini-avatar {width:35px;left:0;bottom:-3px;}
+  .scene--game .player-status strong {font-size:19px;}
+  .scene--game .collection-rack {width:100%;min-height:0;padding:1px 4px;border-radius:9px;}
+  .scene--game .collection-head {height:15px;margin:0;font-size:10px;line-height:1;}
+  .scene--game .collection-head button {min-height:16px;padding:1px 8px;font-size:9px;}
+  .scene--game .collection-groups {height:28px;gap:3px;}
+  .scene--game .collection-group {
+    min-height:0;min-width:0;padding:1px 2px;gap:1px;
+    flex-direction:row;align-items:center;border-radius:6px;
+  }
+  .scene--game .collection-name {font-size:9px;}
+  .scene--game .collection-preview .hwatu {width:clamp(17px,4.6vw,21px);margin-left:-10px;}
+  .scene--game .hand-heading {display:none;}
+  .scene--game .my-hand {
+    height:100%;min-height:0;min-width:0;width:100%;
+    align-items:flex-end;justify-content:center;padding:0 1px 2px;
+    overflow:visible;
+  }
+  .scene--game .my-hand .hwatu {
+    width:clamp(54px,17vw,70px);
+    margin-left:clamp(-38px,-8.8vw,-27px);
+  }
+  .scene--game .my-hand .hwatu:first-child {margin-left:0;}
+  .scene--game .action-row {
+    align-self:end;min-height:37px;width:100%;max-width:100%;
+    gap:5px;padding:2px 1px 1px;justify-content:flex-start;overflow-x:auto;
+  }
+  .scene--game .action-chip,
+  .scene--game .action-chip--warm,
+  .scene--game .action-chip--auto,
+  .scene--game .action-chip--auto.is-on {
+    min-height:35px;padding:5px 10px;font-size:12px;
+  }
+  .scene--game .sound-control {
+    flex:none;min-width:39px;width:39px;padding:4px 7px;
+    font-size:0;gap:0;
+  }
+  .scene--game .sound-control .ui-icon {width:22px;height:22px;}
+}
+
+/* Landscape-like short phones: keep real, reachable cards rather than
+   scaling the whole board; trim only nonessential chrome and capture art. */
+@media (max-width:650px) and (max-height:700px) {
+  .scene--game {
+    grid-template-rows:max(36px,calc(30px + env(safe-area-inset-top)))
+      43px minmax(0,1fr) clamp(166px,28.5svh,197px);
+  }
+  .scene--game .center-status {min-height:24px;padding:2px 7px;font-size:11px;}
+  .scene--game .floor-area {gap:3px;padding:2px 1px;}
+  .scene--game .floor-area[data-density="normal"] .hwatu {width:clamp(47px,15vw,61px);}
+  .scene--game .floor-area[data-density="busy"] .hwatu {width:clamp(43px,13.6vw,54px);}
+  .scene--game .floor-area[data-density="packed"] .hwatu {width:clamp(40px,12.1vw,48px);}
+  .scene--game .captured-grid {width:min(270px,91%);}
+  .scene--game .capture-summary {padding:1px 6px;}
+  .scene--game .capture-cats {font-size:8px;}
+  .scene--game .player-area {grid-template-rows:21px 40px minmax(0,1fr) 34px;}
+  .scene--game .player-status strong {font-size:17px;}
+  .scene--game .player-mini-avatar {width:30px;}
+  .scene--game .player-status>div {padding-left:31px;}
+  .scene--game .collection-head {height:13px;font-size:9px;}
+  .scene--game .collection-head button {min-height:14px;}
+  .scene--game .collection-groups {height:23px;}
+  .scene--game .collection-group {padding:0 2px;}
+  .scene--game .collection-preview .hwatu {width:17px;}
+  .scene--game .my-hand .hwatu {width:clamp(50px,16vw,65px);}
+  .scene--game .action-row {min-height:33px;gap:4px;}
+  .scene--game .action-chip,
+  .scene--game .action-chip--warm,
+  .scene--game .action-chip--auto,
+  .scene--game .action-chip--auto.is-on {min-height:31px;padding:4px 8px;font-size:11px;}
+}
+
+@media (max-width:650px) and (max-height:560px) {
+  .scene--game {grid-template-rows:35px 38px minmax(0,1fr) clamp(146px,29svh,166px);}
+  .scene--game .opponent-avatar {width:37px;}
+  .scene--game .floor-area[data-density="normal"] .hwatu {width:clamp(43px,13.8vw,55px);}
+  .scene--game .floor-area[data-density="busy"] .hwatu {width:clamp(40px,12.8vw,51px);}
+  .scene--game .floor-area[data-density="packed"] .hwatu {width:clamp(37px,11.5vw,45px);}
+  .scene--game .player-area {grid-template-rows:19px 35px minmax(0,1fr) 31px;}
+  .scene--game .collection-head {height:12px;}
+  .scene--game .collection-groups {height:20px;}
+  .scene--game .my-hand .hwatu {width:clamp(45px,14.5vw,58px);}
+  .scene--game .action-row {min-height:30px;}
+  .scene--game .action-chip,
+  .scene--game .action-chip--warm,
+  .scene--game .action-chip--auto,
+  .scene--game .action-chip--auto.is-on {min-height:29px;padding:3px 7px;font-size:10px;}
+}
