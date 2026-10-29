@@ -205,11 +205,11 @@
     return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
   };
   const dayKey = function () { return getKstDate(0); };
-  const dailyGame = function () {
-    const n = new Date(dayKey() + 'T12:00:00+09:00').getUTCDay();
+  const dailyGame = function (date) {
+    const n = new Date((date||dayKey()) + 'T12:00:00+09:00').getUTCDay();
     return gameById(['mystery','spot','whack','stroop','memory','number','sort'][n]);
   };
-  const hasDaily = function () { return !!state.history[dayKey()]; };
+  const hasDaily = function (date) { return !!state.history[date||dayKey()]; };
   const completedDaily = function (date) {return !!(state.history[date] && state.history[date].complete);};
   const streak = function () {
     let start = completedDaily(dayKey()) ? 0 : -1, count = 0;
@@ -442,13 +442,18 @@
   function startGame(gameId,official) {
     if (session)stopSession();
     syncStoredProgress();
-    if (official && hasDaily()) {toast('오늘 공식 도전은 이미 사용했어!');preview(gameId,false);return;}
+    const today=dayKey();
+    if (official && hasDaily(today)) {toast('오늘 공식 도전은 이미 사용했어!');preview(gameId,false);return;}
+    if (official && dailyGame(today).id!==gameId) {
+      preview(dailyGame(today).id,true);
+      toast('날짜가 바뀌어 오늘의 도전을 새로 준비했어!');return;
+    }
     if (official) {
-      const today=dayKey();state.history[today]={gameId:gameId,complete:false,score:0};
+      state.history[today]={gameId:gameId,complete:false,score:0};
       if(!save()){delete state.history[today];official=false;toast('기록을 저장할 수 없어 자유 플레이로 시작해요.');}
     }
     history.pushState(Object.assign({},history.state,{sixtyGameSession:true}),'',location.href);
-    session={game:gameById(gameId),official:official,officialDay:official?dayKey():null,score:0,combo:0,bestCombo:0,correct:0,wrong:0,
+    session={game:gameById(gameId),official:official,officialDay:official?today:null,score:0,combo:0,bestCombo:0,correct:0,wrong:0,
       deadline:performance.now()+60000,pausedAt:null,roundTimeout:null,roundTask:null,roundRemaining:0,roundDueAt:null,reactionTimeout:null,locked:false,round:0,memoryTarget:-1,nextNum:1};
     $('#modalHelp').title=GAME_GUIDES[session.game.id].hint;
     modal('<div class="modal-title" id="modalTitle">'+artIcon('star')+' '+esc(session.game.name)+'</div>'+
