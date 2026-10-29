@@ -869,3 +869,21 @@ body[data-view="games"] #games{animation:gamePageFade .24s ease-out both}
 
 /* Keep the 3×3 memory board fixed as the emoji changes to a question mark. */
 .arena[data-game="memory"] .memory-cell{padding:0;min-width:0;line-height:1;display:grid;place-items:center}
+
+/* Stable play surface: no board shake, flashes or animated answer overlays. */
+.modal.is-playing .arena, .modal.is-playing .arena::before,
+.modal.is-playing .arena button, .modal.is-playing .arena .whack-sprite,
+.modal.is-playing .feedback, .modal.is-playing .game-host img,
+.modal.is-playing .host-talk small, .modal.is-playing .stage-chip,
+.modal.is-playing .urgent-time { animation:none!important; }
+.modal.is-playing .arena button:active {transform:none!important;}
+.modal.is-playing .game-host .host-talk small {white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.modal.is-playing .feedback {overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.modal.is-playing .hud {backdrop-filter:none;}
+.overlay-backdrop {backdrop-filter:none;}
+
+/* In-app mobile browsers: keep the preview and pause layers static as well. */
+.overlay .modal, .overlay .modal *, .overlay .pause-screen, .overlay .pause-screen * {animation:none!important;transition:none!important;}
+.overlay .pause-screen {backdrop-filter:none;}
+.overlay .game-preview img {transform:none!important;filter:none!important;}
+.overlay .game-host img {will-change:auto;filter:none;}
