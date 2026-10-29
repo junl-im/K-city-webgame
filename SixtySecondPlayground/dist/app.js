@@ -422,7 +422,7 @@
     if (session)stopSession();
     if (official && hasDaily()) {toast('오늘 공식 도전은 이미 사용했어!');preview(gameId,false);return;}
     if (official) {state.history[dayKey()]={gameId:gameId,complete:false,score:0};save();}
-    session={game:gameById(gameId),official:official,score:0,combo:0,bestCombo:0,correct:0,wrong:0,
+    session={game:gameById(gameId),official:official,officialDay:official?dayKey():null,score:0,combo:0,bestCombo:0,correct:0,wrong:0,
       deadline:performance.now()+60000,pausedAt:null,roundTimeout:null,roundTask:null,roundRemaining:0,roundDueAt:null,reactionTimeout:null,locked:false,round:0,memoryTarget:-1,nextNum:1};
     $('#modalHelp').title=GAME_GUIDES[session.game.id].hint;
     modal('<div class="modal-title" id="modalTitle">'+artIcon('star')+' '+esc(session.game.name)+'</div>'+
@@ -727,7 +727,7 @@
     const newRecord=s.score>previousBest;
     state.plays[s.game.id]=(state.plays[s.game.id]||0)+1;
     state.best[s.game.id]=Math.max(state.best[s.game.id]||0,s.score);
-    if(s.official)state.history[dayKey()]={gameId:s.game.id,complete:true,score:s.score};
+    if(s.official)state.history[s.officialDay||dayKey()]={gameId:s.game.id,complete:true,score:s.score};
     const newBadges=badgeUnlock();save();refresh();renderGames($('[data-filter].active')?.dataset.filter||'all');
     const medal=s.score>=5000?'trophy':s.score>=2500?'medal':s.score>=1000?'star':'leaf';
     const praise=s.score>=5000?'모두가 깜짝 놀란 전설의 60초!':s.score>=2500?'정말 멋진 탐험이었어!':s.score>=1000?'실력이 쑥쑥 자라고 있어!':'도전하는 모습 자체가 멋져!';
@@ -743,9 +743,10 @@
       '<p class="helper-text">공식 도전은 하루 1회 · 자유 플레이는 무제한</p>');
     $('#replayGame').addEventListener('click',function(){preview(s.game.id,false);});
     $('#shareGame').addEventListener('click',function(){
+      const shareUrl=new URL('./?view=games',window.location.href).href;
       const text='🎠 오늘의 60초 놀이터\n'+s.game.name+' '+padScore(s.score)+'점!\n나도 60초 도전했어!';
-      if(navigator.share){navigator.share({title:'오늘의 60초 놀이터',text:text}).catch(function(){});}
-      else if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('결과를 복사했어!');}).catch(function(){toast('공유할 수 없었어.');});}
+      if(navigator.share){navigator.share({title:'오늘의 60초 놀이터',text:text,url:shareUrl}).catch(function(){});}
+      else if(navigator.clipboard){navigator.clipboard.writeText(text+'\n'+shareUrl).then(function(){toast('결과를 복사했어!');}).catch(function(){toast('공유할 수 없었어.');});}
       else toast('이 브라우저는 공유 기능을 지원하지 않아.');
     });
   }
