@@ -438,9 +438,10 @@
     if (!session||session.pausedAt!==null) return;
     const left=Math.max(0,(session.deadline-performance.now())/1000);
     const timeEl=$('#hudTime'), fill=$('#timerFill');
-    if(timeEl)timeEl.textContent=left.toFixed(1);
+    const shown=left.toFixed(1);
+    if(timeEl&&timeEl.textContent!==shown)timeEl.textContent=shown;
     if(timeEl)timeEl.classList.toggle('urgent-time',left<=10);
-    if(fill){fill.style.width=(left/60*100).toFixed(2)+'%';fill.classList.toggle('urgent',left<=10);}
+    if(fill){const width=(Math.ceil(left*10)/600*100).toFixed(2)+'%';if(fill.style.width!==width)fill.style.width=width;fill.classList.toggle('urgent',left<=10);}
     if(left<=0){finish();return;}
     animFrame=requestAnimationFrame(tick);
   }
@@ -580,7 +581,7 @@
       toast(stage===2?'✨ 2단계 시작! 조금 더 어려워져!':'🔥 3단계 시작! 집중해 봐!');
     }
     $('#feedback').textContent='';$('#feedback').className='feedback';
-    const arena=$('#arena');arena.innerHTML='';arena.dataset.stage=String(stage);
+    const arena=$('#arena');if(s.game.id!=='memory')arena.innerHTML='';arena.dataset.stage=String(stage);
     const prompt=$('#gamePrompt');
     switch(s.game.id){
     case 'whack': {
@@ -665,16 +666,23 @@
     case 'memory': {
       const revealTime=stage===1?950:stage===2?780:650;
       prompt.textContent='반짝이는 별의 자리를 기억해!';
-      const target=pickDifferentIndex(9,s.memoryTarget),grid=document.createElement('div');grid.className='memory-grid';s.memoryTarget=target;s.locked=true;
-      const cells=[];
-      for(let i=0;i<9;i++){const b=choiceButton(i===target?'⭐':'✧',function(){
-        if(s.locked)return;
-        revealAnswer(b,cells[target]);
-        feedback(i===target,i===target?'기억력 최고!':'별의 자리는 여기였어!',100,b);
-        after(450);
-      },'memory-cell');b.disabled=true;cells.push(b);grid.append(b);}
+      const target=pickDifferentIndex(9,s.memoryTarget);s.memoryTarget=target;s.locked=true;
+      let grid=arena.querySelector('.memory-grid');
+      if(!grid){grid=document.createElement('div');grid.className='memory-grid';
+        for(let i=0;i<9;i++){const cell=document.createElement('button');cell.type='button';grid.append(cell);}
+        arena.append(grid);
+      }
+      const cells=Array.from(grid.children);
+      cells.forEach(function(b,i){
+        b.className='memory-cell';b.textContent=i===target?'⭐':'✧';b.disabled=true;
+        b.onclick=function(){
+          if(s.locked)return;
+          revealAnswer(b,cells[target]);
+          feedback(i===target,i===target?'기억력 최고!':'별의 자리는 여기였어!',100,b);
+          after(450);
+        };
+      });
       cells[target].classList.add('memory-target');
-      arena.append(grid);
       scheduleRoundTask(s,function(){
         if(!session||session!==s)return;
         cells.forEach(function(b){b.textContent='?';b.disabled=false;});
