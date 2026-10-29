@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { landingCue,groundShadowCue,wavefrontSpacing,magnetBallPosition,pulleySceneMotion,orbitalTrailCount,orbitToySizes,litBulbOpacity,celebrationCue } from './visual-effects.mjs';
+import { landingCue,groundShadowCue,wavefrontSpacing,magnetBallPosition,pulleySceneMotion,leverFulcrumSpriteTop,orbitalTrailCount,orbitToySizes,litBulbOpacity,celebrationCue } from './visual-effects.mjs';
 
 assert.equal(landingCue(-1).alpha,0);
 assert.equal(landingCue(.9).alpha,0);
@@ -49,3 +49,9 @@ assert.equal(litBulbOpacity(1,true),1,'Fully powered bulb uses the bright art');
 assert.equal(celebrationCue(0).alpha,0);
 assert.equal(celebrationCue(1).alpha,1);
 console.log('Illustrated visual cues preserve motion bounds and sound-wave order');
+
+for(const size of [48,72,98]){
+  const beamY=360,visibleTip=leverFulcrumSpriteTop(beamY,size)+size*.20;
+  assert.ok(visibleTip<=beamY&&beamY-visibleTip<=size*.04,
+    'Visible fulcrum painting must meet the beam underside');
+}
