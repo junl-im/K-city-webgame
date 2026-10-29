@@ -3030,8 +3030,9 @@ button:disabled { cursor: not-allowed; opacity:.48; }
   min-width:0;display:flex;flex-direction:column;
   align-items:center;justify-content:flex-start;gap:6px;
   padding:9px 5px 10px;border:1px solid #e3caa2;border-radius:14px;
-  background:#fff6e8aa;
+  background:#fff6e8aa;cursor:pointer;
 }
+.scene--game .match-choice:focus-within {border-color:#c67d4f;box-shadow:0 0 0 2px #c67d4f66;}
 .scene--game .match-choice__number {
   font-size:12px;font-weight:950;color:#9b6041;
 }
