@@ -515,3 +515,35 @@
     word-break:keep-all;
   }
 }
+
+
+/* v26 screenshot pass: the four individually painted menu medals do not need a fifth shared panel behind them. */
+#app .bottom-hud{
+  border:0!important;
+  background-image:none!important;
+  background-color:transparent!important;
+  box-shadow:none!important;
+  padding:3px 4px!important;
+  gap:7px!important;
+}
+#app .bottom-hud button{
+  box-shadow:0 4px 12px #21453c28!important;
+}
+#app .area.active{
+  box-shadow:0 3px 12px #27483935!important;
+  outline:2px solid #a3c6a3;
+  outline-offset:-3px;
+}
+#app .guide{
+  color:#3d5b43!important;
+  text-shadow:0 1px 2px #fffefa!important;
+  font-weight:800!important;
+  line-height:1.32;
+  max-width:min(520px,calc(100vw - 22px));
+  text-wrap:balance;
+}
+@media(max-width:600px){
+  #app .bottom-hud{gap:4px!important;padding:2px!important}
+  #app .bottom-hud button{box-shadow:0 3px 9px #21453c28!important}
+  #app .guide{max-width:min(88vw,340px);font-size:11px;padding:7px 10px}
+}

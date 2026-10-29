@@ -691,8 +691,10 @@ async function start() {
   // A wooden wayfinding sign should sit on the ground, not above everything.
   gate.zIndex = footDepth(600)+18; objects.addChild(gate);
   const gateBackground = new Graphics().roundRect(-98, -30, 196, 60, 18).fill({ color: '#fff4d1', alpha: .96 }).roundRect(-98, -30, 196, 60, 18).stroke({ color: '#a78054', width: 4 });
-  const gateLabel = new Text({ text: '큰 텃밭으로 →', style: { fontFamily: 'sans-serif', fontSize: 22, fontWeight: 'bold', fill: '#694a2e' } });
+  const gateLabel = new Text({ text: '큰 텃밭으로 →', style: { fontFamily: 'sans-serif', fontSize: 17, fontWeight: '900', fill: '#344d37', stroke: { color: '#fff9e8', width: 3 } } });
   gateLabel.anchor.set(.5);
+  gateLabel.position.x = 18;
+  gateLabel.zIndex = 10;
   gate.addChild(gateBackground, gateLabel);
   gate.eventMode = 'static'; gate.cursor = 'pointer';
   gate.on('pointertap', () => switchZone(NEXT_ZONE[currentZone]));
@@ -700,25 +702,65 @@ async function start() {
   const station = new Container();
   station.zIndex = footDepth(485)+22; objects.addChild(station);
   const stationFrame = new Graphics().roundRect(-123, -39, 246, 78, 19).fill({ color: '#fff4cf', alpha: .96 }).roundRect(-123, -39, 246, 78, 19).stroke({ color: '#9e7547', width: 5 });
-  const stationText = new Text({ text: '조합 시작', style: { fontFamily: 'sans-serif', fontSize: 26, fontWeight: 'bold', fill: '#684527' } });
+  const stationText = new Text({ text: '조합 시작', style: { fontFamily: 'sans-serif', fontSize: 22, fontWeight: '900', fill: '#344b40', stroke: { color: '#fffcf2', width: 3 } } });
   stationText.anchor.set(.5);
+  stationText.position.x = 17;
+  stationText.zIndex = 10;
   station.addChild(stationFrame, stationText);
   station.eventMode = 'static'; station.cursor = 'pointer';
   station.on('pointertap', () => { if (currentZone === 'lab') openLab(); else if (currentZone === 'nursery') openNursery(); });
-  // Painted 9-slice-like wooden signs replace the prototype rectangles once images load.
-  const loadSignArt = (filename: string, parent: Container, fallback: Graphics, width: number, height: number) => {
-    void Assets.load<Texture>(`${import.meta.env.BASE_URL}assets/${filename}`).then((texture) => {
-      const artwork = new Sprite(texture);
-      artwork.anchor.set(.5);
-      artwork.width = width; artwork.height = height;
-      artwork.eventMode = 'none';
-      parent.addChildAt(artwork, 0);
-      fallback.visible = false;
-    }).catch(() => { /* Fallback remains playable offline. */ });
-  };
-  loadSignArt('ui-button-wood-v1.webp', gate, gateBackground, 196, 60);
-  loadSignArt('ui-button-green-v1.webp', station, stationFrame, 246, 78);
+  // v26: each destination and each workshop owns a distinct hand-painted raster sign.
+  // The source image is fitted uniformly: never assign width and height separately.
+  const gateSurface = new Sprite(Texture.EMPTY);
+  gateSurface.anchor.set(.5);
+  gateSurface.eventMode = 'none';
+  gateSurface.visible = false;
+  gate.addChildAt(gateSurface, 0);
+  const stationSurface = new Sprite(Texture.EMPTY);
+  stationSurface.anchor.set(.5);
+  stationSurface.eventMode = 'none';
+  stationSurface.visible = false;
+  station.addChildAt(stationSurface, 0);
 
+  const gateArtByDestination: Record<Zone, string> = {
+    town: 'ui-v26-gate-town.webp',
+    farm: 'ui-v26-gate-farm.webp',
+    lab: 'ui-v26-gate-lab.webp',
+    nursery: 'ui-v26-gate-nursery.webp',
+  };
+  const stationArtByZone: Partial<Record<Zone, string>> = {
+    lab: 'ui-v26-station-lab.webp',
+    nursery: 'ui-v26-station-nursery.webp',
+  };
+  let signRevision = 0;
+  function fitOriginalSign(sprite: Sprite, texture: Texture, maxWidth: number, maxHeight: number) {
+    sprite.texture = texture;
+    const scale = Math.min(maxWidth / texture.width, maxHeight / texture.height);
+    sprite.scale.set(scale);
+    sprite.visible = true;
+  }
+  function refreshWorldSignArt(zone: Zone) {
+    const revision = ++signRevision;
+    gateSurface.visible = false;
+    gateBackground.visible = true;
+    const gateFile = gateArtByDestination[NEXT_ZONE[zone]];
+    void Assets.load<Texture>(import.meta.env.BASE_URL + 'assets/' + gateFile).then((texture) => {
+      if (revision !== signRevision) return;
+      fitOriginalSign(gateSurface, texture, 196, 60);
+      gateBackground.visible = false;
+    }).catch(() => { /* The readable light cream fallback remains usable offline. */ });
+
+    stationSurface.visible = false;
+    stationFrame.visible = true;
+    const stationFile = stationArtByZone[zone];
+    if (stationFile) {
+      void Assets.load<Texture>(import.meta.env.BASE_URL + 'assets/' + stationFile).then((texture) => {
+        if (revision !== signRevision) return;
+        fitOriginalSign(stationSurface, texture, 246, 78);
+        stationFrame.visible = false;
+      }).catch(() => { /* Retain the live label and playable station. */ });
+    }
+  }
 
   const plotViews: Graphics[] = [];
   const cropArtViews: Graphics[] = [];
@@ -1135,6 +1177,7 @@ async function start() {
     station.position.set(next === 'lab' ? 660 : 685, 485);
     station.zIndex=footDepth(485)+22;
     stationText.text = next === 'lab' ? '조합 시작' : '부화실 열기';
+    refreshWorldSignArt(next);
     const loc = next === 'farm' ? '큰 텃밭에 도착했어! 흙을 눌러 씨앗을 심어봐.' : next === 'lab' ? '토끼의 실험실이야! 수확한 열매로 신기한 조합을 해봐.' : next === 'nursery' ? '고양이가 돌보는 몬스터 연구소야. 알을 부화시켜봐!' : '햇살 마을에 돌아왔어. 여우 친구가 반겨줄 거야!';
     showGuide(loc); updateHud(); persist(); drawPlots();
     refreshCamera(true);
@@ -1214,7 +1257,7 @@ async function start() {
   (document.getElementById('help-button') as HTMLButtonElement).addEventListener('click', openHelp);
 
   if (currentZone !== 'town') { const firstZone = currentZone; currentZone = 'town'; switchZone(firstZone); }
-  else { gateLabel.text = ZONE_NAV[NEXT_ZONE.town] + ' →'; gate.position.set(1110, 600); plotViews.forEach((plot) => { plot.visible = false; }); station.visible = false; }
+  else { gateLabel.text = ZONE_NAV[NEXT_ZONE.town] + ' →'; gate.position.set(1110, 600); plotViews.forEach((plot) => { plot.visible = false; }); station.visible = false; refreshWorldSignArt('town'); }
   drawPlots(); updateHud(); refreshCamera(true);
   app.ticker.add((ticker) => {
     const dt = Math.min(2.4, ticker.deltaTime);
