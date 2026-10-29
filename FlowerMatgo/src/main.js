@@ -10,6 +10,7 @@ import { findBombOptions, findShakeOptions } from './engine/rules/specialRules';
 import { getCard, HWATU_CARDS } from './engine/cards';
 import { ALLOWED_STAKES, STAKES, canUseStake, normalizeStake } from './stakeRules.js';
 import { groupedCaptures } from './capturedCards.js';
+import { floorDensity } from './floorLayout.js';
 import { cardBookLabel, cardVisualDetails } from './cardDisplay.js';
 import { hwatuFamily, spokenActionText, spokenCardName } from './cardNames.js';
 import { animateResolvedTurn, motionOrigin } from './turnPresentation.js';
@@ -402,7 +403,7 @@ function gameScreen() {
       <div class="field-heading"><strong>바닥패 ${floor.length}장</strong><span>같은 무늬를 맞춰 획득!</span></div>
       <div class="field-row">
         <div class="deck-pile">${cardBack()}<small>남은 패 <b>${g.drawPile.length}</b></small></div>
-        <div class="floor-area" data-density="${floor.length >= 13 ? 'packed' : floor.length >= 9 ? 'busy' : 'normal'}" aria-label="바닥에 놓인 화투패">${floor.length ? floor.map(id=>card(id)).join('') : '<div class="empty-floor">바닥패가 없어요 ✿</div>'}</div>
+        <div class="floor-area" data-density="${floorDensity(floor.length)}" aria-label="바닥에 놓인 화투패">${floor.length ? floor.map(id=>card(id)).join('') : '<div class="empty-floor">바닥패가 없어요 ✿</div>'}</div>
       </div>
       <div class="captured-grid">${capturedSummary(g,'computer')}</div>
       <div class="game-message" aria-live="polite" title="${safe(spokenActionText(g.lastAction))}">${safe(spokenActionText(g.lastAction))}</div>
