@@ -612,3 +612,25 @@
 #app .area,#app .bottom-hud button{background-color:transparent!important;border:0!important;box-shadow:none!important;background-size:contain!important;filter:drop-shadow(0 3px 4px #49351e55)!important}
 #app .area.active{filter:drop-shadow(0 0 4px #f5ffd2) drop-shadow(0 3px 4px #3b633a88)!important}
 #app .area:focus-visible,#app .bottom-hud button:focus-visible{outline:3px solid #426b3b;outline-offset:2px}
+
+
+/* Give each existing painting room to breathe; keep the live text on its clear paper. */
+#app .brand{width:320px;max-width:min(52vw,320px);min-height:76px;padding:10px 20px 9px 108px;background-size:contain!important;background-position:left center!important}
+#app .brand strong{font-size:14px;line-height:1.25;color:#45301f;text-shadow:0 1px #fff9e9!important;word-break:keep-all}
+#app .brand small{font-size:11px;color:#62513b;text-shadow:0 1px #fff9e9!important}
+#app .area{padding-left:clamp(25px,3vw,38px);padding-right:10px}
+#app .area span:not(.art-icon){font-size:13px;line-height:1.2;color:#443024;text-shadow:0 1px #fffbed,0 0 5px #fffbed!important}
+#app .area.active span:not(.art-icon){color:#245637}
+#app #creek-visit-button{min-width:160px;min-height:54px;padding:5px 18px 5px 43px;background-image:url('/assets/ui-v23-creek.webp')!important;background-size:contain!important;background-position:center!important;background-color:transparent!important;border:0!important;border-radius:0;box-shadow:none!important;filter:drop-shadow(0 3px 4px #174c4655);color:#244c42!important;font-size:13px;line-height:1.2}
+@media(max-width:760px){
+  #app .brand{width:min(245px,calc(100vw - 110px));max-width:calc(100vw - 110px);min-height:64px;padding:7px 9px 7px 78px}
+  #app .brand strong{font-size:clamp(10px,3vw,13px)}
+  #app .brand small{font-size:10px}
+  #app .area{padding-left:26px;padding-right:5px}
+  #app .area span:not(.art-icon){font-size:11px}
+  #app #creek-visit-button{min-width:135px;min-height:48px;padding:4px 10px 4px 34px;font-size:11px}
+}
+@media(max-width:350px){#app .brand{padding-left:65px}#app .area{padding-left:21px}}
+
+#app .area.active{outline:none}
+#app .area.active:focus-visible{outline:3px solid #426b3b;outline-offset:2px}
