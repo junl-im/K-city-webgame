@@ -172,6 +172,7 @@ const experimentPropsArtwork=new Image();
 experimentPropsArtwork.src='./assets/physics-props-atlas-v09.webp';
 const surfaceMaterialArtwork=new Image();
 surfaceMaterialArtwork.src='./assets/physics-surface-atlas-v18.png';
+surfaceMaterialArtwork.onerror=()=>{if(!surfaceMaterialArtwork.src.endsWith('physics-surface-atlas-v17.webp'))surfaceMaterialArtwork.src='./assets/physics-surface-atlas-v17.webp';};
 const apparatusMaterialArtwork=new Image();
 apparatusMaterialArtwork.src='./assets/physics-apparatus-materials-v01.png';
 const heatWaterGlassArtwork=new Image();
