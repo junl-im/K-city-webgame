@@ -391,6 +391,7 @@ async function start() {
   const app = new Application();
   await app.init({ resizeTo: stageElement, background: '#8dcab3', antialias: true, resolution: Math.min(window.devicePixelRatio || 1, 1.5), autoDensity: true, preference: 'webgl' });
   stageElement.appendChild(app.canvas);
+  app.canvas.style.visibility = 'hidden';
   const world = new Container();
   world.sortableChildren = true;
   app.stage.addChild(world);
@@ -403,22 +404,27 @@ async function start() {
     lab: 'lab-scene-v1.webp',
     nursery: 'nursery-scene-v1.webp',
   };
-  const loadingRasters: Partial<Record<Zone, Promise<void>>> = {};
-  function loadRaster(zone: Zone): Promise<void> {
+  const loadingRasters: Partial<Record<Zone, Promise<boolean>>> = {};
+  const readyRasters = new Set<Zone>();
+  let transitionToken = 0;
+  function loadRaster(zone: Zone): Promise<boolean> {
     const filename = rasterAssets[zone];
-    if (!filename) return Promise.resolve();
+    if (!filename) return Promise.resolve(false);
     if (loadingRasters[zone]) return loadingRasters[zone];
     // 고품질 원화는 해당 지역에 들어갈 때만 로드한다. 실패해도 기본 그림으로 플레이할 수 있다.
     const url = `${import.meta.env.BASE_URL}assets/${filename}`;
     const load = Assets.load<Texture>(url).then((texture) => {
       art[zone] = texture;
+      readyRasters.add(zone);
       if (saveData.zone === zone) {
         background.texture = texture;
         background.width = WORLD_WIDTH;
         background.height = WORLD_HEIGHT;
       }
+      return true;
     }).catch(() => {
-      // 오프라인 또는 저속 연결에서는 절차적 Canvas 배경을 그대로 사용한다.
+      delete loadingRasters[zone];
+      return false;
     });
     loadingRasters[zone] = load;
     return load;
@@ -427,7 +433,8 @@ async function start() {
   background.height = WORLD_HEIGHT;
   background.eventMode = 'static';
   world.addChild(background);
-  void loadRaster(saveData.zone);
+  await loadRaster(saveData.zone);
+  app.canvas.style.visibility = '';
 
   // 손그림 투명 WebP 물결이 마을에만 흐른다. 클릭/터치 이벤트와는 무관하다.
   // 납작한 배경의 실제 그림 위로 덮이므로 마스크로 개울 가장자리와 폭포만 제한한다.
@@ -1156,7 +1163,20 @@ async function start() {
   });
 
   function switchZone(next: Zone) {
+    const request = ++transitionToken;
     if (currentZone === next) return;
+    if (!readyRasters.has(next)) {
+      showGuide('새로운 풍경을 준비하고 있어요. 잠시만 기다려 주세요.');
+      void loadRaster(next).then((ready) => {
+        if (request !== transitionToken) return;
+        if (!ready) {
+          showGuide('풍경을 불러오지 못했어요. 연결을 확인하고 다시 눌러 주세요.');
+          return;
+        }
+        switchZone(next);
+      });
+      return;
+    }
     currentZone = next;
     saveData.zone = next;
     // Zone-specific art must never leak into the next painted room.
