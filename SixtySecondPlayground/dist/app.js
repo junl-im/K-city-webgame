@@ -720,6 +720,25 @@
     }
     }
   }
+  function copyShareResult(value) {
+    function fallbackCopy() {
+      const field=document.createElement('textarea');
+      field.value=value;field.setAttribute('readonly','');
+      field.style.cssText='position:fixed;left:-9999px;top:-9999px;opacity:0;';
+      document.body.appendChild(field);field.select();
+      let copied=false;
+      try {copied=!!document.execCommand('copy');}catch(error){}
+      field.remove();
+      toast(copied?'결과와 게임 주소를 복사했어!':'자동 복사에 실패했어. 기기 공유 메뉴를 이용해줘.');
+    }
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      try {
+        navigator.clipboard.writeText(value).then(function(){toast('결과와 게임 주소를 복사했어!');}).catch(fallbackCopy);
+        return;
+      }catch(error){}
+    }
+    fallbackCopy();
+  }
   function finish() {
     if(!session)return;
     const s=session;stopSession();sound('finish',s.game.id,s.combo);
@@ -745,9 +764,14 @@
     $('#shareGame').addEventListener('click',function(){
       const shareUrl=new URL('./?view=games',window.location.href).href;
       const text='🎠 오늘의 60초 놀이터\n'+s.game.name+' '+padScore(s.score)+'점!\n나도 60초 도전했어!';
-      if(navigator.share){navigator.share({title:'오늘의 60초 놀이터',text:text,url:shareUrl}).catch(function(){});}
-      else if(navigator.clipboard){navigator.clipboard.writeText(text+'\n'+shareUrl).then(function(){toast('결과를 복사했어!');}).catch(function(){toast('공유할 수 없었어.');});}
-      else toast('이 브라우저는 공유 기능을 지원하지 않아.');
+      const copyFallback=function(){copyShareResult(text+'\n'+shareUrl);};
+      if(typeof navigator.share!=='function'){copyFallback();return;}
+      try {
+        navigator.share({title:'오늘의 60초 놀이터',text:text,url:shareUrl}).then(function(){toast('결과를 공유했어!');}).catch(function(error){
+          if(error&&error.name==='AbortError'){toast('공유를 취소했어.');return;}
+          copyFallback();
+        });
+      }catch(error){copyFallback();}
     });
   }
   function showRecords() {
