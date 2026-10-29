@@ -585,6 +585,11 @@
     if(selected)selected.classList.add(selected===answer?'answer-correct':'answer-wrong');
     if(answer&&answer!==selected)answer.classList.add('answer-reveal');
   }
+  function canAnswer(s){
+    if(session!==s||s.locked||s.pausedAt!==null)return false;
+    if(performance.now()>=s.deadline){finish();return false;}
+    return true;
+  }
   function choiceButton(text,fn,cls){
     const b=document.createElement('button');b.type='button';b.className=cls||'choice';b.textContent=text;
     b.addEventListener('click',fn);return b;
@@ -621,7 +626,7 @@
         const dangerIndex=dangers.indexOf(i);
         const symbol=i===target?monster:dangerIndex>=0?friends[dangerIndex]:['🌸','🍀','🌼'][rand(3)];
         const cell=choiceButton(symbol,function(){
-          if(s.locked)return;
+          if(!canAnswer(s))return;
           revealAnswer(cell,grid.children[target]);
           feedback(i===target,i===target?'몬스터 잡았다! +점수':dangerIndex>=0?'친구를 건드렸어!':'몬스터가 아니야!',100,cell);after(260);
         },'tap-cell');paintWhackCell(cell,symbol);grid.append(cell);
@@ -634,7 +639,7 @@
       const grid=document.createElement('div');grid.className='num-grid';
       s.numbers.forEach(function(n){
         const b=choiceButton(String(n),function(){
-          if(s.locked||b.disabled)return;
+          if(b.disabled||!canAnswer(s))return;
           if(n===s.nextNum) {
             b.disabled=true;b.classList.add('done');b.textContent='✦';s.nextNum++;
             feedback(true,'좋아! 다음 숫자!',100,b);
@@ -664,7 +669,7 @@
             sample.setAttribute('aria-hidden','true');wrap.append(sample);return;
           }
           const b=choiceButton('',function(){
-            if(s.locked)return;
+            if(!canAnswer(s))return;
             revealAnswer(b,rightCells[changed]);
             feedback(i===changed,i===changed?'찾았다! ✨':'이 친구는 똑같아!',100,b);after(500);
           },'spot-cell');b.setAttribute('aria-label',(i+1)+'번 '+paintSpotCell(b,icon)+' 그림 선택');rightCells.push(b);wrap.append(b);
@@ -681,7 +686,7 @@
       const grid=document.createElement('div');grid.className='choice-grid';
       colors.forEach(function(c,i){
         const b=choiceButton(c.name,function(){
-          if(s.locked)return;
+          if(!canAnswer(s))return;
           revealAnswer(b,grid.children[ink]);
           feedback(i===ink,i===ink?'정확한 색이야!':'눈에 보이는 색을 봐!',100,b);after(390);
         },'choice color-option');
@@ -702,7 +707,7 @@
       cells.forEach(function(b,i){
         b.className='memory-cell';b.textContent=i===target?'⭐':'✧';b.disabled=true;
         b.onclick=function(){
-          if(s.locked)return;
+          if(!canAnswer(s))return;
           revealAnswer(b,cells[target]);
           feedback(i===target,i===target?'기억력 최고!':'별의 자리는 여기였어!',100,b);
           after(450);
@@ -729,7 +734,7 @@
       const grid=document.createElement('div');grid.className='sort-choices';
       families.forEach(function(f,i){
         const b=choiceButton(f.icon+' '+f.name,function(){
-          if(s.locked)return;
+          if(!canAnswer(s))return;
           revealAnswer(b,grid.children[family]);
           feedback(i===family,i===family?'분류 성공!':'이 속성은 아니야!',100,b);after(410);
         },'choice');grid.append(b);
@@ -745,7 +750,7 @@
       const answerIndex=options.findIndex(function(option){return option.valid;});
       options.forEach(function(option,i){
         const b=choiceButton((i+1)+'. '+option.text,function(){
-          if(s.locked)return;
+          if(!canAnswer(s))return;
           revealAnswer(b,opts.children[answerIndex]);
           feedback(option.valid,option.valid?'정답! 명탐정이야!':'정답은 '+q.a[0]+'!',100,b);after(580);
         },'choice');opts.append(b);
