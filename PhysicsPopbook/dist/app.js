@@ -171,7 +171,9 @@ blueShoeArtwork.src='./assets/toy-shoe-sprite-v09.webp';
 const experimentPropsArtwork=new Image();
 experimentPropsArtwork.src='./assets/physics-props-atlas-v09.webp';
 const surfaceMaterialArtwork=new Image();
-surfaceMaterialArtwork.src='./assets/physics-surface-atlas-v17.webp';
+surfaceMaterialArtwork.src='./assets/physics-surface-atlas-v18.png';
+const apparatusMaterialArtwork=new Image();
+apparatusMaterialArtwork.src='./assets/physics-apparatus-materials-v01.png';
 const heatWaterGlassArtwork=new Image();
 heatWaterGlassArtwork.src='./assets/heat-water-glass-v24.webp';
 const physicsToyArtwork=new Image();
@@ -1718,7 +1720,7 @@ function renderFallback(s, targetContext = fallbackContext, targetCanvas = canva
   const ctx=targetContext;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
   if(EVERYDAY_IDS.includes(s.lesson)){
     drawEverydayScene(ctx,{
-      lesson:s.lesson,art:cuteToyArtwork[s.lesson],atlas:experimentPropsArtwork,shoe:blueShoeArtwork,surfaceAtlas:surfaceMaterialArtwork,waterGlass:heatWaterGlassArtwork,width:w,height:h,
+      lesson:s.lesson,art:cuteToyArtwork[s.lesson],atlas:experimentPropsArtwork,shoe:blueShoeArtwork,surfaceAtlas:surfaceMaterialArtwork,hardwareAtlas:apparatusMaterialArtwork,waterGlass:heatWaterGlassArtwork,width:w,height:h,
       progress:s.discoveryProgress,reading:everydayReading(),
       settings:{mode:s.extraMode,speed:s.extraA,slopeDegrees:s.extraA,length:s.extraA}
     });
