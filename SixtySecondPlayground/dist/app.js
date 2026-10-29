@@ -765,7 +765,8 @@
       const shareUrl=new URL('./?view=games',window.location.href).href;
       const text='🎠 오늘의 60초 놀이터\n'+s.game.name+' '+padScore(s.score)+'점!\n나도 60초 도전했어!';
       const copyFallback=function(){copyShareResult(text+'\n'+shareUrl);};
-      if(typeof navigator.share!=='function'){copyFallback();return;}
+      const touchShare=window.matchMedia&&window.matchMedia('(pointer:coarse)').matches;
+      if(typeof navigator.share!=='function'||!touchShare){copyFallback();return;}
       try {
         navigator.share({title:'오늘의 60초 놀이터',text:text,url:shareUrl}).then(function(){toast('결과를 공유했어!');}).catch(function(error){
           if(error&&error.name==='AbortError'){toast('공유를 취소했어.');return;}
