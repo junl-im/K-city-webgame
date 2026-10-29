@@ -808,13 +808,13 @@ async function start() {
     plant.addChild(image);
     return image;
   });
-  const cropTextures: Texture[] = [];
-  void Promise.all(['seedling','young','flower','ripe'].map((stage) =>
-    Assets.load<Texture>(`${import.meta.env.BASE_URL}assets/crop-aligned-${stage}.webp`)
-  )).then((textures) => {
-    cropTextures.push(...textures);
-    drawPlots();
-  }).catch(() => { /* Existing crops remain playable if art cannot load. */ });
+  // Each stage loads independently, so a missing image cannot hide other crops.
+  const cropTextures: Array<Texture | undefined> = Array(4).fill(undefined);
+  ['seedling','young','flower','ripe'].forEach((stage, index) => {
+    void Assets.load<Texture>(`${import.meta.env.BASE_URL}assets/crop-aligned-${stage}.webp`)
+      .then((texture) => { cropTextures[index] = texture; drawPlots(); })
+      .catch(() => { /* Only this stage uses the playable fallback. */ });
+  });
   let currentZone: Zone = saveData.zone;
   let px = currentZone === 'town' ? 619 : 247;
   let py = 585;
@@ -861,10 +861,11 @@ async function start() {
       if (crop.plantedAt !== null) {
         const percent = Math.min(1, Math.max(0, (Date.now() - crop.plantedAt) / GROW_TIME_MS));
         ripePlots[i] = percent >= 1;
-        if (cropTextures.length === 4) {
-          const stage = Math.min(3, Math.floor(percent * 4));
+        const stage = Math.min(3, Math.floor(percent * 4));
+        const cropTexture = cropTextures[stage];
+        if (cropTexture) {
           const picture = cropSprites[i];
-          if (picture.texture !== cropTextures[stage]) picture.texture = cropTextures[stage];
+          if (picture.texture !== cropTexture) picture.texture = cropTexture;
           picture.visible = true;
           picture.alpha = 1;
           // Align each plant’s visible stem base to the soil centre despite transparent padding.
