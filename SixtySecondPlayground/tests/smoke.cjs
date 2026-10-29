@@ -14,7 +14,7 @@ const asset = file => path.join(dist, 'assets', file);
 new vm.Script(js, {filename: 'app.js'});
 assert.match(html, /시제품 v2\.2/);
 assert.match(html, /<title>곰같은여우와 함께하는 오늘의 60초 놀이터<\/title>/, '게임 정식 제목은 정확해야 합니다');
-assert.match(html, /\.\/style\.css\?v=20261029-memory-stability-v30/, '스크롤 및 높이 변경 CSS는 새 버전으로 로드해야 합니다');
+assert.match(html, /\.\/style\.css\?v=20261030-stable-play-v37/, '스크롤 및 높이 변경 CSS는 새 버전으로 로드해야 합니다');
 assert.match(html, /<h1 tabindex="-1">오늘의 <em>60초 놀이터<\/em><\/h1>/, '메인 제목은 오늘의 60초 놀이터여야 합니다');
 assert.match(html, /<span>곰같은여우와 함께하는<\/span><span>오늘의 60초 놀이터<\/span>/, '상위 브랜드는 전체 제목을 유지해야 합니다');
 assert.match(js, /<button type="button" class="game-card" data-game=/, '게임 카드 전체를 누르면 열려야 합니다');
@@ -58,7 +58,7 @@ assert.ok(gameSource, '게임 정의가 필요합니다');
 const games = [...gameSource[1].matchAll(/id:'([a-z]+)'/g)].map(match => match[1]);
 assert.deepEqual(games, ['whack', 'number', 'spot', 'stroop', 'memory', 'sort', 'mystery']);
 
-const guideText = js.split('const GAME_GUIDES = ')[1]?.split('\n  const IMPACT_MARKS')[0]?.trim().replace(/;$/, '');
+const guideText = js.split('const GAME_GUIDES = ')[1]?.split('\n  const SORT_FAMILIES')[0]?.trim().replace(/;$/, '');
 assert.ok(guideText, '7개 미니게임 전용 놀이법 필요');
 const guides = vm.runInNewContext(`(${guideText})`);
 assert.deepEqual(Object.keys(guides).sort(), [...games].sort(), '모든 게임마다 전용 놀이법 1개씩 필요');
@@ -68,11 +68,6 @@ for(const game of games){
   assert.ok(guide.steps.every(step=>step.length>=10),`${game}: 설명은 구체적이어야 합니다`);
   assert.ok(guide.hint.length>=15,`${game}: 진행 중 도움말 한 줄 필요`);
 }
-const impactText=js.split('const IMPACT_MARKS = ')[1]?.split('\n  const SORT_FAMILIES')[0]?.trim().replace(/;$/, '');
-assert.ok(impactText,'게임별 타격 효과 모티프 정의 필요');
-const impactMarks=vm.runInNewContext(`(${impactText})`);
-assert.deepEqual(Object.keys(impactMarks).sort(),[...games].sort(),'7개 게임에 각자의 타격 모티프 필요');
-assert.ok(games.every(id=>impactMarks[id].length>=1), '각 게임별 표시 기호 필요');
 assert.match(guides.spot.steps.join(' '),/오른쪽/,'다른 그림 찾기는 오른쪽 판이 정답 터치 대상입니다');
 assert.match(guides.stroop.steps.join(' '),/실제 색/,'색깔 함정은 글자 색 구별을 설명해야 합니다');
 assert.match(guides.memory.steps.join(' '),/사라지고/,'기억왕은 별이 사라진 다음 누르는 구조입니다');
@@ -151,7 +146,7 @@ assert.match(js, /#roundCount'\)\.textContent='제 '\+s\.round/, '현재 판 수
 assert.match(css, /\.round-count\{/, '작은 화면용 판 수 배지 스타일 필요');
 assert.match(js, /const sample=document\.createElement\('span'\)/, '왼쪽 기준 그림은 터치 버튼이 아니어야 합니다');
 assert.match(js, /b\.classList\.add\('done'\)/, '숫자 게임 완료 칸은 CSS와 동일한 상태를 써야 합니다');
-assert.match(js, /stageChip\.classList\.add\('stage-up'\)/, '새 단계 안내 애니메이션 필요');
+assert.match(js, /stageChip\.classList\.add\('stage-up'\)/, '새 단계 표시 필요');
 assert.match(css, /\.arena\[data-game\] button\.answer-reveal/, '오답 시 정답 위치 표시 스타일 필요');
 assert.match(css, /\.arena\[data-game\] > \.combo-burst/, '콤보 알림이 게임판 배치를 밀지 않아야 합니다');
 assert.match(js, /combo\.parentElement\.classList\.toggle\('combo-hot'/, '콤보 HUD 강조 필요');
@@ -171,32 +166,6 @@ for(const keyframe of ['whackSquash','numberStamp','pictureFlash','colorPop','me
 }
 const origins = [...js.matchAll(/\bfeedback\([^\n]*,100,(cell|b)\)/g)];
 assert.equal(origins.length,8,'8가지 정답·오답 호출 경로에서 누른 버튼 위치를 제공해야 합니다');
-const impactSource=js.match(/function tapImpact\(origin,correct,gameId\)\{[\s\S]*?\n  \}/)?.[0];
-assert.ok(impactSource, '선택 위치 이펙트 함수가 필요합니다');
-const impacts=[];
-const hitArena={getBoundingClientRect:()=>({left:100,top:100,width:240,height:240}),append:element=>impacts.push(element)};
-const fakeImpactElement=()=>({style:{setProperty:()=>{}},setAttribute:()=>{},remove:()=>{},textContent:'',className:''});
-const makeImpact=(reduce,mobile)=>vm.runInNewContext(`(${impactSource})`,{
-  $:()=>hitArena,
-  document:{createElement:fakeImpactElement},
-  window:{matchMedia:query=>({matches:query.includes('reduced-motion')?reduce:mobile})},
-  setTimeout:()=>{},IMPACT_MARKS:impactMarks,Math
-});
-const offscreen={getBoundingClientRect:()=>({left:-200,top:-200,width:45,height:45})};
-makeImpact(false,false)(offscreen,true,'whack');
-assert.equal(impacts.length,5,'PC에서 타격 중심 1개와 입자 4개만 생성');
-assert.equal(impacts[0].style.left,'20px','화면 가장자리의 타격 위치를 게임판 안쪽으로 제한');
-assert.equal(impacts[0].style.top,'20px','위쪽 가장자리 타격 위치도 제한');
-assert.equal(impacts[0].textContent,impactMarks.whack,'게임 전용 모티프 표시');
-impacts.length=0;
-makeImpact(false,true)(offscreen,true,'number');
-assert.equal(impacts.length,3,'모바일에서는 입자 2개만 생성');
-impacts.length=0;
-makeImpact(true,false)(offscreen,true,'memory');
-assert.equal(impacts.length,1,'움직임 줄이기 환경에서는 입자 생성 금지');
-impacts.length=0;
-makeImpact(false,false)(offscreen,false,'spot');
-assert.equal(impacts.length,1,'오답 시 과한 입자 생성 금지');
 assert.match(html, /id="pauseScreen"[^>]*role="dialog"/, '일시정지 확인창 필요');
 assert.match(html, /id="pauseResume"/, '계속하기 버튼 필요');
 assert.match(html, /id="pauseExit"/, '나가기 버튼 필요');
@@ -388,7 +357,7 @@ assert.match(js, /error\.name==='AbortError'/, '사용자가 공유를 취소하
 assert.match(js, /copyFallback\(\)/, '공유 오류가 발생하면 복사 경로로 전환해야 합니다');
 assert.match(js, /matchMedia\('\(pointer:coarse\)'\)/, 'PC에서는 기본 공유창 대신 직접 복사를, 터치 기기에서는 네이티브 공유를 우선해야 합니다');
 
-assert.match(html, /\.\/app\.js\?v=20261030-daily-rollover-v36/, '자정 기록·공유 패치는 새 JS 캐시 버전으로 로드해야 합니다');
+assert.match(html, /\.\/app\.js\?v=20261030-stable-play-v37/, '자정 기록·공유 패치는 새 JS 캐시 버전으로 로드해야 합니다');
 
 console.log(`OK: ${games.length}개 게임, ${Object.keys(hostLines).length}명 안내원, ${questions.length}개 미스터리, 다른 그림 600판, 색 조합 66개, 9칸 중복 방지 1,800회, ${required.length}개 필수 WebP, SVG 0개`);
 
@@ -398,3 +367,11 @@ assert.match(js, /if\(s\.game\.id!==[\x27\x22]memory[\x27\x22]\)arena\.innerHTML
 assert.match(js, /arena\.querySelector\([\x27\x22]\.memory-grid[\x27\x22]\)/);
 assert.match(css, /\.arena\[data-game="memory"\] \.memory-cell\{padding:0;min-width:0;line-height:1;display:grid;place-items:center\}/);
 assert.doesNotMatch(css, /animation:memoryStar\s/);
+
+assert.doesNotMatch(js, /arena\.classList\.add\('arena-shake'\)/, '게임판 전체가 흔들리지 않아야 합니다');
+assert.doesNotMatch(js, /portrait\.src=mascotSource\(source,correct/, '정답마다 캐릭터 그림을 교체하지 않습니다');
+
+// The preview, pause and play layers must remain static in mobile webviews.
+assert.match(css, /\.overlay \.modal, \.overlay \.modal \*, \.overlay \.pause-screen, \.overlay \.pause-screen \* \{animation:none!important;transition:none!important;\}/);
+assert.match(css, /\.overlay-backdrop \{backdrop-filter:none;\}/);
+assert.match(css, /\.overlay \.pause-screen \{backdrop-filter:none;\}/);

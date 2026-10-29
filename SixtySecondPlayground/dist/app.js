@@ -23,7 +23,6 @@
     sort:{steps:['가운데 등장한 그림을 관찰하기','불꽃·숲·유령·바다·하늘 속성 생각하기','아래 3개 속성 버튼 중 하나를 선택!'],hint:'가운데 그림이 속한 자연·마법 속성을 아래에서 골라.'},
     mystery:{steps:['코코가 내는 수수께끼를 읽기','세 가지 보기 중 가장 알맞은 답 고르기','틀리면 정답을 확인하고 다음 문제 도전!'],hint:'문장을 끝까지 읽고 3개 보기 중 가장 정확한 답을 눌러.'}
   };
-  const IMPACT_MARKS = {whack:'✹',number:'⚡',spot:'✧',stroop:'✦',memory:'★',sort:'✿',mystery:'✶'};
   const SORT_FAMILIES = [
     {name:'불꽃',icon:'🔥',items:['🐲','🌋','☄️','🕯️']},
     {name:'숲',icon:'🌿',items:['🌵','🍄','🌳','🪴']},
@@ -125,15 +124,6 @@
     '두두':{intro:'천천히 해도 괜찮아!',success:['차분하게 잘했어!','정말 든든한 친구야!','한 번 더 해볼까?'],wrong:['괜찮아, 내가 응원할게!','조금 쉬어 가도 돼!'],combo:'멋진 집중력이야!',marks:['✿','✦','✿'],color:'#8db78b'}
   };
   const mascotSource = function (name,mood) { return './assets/'+name+(mood?'-'+mood+'-v07':'')+'.webp'; };
-  const reactionPreloads = {};
-  function preloadHostReactions(host){
-    const name=HOST_ART[host];if(!name||!window.Image)return;
-    ['happy','oops'].forEach(function(mood){
-      const key=name+'-'+mood;
-      if(reactionPreloads[key])return;
-      const img=new Image();img.src=mascotSource(name,mood);reactionPreloads[key]=img;
-    });
-  }
   const PET_FAVORITES = {cat:'number',rabbit:'whack',fox:'mystery',bear:'memory'};
   const GUIDES = [
     {id:'rabbit',name:'모모의 초대장',line:'어서 와! 오늘도 신나는 60초야!'},
@@ -315,7 +305,7 @@
   }
   function stopSession() {
     if (!session) return;
-    clearTimeout(session.roundTimeout);clearTimeout(session.reactionTimeout);cancelAnimationFrame(animFrame);
+    clearTimeout(session.roundTimeout);cancelAnimationFrame(animFrame);
     session.roundTask=null;
     if(history.state&&history.state.sixtyGameSession){
       sessionHistoryCleanup=true;history.back();
@@ -425,7 +415,6 @@
     if (session) stopSession();
     const game=gameById(gameId);
     if (!game)return;
-    preloadHostReactions(game.host);
     currentPreview={id:gameId,official:!!official};
     const isOfficial=official&&!hasDaily();
     const guide=GAME_GUIDES[game.id];
@@ -454,7 +443,7 @@
     }
     history.pushState(Object.assign({},history.state,{sixtyGameSession:true}),'',location.href);
     session={game:gameById(gameId),official:official,officialDay:official?today:null,score:0,combo:0,bestCombo:0,correct:0,wrong:0,
-      deadline:performance.now()+60000,pausedAt:null,roundTimeout:null,roundTask:null,roundRemaining:0,roundDueAt:null,reactionTimeout:null,locked:false,round:0,memoryTarget:-1,nextNum:1};
+      deadline:performance.now()+60000,pausedAt:null,roundTimeout:null,roundTask:null,roundRemaining:0,roundDueAt:null,locked:false,round:0,memoryTarget:-1,nextNum:1};
     $('#modalHelp').title=GAME_GUIDES[session.game.id].hint;
     modal('<div class="modal-title" id="modalTitle">'+artIcon('star')+' '+esc(session.game.name)+'</div>'+
       '<div class="game-host" data-host="'+HOST_ART[session.game.host]+'"><img id="hostPortrait" src="'+mascotSource(HOST_ART[session.game.host])+'" alt="" width="44" height="48" decoding="async" /><span class="host-talk"><strong>'+esc(session.game.host)+' · '+esc(session.game.zone)+'</strong><small id="hostCheer">'+esc(HOST_LINES[session.game.host].intro)+'</small></span><span class="host-emote" id="hostEmote" aria-hidden="true"></span></div>'+
@@ -483,31 +472,6 @@
     combo.textContent=session.combo;
     combo.parentElement.classList.toggle('combo-hot',session.combo>=3);
   }
-  function tapImpact(origin,correct,gameId){
-    const arena=$('#arena');
-    if(!arena||!origin||!origin.getBoundingClientRect)return;
-    const bounds=arena.getBoundingClientRect(),hit=origin.getBoundingClientRect();
-    if(!bounds.width||!bounds.height||!hit.width)return;
-    const x=Math.max(20,Math.min(bounds.width-20,hit.left-bounds.left+hit.width/2));
-    const y=Math.max(20,Math.min(bounds.height-20,hit.top-bounds.top+hit.height/2));
-    const impact=document.createElement('span');
-    impact.className='tap-impact '+(correct?'is-correct':'is-wrong');
-    impact.style.left=x+'px';impact.style.top=y+'px';
-    impact.textContent=correct?(IMPACT_MARKS[gameId]||'✦'):'×';
-    impact.setAttribute('aria-hidden','true');arena.append(impact);
-    setTimeout(function(){impact.remove();},510);
-    if(!correct||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-    const count=window.matchMedia('(max-width: 430px)').matches?2:4;
-    for(let i=0;i<count;i++){
-      const angle=Math.PI*2*i/count-Math.PI/2;
-      const bit=document.createElement('i');bit.className='tap-particle';bit.textContent=i%2?'✧':'✦';
-      bit.style.left=x+'px';bit.style.top=y+'px';
-      bit.style.setProperty('--dx',Math.round(Math.cos(angle)*34)+'px');
-      bit.style.setProperty('--dy',Math.round(Math.sin(angle)*34)+'px');
-      bit.style.animationDelay=(i*20)+'ms';bit.setAttribute('aria-hidden','true');
-      arena.append(bit);setTimeout(function(){bit.remove();},610);
-    }
-  }
   function feedback(correct,message,base,origin){
     if(!session||session.locked)return;
     const s=session;
@@ -518,66 +482,12 @@
       s.score+=earned;
     } else {s.combo=0;s.wrong++;}
     sound(correct?'correct':'wrong',s.game.id,s.combo);
-    tapImpact(origin,correct,s.game.id);
     const el=$('#feedback');
     el.className='feedback '+(correct?'good':'bad');el.textContent=message || (correct?'정답! ✨':'아쉬워! 다시 집중!');
     const reactions=HOST_LINES[s.game.host];
     const cheer=$('#hostCheer');
     if(cheer){
       cheer.textContent=correct?(s.combo>=3?s.combo+'콤보! '+reactions.combo:reactions.success[(s.correct-1)%reactions.success.length]):reactions.wrong[(s.wrong-1)%reactions.wrong.length];
-      cheer.classList.remove('host-pop');void cheer.offsetWidth;cheer.classList.add('host-pop');
-    }
-    const host=$('.game-host');
-    if(host){
-      const emote=$('#hostEmote');
-      if(emote){
-        emote.textContent=correct?reactions.marks[(s.combo-1)%reactions.marks.length]:'♡';
-        emote.classList.remove('show');void emote.offsetWidth;emote.classList.add('show');
-      }
-      const portrait=$('#hostPortrait');
-      if(portrait){
-        const source=HOST_ART[s.game.host];
-        const normal=mascotSource(source);
-        clearTimeout(s.reactionTimeout);
-        portrait.onerror=function(){portrait.onerror=null;portrait.src=normal;};
-        portrait.src=mascotSource(source,correct?'happy':'oops');
-        s.reactionTimeout=setTimeout(function(){
-          if(session===s&&portrait.isConnected){portrait.onerror=null;portrait.src=normal;}
-        },950);
-      }
-      host.classList.remove('host-happy','host-oops');
-      void host.offsetWidth;
-      host.classList.add(correct?'host-happy':'host-oops');
-      if(correct&&s.combo%3===0&&window.matchMedia('(prefers-reduced-motion: reduce)').matches===false){
-        for(let i=0;i<6;i++){
-          const spark=document.createElement('i');
-          spark.className='host-spark';
-          spark.textContent=reactions.marks[i%reactions.marks.length];
-          spark.style.setProperty('--spark-color',reactions.color);
-          spark.style.setProperty('--spark-x',((i-2.5)*27)+'px');
-          spark.style.setProperty('--spark-y',(-32-(i%3)*19)+'px');
-          spark.style.animationDelay=(i*35)+'ms';
-          spark.setAttribute('aria-hidden','true');
-          host.append(spark);
-          setTimeout(function(){spark.remove();},1000);
-        }
-      }
-    }
-    const arena=$('#arena');
-    if(arena){
-      const float=document.createElement('span');
-      float.className='score-float '+(correct?'positive':'negative');
-      float.textContent=correct?'+'+earned+' ✦':'아쉬워!';
-      float.setAttribute('aria-hidden','true');
-      arena.append(float);
-      setTimeout(function(){float.remove();},720);
-      if(correct&&s.combo>=3&&s.combo%3===0){
-        const badge=document.createElement('span');
-        badge.className='combo-burst';badge.textContent='✨ '+s.combo+' COMBO!';
-        badge.setAttribute('aria-hidden','true');arena.append(badge);
-        setTimeout(function(){badge.remove();},1050);
-      }
-      if(!correct){arena.classList.remove('arena-shake');void arena.offsetWidth;arena.classList.add('arena-shake');setTimeout(function(){arena.classList.remove('arena-shake');},320);}
     }
     updateHud();
   }
@@ -613,7 +523,7 @@
     }
     $('#roundCount').textContent='제 '+s.round+'판';
     if(stageChanged){
-      stageChip.classList.remove('stage-up');void stageChip.offsetWidth;stageChip.classList.add('stage-up');
+      stageChip.classList.add('stage-up');
       toast(stage===2?'✨ 2단계 시작! 조금 더 어려워져!':'🔥 3단계 시작! 집중해 봐!');
     }
     $('#feedback').textContent='';$('#feedback').className='feedback';
@@ -650,7 +560,8 @@
             feedback(true,'좋아! 다음 숫자!',100,b);
             if(s.nextNum>16)after(340);else prompt.textContent='순서대로 터치! 다음 숫자: '+s.nextNum;
           }else{
-            b.classList.remove('wrong');void b.offsetWidth;b.classList.add('wrong');
+            b.classList.add('answer-wrong');
+            setTimeout(function(){b.classList.remove('answer-wrong');},450);
             feedback(false,'아직 '+s.nextNum+' 차례야!',100,b);
           }
         },'num-cell');grid.append(b);
