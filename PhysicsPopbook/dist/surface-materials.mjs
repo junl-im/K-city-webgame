@@ -29,6 +29,24 @@ export function paintSurfaceTexture(ctx,art,name,x,y,width,height,alpha=1){
   ctx.restore();return true;
 }
 
+/** Independent 2×2 raster atlas of original physics apparatus finishes.
+ * Four fixed cells: brass, steel, rubber, ceramic. No vector fallbacks. */
+const TOOL_CELLS=Object.freeze({brass:[0,0],steel:[1,0],rubber:[0,1],ceramic:[1,1]});
+export function apparatusTextureBounds(width,height,name){
+  if(!Object.hasOwn(TOOL_CELLS,name))throw new RangeError(`Unknown apparatus material: ${name}`);
+  if(!(width>0&&height>0))throw new RangeError('Apparatus texture must be loaded');
+  const [column,row]=TOOL_CELLS[name],cw=width/2,ch=height/2;
+  const margin=Math.min(2,cw*.01,ch*.01);
+  return {sx:column*cw+margin,sy:row*ch+margin,sw:cw-2*margin,sh:ch-2*margin};
+}
+export function paintApparatusTexture(ctx,art,name,x,y,width,height,alpha=1){
+  if(!art?.complete||!art.naturalWidth||!art.naturalHeight||width<=0||height<=0)return false;
+  const {sx,sy,sw,sh}=apparatusTextureBounds(art.naturalWidth,art.naturalHeight,name);
+  ctx.save();ctx.globalAlpha*=Math.max(0,Math.min(1,alpha));
+  ctx.drawImage(art,sx,sy,sw,sh,x,y,width,height);
+  ctx.restore();return true;
+}
+
 /** A shelf visually anchors the moveable toys. It does not change hit positions. */
 export function paintToyStage(ctx,art,{y=216,width=648,height=91,material='wood'}={}){
   const left=-width/2;
@@ -60,7 +78,7 @@ export function inclineStandGeometry({x0,y0,x1,y1},shelfTop=215){
 }
 
 /** Use the original painted wood atlas; the new support is visual-only. */
-export function paintInclineStand(ctx,art,ramp,shelfTop=215){
+export function paintInclineStand(ctx,art,ramp,shelfTop=215,hardwareArt=null){
   const g=inclineStandGeometry(ramp,shelfTop);
   const {centerX:cx,postTop,postBottom,postWidth,footTop,footWidth,footHeight}=g;
   if(postBottom<=postTop)return false;
@@ -98,6 +116,8 @@ export function paintInclineStand(ctx,art,ramp,shelfTop=215){
     ctx.fillStyle='#f3dbad';ctx.beginPath();ctx.arc(x-1.2,footTop+footHeight/2-1.2,2.7,0,Math.PI*2);ctx.fill();
   }
   ctx.fillStyle='#b1a0a3';ctx.beginPath();ctx.roundRect(cx-31,postTop-2,62,17,6);ctx.fill();
+  ctx.save();ctx.beginPath();ctx.roundRect(cx-31,postTop-2,62,17,6);ctx.clip();
+  paintApparatusTexture(ctx,hardwareArt,'steel',cx-31,postTop-2,62,17,.86);ctx.restore();
   ctx.fillStyle='#fff0c2';ctx.fillRect(cx-20,postTop+1,40,3);
   ctx.restore();
   return true;
@@ -106,7 +126,7 @@ export function paintInclineStand(ctx,art,ramp,shelfTop=215){
 /** A wooden science-rack frame anchors the pendulum's pivot to the same
  * picture-book shelf as the other experiments. Only the drawing is affected.
  * The pivot coordinates come from the existing pendulum simulation. */
-export function paintPendulumMount(ctx,art,pivotX=-18,pivotY=-176,shelfTop=215){
+export function paintPendulumMount(ctx,art,pivotX=-18,pivotY=-176,shelfTop=215,hardwareArt=null){
   const uprightX=-218, beamTop=pivotY-49;
   const left=uprightX-19, uprightWidth=38;
   ctx.save();
@@ -148,6 +168,9 @@ export function paintPendulumMount(ctx,art,pivotX=-18,pivotY=-176,shelfTop=215){
   }
   ctx.beginPath();ctx.fillStyle='#966e50';ctx.arc(pivotX,pivotY,24,0,Math.PI*2);ctx.fill();
   ctx.beginPath();ctx.fillStyle='#ffe3a5';ctx.arc(pivotX,pivotY,15,0,Math.PI*2);ctx.fill();
+  // The generated brass atlas paints the round joint without changing geometry.
+  ctx.save();ctx.beginPath();ctx.arc(pivotX,pivotY,24,0,Math.PI*2);ctx.clip();
+  paintApparatusTexture(ctx,hardwareArt,'brass',pivotX-24,pivotY-24,48,48,.62);ctx.restore();
   ctx.beginPath();ctx.fillStyle='#6787a4';ctx.arc(pivotX,pivotY,8,0,Math.PI*2);ctx.fill();
   ctx.restore();return true;
 }
