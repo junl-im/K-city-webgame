@@ -172,6 +172,16 @@ function openModal(title: string, content: string) {
   if (opening) focusBeforeModal = active;
   if (opening || modalTitle.dataset.modalTitle !== title) modalStatus.textContent = '';
   modalTitle.dataset.modalTitle = title;
+  const modalSurfaceByTitle: Record<string, string> = {
+    '🎒 나의 가방': 'bag',
+    '🧪 이상한 조합 실험실': 'lab',
+    '🥚 포근한 몬스터 연구소': 'nursery',
+    '📖 첫 정원 도감': 'book',
+    '📥 저장파일 확인': 'save',
+    '🗺️ 마법정원 월드': 'map',
+    '💡 어떻게 놀까?': 'help',
+  };
+  modalRoot.dataset.surface = modalSurfaceByTitle[title] ?? 'help';
   modalTitle.innerHTML = illustratedText(title);
   modalContent.innerHTML = illustratedText(content);
   modalRoot.classList.remove('hidden');

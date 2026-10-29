@@ -547,3 +547,63 @@
   #app .bottom-hud button{box-shadow:0 3px 9px #21453c28!important}
   #app .guide{max-width:min(88vw,340px);font-size:11px;padding:7px 10px}
 }
+
+
+/* v27: seven individual pop-up title paintings, with native readable Korean copy.
+   Each asset is painted separately: transparent PNG master + independent WebP.
+   Uniform scaling: width 100%, height auto. Only vertical overflow is clipped. */
+#app .modal-root[data-surface] .modal-head {
+  min-height:104px!important;
+  display:flex;align-items:center;justify-content:space-between;
+  border:0!important;border-image:none!important;
+  background-position:center center!important;
+  background-repeat:no-repeat!important;
+  background-size:100% auto!important;
+  background-color:transparent!important;
+  border-radius:0!important;
+  padding:9px 10px 9px clamp(92px,20%,132px)!important;
+  margin:0 0 8px!important;
+  box-shadow:none!important;
+}
+#app .modal-root[data-surface] .modal-head strong {
+  flex:1;min-width:0;
+  color:#523e32!important;
+  font-size:clamp(16px,2vw,19px)!important;
+  line-height:1.28!important;
+  text-shadow:0 1px 2px #fffaf0!important;
+  overflow-wrap:break-word;word-break:keep-all;
+}
+#app .modal-root[data-surface] #modal-close {
+  flex:none;position:relative;z-index:2;
+  margin:0 2px 0 4px!important;
+  box-shadow:0 3px 9px #54462d26!important;
+}
+#app .modal-root[data-surface="bag"] .modal-head {background-image:url('/assets/ui-v27-modal-bag.webp')!important;}
+#app .modal-root[data-surface="map"] .modal-head {background-image:url('/assets/ui-v27-modal-map.webp')!important;}
+#app .modal-root[data-surface="book"] .modal-head {background-image:url('/assets/ui-v27-modal-book.webp')!important;}
+#app .modal-root[data-surface="help"] .modal-head {background-image:url('/assets/ui-v27-modal-help.webp')!important;}
+#app .modal-root[data-surface="lab"] .modal-head {background-image:url('/assets/ui-v27-modal-lab.webp')!important;}
+#app .modal-root[data-surface="nursery"] .modal-head {background-image:url('/assets/ui-v27-modal-nursery.webp')!important;}
+#app .modal-root[data-surface="save"] .modal-head {background-image:url('/assets/ui-v27-modal-save.webp')!important;}
+
+@media(max-width:600px){
+  #app .modal-root[data-surface] .modal-head {
+    min-height:78px!important;
+    padding:6px 5px 6px clamp(63px,22%,90px)!important;
+    margin-bottom:5px!important;
+  }
+  #app .modal-root[data-surface] .modal-head strong {
+    font-size:clamp(13px,3.45vw,16px)!important;
+    line-height:1.2!important;
+  }
+  #app .modal-root[data-surface] #modal-close {
+    width:42px!important;min-width:42px!important;
+    height:42px!important;min-height:42px!important;
+    margin:0 0 0 2px!important;
+  }
+}
+@media(max-height:530px){
+  #app .modal-root[data-surface] .modal-head{
+    min-height:68px!important;
+  }
+}
