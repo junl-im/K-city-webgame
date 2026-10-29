@@ -245,16 +245,16 @@
   background-size:contain,auto!important;
 }
 #app #town-button{
-  background-image:url('/assets/ui-v23-town.webp'),linear-gradient(125deg,#fffaf0,#eed7b8)!important;
+  background-image:url('/assets/ui-v23-town.webp')!important;
 }
 #app #farm-button{
-  background-image:url('/assets/ui-v23-farm.webp'),linear-gradient(140deg,#fbfff1,#d8edc7)!important;
+  background-image:url('/assets/ui-v23-farm.webp')!important;
 }
 #app #lab-button{
-  background-image:url('/assets/ui-v23-lab.webp'),linear-gradient(127deg,#fbf7ff,#e8d9f4)!important;
+  background-image:url('/assets/ui-v23-lab.webp')!important;
 }
 #app #nursery-button{
-  background-image:url('/assets/ui-v23-nursery.webp'),linear-gradient(142deg,#fffaf1,#f8dcd5)!important;
+  background-image:url('/assets/ui-v23-nursery.webp')!important;
 }
 
 /* v23.2: individually painted HUD buttons, separate PNG files. */
@@ -267,10 +267,10 @@
   box-shadow:none!important;
   justify-content:flex-end;
 }
-#app #bag-button{background-image:url('/assets/ui-v23-menu-bag.webp'),linear-gradient(135deg,#fff8e4,#f3dfb0)!important}
-#app #map-button{background-image:url('/assets/ui-v23-menu-map.webp'),linear-gradient(135deg,#f6fff0,#d9efcf)!important}
-#app #book-button{background-image:url('/assets/ui-v23-menu-book.webp'),linear-gradient(135deg,#f7fbff,#dce7f7)!important}
-#app #help-button{background-image:url('/assets/ui-v23-menu-help.webp'),linear-gradient(135deg,#fffaff,#f0e1f1)!important}
+#app #bag-button{background-image:url('/assets/ui-v23-menu-bag.webp')!important}
+#app #map-button{background-image:url('/assets/ui-v23-menu-map.webp')!important}
+#app #book-button{background-image:url('/assets/ui-v23-menu-book.webp')!important}
+#app #help-button{background-image:url('/assets/ui-v23-menu-help.webp')!important}
 #app .bottom-hud button .art-icon{display:none}
 #app .bottom-hud button small{
   display:block;flex:none;position:relative;z-index:1;
@@ -607,3 +607,8 @@
     min-height:68px!important;
   }
 }
+
+/* Let the original hand-painted outlines meet the world without flat tiles. */
+#app .area,#app .bottom-hud button{background-color:transparent!important;border:0!important;box-shadow:none!important;background-size:contain!important;filter:drop-shadow(0 3px 4px #49351e55)!important}
+#app .area.active{filter:drop-shadow(0 0 4px #f5ffd2) drop-shadow(0 3px 4px #3b633a88)!important}
+#app .area:focus-visible,#app .bottom-hud button:focus-visible{outline:3px solid #426b3b;outline-offset:2px}
