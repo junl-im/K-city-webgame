@@ -432,8 +432,8 @@ function gameOverlay(g) {
   if (selectedMatch) {
     return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--match" role="dialog" aria-modal="true" aria-labelledby="match-choice-title" aria-describedby="match-choice-help">
       <div class="decision-kicker">같은 무늬 2장</div><h2 id="match-choice-title">먹을 패를 골라줘!</h2>
-      <p id="match-choice-help" class="decision-hint">둘 중 한 장만 누르면 바로 획득해.</p>
-      <div class="match-choices" role="group" aria-label="먹을 화투패 선택">${selectedMatch.matches.map((id,index)=>`<div class="match-choice"><span class="match-choice__number">${index+1}번 패</span>${card(id,{action:'pickmatch'})}<small class="match-choice__name">${safe(spokenCardName(getCard(id)))}</small></div>`).join('')}</div>
+      <p id="match-choice-help" class="decision-hint">패나 이름을 누르면 바로 획득해.</p>
+      <div class="match-choices" role="group" aria-label="먹을 화투패 선택">${selectedMatch.matches.map((id,index)=>`<div class="match-choice" data-action="pickmatch" data-card="${safe(id)}"><span class="match-choice__number">${index+1}번 패</span>${card(id,{action:'pickmatch'})}<small class="match-choice__name">${safe(spokenCardName(getCard(id)))}</small></div>`).join('')}</div>
       <p class="decision-timer" role="timer" aria-label="선택 남은 시간">남은 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</p>
       <div class="decision-cancel">${btn('돌아가기','cancelmatch','btn--ghost')}</div></section></div>`;
   }
