@@ -3355,3 +3355,21 @@ button:disabled { cursor: not-allowed; opacity:.48; }
   .scene--game .action-row > .sound-control {font-size:0;overflow:hidden;}
   .scene--game .captured-grid .capture-cats {display:flex;gap:8px;margin-top:0;font-size:9px;}
 }
+
+/* The breakdown is optional, so the actual cards remain easy to reach. */
+.gallery-score {margin:8px 0 10px;border:1px solid #ddc5a0;border-radius:13px;background:#fff8e9;overflow:hidden;color:#665039;}
+.gallery-score summary {display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:42px;padding:8px 12px;cursor:pointer;list-style:none;font-size:13px;font-weight:800;}
+.gallery-score summary::-webkit-details-marker {display:none;}
+.gallery-score summary:focus-visible {outline:3px solid #b36a3f;outline-offset:-3px;}
+.gallery-score summary strong {margin-left:5px;color:#a95734;font-size:16px;}
+.gallery-score__toggle {color:#8a6950;font-size:11px;white-space:nowrap;}
+.gallery-score__toggle::after {content:'펼쳐보기 ▾';}
+.gallery-score[open] .gallery-score__toggle::after {content:'접기 ▴';}
+.gallery-score__body {padding:0 12px 10px;border-top:1px solid #ead9bf;}
+.gallery-score__body ul {list-style:none;padding:0;margin:4px 0;}
+.gallery-score__body li {display:flex;justify-content:space-between;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid #eadcc6;}
+.gallery-score__body li span {display:flex;flex-direction:column;gap:2px;}
+.gallery-score__body li b {font-size:13px;}
+.gallery-score__body li small {color:#786951;font-size:11px;}
+.gallery-score__body li > strong {color:#a95734;font-size:14px;white-space:nowrap;}
+.gallery-score__body p {margin:8px 0 0!important;color:#786951!important;font-size:11px!important;line-height:1.45;}
