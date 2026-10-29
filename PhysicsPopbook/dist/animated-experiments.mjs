@@ -4,8 +4,8 @@
  * All featured objects are raster art. Canvas primitives only provide the stage and cues.
  */
 
-import { celebrationCue, paintTwinkles } from './visual-effects.mjs';
-import {paintToyStage,paintInclineMaterial,paintInclineStand,paintSurfaceTexture,stageMaterialForEverydayLesson} from './surface-materials.mjs';
+import { celebrationCue, paintTwinkles } from './visual-effects.mjs?rev=20261029-artfix01';
+import {paintToyStage,paintInclineMaterial,paintInclineStand,paintSurfaceTexture,stageMaterialForEverydayLesson} from './surface-materials.mjs?rev=20261029-artfix01';
 
 const clamp01 = n => Math.max(0, Math.min(1, Number.isFinite(n) ? n : 0));
 const PI = Math.PI;
