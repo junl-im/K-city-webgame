@@ -753,3 +753,24 @@ body[data-view="games"] footer{display:none}
   body[data-view="games"] .game-grid[data-filter="all"]>.game-card:not(:last-child) .game-art{height:clamp(57px,9dvh,78px);min-height:57px}
   body[data-view="games"] .game-grid[data-filter="all"]>.game-card:not(:last-child) .game-art .art-image{height:clamp(58px,9dvh,78px)}
 }
+
+/* v2.4 · 한 화면 높이 정확히 맞추기: 등장 이동 및 짧은 화면 안내창 여백 수정. */
+/* 진입 애니메이션의 translateY(8px)이 정확히 맞는 화면에 가짜 스크롤을 만들지 않도록 페이드만 적용. */
+body[data-view="games"] #games{animation:gamePageFade .24s ease-out both}
+@keyframes gamePageFade{from{opacity:.4}to{opacity:1}}
+/* 681~820px 높이에서는 실제 내용량이 허용할 때 안내창을 화면 안에 모두 배치.
+   진짜 콘텐츠가 넘치면 원래의 overflow:auto를 유지해 필요한 스크롤은 허용. */
+@media (min-height:681px) and (max-height:820px){
+  .overlay{padding:12px}
+  .modal:has(.howto-guide){max-height:min(calc(100dvh - 24px),850px);padding-top:13px;padding-bottom:16px}
+  .modal:has(.howto-guide) .modal-top{margin-bottom:4px}
+  .modal:has(.howto-guide) .modal-title{margin:3px 0 5px;font-size:clamp(21px,3.2dvh,26px)}
+  .modal:has(.howto-guide) .modal-description{margin-bottom:9px;line-height:1.5}
+  .modal:has(.howto-guide) .game-preview{width:clamp(124px,18dvh,156px);height:clamp(116px,18dvh,145px);margin-top:4px;margin-bottom:10px}
+  .modal:has(.howto-guide) .game-host{margin:6px auto 7px}
+  .modal:has(.howto-guide) .mode-tag{margin-bottom:5px}
+  .modal:has(.howto-guide) .howto-guide{margin:8px auto;padding-top:9px;padding-bottom:9px}
+  .modal:has(.howto-guide) .howto-guide ol{gap:6px}
+  .modal:has(.howto-guide) .action-button{min-height:51px;margin:4px 0;padding-top:9px;padding-bottom:9px}
+  .modal:has(.howto-guide) .helper-text{margin-top:7px}
+}
