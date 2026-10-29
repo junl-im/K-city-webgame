@@ -718,7 +718,7 @@ function queueAI() {
   clearTimeout(aiTimer);
   if (turnTransition) return;
   const g=app.game;
-  if (app.screen!=='game' || !g || g.phase==='round-ended' || selectedMatch) return;
+  if (app.screen!=='game' || !g || g.phase==='round-ended' || selectedMatch || overlay) return;
   const computerChoice = g.pendingDecision==='computer' && (g.phase==='awaiting-go-stop' || g.phase==='awaiting-chongtong');
   if (!computerChoice && !(g.phase==='playing' && g.currentPlayer==='computer')) return;
   // commitGame already waits for the throw, flip and capture before the next turn.
@@ -726,7 +726,7 @@ function queueAI() {
 }
 function runAI() {
   const g=app.game;
-  if (!g || app.screen!=='game' || turnTransition) return;
+  if (!g || app.screen!=='game' || turnTransition || overlay) return;
   try {
     let next, result=null;
     if (g.phase==='awaiting-go-stop' && g.pendingDecision==='computer') {
@@ -864,7 +864,7 @@ function mutate(action, value, cardId) {
       galleryType=['bright','animal','ribbon','junk'].includes(type) ? type : null;
       overlay='captures';render();return;
     }
-    case 'close': overlay=null;render();return;
+    case 'close': overlay=null;render();queueAI();return;
     case 'sound': app.sound=!app.sound;save();render();return;
     case 'automode':
       app.autoMode = !app.autoMode;
@@ -951,7 +951,7 @@ for (const type of ['contextmenu','dragstart','selectstart']) {
 document.addEventListener('keydown',e=>{
   if (e.key==='Escape') {
     if (selectedMatch) {selectedMatch=null;render()}
-    else if (overlay) {overlay=null;render()}
+    else if (overlay) {overlay=null;render();queueAI()}
     else if(app.screen==='opening') mutate('opening-home');
     else if(app.screen==='game') mutate('home');
   }
