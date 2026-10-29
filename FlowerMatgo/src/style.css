@@ -3115,3 +3115,146 @@ button:disabled { cursor: not-allowed; opacity:.48; }
   .scene--game .modal-box--choice {animation:none;}
   .scene--game .decision-option {transition:none;}
 }
+
+
+/* v38 — outcome-first result panel. Every score and amount comes from the
+   existing engine; the artwork is only our original raster paper and mascot. */
+.scene--game .modal-shade--result {
+  padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));
+  overflow-y:auto;overscroll-behavior:contain;
+}
+.scene--game .result-box {
+  width:min(460px,100%);max-height:calc(100svh - 20px);
+  overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;
+  padding:clamp(12px,2.8svh,23px) clamp(12px,4vw,22px);
+  background:#f7ecd4 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:2px solid #e5d0ae;border-radius:22px;
+  box-shadow:0 12px 38px #102f278c,inset 0 1px #fffcf5;
+}
+.scene--game .result-box::before {display:none;}
+.scene--game .result-ribbon {
+  display:inline-block;padding:4px 17px;
+  border:1px solid #ddb993;border-radius:18px;
+  background:#fff5e0c9;color:#875c42;
+  font-size:13px;font-weight:950;
+}
+.scene--game .result-box--win .result-ribbon {color:#287752;border-color:#95b59a;}
+.scene--game .result-box--lose .result-ribbon {color:#a0614e;border-color:#e1baa2;}
+.scene--game .result-box--draw .result-ribbon {color:#7a7552;border-color:#c8c69e;}
+.scene--game .result-hero {
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  min-width:0;margin:6px 0 8px;text-align:left;
+}
+.scene--game .result-hero .result-mascot {
+  width:clamp(62px,18vw,96px);height:clamp(63px,17svh,90px);
+  flex:none;margin:0;align-self:center;
+}
+.scene--game .result-hero .result-mascot .mascot {
+  width:clamp(63px,18vw,95px);animation:none;
+}
+.scene--game .result-hero__words {min-width:0;flex:1;}
+.scene--game .result-hero h2 {
+  font-size:clamp(20px,5.7vw,30px);
+  line-height:1.23;letter-spacing:-.8px;margin:0 0 5px;
+}
+.scene--game .result-hero p {
+  margin:0;line-height:1.38;font-size:clamp(11px,3.2vw,13px);
+  overflow-wrap:anywhere;
+}
+.scene--game .result-duel {
+  display:grid;grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr);
+  align-items:center;gap:5px;width:100%;
+  margin:8px auto;padding:8px 5px;
+  background:#fff8e7b5;border:1px solid #e6cfaa;border-radius:15px;
+}
+.scene--game .result-duel__player {
+  position:relative;display:flex;flex-direction:column;align-items:center;
+  min-width:0;gap:2px;padding:4px 2px;color:#786650;
+}
+.scene--game .result-duel__player > span {
+  display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;font-weight:850;font-size:clamp(11px,3vw,14px);
+}
+.scene--game .result-duel__player strong {
+  display:block;line-height:1.1;font-size:clamp(32px,8.4vw,44px);
+  color:#745846;font-variant-numeric:tabular-nums;
+}
+.scene--game .result-duel__player strong small {font-size:14px;margin-left:2px;}
+.scene--game .result-duel__player.is-winner strong {color:#22845a;}
+.scene--game .result-duel__player em {
+  font-size:10px;line-height:1;font-weight:950;font-style:normal;
+  color:#287b58;
+}
+.scene--game .result-duel__versus {font-weight:950;font-size:20px;color:#ad9778;}
+.scene--game .result-card-peek {
+  display:flex;align-items:center;justify-content:center;
+  gap:11px;margin:5px auto;min-height:45px;
+}
+.scene--game .result-card-peek > span {
+  font-size:11px;font-weight:850;color:#7f6d53;white-space:nowrap;
+}
+.scene--game .result-card-peek__cards {display:flex;justify-content:center;gap:4px;}
+.scene--game .result-card-peek__cards .hwatu {
+  width:clamp(30px,9vw,40px);
+  border-width:1px;pointer-events:none;
+}
+.scene--game .result-box .result-stats {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;margin:8px 0 5px;
+}
+.scene--game .result-box .result-stats > div {
+  min-width:0;padding:8px 3px;border:1px solid #e0cba8;
+  border-radius:12px;background:#fff8e8a8;box-shadow:none;
+}
+.scene--game .result-box .result-stats span {
+  display:block;margin:0 0 4px;font-size:11px;color:#76644e;
+}
+.scene--game .result-box .result-stats strong {
+  display:block;overflow-wrap:anywhere;white-space:normal;
+  line-height:1.23;font-size:clamp(15px,4vw,19px);color:#935e43;
+}
+.scene--game .result-box .result-stats strong.positive {color:#248259;}
+.scene--game .result-box .result-wallet {
+  display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+  margin:8px 0 9px;color:#706a53;font-size:12px;font-weight:800;
+}
+.scene--game .result-box .result-wallet b {
+  font-size:clamp(13px,3.7vw,17px);color:#9c6841;
+  overflow-wrap:anywhere;
+}
+.scene--game .result-actions {display:flex;flex-direction:column;align-items:stretch;gap:8px;}
+.scene--game .result-actions .btn {
+  margin:0;min-width:0;width:100%;min-height:42px;
+  padding:9px 11px;font-size:clamp(13px,3.7vw,16px);
+  border-radius:12px;line-height:1.2;white-space:normal;
+}
+.scene--game .result-actions .btn--primary {
+  min-height:clamp(48px,8svh,60px);
+  background:transparent url('/assets/flower-handpainted-button-v17.webp') center / 100% 100% no-repeat;
+  color:#53664f;border:0;box-shadow:none;
+}
+.scene--game .result-actions .btn--quiet {
+  max-width:180px;align-self:center;min-height:34px;
+  padding:6px 9px;font-size:12px;
+}
+@media (max-width:650px) and (max-height:600px) {
+  .scene--game .result-box {padding:9px 11px;max-height:calc(100svh - 12px);}
+  .scene--game .result-hero {margin:3px 0 4px;gap:6px;}
+  .scene--game .result-hero .result-mascot {width:55px;height:53px;}
+  .scene--game .result-hero .result-mascot .mascot {width:57px;}
+  .scene--game .result-hero h2 {font-size:20px;}
+  .scene--game .result-hero p {font-size:11px;}
+  .scene--game .result-duel {margin:5px 0;padding:4px 3px;}
+  .scene--game .result-duel__player strong {font-size:30px;}
+  .scene--game .result-card-peek {display:none;}
+  .scene--game .result-box .result-stats {margin:5px 0 3px;}
+  .scene--game .result-box .result-stats > div {padding:5px 3px;}
+  .scene--game .result-box .result-wallet {margin:5px 0 6px;}
+  .scene--game .result-actions {gap:5px;}
+  .scene--game .result-actions .btn--primary {min-height:43px;}
+  .scene--game .result-actions .btn--quiet {min-height:29px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .scene--game .result-box {animation:none;}
+  .score-gain {animation:none;opacity:1;}
+}
