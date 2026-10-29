@@ -10,7 +10,7 @@ from zipfile import ZipFile, ZIP_STORED, ZIP_DEFLATED
 from io import BytesIO
 from PIL import Image
 from mutagen.mp3 import MP3
-import random, json
+import random, json, re
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "cloudflare-pages-dist"
@@ -65,12 +65,12 @@ manifest = {"title": "곰같은여우 AI MUSIC RADIO",
     '<title>페이지를 찾을 수 없습니다</title><p><a href="/">홈으로</a></p></html>',
     encoding="utf-8",
 )
-files = [p for p in OUT.rglob("*") if p.is_file()]
+files = sorted((p for p in OUT.rglob("*") if p.is_file()), key=lambda p: p.as_posix())\nfor item in files:\n    rel = item.relative_to(OUT).as_posix()\n    if not re.fullmatch(r"[A-Za-z0-9_./-]+", rel):\n        raise SystemExit(f"Non-ASCII / URL-unsafe path found: {rel}")
 if len(tracks) != 55 or any(p.stat().st_size > 25 * 1024 * 1024 for p in files):
     raise SystemExit("Pages validation failed: count or >25 MiB single file")
-dest = HERE / "gomfox-radio-cloudflare-pages.zip"
+dest = HERE / "gomfox-radio-pages-55tracks.zip"
 with ZipFile(dest, "w") as archive:
     for item in files:
         mode = ZIP_STORED if item.suffix.lower() in (".mp3", ".jpg") else ZIP_DEFLATED
         archive.write(item, item.relative_to(OUT).as_posix(), compress_type=mode)
-print(f"Ready: {dest.name}, {len(tracks)} audio files and {len(files)} files total")
+with ZipFile(dest) as check:\n    if check.testzip() is not None:\n        raise SystemExit("ZIP CRC validation failed")\nprint(f"Ready: {dest.name}, {len(tracks)} audio files and {len(files)} files total")
