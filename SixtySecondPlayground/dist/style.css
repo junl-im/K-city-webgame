@@ -735,7 +735,7 @@ body[data-view="games"] footer{display:none}
 
 /* v2.3 · 필요한 경우에만 스크롤바 표시. 남는 높이는 게임 카드가 자연스럽게 채움. */
 @media (min-width:1180px) and (min-height:830px){
-  body[data-view="games"] .app-shell{min-height:100dvh;display:flex;flex-direction:column}
+  body[data-view="games"] .app-shell{min-height:100dvh;display:flex;flex-direction:column;padding-bottom:12px}
   body[data-view="games"] #home{flex:1;display:flex;flex-direction:column;min-height:0}
   body[data-view="games"] #games{flex:1;display:flex;flex-direction:column;min-height:0}
   body[data-view="games"] .game-grid[data-filter="all"]{flex:1;grid-auto-rows:minmax(238px,1fr)}
@@ -744,7 +744,7 @@ body[data-view="games"] footer{display:none}
   body[data-view="games"] .game-grid[data-filter="all"] .game-art .art-image{height:clamp(102px,12dvh,160px)}
 }
 @media (max-width:700px) and (min-height:780px){
-  body[data-view="games"] .app-shell{min-height:100dvh;display:flex;flex-direction:column}
+  body[data-view="games"] .app-shell{min-height:100dvh;display:flex;flex-direction:column;padding-bottom:max(9px,env(safe-area-inset-bottom))}
   body[data-view="games"] #home{flex:1;display:flex;flex-direction:column;min-height:0}
   body[data-view="games"] #games{flex:1;display:flex;flex-direction:column;min-height:0}
   body[data-view="games"] .game-grid[data-filter="all"]{flex:1;grid-template-rows:repeat(3,minmax(110px,1fr)) minmax(80px,.7fr)}
