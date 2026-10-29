@@ -639,3 +639,10 @@
 #app .brand{width:320px;max-width:min(52vw,320px);min-height:76px;background-size:100% auto!important;padding-left:108px;padding-right:15px}
 #app .brand>div{flex:1;min-width:0}#app .brand strong{font-size:clamp(11px,1.1vw,14px);overflow-wrap:anywhere}#app #creek-visit-button{left:max(14px,env(safe-area-inset-left));right:auto}
 @media(max-width:760px){#app .brand{width:min(245px,calc(100vw - 110px));max-width:calc(100vw - 110px);padding-left:clamp(65px,20vw,78px);padding-right:7px}#app .brand strong{font-size:clamp(10px,2.8vw,12px)}#app #creek-visit-button{left:max(7px,env(safe-area-inset-left));right:auto}}
+
+/* Preserve the illustrated sign while keeping its live location legible. */
+@media (max-width:430px){
+  #app .brand strong{font-size:11.5px;line-height:1.18;word-break:keep-all;overflow-wrap:normal;}
+  #app .brand small{display:block;font-size:10px;line-height:1.25;}
+}
+@media (max-width:350px){#app .brand{width:calc(100vw - 114px);max-width:calc(100vw - 114px);}}

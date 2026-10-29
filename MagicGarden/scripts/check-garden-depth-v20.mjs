@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {FOREGROUND_PAINTINGS, foregroundDepth,footDepth,foregroundMotion} from '../src/garden-depth.ts';
 import {isWalkable} from '../src/garden-navigation.ts';
-const source=readFileSync('src/main.ts','utf8');
+// Git may check out CRLF on Windows; inspect the same source structure on
+// Windows and Linux without changing the game file itself.
+const source=readFileSync('src/main.ts','utf8').replace(/\r\n/g,'\n');
 let checks=0;
 for(const zone of ['town','farm','lab','nursery']){
  const arr=FOREGROUND_PAINTINGS.filter(p=>p.zone===zone);
