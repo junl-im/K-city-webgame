@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {surfaceTextureBounds,stageMaterialForEverydayLesson,inclineStandGeometry} from './surface-materials.mjs';
+import {surfaceTextureBounds,stageMaterialForEverydayLesson,inclineStandGeometry,paintPendulumMount} from './surface-materials.mjs';
 
 const materialNames=['felt','ice','wood','soil'];
 const cells=materialNames.map(name=>surfaceTextureBounds(1254,1254,name));
@@ -29,3 +29,20 @@ for(const degrees of [10,15,20,25,30,35,40]){
   assert.ok(stand.footTop<=215&&stand.footTop+stand.footHeight>215,
     'Foot visibly rests across the shelf surface');
 }
+
+const penCalls=[];
+const mockCanvas=new Proxy({},{
+  get(target,key){
+    if(key in target)return target[key];
+    if(key==='createLinearGradient')return ()=>({addColorStop(){}});
+    return (...args)=>{penCalls.push([key,...args]);};
+  },
+  set(target,key,value){target[key]=value;return true;}
+});
+assert.equal(paintPendulumMount(mockCanvas,null,-18,-176),true);
+const woodSupports=penCalls.filter(call=>call[0]==='roundRect');
+assert.ok(woodSupports.length>=3,'Pendulum rack needs post, overhead beam and shelf foot');
+assert.ok(woodSupports.some(call=>call[2]<=-220&&call[2]+call[4]>215),
+  'Vertical post must visibly reach the stage top');
+assert.ok(penCalls.some(call=>call[0]==='arc'&&call[1]===-18&&call[2]===-176),
+  'Metal hinge must be centered exactly at the physical pivot');
