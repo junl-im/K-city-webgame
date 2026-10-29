@@ -37,6 +37,11 @@ export function magnetBallPosition(progress,attracts,visualPull,distanceCm=2){
   return {x:startX-.27*travel,y:.40+.04*travel,travel};
 }
 
+/** Visible tip of the fulcrum WebP starts about 20% below its transparent top. */
+export function leverFulcrumSpriteTop(beamY,spriteSize){
+  return beamY-spriteSize*.22;
+}
+
 /** 2D pulley screen-space travel: the handle goes down as the load rises. */
 export function pulleySceneMotion(progress,pulleyType){
   const p=clamp(Number.isFinite(progress)?progress:0,0,1);

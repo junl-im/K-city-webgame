@@ -49,6 +49,50 @@ export function paintToyStage(ctx,art,{y=216,width=648,height=91,material='wood'
   ctx.beginPath();ctx.roundRect(left+2,y+2,width-4,height-4,23);ctx.stroke();ctx.restore();
 }
 
+
+/** A miniature wooden stand visibly joins the inclined board to the floor shelf.
+ * The post starts inside the ramp's 30px lower half, preventing a visual gap.
+ */
+export function inclineStandGeometry({x0,y0,x1,y1},shelfTop=215){
+  const centerX=(x0+x1)/2,centerY=(y0+y1)/2;
+  return {centerX,centerY,postTop:centerY+14,postBottom:shelfTop+8,
+    postWidth:56,footTop:shelfTop-6,footWidth:132,footHeight:22};
+}
+
+/** Use the original painted wood atlas; the new support is visual-only. */
+export function paintInclineStand(ctx,art,ramp,shelfTop=215){
+  const g=inclineStandGeometry(ramp,shelfTop);
+  const {centerX:cx,postTop,postBottom,postWidth,footTop,footWidth,footHeight}=g;
+  if(postBottom<=postTop)return false;
+  ctx.save();
+  ctx.fillStyle='rgba(7,22,45,.36)';
+  ctx.beginPath();ctx.ellipse(cx,footTop+17,89,15,0,0,Math.PI*2);ctx.fill();
+  ctx.shadowColor='rgba(8,20,40,.62)';ctx.shadowBlur=17;ctx.shadowOffsetX=5;
+  ctx.fillStyle='#a16f4c';ctx.beginPath();
+  ctx.roundRect(cx-postWidth/2,postTop,postWidth,postBottom-postTop,13);ctx.fill();
+  ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.clip();
+  paintSurfaceTexture(ctx,art,'wood',cx-postWidth/2,postTop,postWidth,postBottom-postTop,.92);
+  const shine=ctx.createLinearGradient(cx-postWidth/2,0,cx+postWidth/2,0);
+  shine.addColorStop(0,'rgba(255,228,164,.39)');
+  shine.addColorStop(.32,'rgba(255,241,195,.11)');
+  shine.addColorStop(1,'rgba(31,42,62,.40)');
+  ctx.fillStyle=shine;ctx.fillRect(cx-postWidth/2,postTop,postWidth,postBottom-postTop);
+  ctx.restore();
+  ctx.save();ctx.lineWidth=3;ctx.strokeStyle='rgba(255,224,164,.70)';
+  ctx.beginPath();ctx.roundRect(cx-postWidth/2+2,postTop,postWidth-4,postBottom-postTop,12);ctx.stroke();
+  ctx.restore();
+  ctx.save();ctx.shadowColor='rgba(10,20,39,.45)';ctx.shadowBlur=8;
+  ctx.fillStyle='#a4744e';ctx.beginPath();
+  ctx.roundRect(cx-footWidth/2,footTop,footWidth,footHeight,10);ctx.fill();
+  ctx.shadowBlur=0;ctx.clip();
+  paintSurfaceTexture(ctx,art,'wood',cx-footWidth/2,footTop,footWidth,footHeight,.92);
+  ctx.restore();
+  ctx.save();ctx.strokeStyle='rgba(255,222,155,.76)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.roundRect(cx-footWidth/2+2,footTop+2,footWidth-4,footHeight-4,8);ctx.stroke();
+  ctx.restore();
+  return true;
+}
+
 /** Draw a textured ramp while retaining the physical line's exact angle. */
 export function paintInclineMaterial(ctx,art,{x0,y0,x1,y1,material}){
   const length=Math.hypot(x1-x0,y1-y0);

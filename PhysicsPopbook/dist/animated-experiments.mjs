@@ -5,7 +5,7 @@
  */
 
 import { celebrationCue, paintTwinkles } from './visual-effects.mjs';
-import {paintToyStage,paintInclineMaterial,paintSurfaceTexture,stageMaterialForEverydayLesson} from './surface-materials.mjs';
+import {paintToyStage,paintInclineMaterial,paintInclineStand,paintSurfaceTexture,stageMaterialForEverydayLesson} from './surface-materials.mjs';
 
 const clamp01 = n => Math.max(0, Math.min(1, Number.isFinite(n) ? n : 0));
 const PI = Math.PI;
@@ -187,6 +187,7 @@ function friction(ctx, art, shoe, materialAtlas, p, data, settings) {
   const degree=Number(settings.slopeDegrees)||25;
   const ramp=inclineSceneGeometry(degree,motion.travel);
   const {x0,y0,x1,y1,shoeX,shoeY}=ramp;
+  paintInclineStand(ctx,materialAtlas,ramp);
   paintInclineMaterial(ctx,materialAtlas,{x0,y0,x1,y1,material:isIce?'ice':'felt'});
   // Felt compresses at the sole; hard ice keeps a narrower, cooler glint.
   // Both marks follow the exact incline, even when its angle is changed.

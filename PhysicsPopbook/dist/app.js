@@ -5,10 +5,10 @@ import { circuitReadings } from './circuit-core.mjs';
 import { mechanicsReadings } from './mechanics-core.mjs';
 import { magnetReading, soundReading } from './discovery-core.mjs';
 import { inertiaReading, frictionReading, buoyancyReading, pendulumReading, heatReading } from './everyday-core.mjs';
-import { drawEverydayScene } from './animated-experiments.mjs?rev=20261029-contact221';
+import { drawEverydayScene } from './animated-experiments.mjs?rev=20261029-stagecontact';
 import {paintSurfaceTexture,surfaceTextureBounds} from './surface-materials.mjs';
 import { COMPANION_ART, companionCue } from './lab-companion.mjs';
-import { landingCue, groundShadowCue, wavefrontSpacing, magnetBallPosition, pulleySceneMotion, orbitalTrailCount, orbitToySizes, litBulbOpacity, celebrationCue, paintTwinkles } from './visual-effects.mjs';
+import { landingCue, groundShadowCue, wavefrontSpacing, magnetBallPosition, pulleySceneMotion, leverFulcrumSpriteTop, orbitalTrailCount, orbitToySizes, litBulbOpacity, celebrationCue, paintTwinkles } from './visual-effects.mjs';
 
 const EVERYDAY_IDS = ['inertia','friction','buoyancy','pendulum','heat'];
 const LESSON_IDS = ['gravity', 'orbit', 'light', 'circuit', 'mechanics', 'magnet', 'sound', ...EVERYDAY_IDS];
@@ -1808,7 +1808,7 @@ function renderFallback(s, targetContext = fallbackContext, targetCanvas = canva
       const theta=-.11+p*.25,ax=cx-arm,ay=beamY-arm*Math.sin(theta),bx=cx+span,by=beamY+span*Math.sin(theta);
       if(leverFulcrumArtwork.complete&&leverFulcrumArtwork.naturalWidth){
         const propSize=Math.min(98,w*.22,h*.32);
-        ctx.drawImage(leverFulcrumArtwork,cx-propSize*.5,beamY-propSize*.09,propSize,propSize);
+        ctx.drawImage(leverFulcrumArtwork,cx-propSize*.5,leverFulcrumSpriteTop(beamY,propSize),propSize,propSize);
       }else{
         ctx.fillStyle='#c98e50';ctx.beginPath();ctx.moveTo(cx,beamY-4);ctx.lineTo(cx-27,beamY+55);ctx.lineTo(cx+27,beamY+55);ctx.closePath();ctx.fill();
       }
