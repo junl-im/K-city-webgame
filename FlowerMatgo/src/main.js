@@ -65,6 +65,7 @@ function loadSave() {
 let app = loadSave();
 let overlay = null;
 let galleryOwner = 'human';
+let galleryType = null;
 let selectedMatch = null;
 let aiTimer = null;
 let fxTimer = null;
@@ -330,19 +331,24 @@ function capturedRack(g) {
   return `<div class="collection-rack" aria-label="내가 먹은 실제 화투패">
     <div class="collection-head"><span>✿ <b>먹은 패</b> <small>${g.humanCaptured.length}장</small></span><button type="button" data-action="captures" data-value="human" aria-label="획득한 패 전체 펼쳐보기">전체 보기</button></div>
     <div class="collection-groups">${groupedCaptures(g,'human').map(group => `
-      <button class="collection-group" type="button" data-capture-type="${group.id}" data-action="captures" data-value="human" aria-label="먹은 ${group.name} ${group.cards.length}장 전체 보기">
+      <button class="collection-group" type="button" data-capture-type="${group.id}" data-action="captures" data-value="human:${group.id}" aria-label="먹은 ${group.name} ${group.cards.length}장 전체 보기">
         <span class="collection-name">${group.name} <strong>${group.cards.length}</strong></span>
         <span class="collection-preview">${group.cards.length ? group.cards.slice(-3).map(id=>card(id,{tiny:true,gookjinAsDoubleJunk:g.humanGookjinAsDoubleJunk})).join('') : '<i>−</i>'}
           ${group.cards.length>3?`<em>+${group.cards.length-3}</em>`:''}</span>
       </button>`).join('')}</div>
   </div>`;
 }
-function capturedGallery(g, who) {
+function capturedGallery(g, who, selectedType) {
   const groups=groupedCaptures(g,who);
+  const selected=groups.find(group=>group.id===selectedType);
+  if (selected) {
+    groups.splice(groups.indexOf(selected),1);
+    groups.unshift(selected);
+  }
   const count=(who==='human'?g.humanCaptured:g.computerCaptured).length;
   return `<div class="modal-shade"><section class="modal-box gallery-box" role="dialog" aria-modal="true" aria-label="먹은 화투패 전체 보기">
     <div class="gallery-heading"><div><p class="eyebrow">MY FLOWER CARDS</p><h2>${who==='human'?'내가 먹은 패':'상대가 먹은 패'} <small>${count}장</small></h2></div><button class="gallery-close" type="button" data-action="close" aria-label="닫기">✕</button></div>
-    <p class="gallery-note">같은 종류의 화투패를 모아 점수를 만들어요. 패를 크게 보고 확인해 봐!</p>
+    <p class="gallery-note">${selected?`${selected.name} 패를 먼저 보여드려요. 다른 종류도 아래에서 확인할 수 있어요.`:'같은 종류의 화투패를 모아 점수를 만들어요. 패를 크게 보고 확인해 봐!'}</p>
     ${groups.map(group=>`<section class="gallery-section"><div class="gallery-section-head"><strong>${group.name}</strong><span>${group.cards.length}장</span></div><div class="gallery-cards">${group.cards.length?group.cards.map(id=>card(id,{gookjinAsDoubleJunk:who==='human'?g.humanGookjinAsDoubleJunk:g.computerGookjinAsDoubleJunk})).join(''):'<span class="gallery-empty">아직 먹은 패가 없어요</span>'}</div></section>`).join('')}
     ${btn('돌아가기','close','btn--primary btn--wide')}
   </section></div>`;
@@ -421,7 +427,7 @@ function gameScreen() {
 }
 
 function gameOverlay(g) {
-  if (overlay==='captures') return capturedGallery(g, galleryOwner);
+  if (overlay==='captures') return capturedGallery(g, galleryOwner, galleryType);
   if (overlay==='cardbook') return cardbookOverlay();
   if (selectedMatch) {
     return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--match" role="dialog" aria-modal="true" aria-labelledby="match-choice-title" aria-describedby="match-choice-help">
@@ -849,7 +855,13 @@ function mutate(action, value, cardId) {
       save();effects('긴급 '+kr(EMERGENCY_RECHARGE)+'냥 충전!','win');render();return;
     case 'help': overlay='help';render();return;
     case 'cardbook': overlay='cardbook';render();return;
-    case 'captures': if(!app.game)return;galleryOwner=value==='computer'?'computer':'human';overlay='captures';render();return;
+    case 'captures': {
+      if(!app.game)return;
+      const [owner, type] = (value || '').split(':');
+      galleryOwner=owner==='computer'?'computer':'human';
+      galleryType=['bright','animal','ribbon','junk'].includes(type) ? type : null;
+      overlay='captures';render();return;
+    }
     case 'close': overlay=null;render();return;
     case 'sound': app.sound=!app.sound;save();render();return;
     case 'automode':
