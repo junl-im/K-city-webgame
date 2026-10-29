@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
-const REV='20261029-v28lazy';
+const REV='20261029-v281support';
 const read=name=>readFileSync(new URL(name,import.meta.url),'utf8');
 const importedPaths=source=>[...source.matchAll(/from\s+['"]([.][/][^'"]+)['"]/g)].map(match=>match[1]);
 
