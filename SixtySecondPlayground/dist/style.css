@@ -774,3 +774,52 @@ body[data-view="games"] #games{animation:gamePageFade .24s ease-out both}
   .modal:has(.howto-guide) .action-button{min-height:51px;margin:4px 0;padding-top:9px;padding-bottom:9px}
   .modal:has(.howto-guide) .helper-text{margin-top:7px}
 }
+
+/* v2.5 · 실제 게임 화면 세로 맞춤: 게임판 터치를 유지하면서 불필요한 스크롤을 최소화. */
+/* 안내창과 달리 플레이 중에는 화면 가장자리 여유를 줄여 게임판에 사용. */
+.overlay:has(.modal.is-playing){padding:8px}
+.modal.is-playing{max-height:min(calc(100dvh - 16px),850px)}
+.arena[data-game="whack"] .tap-grid{max-width:320px}
+@media (max-height:840px){
+  .modal.is-playing{max-height:calc(100dvh - 16px);padding-top:13px;padding-bottom:13px}
+  .modal.is-playing .modal-top{margin-bottom:3px}
+  .modal.is-playing .modal-title{margin:3px 0 5px;font-size:clamp(19px,3.1dvh,25px);line-height:1.2}
+  .modal.is-playing .game-host{min-height:36px;margin:5px auto 7px;padding:3px 10px}
+  .modal.is-playing .game-host img{width:31px;height:32px}
+  .modal.is-playing .hud{margin:6px 0 8px;padding:4px}
+  .modal.is-playing .hud-box{padding:6px 7px}
+  .modal.is-playing .hud-box strong{font-size:20px}
+  .modal.is-playing .stage-row{margin:3px 0 -2px}
+  .modal.is-playing .game-prompt{min-height:32px;margin:5px 0 7px}
+  .modal.is-playing .arena{padding:10px}
+  .modal.is-playing .feedback{margin-top:6px;height:18px}
+  .modal.is-playing .helper-text{margin:6px 0 0}
+  .arena[data-game="whack"] .tap-grid{max-width:min(280px,52dvh)}
+  .arena[data-game="memory"] .memory-grid{max-width:min(270px,52dvh)}
+}
+@media (max-width:780px){
+  .modal.is-playing{width:100%;max-height:calc(100dvh - 16px);padding:11px 13px 13px}
+  .modal.is-playing .modal-top{margin-bottom:2px}
+  .modal.is-playing .modal-title{font-size:clamp(19px,3dvh,24px);margin:3px 0 4px}
+  .modal.is-playing .game-host{min-height:34px;margin:4px auto 5px;padding:2px 9px}
+  .modal.is-playing .game-host img{width:29px;height:30px}
+  .modal.is-playing .hud{margin:5px 0 6px;padding:4px;gap:5px}
+  .modal.is-playing .hud-box{padding:5px 4px}
+  .modal.is-playing .hud-box strong{font-size:19px}
+  .modal.is-playing .stage-row{margin:2px 0 -2px}
+  .modal.is-playing .game-prompt{min-height:30px;margin:4px 0 6px;font-size:12px}
+  .modal.is-playing .arena{padding:9px}
+  .modal.is-playing .feedback{margin-top:5px;height:18px}
+  .modal.is-playing .helper-text{margin:5px 0 0;font-size:10px}
+  .arena[data-game="whack"] .tap-grid{max-width:min(280px,48dvh)}
+  .arena[data-game="memory"] .memory-grid{max-width:min(260px,46dvh)}
+  .modal.is-playing .num-cell{height:clamp(44px,6.4dvh,53px)}
+}
+@media (max-height:650px){
+  .modal.is-playing .game-host{display:none}
+  .modal.is-playing .helper-text{display:none}
+  .modal.is-playing .modal-top{margin-bottom:0}
+  .modal.is-playing .game-prompt{margin-bottom:4px}
+  .arena[data-game="whack"] .tap-grid{max-width:min(235px,44dvh)}
+  .arena[data-game="memory"] .memory-grid{max-width:min(220px,42dvh)}
+}
