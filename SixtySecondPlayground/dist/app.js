@@ -67,7 +67,7 @@
       {q:'물을 주면 꺼지고 공기를 주면 더 타오르는 것은?',a:['불','꽃','나무']},
       {q:'나눌수록 더 널리 퍼질 수 있는 것은?',a:['지식','사탕','연필']},
       {q:'시간이 지나며 늘어나지만 되돌릴 수 없는 것은?',a:['나이','그림자','목소리']},
-      {q:'물에 비쳐도 젖지 않는 것은?',a:['그림자','종이','양말']},
+      {q:'물에 비친 내 모습은 무엇일까?',a:['비친 모습','물고기','물방울']},
       {q:'빛 아래 따라오지만 어두운 곳에선 안 보이는 것은?',a:['그림자','가방','시계']},
       {q:'거꾸로 읽어도 같은 숫자는?',a:['121','123','456']},
       {q:'10에서 3을 두 번 빼면?',a:['4','3','7']},
@@ -657,7 +657,7 @@
       [base,right].forEach(function(board,side){
         const wrap=document.createElement('div');wrap.className='spot-board';
         wrap.setAttribute('role',side===0?'img':'group');
-        wrap.setAttribute('aria-label',side===0?'왼쪽 기준 그림':'오른쪽에서 다른 그림을 선택');
+        wrap.setAttribute('aria-label',side===0?'왼쪽 기준 그림. 왼쪽 위부터 '+board.map(function(icon,i){return (i+1)+'번 '+SPOT_ART[icon][1];}).join(', '):'오른쪽에서 다른 그림을 선택');
         board.forEach(function(icon,i){
           if(side===0){
             const sample=document.createElement('span');sample.className='spot-cell spot-sample';paintSpotCell(sample,icon);
@@ -667,7 +667,7 @@
             if(s.locked)return;
             revealAnswer(b,rightCells[changed]);
             feedback(i===changed,i===changed?'찾았다! ✨':'이 친구는 똑같아!',100,b);after(500);
-          },'spot-cell');b.setAttribute('aria-label',paintSpotCell(b,icon)+' 그림 선택');rightCells.push(b);wrap.append(b);
+          },'spot-cell');b.setAttribute('aria-label',(i+1)+'번 '+paintSpotCell(b,icon)+' 그림 선택');rightCells.push(b);wrap.append(b);
         });
         pair.append(wrap);
       });arena.append(pair);break;
