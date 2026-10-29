@@ -1,14 +1,14 @@
-import { GRAVITY, createBody, stepBody } from './physics-core.mjs?rev=20261029-v28lazy';
-import { orbitalPeriodYears, orbitalAngle } from './orbit-core.mjs?rev=20261029-v28lazy';
-import { mirrorLightPath } from './mirror-core.mjs?rev=20261029-v28lazy';
-import { circuitReadings } from './circuit-core.mjs?rev=20261029-v28lazy';
-import { mechanicsReadings } from './mechanics-core.mjs?rev=20261029-v28lazy';
-import { magnetReading, soundReading } from './discovery-core.mjs?rev=20261029-v28lazy';
-import { inertiaReading, frictionReading, buoyancyReading, pendulumReading, heatReading } from './everyday-core.mjs?rev=20261029-v28lazy';
-import { drawEverydayScene } from './animated-experiments.mjs?rev=20261029-v28lazy';
-import {paintSurfaceTexture,surfaceTextureBounds,paintMechanicsPlatform} from './surface-materials.mjs?rev=20261029-v28lazy';
-import { COMPANION_ART, companionCue } from './lab-companion.mjs?rev=20261029-v28lazy';
-import { landingCue, groundShadowCue, wavefrontSpacing, magnetBallPosition, pulleySceneMotion, leverFulcrumSpriteTop, orbitalTrailCount, orbitToySizes, litBulbOpacity, celebrationCue, paintTwinkles } from './visual-effects.mjs?rev=20261029-v28lazy';
+import { GRAVITY, createBody, stepBody } from './physics-core.mjs?rev=20261029-v281support';
+import { orbitalPeriodYears, orbitalAngle } from './orbit-core.mjs?rev=20261029-v281support';
+import { mirrorLightPath } from './mirror-core.mjs?rev=20261029-v281support';
+import { circuitReadings } from './circuit-core.mjs?rev=20261029-v281support';
+import { mechanicsReadings } from './mechanics-core.mjs?rev=20261029-v281support';
+import { magnetReading, soundReading } from './discovery-core.mjs?rev=20261029-v281support';
+import { inertiaReading, frictionReading, buoyancyReading, pendulumReading, heatReading } from './everyday-core.mjs?rev=20261029-v281support';
+import { drawEverydayScene } from './animated-experiments.mjs?rev=20261029-v281support';
+import {paintSurfaceTexture,surfaceTextureBounds,paintMechanicsPlatform,paintPulleyStand} from './surface-materials.mjs?rev=20261029-v281support';
+import { COMPANION_ART, companionCue } from './lab-companion.mjs?rev=20261029-v281support';
+import { landingCue, groundShadowCue, wavefrontSpacing, magnetBallPosition, pulleySceneMotion, leverFulcrumSpriteTop, orbitalTrailCount, orbitToySizes, litBulbOpacity, celebrationCue, paintTwinkles } from './visual-effects.mjs?rev=20261029-v281support';
 
 const EVERYDAY_IDS = ['inertia','friction','buoyancy','pendulum','heat'];
 const LESSON_IDS = ['gravity', 'orbit', 'light', 'circuit', 'mechanics', 'magnet', 'sound', ...EVERYDAY_IDS];
@@ -1805,7 +1805,8 @@ function renderFallback(s, targetContext = fallbackContext, targetCanvas = canva
     ctx.beginPath();ctx.roundRect(w*.10,h*.30,w*.80,h*.50,18);ctx.fill();ctx.stroke();
     ctx.save();ctx.beginPath();ctx.roundRect(w*.10,h*.30,w*.80,h*.50,18);ctx.clip();
     paintSurfaceTexture(ctx,surfaceMaterialArtwork,'wood',w*.10,h*.30,w*.80,h*.50,.24);ctx.restore();
-    paintMechanicsPlatform(ctx,surfaceMaterialArtwork,w,h);
+    const mechanicsShelf=paintMechanicsPlatform(ctx,surfaceMaterialArtwork,w,h,s.mechanicsMode);
+    if(s.mechanicsMode==='pulley')paintPulleyStand(ctx,surfaceMaterialArtwork,w,h,mechanicsShelf.y);
     const line=(ax,ay,bx,by,color,width=5)=>{ctx.lineCap='round';ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();};
     const weight=(x,y,label)=>{
       const bw=Math.max(30,Math.min(48,w*.1)),bh=bw*.78;
