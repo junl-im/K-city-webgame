@@ -2,6 +2,11 @@
 export type GardenZone = 'town' | 'farm' | 'lab' | 'nursery';
 export type Point = { x: number; y: number };
 
+/** One world-space anchor for plot art, crop roots, hit testing and collision. Save indices remain row-major. */
+export function farmPlotAnchor(index: number): Point {
+  return { x: 365 + (index % 4) * 208, y: 443 + Math.floor(index / 4) * 98 };
+}
+
 const X_MIN = 70, X_MAX = 1210, Y_MIN = 350, Y_MAX = 742;
 const STEP = 28;
 const COLS = Math.floor((X_MAX - X_MIN) / STEP) + 1;
@@ -24,7 +29,8 @@ export function isWalkable(zone: GardenZone, x: number, y: number): boolean {
   } else if (zone === 'farm') {
     // Soil mounds are not walkable, but crop tap areas still receive pointer events.
     for (let row = 0; row < 3; row++) for (let col = 0; col < 4; col++) {
-      if (ellipse(x, y, 365 + col * 208, 460 + row * 98, 64, 32)) return false;
+      const anchor = farmPlotAnchor(row * 4 + col);
+      if (ellipse(x, y, anchor.x, anchor.y + 21, 64, 32)) return false;
     }
   } else if (zone === 'lab') {
     if (ellipse(x, y, 660, 485, 108, 51)) return false;
