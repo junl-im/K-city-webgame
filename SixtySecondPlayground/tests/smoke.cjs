@@ -14,7 +14,7 @@ const asset = file => path.join(dist, 'assets', file);
 new vm.Script(js, {filename: 'app.js'});
 assert.match(html, /시제품 v2\.2/);
 assert.match(html, /<title>곰같은여우와 함께하는 오늘의 60초 놀이터<\/title>/, '게임 정식 제목은 정확해야 합니다');
-assert.match(html, /\.\/style\.css\?v=20261029-viewport-v24-1/, '스크롤 및 높이 변경 CSS는 새 버전으로 로드해야 합니다');
+assert.match(html, /\.\/style\.css\?v=20261029-gameplay-fit-v25/, '스크롤 및 높이 변경 CSS는 새 버전으로 로드해야 합니다');
 assert.match(html, /<h1 tabindex="-1">오늘의 <em>60초 놀이터<\/em><\/h1>/, '메인 제목은 오늘의 60초 놀이터여야 합니다');
 assert.match(html, /<span>곰같은여우와 함께하는<\/span><span>오늘의 60초 놀이터<\/span>/, '상위 브랜드는 전체 제목을 유지해야 합니다');
 assert.match(js, /<button type="button" class="game-card" data-game=/, '게임 카드 전체를 누르면 열려야 합니다');
@@ -32,6 +32,13 @@ assert.match(css, /\.modal:has\(\.howto-guide\)\{max-height:min\(calc\(100dvh - 
 
 assert.match(css, /body\[data-view="games"\] \.app-shell\{min-height:100dvh;display:flex;flex-direction:column;padding-bottom:12px\}/, 'PC 게임판은 스크롤 없이 아래쪽 여유 공간을 확보해야 합니다');
 assert.match(css, /padding-bottom:max\(9px,env\(safe-area-inset-bottom\)\)/, '모바일 하단 안전 여백을 확보해야 합니다');
+
+assert.match(css, /\.overlay:has\(\.modal\.is-playing\)\{padding:8px\}/, '실제 게임 진행 중 한 화면을 넓게 사용해야 합니다');
+assert.match(css, /\.modal\.is-playing\{max-height:min\(calc\(100dvh - 16px\),850px\)\}/, '플레이 팝업은 화면 높이 이내로 제한');
+assert.match(css, /\.arena\[data-game="whack"\] \.tap-grid\{max-width:320px\}/, '몬스터 콩콩 PC 게임판의 불필요한 스크롤 원인을 제거');
+assert.match(css, /\.arena\[data-game="whack"\] \.tap-grid\{max-width:min\(280px,48dvh\)\}/, '모바일 게임판은 높이에 따라 축소');
+assert.match(css, /@media \(max-height:650px\)\{\s*\.modal\.is-playing \.game-host\{display:none\}/, '아주 낮은 화면에서는 장식 설명을 접고 게임을 우선');
+
 assert.match(css, /\.game-grid\[data-filter="all"\]\{grid-template-columns:repeat\(8/, 'PC의 일곱 카드는 8트랙 그리드로 4+3 중앙 배치');
 assert.match(css, /\.game-grid\[data-filter="all"\]>\.game-card:nth-child\(5\)\{grid-column:2 \/ span 2\}/, '두 번째 줄 세 카드가 가운데 정렬되어야 합니다');
 assert.match(css, /\.game-grid\[data-filter="all"\]>\.game-card:last-child\{\s*grid-column:1 \/ -1/, '모바일 마지막 카드는 가로 전체 폭을 차지해야 합니다');
