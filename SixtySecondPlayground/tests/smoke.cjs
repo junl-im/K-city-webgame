@@ -376,7 +376,7 @@ assert.match(css, /max-height:calc\(100dvh - 12px - env\(safe-area-inset-top\) -
 assert.match(css, /@media \(max-width:780px\) and \(orientation:portrait\)/, '모바일 세로 안전영역이 반영되어야 합니다');
 assert.doesNotMatch(css, /\.modal\.is-playing \.arena\{[^}]*overflow:hidden/, '게임판을 잘라서 스크롤만 숨겨서는 안 됩니다');
 
-assert.match(js, /officialDay:official\?dayKey\(\):null/, '공식 도전은 시작 날짜를 저장해야 합니다');
+assert.match(js, /officialDay:official\?today:null/, '공식 도전은 시작 날짜를 저장해야 합니다');
 assert.match(js, /state\.history\[s\.officialDay\|\|dayKey\(\)\]/, '자정 이후 끝나도 시작 날짜에 기록해야 합니다');
 assert.match(js, /new URL\('\.\/\?view=games',window\.location\.href\)\.href/, '결과 공유에 같은 GitHub 게임 페이지 링크 필요');
 assert.match(js, /navigator\.share\(\{title:'오늘의 60초 놀이터',text:text,url:shareUrl\}\)/, '기본 공유 창에 게임 링크를 첨부해야 합니다');
@@ -388,7 +388,7 @@ assert.match(js, /error\.name==='AbortError'/, '사용자가 공유를 취소하
 assert.match(js, /copyFallback\(\)/, '공유 오류가 발생하면 복사 경로로 전환해야 합니다');
 assert.match(js, /matchMedia\('\(pointer:coarse\)'\)/, 'PC에서는 기본 공유창 대신 직접 복사를, 터치 기기에서는 네이티브 공유를 우선해야 합니다');
 
-assert.match(html, /\.\/app\.js\?v=20261029-input-deadline-v35/, '자정 기록·공유 패치는 새 JS 캐시 버전으로 로드해야 합니다');
+assert.match(html, /\.\/app\.js\?v=20261030-daily-rollover-v36/, '자정 기록·공유 패치는 새 JS 캐시 버전으로 로드해야 합니다');
 
 console.log(`OK: ${games.length}개 게임, ${Object.keys(hostLines).length}명 안내원, ${questions.length}개 미스터리, 다른 그림 600판, 색 조합 66개, 9칸 중복 방지 1,800회, ${required.length}개 필수 WebP, SVG 0개`);
 
