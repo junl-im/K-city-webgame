@@ -4,6 +4,9 @@
   'use strict';
   const $ = function (s) { return document.querySelector(s); };
   const $$ = function (s) { return Array.from(document.querySelectorAll(s)); };
+  // Keep a brief guard against duplicate taps while letting a correct answer
+  // advance immediately. Wrong answers remain visible long enough to learn.
+  const CORRECT_NEXT_MS = 80, WRONG_NEXT_MS = 350;
   const GAMES = [
     {id:'whack',name:'몬스터 콩콩!',desc:'통통 튀는 몬스터를 잡아라! 친구는 누르지 마.',emoji:'👾',category:'reflex',color:'pink',host:'모모',zone:'솜사탕 정원'},
     {id:'number',name:'숫자 번개',desc:'1부터 16까지 차례대로 번개처럼 터치!',emoji:'🔢',category:'brain',color:'blue',host:'루루',zone:'번개 마법탑'},
@@ -543,7 +546,7 @@
         const cell=choiceButton(symbol,function(){
           if(!canAnswer(s))return;
           revealAnswer(cell,grid.children[target]);
-          feedback(i===target,i===target?'몬스터 잡았다! +점수':dangerIndex>=0?'친구를 건드렸어!':'몬스터가 아니야!',100,cell);after(260);
+          feedback(i===target,i===target?'몬스터 잡았다! +점수':dangerIndex>=0?'친구를 건드렸어!':'몬스터가 아니야!',100,cell);after(i===target?CORRECT_NEXT_MS:WRONG_NEXT_MS);
         },'tap-cell');paintWhackCell(cell,symbol);grid.append(cell);
       }
       arena.append(grid);break;
@@ -558,7 +561,7 @@
           if(n===s.nextNum) {
             b.disabled=true;b.classList.add('done');b.textContent='✦';s.nextNum++;
             feedback(true,'좋아! 다음 숫자!',100,b);
-            if(s.nextNum>16)after(340);else prompt.textContent='순서대로 터치! 다음 숫자: '+s.nextNum;
+            if(s.nextNum>16)after(CORRECT_NEXT_MS);else prompt.textContent='순서대로 터치! 다음 숫자: '+s.nextNum;
           }else{
             b.classList.add('answer-wrong');
             setTimeout(function(){b.classList.remove('answer-wrong');},450);
@@ -587,7 +590,7 @@
           const b=choiceButton('',function(){
             if(!canAnswer(s))return;
             revealAnswer(b,rightCells[changed]);
-            feedback(i===changed,i===changed?'찾았다! ✨':'이 친구는 똑같아!',100,b);after(500);
+            feedback(i===changed,i===changed?'찾았다! ✨':'이 친구는 똑같아!',100,b);after(i===changed?CORRECT_NEXT_MS:WRONG_NEXT_MS);
           },'spot-cell');b.setAttribute('aria-label',(i+1)+'번 '+paintSpotCell(b,icon)+' 그림 선택');rightCells.push(b);wrap.append(b);
         });
         pair.append(wrap);
@@ -604,7 +607,7 @@
         const b=choiceButton(c.name,function(){
           if(!canAnswer(s))return;
           revealAnswer(b,grid.children[ink]);
-          feedback(i===ink,i===ink?'정확한 색이야!':'눈에 보이는 색을 봐!',100,b);after(390);
+          feedback(i===ink,i===ink?'정확한 색이야!':'눈에 보이는 색을 봐!',100,b);after(i===ink?CORRECT_NEXT_MS:WRONG_NEXT_MS);
         },'choice color-option');
         b.style.setProperty('--option-color',c.css);grid.append(b);
       });
@@ -626,7 +629,7 @@
           if(!canAnswer(s))return;
           revealAnswer(b,cells[target]);
           feedback(i===target,i===target?'기억력 최고!':'별의 자리는 여기였어!',100,b);
-          after(450);
+          after(i===target?CORRECT_NEXT_MS:WRONG_NEXT_MS);
         };
       });
       cells[target].classList.add('memory-target');
@@ -652,7 +655,7 @@
         const b=choiceButton(f.icon+' '+f.name,function(){
           if(!canAnswer(s))return;
           revealAnswer(b,grid.children[family]);
-          feedback(i===family,i===family?'분류 성공!':'이 속성은 아니야!',100,b);after(410);
+          feedback(i===family,i===family?'분류 성공!':'이 속성은 아니야!',100,b);after(i===family?CORRECT_NEXT_MS:WRONG_NEXT_MS);
         },'choice');grid.append(b);
       });
       arena.append(monster,title,grid);break;
@@ -668,7 +671,7 @@
         const b=choiceButton((i+1)+'. '+option.text,function(){
           if(!canAnswer(s))return;
           revealAnswer(b,opts.children[answerIndex]);
-          feedback(option.valid,option.valid?'정답! 명탐정이야!':'정답은 '+q.a[0]+'!',100,b);after(580);
+          feedback(option.valid,option.valid?'정답! 명탐정이야!':'정답은 '+q.a[0]+'!',100,b);after(option.valid?CORRECT_NEXT_MS:WRONG_NEXT_MS);
         },'choice');opts.append(b);
       });
       arena.append(clue,opts);break;
@@ -717,7 +720,7 @@
       '<button class="action-button illustrated-primary illustrated-cta" id="replayGame"><span class="button-label">'+artIcon('play')+'한 판 더!</span>'+clickHand+'</button>'+
       '<button class="action-button secondary" id="shareGame">'+artIcon('scroll')+' 결과 공유하기</button>'+
       '<p class="helper-text">공식 도전은 하루 1회 · 자유 플레이는 무제한</p>');
-    $('#replayGame').addEventListener('click',function(){preview(s.game.id,false);});
+    $('#replayGame').addEventListener('click',function(){startGame(s.game.id,false);});
     $('#shareGame').addEventListener('click',function(){
       const shareUrl=new URL('./?view=games',window.location.href).href;
       const text='🎠 오늘의 60초 놀이터\n'+s.game.name+' '+padScore(s.score)+'점!\n나도 60초 도전했어!';
