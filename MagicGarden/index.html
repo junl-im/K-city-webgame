@@ -14,21 +14,21 @@
       <div class="brand"><span class="brand-mark"><span class="art-icon" data-art="farm" aria-hidden="true"></span></span><div><strong>곰같은여우의 마법정원</strong><small id="zone-name">중앙 마을</small></div></div>
       <div class="hud-stats"><span><span class="art-icon" data-art="farm" aria-hidden="true"></span><b id="seed-count">5</b></span><span><span class="art-icon" data-art="berry" aria-hidden="true"></span><b id="berry-count">0</b></span></div>
     </header>
-    <section class="guide" id="guide" aria-live="polite">길을 눌러 여우와 함께 걸어볼까?</section>
+    <section class="guide" id="guide" aria-live="polite">마법정원을 준비하고 있어요. 잠시만 기다려 주세요.</section>
     <section class="area-panel" aria-label="지역 이동">
-      <button type="button" id="town-button" class="area active"><span class="art-icon" data-art="town" aria-hidden="true"></span><span>마을</span></button>
-      <button type="button" id="farm-button" class="area"><span class="art-icon" data-art="farm" aria-hidden="true"></span><span>큰 텃밭</span></button>
-      <button type="button" id="lab-button" class="area"><span class="art-icon" data-art="lab" aria-hidden="true"></span><span>실험실</span></button>
-      <button type="button" id="nursery-button" class="area"><span class="art-icon" data-art="nursery" aria-hidden="true"></span><span>연구소</span></button>
+      <button type="button" id="town-button" disabled data-boot-control class="area active"><span class="art-icon" data-art="town" aria-hidden="true"></span><span>마을</span></button>
+      <button type="button" id="farm-button" disabled data-boot-control class="area"><span class="art-icon" data-art="farm" aria-hidden="true"></span><span>큰 텃밭</span></button>
+      <button type="button" id="lab-button" disabled data-boot-control class="area"><span class="art-icon" data-art="lab" aria-hidden="true"></span><span>실험실</span></button>
+      <button type="button" id="nursery-button" disabled data-boot-control class="area"><span class="art-icon" data-art="nursery" aria-hidden="true"></span><span>연구소</span></button>
     </section>
-    <button id="creek-visit-button" type="button" class="creek-visit" aria-label="마을 계곡으로 산책하기">
+    <button id="creek-visit-button" disabled data-boot-control type="button" class="creek-visit" aria-label="마을 계곡으로 산책하기">
       <span class="creek-visit-picture" aria-hidden="true"></span><span>계곡 산책</span>
     </button>
     <nav class="hud bottom-hud" aria-label="게임 메뉴">
-      <button type="button" id="bag-button"><span class="art-icon" data-art="bag" aria-hidden="true"></span><small>가방</small></button>
-      <button type="button" id="map-button"><span class="art-icon" data-art="map" aria-hidden="true"></span><small>지역</small></button>
-      <button type="button" id="book-button"><span class="art-icon" data-art="book" aria-hidden="true"></span><small>도감</small></button>
-      <button type="button" id="help-button"><span class="art-icon" data-art="help" aria-hidden="true"></span><small>도움말</small></button>
+      <button type="button" id="bag-button" disabled data-boot-control><span class="art-icon" data-art="bag" aria-hidden="true"></span><small>가방</small></button>
+      <button type="button" id="map-button" disabled data-boot-control><span class="art-icon" data-art="map" aria-hidden="true"></span><small>지역</small></button>
+      <button type="button" id="book-button" disabled data-boot-control><span class="art-icon" data-art="book" aria-hidden="true"></span><small>도감</small></button>
+      <button type="button" id="help-button" disabled data-boot-control><span class="art-icon" data-art="help" aria-hidden="true"></span><small>도움말</small></button>
     </nav>
     <div id="modal-root" class="modal-root hidden" role="presentation">
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">

@@ -1470,6 +1470,7 @@ async function start() {
     }
     refreshCamera(false, Math.min(ticker.deltaMS, 40));
   });
+  document.querySelectorAll<HTMLButtonElement>('button[data-boot-control]').forEach((button) => { button.disabled = false; });
   showGuide(saveData.zone === 'farm' ? '밭을 눌러 씨앗을 심어봐!' : saveData.zone === 'lab' ? '조합대를 터치해 마법 정수를 만들어봐!' : saveData.zone === 'nursery' ? '부화실을 터치해 새 친구를 만나봐!' : '길을 클릭하거나 터치하면 걸어갈 수 있어!');
 }
 start().catch((error: unknown) => {
@@ -1504,6 +1505,7 @@ start().catch((error: unknown) => {
   for (const zone of Object.keys(buttons) as Zone[]) {
     buttons[zone].addEventListener('click', () => showPreview(zone));
   }
+  Object.values(buttons).forEach((button) => { button.disabled = false; });
   showPreview(saveData.zone);
   console.warn('Garden renderer preview mode:', message);
 });
