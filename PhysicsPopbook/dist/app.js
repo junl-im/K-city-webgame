@@ -1,14 +1,14 @@
-import { GRAVITY, createBody, stepBody } from './physics-core.mjs';
-import { orbitalPeriodYears, orbitalAngle } from './orbit-core.mjs';
-import { mirrorLightPath } from './mirror-core.mjs';
-import { circuitReadings } from './circuit-core.mjs';
-import { mechanicsReadings } from './mechanics-core.mjs';
-import { magnetReading, soundReading } from './discovery-core.mjs';
-import { inertiaReading, frictionReading, buoyancyReading, pendulumReading, heatReading } from './everyday-core.mjs';
-import { drawEverydayScene } from './animated-experiments.mjs?rev=20261029-stagecontact';
-import {paintSurfaceTexture,surfaceTextureBounds} from './surface-materials.mjs';
-import { COMPANION_ART, companionCue } from './lab-companion.mjs';
-import { landingCue, groundShadowCue, wavefrontSpacing, magnetBallPosition, pulleySceneMotion, leverFulcrumSpriteTop, orbitalTrailCount, orbitToySizes, litBulbOpacity, celebrationCue, paintTwinkles } from './visual-effects.mjs';
+import { GRAVITY, createBody, stepBody } from './physics-core.mjs?rev=20261029-artfix01';
+import { orbitalPeriodYears, orbitalAngle } from './orbit-core.mjs?rev=20261029-artfix01';
+import { mirrorLightPath } from './mirror-core.mjs?rev=20261029-artfix01';
+import { circuitReadings } from './circuit-core.mjs?rev=20261029-artfix01';
+import { mechanicsReadings } from './mechanics-core.mjs?rev=20261029-artfix01';
+import { magnetReading, soundReading } from './discovery-core.mjs?rev=20261029-artfix01';
+import { inertiaReading, frictionReading, buoyancyReading, pendulumReading, heatReading } from './everyday-core.mjs?rev=20261029-artfix01';
+import { drawEverydayScene } from './animated-experiments.mjs?rev=20261029-artfix01';
+import {paintSurfaceTexture,surfaceTextureBounds} from './surface-materials.mjs?rev=20261029-artfix01';
+import { COMPANION_ART, companionCue } from './lab-companion.mjs?rev=20261029-artfix01';
+import { landingCue, groundShadowCue, wavefrontSpacing, magnetBallPosition, pulleySceneMotion, leverFulcrumSpriteTop, orbitalTrailCount, orbitToySizes, litBulbOpacity, celebrationCue, paintTwinkles } from './visual-effects.mjs?rev=20261029-artfix01';
 
 const EVERYDAY_IDS = ['inertia','friction','buoyancy','pendulum','heat'];
 const LESSON_IDS = ['gravity', 'orbit', 'light', 'circuit', 'mechanics', 'magnet', 'sound', ...EVERYDAY_IDS];
@@ -171,7 +171,10 @@ blueShoeArtwork.src='./assets/toy-shoe-sprite-v09.webp';
 const experimentPropsArtwork=new Image();
 experimentPropsArtwork.src='./assets/physics-props-atlas-v09.webp';
 const surfaceMaterialArtwork=new Image();
-surfaceMaterialArtwork.src='./assets/physics-surface-atlas-v17.webp';
+surfaceMaterialArtwork.src='./assets/physics-surface-atlas-v18.png';
+surfaceMaterialArtwork.onerror=()=>{if(!surfaceMaterialArtwork.src.endsWith('physics-surface-atlas-v17.webp'))surfaceMaterialArtwork.src='./assets/physics-surface-atlas-v17.webp';};
+const apparatusMaterialArtwork=new Image();
+apparatusMaterialArtwork.src='./assets/physics-apparatus-materials-v01.png';
 const heatWaterGlassArtwork=new Image();
 heatWaterGlassArtwork.src='./assets/heat-water-glass-v24.webp';
 const physicsToyArtwork=new Image();
@@ -1718,7 +1721,7 @@ function renderFallback(s, targetContext = fallbackContext, targetCanvas = canva
   const ctx=targetContext;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
   if(EVERYDAY_IDS.includes(s.lesson)){
     drawEverydayScene(ctx,{
-      lesson:s.lesson,art:cuteToyArtwork[s.lesson],atlas:experimentPropsArtwork,shoe:blueShoeArtwork,surfaceAtlas:surfaceMaterialArtwork,waterGlass:heatWaterGlassArtwork,width:w,height:h,
+      lesson:s.lesson,art:cuteToyArtwork[s.lesson],atlas:experimentPropsArtwork,shoe:blueShoeArtwork,surfaceAtlas:surfaceMaterialArtwork,hardwareAtlas:apparatusMaterialArtwork,waterGlass:heatWaterGlassArtwork,width:w,height:h,
       progress:s.discoveryProgress,reading:everydayReading(),
       settings:{mode:s.extraMode,speed:s.extraA,slopeDegrees:s.extraA,length:s.extraA}
     });
