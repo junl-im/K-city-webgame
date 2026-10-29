@@ -446,20 +446,32 @@ function gameOverlay(g) {
     return `<div class="modal-shade"><div class="modal-box"><div class="modal-flower">✦</div><h2>총통! 네 장이 모였어!</h2><p>바로 승리하거나 계속 칠 수 있어.</p><p class="decision-timer">남은 선택 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초 · 만료 시 스톱</p><div class="choice-actions">${btn('바로 스톱','chongtong-stop','btn--primary')}${btn('계속 치기','chongtong-go','btn--warm')}</div></div></div>`;
   }
   if (g.phase === 'round-ended') {
-    const win = g.winner === 'human';
     const nagari = g.roundResult === 'nagari';
-    const amount = g.settlement?.displayAmount || 0;
-    return `<div class="modal-shade modal-shade--result"><div class="modal-box result-box">
-      <div class="result-mascot">${portrait(win?'bear':opponent().animal)}</div>
-      <div class="result-star">${nagari?'✿':win?'🏆':'🍂'}</div><p class="eyebrow">ROUND COMPLETE</p>
-      <h2>${nagari?'나가리! 다음 판으로':win?'와! 한판 이겼어!':'아쉽다, 다음 판엔 이기자!'}</h2>
-      <p>${safe(spokenActionText(g.lastAction))}</p>
-      <div class="result-stats"><div><span>이번 판 점수</span><strong>${g.settlement?.finalScore??'-'}점</strong></div><div><span>${nagari?'다음 판 배수':win?'획득 놀이머니':'사용 놀이머니'}</span><strong class="${win?'positive':''}">${nagari?'×'+app.nextMultiplier:(win?'+':'−')+kr(amount)+' 냥'}</strong></div></div>
-      <div class="result-wallet">현재 보유 <b>✦ ${kr(app.wallet)}냥</b></div>
-      ${btn('다음 판 치기','next','btn--primary btn--wide')}
-      ${canEmergencyRecharge(app.wallet)?btn('긴급 무료 충전 +30만 냥','recharge','btn--ghost btn--wide'):''}
-      ${btn('메인으로','home','btn--quiet')}
-    </div></div>`;
+    const win = g.winner === 'human' && !nagari;
+    const outcome = nagari ? 'draw' : win ? 'win' : 'lose';
+    const amount = Math.max(0, g.settlement?.displayAmount || 0);
+    const myScore = scoreOf(g,'human').total;
+    const rivalScore = scoreOf(g,'computer').total;
+    const winningCards = nagari ? [] : (win ? g.humanCaptured : g.computerCaptured).slice(-3);
+    const finalPoints = g.settlement?.finalScore;
+    return `<div class="modal-shade modal-shade--result"><section class="modal-box result-box result-box--${outcome}" role="dialog" aria-modal="true" aria-labelledby="result-title">
+      <div class="result-ribbon" aria-label="이번 판 결과">${nagari?'다시 승부!':win?'내가 이겼어!':'상대 승리'}</div>
+      <div class="result-hero"><div class="result-mascot">${portrait(nagari?'fox':win?'bear':opponent().animal)}</div>
+        <div class="result-hero__words"><h2 id="result-title">${nagari?'나가리! 다음 판으로':win?'와! 한판 이겼어!':'아쉽다, 다음 판엔 이기자!'}</h2>
+          <p>${nagari?'이번 판은 승패 없이 끝났어. 다음 판에서 다시 겨뤄!':safe(spokenActionText(g.lastAction))}</p></div></div>
+      <div class="result-duel" role="group" aria-label="이번 판 점수 비교">
+        <div class="result-duel__player ${win?'is-winner':''}"><span>나</span><strong>${myScore}<small>점</small></strong>${win?'<em>승리</em>':''}</div>
+        <span class="result-duel__versus" aria-hidden="true">:</span>
+        <div class="result-duel__player ${!nagari&&!win?'is-winner':''}"><span>${safe(opponent().nick)}</span><strong>${rivalScore}<small>점</small></strong>${!nagari&&!win?'<em>승리</em>':''}</div>
+      </div>
+      ${winningCards.length ? `<div class="result-card-peek" aria-label="승자의 획득 화투패 일부"><span>승자의 패</span><div class="result-card-peek__cards">${winningCards.map(id=>card(id,{small:true,gookjinAsDoubleJunk:win?g.humanGookjinAsDoubleJunk:g.computerGookjinAsDoubleJunk})).join('')}</div></div>` : ''}
+      <div class="result-stats"><div><span>${nagari?'이번 판 결과':'정산 점수'}</span><strong>${nagari?'무승부':finalPoints==null?'—':finalPoints+'점'}</strong></div>
+        <div><span>${nagari?'다음 판 배수':win?'획득 놀이머니':'사용 놀이머니'}</span><strong class="${win?'positive':''}">${nagari?'×'+app.nextMultiplier:(win?'+':'−')+kr(amount)+' 냥'}</strong></div></div>
+      <div class="result-wallet">보유 놀이머니 <b>✦ ${kr(app.wallet)}냥</b></div>
+      <div class="result-actions">${btn('다음 판 치기','next','btn--primary btn--wide')}
+        ${canEmergencyRecharge(app.wallet)?btn('긴급 무료 충전 +30만 냥','recharge','btn--ghost btn--wide'):''}
+        ${btn('메인으로','home','btn--quiet')}</div>
+    </section></div>`;
   }
   return '';
 }
@@ -628,8 +640,12 @@ function showScoreGain(player, points) {
   pop.className = `score-gain ${player === 'human' ? 'score-gain--human' : 'score-gain--computer'}`;
   pop.setAttribute('aria-live','polite');
   pop.textContent = `+${points}점`;
-  pop.style.left = `${rect.left + rect.width / 2}px`;
-  pop.style.top = `${rect.top - 8}px`;
+  // Keep the score callout within the visible phone viewport. The rising
+  // animation needs headroom above opponent portraits and the bottom HUD.
+  const safeX = Math.max(50, Math.min(window.innerWidth - 50, rect.left + rect.width / 2));
+  const safeY = Math.max(90, Math.min(window.innerHeight - 40, rect.top - 8));
+  pop.style.left = `${safeX}px`;
+  pop.style.top = `${safeY}px`;
   ROOT.appendChild(pop);
   setTimeout(() => pop.remove(), 950);
 }
