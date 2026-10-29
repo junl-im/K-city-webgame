@@ -431,7 +431,7 @@ html{scrollbar-width:thin;scrollbar-color:#ab86d7 #f4eafa}
 .game-card:focus-within{box-shadow:0 0 0 3px #ddc9f7,0 12px 30px #7762b022}
 .notice-banner>.ui-art-icon{width:42px;height:42px}
 
-.modal{scrollbar-gutter:stable;outline:1px solid #e2d2f1}
+.modal{scrollbar-gutter:auto;outline:1px solid #e2d2f1}
 .modal-description,.helper-text,.instruction-list>div,.howto-guide li,.game-prompt,.host-talk small,.pause-card p,.pause-card small,.muted-placeholder{color:#554967;font-weight:800}
 .mode-tag,.game-zone-chip,.howto-title,.modal-title{color:#463165;font-weight:900}
 .modal-title .ui-art-icon{width:31px;height:31px;vertical-align:-.35em}
@@ -730,4 +730,26 @@ body[data-view="games"] footer{display:none}
   body[data-view="games"] .game-grid[data-filter="all"]>.game-card:last-child .game-art{height:64px;min-height:64px;width:75px}
   body[data-view="games"] .game-grid[data-filter="all"]>.game-card:last-child .game-art .art-image{height:63px}
   body[data-view="games"] .game-grid[data-filter="all"]>.game-card:last-child .game-body{padding:5px 9px}
+}
+
+
+/* v2.3 · 필요한 경우에만 스크롤바 표시. 남는 높이는 게임 카드가 자연스럽게 채움. */
+@media (min-width:1180px) and (min-height:830px){
+  body[data-view="games"] .app-shell{min-height:100dvh;display:flex;flex-direction:column}
+  body[data-view="games"] #home{flex:1;display:flex;flex-direction:column;min-height:0}
+  body[data-view="games"] #games{flex:1;display:flex;flex-direction:column;min-height:0}
+  body[data-view="games"] .game-grid[data-filter="all"]{flex:1;grid-auto-rows:minmax(238px,1fr)}
+  body[data-view="games"] .game-grid[data-filter="all"]>.game-card{height:auto}
+  body[data-view="games"] .game-grid[data-filter="all"] .game-art{height:clamp(105px,13dvh,175px)}
+  body[data-view="games"] .game-grid[data-filter="all"] .game-art .art-image{height:clamp(102px,12dvh,160px)}
+}
+@media (max-width:700px) and (min-height:780px){
+  body[data-view="games"] .app-shell{min-height:100dvh;display:flex;flex-direction:column}
+  body[data-view="games"] #home{flex:1;display:flex;flex-direction:column;min-height:0}
+  body[data-view="games"] #games{flex:1;display:flex;flex-direction:column;min-height:0}
+  body[data-view="games"] .game-grid[data-filter="all"]{flex:1;grid-template-rows:repeat(3,minmax(110px,1fr)) minmax(80px,.7fr)}
+  body[data-view="games"] .game-grid[data-filter="all"]>.game-card{height:auto;min-height:110px}
+  body[data-view="games"] .game-grid[data-filter="all"]>.game-card:last-child{height:auto;min-height:80px}
+  body[data-view="games"] .game-grid[data-filter="all"]>.game-card:not(:last-child) .game-art{height:clamp(57px,9dvh,78px);min-height:57px}
+  body[data-view="games"] .game-grid[data-filter="all"]>.game-card:not(:last-child) .game-art .art-image{height:clamp(58px,9dvh,78px)}
 }
