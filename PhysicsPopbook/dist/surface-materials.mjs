@@ -68,6 +68,33 @@ export function paintToyStage(ctx,art,{y=216,width=648,height=91,material='wood'
 }
 
 
+/** A grounded miniature workbench shelf in the 2D lever/pulley chapter.
+ * Kept separate from the physics geometry: it is scenery only. */
+export function mechanicsShelfGeometry(viewWidth,viewHeight){
+  if(!(viewWidth>0&&viewHeight>0))throw new RangeError('Scene needs positive dimensions');
+  return {x:viewWidth*.14,y:viewHeight*.765,width:viewWidth*.72,
+    height:Math.max(18,Math.min(44,viewHeight*.09))};
+}
+export function paintMechanicsPlatform(ctx,art,viewWidth,viewHeight){
+  const g=mechanicsShelfGeometry(viewWidth,viewHeight);
+  const {x,y,width,height}=g;
+  ctx.save();ctx.fillStyle='rgba(7,24,48,.32)';ctx.beginPath();
+  ctx.ellipse(x+width/2,y+height*.82,width*.55,height*.75,0,0,Math.PI*2);ctx.fill();
+  ctx.shadowColor='rgba(6,24,45,.57)';ctx.shadowBlur=14;ctx.shadowOffsetY=6;
+  ctx.fillStyle='#a47255';ctx.beginPath();ctx.roundRect(x,y,width,height,12);ctx.fill();
+  ctx.shadowBlur=0;ctx.shadowOffsetY=0;ctx.clip();
+  paintSurfaceTexture(ctx,art,'wood',x,y,width,height,.97);
+  const light=ctx.createLinearGradient(0,y,0,y+height);
+  light.addColorStop(0,'rgba(255,241,202,.34)');
+  light.addColorStop(.22,'rgba(255,241,202,.03)');
+  light.addColorStop(1,'rgba(42,32,60,.42)');
+  ctx.fillStyle=light;ctx.fillRect(x,y,width,height);ctx.restore();
+  ctx.save();ctx.strokeStyle='rgba(255,226,173,.85)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(x+15,y+2);ctx.lineTo(x+width-15,y+2);ctx.stroke();
+  ctx.restore();
+  return g;
+}
+
 /** A miniature wooden stand visibly joins the inclined board to the floor shelf.
  * The post starts inside the ramp's 30px lower half, preventing a visual gap.
  */
