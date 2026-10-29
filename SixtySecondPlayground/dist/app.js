@@ -154,6 +154,7 @@
   try { saved = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; } catch (e) { saved = {}; }
   const state = {best:saved.best || {},plays:saved.plays || {},history:saved.history || {},badges:saved.badges || [],sound:saved.sound !== false};
   let session = null, currentPreview = null, animFrame = 0, toastTimer = null;
+  let sessionHistoryCleanup = false;
   let audioCtx = null, lastSoundAt = -Infinity;
   const rand = function (n) { return Math.floor(Math.random() * n); };
   const shuffle = function (arr) { const a = arr.slice(); for (let i=a.length-1;i>0;i--){const j=rand(i+1);const t=a[i];a[i]=a[j];a[j]=t;}return a; };
@@ -316,6 +317,9 @@
     if (!session) return;
     clearTimeout(session.roundTimeout);clearTimeout(session.reactionTimeout);cancelAnimationFrame(animFrame);
     session.roundTask=null;
+    if(history.state&&history.state.sixtyGameSession){
+      sessionHistoryCleanup=true;history.back();
+    }
     session=null;
     $('#pauseScreen').classList.add('hidden');
     $('#pauseScreen').setAttribute('aria-hidden','true');
@@ -443,6 +447,7 @@
       const today=dayKey();state.history[today]={gameId:gameId,complete:false,score:0};
       if(!save()){delete state.history[today];official=false;toast('기록을 저장할 수 없어 자유 플레이로 시작해요.');}
     }
+    history.pushState(Object.assign({},history.state,{sixtyGameSession:true}),'',location.href);
     session={game:gameById(gameId),official:official,officialDay:official?dayKey():null,score:0,combo:0,bestCombo:0,correct:0,wrong:0,
       deadline:performance.now()+60000,pausedAt:null,roundTimeout:null,roundTask:null,roundRemaining:0,roundDueAt:null,reactionTimeout:null,locked:false,round:0,memoryTarget:-1,nextNum:1};
     $('#modalHelp').title=GAME_GUIDES[session.game.id].hint;
@@ -852,7 +857,15 @@
   $('#heroExplore').addEventListener('click',function(){navigateView('games');});
   $('#backHome').addEventListener('click',function(){navigateView('home');});
   $('.brand').addEventListener('click',function(event){event.preventDefault();navigateView('home');});
-  window.addEventListener('popstate',function(){renderView(currentView(),true);});
+  window.addEventListener('popstate',function(){
+    if(sessionHistoryCleanup){sessionHistoryCleanup=false;return;}
+    if(session){
+      // Restore a same-page guard so Back pauses rather than abandoning the round.
+      history.pushState(Object.assign({},history.state,{sixtyGameSession:true}),'',location.href);
+      showPause('exit');return;
+    }
+    renderView(currentView(),true);
+  });
   window.addEventListener('storage',function(event){
     if(event.key!==STORE||!event.newValue)return;
     syncStoredProgress();refresh();renderGames($('#gameGrid').dataset.filter||'all');
