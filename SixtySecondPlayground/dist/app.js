@@ -215,6 +215,24 @@
     for (let i=start;i>-365;i--) { if (!completedDaily(getKstDate(i))) break; count++; }
     return count;
   };
+  // Merge progress written by other tabs before changing or saving it.
+  function syncStoredProgress() {
+    try {
+      const raw=localStorage.getItem(STORE);if(!raw)return;
+      const latest=JSON.parse(raw);if(!latest||typeof latest!=='object')return;
+      ['best','plays'].forEach(function(key){
+        if(!latest[key]||typeof latest[key]!=='object')return;
+        GAMES.forEach(function(g){const value=Number(latest[key][g.id]);if(Number.isFinite(value)&&value>=0)state[key][g.id]=Math.max(Number(state[key][g.id])||0,value);});
+      });
+      if(latest.history&&typeof latest.history==='object')Object.keys(latest.history).forEach(function(day){
+        const incoming=latest.history[day],current=state.history[day];
+        if(!incoming||typeof incoming!=='object')return;
+        if(!current||(!current.complete&&incoming.complete)||(current.complete&&incoming.complete&&Number(incoming.score)>Number(current.score)))state.history[day]=incoming;
+      });
+      if(Array.isArray(latest.badges))latest.badges.forEach(function(b){if(!state.badges.includes(b))state.badges.push(b);});
+      if(typeof latest.sound==='boolean')state.sound=latest.sound;
+    } catch(e) { /* Keep in-memory progress if storage is temporarily unavailable. */ }
+  }
   const save = function () { try { localStorage.setItem(STORE, JSON.stringify(state)); return true; } catch (e) { return false; } };
   const esc = function (s) {return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
   const artIcon = function(name){return '<span class="ui-art-icon ui-icon-'+name+'" aria-hidden="true"></span>';};
@@ -389,7 +407,6 @@
     $('#soundToggle').setAttribute('aria-pressed',String(state.sound));
     $('#soundToggle').setAttribute('aria-label',state.sound?'효과음 켜짐 · 눌러서 끄기':'효과음 꺼짐 · 눌러서 켜기');
     const d=new Date();$('#todayLabel').textContent=new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',month:'long',day:'numeric',weekday:'short'}).format(d);
-    save();
   }
   function renderGames(filter) {
     $('#gameGrid').dataset.filter=filter;
@@ -420,6 +437,7 @@
   }
   function startGame(gameId,official) {
     if (session)stopSession();
+    syncStoredProgress();
     if (official && hasDaily()) {toast('오늘 공식 도전은 이미 사용했어!');preview(gameId,false);return;}
     if (official) {
       const today=dayKey();state.history[today]={gameId:gameId,complete:false,score:0};
@@ -753,6 +771,7 @@
   function finish() {
     if(!session)return;
     const s=session;stopSession();sound('finish',s.game.id,s.combo);
+    syncStoredProgress();
     const previousBest=state.best[s.game.id]||0;
     const newRecord=s.score>previousBest;
     state.plays[s.game.id]=(state.plays[s.game.id]||0)+1;
@@ -788,6 +807,7 @@
     });
   }
   function showRecords() {
+    syncStoredProgress();
     const rank=GAMES.slice().sort(function(a,b){return (state.best[b.id]||0)-(state.best[a.id]||0);});
     modal('<div class="modal-title" id="modalTitle">'+artIcon('trophy')+' 나의 놀이공원 기록</div>'+
       '<p class="modal-description">이 기기의 브라우저에 저장되는 소중한 기록들이야.</p>'+
@@ -833,8 +853,12 @@
   $('#backHome').addEventListener('click',function(){navigateView('home');});
   $('.brand').addEventListener('click',function(event){event.preventDefault();navigateView('home');});
   window.addEventListener('popstate',function(){renderView(currentView(),true);});
+  window.addEventListener('storage',function(event){
+    if(event.key!==STORE||!event.newValue)return;
+    syncStoredProgress();refresh();renderGames($('#gameGrid').dataset.filter||'all');
+  });
   $('#recordToggle').addEventListener('click',showRecords);
-  $('#soundToggle').addEventListener('click',function(){state.sound=!state.sound;refresh();toast(state.sound?'효과음 켜짐 ♪':'효과음 꺼짐');});
+  $('#soundToggle').addEventListener('click',function(){syncStoredProgress();state.sound=!state.sound;save();refresh();toast(state.sound?'효과음 켜짐 ♪':'효과음 꺼짐');});
   $$('#modalClose, #overlayBackdrop').forEach(function(b){b.addEventListener('click',requestClose);});
   $('#modalPause').addEventListener('click',function(){showPause('break');});
   $('#modalHelp').addEventListener('click',function(){showPause('help');});
