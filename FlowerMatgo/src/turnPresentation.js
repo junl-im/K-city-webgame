@@ -81,6 +81,20 @@ export function matchingFloorCardId(playedId, floorIds, capturedIds = []) {
   return sameMonth.find(id => capturedIds.includes(id)) || sameMonth[0] || null;
 }
 
+/** Resolve visual pairings in the same order as the rules engine. */
+export function resolveTurnLandings(playedId, drawnId, floorIds, capturedIds = [], options = {}) {
+  const playedMonth = getCard(playedId)?.month;
+  const matches = playedMonth ? floorIds.filter(id => getCard(id)?.month === playedMonth) : [];
+  const preferred = options.playedMatchId;
+  const playedFloorId = matches.includes(preferred) ? preferred : matchingFloorCardId(playedId, floorIds, capturedIds);
+  const consumed = options.ppeok ? [] : (options.bomb || matches.length >= 3 ? matches : playedFloorId ? [playedFloorId] : []);
+  const remaining = floorIds.filter(id => !consumed.includes(id));
+  const drawnOnPlayed = !!playedId && !!drawnId && !matches.length &&
+    getCard(playedId)?.month === getCard(drawnId)?.month && capturedIds.includes(playedId) && capturedIds.includes(drawnId);
+  const drawnFloorId = drawnOnPlayed ? null : matchingFloorCardId(drawnId, remaining, capturedIds);
+  return { playedFloorId, drawnFloorId, drawnOnPlayed };
+}
+
 // A bomb consumes two, three or four cards from the same hand. The rules
 // engine returns only its first card as `playedCardId`, so recover the other
 // real captured hand cards for the *visual* throw. Do not touch game state.
@@ -124,11 +138,35 @@ export function specialContactBeats(kind, bombCount = 1, throwGap = 0) {
   return [];
 }
 
-function sceneTarget(root, cue) {
+// Select a visible gap so an unmatched card is not visually paired with another card.
+export function emptyLandingRect(bounds, occupied, width) {
+  if (!bounds || !Number.isFinite(width) || width <= 0) return null;
+  const height=cardHeightForWidth(width);
+  const inset=3, stepX=Math.max(12,width*.48), stepY=Math.max(12,height*.48);
+  const right=bounds.left+bounds.width-inset-width, bottom=bounds.top+bounds.height-inset-height;
+  for(let y=bounds.top+inset;y<=bottom;y+=stepY) for(let x=bounds.left+inset;x<=right;x+=stepX) {
+    const candidate={left:x,top:y,width,height};
+    const overlaps=occupied.some(r=>r && x<r.left+r.width-2 && x+width>r.left+2 && y<r.top+r.height-2 && y+height>r.top+2);
+    if(!overlaps)return candidate;
+  }
+  return null;
+}
+function freeFloorTarget(root, extra = []) {
+  const floor = root.querySelector('.floor-area');
+  const bounds=measure(floor);if(!bounds)return null;
+  const elements=[...floor.querySelectorAll('[data-card]')];
+  const occupied=elements.map(measure).filter(Boolean).concat(extra);
+  const width=elements.length ? measure(elements[0])?.width : Math.min(65,Math.max(38,bounds.width/6));
+  return emptyLandingRect(bounds,occupied,width);
+}
+
+function sceneTarget(root, cue, preferredMatchId) {
   const floor = root.querySelector('.floor-area') || root.querySelector('.field-row');
   if (!floor) return null;
-  const matchedRect = matchingFloorRect(root, cue.played, cue.capturedIds);
+  const matchedRect = preferredMatchId ? measure(root.querySelector(`.floor-area [data-card="${preferredMatchId}"]`)) : matchingFloorRect(root, cue.played, cue.capturedIds);
   if (matchedRect?.width > 10) return matchedRect;
+  const empty = freeFloorTarget(root);
+  if (empty) return empty;
   const r = measure(floor);
   if (!r || r.width < 10 || r.height < 10) return null;
   const width = Math.min(65, Math.max(38, r.width / 6));
@@ -139,12 +177,6 @@ function matchingFloorRect(root, playedId, capturedIds) {
   const onFloor = [...root.querySelectorAll('.floor-area [data-card]')];
   const matchedId = matchingFloorCardId(playedId, onFloor.map(element => element.dataset.card), capturedIds);
   return measure(onFloor.find(element => element.dataset.card === matchedId));
-}
-
-function matchingFloorElement(root, playedId, capturedIds) {
-  const onFloor = [...root.querySelectorAll('.floor-area [data-card]')];
-  const match = matchingFloorCardId(playedId, onFloor.map(element => element.dataset.card), capturedIds);
-  return onFloor.find(element => element.dataset.card === match) || null;
 }
 
 function spawnPairContact(root, floorCard, target, delay, fromDraw = false) {
@@ -382,25 +414,26 @@ function recoilTable(root, kind, delay) {
   }, delay);
 }
 
-export function animateResolvedTurn({ root, result, player, handRect, deckRect, cardHTML, sound }) {
+export function animateResolvedTurn({ root, result, player, handRect, deckRect, cardHTML, sound, playedMatchId }) {
   const cue = turnCue(result);
   if (!cue || !root) return 0;
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  const target = sceneTarget(root, cue);
+  const floorIds = [...root.querySelectorAll('.floor-area [data-card]')].map(element => element.dataset.card);
+  const pairings = resolveTurnLandings(cue.played, cue.drawn, floorIds, cue.capturedIds, { playedMatchId, ppeok:result.ppeok, bomb:cue.visualKind === 'bomb' });
+  const target = sceneTarget(root, cue, pairings.playedFloorId);
   if (reduced || !target || typeof Element.prototype.animate !== 'function') {
     sound(cue.impact);
     return 0;
   }
   const playingHand = cue.played && root.querySelector(`.my-hand [data-card="${cue.played}"]`);
   const humanHand = [...root.querySelectorAll('.my-hand [data-card]')];
-  const floorIds = [...root.querySelectorAll('.floor-area [data-card]')].map(element => element.dataset.card);
   const bombThrows = cue.visualKind === 'bomb'
     ? bombFlightCardIds(cue.played,cue.capturedIds,player === 'human' ? humanHand.map(element => element.dataset.card) : [],floorIds)
     : cue.played ? [cue.played] : [];
   if (playingHand && player === 'human') playingHand.classList.add('hwatu--departing');
   // After the matched cards join, the flight sprite becomes a capture sprite.
   const playedGetsCaptured = cue.capturedIds.includes(cue.played);
-  const playedFloorCard = matchingFloorElement(root, cue.played, cue.capturedIds);
+  const playedFloorCard = pairings.playedFloorId ? root.querySelector(`.floor-area [data-card="${pairings.playedFloorId}"]`) : null;
   const hasPlayedMatch = !!playedFloorCard;
   const playedTarget = stackedLandingRect(target, hasPlayedMatch);
   const throwGap = bombThrows.length > 1
@@ -422,10 +455,11 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
   let drawnTarget = target;
   if (cue.drawn) {
     const deck = deckRect || motionOrigin(root.querySelector('.deck-pile .hwatu'));
-    const drawnFloorCard = matchingFloorElement(root, cue.drawn, cue.capturedIds);
+    const drawnFloorCard = pairings.drawnFloorId ? root.querySelector(`.floor-area [data-card="${pairings.drawnFloorId}"]`) : null;
     drawnTarget = drawnFloorCard
       ? stackedLandingRect(measure(drawnFloorCard),true)
-      : { ...target, left: target.left + 16, top: target.top + 6 };
+      : pairings.drawnOnPlayed ? stackedLandingRect(playedTarget,true)
+      : freeFloorTarget(root,hasPlayedMatch ? [] : [playedTarget]) || { ...target, left: target.left + 16, top: target.top + 6 };
     pulseDeck(root,TURN_STAGES.draw-45);
     spawnFlight(root, cue.drawn, deck, drawnTarget, TURN_STAGES.draw, cardHTML, false, true);
     spawnFlip(root, cue.drawn, drawnTarget, TURN_STAGES.flip, cardHTML);

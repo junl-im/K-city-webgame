@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TURN_PRESENTATION_MS, TURN_STAGES, CARD_ASPECT, cardHeightForWidth, cardFlightFrames, captureSweepFrames, matchingFloorCardId, stackedLandingRect, turnCue } from '../turnPresentation.js';
+import { TURN_PRESENTATION_MS, TURN_STAGES, CARD_ASPECT, cardHeightForWidth, cardFlightFrames, captureSweepFrames, matchingFloorCardId, stackedLandingRect, resolveTurnLandings, emptyLandingRect, turnCue } from '../turnPresentation.js';
 
 describe('화투패 타격감 시각 연출', () => {
   it('득점·뻑·특수 이벤트의 안내를 엔진 결과에만 따라 결정한다', () => {
@@ -54,6 +54,23 @@ describe('화투패 타격감 시각 연출', () => {
     expect(stackedLandingRect(floor,false)).toBe(floor);
     expect(stackedLandingRect(null,true)).toBeNull();
     expect(stackedLandingRect({left:0,top:0,width:150,height:230},true).left).toBe(11);
+  });
+
+  it('선택한 바닥패에 맞추고 이미 먹은 패를 뒤집기 대상으로 다시 쓰지 않는다', () => {
+    expect(resolveTurnLandings('m02-01','m02-03',['m02-02','m02-04'],['m02-01','m02-02','m02-03','m02-04'],{playedMatchId:'m02-04'})).toEqual({playedFloorId:'m02-04',drawnFloorId:'m02-02',drawnOnPlayed:false});
+    expect(resolveTurnLandings('m02-01','m02-03',[],['m02-01','m02-03'])).toEqual({playedFloorId:null,drawnFloorId:null,drawnOnPlayed:true});
+    expect(resolveTurnLandings('m02-01','m02-03',['m02-02'],[],{ppeok:true})).toEqual({playedFloorId:'m02-02',drawnFloorId:'m02-02',drawnOnPlayed:false});
+    expect(resolveTurnLandings('m02-01','m03-01',['m02-02','m03-02'],['m02-01','m02-02','m03-01','m03-02'])).toEqual({playedFloorId:'m02-02',drawnFloorId:'m03-02',drawnOnPlayed:false});
+    expect(resolveTurnLandings('m02-01','m03-01',['m02-02'],['m02-01','m02-02'])).toEqual({playedFloorId:'m02-02',drawnFloorId:null,drawnOnPlayed:false});
+  });
+
+  it('짝이 없는 패는 다른 바닥패와 겹치지 않는 빈 곳을 찾는다', () => {
+    const bounds={left:0,top:0,width:200,height:160};
+    const occupied=[{left:3,top:3,width:50,height:69}];
+    const target=emptyLandingRect(bounds,occupied,50);
+    expect(target).not.toBeNull();
+    expect(target.left >= occupied[0].left+occupied[0].width-2 || target.top >= occupied[0].top+occupied[0].height-2).toBe(true);
+    expect(emptyLandingRect({left:0,top:0,width:50,height:70},[{left:0,top:0,width:50,height:70}],50)).toBeNull();
   });
 
   it('착지→뒤집기→획득→패판 갱신 순서가 유지된다', () => {

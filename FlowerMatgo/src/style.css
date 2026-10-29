@@ -3308,3 +3308,59 @@ button:disabled { cursor: not-allowed; opacity:.48; }
 @media (prefers-reduced-motion:reduce) {
   .turn-capture-notice {animation:none;opacity:1;}
 }
+
+/* v40: make matching hand cards and earned cards readable on the table. */
+.scene--game .my-hand .hwatu--hint:not(.hwatu--departing) {
+  outline:3px solid #ffe18a;outline-offset:0;
+  box-shadow:0 0 0 2px #a55b18,0 0 14px #ffe17faa,0 5px 8px #001b1b85;
+}
+.scene--game .my-hand .hwatu--hint::after {
+  content:'짝';position:absolute;z-index:4;left:2px;top:2px;
+  min-width:18px;height:18px;display:grid;place-items:center;
+  border-radius:6px;background:#ffe49e;color:#71380f;
+  border:1px solid #a86526;font-size:11px;font-weight:950;line-height:1;
+  pointer-events:none;
+}
+@media (max-width:650px) and (min-height:701px) {
+  .scene--game {grid-template-rows:max(39px,calc(33px + env(safe-area-inset-top))) clamp(45px,6.3svh,54px) minmax(0,1fr) clamp(250px,34svh,285px);}
+  .scene--game .player-area {grid-template-rows:24px 80px minmax(0,1fr) 38px;}
+  .scene--game .collection-head {height:16px;font-size:11px;}
+  .scene--game .collection-groups {height:59px;}
+  .scene--game .collection-group {flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:1px;padding:2px 3px;}
+  .scene--game .collection-name {font-size:10px;line-height:13px;}
+  .scene--game .collection-preview {width:100%;flex:1;justify-content:flex-start;align-items:center;overflow:hidden;}
+  .scene--game .collection-preview .hwatu {width:clamp(27px,8.4vw,34px);margin-left:-9px;}
+  .scene--game .collection-preview .hwatu:first-child {margin-left:0;}
+}
+@media (max-width:650px) and (min-height:561px) and (max-height:700px) {
+  .scene--game {grid-template-rows:max(36px,calc(30px + env(safe-area-inset-top))) 43px minmax(0,1fr) clamp(202px,34svh,232px);}
+  .scene--game .player-area {grid-template-rows:21px 60px minmax(0,1fr) 34px;}
+  .scene--game .collection-head {height:14px;}
+  .scene--game .collection-groups {height:43px;}
+  .scene--game .collection-group {flex-direction:row;align-items:center;gap:1px;padding:1px 2px;}
+  .scene--game .collection-name {font-size:9px;}
+  .scene--game .collection-preview {overflow:hidden;justify-content:flex-start;}
+  .scene--game .collection-preview .hwatu {width:clamp(25px,7.7vw,30px);margin-left:-9px;}
+  .scene--game .collection-preview .hwatu:first-child {margin-left:0;}
+}
+@media (max-width:650px) and (max-height:560px) {
+  .scene--game {grid-template-rows:35px 38px minmax(0,1fr) clamp(168px,33svh,190px);}
+  .scene--game .player-area {grid-template-rows:19px 53px minmax(0,1fr) 31px;}
+  .scene--game .collection-head {height:12px;}
+  .scene--game .collection-groups {height:38px;}
+  .scene--game .collection-preview .hwatu {width:clamp(23px,7vw,27px);margin-left:-8px;}
+}
+
+/* Desktop: keep earned cards and the large hand in separate readable rows. */
+@media (min-width:651px) and (min-height:601px) {
+  .scene--game .player-area {height:36%;min-height:280px;}
+  .scene--game .table-play {bottom:max(36%,280px);}
+  .scene--game .collection-group {min-height:56px;}
+  .scene--game .collection-preview .hwatu {width:36px;margin-left:-12px;}
+  .scene--game .collection-preview .hwatu:first-child {margin-left:0;}
+  .scene--game .my-hand {flex:0 0 auto;height:clamp(100px,15.6svh,128px);}
+}
+
+@media (max-width:650px) {
+  .scene--game .action-row > .sound-control {font-size:0;overflow:hidden;}
+}
