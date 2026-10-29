@@ -200,7 +200,7 @@ function card(id, options = {}) {
   // No extra bright mark: otherwise the glyph appears twice on small phones.
   const mark = `${visual.doubleJunkText ? `<span class="hwatu__double-mark" aria-hidden="true">${visual.doubleJunkText}</span>` : ''}`;
   const classes = `hwatu hwatu--month-${String(month).padStart(2,'0')} hwatu--ordinal-${String(ordinal).padStart(2,'0')} ${small?'hwatu--small':''} ${options.tiny?'hwatu--tiny':''} ${bonus?'hwatu--bonus':''} ${interactive?'hwatu--interactive':''} ${options.hint?'hwatu--hint':''} ${visual.gookjinConverted?'hwatu--converted':''}`;
-  return `<${interactive ? 'button' : 'div'} class="${classes}" ${style} data-card="${safe(id)}" ${interactive ? `type="button" data-action="${options.action}" aria-label="${safe(aria)} ${options.action==='pickmatch'?'먹기':'내기'}"` : `role="img" aria-label="${safe(aria)}" title="${safe(aria)}"`}>
+  return `<${interactive ? 'button' : 'div'} class="${classes}" ${style} data-card="${safe(id)}" ${interactive ? `type="button" data-action="${options.action}" aria-label="${safe(aria)} ${options.hint?'· 바닥에 같은 무늬 있음 ':''}${options.action==='pickmatch'?'먹기':'내기'}"` : `role="img" aria-label="${safe(aria)}" title="${safe(aria)}"`}>
     ${bonus ? `<span class="hwatu__face"></span><span class="hwatu__bonus-mark" aria-hidden="true">${safe(item.typeLabel)}</span>` : `<span class="hwatu__face"></span>${mark}`}
   </${interactive ? 'button' : 'div'}>`;
 }
@@ -584,8 +584,9 @@ function autoTakeTurn(forced = false) {
       if (id) {
         const handRect = motionOrigin(ROOT.querySelector(`.my-hand [data-card="${id}"]`));
         const matches = getMatchingFloorCards(shaken.floorCards,id);
-        const result = playTurn(shaken,'human',id,{playedMatchId:matches.length === 2 ? matches[0] : undefined});
-        commitGame(result.state,result,{player:'human',handRect,deckRect});
+        const playedMatchId = matches.length === 2 ? matches[0] : undefined;
+        const result = playTurn(shaken,'human',id,{playedMatchId});
+        commitGame(result.state,result,{player:'human',handRect,deckRect,playedMatchId});
       }
       return;
     }
@@ -740,7 +741,7 @@ function runAI() {
         else return;
       } else result=playTurn(g,'computer',move.cardId,{playedMatchId:move.playedMatchId});
       next=result.state;
-      commitGame(next,result,{player:'computer',handRect:move.kind==='flip-only'?deckRect:handRect,deckRect});
+      commitGame(next,result,{player:'computer',handRect:move.kind==='flip-only'?deckRect:handRect,deckRect,playedMatchId:move.playedMatchId});
       return;
     } else return;
     commitGame(next,result);
@@ -826,7 +827,7 @@ function humanPlay(id, matchId) {
   selectedMatch=null;
   const handRect = motionOrigin(ROOT.querySelector(`.my-hand [data-card="${id}"]`));
   const deckRect = motionOrigin(ROOT.querySelector('.deck-pile .hwatu'));
-  try { const result=playTurn(g,'human',id,{playedMatchId:matchId});commitGame(result.state,result,{player:'human',handRect,deckRect}); }
+  try { const result=playTurn(g,'human',id,{playedMatchId:matchId});commitGame(result.state,result,{player:'human',handRect,deckRect,playedMatchId:matchId}); }
   catch(err) { console.error(err);effects(err.message || '다른 패를 골라줘');render(); }
 }
 function mutate(action, value, cardId) {
