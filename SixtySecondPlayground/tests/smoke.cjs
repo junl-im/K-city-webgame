@@ -388,7 +388,7 @@ assert.match(js, /error\.name==='AbortError'/, '사용자가 공유를 취소하
 assert.match(js, /copyFallback\(\)/, '공유 오류가 발생하면 복사 경로로 전환해야 합니다');
 assert.match(js, /matchMedia\('\(pointer:coarse\)'\)/, 'PC에서는 기본 공유창 대신 직접 복사를, 터치 기기에서는 네이티브 공유를 우선해야 합니다');
 
-assert.match(html, /\.\/app\.js\?v=20261029-memory-stability-v30/, '자정 기록·공유 패치는 새 JS 캐시 버전으로 로드해야 합니다');
+assert.match(html, /\.\/app\.js\?v=20261029-storage-check-v31/, '자정 기록·공유 패치는 새 JS 캐시 버전으로 로드해야 합니다');
 
 console.log(`OK: ${games.length}개 게임, ${Object.keys(hostLines).length}명 안내원, ${questions.length}개 미스터리, 다른 그림 600판, 색 조합 66개, 9칸 중복 방지 1,800회, ${required.length}개 필수 WebP, SVG 0개`);
 
