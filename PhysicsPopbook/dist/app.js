@@ -1,14 +1,14 @@
-import { GRAVITY, createBody, stepBody } from './physics-core.mjs?rev=20261029-artfix01';
-import { orbitalPeriodYears, orbitalAngle } from './orbit-core.mjs?rev=20261029-artfix01';
-import { mirrorLightPath } from './mirror-core.mjs?rev=20261029-artfix01';
-import { circuitReadings } from './circuit-core.mjs?rev=20261029-artfix01';
-import { mechanicsReadings } from './mechanics-core.mjs?rev=20261029-artfix01';
-import { magnetReading, soundReading } from './discovery-core.mjs?rev=20261029-artfix01';
-import { inertiaReading, frictionReading, buoyancyReading, pendulumReading, heatReading } from './everyday-core.mjs?rev=20261029-artfix01';
-import { drawEverydayScene } from './animated-experiments.mjs?rev=20261029-artfix01';
-import {paintSurfaceTexture,surfaceTextureBounds} from './surface-materials.mjs?rev=20261029-artfix01';
-import { COMPANION_ART, companionCue } from './lab-companion.mjs?rev=20261029-artfix01';
-import { landingCue, groundShadowCue, wavefrontSpacing, magnetBallPosition, pulleySceneMotion, leverFulcrumSpriteTop, orbitalTrailCount, orbitToySizes, litBulbOpacity, celebrationCue, paintTwinkles } from './visual-effects.mjs?rev=20261029-artfix01';
+import { GRAVITY, createBody, stepBody } from './physics-core.mjs?rev=20261029-v28lazy';
+import { orbitalPeriodYears, orbitalAngle } from './orbit-core.mjs?rev=20261029-v28lazy';
+import { mirrorLightPath } from './mirror-core.mjs?rev=20261029-v28lazy';
+import { circuitReadings } from './circuit-core.mjs?rev=20261029-v28lazy';
+import { mechanicsReadings } from './mechanics-core.mjs?rev=20261029-v28lazy';
+import { magnetReading, soundReading } from './discovery-core.mjs?rev=20261029-v28lazy';
+import { inertiaReading, frictionReading, buoyancyReading, pendulumReading, heatReading } from './everyday-core.mjs?rev=20261029-v28lazy';
+import { drawEverydayScene } from './animated-experiments.mjs?rev=20261029-v28lazy';
+import {paintSurfaceTexture,surfaceTextureBounds,paintMechanicsPlatform} from './surface-materials.mjs?rev=20261029-v28lazy';
+import { COMPANION_ART, companionCue } from './lab-companion.mjs?rev=20261029-v28lazy';
+import { landingCue, groundShadowCue, wavefrontSpacing, magnetBallPosition, pulleySceneMotion, leverFulcrumSpriteTop, orbitalTrailCount, orbitToySizes, litBulbOpacity, celebrationCue, paintTwinkles } from './visual-effects.mjs?rev=20261029-v28lazy';
 
 const EVERYDAY_IDS = ['inertia','friction','buoyancy','pendulum','heat'];
 const LESSON_IDS = ['gravity', 'orbit', 'light', 'circuit', 'mechanics', 'magnet', 'sound', ...EVERYDAY_IDS];
@@ -171,10 +171,20 @@ blueShoeArtwork.src='./assets/toy-shoe-sprite-v09.webp';
 const experimentPropsArtwork=new Image();
 experimentPropsArtwork.src='./assets/physics-props-atlas-v09.webp';
 const surfaceMaterialArtwork=new Image();
-surfaceMaterialArtwork.src='./assets/physics-surface-atlas-v18.png';
 surfaceMaterialArtwork.onerror=()=>{if(!surfaceMaterialArtwork.src.endsWith('physics-surface-atlas-v17.webp'))surfaceMaterialArtwork.src='./assets/physics-surface-atlas-v17.webp';};
 const apparatusMaterialArtwork=new Image();
-apparatusMaterialArtwork.src='./assets/physics-apparatus-materials-v01.png';
+// These two high-resolution atlases total >6 MB; load only after a laboratory opens.
+let surfaceMaterialRequested=false,apparatusMaterialRequested=false;
+function ensureExperimentTextures(lesson){
+  if(!surfaceMaterialRequested){
+    surfaceMaterialRequested=true;
+    surfaceMaterialArtwork.src='./assets/physics-surface-atlas-v18.png';
+  }
+  if(EVERYDAY_IDS.includes(lesson)&&!apparatusMaterialRequested){
+    apparatusMaterialRequested=true;
+    apparatusMaterialArtwork.src='./assets/physics-apparatus-materials-v01.png';
+  }
+}
 const heatWaterGlassArtwork=new Image();
 heatWaterGlassArtwork.src='./assets/heat-water-glass-v24.webp';
 const physicsToyArtwork=new Image();
@@ -525,6 +535,7 @@ function openBook() {
 
 function openLab(lesson = 'gravity') {
   state.lesson = lesson;
+  ensureExperimentTextures(lesson);
   lab.dataset.lesson = lesson;
   state.planet = 'earth';
   state.air = true;
@@ -1794,6 +1805,7 @@ function renderFallback(s, targetContext = fallbackContext, targetCanvas = canva
     ctx.beginPath();ctx.roundRect(w*.10,h*.30,w*.80,h*.50,18);ctx.fill();ctx.stroke();
     ctx.save();ctx.beginPath();ctx.roundRect(w*.10,h*.30,w*.80,h*.50,18);ctx.clip();
     paintSurfaceTexture(ctx,surfaceMaterialArtwork,'wood',w*.10,h*.30,w*.80,h*.50,.24);ctx.restore();
+    paintMechanicsPlatform(ctx,surfaceMaterialArtwork,w,h);
     const line=(ax,ay,bx,by,color,width=5)=>{ctx.lineCap='round';ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();};
     const weight=(x,y,label)=>{
       const bw=Math.max(30,Math.min(48,w*.1)),bh=bw*.78;

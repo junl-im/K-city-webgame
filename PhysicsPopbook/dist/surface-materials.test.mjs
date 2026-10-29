@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {surfaceTextureBounds,stageMaterialForEverydayLesson,inclineStandGeometry,paintPendulumMount,apparatusTextureBounds,paintApparatusTexture} from './surface-materials.mjs';
+import {surfaceTextureBounds,stageMaterialForEverydayLesson,inclineStandGeometry,paintPendulumMount,apparatusTextureBounds,paintApparatusTexture,mechanicsShelfGeometry,paintMechanicsPlatform} from './surface-materials.mjs';
 
 const materialNames=['felt','ice','wood','soil'];
 const cells=materialNames.map(name=>surfaceTextureBounds(1254,1254,name));
@@ -57,3 +57,19 @@ assert.ok(woodSupports.some(call=>call[2]<=-220&&call[2]+call[4]>215),
   'Vertical post must visibly reach the stage top');
 assert.ok(penCalls.some(call=>call[0]==='arc'&&call[1]===-18&&call[2]===-176),
   'Metal hinge must be centered exactly at the physical pivot');
+
+for(const [width,height] of [[320,568],[390,844],[768,600],[1440,900]]){
+  const shelf=mechanicsShelfGeometry(width,height);
+  assert.ok(shelf.x>=0&&shelf.y>=0&&shelf.width>0&&shelf.height>0);
+  assert.ok(shelf.x+shelf.width<=width&&shelf.y+shelf.height<=height,
+    'The mechanics workbench must fit inside a '+width+'×'+height+' scene');
+  assert.ok(shelf.y>height*.6&&shelf.y<height*.85,'Stage stays low in the scene');
+}
+assert.throws(()=>mechanicsShelfGeometry(0,600));
+const firstDrawCount=penCalls.length;
+const newShelf=paintMechanicsPlatform(mockCanvas,null,390,620);
+assert.equal(newShelf.width,390*.72);
+assert.ok(penCalls.slice(firstDrawCount).some(call=>call[0]==='roundRect'),
+  'The mechanics chapter draws a rounded painted wooden shelf');
+assert.ok(penCalls.slice(firstDrawCount).some(call=>call[0]==='ellipse'),
+  'The mechanics shelf needs a grounding contact shadow');
