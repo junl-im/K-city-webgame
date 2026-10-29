@@ -70,13 +70,15 @@ export function paintToyStage(ctx,art,{y=216,width=648,height=91,material='wood'
 
 /** A grounded miniature workbench shelf in the 2D lever/pulley chapter.
  * Kept separate from the physics geometry: it is scenery only. */
-export function mechanicsShelfGeometry(viewWidth,viewHeight){
+export function mechanicsShelfGeometry(viewWidth,viewHeight,mode='lever'){
   if(!(viewWidth>0&&viewHeight>0))throw new RangeError('Scene needs positive dimensions');
-  return {x:viewWidth*.14,y:viewHeight*.765,width:viewWidth*.72,
+  const fulcrumSize=Math.min(98,viewWidth*.22,viewHeight*.32);
+  const shelfY=mode==='lever'?viewHeight*.58+fulcrumSize*.63:viewHeight*.765;
+  return {x:viewWidth*.14,y:shelfY,width:viewWidth*.72,
     height:Math.max(18,Math.min(44,viewHeight*.09))};
 }
-export function paintMechanicsPlatform(ctx,art,viewWidth,viewHeight){
-  const g=mechanicsShelfGeometry(viewWidth,viewHeight);
+export function paintMechanicsPlatform(ctx,art,viewWidth,viewHeight,mode='lever'){
+  const g=mechanicsShelfGeometry(viewWidth,viewHeight,mode);
   const {x,y,width,height}=g;
   ctx.save();ctx.fillStyle='rgba(7,24,48,.32)';ctx.beginPath();
   ctx.ellipse(x+width/2,y+height*.82,width*.55,height*.75,0,0,Math.PI*2);ctx.fill();
@@ -93,6 +95,33 @@ export function paintMechanicsPlatform(ctx,art,viewWidth,viewHeight){
   ctx.beginPath();ctx.moveTo(x+15,y+2);ctx.lineTo(x+width-15,y+2);ctx.stroke();
   ctx.restore();
   return g;
+}
+
+/** The overhead pulley rail now has its own ground-reaching wood frame.
+ * All points are scene-relative, so 320px phones and large desktops share it. */
+export function pulleyStandGeometry(viewWidth,viewHeight,shelfY=mechanicsShelfGeometry(viewWidth,viewHeight,'pulley').y){
+  if(!(viewWidth>0&&viewHeight>0))throw new RangeError('Scene needs positive dimensions');
+  const top=viewHeight*.40-39,postWidth=Math.max(10,Math.min(20,viewWidth*.025));
+  return [.26,.74].map(fraction=>({x:viewWidth*fraction-postWidth/2,y:top,
+    width:postWidth,height:shelfY-top+9}));
+}
+export function paintPulleyStand(ctx,art,viewWidth,viewHeight,shelfY){
+  const posts=pulleyStandGeometry(viewWidth,viewHeight,shelfY);
+  for(const post of posts){
+    const {x,y,width,height}=post;
+    ctx.save();ctx.shadowColor='rgba(5,19,40,.55)';
+    ctx.shadowBlur=11;ctx.shadowOffsetX=3;ctx.fillStyle='#a8754d';
+    ctx.beginPath();ctx.roundRect(x,y,width,height,6);ctx.fill();
+    ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.clip();
+    paintSurfaceTexture(ctx,art,'wood',x,y,width,height,.9);
+    ctx.fillStyle='rgba(28,35,52,.22)';ctx.fillRect(x+width*.72,y,width*.28,height);
+    ctx.restore();
+    ctx.save();ctx.fillStyle='#a8afac';ctx.shadowColor='rgba(5,15,30,.34)';
+    ctx.shadowBlur=4;ctx.beginPath();ctx.arc(x+width/2,y+9,Math.max(3,width*.32),0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;ctx.fillStyle='#fff0bb';ctx.beginPath();
+    ctx.arc(x+width/2-1,y+8,Math.max(1.4,width*.13),0,Math.PI*2);ctx.fill();ctx.restore();
+  }
+  return posts;
 }
 
 /** A miniature wooden stand visibly joins the inclined board to the floor shelf.

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {surfaceTextureBounds,stageMaterialForEverydayLesson,inclineStandGeometry,paintPendulumMount,apparatusTextureBounds,paintApparatusTexture,mechanicsShelfGeometry,paintMechanicsPlatform} from './surface-materials.mjs';
+import {surfaceTextureBounds,stageMaterialForEverydayLesson,inclineStandGeometry,paintPendulumMount,apparatusTextureBounds,paintApparatusTexture,mechanicsShelfGeometry,paintMechanicsPlatform,pulleyStandGeometry,paintPulleyStand} from './surface-materials.mjs';
 
 const materialNames=['felt','ice','wood','soil'];
 const cells=materialNames.map(name=>surfaceTextureBounds(1254,1254,name));
@@ -73,3 +73,20 @@ assert.ok(penCalls.slice(firstDrawCount).some(call=>call[0]==='roundRect'),
   'The mechanics chapter draws a rounded painted wooden shelf');
 assert.ok(penCalls.slice(firstDrawCount).some(call=>call[0]==='ellipse'),
   'The mechanics shelf needs a grounding contact shadow');
+
+for(const [width,height] of [[320,568],[390,844],[768,600],[1440,900]]){
+  const lever=mechanicsShelfGeometry(width,height,'lever');
+  const fulcrumSize=Math.min(98,width*.22,height*.32);
+  assert.ok(Math.abs(lever.y-(height*.58+fulcrumSize*.63))<1e-8,
+    'Lever support foot meets the timber shelf rather than floating');
+  const pulleyShelf=mechanicsShelfGeometry(width,height,'pulley');
+  for(const post of pulleyStandGeometry(width,height,pulleyShelf.y)){
+    assert.ok(post.x>=pulleyShelf.x&&post.x+post.width<=pulleyShelf.x+pulleyShelf.width);
+    assert.ok(post.y<height*.40,'Support post is attached to the overhead rail');
+    assert.ok(post.y+post.height>pulleyShelf.y,'Support post extends into the floor');
+  }
+}
+const standCallsStart=penCalls.length;
+const posts=paintPulleyStand(mockCanvas,null,390,620,mechanicsShelfGeometry(390,620,'pulley').y);
+assert.equal(posts.length,2,'Pulley has left/right posts, not a floating crossbar');
+assert.equal(penCalls.slice(standCallsStart).filter(call=>call[0]==='roundRect').length,2);

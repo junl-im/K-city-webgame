@@ -22,6 +22,7 @@ test('large physics atlases start loading only when an experiment is opened',()=
 });
 
 test('standard physics 2D fallback draws on a real material shelf',()=>{
-  assert.match(app,/paintMechanicsPlatform\(ctx,surfaceMaterialArtwork,w,h\)/);
+  assert.match(app,/paintMechanicsPlatform\(ctx,surfaceMaterialArtwork,w,h,s\.mechanicsMode\)/);
+  assert.match(app,/paintPulleyStand\(ctx,surfaceMaterialArtwork,w,h,mechanicsShelf\.y\)/);
   assert.doesNotMatch(app,/\.svg(?:[?'"]|$)/,'No new vector stand-in assets');
 });
