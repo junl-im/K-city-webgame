@@ -1140,8 +1140,10 @@ async function start() {
       if (!pendingImport) { openBag(); return; }
       const imported = pendingImport;
       pendingImport = null;
-      Object.assign(saveData, imported);
-      if (currentZone !== imported.zone) switchZone(imported.zone);
+      // Keep the saved location aligned with the scene until the destination is ready.
+      // Calling switchZone even for the current scene cancels an older pending trip.
+      Object.assign(saveData, imported, { zone: currentZone });
+      switchZone(imported.zone);
       drawPlots(); updateHud();
       const saved = persist();
       closeModal();
