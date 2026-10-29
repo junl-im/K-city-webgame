@@ -215,7 +215,7 @@
     for (let i=start;i>-365;i--) { if (!completedDaily(getKstDate(i))) break; count++; }
     return count;
   };
-  const save = function () { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} };
+  const save = function () { try { localStorage.setItem(STORE, JSON.stringify(state)); return true; } catch (e) { return false; } };
   const esc = function (s) {return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
   const artIcon = function(name){return '<span class="ui-art-icon ui-icon-'+name+'" aria-hidden="true"></span>';};
   const clickHand = '<span class="click-hand" aria-hidden="true"></span>';
@@ -421,7 +421,10 @@
   function startGame(gameId,official) {
     if (session)stopSession();
     if (official && hasDaily()) {toast('오늘 공식 도전은 이미 사용했어!');preview(gameId,false);return;}
-    if (official) {state.history[dayKey()]={gameId:gameId,complete:false,score:0};save();}
+    if (official) {
+      const today=dayKey();state.history[today]={gameId:gameId,complete:false,score:0};
+      if(!save()){delete state.history[today];official=false;toast('기록을 저장할 수 없어 자유 플레이로 시작해요.');}
+    }
     session={game:gameById(gameId),official:official,officialDay:official?dayKey():null,score:0,combo:0,bestCombo:0,correct:0,wrong:0,
       deadline:performance.now()+60000,pausedAt:null,roundTimeout:null,roundTask:null,roundRemaining:0,roundDueAt:null,reactionTimeout:null,locked:false,round:0,memoryTarget:-1,nextNum:1};
     $('#modalHelp').title=GAME_GUIDES[session.game.id].hint;
@@ -755,13 +758,14 @@
     state.plays[s.game.id]=(state.plays[s.game.id]||0)+1;
     state.best[s.game.id]=Math.max(state.best[s.game.id]||0,s.score);
     if(s.official)state.history[s.officialDay||dayKey()]={gameId:s.game.id,complete:true,score:s.score};
-    const newBadges=badgeUnlock();save();refresh();renderGames($('[data-filter].active')?.dataset.filter||'all');
+    const newBadges=badgeUnlock();const savedResult=save();refresh();renderGames($('[data-filter].active')?.dataset.filter||'all');
     const medal=s.score>=5000?'trophy':s.score>=2500?'medal':s.score>=1000?'star':'leaf';
     const praise=s.score>=5000?'모두가 깜짝 놀란 전설의 60초!':s.score>=2500?'정말 멋진 탐험이었어!':s.score>=1000?'실력이 쑥쑥 자라고 있어!':'도전하는 모습 자체가 멋져!';
     modal('<div class="modal-title" id="modalTitle">'+artIcon(s.official?'medal':'star')+' '+(s.official?'오늘의 공식 도전 완료':'자유 플레이 완료')+'</div>'+
       '<p class="modal-description">'+esc(s.game.name)+' · '+praise+'</p>'+
       '<div class="result-party" aria-label="모모, 루루, 코코, 두두가 함께 축하해요"><img src="./assets/friends-celebration-v06.webp" alt="모모, 루루, 코코, 두두가 즐겁게 뛰며 축하하고 있어요" width="420" height="210" decoding="async" /><span class="result-party-medal" aria-hidden="true">'+artIcon(medal)+'</span></div>'+
       '<div class="result-score">'+padScore(s.score)+'<small>점</small></div>'+
+      (!savedResult?'<p class="helper-text" role="status">이 기기에서 기록을 저장하지 못했어요. 브라우저 저장 공간과 설정을 확인해 주세요.</p>':'')+
       (newRecord?'<div class="result-record">'+artIcon('star')+' 새로운 최고 기록 달성!</div>':'')+
       '<div class="result-grid"><div class="result-cell"><strong>'+s.correct+'</strong><span>정답</span></div><div class="result-cell"><strong>'+s.bestCombo+'</strong><span>최고 콤보</span></div><div class="result-cell"><strong>'+padScore(state.best[s.game.id])+'</strong><span>개인 최고</span></div></div>'+
       (newBadges.length?'<div class="badge-unlock">새 배지 획득! '+newBadges.map(function(b){return badgeArt(b.id)+' '+b.name;}).join(' · ')+'</div>':'')+
