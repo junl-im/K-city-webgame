@@ -372,6 +372,8 @@ function gameScreen() {
   const ai = scoreOf(g,'computer');
   const yourTurn = g.phase==='playing' && g.currentPlayer==='human';
   const pending = g.humanPendingShakeMonth;
+  const specialActionButtons = gameButtons(g);
+  const specialActionCount = (specialActionButtons.match(/<button/g) || []).length;
   const hand = [...g.humanHand].sort((a,b)=>((getCard(a)?.month||0)-(getCard(b)?.month||0)));
   const floor = [...g.floorCards].sort((a,b)=>(getCard(a)?.month||0)-(getCard(b)?.month||0));
   const active = g.phase==='playing' ? (yourTurn?'내 차례':'상대가 생각 중…') : g.phase==='awaiting-go-stop' ? '고 / 스톱 선택' : g.phase==='awaiting-chongtong'?'총통!':'한 판 종료';
@@ -410,7 +412,7 @@ function gameScreen() {
       ${capturedRack(g)}
       <div class="hand-heading"><strong>내 패 ${hand.length}장</strong> <span>${yourTurn?'패를 눌러 내기':'상대 차례'}</span></div>
       <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{action:yourTurn?'play':null,hint:yourTurn && getMatchingFloorCards(g.floorCards,id).length>0})).join('') : '<span class="no-cards">손패를 모두 냈어!</span>'}</div>
-      <div class="action-row"><button type="button" class="action-chip action-chip--auto ${app.autoMode?'is-on':''}" data-action="automode" aria-pressed="${app.autoMode}">자동 ${app.autoMode?'ON':'OFF'}</button>${gameButtons(g)}<button type="button" class="action-chip action-chip--muted sound-control" data-action="sound" aria-label="${app.sound?'소리 켜짐':'소리 꺼짐'}" title="${app.sound?'소리 켜짐':'소리 꺼짐'}">${uiIcon('bell')} ${app.sound?'소리 켜짐':'소리 꺼짐'}</button></div>
+      <div class="action-row"><button type="button" class="action-chip action-chip--auto ${app.autoMode?'is-on':''}" data-action="automode" aria-pressed="${app.autoMode}">자동 ${app.autoMode?'ON':'OFF'}</button>${specialActionCount ? `<span class="action-row__desktop-special">${specialActionButtons}</span><details class="action-special-menu"><summary class="action-chip action-chip--special" aria-label="특수 동작 ${specialActionCount}개 펼치기">✿ 특수 ${specialActionCount}</summary><div class="action-special-menu__list" role="group" aria-label="특수 동작 선택">${specialActionButtons}</div></details>` : ''}<button type="button" class="action-chip action-chip--muted sound-control" data-action="sound" aria-label="${app.sound?'소리 켜짐':'소리 꺼짐'}" title="${app.sound?'소리 켜짐':'소리 꺼짐'}">${uiIcon('bell')} ${app.sound?'소리 켜짐':'소리 꺼짐'}</button></div>
     </div>
     ${flash ? (()=>{const moment=specialMoment(flashKind,flash);return `<div class="effect-burst effect-burst--${safe(moment.kind)} ${moment.major?'effect-burst--major':'effect-burst--minor'}" role="status" aria-live="assertive"><span class="effect-burst__illustration" aria-hidden="true"></span><strong class="effect-burst__headline">${safe(moment.title)}</strong>${moment.detail?`<small class="effect-burst__detail">${safe(moment.detail)}</small>`:''}</div>`;})() : ''}
     ${gameOverlay(g)}
