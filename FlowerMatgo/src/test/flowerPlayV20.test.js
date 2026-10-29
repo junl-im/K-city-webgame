@@ -12,7 +12,10 @@ describe('v20 패 던지기와 모바일 밀집판',()=>{
     expect(motion).not.toContain('width*290/186');
   });
   it('바닥패 증가량에 따라 모바일 전용 밀집 레이아웃을 고른다',()=>{
-    expect(js).toContain("floor.length >= 13 ? 'packed' : floor.length >= 9 ? 'busy' : 'normal'");
+    // The original two thresholds remain, with later-game tiers added in v39.
+    expect(js).toContain('data-density="${floorDensity(floor.length)}"');
+    expect(css).toContain('.floor-area[data-density="dense"] .hwatu');
+    expect(css).toContain('.floor-area[data-density="full"] .hwatu');
     expect(css).toContain('.floor-area[data-density="busy"] .hwatu');
     expect(css).toContain('.floor-area[data-density="packed"] .hwatu');
     expect(css).toContain('.my-hand .hwatu--interactive:focus-visible');
