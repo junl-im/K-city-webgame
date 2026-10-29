@@ -5,7 +5,7 @@
  */
 
 import { celebrationCue, paintTwinkles } from './visual-effects.mjs?rev=20261029-artfix01';
-import {paintToyStage,paintInclineMaterial,paintInclineStand,paintSurfaceTexture,stageMaterialForEverydayLesson} from './surface-materials.mjs?rev=20261029-artfix01';
+import {paintToyStage,paintInclineMaterial,paintInclineStand,paintPendulumMount,paintSurfaceTexture,stageMaterialForEverydayLesson} from './surface-materials.mjs?rev=20261029-artfix01';
 
 const clamp01 = n => Math.max(0, Math.min(1, Number.isFinite(n) ? n : 0));
 const PI = Math.PI;
@@ -297,11 +297,12 @@ function buoyancy(ctx, atlas, materialAtlas, p, data, settings) {
     isDuck?`몸체 부피의 약 ${Math.round(motion.depth*100)}%가 잠겨요`:'돌도 물이 위로 밀어줘요!');
 }
 
-function pendulum(ctx, atlas, p, data, settings) {
+function pendulum(ctx, atlas, materialAtlas, p, data, settings) {
   const motion=storyMotion('pendulum',p,data);
   softSpot(ctx,0,-40,275,'rgba(212,168,255,.22)');
   stars(ctx,p,-8,15,16);
   const pivotX=-18,pivotY=-176;
+  paintPendulumMount(ctx,materialAtlas,pivotX,pivotY);
   const len=177+(Number(settings.length)||1)*77;
   const bobX=pivotX+Math.sin(motion.theta)*len,bobY=pivotY+Math.cos(motion.theta)*len;
   if(p>.04){
@@ -311,8 +312,6 @@ function pendulum(ctx, atlas, p, data, settings) {
       ellipse(ctx,ghostX,ghostY,15,15,'#e6c2ff',.08+(4-i)*.045);
     }
   }
-  ctx.strokeStyle='#63427a';ctx.lineWidth=17;ctx.lineCap='round';ctx.beginPath();
-  ctx.moveTo(-238,-192);ctx.quadraticCurveTo(-135,-252,pivotX,pivotY);ctx.stroke();
   ctx.strokeStyle='#ffd478';ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(pivotX,pivotY);ctx.lineTo(bobX,bobY);ctx.stroke();
   ellipse(ctx,pivotX,pivotY,22,22,'#ffe59b');ellipse(ctx,pivotX,pivotY,11,11,'#ad74dc');
   ctx.save();ctx.translate(bobX,bobY);ctx.rotate(motion.theta*.15);
@@ -374,7 +373,7 @@ export function drawEverydayScene(ctx, {lesson, art, atlas, shoe, surfaceAtlas, 
     if(lesson==='inertia')inertia(ctx,art,atlas,p,reading,settings);
     if(lesson==='friction')friction(ctx,art,shoe,surfaceAtlas,p,reading,settings);
     if(lesson==='buoyancy')buoyancy(ctx,atlas,surfaceAtlas,p,reading,settings);
-    if(lesson==='pendulum')pendulum(ctx,atlas,p,reading,settings);
+    if(lesson==='pendulum')pendulum(ctx,atlas,surfaceAtlas,p,reading,settings);
     if(lesson==='heat')heat(ctx,art,atlas,waterGlass,p,reading);
     stars(ctx,p,0,22,8);
     // A short, consistent success cue across all five tactile picture-book chapters.
