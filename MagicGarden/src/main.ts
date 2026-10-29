@@ -10,6 +10,7 @@ import './illustrated-items-v18.css';
 import './unique-surfaces-v23.css';
 import { resolveHorizontalFacing, resolveWalkHeading, type HorizontalFacing, type WalkHeading } from './walk-motion';
 import { advanceMovement, calculateCameraTarget, smoothFollow } from './movement-camera';
+import { cropStage } from './crop-growth';
 import { farmPlotAnchor, isWalkable, planGardenRoute, segmentIsWalkable, type Point } from './garden-navigation';
 import { creekSurfacePose, creekFallPose, creekShouldAnimate, creekSurfaceCount, creekCascadeCount } from './creek-flow';
 import { PAINTED_AMBIENCE, ambiencePose, type PaintedTile } from './painted-environment';
@@ -842,12 +843,18 @@ async function start() {
     footprints.push({ sprite: footprint, age: 0 });
     while (footprints.length > 18) footprints.shift()?.sprite.destroy();
   }
+  const plotRenderKeys: string[] = Array(12).fill('');
   let lastCropRender = 0;
   let lastNurseryRender = 0;
 
   function drawPlots() {
     plotViews.forEach((plot, i) => {
       const crop = saveData.plots[i];
+      const percent = crop.plantedAt === null ? 0 : Math.min(1, Math.max(0, (Date.now() - crop.plantedAt) / GROW_TIME_MS));
+      const stage = cropStage(percent);
+      const key = crop.plantedAt === null ? 'empty' : cropTextures[stage] ? `art:${stage}` : `fallback:${stage}:${Math.floor(percent * 100)}`;
+      if (plotRenderKeys[i] === key) return;
+      plotRenderKeys[i] = key;
       plot.clear();
       const plant = cropArtViews[i];
       plant.clear();
@@ -859,9 +866,7 @@ async function start() {
       plot.moveTo(-55, 11).quadraticCurveTo(0, 26, 55, 11).stroke({ color: '#3e2412', alpha: .26, width: 2.5 });
       plot.moveTo(-39, 0).quadraticCurveTo(0, 12, 39, 0).stroke({ color: '#d7a56b', alpha: .23, width: 2 });
       if (crop.plantedAt !== null) {
-        const percent = Math.min(1, Math.max(0, (Date.now() - crop.plantedAt) / GROW_TIME_MS));
         ripePlots[i] = percent >= 1;
-        const stage = Math.min(3, Math.floor(percent * 4));
         const cropTexture = cropTextures[stage];
         if (cropTexture) {
           const picture = cropSprites[i];
