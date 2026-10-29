@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const css = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
-const v34 = css.split('/* v34 — use the otherwise empty phone-table width')[1];
+const v34 = css.split('/* v34 — use the otherwise empty phone-table width')[1]
+  .split('/* v35 mobile safe-layout guard')[0];
 
 function clamp(min, preferred, max) {
   return Math.max(min, Math.min(preferred, max));
