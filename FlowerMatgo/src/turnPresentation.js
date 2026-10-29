@@ -5,6 +5,7 @@
 import { specialPresentation } from './specialPresentation.js';
 import { specialMoment } from './specialMoment.js';
 import { getCard } from './engine/cards';
+import { capturedCardNotice } from './floorLayout.js';
 export const TURN_STAGES = Object.freeze({
   land: 320,
   draw: 510,
@@ -214,6 +215,28 @@ function spawnFlip(root, id, target, delay, cardHTML) {
   }, delay);
 }
 
+// A single, tiny paper label acknowledges the entire bundle at the
+// destination. Unlike the individual sprites it never blocks a card tap.
+function spawnCapturedNotice(root, destination, count, delay) {
+  const label = capturedCardNotice(count);
+  if (!label) return;
+  setTimeout(() => {
+    if (!root.querySelector('.scene--game.is-resolving')) return;
+    const rect = measure(destination);
+    if (!rect) return;
+    const sticker = document.createElement('span');
+    sticker.className = 'turn-capture-notice';
+    sticker.setAttribute('aria-hidden','true');
+    sticker.textContent = label;
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    sticker.style.left = `${Math.max(65,Math.min(screenWidth - 65,rect.left + rect.width/2))}px`;
+    sticker.style.top = `${Math.max(45,Math.min(screenHeight - 45,rect.top - 10))}px`;
+    root.appendChild(sticker);
+    setTimeout(() => sticker.remove(),640);
+  },delay);
+}
+
 function spawnCaptureSweep(root, ids, source, drawnTarget, cue, player, result, cardHTML, sound) {
   if (!ids.length || !source) return;
   const destination = root.querySelector(player === 'human' ? '.collection-rack' : '.captured-grid');
@@ -270,6 +293,7 @@ function spawnCaptureSweep(root, ids, source, drawnTarget, cue, player, result, 
       }
     },TURN_STAGES.collect+index*CAPTURE_STAGGER_MS);
   });
+  spawnCapturedNotice(root,destination,ids.length,TURN_STAGES.collect + 150);
   setTimeout(() => sound('capture'), TURN_STAGES.collect + 280);
 }
 
