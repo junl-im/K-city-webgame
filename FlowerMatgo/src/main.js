@@ -199,7 +199,7 @@ function card(id, options = {}) {
   // No extra bright mark: otherwise the glyph appears twice on small phones.
   const mark = `${visual.doubleJunkText ? `<span class="hwatu__double-mark" aria-hidden="true">${visual.doubleJunkText}</span>` : ''}`;
   const classes = `hwatu hwatu--month-${String(month).padStart(2,'0')} hwatu--ordinal-${String(ordinal).padStart(2,'0')} ${small?'hwatu--small':''} ${options.tiny?'hwatu--tiny':''} ${bonus?'hwatu--bonus':''} ${interactive?'hwatu--interactive':''} ${options.hint?'hwatu--hint':''} ${visual.gookjinConverted?'hwatu--converted':''}`;
-  return `<${interactive ? 'button' : 'div'} class="${classes}" ${style} data-card="${safe(id)}" ${interactive ? `type="button" data-action="${options.action}" aria-label="${safe(aria)} 내기"` : `role="img" aria-label="${safe(aria)}" title="${safe(aria)}"`}>
+  return `<${interactive ? 'button' : 'div'} class="${classes}" ${style} data-card="${safe(id)}" ${interactive ? `type="button" data-action="${options.action}" aria-label="${safe(aria)} ${options.action==='pickmatch'?'먹기':'내기'}"` : `role="img" aria-label="${safe(aria)}" title="${safe(aria)}"`}>
     ${bonus ? `<span class="hwatu__face"></span><span class="hwatu__bonus-mark" aria-hidden="true">${safe(item.typeLabel)}</span>` : `<span class="hwatu__face"></span>${mark}`}
   </${interactive ? 'button' : 'div'}>`;
 }
@@ -423,13 +423,24 @@ function gameOverlay(g) {
   if (overlay==='captures') return capturedGallery(g, galleryOwner);
   if (overlay==='cardbook') return cardbookOverlay();
   if (selectedMatch) {
-    return `<div class="modal-shade"><div class="modal-box"><h2>어느 패를 먹을까?</h2><p>같은 무늬가 두 장이야. 원하는 패를 골라줘.</p><p class="decision-timer">남은 선택 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</p>
-      <div class="match-choices">${selectedMatch.matches.map(id => card(id,{action:'pickmatch'})).join('')}</div>
-      ${btn('취소','cancelmatch','btn--ghost')}</div></div>`;
+    return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--match" role="dialog" aria-modal="true" aria-labelledby="match-choice-title" aria-describedby="match-choice-help">
+      <div class="decision-kicker">같은 무늬 2장</div><h2 id="match-choice-title">먹을 패를 골라줘!</h2>
+      <p id="match-choice-help" class="decision-hint">둘 중 한 장만 누르면 바로 획득해.</p>
+      <div class="match-choices" role="group" aria-label="먹을 화투패 선택">${selectedMatch.matches.map((id,index)=>`<div class="match-choice"><span class="match-choice__number">${index+1}번 패</span>${card(id,{action:'pickmatch'})}<small class="match-choice__name">${safe(spokenCardName(getCard(id)))}</small></div>`).join('')}</div>
+      <p class="decision-timer" role="timer" aria-label="선택 남은 시간">남은 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</p>
+      <div class="decision-cancel">${btn('돌아가기','cancelmatch','btn--ghost')}</div></section></div>`;
   }
   if (g.phase === 'awaiting-go-stop' && g.pendingDecision === 'human') {
-    return `<div class="modal-shade"><div class="modal-box modal-box--choice"><div class="modal-flower">✿</div><p class="eyebrow">YOUR CHOICE</p><h2>고? 아니면 스톱?</h2><p>현재 <b>${scoreOf(g,'human').total}점</b>! 더 높은 점수에 도전할까?</p><p class="decision-timer">남은 선택 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초 · 만료 시 스톱</p>
-      <div class="choice-actions">${btn('고! 더 간다','go','btn--warm')}${btn('스톱! 이겼다','stop','btn--primary')}</div></div></div>`;
+    return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--choice" role="dialog" aria-modal="true" aria-labelledby="go-stop-title" aria-describedby="go-stop-help">
+      <div class="decision-kicker">이번 판 선택</div><h2 id="go-stop-title">고? 아니면 스톱?</h2>
+      <div class="decision-score"><span>현재 내 점수</span><strong>${scoreOf(g,'human').total}<small>점</small></strong></div>
+      <p id="go-stop-help" class="decision-hint">계속 도전할까, 지금 점수로 이길까?</p>
+      <div class="choice-actions" role="group" aria-label="고 또는 스톱">
+        <button type="button" class="btn decision-option decision-option--go" data-action="go"><strong>고!</strong><small>더 치기</small></button>
+        <button type="button" class="btn decision-option decision-option--stop" data-action="stop"><strong>스톱!</strong><small>지금 끝내기</small></button>
+      </div>
+      <p class="decision-timer" role="timer" aria-label="결정 남은 시간">남은 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초 · 시간 종료 시 스톱</p>
+    </section></div>`;
   }
   if (g.phase === 'awaiting-chongtong' && g.pendingDecision === 'human') {
     return `<div class="modal-shade"><div class="modal-box"><div class="modal-flower">✦</div><h2>총통! 네 장이 모였어!</h2><p>바로 승리하거나 계속 칠 수 있어.</p><p class="decision-timer">남은 선택 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초 · 만료 시 스톱</p><div class="choice-actions">${btn('바로 스톱','chongtong-stop','btn--primary')}${btn('계속 치기','chongtong-go','btn--warm')}</div></div></div>`;

@@ -2979,3 +2979,139 @@ button:disabled { cursor: not-allowed; opacity:.48; }
   .scene--game .action-row > .sound-control {flex-basis:36px;width:36px;min-width:36px;max-width:36px;}
   .scene--game .action-special-menu__list .action-chip {min-height:39px;}
 }
+
+
+/* v37 — thumb-friendly match selection and Go/Stop decisions.
+   One clear choice at a time, using only Flower Matgo's existing bitmap paper. */
+.scene--game .modal-shade--decision {
+  padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));
+  overflow-y:auto;overscroll-behavior:contain;
+}
+.scene--game .modal-box--match,
+.scene--game .modal-box--choice {
+  width:min(480px,100%);
+  max-height:calc(100svh - 32px);
+  overflow-y:auto;overscroll-behavior:contain;
+  padding:clamp(13px,3svh,23px) clamp(13px,4vw,22px);
+  background:#f5e9d4 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  border:2px solid #eee0c1;border-radius:22px;
+  box-shadow:0 12px 36px #072a2480,inset 0 1px #fff9;
+}
+.scene--game .decision-kicker {
+  display:inline-block;margin:0 auto 5px;
+  color:#a46144;font-size:12px;font-weight:950;
+  letter-spacing:.02em;
+}
+.scene--game .modal-box--match h2,
+.scene--game .modal-box--choice h2 {
+  margin:3px 0 9px;font-size:clamp(23px,6.5vw,32px);
+  line-height:1.17;letter-spacing:-.9px;color:#76523e;
+}
+.scene--game .decision-hint {
+  margin:4px auto 10px;
+  color:#6b7257;font-size:clamp(12px,3.5vw,14px);
+  line-height:1.4;
+}
+.scene--game .modal-box .decision-timer {
+  margin:9px auto 3px!important;
+  font-size:12px!important;line-height:1.35;
+  color:#836e56!important;
+  font-variant-numeric:tabular-nums;
+}
+.scene--game .modal-box .decision-timer strong {
+  font-size:18px;color:#b66045;
+}
+.scene--game .modal-box--match .match-choices {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  width:100%;max-width:390px;gap:clamp(8px,3vw,18px);
+  margin:10px auto;
+}
+.scene--game .match-choice {
+  min-width:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-start;gap:6px;
+  padding:9px 5px 10px;border:1px solid #e3caa2;border-radius:14px;
+  background:#fff6e8aa;
+}
+.scene--game .match-choice__number {
+  font-size:12px;font-weight:950;color:#9b6041;
+}
+.scene--game .match-choice .hwatu {
+  display:block;width:clamp(72px,25vw,116px);
+  max-width:100%;margin:0;cursor:pointer;
+  filter:drop-shadow(0 4px 4px #4a302b50);
+  transition:filter .14s ease,box-shadow .14s ease;
+}
+.scene--game .match-choice .hwatu:hover,
+.scene--game .match-choice .hwatu:focus-visible {
+  transform:none;filter:brightness(1.1) drop-shadow(0 4px 5px #75563580);
+  outline:3px solid #c67d4f;outline-offset:3px;
+}
+.scene--game .match-choice__name {
+  max-width:100%;font-size:clamp(11px,2.9vw,13px);font-weight:850;
+  line-height:1.25;color:#61543e;text-align:center;
+  white-space:normal;overflow-wrap:anywhere;
+}
+.scene--game .decision-cancel {margin:7px auto 0;}
+.scene--game .decision-cancel .btn {
+  min-height:42px;padding:8px 21px;font-size:13px;
+}
+.scene--game .decision-score {
+  display:flex;align-items:center;justify-content:center;gap:13px;
+  width:min(300px,100%);margin:8px auto;padding:7px 14px;
+  border:1px solid #dfc7a2;border-radius:15px;
+  color:#805d42;background:#fff7e6c2;
+}
+.scene--game .decision-score > span {font-size:13px;font-weight:850;}
+.scene--game .decision-score > strong {
+  color:#ae6541;font-size:clamp(31px,8.5vw,44px);
+  font-weight:1000;line-height:1;font-variant-numeric:tabular-nums;
+}
+.scene--game .decision-score > strong small {
+  font-size:14px;margin-left:2px;
+}
+.scene--game .modal-box--choice .choice-actions {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:clamp(8px,3vw,15px);margin:15px 0 10px;
+}
+.scene--game .modal-box--choice .decision-option {
+  min-width:0;min-height:clamp(84px,15svh,112px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;padding:9px 5px;border:2px solid #d9b389;
+  border-radius:17px;white-space:normal;
+  background:#f3e1c7 url('/assets/flower-handpainted-paper-v17.webp') center / cover;
+  box-shadow:0 4px 0 #c59e78,0 8px 14px #2c45363d;
+  transition:filter .12s ease,transform .12s ease;
+}
+.scene--game .decision-option strong {
+  font-size:clamp(25px,7vw,35px);line-height:1.1;font-weight:1000;
+}
+.scene--game .decision-option small {
+  font-size:clamp(11px,3.1vw,14px);font-weight:850;line-height:1.2;
+}
+.scene--game .decision-option--go {color:#a35c3a;border-color:#e7a36c;background-color:#fff0d1;}
+.scene--game .decision-option--stop {color:#31744f;border-color:#8ac19d;background-color:#e8f5e0;}
+.scene--game .decision-option:active {transform:translateY(3px);filter:brightness(.96);}
+.scene--game .decision-option:focus-visible {outline:3px solid #b67c4c;outline-offset:3px;}
+@media (max-width:650px) and (max-height:600px) {
+  .scene--game .modal-box--match,
+  .scene--game .modal-box--choice {max-height:calc(100svh - 14px);padding:9px 11px;}
+  .scene--game .modal-box--match h2,
+  .scene--game .modal-box--choice h2 {font-size:21px;margin:1px 0 5px;}
+  .scene--game .decision-kicker {font-size:10px;margin-bottom:2px;}
+  .scene--game .decision-hint {font-size:11px;margin:1px 0 5px;}
+  .scene--game .match-choice {padding:5px 4px;gap:3px;}
+  .scene--game .match-choice .hwatu {width:clamp(57px,17svh,78px);}
+  .scene--game .modal-box--match .match-choices {margin:5px auto;gap:8px;}
+  .scene--game .decision-cancel .btn {min-height:32px;padding:4px 14px;}
+  .scene--game .decision-score {margin:5px auto;padding:4px 9px;}
+  .scene--game .decision-score > strong {font-size:30px;}
+  .scene--game .modal-box--choice .choice-actions {margin:7px 0 5px;}
+  .scene--game .modal-box--choice .decision-option {min-height:65px;}
+  .scene--game .decision-option strong {font-size:24px;}
+  .scene--game .modal-box .decision-timer {font-size:11px!important;margin:5px auto 1px!important;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .scene--game .modal-box--match,
+  .scene--game .modal-box--choice {animation:none;}
+  .scene--game .decision-option {transition:none;}
+}
