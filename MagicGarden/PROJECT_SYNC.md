@@ -141,3 +141,12 @@
 - [변경 커밋 92030cc](https://github.com/junl-im/K-city-webgame/commit/92030cc5d2a20ea6d651a90823c3a00fceb32910)의 Magic Garden CI 및 실제 GitHub Pages 배포 **둘 다 성공**. 브라우저의 계곡 버튼 계산 스타일 확인: 2개 레이어(전용 WebP/단색 계열 그래디언트), background-size=contain, cover, borderImageSource=none, 그림자 존재. 기존 4지역 및 하단 원화 회귀 없음.
 - **남은 실기기 과제:** 모바일 320/390px에서 실제 터치·오버플로·모달 텍스트 검수, Whale WebGL 플레이·연금/부화/가방 모달 기능·접근성 QA. 이번 점검 브라우저는 GPU 미지원 정적 풍경 미리보기로만 확인했으므로 게임 플레이 검증 완료를 주장하지 않는다.
 - 창작 자산의 모든 권리는 **곰같은여우**에게 귀속. GitHub/Notion/Google Drive는 저장 및 이력 정리 수단.
+
+## 2026-10-29 — v26 실게임 간판·하단 UI 마감 (현장 스크린샷 피드백)
+
+- **실제 발견된 원인:** Pixi 월드 공간의 게이트·연구소·둥지 간판은 각각 `ui-button-wood-v1.webp`/`ui-button-green-v1.webp` 같은 공용 버튼 이미지를 불러와 `artwork.width/height`로 196×60에 억지로 늘리고 있었다. 어두운 표면에 어두운 문구가 겹쳐 스크린샷에서 글씨가 거의 안 보였다.
+- **고유 자산 6종 신규:** 마을 문, 텃밭 문, 실험실 문, 연구소 문, 연금 제작대, 둥지 제작대용 서로 다른 반투명 배경 PNG 원본 6장과 실제 게임용 WebP 6장을 각각 독립 파일로 보존. `ui-v26-{gate-town,gate-farm,gate-lab,gate-nursery,station-lab,station-nursery}.{png,webp}`. **SVG 없음**.
+- **소스 적용:** 구역별 간판 갱신·비동기 전환 경합 방지, 비율 유지 `scale.set`으로 표시, 크림색 간판 위 녹색 짙은 글씨와 연한 테두리, HUD 4개 버튼을 감싼 불필요한 공용 액자 약화 및 안내 띠 대비 개선. 기존 버튼 33종 독립 WebP와 농사·조합·부화·게임 데이터 불변.
+- **코드/자산 반영:** [v26 커밋 af5a287](https://github.com/junl-im/K-city-webgame/commit/af5a2878b02c0708f39ee7dd5b0008680272fd56), `scripts/check-world-sign-art-v26.mjs`가 전용 원본/경량 파일, 구역 매핑, 크기 왜곡 방지 조건을 검사하도록 연결. Magic Garden CI 성공. Pages 배포 및 실제 Whale WebGL 장면 재확인 중.
+- **잔여 QA:** PC Whale 실제 장면에서 여섯 간판과 버튼 테두리·글자 가독성 확인, 모바일 320/390/420px의 겹침·안전영역·팝업·터치 확인. GPU 없는 테스트 브라우저의 정적 풍경 미리보기를 게임 실동작 검증으로 간주하지 않음.
+- **저작권·프로젝트 격리:** 곰같은여우 소유 창작 자산과 소스. 다른 형제 게임과 Soul Online 보관본은 변경하지 않음.
