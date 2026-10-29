@@ -887,3 +887,9 @@ body[data-view="games"] #games{animation:gamePageFade .24s ease-out both}
 .overlay .pause-screen {backdrop-filter:none;}
 .overlay .game-preview img {transform:none!important;filter:none!important;}
 .overlay .game-host img {will-change:auto;filter:none;}
+/* Keep each promise together on narrow phones instead of breaking Korean words. */
+@media (max-width:430px){
+  .hero-meta{flex-wrap:wrap;gap:5px 12px;line-height:1.35;}
+  .hero-meta>span{flex:0 0 auto;white-space:nowrap;}
+  .hero-meta .ui-art-icon{flex:none;}
+}
