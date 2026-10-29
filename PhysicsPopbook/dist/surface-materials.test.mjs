@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {surfaceTextureBounds,stageMaterialForEverydayLesson,inclineStandGeometry,paintPendulumMount} from './surface-materials.mjs';
+import {surfaceTextureBounds,stageMaterialForEverydayLesson,inclineStandGeometry,paintPendulumMount,apparatusTextureBounds,paintApparatusTexture} from './surface-materials.mjs';
 
 const materialNames=['felt','ice','wood','soil'];
 const cells=materialNames.map(name=>surfaceTextureBounds(1254,1254,name));
@@ -29,6 +29,17 @@ for(const degrees of [10,15,20,25,30,35,40]){
   assert.ok(stand.footTop<=215&&stand.footTop+stand.footHeight>215,
     'Foot visibly rests across the shelf surface');
 }
+
+
+const finishes=['brass','steel','rubber','ceramic'];
+for(const name of finishes){
+  const b=apparatusTextureBounds(1254,1254,name);
+  assert.ok(b.sx>=0&&b.sy>=0&&b.sw>0&&b.sh>0);
+  assert.ok(b.sx+b.sw<=1254&&b.sy+b.sh<=1254);
+}
+assert.throws(()=>apparatusTextureBounds(1254,1254,'felt'));
+assert.equal(paintApparatusTexture({},null,'steel',0,0,35,25),false,
+  'Missing raster should keep the already-painted metallic base instead of breaking the scene');
 
 const penCalls=[];
 const mockCanvas=new Proxy({},{
