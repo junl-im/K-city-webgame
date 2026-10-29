@@ -346,10 +346,15 @@ function capturedGallery(g, who, selectedType) {
     groups.unshift(selected);
   }
   const count=(who==='human'?g.humanCaptured:g.computerCaptured).length;
+  const score=scoreOf(g,who);
   return `<div class="modal-shade"><section class="modal-box gallery-box" role="dialog" aria-modal="true" aria-label="먹은 화투패 전체 보기">
     <div class="gallery-heading"><div><p class="eyebrow">MY FLOWER CARDS</p><h2>${who==='human'?'내가 먹은 패':'상대가 먹은 패'} <small>${count}장</small></h2></div><button class="gallery-close" type="button" data-action="close" aria-label="닫기">✕</button></div>
     <p class="gallery-note">${selected?`${selected.name} 패를 먼저 보여드려요. 다른 종류도 아래에서 확인할 수 있어요.`:'같은 종류의 화투패를 모아 점수를 만들어요. 패를 크게 보고 확인해 봐!'}</p>
-    ${groups.map(group=>`<section class="gallery-section"><div class="gallery-section-head"><strong>${group.name}</strong><span>${group.cards.length}장</span></div><div class="gallery-cards">${group.cards.length?group.cards.map(id=>card(id,{gookjinAsDoubleJunk:who==='human'?g.humanGookjinAsDoubleJunk:g.computerGookjinAsDoubleJunk})).join(''):'<span class="gallery-empty">아직 먹은 패가 없어요</span>'}</div></section>`).join('')}
+    <details class="gallery-score"><summary><span>점수 내역 <strong>${score.total}점</strong></span><span class="gallery-score__toggle" aria-hidden="true"></span></summary><div class="gallery-score__body">
+      ${score.lines.length?`<ul>${score.lines.map(line=>`<li><span><b>${safe(line.label)}</b><small>${safe(line.description)}</small></span><strong>+${line.points}점</strong></li>`).join('')}</ul>`:'<p>아직 점수가 되는 조합이 없어요.</p>'}
+      <p>쌍피와 보너스피는 점수 계산 시 2장 이상으로 셉니다.</p>
+    </div></details>
+    ${groups.map(group=>`<section class="gallery-section"><div class="gallery-section-head"><strong>${group.name}</strong><span>${group.cards.length}장${group.id==='junk' && score.junkCount!==group.cards.length?` · 피 계산 ${score.junkCount}`:''}</span></div><div class="gallery-cards">${group.cards.length?group.cards.map(id=>card(id,{gookjinAsDoubleJunk:who==='human'?g.humanGookjinAsDoubleJunk:g.computerGookjinAsDoubleJunk})).join(''):'<span class="gallery-empty">아직 먹은 패가 없어요</span>'}</div></section>`).join('')}
     ${btn('돌아가기','close','btn--primary btn--wide')}
   </section></div>`;
 }
