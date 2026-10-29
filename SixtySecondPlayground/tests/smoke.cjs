@@ -14,7 +14,7 @@ const asset = file => path.join(dist, 'assets', file);
 new vm.Script(js, {filename: 'app.js'});
 assert.match(html, /시제품 v2\.2/);
 assert.match(html, /<title>곰같은여우와 함께하는 오늘의 60초 놀이터<\/title>/, '게임 정식 제목은 정확해야 합니다');
-assert.match(html, /\.\/style\.css\?v=20261029-gameplay-fit-v25/, '스크롤 및 높이 변경 CSS는 새 버전으로 로드해야 합니다');
+assert.match(html, /\.\/style\.css\?v=20261029-mobile-landscape-v26/, '스크롤 및 높이 변경 CSS는 새 버전으로 로드해야 합니다');
 assert.match(html, /<h1 tabindex="-1">오늘의 <em>60초 놀이터<\/em><\/h1>/, '메인 제목은 오늘의 60초 놀이터여야 합니다');
 assert.match(html, /<span>곰같은여우와 함께하는<\/span><span>오늘의 60초 놀이터<\/span>/, '상위 브랜드는 전체 제목을 유지해야 합니다');
 assert.match(js, /<button type="button" class="game-card" data-game=/, '게임 카드 전체를 누르면 열려야 합니다');
@@ -369,5 +369,11 @@ for(const [stage,colorCount,poolSize] of [[1,4,16],[2,5,20],[3,6,30]]){
   }
   assert.equal(seen.size,poolSize,'단계별 모든 조합을 1회씩 사용해야 합니다');
 }
+
+assert.match(css, /@media \(max-width:920px\) and \(max-height:500px\) and \(orientation:landscape\)/, '모바일 가로 모드가 독립적으로 적용되어야 합니다');
+assert.match(css, /grid-template-areas:"title arena" "hud arena"/, '가로 모드의 게임판과 점수판은 좌우 배치되어야 합니다');
+assert.match(css, /max-height:calc\(100dvh - 12px - env\(safe-area-inset-top\) - env\(safe-area-inset-bottom\)\)/, '모바일 가로 화면의 안전영역이 반영되어야 합니다');
+assert.match(css, /@media \(max-width:780px\) and \(orientation:portrait\)/, '모바일 세로 안전영역이 반영되어야 합니다');
+assert.doesNotMatch(css, /\.modal\.is-playing \.arena\{[^}]*overflow:hidden/, '게임판을 잘라서 스크롤만 숨겨서는 안 됩니다');
 
 console.log(`OK: ${games.length}개 게임, ${Object.keys(hostLines).length}명 안내원, ${questions.length}개 미스터리, 다른 그림 600판, 색 조합 66개, 9칸 중복 방지 1,800회, ${required.length}개 필수 WebP, SVG 0개`);
