@@ -3310,18 +3310,7 @@ button:disabled { cursor: not-allowed; opacity:.48; }
   .turn-capture-notice {animation:none;opacity:1;}
 }
 
-/* v40: make matching hand cards and earned cards readable on the table. */
-.scene--game .my-hand .hwatu--hint:not(.hwatu--departing) {
-  outline:3px solid #ffe18a;outline-offset:0;
-  box-shadow:0 0 0 2px #a55b18,0 0 14px #ffe17faa,0 5px 8px #001b1b85;
-}
-.scene--game .my-hand .hwatu--hint::after {
-  content:'짝';position:absolute;z-index:4;left:2px;top:2px;
-  min-width:18px;height:18px;display:grid;place-items:center;
-  border-radius:6px;background:#ffe49e;color:#71380f;
-  border:1px solid #a86526;font-size:11px;font-weight:950;line-height:1;
-  pointer-events:none;
-}
+/* v40: make earned cards readable on the table. */
 @media (max-width:650px) and (min-height:701px) {
   .scene--game {grid-template-rows:max(39px,calc(33px + env(safe-area-inset-top))) clamp(45px,6.3svh,54px) minmax(0,1fr) clamp(250px,34svh,285px);}
   .scene--game .player-area {grid-template-rows:24px 80px minmax(0,1fr) 38px;}
@@ -3364,4 +3353,5 @@ button:disabled { cursor: not-allowed; opacity:.48; }
 
 @media (max-width:650px) {
   .scene--game .action-row > .sound-control {font-size:0;overflow:hidden;}
+  .scene--game .captured-grid .capture-cats {display:flex;gap:8px;margin-top:0;font-size:9px;}
 }
