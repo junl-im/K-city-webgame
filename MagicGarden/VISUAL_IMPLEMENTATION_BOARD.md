@@ -160,3 +160,10 @@
 - [x] [GitHub 변경 af5a287](https://github.com/junl-im/K-city-webgame/commit/af5a2878b02c0708f39ee7dd5b0008680272fd56); 추가 v26 전용 자산/매핑/비율 Guard, 소스 CI 성공.
 - [ ] Pages 배포 결과와 PC Whale WebGL에서 실제 6종 월드 간판·구역 전환 검수. GPU 없는 브라우저의 정적 그림 미리보기는 이 검증 대체 불가.
 - [ ] 모바일 320/390/420px의 버튼 텍스트·팝업 탭·겹침·터치·스크롤 실기기 검수, 최종 미술 마감 재검토.
+
+### v27 팝업별 개별 제목 원화 7종 — 2026-10-29
+- [x] 재사용되던 단일 `ui-v23-modal-title.webp` 대신 가방/월드지도/도감/도움말/실험실/연구소/저장 확인 전용 배너 7장 분리. 독립 PNG 7장과 동일 역할의 WebP 7장 보존. SVG 없음.
+- [x] `main.ts`에서 한글 모달 제목에 맞춰 `data-surface` 매핑, `unique-surfaces-v23.css`에서 해당 배너만 선택; 크기 비율 보존·모바일 제목 문구/닫기 버튼 여백 확보.
+- [x] [GitHub v27 36cf099](https://github.com/junl-im/K-city-webgame/commit/36cf0990f7f5266cebc840fb4c8b3f8eb5da70a0) / `check-modal-header-v27.mjs` 추가, Magic Garden CI/Pages 둘 다 성공. 따뜻한 배경 위 WebP 투명 알파 시각 확인.
+- [ ] GPU 지원 PC Whale 실게임에서 팝업 7종을 열고 각 타이틀/텍스트/닫기 버튼의 겹침과 원화 크롭 정도 검수.
+- [ ] 휴대전화 320·390·420px 세로/가로에서 스크롤, 안전영역, 터치 및 모달 내용 가독성 최종 확인. 정적 미리보기는 플레이 테스트로 간주하지 않음.
