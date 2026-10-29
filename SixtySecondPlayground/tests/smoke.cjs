@@ -380,8 +380,13 @@ assert.match(js, /officialDay:official\?dayKey\(\):null/, '공식 도전은 시�
 assert.match(js, /state\.history\[s\.officialDay\|\|dayKey\(\)\]/, '자정 이후 끝나도 시작 날짜에 기록해야 합니다');
 assert.match(js, /new URL\('\.\/\?view=games',window\.location\.href\)\.href/, '결과 공유에 같은 GitHub 게임 페이지 링크 필요');
 assert.match(js, /navigator\.share\(\{title:'오늘의 60초 놀이터',text:text,url:shareUrl\}\)/, '기본 공유 창에 게임 링크를 첨부해야 합니다');
-assert.match(js, /clipboard\.writeText\(text\+'\\n'\+shareUrl\)/, '복사 공유에도 게임 링크 필요');
+assert.match(js, /copyShareResult\(text\+'\\n'\+shareUrl\)/, '복사 공유에도 게임 링크 필요');
+assert.match(js, /function copyShareResult\(value\)/, '브라우저 공유가 실패할 때 복사 기능을 제공해야 합니다');
+assert.match(js, /navigator\.clipboard\.writeText\(value\)/, '비동기 클립보드 복사를 먼저 시도해야 합니다');
+assert.match(js, /document\.execCommand\('copy'\)/, '클립보드 API가 차단될 때 호환 복사를 시도해야 합니다');
+assert.match(js, /error\.name==='AbortError'/, '사용자가 공유를 취소하면 취소 안내가 있어야 합니다');
+assert.match(js, /copyFallback\(\)/, '공유 오류가 발생하면 복사 경로로 전환해야 합니다');
 
-assert.match(html, /\.\/app\.js\?v=20261029-dailyshare-v27/, '자정 기록·공유 패치는 새 JS 캐시 버전으로 로드해야 합니다');
+assert.match(html, /\.\/app\.js\?v=20261029-sharefallback-v28/, '자정 기록·공유 패치는 새 JS 캐시 버전으로 로드해야 합니다');
 
 console.log(`OK: ${games.length}개 게임, ${Object.keys(hostLines).length}명 안내원, ${questions.length}개 미스터리, 다른 그림 600판, 색 조합 66개, 9칸 중복 방지 1,800회, ${required.length}개 필수 WebP, SVG 0개`);
