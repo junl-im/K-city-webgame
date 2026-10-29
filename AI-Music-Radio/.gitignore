@@ -1,0 +1,6 @@
+*.mp3
+*.wav
+*.flac
+*.zip
+.env*
+node_modules/
