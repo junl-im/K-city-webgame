@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { isWalkable, nearestWalkable, planGardenRoute, segmentIsWalkable, routeIsWalkable } from '../src/garden-navigation.ts';
+import { farmPlotAnchor, isWalkable, nearestWalkable, planGardenRoute, segmentIsWalkable, routeIsWalkable } from '../src/garden-navigation.ts';
 const cases = [
   ['town', {x:619,y:585}, {x:1180,y:520}],
   ['town', {x:619,y:585}, {x:900,y:390}],
@@ -57,3 +57,11 @@ assert.equal(routeIsWalkable('farm',{x:218,y:562},planGardenRoute('farm',{x:218,
 assert.equal(routeIsWalkable('town',{x:900,y:390},[]),false);
 regressionCases+=3;
 console.log(`Route continuity regression checks passed (${regressionCases} cases).`);
+
+// Plot indices are persisted row-major; collision follows the displayed soil centre.
+for (let i = 0; i < 12; i++) {
+  const anchor = farmPlotAnchor(i);
+  assert.deepEqual(anchor, { x: 365 + (i % 4) * 208, y: 443 + Math.floor(i / 4) * 98 });
+  assert.equal(isWalkable('farm', anchor.x, anchor.y + 21), false);
+}
+console.log('All 12 saved farm plots retain their row-major positions and soil collisions.');

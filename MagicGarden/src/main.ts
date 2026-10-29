@@ -10,7 +10,7 @@ import './illustrated-items-v18.css';
 import './unique-surfaces-v23.css';
 import { resolveHorizontalFacing, resolveWalkHeading, type HorizontalFacing, type WalkHeading } from './walk-motion';
 import { advanceMovement, calculateCameraTarget, smoothFollow } from './movement-camera';
-import { isWalkable, planGardenRoute, segmentIsWalkable, type Point } from './garden-navigation';
+import { farmPlotAnchor, isWalkable, planGardenRoute, segmentIsWalkable, type Point } from './garden-navigation';
 import { creekSurfacePose, creekFallPose, creekShouldAnimate, creekSurfaceCount, creekCascadeCount } from './creek-flow';
 import { PAINTED_AMBIENCE, ambiencePose, type PaintedTile } from './painted-environment';
 import { FOREGROUND_PAINTINGS, footDepth, foregroundDepth, foregroundMotion } from './garden-depth';
@@ -784,12 +784,12 @@ async function start() {
   const ripePlots: boolean[] = Array(12).fill(false);
   for (let i = 0; i < 12; i++) {
     const plot = new Graphics();
-    const col = i % 4, row = Math.floor(i / 4);
-    plot.position.set(365 + col * 208, 443 + row * 98);
+    const anchor = farmPlotAnchor(i);
+    plot.position.set(anchor.x, anchor.y);
     plot.hitArea = new Rectangle(-83, -58, 166, 105);
     const cropArt = new Graphics();
     cropArt.eventMode = 'none';
-    cropArt.position.set(0, 24);
+    cropArt.position.set(0, 21);
     plot.addChild(cropArt);
     // 밭과 캐릭터의 앞뒤 순서를 같은 발 위치 기준으로 계산한다.
     plot.zIndex = plot.position.y + 20;
@@ -809,14 +809,10 @@ async function start() {
     return image;
   });
   const cropTextures: Texture[] = [];
-  void Assets.load<Texture>(`${import.meta.env.BASE_URL}assets/ui-crop-stages-v1.webp`).then((sheet) => {
-    const w = Math.floor(sheet.width / 2), h = Math.floor(sheet.height / 2);
-    for (let i = 0; i < 4; i++) {
-      cropTextures.push(new Texture({
-        source: sheet.source,
-        frame: new Rectangle((i % 2) * w, Math.floor(i / 2) * h, w, h),
-      }));
-    }
+  void Promise.all(['seedling','young','flower','ripe'].map((stage) =>
+    Assets.load<Texture>(`${import.meta.env.BASE_URL}assets/crop-aligned-${stage}.webp`)
+  )).then((textures) => {
+    cropTextures.push(...textures);
     drawPlots();
   }).catch(() => { /* Existing crops remain playable if art cannot load. */ });
   let currentZone: Zone = saveData.zone;
@@ -871,9 +867,12 @@ async function start() {
           if (picture.texture !== cropTextures[stage]) picture.texture = cropTextures[stage];
           picture.visible = true;
           picture.alpha = 1;
-          // Keep every atlas frame at the same calibrated in-world size, not its raw pixel size.
-          picture.width = 116;
-          picture.height = 108;
+          // Align each plant’s visible stem base to the soil centre despite transparent padding.
+          picture.anchor.set(.5, [314 / 341, 440 / 468, 461 / 493, 385 / 427][stage]);
+          const size = [48, 72, 92, 106][stage];
+          const aspect = picture.texture.width / picture.texture.height;
+          picture.height = size;
+          picture.width = size * aspect;
         } else {
           const height = 12 + percent * 40;
           const leaf = 5 + percent * 9;
