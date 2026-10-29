@@ -539,7 +539,9 @@ function syncTurnClock() {
     clearAutoTimer();
     return;
   }
-  const blocked = turnTransition || !!overlay;
+  // A backgrounded mobile browser can suspend timers while wall time keeps
+  // passing. Preserve the player's remaining time until they return.
+  const blocked = turnTransition || !!overlay || document.hidden;
   if (blocked) {
     if (!clockPaused) {
       clockRemaining = Math.max(0, clockDeadline - performance.now());
@@ -554,7 +556,7 @@ function syncTurnClock() {
     }
     if (!clockInterval) clockInterval = setInterval(() => {
       updateClockFace();
-      if (clockKey && performance.now() >= clockDeadline && expiredKey !== clockKey) {
+      if (!document.hidden && clockKey && performance.now() >= clockDeadline && expiredKey !== clockKey) {
         expiredKey = clockKey;
         clearAutoTimer();
         autoTakeTurn(true);
@@ -571,7 +573,7 @@ function syncTurnClock() {
 }
 function autoTakeTurn(forced = false) {
   const g = app.game;
-  if ((!forced && !app.autoMode) || !humanTurnSignature(app.screen,g) || turnTransition || overlay) return;
+  if ((!forced && !app.autoMode) || !humanTurnSignature(app.screen,g) || turnTransition || overlay || document.hidden) return;
   if (selectedMatch) { humanPlay(selectedMatch.cardId,selectedMatch.matches[0]); return; }
   if (g.phase === 'awaiting-go-stop') { mutate('stop'); return; }
   if (g.phase === 'awaiting-chongtong') { mutate('chongtong-stop'); return; }
@@ -895,6 +897,7 @@ function mutate(action, value, cardId) {
 import { setGookjinChoice } from './engine/gameState';
 function awaitImportHack() { return {setGookjinChoice}; }
 
+document.addEventListener('visibilitychange', syncTurnClock);
 document.addEventListener('click',e=>{
   const target=e.target.closest('[data-action]');
   if (!target || !ROOT.contains(target)) return;
