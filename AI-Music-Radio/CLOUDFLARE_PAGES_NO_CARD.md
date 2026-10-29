@@ -27,3 +27,16 @@ Git 연동형 Pages 프로젝트와 Direct Upload 프로젝트는 별개의 배�
 https://developers.cloudflare.com/pages/get-started/direct-upload/
 https://developers.cloudflare.com/pages/platform/limits/
 https://developers.cloudflare.com/pages/configuration/serving-pages/
+
+
+## Cloudflare 오류: Invalid manifest: Manifest path must be URI encoded (2026-10-29)
+
+Cloudflare의 자산 배포 과정에서 경로 URI 인코딩 오류가 발생할 수 있음. 업로드 원본 ZIP의 경로 114개는 영문/숫자/기호(안전한 문자)만 포함함을 검사했고, 파일 무결성도 검증. 원인 확정 전이므로 한글 ZIP **외부 파일명** 또는 올바르지 않은 업로드 화면(Workers 자산 업로드 대신 Pages 직접 업로드), 대용량 업로드 오류를 각각 분리해 점검해야 함.
+
+1. ZIP 이름을 `gomfox-radio-pages-55tracks-v3.zip`처럼 **영문**으로 변경해서 시도. ZIP 내부 폴더가 아닌 `index.html`이 최상단에 있어야 함.
+2. 먼저 `gomfox-radio-pages-2tracks-test.zip` (2곡, 약 9.3MB)으로 같은 Cloudflare Pages 업로드 화면에서 테스트. 정상적이라면 55곡 본편으로 업데이트.
+3. 반복 실패하면 Windows에서 ZIP 압축을 풀고, **압축 해제한 전체 폴더**를 Pages의 직접 업로드 영역에 끌어 넣어 ZIP 업로드 단계 우회.
+4. 화면 경로를 확인: Cloudflare의 **Workers 및 Pages → Pages → 직접 업로드(드래그 앤 드롭)**. Workers의 일반 정적 자산 업로드와 혼동 주의.
+5. 그래도 같은 오류면 Cloudflare의 배포 API 문제일 수 있음. Wrangler CLI의 `pages deploy <folder> --project-name <project>`를 대안으로 검토하고, 배포 ID/화면 오류를 수집.
+
+참조: [Cloudflare Pages Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/) 및 [Cloudflare workers-sdk Issue #14461](https://github.com/cloudflare/workers-sdk/issues/14461). 지원 측의 최종 원인 확인 없이 특정 단일 원인으로 단정하지 말 것.
