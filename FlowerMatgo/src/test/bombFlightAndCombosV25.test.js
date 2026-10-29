@@ -56,7 +56,7 @@ describe('v25: score-set callouts and familiar Korean labels',()=>{
     expect(specialMoment('ttadak').detail).not.toMatch(/월/);
   });
   it('uses painted images for small pair feedback rather than new SVGs',()=>{
-    const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
+    const css=readFileSync(new URL('../style.css',import.meta.url),'utf8').replace(/\r\n/g,'\n');
     expect(css).toContain(".turn-pair-contact::before {\n  left:-43px");
     expect(css).toContain("background:url('/assets/flower-special-burst-v22.webp')");
     expect(css).not.toContain('flower-special-burst-v25.svg');
