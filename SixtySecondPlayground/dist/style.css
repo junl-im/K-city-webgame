@@ -823,3 +823,46 @@ body[data-view="games"] #games{animation:gamePageFade .24s ease-out both}
   .arena[data-game="whack"] .tap-grid{max-width:min(235px,44dvh)}
   .arena[data-game="memory"] .memory-grid{max-width:min(220px,42dvh)}
 }
+
+/* v2.6 · 낮은 모바일 가로 화면: 정보는 왼쪽, 터치 게임판은 오른쪽. 지나친 축소/잘림 금지. */
+@media (max-width:920px) and (max-height:500px) and (orientation:landscape){
+  .overlay:has(.modal.is-playing){padding:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}
+  .modal.is-playing{width:min(98vw,780px);max-height:calc(100dvh - 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom));padding:7px 11px 8px;border-radius:18px}
+  .modal.is-playing .modal-top{margin-bottom:2px}
+  .modal.is-playing .modal-mark{font-size:8px}
+  .modal.is-playing #modalBody{display:grid;grid-template-columns:minmax(140px,.72fr) minmax(0,1.28fr);grid-template-areas:"title arena" "hud arena" "timer arena" "stage arena" "prompt arena" "feedback arena";gap:2px 10px;align-items:center}
+  .modal.is-playing .modal-title{grid-area:title;margin:1px 0;font-size:clamp(16px,3.8dvh,21px);text-align:left}
+  .modal.is-playing .game-host,.modal.is-playing .helper-text{display:none}
+  .modal.is-playing .hud{grid-area:hud;display:grid;grid-template-columns:1fr 1fr;gap:3px;margin:2px 0;padding:3px;position:static;box-shadow:none}
+  .modal.is-playing .hud-box{padding:3px 2px}
+  .modal.is-playing .hud-box:last-child{grid-column:1/-1}
+  .modal.is-playing .hud-box strong{font-size:clamp(17px,4.8dvh,21px)}
+  .modal.is-playing .timer-wrap{grid-area:timer;gap:0}
+  .modal.is-playing .timer-track{height:6px}
+  .modal.is-playing .stage-row{grid-area:stage;min-height:20px;margin:2px 0}
+  .modal.is-playing .stage-chip{padding:3px 6px;font-size:9px}
+  .modal.is-playing .round-count{font-size:9px}
+  .modal.is-playing .game-prompt{grid-area:prompt;min-height:0;margin:1px 0;font-size:clamp(10px,2.7dvh,12px);line-height:1.35;text-align:left}
+  .modal.is-playing .arena{grid-area:arena;min-height:0;padding:8px;border-radius:16px;align-self:stretch}
+  .modal.is-playing .feedback{grid-area:feedback;min-height:15px;height:auto;margin:1px 0;font-size:10px}
+  .arena[data-game="whack"] .tap-grid{max-width:min(245px,calc(100dvh - 105px));gap:5px}
+  .arena[data-game="whack"] .tap-cell{border-radius:12px}
+  .arena[data-game="memory"] .memory-grid{max-width:min(240px,calc(100dvh - 105px));gap:5px}
+  .modal.is-playing .num-cell{height:clamp(40px,11dvh,52px)}
+  .modal.is-playing .num-grid{gap:5px}
+  .modal.is-playing .stroop-word{margin:0 0 7px;font-size:clamp(29px,10dvh,43px)}
+  .modal.is-playing .choice{min-height:40px;padding:5px;font-size:13px}
+  .modal.is-playing .choice.color-choice{min-height:43px}
+  .modal.is-playing .sort-monster{min-height:100px;font-size:70px}
+  .modal.is-playing .sort-label{margin-bottom:6px}
+  .modal.is-playing .sort-choices .choice{min-height:48px;font-size:10px}
+  .modal.is-playing .mystery-clue{font-size:clamp(13px,4dvh,16px);line-height:1.35;margin:4px auto 8px}
+  .modal.is-playing .mystery-choices{gap:5px}
+  .modal.is-playing .spot-board-label{margin-bottom:3px}
+  .modal.is-playing .spot-board{padding:3px;gap:3px}
+}
+/* 세로 모드에서는 화면의 노치와 홈 인디케이터를 침범하지 않습니다. */
+@media (max-width:780px) and (orientation:portrait){
+  .overlay:has(.modal.is-playing){padding-top:max(8px,env(safe-area-inset-top));padding-bottom:max(8px,env(safe-area-inset-bottom))}
+  .modal.is-playing{max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+}
