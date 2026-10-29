@@ -319,7 +319,7 @@
 /* v2.6: mode icons show the actual physical materials, not an unrelated cart.
    Preserve the source-painted raster atlas and avoid vector stand-ins. */
 .toy-ui-icon-felt-path,.toy-ui-icon-ice-path{
-  background-image:url('./assets/physics-surface-atlas-v17.webp');
+  background-image:url('./assets/physics-surface-atlas-v18.png');
   background-size:200% 200%;
   border:2px solid rgba(255,244,211,.72);
   border-radius:10px;
@@ -330,7 +330,7 @@
 .toy-ui-icon-floating-duck{background-position:0% 100%}
 .toy-ui-icon-sinking-stone{background-position:50% 100%}
 .lab-screen[data-lesson="friction"] .scene-topline #sceneMode::before{
-  background-image:url('./assets/physics-surface-atlas-v17.webp');background-size:200% 200%;
+  background-image:url('./assets/physics-surface-atlas-v18.png');background-size:200% 200%;
   border:1px solid rgba(255,246,214,.75);border-radius:6px;
 }
 .lab-screen[data-lesson="friction"] #sceneMode[data-extra-mode="rough"]::before{background-position:0% 0%}
@@ -339,7 +339,7 @@
 .lab-screen[data-lesson="buoyancy"] #sceneMode[data-extra-mode="stone"]::before{background-position:50% 100%}
 .lab-screen[data-lesson="friction"] .story-tap[data-story="rough"]::before,
 .lab-screen[data-lesson="friction"] .story-tap[data-story="ice"]::before{
-  background-image:url('./assets/physics-surface-atlas-v17.webp');background-size:200% 200%;
+  background-image:url('./assets/physics-surface-atlas-v18.png');background-size:200% 200%;
   border-radius:7px;border:1px solid rgba(255,235,194,.78);
 }
 .lab-screen[data-lesson="friction"] .story-tap[data-story="rough"]::before{background-position:0% 0%}
