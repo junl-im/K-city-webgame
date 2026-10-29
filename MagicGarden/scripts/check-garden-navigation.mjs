@@ -65,3 +65,8 @@ for (let i = 0; i < 12; i++) {
   assert.equal(isWalkable('farm', anchor.x, anchor.y + 21), false);
 }
 console.log('All 12 saved farm plots retain their row-major positions and soil collisions.');
+
+// Ripe berries must not appear before the crop is actually harvestable.
+const {cropStage} = await import('../src/crop-growth.ts');
+for (const [progress, expected] of [[0,0],[.249,0],[.25,1],[.499,1],[.5,2],[.75,2],[.999,2],[1,3]]) assert.equal(cropStage(progress),expected);
+console.log('Crop illustrations match harvest readiness at growth boundaries.');
