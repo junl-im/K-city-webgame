@@ -277,7 +277,7 @@
 .arena[data-game="sort"] .sort-monster{animation:monsterFloat 2.8s ease-in-out infinite}
 .arena[data-game="mystery"] .mystery-clue{padding:10px 14px;margin:6px auto 16px;background:#fffdf7c7;border:1px solid #e7d7f0;border-radius:14px;box-shadow:inset 0 1px 1px #fff}
 .arena[data-game="stroop"] .stroop-word{text-shadow:0 2px 0 #ffffffbb,0 7px 15px #7d669f22}
-.arena[data-game="memory"] .memory-target{background:#ffefbd!important;border-color:#e7bd6d!important;animation:memoryStar .7s ease-in-out infinite alternate}
+.arena[data-game="memory"] .memory-target{background:#ffefbd!important;border-color:#e7bd6d!important;box-shadow:0 0 0 4px #f9cc6d40}
 .mascot-cat .mascot-icon img{animation:catLook 4.2s ease-in-out infinite;transform-origin:50% 85%}
 .mascot-rabbit .mascot-icon img{animation:rabbitHop 3.5s ease-in-out infinite;transform-origin:50% 95%}
 .mascot-fox .mascot-icon img{animation:foxWiggle 4.6s ease-in-out infinite;transform-origin:50% 90%}
@@ -866,3 +866,6 @@ body[data-view="games"] #games{animation:gamePageFade .24s ease-out both}
   .overlay:has(.modal.is-playing){padding-top:max(8px,env(safe-area-inset-top));padding-bottom:max(8px,env(safe-area-inset-bottom))}
   .modal.is-playing{max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
 }
+
+/* Keep the 3×3 memory board fixed as the emoji changes to a question mark. */
+.arena[data-game="memory"] .memory-cell{padding:0;min-width:0;line-height:1;display:grid;place-items:center}
