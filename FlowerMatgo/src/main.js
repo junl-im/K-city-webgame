@@ -640,8 +640,12 @@ function showScoreGain(player, points) {
   pop.className = `score-gain ${player === 'human' ? 'score-gain--human' : 'score-gain--computer'}`;
   pop.setAttribute('aria-live','polite');
   pop.textContent = `+${points}점`;
-  pop.style.left = `${rect.left + rect.width / 2}px`;
-  pop.style.top = `${rect.top - 8}px`;
+  // Keep the score callout within the visible phone viewport. The rising
+  // animation needs headroom above opponent portraits and the bottom HUD.
+  const safeX = Math.max(50, Math.min(window.innerWidth - 50, rect.left + rect.width / 2));
+  const safeY = Math.max(90, Math.min(window.innerHeight - 40, rect.top - 8));
+  pop.style.left = `${safeX}px`;
+  pop.style.top = `${safeY}px`;
   ROOT.appendChild(pop);
   setTimeout(() => pop.remove(), 950);
 }
