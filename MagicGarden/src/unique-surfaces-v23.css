@@ -634,3 +634,8 @@
 
 #app .area.active{outline:none}
 #app .area.active:focus-visible{outline:3px solid #426b3b;outline-offset:2px}
+
+/* Keep the full illustrated nameplate behind both lines and anchor the creek action near the creek. */
+#app .brand{width:320px;max-width:min(52vw,320px);min-height:76px;background-size:100% auto!important;padding-left:108px;padding-right:15px}
+#app .brand>div{flex:1;min-width:0}#app .brand strong{font-size:clamp(11px,1.1vw,14px);overflow-wrap:anywhere}#app #creek-visit-button{left:max(14px,env(safe-area-inset-left));right:auto}
+@media(max-width:760px){#app .brand{width:min(245px,calc(100vw - 110px));max-width:calc(100vw - 110px);padding-left:clamp(65px,20vw,78px);padding-right:7px}#app .brand strong{font-size:clamp(10px,2.8vw,12px)}#app #creek-visit-button{left:max(7px,env(safe-area-inset-left));right:auto}}
