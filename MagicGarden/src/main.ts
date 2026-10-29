@@ -1012,7 +1012,7 @@ async function start() {
   function openNursery() {
     const incubating=saveData.incubatingAt!==null;
     const remaining=!incubating?0:Math.max(0,Math.ceil((HATCH_TIME_MS-(Date.now()-saveData.incubatingAt!))/1000));
-    const progress=!incubating?0:Math.min(100,Math.floor((Date.now()-saveData.incubatingAt!)/HATCH_TIME_MS*100));
+    const progress=!incubating?0:Math.max(0,Math.min(100,Math.floor((Date.now()-saveData.incubatingAt!)/HATCH_TIME_MS*100)));
     const status=!incubating?'신비한 알을 기다리는 포근한 둥지야.' :
       remaining>0 ? '고양이가 알을 돌보는 중… '+remaining+'초 남았어.' : '알이 반짝반짝! 이제 부화시켜봐!';
     const friends=saveData.monsters.length
@@ -1023,7 +1023,8 @@ async function start() {
       itemHTML('egg')+'<small>'+(incubating?'알이 깨어나는 중':'따뜻한 알 둥지')+'</small></div></div>'+
       '<div class="garden-counts"><span>'+iconHTML('egg')+' 보유 알 <b>'+saveData.eggs+'</b></span>'+
       '<span>'+itemHTML('leafbud')+' 만난 친구 <b>'+saveData.monsters.length+'</b></span></div>'+
-      '<p class="garden-hatch-status" id="hatch-live-status" aria-live="polite">'+status+'</p>'+
+      '<p class="garden-hatch-status" id="hatch-live-status">'+status+'</p>'+
+      '<span class="garden-screen-reader" id="hatch-announcement" aria-live="polite"></span>'+
       '<div class="hatch-progress" role="progressbar" aria-label="알의 부화 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+progress+'">'+
       '<span id="hatch-progress-fill" style="width:'+progress+'%"></span></div>'+
       (!incubating?'<button type="button" class="link-button" data-game-action="incubate">'+iconHTML('egg')+' 알 한 개 둥지에 넣기</button>':
@@ -1475,9 +1476,19 @@ async function start() {
         const age = Math.max(0, Date.now() - saveData.incubatingAt);
         const remaining = Math.max(0, Math.ceil((HATCH_TIME_MS - age) / 1000));
         const percent = Math.min(100, Math.floor(age / HATCH_TIME_MS * 100));
-        setGuideIllustrations(liveStatus, remaining ? `🐱 고양이가 알을 돌보는 중… ${remaining}초` : '✨ 알이 반짝반짝! 부화시켜봐!');
-        progressFill.style.width = percent + '%';
-        progressFill.parentElement?.setAttribute('aria-valuenow', String(percent));
+        const state = remaining ? String(remaining) : 'ready';
+        if (liveStatus.dataset.countdown !== state) {
+          const wasWaiting = liveStatus.dataset.countdown && liveStatus.dataset.countdown !== 'ready';
+          liveStatus.dataset.countdown = state;
+          setGuideIllustrations(liveStatus, remaining ? `🐱 고양이가 알을 돌보는 중… ${remaining}초 남았어.` : '✨ 알이 반짝반짝! 부화시켜봐!');
+          const announcement = document.getElementById('hatch-announcement');
+          if (!remaining && wasWaiting && announcement) announcement.textContent = '알이 다 자랐어! 부화 확인하기 버튼을 눌러줘.';
+        }
+        if (progressFill.dataset.percent !== String(percent)) {
+          progressFill.dataset.percent = String(percent);
+          progressFill.style.width = percent + '%';
+          progressFill.parentElement?.setAttribute('aria-valuenow', String(percent));
+        }
         const button = modalContent.querySelector<HTMLButtonElement>('button[data-game-action="hatch"]');
         if (button) {
           button.disabled = remaining > 0;

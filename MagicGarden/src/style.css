@@ -22,3 +22,6 @@
 .modal .link-button:not(:disabled):active{transform:translateY(2px)}
 button:focus-visible{outline:3px solid #347a61;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.hatch-progress span{transition:none}.modal .link-button{scroll-behavior:auto}}
+
+/* Announce the hatch once without repeatedly reading the visible countdown. */
+.garden-screen-reader{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
