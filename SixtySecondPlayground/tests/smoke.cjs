@@ -14,7 +14,7 @@ const asset = file => path.join(dist, 'assets', file);
 new vm.Script(js, {filename: 'app.js'});
 assert.match(html, /시제품 v2\.2/);
 assert.match(html, /<title>곰같은여우와 함께하는 오늘의 60초 놀이터<\/title>/, '게임 정식 제목은 정확해야 합니다');
-assert.match(html, /\.\/style\.css\?v=20261029-scroll-layout-v23/, '스크롤 및 높이 변경 CSS는 새 버전으로 로드해야 합니다');
+assert.match(html, /\.\/style\.css\?v=20261029-viewport-v24/, '스크롤 및 높이 변경 CSS는 새 버전으로 로드해야 합니다');
 assert.match(html, /<h1 tabindex="-1">오늘의 <em>60초 놀이터<\/em><\/h1>/, '메인 제목은 오늘의 60초 놀이터여야 합니다');
 assert.match(html, /<span>곰같은여우와 함께하는<\/span><span>오늘의 60초 놀이터<\/span>/, '상위 브랜드는 전체 제목을 유지해야 합니다');
 assert.match(js, /<button type="button" class="game-card" data-game=/, '게임 카드 전체를 누르면 열려야 합니다');
@@ -26,6 +26,10 @@ assert.match(css, /@media\(max-width:700px\) and \(max-height:700px\)/, '낮은 
 assert.match(css, /body\[data-view="games"\] footer\{display:none\}/, '게임 선택 화면의 불필요한 푸터 스크롤 방지');
 assert.match(css, /\.modal\{scrollbar-gutter:auto/, '팝업에 불필요한 고정 스크롤바 공간이 없어야 합니다');
 assert.doesNotMatch(css, /scrollbar-gutter:stable/, '화면 내용과 관계없이 스크롤 공간을 강제하면 안 됩니다');
+assert.match(css, /@keyframes gamePageFade\{from\{opacity:\.4\}to\{opacity:1\}\}/, '게임 선택 화면 진입은 위치 이동 없이 불투명도만 애니메이션');
+assert.ok(css.lastIndexOf('body[data-view="games"] #games{animation:gamePageFade') > css.lastIndexOf('body[data-view="games"] #games{animation:pagePop'), '마지막 게임 선택 애니메이션이 8px 이동을 덮어써야 합니다');
+assert.match(css, /\.modal:has\(\.howto-guide\)\{max-height:min\(calc\(100dvh - 24px\),850px\)/, '낮은 화면의 안내창은 화면 가장자리까지 필요한 공간을 사용해야 합니다');
+
 assert.match(css, /body\[data-view="games"\] \.app-shell\{min-height:100dvh;display:flex;flex-direction:column\}/, '세로로 큰 화면에서는 게임판이 남는 높이를 활용해야 합니다');
 assert.match(css, /\.game-grid\[data-filter="all"\]\{grid-template-columns:repeat\(8/, 'PC의 일곱 카드는 8트랙 그리드로 4+3 중앙 배치');
 assert.match(css, /\.game-grid\[data-filter="all"\]>\.game-card:nth-child\(5\)\{grid-column:2 \/ span 2\}/, '두 번째 줄 세 카드가 가운데 정렬되어야 합니다');
