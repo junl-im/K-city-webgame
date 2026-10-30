@@ -1316,6 +1316,10 @@ async function start() {
       '<p class="modal-note">마을에 가서 물가를 살펴봐. 움직임 줄이기를 사용하면 물의 움직임은 자동으로 꺼져.</p></section>');
   }
   (document.getElementById('help-button') as HTMLButtonElement).addEventListener('click', openHelp);
+  (document.getElementById('playground-button') as HTMLButtonElement).addEventListener('click', () => {
+    persist();
+    location.assign('https://meta-deee1.web.app/ai-cleaner/');
+  });
 
   if (currentZone !== 'town') { const firstZone = currentZone; currentZone = 'town'; switchZone(firstZone); }
   else { gateLabel.text = ZONE_NAV[NEXT_ZONE.town] + ' →'; gate.position.set(1110, 600); plotViews.forEach((plot) => { plot.visible = false; }); station.visible = false; refreshWorldSignArt('town'); }

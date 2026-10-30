@@ -271,6 +271,7 @@
 #app #map-button{background-image:url('/assets/ui-v23-menu-map.webp')!important}
 #app #book-button{background-image:url('/assets/ui-v23-menu-book.webp')!important}
 #app #help-button{background-image:url('/assets/ui-v23-menu-help.webp')!important}
+#app #playground-button{background-image:url('/assets/ui-v23-menu-map.webp')!important}
 #app .bottom-hud button .art-icon{display:none}
 #app .bottom-hud button small{
   display:block;flex:none;position:relative;z-index:1;

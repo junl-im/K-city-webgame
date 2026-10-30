@@ -3373,3 +3373,6 @@ button:disabled { cursor: not-allowed; opacity:.48; }
 .gallery-score__body li small {color:#786951;font-size:11px;}
 .gallery-score__body li > strong {color:#a95734;font-size:14px;white-space:nowrap;}
 .gallery-score__body p {margin:8px 0 0!important;color:#786951!important;font-size:11px!important;line-height:1.45;}
+/* Matching cards stand slightly above the hand without obscuring the artwork. */
+.scene--game .my-hand .hwatu--match-hint:not(.hwatu--finger-pressed):not(.hwatu--departing){transform:translateY(-6px);filter:drop-shadow(0 0 6px #ffd879db);z-index:2}
+@media(prefers-reduced-motion:reduce){.scene--game .my-hand .hwatu--match-hint:not(.hwatu--finger-pressed):not(.hwatu--departing){transform:translateY(-5px)}}
