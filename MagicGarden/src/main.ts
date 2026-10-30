@@ -1222,7 +1222,7 @@ async function start() {
   }
 
   // Browser Back closes the current panel, then returns to town, then asks to leave.
-  const gardenHadPreviousPage = history.state?.gardenHadPreviousPage ?? history.length > 1;
+  const gardenHadPreviousPage = history.state?.gardenHadPreviousPage ?? (history.length > 1 && Boolean(document.referrer));
   if (!history.state?.gardenBackGuard) {
     history.replaceState({ ...history.state, gardenBackBase: true, gardenHadPreviousPage }, '', location.href);
     history.pushState({ ...history.state, gardenBackBase: false, gardenBackGuard: true }, '', location.href);
