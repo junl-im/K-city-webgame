@@ -108,8 +108,10 @@ function people() {
 function portrait() {
   const person = getSuspect(state.selectedSuspect);
   const mood = getPsychology(state, person.id);
-  const moodClass = mood.label === '경계' ? 'mood-guard' : mood.label === '신뢰' ? 'mood-trust' : 'mood-cautious';
-  return `<div class="portrait-stage ${person.color} ${moodClass}"><div class="portrait-art person-${person.id}" aria-hidden="true"></div><div class="window-blind"></div><div class="portrait-mark">${person.label}</div><div class="portrait-shine"></div><div class="portrait-name"><span>WITNESS ${person.label}</span><strong>${escapeHtml(person.name)}</strong><small>${escapeHtml(person.role)}</small></div><span class="portrait-hint">심리 신호 · ${escapeHtml(mood.label)} / 증언만으로 단정 금지</span></div>`;
+  const confronted = CONFRONTATIONS.some(item => item.suspect === person.id && state.confronted.includes(item.id));
+  const moodClass = mood.label === '경계' || confronted ? 'mood-guard' : mood.label === '신뢰' ? 'mood-trust' : 'mood-cautious';
+  const reaction = confronted ? '증거 대질 후 진술 재검토 중' : mood.label === '경계' ? '경계 · 기록과 교차 검증' : mood.label === '신뢰' ? '신뢰 · 진술 검증 필요' : '신중 · 질문을 이어가자';
+  return `<div class="portrait-stage ${person.color} ${moodClass}"><div class="portrait-art person-${person.id}" aria-hidden="true"></div><div class="window-blind"></div><div class="portrait-mark">${person.label}</div><div class="portrait-shine"></div><div class="portrait-name"><span>WITNESS ${person.label}</span><strong>${escapeHtml(person.name)}</strong><small>${escapeHtml(person.role)}</small></div><span class="portrait-hint">심리 신호 · ${escapeHtml(reaction)}</span></div>`;
 }
 
 function discussion() {
