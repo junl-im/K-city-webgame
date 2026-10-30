@@ -10,6 +10,7 @@ on:
       - 'SixtySecondPlayground/**'
       - 'PhysicsPopbook/**'
       - 'FlowerMatgo/**'
+      - 'LieRoom/**'
       - '.github/workflows/magic-garden-pages.yml'
   workflow_dispatch:
 
@@ -91,6 +92,19 @@ jobs:
           cp -a FlowerMatgo/dist/. MagicGarden/dist/FlowerMatgo/
           test -s MagicGarden/dist/FlowerMatgo/assets/hwatu-character-original-v19.webp
           echo "Independent Flower Matgo staged at /FlowerMatgo/"
+      - name: Test and stage Lie Room as an independent page
+        shell: bash
+        run: |
+          set -euo pipefail
+          node LieRoom/tests/smoke.mjs
+          node --check LieRoom/dist/app.mjs
+          test -s LieRoom/dist/index.html
+          test -s LieRoom/dist/assets/fox-detective.png
+          mkdir -p MagicGarden/dist/LieRoom
+          cp -a LieRoom/dist/. MagicGarden/dist/LieRoom/
+          test -s MagicGarden/dist/LieRoom/index.html
+          echo "Independent Lie Room staged at /LieRoom/"
+
       - name: Upload short-lived Pages deployment artifact
         uses: actions/upload-pages-artifact@v4
         with:
