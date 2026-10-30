@@ -3456,3 +3456,5 @@ button:disabled { cursor: not-allowed; opacity:.48; }
 .scene--game .effect-burst--go .effect-burst__illustration {filter:saturate(1.25) drop-shadow(0 0 14px #ffd56baa);}
 .scene--game .effect-burst--go .effect-burst__headline {color:#a13b20;border-color:#ffd28a;box-shadow:0 0 0 2px #fff0bd,0 5px 18px #a74c2780;}
 @media(prefers-reduced-motion:reduce){.scene--game .effect-burst--go,.scene--game .effect-burst--go .effect-burst__illustration {animation:none;}}
+.scene--game .drawn-choice-card {display:flex;justify-content:center;margin:4px auto 7px;}
+.scene--game .drawn-choice-card .hwatu {width:clamp(43px,13vw,58px);}

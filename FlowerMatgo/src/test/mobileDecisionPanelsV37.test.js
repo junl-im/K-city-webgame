@@ -20,7 +20,7 @@ describe('꽃맞고 v37 모바일 카드 선택 및 고/스톱', () => {
     expect(styles).toContain('width:clamp(72px,25vw,116px)');
   });
   it('선택패 접근성 문구는 내기가 아닌 먹기로 표시된다', () => {
-    expect(card).toContain("options.action==='pickmatch'?'먹기':'내기'");
+    expect(card).toContain("['pickmatch','draw-choice'].includes(options.action)?'먹기':'내기'");
     expect(ui).toContain("case 'pickmatch': if (selectedMatch) humanPlay(selectedMatch.cardId,cardId,true)");
     expect(ui).toContain("case 'cancelmatch': selectedMatch=null;render();return;");
   });
