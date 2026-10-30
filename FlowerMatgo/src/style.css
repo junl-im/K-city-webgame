@@ -3429,6 +3429,8 @@ button:disabled { cursor: not-allowed; opacity:.48; }
 }
 /* Earned cards remain legible for both players without enlarging the board. */
 .scene--game .collection-rack .collection-preview .hwatu {width:clamp(30px,3.5vw,42px);margin-left:-10px;}
+.scene--game .double-explanation {display:block;max-width:100%;padding:2px 6px;text-align:center;color:#6a5140;font-size:11px;font-weight:700;line-height:1.35;}
+.scene--game .round-multiplier {display:inline-block;padding:2px 6px;border:1px solid #eec27e;border-radius:99px;background:#fff0c7;color:#8c431d;font-size:11px;line-height:1.2;white-space:nowrap;}
 @media(max-width:650px) and (min-height:701px){
   .scene--game .collection-rack .collection-preview .hwatu {width:clamp(30px,8.7vw,36px);}
 }

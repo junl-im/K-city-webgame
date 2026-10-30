@@ -109,6 +109,6 @@ describe('고와 박 정산', () => {
     expect(carried.roundMultiplier).toBe(4);
     expect(carried.finalScore).toBe(normal.finalScore * 4);
     expect(carried.displayAmount).toBe(normal.displayAmount * 4);
-    expect(carried.steps.at(-1)?.label).toBe('나가리 이월');
+    expect(carried.steps.at(-1)?.label).toBe('이번 판 배수');
   });
 });

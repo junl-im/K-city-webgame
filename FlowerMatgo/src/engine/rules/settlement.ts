@@ -55,7 +55,7 @@ export function calculateSettlement(options: SettlementOptions): RoundSettlement
     { label: '흔들기·폭탄', formula: `${scoreWithGo} × ${shakeMultiplier}`, value: scoreWithShake },
     { label: '미션 배수', formula: `${scoreWithShake} × ${missionMultiplier}`, value: scoreWithMission },
     { label: '박 배수', formula: `${scoreWithMission} × ${bakMultiplier}`, value: scoreWithBaks },
-    ...(roundMultiplier > 1 ? [{ label: '나가리 이월', formula: `${scoreWithBaks} × ${roundMultiplier}`, value: finalScore }] : [])
+    ...(roundMultiplier > 1 ? [{ label: '이번 판 배수', formula: `${scoreWithBaks} × ${roundMultiplier}`, value: finalScore }] : [])
   ];
   return {
     scoreLines: options.winnerScore.lines,
