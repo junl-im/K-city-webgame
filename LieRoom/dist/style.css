@@ -265,3 +265,34 @@
   .timeline-status{grid-column:3;justify-self:start;font-size:.61rem;padding:2px 4px}
   .reset-actions{flex-direction:column}.reset-actions>button{width:100%}
 }
+
+/* LR-007: original illustrated character archive, two PNG atlases only. */
+.cast-entry-button{flex:none;min-height:38px;padding:7px 15px;border:1px solid #b89462;border-radius:9px;background-image:var(--lr-panels);background-position:0% 0%;background-size:200% 200%;color:#f8e6c6;font-size:.81rem;font-weight:800;text-shadow:0 2px 4px #111821}
+.cast-modal{width:min(100%,980px);background:linear-gradient(125deg,rgba(29,33,45,.97),rgba(38,35,42,.97)),var(--lr-scene);background-size:cover;gap:11px}
+.cast-description{max-width:800px;font-size:.87rem;padding-right:32px}
+.cast-mood-tabs{display:flex;gap:7px;flex-wrap:wrap}
+.cast-mood-tabs button{min-height:35px;padding:7px 13px;border:1px solid #776d63;border-radius:7px;background:#2d303d;font-size:.78rem}
+.cast-mood-tabs button.active{border-color:#dfb978;background-image:var(--lr-panels);background-size:200% 200%;background-position:0% 0%;color:#f7e7c8;font-weight:800}
+.cast-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;min-height:0}
+.cast-card{min-width:0;border:1px solid #756c61;border-radius:10px;background:rgba(19,23,32,.88);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(226,198,159,.05)}
+.cast-face{display:block;width:100%;aspect-ratio:1.1;background-repeat:no-repeat;background-size:300% 300%;background-position:var(--cast-x) var(--cast-y);border-bottom:1px solid rgba(222,192,146,.32)}
+.cast-face-now{background-image:url("./assets/lie-room-expression-atlas-v1.png")}
+.cast-face-next{background-image:url("./assets/lie-room-next-cast-atlas-v1.png")}
+.cast-A,.cast-D{--cast-x:0%}.cast-B,.cast-E{--cast-x:50%}.cast-C,.cast-F{--cast-x:100%}
+.cast-neutral{--cast-y:0%}.cast-trust{--cast-y:50%}.cast-guard{--cast-y:100%}
+.cast-card-body{padding:9px 10px 11px;display:flex;flex-direction:column;gap:2px}
+.cast-card-body small{font-size:.65rem;color:#d5b47f}.cast-card-body strong{font-size:.93rem}.cast-card-body span{font-size:.75rem;color:#ddd0bd}
+.cast-card-body p{font-size:.69rem;color:#bfb2a4;line-height:1.4}
+.cast-foot{font-size:.7rem;color:#d1b993;border-top:1px solid var(--edge);padding-top:8px}
+@media(max-width:600px){
+  .cast-entry-button{font-size:.67rem;min-height:31px;padding:5px 8px}
+  .cast-modal{padding:14px 11px}
+  .cast-modal h2{font-size:1.35rem}
+  .cast-description{font-size:.76rem}
+  .cast-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .cast-card-body{padding:7px}
+  .cast-card-body strong{font-size:.81rem}
+  .cast-card-body span{font-size:.67rem}
+  .cast-card-body p{font-size:.62rem}
+  .cast-face{aspect-ratio:1.08}
+}

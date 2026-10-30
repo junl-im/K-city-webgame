@@ -58,6 +58,16 @@ assert.match(application, /data-action="confirm-new"/, 'reset requires explicit 
 assert.match(application, /hasInvestigationProgress\(\)/, 'ongoing cases must be protected');
 assert.match(stylesheet, /\.timeline-art\{/, 'timeline entries use painted evidence art');
 
+/* LR-007: extra cast portraits are a future archive, not additional suspects in case one. */
+const newCastPng = fs.readFileSync(path.join(folder, 'assets', 'lie-room-next-cast-atlas-v1.png'));
+assert.ok(newCastPng.length > 100_000, 'new illustrated cast atlas missing');
+assert.equal(newCastPng.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', 'new cast asset must be PNG');
+assert.ok(newCastPng.readUInt32BE(16) >= 1200 && newCastPng.readUInt32BE(20) >= 1200, 'new atlas resolution too small');
+assert.match(stylesheet, /lie-room-next-cast-atlas-v1\.png/, 'new cast atlas must be visible in the game');
+assert.match(application, /data-action="cast"/, 'cast archive needs an entry');
+assert.match(application, /data-action="cast-mood"/, 'cast portraits must have expression controls');
+assert.match(application, /id: 'D'[\s\S]*id: 'E'[\s\S]*id: 'F'/, 'new cast identities must remain distinct');
+
 assert.equal(CASE.suspects.length, 3);
 assert.equal(CASE.questions.length, 7);
 assert.equal(CASE.evidence.length, 7);

@@ -8,6 +8,12 @@ let toastTimeout;
 const SFX_KEY = 'gomfox.lie-room.sfx';
 let sfxEnabled = false;
 let audioContext = null;
+let castMood = 'neutral';
+const NEXT_CAST = Object.freeze([
+  { id: 'D', name: '최강현', role: '미술관 관장', note: '냉철한 원칙주의자 · 은발과 금테 안경' },
+  { id: 'E', name: '서라온', role: '미술품 복원사', note: '예리한 관찰자 · 묶은 머리와 복원 작업복' },
+  { id: 'F', name: '차민혁', role: '탐사 기자', note: '집요한 취재자 · 짧은 곱슬머리와 트렌치코트' },
+]);
 try { sfxEnabled = localStorage.getItem(SFX_KEY) === 'on'; } catch {}
 
 function playSfx(kind = 'clue') {
@@ -54,7 +60,7 @@ function home() {
       <div class="hero-copy"><p class="eyebrow">MYSTERY · SOCIAL DEDUCTION</p><h1>누구나 비밀은 있다.<br><em>하지만 모두가 범인은 아니다.</em></h1><p class="hero-lead">세 사람, 서로 다른 거짓말. 진실을 밝혀낼 단서는 이미 사건 안에 있다.</p><div class="hero-actions"><button class="primary-button" data-action="new">첫 사건 수사하기 <span aria-hidden="true">↗</span></button>${canResume ? '<button class="quiet-button" data-action="resume">이어하기</button>' : ''}</div></div>
       <div class="hero-art"><img class="fox-hero-image" src="./assets/fox-detective.png" alt="" loading="eager"><div class="ribbon">RESTRICTED ACCESS</div><div class="hero-caption"><div class="hero-stamp">THE LIE ROOM</div><p>사건 속에 숨은 진실을 찾아라</p></div></div>
     </div>
-    <div class="section-head"><div><p class="eyebrow">PLAY MODES</p><h2>수사 기록 보관소</h2></div><span class="subtle-text">5가지 모드 중 1가지 선공개</span></div>
+    <div class="section-head"><div><p class="eyebrow">PLAY MODES</p><h2>수사 기록 보관소</h2></div><button class="cast-entry-button" data-action="cast">인물 도감 · 6명 보기</button></div>
     <section class="mode-grid" aria-label="게임 모드">
       <button class="mode-card mode-active" data-action="new"><span class="mode-number">01 / PLAYABLE</span><strong>심문실</strong><small>증언·증거·반전</small><span class="mode-go">사건 입장 ↗</span></button>
       <div class="mode-card mode-locked"><span class="mode-number">02 / COMING SOON</span><strong>수상한 방문객</strong><small>신분 판별·선택</small></div>
@@ -138,6 +144,14 @@ function renderModal() {
     const entries = getInvestigationTimeline(state);
     return `<div class="modal-backdrop" data-action="close"><section class="modal-card timeline-modal" role="dialog" aria-modal="true" aria-label="수사 시간선"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">CHRONOLOGY / ${escapeHtml(CASE.id)}</p><h2>수사 시간선</h2><p class="timeline-lead">확보한 자료 ${entries.length}/${CASE.evidence.length}건 · 실제 확인한 기록만 시간순으로 정리했어. 시간선의 빈칸은 아직 확인되지 않았어.</p><div class="timeline-list">${entries.map(item => `<button class="timeline-entry" data-action="timeline-detail" data-id="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.stamp)} ${escapeHtml(item.title)} 증거 보기"><span class="timeline-time">${escapeHtml(item.stamp)}</span><span class="timeline-art art-${escapeHtml(item.id)}" aria-hidden="true"></span><span class="timeline-copy"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.source)}</small><em>${escapeHtml(item.leads)}</em></span><span class="timeline-status">${escapeHtml(item.confrontation)}</span></button>`).join('')}</div><p class="timeline-note">주의 · 거짓 진술 하나가 곧 범행 증거는 아니야. 서로 다른 출처의 기록을 교차 확인해.</p><button class="quiet-button" data-action="close">수사 화면으로 돌아가기</button></section></div>`;
   }
+  if (modal === 'cast') {
+    const roster = [
+      ...CASE.suspects.map(person => ({ id: person.id, name: person.name, role: person.role, note: '첫 사건 · 심문 가능', next: false })),
+      ...NEXT_CAST.map(person => ({ ...person, next: true })),
+    ];
+    const moods = [{ id: 'neutral', label: '기본' }, { id: 'trust', label: '신뢰' }, { id: 'guard', label: '경계' }];
+    return `<div class="modal-backdrop" data-action="close"><section class="modal-card cast-modal" role="dialog" aria-modal="true" aria-label="등장인물 도감"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">CHARACTER ARCHIVE / ORIGINAL ART</p><h2>등장인물 도감</h2><p class="cast-description">첫 사건 인물 3명과 다음 사건을 위해 준비한 인물 3명이야. 표정을 바꿔 비교해 봐. 새로운 인물들은 아직 현재 사건의 용의자가 아니야.</p><div class="cast-mood-tabs" role="group" aria-label="표정 비교">${moods.map(m => `<button data-action="cast-mood" data-id="${m.id}" aria-pressed="${castMood===m.id}" class="${castMood===m.id?'active':''}">${m.label} 표정</button>`).join('')}</div><div class="cast-gallery">${roster.map(person => `<article class="cast-card"><div class="cast-face ${person.next?'cast-face-next':'cast-face-now'} cast-${person.id} cast-${castMood}" aria-hidden="true"></div><div class="cast-card-body"><small>${person.next?'다음 사건 준비':'첫 사건 관계자'}</small><strong>${escapeHtml(person.name)}</strong><span>${escapeHtml(person.role)}</span><p>${escapeHtml(person.note)}</p></div></article>`).join('')}</div><div class="cast-foot">전체 6명 · 표정 원화 18컷 · 자체 제작 PNG · SVG 사용 안 함</div></section></div>`;
+  }
   if (modal === 'history') return `<div class="modal-backdrop" data-action="close"><section class="modal-card history-modal" role="dialog" aria-modal="true" aria-label="심문 기록"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">INTERROGATION LOG</p><h2>심문 기록</h2><p class="psych-journal-title">심리 접근 ${state.tactics.length}/${TACTICS.length}건 · 긴장은 유죄의 증거가 아니야</p><div class="psych-journal">${state.tactics.map(id => { const t = TACTICS.find(item => item.id === id); return t ? `<div><strong>${escapeHtml(getSuspect(t.suspect).name)} · ${escapeHtml(t.label)}</strong><p>${escapeHtml(t.signal)}</p></div>` : ''; }).join('') || '<p>인물을 선택하고 심리 접근을 시도해봐.</p>'}</div><p class="confront-journal-title">증거 대질 ${state.confronted.length}/${CONFRONTATIONS.length}건</p><div class="confront-journal">${state.confronted.map(id => { const item = CONFRONTATIONS.find(c => c.id === id); return item ? `<div><strong>${escapeHtml(getSuspect(item.suspect).name)} · ${escapeHtml(getEvidence(item.evidence).title)}</strong><p>${escapeHtml(item.insight)}</p></div>` : ''; }).join('') || '<p>증거를 확보한 다음 해당 인물에게 직접 제시해봐.</p>'}</div><div class="transcript">${state.log.map(item => `<div class="transcript-entry"><strong>${escapeHtml(item.who)}</strong><p>${escapeHtml(item.text)}</p></div>`).join('')}</div></section></div>`;
   const e = getEvidence(modal);
   if (!e) return '';
@@ -191,7 +205,8 @@ root.addEventListener('click', event => {
     } else announce('먼저 관련 진술과 증거를 확보해야 해.');
     return;
   }
-  if (action === 'help' || action === 'history' || action === 'detail' || action === 'timeline') { modal = action === 'detail' ? id : action; render(); return; }
+  if (action === 'cast-mood') { if (['neutral', 'trust', 'guard'].includes(id)) { castMood = id; render(); } return; }
+  if (action === 'help' || action === 'history' || action === 'detail' || action === 'timeline' || action === 'cast') { modal = action === 'detail' ? id : action; render(); return; }
   if (action === 'timeline-detail') { if (state.discovered.includes(id)) { modal = id; render(); } return; }
   if (action === 'confirm-new') { modal = ''; update({ ...createGame(), screen: 'intro' }); return; }
   if (action === 'home') { modal = ''; update({ ...state, screen: 'home' }); return; }
