@@ -516,3 +516,49 @@ button[aria-pressed="true"],button[aria-selected="true"]{outline-offset:-3px}
 .people-pane,.interrogation-pane,.evidence-pane{border:1px solid #98754d;box-shadow:inset 0 0 0 2px #211b1b,0 4px 12px #0005}
 }
 @media(prefers-reduced-motion:reduce){.person-item,.evidence-card,.investigation-action{transition:none}.person-item:hover,.evidence-card:hover{transform:none}}
+
+
+/* LR-023 real layout repair: eliminate pane collisions, prioritize usable controls */
+.play-screen,.game-layout,.people-pane,.interrogation-pane,.evidence-pane{min-width:0;min-height:0;box-sizing:border-box}
+.game-layout>*{min-width:0;min-height:0;overflow:hidden}
+.people-pane,.interrogation-pane,.evidence-pane{isolation:isolate}
+.people-list,.evidence-list,.question-list{min-width:0;min-height:0;overscroll-behavior:contain}
+.person-item,.evidence-card,.question-button{min-width:0;max-width:100%;box-sizing:border-box}
+.person-info,.evidence-info{min-width:0}
+.person-info strong,.person-info small,.evidence-info strong,.evidence-info small{overflow-wrap:anywhere}
+.game-bar{min-width:0;flex-wrap:wrap;gap:6px}
+.progress-tags{min-width:0;flex-wrap:wrap;gap:5px}
+.investigation-actions{min-width:0}
+.investigation-action{min-width:0;overflow-wrap:anywhere;line-height:1.25}
+@media(min-width:1050px){
+.game-layout{grid-template-columns:minmax(175px,19fr) minmax(350px,49fr) minmax(260px,32fr);overflow:hidden}
+.people-pane,.interrogation-pane,.evidence-pane{height:100%;max-height:100%;overflow:auto;scrollbar-width:thin;scrollbar-color:#9b7646 #211d22}
+.evidence-list{overflow:auto;grid-auto-rows:minmax(102px,auto)}
+.interrogation-pane{display:flex;flex-direction:column}
+.portrait-stage{flex:0 1 42%;height:auto;min-height:150px}
+.dialogue-panel{flex:0 0 auto;max-height:22%;overflow:auto}
+.investigation-actions{flex:0 0 auto}
+.question-panel{min-height:0;overflow:auto}
+}
+@media(min-width:1050px) and (max-width:1240px){
+.game-layout{grid-template-columns:minmax(160px,20fr) minmax(320px,49fr) minmax(220px,31fr);gap:7px}
+.evidence-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+.person-avatar{width:45px;height:48px}
+}
+@media(max-width:1049px){
+.play-screen{height:auto;min-height:100dvh;overflow-x:hidden}
+.game-layout{display:flex;flex-direction:column;overflow:visible}
+.game-layout>*{width:100%;height:auto;max-height:none;overflow:visible}
+.people-list{display:flex;overflow-x:auto;overflow-y:hidden;gap:7px;padding-bottom:5px}
+.person-item{flex:0 0 min(220px,70vw)}
+.interrogation-pane{display:flex;flex-direction:column}
+.portrait-stage{height:clamp(210px,37dvh,380px);flex:none}
+.evidence-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:480px){
+.game-bar{padding:6px}
+.progress-tags span{font-size:10px}
+.investigation-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+.investigation-action{min-height:40px;font-size:12px}
+.evidence-card{min-height:90px}
+}
