@@ -13,6 +13,7 @@ const SFX_KEY = 'gomfox.lie-room.sfx';
 let sfxEnabled = false;
 let audioContext = null;
 let castMood = 'neutral';
+let evidenceFilter = 'all';
 let revealMoment = null;
 let revealTimer = null;
 function showReveal(title, detail) {
@@ -134,8 +135,10 @@ function discussion() {
 
 function evidence() {
   const discovered = state.discovered.map(id => getEvidence(id)).filter(Boolean);
+  const ready = discovered.filter(item => canConfront(state, item.id));
+  const visible = evidenceFilter === 'ready' ? ready : discovered;
   return `<aside class="evidence-pane" id="investigation-evidence"><div class="pane-title"><span>EVIDENCE</span><strong>확보한 증거 <small>${discovered.length} / ${CASE.evidence.length}</small></strong></div><p class="pane-description">증거를 눌러 출처와 발생 시각을 확인해봐.</p>
-    <div class="evidence-list">${discovered.map(item => `<button class="evidence-card" data-action="detail" data-id="${item.id}"><span class="evidence-id"><span class="evidence-illustration art-${item.id}" aria-hidden="true"></span><span class="evidence-index">${item.icon}</span></span><span class="evidence-info"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.kind)} · ${escapeHtml(item.stamp)}</small>${canConfront(state, item.id) ? '<small class="confront-ready">대질 가능</small>' : state.confronted.includes(getConfrontation(state.selectedSuspect, item.id)?.id) ? '<small class="confront-done">대질 완료</small>' : ''}</span><span class="evidence-open" aria-hidden="true">+</span></button>`).join('')}</div>
+    <div class="evidence-filters"><button data-action="evidence-filter" data-id="all" aria-pressed="${evidenceFilter === 'all'}">전체 ${discovered.length}</button><button data-action="evidence-filter" data-id="ready" aria-pressed="${evidenceFilter === 'ready'}">대질 가능 ${ready.length}</button></div><div class="evidence-list">${visible.map(item => `<button class="evidence-card" data-action="detail" data-id="${item.id}"><span class="evidence-id"><span class="evidence-illustration art-${item.id}" aria-hidden="true"></span><span class="evidence-index">${item.icon}</span></span><span class="evidence-info"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.kind)} · ${escapeHtml(item.stamp)}</small>${canConfront(state, item.id) ? '<small class="confront-ready">대질 가능</small>' : state.confronted.includes(getConfrontation(state.selectedSuspect, item.id)?.id) ? '<small class="confront-done">대질 완료</small>' : ''}</span><span class="evidence-open" aria-hidden="true">+</span></button>`).join('')}</div>
     <div class="submit-block"><p>거짓말이 진범을 뜻하지는 않아.</p><button class="primary-button" data-action="verdict">추리 정리 · 고발하기 ↗</button></div>
   </aside>`;
 }
@@ -216,6 +219,7 @@ root.addEventListener('click', event => {
     }
     return;
   }
+  if (action === 'evidence-filter') { if (id === 'all' || id === 'ready') { evidenceFilter = id; render(); } return; }
   if (action === 'sfx') {
     sfxEnabled = !sfxEnabled;
     try { localStorage.setItem(SFX_KEY, sfxEnabled ? 'on' : 'off'); } catch {}
