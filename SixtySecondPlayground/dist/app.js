@@ -4,9 +4,6 @@
   'use strict';
   const $ = function (s) { return document.querySelector(s); };
   const $$ = function (s) { return Array.from(document.querySelectorAll(s)); };
-  // Keep a brief guard against duplicate taps while letting a correct answer
-  // advance immediately. Wrong answers remain visible long enough to learn.
-  const CORRECT_NEXT_MS = 80, WRONG_NEXT_MS = 350;
   const GAMES = [
     {id:'whack',name:'몬스터 콩콩!',desc:'통통 튀는 몬스터를 잡아라! 친구는 누르지 마.',emoji:'👾',category:'reflex',color:'pink',host:'모모',zone:'솜사탕 정원'},
     {id:'number',name:'숫자 번개',desc:'1부터 16까지 차례대로 번개처럼 터치!',emoji:'🔢',category:'brain',color:'blue',host:'루루',zone:'번개 마법탑'},
@@ -22,7 +19,7 @@
     number:{steps:['숫자 1을 먼저 찾아 터치!','이어서 2 → 3 → 4 순서대로 누르기','16까지 성공하면 새 숫자판이 나와!'],hint:'1부터 16까지 차례대로. 이미 누른 숫자는 다시 누르지 않아.'},
     spot:{steps:['왼쪽 9칸은 비교하는 기준 그림!','오른쪽에서 딱 1칸만 다른 그림 찾기','다른 칸은 반드시 오른쪽에서 터치!'],hint:'왼쪽은 기준 그림이야. 오른쪽의 다른 칸 하나를 찾아 눌러!'},
     stroop:{steps:['문자 뜻이 아니라 글자의 실제 색을 봐!','예: 파랑이라는 글자가 빨갛다면 빨강 선택','아래 색깔 이름 버튼에서 정답 터치!'],hint:'글자의 뜻을 무시하고, 화면에 보이는 글자 색을 골라.'},
-    memory:{steps:['반짝이는 ⭐ 별이 나타나는 위치를 보기','별이 사라지고 물음표로 바뀔 때까지 기억','기억한 칸을 터치하면 정답 확인!'],hint:'별이 처음 보인 위치를 기억했다가 물음표가 나오면 눌러.'},
+    memory:{steps:['반짝이는 ⭐ 별이 나타나는 위치를 보기','별이 보일 때 바로 누르거나 위치를 기억하기','별이 사라진 뒤에도 기억한 칸을 누를 수 있어!'],hint:'별이 보일 때 바로 누르거나, 사라진 뒤 기억한 칸을 눌러.'},
     sort:{steps:['가운데 등장한 그림을 관찰하기','불꽃·숲·유령·바다·하늘 속성 생각하기','아래 3개 속성 버튼 중 하나를 선택!'],hint:'가운데 그림이 속한 자연·마법 속성을 아래에서 골라.'},
     mystery:{steps:['코코가 내는 수수께끼를 읽기','세 가지 보기 중 가장 알맞은 답 고르기','틀리면 정답을 확인하고 다음 문제 도전!'],hint:'문장을 끝까지 읽고 3개 보기 중 가장 정확한 답을 눌러.'}
   };
@@ -546,7 +543,7 @@
         const cell=choiceButton(symbol,function(){
           if(!canAnswer(s))return;
           revealAnswer(cell,grid.children[target]);
-          feedback(i===target,i===target?'몬스터 잡았다! +점수':dangerIndex>=0?'친구를 건드렸어!':'몬스터가 아니야!',100,cell);after(i===target?CORRECT_NEXT_MS:WRONG_NEXT_MS);
+          feedback(i===target,i===target?'몬스터 잡았다! +점수':dangerIndex>=0?'친구를 건드렸어!':'몬스터가 아니야!',100,cell);after(260);
         },'tap-cell');paintWhackCell(cell,symbol);grid.append(cell);
       }
       arena.append(grid);break;
@@ -561,7 +558,7 @@
           if(n===s.nextNum) {
             b.disabled=true;b.classList.add('done');b.textContent='✦';s.nextNum++;
             feedback(true,'좋아! 다음 숫자!',100,b);
-            if(s.nextNum>16)after(CORRECT_NEXT_MS);else prompt.textContent='순서대로 터치! 다음 숫자: '+s.nextNum;
+            if(s.nextNum>16)after(340);else prompt.textContent='순서대로 터치! 다음 숫자: '+s.nextNum;
           }else{
             b.classList.add('answer-wrong');
             setTimeout(function(){b.classList.remove('answer-wrong');},450);
@@ -590,7 +587,7 @@
           const b=choiceButton('',function(){
             if(!canAnswer(s))return;
             revealAnswer(b,rightCells[changed]);
-            feedback(i===changed,i===changed?'찾았다! ✨':'이 친구는 똑같아!',100,b);after(i===changed?CORRECT_NEXT_MS:WRONG_NEXT_MS);
+            feedback(i===changed,i===changed?'찾았다! ✨':'이 친구는 똑같아!',100,b);after(500);
           },'spot-cell');b.setAttribute('aria-label',(i+1)+'번 '+paintSpotCell(b,icon)+' 그림 선택');rightCells.push(b);wrap.append(b);
         });
         pair.append(wrap);
@@ -607,7 +604,7 @@
         const b=choiceButton(c.name,function(){
           if(!canAnswer(s))return;
           revealAnswer(b,grid.children[ink]);
-          feedback(i===ink,i===ink?'정확한 색이야!':'눈에 보이는 색을 봐!',100,b);after(i===ink?CORRECT_NEXT_MS:WRONG_NEXT_MS);
+          feedback(i===ink,i===ink?'정확한 색이야!':'눈에 보이는 색을 봐!',100,b);after(390);
         },'choice color-option');
         b.style.setProperty('--option-color',c.css);grid.append(b);
       });
@@ -615,8 +612,8 @@
     }
     case 'memory': {
       const revealTime=stage===1?950:stage===2?780:650;
-      prompt.textContent='반짝이는 별의 자리를 기억해!';
-      const target=pickDifferentIndex(9,s.memoryTarget);s.memoryTarget=target;s.locked=true;
+      prompt.textContent='별을 바로 누르거나 자리를 기억해!';
+      const target=pickDifferentIndex(9,s.memoryTarget);s.memoryTarget=target;
       let grid=arena.querySelector('.memory-grid');
       if(!grid){grid=document.createElement('div');grid.className='memory-grid';
         for(let i=0;i<9;i++){const cell=document.createElement('button');cell.type='button';grid.append(cell);}
@@ -624,12 +621,12 @@
       }
       const cells=Array.from(grid.children);
       cells.forEach(function(b,i){
-        b.className='memory-cell';b.textContent=i===target?'⭐':'✧';b.disabled=true;
+        b.className='memory-cell';b.textContent=i===target?'⭐':'✧';b.disabled=false;
         b.onclick=function(){
           if(!canAnswer(s))return;
           revealAnswer(b,cells[target]);
           feedback(i===target,i===target?'기억력 최고!':'별의 자리는 여기였어!',100,b);
-          after(i===target?CORRECT_NEXT_MS:WRONG_NEXT_MS);
+          after(450);
         };
       });
       cells[target].classList.add('memory-target');
@@ -655,7 +652,7 @@
         const b=choiceButton(f.icon+' '+f.name,function(){
           if(!canAnswer(s))return;
           revealAnswer(b,grid.children[family]);
-          feedback(i===family,i===family?'분류 성공!':'이 속성은 아니야!',100,b);after(i===family?CORRECT_NEXT_MS:WRONG_NEXT_MS);
+          feedback(i===family,i===family?'분류 성공!':'이 속성은 아니야!',100,b);after(410);
         },'choice');grid.append(b);
       });
       arena.append(monster,title,grid);break;
@@ -671,7 +668,7 @@
         const b=choiceButton((i+1)+'. '+option.text,function(){
           if(!canAnswer(s))return;
           revealAnswer(b,opts.children[answerIndex]);
-          feedback(option.valid,option.valid?'정답! 명탐정이야!':'정답은 '+q.a[0]+'!',100,b);after(option.valid?CORRECT_NEXT_MS:WRONG_NEXT_MS);
+          feedback(option.valid,option.valid?'정답! 명탐정이야!':'정답은 '+q.a[0]+'!',100,b);after(580);
         },'choice');opts.append(b);
       });
       arena.append(clue,opts);break;
