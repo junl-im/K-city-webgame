@@ -921,3 +921,10 @@ body[data-view="games"] #games{animation:gamePageFade .24s ease-out both}
   .modal:has(.result-party) .badge-unlock{grid-area:badge;margin:0;font-size:10px;}
   .modal:has(.result-party) .helper-text{grid-column:1/-1;margin:0;font-size:10px;}
 }
+
+/* Keep the full timer label and value legible on narrow portrait phones. */
+@media (max-width:360px) and (orientation:portrait){
+  .modal.is-playing .hud{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.45fr);}
+  .modal.is-playing .hud-box{white-space:nowrap;font-size:12px;}
+  .modal.is-playing .hud-box strong{font-size:16px;}
+}
