@@ -69,9 +69,10 @@ export function evaluateChongtong(humanHand: string[], computerHand: string[], f
   return { kind: 'none', owner: null, month: null, canShakeFour: false, canBombAfterContinue: false, reason: '' };
 }
 
-export function stealPeeForBonus(opponentCaptured: string[]): { stolenCardId: string | null; remaining: string[] } {
+export function stealPeeForBonus(opponentCaptured: string[], gookjinAsDoubleJunk = false): { stolenCardId: string | null; remaining: string[] } {
   const junkValue = (cardId: string) => {
     const card = getCard(cardId);
+    if (gookjinAsDoubleJunk && card?.tags.includes('gookjin')) return 2;
     if (card?.tags.includes('triple-junk')) return 3;
     if (card?.type === 'doubleJunk') return 2;
     if (card?.type === 'junk') return 1;
@@ -89,11 +90,11 @@ export function stealPeeForBonus(opponentCaptured: string[]): { stolenCardId: st
   return { stolenCardId, remaining };
 }
 
-export function stealPeeCards(opponentCaptured: string[], count: number): { stolenCardIds: string[]; remaining: string[] } {
+export function stealPeeCards(opponentCaptured: string[], count: number, gookjinAsDoubleJunk = false): { stolenCardIds: string[]; remaining: string[] } {
   let remaining = [...opponentCaptured];
   const stolenCardIds: string[] = [];
   for (let index = 0; index < count; index += 1) {
-    const stolen = stealPeeForBonus(remaining);
+    const stolen = stealPeeForBonus(remaining, gookjinAsDoubleJunk);
     if (!stolen.stolenCardId) break;
     stolenCardIds.push(stolen.stolenCardId);
     remaining = stolen.remaining;
@@ -101,16 +102,16 @@ export function stealPeeCards(opponentCaptured: string[], count: number): { stol
   return { stolenCardIds, remaining };
 }
 
-export function stealPeeByValue(opponentCaptured: string[], targetValue: number): { stolenCardIds: string[]; remaining: string[] } {
+export function stealPeeByValue(opponentCaptured: string[], targetValue: number, gookjinAsDoubleJunk = false): { stolenCardIds: string[]; remaining: string[] } {
   let remaining = [...opponentCaptured];
   const stolenCardIds: string[] = [];
   let stolenValue = 0;
   while (stolenValue < targetValue) {
-    const stolen = stealPeeForBonus(remaining);
+    const stolen = stealPeeForBonus(remaining, gookjinAsDoubleJunk);
     if (!stolen.stolenCardId) break;
     const card = getCard(stolen.stolenCardId);
     stolenCardIds.push(stolen.stolenCardId);
-    stolenValue += card?.tags.includes('triple-junk') ? 3 : card?.type === 'doubleJunk' ? 2 : 1;
+    stolenValue += card?.tags.includes('triple-junk') ? 3 : card?.type === 'doubleJunk' || (gookjinAsDoubleJunk && card?.tags.includes('gookjin')) ? 2 : 1;
     remaining = stolen.remaining;
   }
   return { stolenCardIds, remaining };
