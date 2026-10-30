@@ -127,14 +127,14 @@ function discussion() {
   return `<section class="interrogation-pane">
     ${portrait()}
     <div class="dialogue-panel"><div class="dialogue-heading"><strong>${escapeHtml(person.name)}</strong><span>진술 확인</span></div><p>${escapeHtml(text)}</p></div>
-    <div class="psychology-panel" aria-label="심리 접근"><div class="psy-head"><strong>심리 접근</strong><span>신뢰 ${mood.trust} · 긴장 ${mood.stress} · ${escapeHtml(mood.label)}</span></div><div class="psy-meters"><div class="psy-meter"><span>신뢰</span><div class="psy-meter-track"><i style="width:${Math.min(100,mood.trust/3*100)}%"></i></div></div><div class="psy-meter stress"><span>긴장</span><div class="psy-meter-track"><i style="width:${Math.min(100,mood.stress/3*100)}%"></i></div></div></div><p class="psy-signal">${escapeHtml(signal)}</p><div class="tactic-list">${tactics.map(tactic => `<button class="tactic-button ${tactic.tone} ${state.tactics.includes(tactic.id) ? 'used' : ''}" data-action="tactic" data-id="${escapeHtml(tactic.id)}" ${state.tactics.includes(tactic.id) ? 'disabled' : ''}>${escapeHtml(tactic.label)} ${state.tactics.includes(tactic.id) ? '✓' : '↗'}</button>`).join('')}</div></div>
-    <div class="question-panel"><div class="pane-title"><span>QUESTION</span><strong>어떤 질문을 하겠어? (${asked}/${total})</strong></div><div class="question-list">${questions.map((question, index) => `<button class="question-button" data-action="ask" data-id="${question.id}" ${state.asked.includes(question.id) ? 'disabled' : ''}><span>${index + 1 < 10 ? `0${index + 1}` : index + 1}</span><strong>${escapeHtml(question.title)}</strong><span class="question-arrow">${state.asked.includes(question.id) ? '확인' : '↗'}</span></button>`).join('')}</div></div>
+    <div class="psychology-panel" id="investigation-psych" aria-label="심리 접근"><div class="psy-head"><strong>심리 접근</strong><span>신뢰 ${mood.trust} · 긴장 ${mood.stress} · ${escapeHtml(mood.label)}</span></div><div class="psy-meters"><div class="psy-meter"><span>신뢰</span><div class="psy-meter-track"><i style="width:${Math.min(100,mood.trust/3*100)}%"></i></div></div><div class="psy-meter stress"><span>긴장</span><div class="psy-meter-track"><i style="width:${Math.min(100,mood.stress/3*100)}%"></i></div></div></div><p class="psy-signal">${escapeHtml(signal)}</p><div class="tactic-list">${tactics.map(tactic => `<button class="tactic-button ${tactic.tone} ${state.tactics.includes(tactic.id) ? 'used' : ''}" data-action="tactic" data-id="${escapeHtml(tactic.id)}" ${state.tactics.includes(tactic.id) ? 'disabled' : ''}>${escapeHtml(tactic.label)} ${state.tactics.includes(tactic.id) ? '✓' : '↗'}</button>`).join('')}</div></div>
+    <div class="investigation-actions" aria-label="수사 도구"><button class="investigation-action action-question" data-action="jump-questions">질문하기</button><button class="investigation-action action-evidence" data-action="jump-evidence">증거 확인</button><button class="investigation-action action-psych" data-action="jump-psych">심리 분석</button><button class="investigation-action action-record" data-action="history">심문 기록</button></div><div class="question-panel" id="investigation-questions"><div class="pane-title"><span>QUESTION</span><strong>어떤 질문을 하겠어? (${asked}/${total})</strong></div><div class="question-list">${questions.map((question, index) => `<button class="question-button" data-action="ask" data-id="${question.id}" ${state.asked.includes(question.id) ? 'disabled' : ''}><span>${index + 1 < 10 ? `0${index + 1}` : index + 1}</span><strong>${escapeHtml(question.title)}</strong><span class="question-arrow">${state.asked.includes(question.id) ? '확인' : '↗'}</span></button>`).join('')}</div></div>
   </section>`;
 }
 
 function evidence() {
   const discovered = state.discovered.map(id => getEvidence(id)).filter(Boolean);
-  return `<aside class="evidence-pane"><div class="pane-title"><span>EVIDENCE</span><strong>확보한 증거 <small>${discovered.length} / ${CASE.evidence.length}</small></strong></div><p class="pane-description">증거를 눌러 출처와 발생 시각을 확인해봐.</p>
+  return `<aside class="evidence-pane" id="investigation-evidence"><div class="pane-title"><span>EVIDENCE</span><strong>확보한 증거 <small>${discovered.length} / ${CASE.evidence.length}</small></strong></div><p class="pane-description">증거를 눌러 출처와 발생 시각을 확인해봐.</p>
     <div class="evidence-list">${discovered.map(item => `<button class="evidence-card" data-action="detail" data-id="${item.id}"><span class="evidence-id"><span class="evidence-illustration art-${item.id}" aria-hidden="true"></span><span class="evidence-index">${item.icon}</span></span><span class="evidence-info"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.kind)} · ${escapeHtml(item.stamp)}</small>${canConfront(state, item.id) ? '<small class="confront-ready">대질 가능</small>' : state.confronted.includes(getConfrontation(state.selectedSuspect, item.id)?.id) ? '<small class="confront-done">대질 완료</small>' : ''}</span><span class="evidence-open" aria-hidden="true">+</span></button>`).join('')}</div>
     <div class="submit-block"><p>거짓말이 진범을 뜻하지는 않아.</p><button class="primary-button" data-action="verdict">추리 정리 · 고발하기 ↗</button></div>
   </aside>`;
@@ -207,6 +207,12 @@ root.addEventListener('click', event => {
   if (!button || button.disabled) return;
   const action = button.dataset.action;
   const id = button.dataset.id;
+  if (action === 'jump-questions' || action === 'jump-evidence' || action === 'jump-psych') {
+    const target = root.querySelector(action === 'jump-questions' ? '#investigation-questions' : action === 'jump-evidence' ? '#investigation-evidence' : '#investigation-psych');
+    target?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    target?.classList.add('investigation-focused');
+    return;
+  }
   if (action === 'sfx') {
     sfxEnabled = !sfxEnabled;
     try { localStorage.setItem(SFX_KEY, sfxEnabled ? 'on' : 'off'); } catch {}
