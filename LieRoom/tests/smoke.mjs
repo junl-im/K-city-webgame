@@ -2,21 +2,21 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CASE, createGame, safeRestore, askQuestion, toggleProof, judgeAccusation, validateCaseDefinition, CONFRONTATIONS, getConfrontation, canConfront, confrontEvidence, TACTICS, getPsychology, applyTactic, getInvestigationTimeline } from '../dist/core.mjs';
+import { CASE, STORAGE_KEY, createGame, safeRestore, askQuestion, toggleProof, judgeAccusation, validateCaseDefinition, CONFRONTATIONS, getConfrontation, canConfront, confrontEvidence, TACTICS, getPsychology, applyTactic, getInvestigationTimeline } from '../dist/core.mjs';
 
 const folder = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
-for (const file of ['index.html', 'style.css', 'app.mjs', 'core.mjs']) assert.ok(fs.statSync(path.join(folder, file)).size > 200, `${file} missing`);
+for (const file of ['index.html', 'style.css', 'app.mjs', 'core.mjs', 'case2-core.mjs']) assert.ok(fs.statSync(path.join(folder, file)).size > 200, `${file} missing`);
 assert.deepEqual(validateCaseDefinition(), [], 'case definition is inconsistent');
 
-const pages = ['index.html', 'style.css', 'app.mjs', 'core.mjs'];
+const pages = ['index.html', 'style.css', 'app.mjs', 'core.mjs', 'case2-core.mjs'];
 for (const file of pages) {
   const text = fs.readFileSync(path.join(folder, file), 'utf8');
   assert.doesNotMatch(text, /<\s*svg\b|\.svg\b|data:image\/svg\+xml/i, `SVG is forbidden: ${file}`);
   assert.doesNotMatch(text, /https?:\/\/[^'"\s]+\.(svg|js|css)\b/i, `unexpected external dependency: ${file}`);
 }
 assert.match(fs.readFileSync(path.join(folder, 'index.html'), 'utf8'), /lang="ko"/);
-assert.match(fs.readFileSync(path.join(folder, 'index.html'), 'utf8'), /style\.css\?v=lr009/, 'stylesheet must use release version to avoid stale CDN');
-assert.match(fs.readFileSync(path.join(folder, 'index.html'), 'utf8'), /app\.mjs\?v=lr009/, 'application must use release version to avoid stale CDN');
+assert.match(fs.readFileSync(path.join(folder, 'index.html'), 'utf8'), /style\.css\?v=lr010/, 'stylesheet must use release version to avoid stale CDN');
+assert.match(fs.readFileSync(path.join(folder, 'index.html'), 'utf8'), /app\.mjs\?v=lr010/, 'application must use release version to avoid stale CDN');
 const atlas = fs.readFileSync(path.join(folder, 'assets', 'lie-room-expression-atlas-v1.png'));
 assert.ok(atlas.length > 100_000, 'expression atlas is missing');
 assert.equal(atlas.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', 'atlas must be a real PNG');
@@ -158,3 +158,53 @@ assert.equal(safeRestore({ version: -1 }).screen, 'home');
 assert.equal(safeRestore({ version: 1, caseId: 'LR-001', discovered: ['fake'], asked: ['fake'] }).discovered.length, 2);
 
 console.log(`PASS LieRoom ${CASE.id}: 3 suspects, 7 clues, 7 questions, 3 outcomes, 5 confrontations, 6 psychology choices, original PNG portraits, optional audio, safe save, no SVG`);
+
+
+/* LR-010 · second complete chapter and strict separation from LR-001 saves. */
+const SECOND = await import('../dist/case2-core.mjs');
+assert.deepEqual(SECOND.validateCaseDefinition(), [], 'LR-002 case definition is inconsistent');
+assert.equal(SECOND.CASE.id, 'LR-002');
+assert.equal(SECOND.CASE.suspects.length, 3);
+assert.equal(SECOND.CASE.questions.length, 7);
+assert.equal(SECOND.CASE.evidence.length, 7);
+assert.equal(SECOND.TACTICS.length, 6);
+assert.equal(SECOND.CONFRONTATIONS.length, 5);
+assert.notEqual(SECOND.STORAGE_KEY, STORAGE_KEY, 'never overwrite LR-001 save key');
+assert.equal(SECOND.safeRestore(game).caseId, 'LR-002', 'LR-001 save must not be merged into LR-002');
+assert.equal(safeRestore(SECOND.createGame()).caseId, 'LR-001', 'LR-002 save must not be merged into LR-001');
+assert.equal(SECOND.createGame().selectedSuspect, 'D');
+assert.deepEqual(SECOND.createGame().discovered, ['E01', 'E02']);
+const CASE_TWO = fs.readFileSync(path.join(folder, 'case2-core.mjs'), 'utf8');
+assert.doesNotMatch(CASE_TWO, /<\s*svg\b|\.svg\b|data:image\/svg\+xml/i);
+assert.match(application, /data-action="switch-case"/, 'home requires selectable playable chapters');
+assert.match(application, /case2-core\.mjs\?v=lr010/, 'second module version must be cache-busted');
+assert.match(stylesheet, /\.case-two \.portrait-art\.person-D/, 'new witnesses must appear in interrogation scene');
+assert.match(stylesheet, /\.case-two \.person-avatar\.person-F/, 'new witnesses must appear in suspect selector');
+let gameTwo = SECOND.createGame();
+assert.equal(SECOND.getPsychology(gameTwo, 'F').label, '신중');
+gameTwo = { ...gameTwo, selectedSuspect: 'D' };
+gameTwo = SECOND.askQuestion(gameTwo, 'd-meeting').state;
+assert.ok(gameTwo.discovered.includes('E03'));
+gameTwo = SECOND.confrontEvidence(gameTwo, 'E03').state;
+assert.ok(gameTwo.confronted.includes('G01'));
+gameTwo = { ...gameTwo, selectedSuspect: 'E' };
+gameTwo = SECOND.askQuestion(gameTwo, 'e-photo').state;
+assert.ok(gameTwo.discovered.includes('E04'));
+gameTwo = SECOND.confrontEvidence(gameTwo, 'E04').state;
+gameTwo = { ...gameTwo, selectedSuspect: 'F' };
+gameTwo = SECOND.applyTactic(gameTwo, 'F_P').state;
+assert.equal(SECOND.getPsychology(gameTwo, 'F').label, '경계');
+for (const questionId of ['f-device', 'f-corridor', 'f-copy']) gameTwo = SECOND.askQuestion(gameTwo, questionId).state;
+assert.equal(gameTwo.discovered.length, 7);
+assert.deepEqual(SECOND.getInvestigationTimeline(gameTwo).map(item => item.id), ['E01','E03','E04','E05','E06','E02','E07']);
+for (const evidenceId of ['E05', 'E06', 'E07']) gameTwo = SECOND.confrontEvidence(gameTwo, evidenceId).state;
+assert.equal(gameTwo.confronted.length, 5);
+assert.equal(SECOND.judgeAccusation('F', ['E05', 'E07']).kind, 'correct', 'connection log and original file hash are sufficient');
+assert.equal(SECOND.judgeAccusation('F', ['E06', 'E07']).kind, 'partial', 'image alone is not independent pairing proof');
+assert.equal(SECOND.judgeAccusation('F', ['E05', 'E06']).kind, 'partial', 'image alone is not independent hash proof');
+assert.equal(SECOND.judgeAccusation('D', ['E05', 'E07']).kind, 'wrong');
+assert.equal(SECOND.judgeAccusation('E', ['E05', 'E07']).kind, 'wrong');
+assert.equal(SECOND.safeRestore(JSON.parse(JSON.stringify(gameTwo))).confronted.length, 5);
+assert.ok(CASE_TWO.includes('8C71-A2'), 'digital evidence should have independently verifiable hash');
+assert.match(CASE_TWO, /사라진 마지막 녹음/, 'chapter title exists');
+console.log('PASS LieRoom LR-002: 3 new original-portrait witnesses, separate saves, 7 clues, 7 questions, 5 confrontations, 6 tactics, 3 verdicts');

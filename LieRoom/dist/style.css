@@ -315,3 +315,35 @@ img{-webkit-user-drag:none;user-select:none}
   .cast-card-body p{display:none}
   .cast-card-body strong{font-size:.84rem}
 }
+
+
+/* LR-010 — the second playable chapter uses its own original D/E/F portrait atlas. */
+.mode-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.mode-cross{border-color:rgba(214,176,117,.35);background:linear-gradient(125deg,rgba(38,46,54,.86),rgba(19,30,41,.83)),var(--lr-panels);background-size:cover,200% 200%;background-position:center,100% 0%;transition:filter .15s,border-color .15s}
+.mode-cross:hover,.mode-cross:focus-visible{border-color:#dfbc84;filter:brightness(1.13)}
+.mode-cross .mode-go{color:#e9ce9f}
+.case-two .portrait-art.person-D,.case-two .portrait-art.person-E,.case-two .portrait-art.person-F{background-image:url("./assets/lie-room-next-cast-atlas-v1.png")}
+.case-two .portrait-art.person-D{--portrait-x:0%}
+.case-two .portrait-art.person-E{--portrait-x:50%}
+.case-two .portrait-art.person-F{--portrait-x:100%}
+.case-two .person-avatar.person-D,.case-two .person-avatar.person-E,.case-two .person-avatar.person-F{
+  background-image:url("./assets/lie-room-next-cast-atlas-v1.png");
+  background-size:300% 300%;
+  background-repeat:no-repeat;
+  color:transparent;font-size:0;border:1px solid #a99377;border-radius:7px
+}
+.case-two .person-avatar.person-D{background-position:0 0}
+.case-two .person-avatar.person-E{background-position:50% 0}
+.case-two .person-avatar.person-F{background-position:100% 0}
+.case-two .portrait-stage.burgundy{background:linear-gradient(100deg,#241e28,#362d30)}
+.case-two .portrait-stage.teal{background:linear-gradient(100deg,#172c32,#284340)}
+.case-two .portrait-stage.indigo{background:linear-gradient(100deg,#18243a,#242b40)}
+@media(min-width:901px) and (max-height:780px){.mode-grid .mode-card{min-height:104px}.home-hero{min-height:0}.home-screen{gap:9px}}
+@media(max-width:600px){
+  .mode-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .mode-grid .mode-card{min-height:82px;padding:8px}
+  .mode-grid .mode-card strong{font-size:.83rem}
+  .mode-grid .mode-card small{font-size:.6rem}
+  .mode-grid .mode-card .mode-number{font-size:.49rem}
+  .mode-grid .mode-card .mode-go{font-size:.61rem}
+}
