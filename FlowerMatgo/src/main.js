@@ -2,7 +2,7 @@ import './style.css';
 import {
   createInitialGame, chooseGo, chooseStop, chooseChongtong,
   playTurn, playBomb, playFlipOnlyTurn, declareShake,
-  getMatchingFloorCards, isValidGameState, nextRoundMultiplier
+  getMatchingFloorCards, getDrawFloorChoice, getFlipOnlyDrawChoice, isValidGameState, nextRoundMultiplier
 } from './engine/gameState';
 import { chooseAiCard, chooseAiMove, chooseAiGoStop, chooseAiChongtong } from './engine/ai/strategy';
 import { calculateCapturedScore } from './engine/rules/scoring';
@@ -38,7 +38,7 @@ const safe = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 const defaultSave = () => ({
   screen: 'home', difficulty: 'normal', stake: 100, wallet: BASE_WALLET,
   stats: {wins:0, losses:0, draws:0, high:0, rounds:0},
-  game: null, settledUuid: null, nextMultiplier: 1, sound: true, autoMode: false, pendingGookjinChoice: false
+  game: null, settledUuid: null, nextMultiplier: 1, sound: true, autoMode: false, pendingGookjinChoice: false, pendingDrawChoice: null
 });
 
 function loadSave() {
@@ -57,6 +57,11 @@ function loadSave() {
     save.wallet = Math.max(0, Math.round(save.wallet));
     if (save.game && !isValidGameState(save.game)) save.game = null;
     save.pendingGookjinChoice = save.pendingGookjinChoice === true && !!save.game?.humanCaptured?.includes('m09-01') && save.settledUuid !== save.game.gameUuid;
+    const pending=save.pendingDrawChoice, g=save.game;
+    const validTurn=g?.phase==='playing' && g.currentPlayer==='human';
+    const expected=validTurn && pending?.kind==='flip' && g.humanBombSkips>0 ? getFlipOnlyDrawChoice(g)
+      : validTurn && pending?.kind==='play' && g.humanHand.includes(pending.cardId) ? getDrawFloorChoice(g,pending.cardId,pending.playedMatchId) : null;
+    save.pendingDrawChoice=expected && Array.isArray(pending.candidateIds) && expected.drawnCardId===pending.drawnCardId && expected.candidateIds.join(',')===pending.candidateIds.join(',') ? pending : null;
     save.screen = save.game && save.screen === 'game' ? 'game' : 'home';
     return save;
   } catch {
@@ -203,7 +208,7 @@ function card(id, options = {}) {
   // No extra bright mark: otherwise the glyph appears twice on small phones.
   const mark = `${visual.doubleJunkText ? `<span class="hwatu__double-mark" aria-hidden="true">${visual.doubleJunkText}</span>` : ''}`;
   const classes = `hwatu hwatu--month-${String(month).padStart(2,'0')} hwatu--ordinal-${String(ordinal).padStart(2,'0')} ${small?'hwatu--small':''} ${options.tiny?'hwatu--tiny':''} ${bonus?'hwatu--bonus':''} ${options.pileIndex?'hwatu--pile-'+options.pileIndex:''} ${interactive?'hwatu--interactive':''} ${options.matchHint?(interactive?'hwatu--match-hint':'hwatu--match-idle'):''} ${visual.gookjinConverted?'hwatu--converted':''}`;
-  return `<${interactive ? 'button' : 'div'} class="${classes}" ${style} data-card="${safe(id)}" ${interactive ? `type="button" data-action="${options.action}" aria-label="${safe(aria)} ${options.action==='pickmatch'?'먹기':'내기'}"` : `role="img" aria-label="${safe(aria)}" title="${safe(aria)}"`}>
+  return `<${interactive ? 'button' : 'div'} class="${classes}" ${style} data-card="${safe(id)}" ${interactive ? `type="button" data-action="${options.action}" aria-label="${safe(aria)} ${['pickmatch','draw-choice'].includes(options.action)?'먹기':'내기'}"` : `role="img" aria-label="${safe(aria)}" title="${safe(aria)}"`}>
     ${bonus ? `<span class="hwatu__face"></span><span class="hwatu__bonus-banner" aria-hidden="true">보너스</span><span class="hwatu__bonus-mark" aria-hidden="true">${safe(item.typeLabel)}</span>` : `<span class="hwatu__face"></span>${mark}`}
   </${interactive ? 'button' : 'div'}>`;
 }
@@ -442,6 +447,10 @@ function gameOverlay(g) {
     <div class="gookjin-card">${card('m09-01')}</div><div class="choice-actions"><button type="button" class="btn decision-option" data-action="gookjin-set" data-value="animal"><strong>열끗으로</strong><small>그림 패</small></button><button type="button" class="btn decision-option decision-option--go" data-action="gookjin-set" data-value="junk"><strong>쌍피로</strong><small>피 2장</small></button></div></section></div>`;
   if (overlay==='captures') return capturedGallery(g, galleryOwner, galleryType);
   if (overlay==='cardbook') return cardbookOverlay();
+  if (app.pendingDrawChoice) {
+    const choice=app.pendingDrawChoice;
+    return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--match" role="dialog" aria-modal="true" aria-labelledby="draw-choice-title"><div class="decision-kicker">뒤집은 패</div><div class="drawn-choice-card">${card(choice.drawnCardId)}</div><h2 id="draw-choice-title">같은 무늬 중 한 장을 골라요</h2><p class="decision-hint">뒤집은 패와 함께 가져갈 바닥패를 선택하세요.</p><div class="match-choices" role="group" aria-label="뒤집은 패와 맞는 바닥패">${choice.candidateIds.map(id=>card(id,{action:'draw-choice'})).join('')}</div></section></div>`;
+  }
   if (selectedTriple) {
     const triple=selectedTriple, ids=g.humanHand.filter(id=>getCard(id)?.month===triple.month);
     const bomb=findBombOptions(g.humanHand,g.floorCards,true).some(b=>b.month===triple.month && b.kind==='three-card-bomb');
@@ -560,7 +569,7 @@ function syncTurnClock() {
   }
   // A backgrounded mobile browser can suspend timers while wall time keeps
   // passing. Preserve the player's remaining time until they return.
-  const blocked = turnTransition || !!overlay || !!selectedTriple || app.pendingGookjinChoice || document.hidden;
+  const blocked = turnTransition || !!overlay || !!selectedTriple || app.pendingGookjinChoice || !!app.pendingDrawChoice || document.hidden;
   if (blocked) {
     if (!clockPaused) {
       clockRemaining = Math.max(0, clockDeadline - performance.now());
@@ -593,7 +602,7 @@ function syncTurnClock() {
 function autoTakeTurn(forced = false) {
   const g = app.game;
   if ((!forced && !app.autoMode) || !humanTurnSignature(app.screen,g) || turnTransition || overlay || document.hidden) return;
-  if (selectedMatch) { humanPlay(selectedMatch.cardId,selectedMatch.matches[0],true); return; }
+  if (selectedMatch) { humanPlay(selectedMatch.cardId,selectedMatch.matches[0],true,undefined,true); return; }
   if (g.phase === 'awaiting-go-stop') { mutate('stop'); return; }
   if (g.phase === 'awaiting-chongtong') { mutate('chongtong-stop'); return; }
   if (g.phase !== 'playing' || g.currentPlayer !== 'human') return;
@@ -602,19 +611,19 @@ function autoTakeTurn(forced = false) {
     // game state while merely choosing a timed/automatic move.
     const move = chooseAiMove(structuredClone(g), 'human', 'normal').move;
     if (!move) return;
-    if (move.kind === 'flip-only') { mutate('flip'); return; }
+    if (move.kind === 'flip-only') { mutate('flip','auto'); return; }
     // Shaking and bombs are explicit player choices, never silently declared
     // by the countdown or auto-play (including a four-card shake/bomb).
     if (move.kind === 'shake' || move.kind === 'bomb') {
       const id = chooseAiCard(structuredClone(g), 'human', 'normal');
       if (id) {
         const matches = getMatchingFloorCards(g.floorCards,id);
-        humanPlay(id, matches.length === 2 ? matches[0] : undefined,true);
+        humanPlay(id, matches.length === 2 ? matches[0] : undefined,true,undefined,true);
       }
       return;
     }
     const matches = getMatchingFloorCards(g.floorCards,move.cardId);
-    humanPlay(move.cardId,move.playedMatchId || (matches.length===2 ? matches[0] : undefined),true);
+    humanPlay(move.cardId,move.playedMatchId || (matches.length===2 ? matches[0] : undefined),true,undefined,true);
   } catch (error) {
     console.error('Automatic turn failed:',error);
     effects('다시 패를 선택해 줘');
@@ -735,7 +744,7 @@ function queueAI() {
   clearTimeout(aiTimer);
   if (turnTransition) return;
   const g=app.game;
-  if (app.screen!=='game' || !g || g.phase==='round-ended' || selectedMatch || selectedTriple || overlay || app.pendingGookjinChoice) return;
+  if (app.screen!=='game' || !g || g.phase==='round-ended' || selectedMatch || selectedTriple || overlay || app.pendingGookjinChoice || app.pendingDrawChoice) return;
   const computerChoice = g.pendingDecision==='computer' && (g.phase==='awaiting-go-stop' || g.phase==='awaiting-chongtong');
   if (!computerChoice && !(g.phase==='playing' && g.currentPlayer==='computer')) return;
   // commitGame already waits for the throw, flip and capture before the next turn.
@@ -743,7 +752,7 @@ function queueAI() {
 }
 function runAI() {
   const g=app.game;
-  if (!g || app.screen!=='game' || turnTransition || overlay || selectedTriple || app.pendingGookjinChoice) return;
+  if (!g || app.screen!=='game' || turnTransition || overlay || selectedTriple || app.pendingGookjinChoice || app.pendingDrawChoice) return;
   try {
     let next, result=null;
     if (g.phase==='awaiting-go-stop' && g.pendingDecision==='computer') {
@@ -840,11 +849,11 @@ function startNew(rematch = false, roundMultiplier = app.nextMultiplier) {
   });
   opening.roundMultiplier = roundMultiplier;
   if (!rematch) app.game=null;
-  app.screen='opening';selectedMatch=null;selectedTriple=null;app.pendingGookjinChoice=false;overlay=null;
+  app.screen='opening';selectedMatch=null;selectedTriple=null;app.pendingGookjinChoice=false;app.pendingDrawChoice=null;overlay=null;
   save();render();
   openingTimer=setTimeout(advanceOpening,OPENING_SHUFFLE_MS);
 }
-function humanPlay(id, matchId, skipTriple=false) {
+function humanPlay(id, matchId, skipTriple=false, drawnMatchId=undefined, automated=false) {
   const g=app.game;
   if (!g || turnTransition || g.currentPlayer!=='human' || g.phase!=='playing') return;
   const month=getCard(id)?.month;
@@ -856,10 +865,17 @@ function humanPlay(id, matchId, skipTriple=false) {
     selectedMatch={cardId:id,matches};render();return;
   }
   selectedMatch=null;
+  if (!automated && !drawnMatchId) {
+    const drawChoice=getDrawFloorChoice(g,id,matchId);
+    if (drawChoice) {
+      app.pendingDrawChoice={kind:'play',cardId:id,playedMatchId:matchId || null,...drawChoice};
+      save();render();return;
+    }
+  }
   ROOT.querySelector('.modal-shade--decision')?.remove();
   const handRect = motionOrigin(ROOT.querySelector(`.my-hand [data-card="${id}"]`));
   const deckRect = motionOrigin(ROOT.querySelector('.deck-pile .hwatu'));
-  try { const result=playTurn(g,'human',id,{playedMatchId:matchId});commitGame(result.state,result,{player:'human',handRect,deckRect,playedMatchId:matchId}); }
+  try { const result=playTurn(g,'human',id,{playedMatchId:matchId,drawnMatchId});commitGame(result.state,result,{player:'human',handRect,deckRect,playedMatchId:matchId}); }
   catch(err) { console.error(err);effects(err.message || '다른 패를 골라줘');render(); }
 }
 function mutate(action, value, cardId) {
@@ -917,6 +933,14 @@ function mutate(action, value, cardId) {
       catch(err) { effects(err.message||'국진을 선택할 수 없어요');render(); }
       return;
     }
+    case 'draw-choice': {
+      const choice=app.pendingDrawChoice;
+      if (!choice || !choice.candidateIds.includes(cardId)) return;
+      app.pendingDrawChoice=null;ROOT.querySelector('.modal-shade--decision')?.remove();
+      if (choice.kind==='flip') mutate('flip',cardId);
+      else humanPlay(choice.cardId,choice.playedMatchId || undefined,true,cardId);
+      return;
+    }
   }
   const g=app.game;
   if (!g || app.screen!=='game') return;
@@ -928,7 +952,13 @@ function mutate(action, value, cardId) {
     else if (action==='chongtong-stop') next=chooseChongtong(g,'human','stop');
     else if (action==='bomb') { result=playBomb(g,'human',Number(value));next=result.state; }
     else if (action==='shake') { next=declareShake(g,'human',Number(value));selectedTriple={month:Number(value),mode:'shake'};effects('흔들기!', 'special', 'shake'); }
-    else if (action==='flip') { result=playFlipOnlyTurn(g,'human');next=result.state; }
+    else if (action==='flip') {
+      if (!value) {
+        const drawChoice=getFlipOnlyDrawChoice(g);
+        if (drawChoice) { app.pendingDrawChoice={kind:'flip',...drawChoice};save();render();return; }
+      }
+      result=playFlipOnlyTurn(g,'human',value==='auto'?undefined:value || undefined);next=result.state;
+    }
     else return;
     const handCard=result?.playedCardId && ROOT.querySelector(`.my-hand [data-card="${result.playedCardId}"]`);
     const handRect=motionOrigin(handCard || ROOT.querySelector('.my-hand .hwatu'));
