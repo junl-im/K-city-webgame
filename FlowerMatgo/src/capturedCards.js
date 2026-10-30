@@ -7,6 +7,12 @@ export const CAPTURE_TYPES = Object.freeze([
   { id:'junk', name:'피', description:'피·쌍피 패' }
 ]);
 
+// The table count for 피 follows scoring, not the number of physical cards:
+// 쌍피, 삼피 and a converted 국진 can each be worth more than one 피.
+export function captureDisplayCount(group, score) {
+  return group.id === 'junk' ? score.junkCount : group.cards.length;
+}
+
 // Captured cards stay visible by category, including the gookjin/junk rule.
 export function groupedCaptures(game, who) {
   const captured = who==='human' ? game.humanCaptured : game.computerCaptured;

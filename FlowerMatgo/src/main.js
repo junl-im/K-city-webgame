@@ -9,7 +9,7 @@ import { calculateCapturedScore } from './engine/rules/scoring';
 import { findBombOptions, findShakeOptions } from './engine/rules/specialRules';
 import { getCard, HWATU_CARDS } from './engine/cards';
 import { ALLOWED_STAKES, STAKES, canUseStake, normalizeStake } from './stakeRules.js';
-import { groupedCaptures } from './capturedCards.js';
+import { captureDisplayCount, groupedCaptures } from './capturedCards.js';
 import { floorDensity } from './floorLayout.js';
 import { artworkOrdinal, cardBookLabel, cardVisualDetails } from './cardDisplay.js';
 import { hwatuFamily, spokenActionText, spokenCardName } from './cardNames.js';
@@ -196,7 +196,7 @@ function card(id, options = {}) {
   const y = month ? ((month - 1) / 11 * 100).toFixed(5) : 0;
   const bonusSlot = ['bonus-pee-1','bonus-pee-2','bonus-double-pee-1'].indexOf(id);
   const style = bonus ? `style="--bonus-x:${(Math.max(0,bonusSlot)/2*100).toFixed(5)}%"` : `style="--card-x:${x}%;--card-y:${y}%"`;
-  const aria = `${spokenCardName(item,{gookjinAsDoubleJunk:options.gookjinAsDoubleJunk})} · ${item.typeLabel}`;
+  const aria = `${spokenCardName(item,{gookjinAsDoubleJunk:options.gookjinAsDoubleJunk})} · ${visual.gookjinConverted ? '쌍피' : item.typeLabel}`;
   // Every 광 face has its 光 seal printed inside the v19 raster already.
   // No extra bright mark: otherwise the glyph appears twice on small phones.
   const mark = `${visual.doubleJunkText ? `<span class="hwatu__double-mark" aria-hidden="true">${visual.doubleJunkText}</span>` : ''}`;
@@ -330,11 +330,12 @@ function capturedSummary(g, who) {
 function capturedRack(g, who='human') {
   const human=who==='human', cards=human?g.humanCaptured:g.computerCaptured;
   const asDoubleJunk=human?g.humanGookjinAsDoubleJunk:g.computerGookjinAsDoubleJunk;
+  const score=scoreOf(g,who);
   return `<div class="collection-rack ${human?'collection-rack--human':'collection-rack--opponent'}" aria-label="${human?'내가':'상대가'} 먹은 실제 화투패">
     <div class="collection-head"><span>✿ <b>${human?'내':'상대'} 먹은 패</b> <small>${cards.length}장</small></span><button type="button" data-action="captures" data-value="${who}" aria-label="${human?'내':'상대'} 획득한 패 전체 펼쳐보기">전체 보기</button></div>
     <div class="collection-groups">${groupedCaptures(g,who).map(group => `
-      <button class="collection-group" type="button" data-capture-type="${group.id}" data-action="captures" data-value="${who}:${group.id}" aria-label="${human?'내':'상대'}가 먹은 ${group.name} ${group.cards.length}장 전체 보기">
-        <span class="collection-name">${group.name} <strong>${group.cards.length}</strong></span>
+      <button class="collection-group" type="button" data-capture-type="${group.id}" data-action="captures" data-value="${who}:${group.id}" aria-label="${human?'내':'상대'}가 먹은 ${group.name} 카드 ${group.cards.length}장${group.id==='junk'?` · 점수 계산 ${captureDisplayCount(group,score)}장`:''} 전체 보기">
+        <span class="collection-name">${group.name} <strong>${captureDisplayCount(group,score)}</strong></span>
         <span class="collection-preview">${group.cards.length ? group.cards.slice(-3).map(id=>card(id,{tiny:true,gookjinAsDoubleJunk:asDoubleJunk})).join('') : '<i>−</i>'}
           ${group.cards.length>3?`<em>+${group.cards.length-3}</em>`:''}</span>
       </button>`).join('')}</div>

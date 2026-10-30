@@ -1,9 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { groupedCaptures } from '../capturedCards.js';
+import { captureDisplayCount, groupedCaptures } from '../capturedCards.js';
 import { createInitialGame } from '../engine/gameState';
 import { HWATU_CARDS } from '../engine/cards';
+import { calculateCapturedScore } from '../engine/rules/scoring';
 
 describe('먹은 패의 실제 그림 분류', () => {
+  it('피 표시 수는 쌍피·삼피와 국진 전환을 점수 계산과 똑같이 반영한다', () => {
+    const game=createInitialGame(123);
+    game.humanCaptured=['m09-01','m11-02','bonus-double-pee-1','m01-03'];
+    for (const converted of [false,true]) {
+      game.humanGookjinAsDoubleJunk=converted;
+      const groups=groupedCaptures(game,'human');
+      const score=calculateCapturedScore(game.humanCaptured,{gookjinAsDoubleJunk:converted});
+      expect(captureDisplayCount(groups.find(g=>g.id==='junk'),score)).toBe(converted?8:6);
+      expect(captureDisplayCount(groups.find(g=>g.id==='animal'),score)).toBe(converted?0:1);
+    }
+  });
   it('화투 48장을 광·열끗·띠·피 어느 한 곳에만 빠짐없이 표시', () => {
     const game=createInitialGame(555);
     game.humanCaptured=HWATU_CARDS.map(c=>c.id);
