@@ -7,6 +7,12 @@ const ui = readFileSync(new URL('../main.js', import.meta.url), 'utf8');
 const presentation = readFileSync(new URL('../turnPresentation.js', import.meta.url), 'utf8');
 
 describe('꽃맞고 v22 특별 상황 연출', () => {
+  it('고 횟수와 상대 여부를 정확히 표시하고 3고부터 크게 연출한다', () => {
+    for (let count=1;count<=8;count++) {
+      expect(specialMoment('go',`${count}고!`)).toMatchObject({kind:'go',title:`${count}고!`,major:count>=3});
+      expect(specialMoment('go',`상대 ${count}고!`).title).toBe(`상대 ${count}고!`);
+    }
+  });
   it('폭탄·싹쓸이는 크게, 뻑·따닥·쪽은 각각 구별해서 알린다', () => {
     expect(specialMoment('bomb', '폭탄!')).toMatchObject({ kind:'bomb', title:'폭탄!', major:true });
     expect(specialMoment('sweep', '싹쓸이!')).toMatchObject({ kind:'sweep', title:'싹쓸이!', major:true });

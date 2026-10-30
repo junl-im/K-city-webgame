@@ -46,11 +46,10 @@ export function findBombOptions(handCardIds: string[], floorCardIds: string[], a
 
 export function findShakeOptions(handCardIds: string[], floorCardIds: string[], shakenMonths: number[] = []): ShakeOption[] {
   const hand = groupByMonth(handCardIds);
-  const floor = groupByMonth(floorCardIds);
   const alreadyShaken = new Set(shakenMonths);
   const options: ShakeOption[] = [];
   hand.forEach((handCards, month) => {
-    if (handCards.length === 3 && (floor.get(month)?.length ?? 0) === 0 && !alreadyShaken.has(month)) {
+    if (handCards.length === 3 && !alreadyShaken.has(month)) {
       options.push({ month, handCardIds: handCards });
     }
   });

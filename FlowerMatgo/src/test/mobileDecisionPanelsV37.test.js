@@ -21,7 +21,7 @@ describe('꽃맞고 v37 모바일 카드 선택 및 고/스톱', () => {
   });
   it('선택패 접근성 문구는 내기가 아닌 먹기로 표시된다', () => {
     expect(card).toContain("options.action==='pickmatch'?'먹기':'내기'");
-    expect(ui).toContain("case 'pickmatch': if (selectedMatch) humanPlay(selectedMatch.cardId,cardId)");
+    expect(ui).toContain("case 'pickmatch': if (selectedMatch) humanPlay(selectedMatch.cardId,cardId,true)");
     expect(ui).toContain("case 'cancelmatch': selectedMatch=null;render();return;");
   });
   it('고/스톱은 큰 두 버튼과 현재 점수를 노출하며 게임 판정은 그대로 사용한다', () => {
@@ -30,7 +30,7 @@ describe('꽃맞고 v37 모바일 카드 선택 및 고/스톱', () => {
     expect(overlay).toContain("scoreOf(g,'human').total");
     expect(overlay).toContain('data-action="go"');
     expect(overlay).toContain('data-action="stop"');
-    expect(ui).toContain("if (action==='go') next=chooseGo(g,'human')");
+    expect(ui).toContain("if (action==='go') { next=chooseGo(g,'human');");
     expect(ui).toContain("else if (action==='stop') next=chooseStop(g,'human')");
     expect(styles).toContain('min-height:clamp(84px,15svh,112px)');
   });

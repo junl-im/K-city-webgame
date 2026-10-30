@@ -508,6 +508,20 @@ describe('기본 맞고 진행 상태', () => {
     expect(isValidGameState(played)).toBe(true);
   });
 
+  it('바닥에 같은 월 패가 있어도 세 장을 흔든 뒤 한 장을 낼 수 있다', () => {
+    const game = createArrangedGame({
+      humanHand: ['m02-01','m02-02','m02-03'], floorCards: ['m02-04'],
+      drawFirst: ['m03-01']
+    });
+    const shaken=declareShake(game,'human',2);
+    expect(shaken.humanPendingShakeMonth).toBe(2);
+    const played=playTurn(shaken,'human','m02-02');
+    expect(played.state.humanPendingShakeMonth).toBeNull();
+    expect(played.state.humanCaptured).toEqual(expect.arrayContaining(['m02-02','m02-04']));
+    expect(played.state.humanShakeCount).toBe(1);
+    expect(isValidGameState(played.state)).toBe(true);
+  });
+
   it('한쪽 총통은 계속 진행하거나 기본 7점으로 끝낼 수 있다', () => {
     const game = createInitialGame(60);
     game.phase = 'awaiting-chongtong'; game.pendingDecision = 'human'; game.chongtongOwner = 'human'; game.chongtongMonth = 1;
