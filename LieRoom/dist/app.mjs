@@ -13,6 +13,15 @@ const SFX_KEY = 'gomfox.lie-room.sfx';
 let sfxEnabled = false;
 let audioContext = null;
 let castMood = 'neutral';
+let revealMoment = null;
+let revealTimer = null;
+function showReveal(title, detail) {
+  revealMoment = { title, detail };
+  clearTimeout(revealTimer);
+  render();
+  revealTimer = setTimeout(() => { revealMoment = null; render(); }, 1900);
+}
+
 const FIRST_CAST = Object.freeze([
   { id: 'A', name: '한유리', role: '야간 경비원', note: '첫 번째 사건 · 규정 위반을 숨긴 목격자' },
   { id: 'B', name: '윤서진', role: '전시 기획자', note: '첫 번째 사건 · 출입증을 빌려준 기획자' },
@@ -99,8 +108,10 @@ function people() {
 function portrait() {
   const person = getSuspect(state.selectedSuspect);
   const mood = getPsychology(state, person.id);
-  const moodClass = mood.label === '경계' ? 'mood-guard' : mood.label === '신뢰' ? 'mood-trust' : 'mood-cautious';
-  return `<div class="portrait-stage ${person.color} ${moodClass}"><div class="portrait-art person-${person.id}" aria-hidden="true"></div><div class="window-blind"></div><div class="portrait-mark">${person.label}</div><div class="portrait-shine"></div><div class="portrait-name"><span>WITNESS ${person.label}</span><strong>${escapeHtml(person.name)}</strong><small>${escapeHtml(person.role)}</small></div><span class="portrait-hint">심리 신호 · ${escapeHtml(mood.label)} / 증언만으로 단정 금지</span></div>`;
+  const confronted = CONFRONTATIONS.some(item => item.suspect === person.id && state.confronted.includes(item.id));
+  const moodClass = mood.label === '경계' || confronted ? 'mood-guard' : mood.label === '신뢰' ? 'mood-trust' : 'mood-cautious';
+  const reaction = confronted ? '증거 대질 후 진술 재검토 중' : mood.label === '경계' ? '경계 · 기록과 교차 검증' : mood.label === '신뢰' ? '신뢰 · 진술 검증 필요' : '신중 · 질문을 이어가자';
+  return `<div class="portrait-stage ${person.color} ${moodClass}"><div class="portrait-art person-${person.id}" aria-hidden="true"></div><div class="window-blind"></div><div class="portrait-mark">${person.label}</div><div class="portrait-shine"></div><div class="portrait-name"><span>WITNESS ${person.label}</span><strong>${escapeHtml(person.name)}</strong><small>${escapeHtml(person.role)}</small></div><span class="portrait-hint">심리 신호 · ${escapeHtml(reaction)}</span></div>`;
 }
 
 function discussion() {
@@ -110,17 +121,20 @@ function discussion() {
   const questions = CASE.questions.filter(item => item.suspect === person.id);
   const mood = getPsychology(state, person.id);
   const tactics = TACTICS.filter(item => item.suspect === person.id);
+  const total = CASE.questions.filter(item => item.suspect === person.id).length;
+  const asked = questions.filter(item => state.asked.includes(item.id)).length;
+  const signal = mood.stress >= 2 ? '상대가 경계하고 있어. 표정보다 객관적인 기록을 확인해.' : mood.trust >= 2 ? '대화가 부드러워졌어. 아직 진술을 증거로 검증해야 해.' : '중립적인 분위기야. 먼저 동선을 확인해봐.';
   return `<section class="interrogation-pane">
     ${portrait()}
     <div class="dialogue-panel"><div class="dialogue-heading"><strong>${escapeHtml(person.name)}</strong><span>진술 확인</span></div><p>${escapeHtml(text)}</p></div>
-    <div class="psychology-panel" aria-label="심리 접근"><div class="psy-head"><strong>심리 접근</strong><span>신뢰 ${mood.trust} · 긴장 ${mood.stress} · ${escapeHtml(mood.label)}</span></div><div class="tactic-list">${tactics.map(tactic => `<button class="tactic-button ${tactic.tone} ${state.tactics.includes(tactic.id) ? 'used' : ''}" data-action="tactic" data-id="${escapeHtml(tactic.id)}" ${state.tactics.includes(tactic.id) ? 'disabled' : ''}>${escapeHtml(tactic.label)} ${state.tactics.includes(tactic.id) ? '✓' : '↗'}</button>`).join('')}</div></div>
-    <div class="question-panel"><div class="pane-title"><span>QUESTION</span><strong>어떤 질문을 하겠어?</strong></div><div class="question-list">${questions.map((question, index) => `<button class="question-button" data-action="ask" data-id="${question.id}" ${state.asked.includes(question.id) ? 'disabled' : ''}><span>${index + 1 < 10 ? `0${index + 1}` : index + 1}</span><strong>${escapeHtml(question.title)}</strong><span class="question-arrow">${state.asked.includes(question.id) ? '확인' : '↗'}</span></button>`).join('')}</div></div>
+    <div class="psychology-panel" id="investigation-psych" aria-label="심리 접근"><div class="psy-head"><strong>심리 접근</strong><span>신뢰 ${mood.trust} · 긴장 ${mood.stress} · ${escapeHtml(mood.label)}</span></div><div class="psy-meters"><div class="psy-meter"><span>신뢰</span><div class="psy-meter-track"><i style="width:${Math.min(100,mood.trust/3*100)}%"></i></div></div><div class="psy-meter stress"><span>긴장</span><div class="psy-meter-track"><i style="width:${Math.min(100,mood.stress/3*100)}%"></i></div></div></div><p class="psy-signal">${escapeHtml(signal)}</p><div class="tactic-list">${tactics.map(tactic => `<button class="tactic-button ${tactic.tone} ${state.tactics.includes(tactic.id) ? 'used' : ''}" data-action="tactic" data-id="${escapeHtml(tactic.id)}" ${state.tactics.includes(tactic.id) ? 'disabled' : ''}>${escapeHtml(tactic.label)} ${state.tactics.includes(tactic.id) ? '✓' : '↗'}</button>`).join('')}</div></div>
+    <div class="investigation-actions" aria-label="수사 도구"><button class="investigation-action action-question" data-action="jump-questions">질문하기</button><button class="investigation-action action-evidence" data-action="jump-evidence">증거 확인</button><button class="investigation-action action-psych" data-action="jump-psych">심리 분석</button><button class="investigation-action action-record" data-action="history">심문 기록</button></div><div class="question-panel" id="investigation-questions"><div class="pane-title"><span>QUESTION</span><strong>어떤 질문을 하겠어? (${asked}/${total})</strong></div><div class="question-list">${questions.map((question, index) => `<button class="question-button" data-action="ask" data-id="${question.id}" ${state.asked.includes(question.id) ? 'disabled' : ''}><span>${index + 1 < 10 ? `0${index + 1}` : index + 1}</span><strong>${escapeHtml(question.title)}</strong><span class="question-arrow">${state.asked.includes(question.id) ? '확인' : '↗'}</span></button>`).join('')}</div></div>
   </section>`;
 }
 
 function evidence() {
   const discovered = state.discovered.map(id => getEvidence(id)).filter(Boolean);
-  return `<aside class="evidence-pane"><div class="pane-title"><span>EVIDENCE</span><strong>확보한 증거 <small>${discovered.length} / ${CASE.evidence.length}</small></strong></div><p class="pane-description">증거를 눌러 출처와 발생 시각을 확인해봐.</p>
+  return `<aside class="evidence-pane" id="investigation-evidence"><div class="pane-title"><span>EVIDENCE</span><strong>확보한 증거 <small>${discovered.length} / ${CASE.evidence.length}</small></strong></div><p class="pane-description">증거를 눌러 출처와 발생 시각을 확인해봐.</p>
     <div class="evidence-list">${discovered.map(item => `<button class="evidence-card" data-action="detail" data-id="${item.id}"><span class="evidence-id"><span class="evidence-illustration art-${item.id}" aria-hidden="true"></span><span class="evidence-index">${item.icon}</span></span><span class="evidence-info"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.kind)} · ${escapeHtml(item.stamp)}</small>${canConfront(state, item.id) ? '<small class="confront-ready">대질 가능</small>' : state.confronted.includes(getConfrontation(state.selectedSuspect, item.id)?.id) ? '<small class="confront-done">대질 완료</small>' : ''}</span><span class="evidence-open" aria-hidden="true">+</span></button>`).join('')}</div>
     <div class="submit-block"><p>거짓말이 진범을 뜻하지는 않아.</p><button class="primary-button" data-action="verdict">추리 정리 · 고발하기 ↗</button></div>
   </aside>`;
@@ -183,7 +197,7 @@ function renderModal() {
 
 function render() {
   const current = state.screen;
-  root.innerHTML = `<div class="app-shell ${IS_SECOND_CASE ? 'case-two' : 'case-one'}">${header()}${current === 'home' ? home() : current === 'intro' ? intro() : current === 'play' ? play() : current === 'verdict' ? verdict() : result()}${renderModal()}</div>`;
+  root.innerHTML = `<div class="app-shell ${IS_SECOND_CASE ? 'case-two' : 'case-one'}">${header()}${current === 'home' ? home() : current === 'intro' ? intro() : current === 'play' ? play() : current === 'verdict' ? verdict() : result()}${renderModal()}${revealMoment ? `<div class="reveal-moment" role="status" aria-live="polite"><div class="reveal-moment-inner"><small>INVESTIGATION UPDATE</small><strong>${escapeHtml(revealMoment.title)}</strong><span>${escapeHtml(revealMoment.detail)}</span></div></div>` : ''}</div>`;
   const dialog = root.querySelector('[role="dialog"]');
   if (dialog) dialog.querySelector('.close-button')?.focus();
 }
@@ -193,6 +207,15 @@ root.addEventListener('click', event => {
   if (!button || button.disabled) return;
   const action = button.dataset.action;
   const id = button.dataset.id;
+  if (action === 'jump-questions' || action === 'jump-evidence' || action === 'jump-psych') {
+    const target = root.querySelector(action === 'jump-questions' ? '#investigation-questions' : action === 'jump-evidence' ? '#investigation-evidence' : '#investigation-psych');
+    if (target) {
+      target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
+      target.classList.add('investigation-focused');
+      setTimeout(() => target.classList.remove('investigation-focused'), 1800);
+    }
+    return;
+  }
   if (action === 'sfx') {
     sfxEnabled = !sfxEnabled;
     try { localStorage.setItem(SFX_KEY, sfxEnabled ? 'on' : 'off'); } catch {}
@@ -218,7 +241,7 @@ root.addEventListener('click', event => {
       modal = '';
       update(confrontation.state);
       playSfx('confront');
-      announce(`대질 완료 · ${confrontation.insight}`);
+      showReveal('증언과 증거가 충돌했다', confrontation.insight);
     } else announce('먼저 관련 진술과 증거를 확보해야 해.');
     return;
   }
@@ -245,7 +268,8 @@ root.addEventListener('click', event => {
     const answer = askQuestion(state, id);
     update(answer.state);
     if (answer.added.length) playSfx('clue');
-    announce(revealLabel(answer.added));
+    if (answer.added.length) showReveal('새로운 증거 발견', revealLabel(answer.added));
+    else announce(revealLabel(answer.added));
     return;
   }
   if (action === 'verdict') { update({ ...state, screen: 'verdict' }); return; }
