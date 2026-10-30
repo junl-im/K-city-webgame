@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CASE, createGame, safeRestore, askQuestion, toggleProof, judgeAccusation, validateCaseDefinition, CONFRONTATIONS, getConfrontation, canConfront, confrontEvidence, TACTICS, getPsychology, applyTactic } from '../dist/core.mjs';
+import { CASE, createGame, safeRestore, askQuestion, toggleProof, judgeAccusation, validateCaseDefinition, CONFRONTATIONS, getConfrontation, canConfront, confrontEvidence, TACTICS, getPsychology, applyTactic, getInvestigationTimeline } from '../dist/core.mjs';
 
 const folder = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 for (const file of ['index.html', 'style.css', 'app.mjs', 'core.mjs']) assert.ok(fs.statSync(path.join(folder, file)).size > 200, `${file} missing`);
@@ -47,6 +47,16 @@ assert.match(stylesheet, /tactic-button\.empathy[\s\S]*?var\(--lr-panels\)/, 'em
 assert.match(stylesheet, /tactic-button\.pressure[\s\S]*?var\(--lr-panels\)/, 'pressure actions have dedicated painted material');
 assert.match(stylesheet, /--lr-scene:url\(/, 'museum night backdrop must be local');
 
+
+/* LR-006: chronological board must never leak locked clues. */
+const openingTimeline = getInvestigationTimeline(createGame());
+assert.deepEqual(openingTimeline.map(item => item.id), ['E01', 'E02']);
+assert.equal(openingTimeline.some(item => item.id === 'E05'), false, 'undiscovered alarm must remain hidden');
+assert.ok(openingTimeline.every(item => item.confrontation === '기록 확보'));
+assert.match(application, /data-action="timeline"/, 'case timeline needs a visible entry');
+assert.match(application, /data-action="confirm-new"/, 'reset requires explicit confirmation');
+assert.match(application, /hasInvestigationProgress\(\)/, 'ongoing cases must be protected');
+assert.match(stylesheet, /\.timeline-art\{/, 'timeline entries use painted evidence art');
 
 assert.equal(CASE.suspects.length, 3);
 assert.equal(CASE.questions.length, 7);
@@ -95,10 +105,13 @@ game = confrontEvidence(game, 'E04').state;
 game = { ...game, selectedSuspect: 'C' };
 for (const id of ['c-alarm', 'c-gallery', 'c-parcel']) game = askQuestion(game, id).state;
 assert.equal(game.discovered.length, 7);
+assert.deepEqual(getInvestigationTimeline(game).map(item => item.id), ['E04','E01','E03','E05','E06','E07','E02']);
+assert.equal(getInvestigationTimeline(game).find(item => item.id === 'E05').confrontation, '기록 확보');
 game = confrontEvidence(game, 'E05').state;
 game = confrontEvidence(game, 'E06').state;
 game = confrontEvidence(game, 'E07').state;
 assert.equal(game.confronted.length, 5);
+assert.equal(getInvestigationTimeline(game).find(item => item.id === 'E05').confrontation, '대질 완료');
 assert.equal(game.log.at(-1).who, '박도하');
 
 game = toggleProof(game, 'E05');

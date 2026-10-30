@@ -171,6 +171,26 @@ export function askQuestion(state, questionId) {
   return { state: next, added, message: next.log.at(-1).text };
 }
 
+// LR-006: only discovered evidence appears; unknown clues and the solution stay hidden.
+export function getInvestigationTimeline(state) {
+  const found = new Set(state.discovered || []);
+  const confronted = new Set(state.confronted || []);
+  return CASE.evidence
+    .filter(item => found.has(item.id))
+    .map(item => {
+      const match = CONFRONTATIONS.find(entry => entry.evidence === item.id);
+      return {
+        id: item.id,
+        stamp: item.stamp,
+        title: item.title,
+        source: item.source,
+        leads: item.leads,
+        confrontation: match && confronted.has(match.id) ? '대질 완료' : '기록 확보',
+      };
+    })
+    .sort((a, b) => a.stamp.localeCompare(b.stamp, 'ko') || a.id.localeCompare(b.id));
+}
+
 export function toggleProof(state, evidenceId) {
   if (!state.discovered.includes(evidenceId)) return state;
   if (state.proof.includes(evidenceId)) return { ...state, proof: state.proof.filter(id => id !== evidenceId) };

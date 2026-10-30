@@ -1,4 +1,4 @@
-import { CASE, GAME_VERSION, STORAGE_KEY, createGame, safeRestore, getSuspect, getEvidence, askQuestion, toggleProof, judgeAccusation, CONFRONTATIONS, getConfrontation, canConfront, confrontEvidence, TACTICS, getPsychology, applyTactic } from './core.mjs';
+import { CASE, GAME_VERSION, STORAGE_KEY, createGame, safeRestore, getSuspect, getEvidence, askQuestion, toggleProof, judgeAccusation, CONFRONTATIONS, getConfrontation, canConfront, confrontEvidence, TACTICS, getPsychology, applyTactic, getInvestigationTimeline } from './core.mjs';
 
 const root = document.querySelector('#app');
 const toastNode = document.querySelector('#toast');
@@ -37,6 +37,7 @@ function load() { try { return safeRestore(JSON.parse(localStorage.getItem(STORA
 function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); return true; } catch { return false; } }
 function update(next) { state = next; const ok = save(); render(); if (!ok) announce('브라우저 저장 공간에 접근하지 못했어. 새로고침하면 진행 기록이 사라질 수 있어.'); }
 function announce(message) { toastNode.hidden = false; toastNode.textContent = message; clearTimeout(toastTimeout); toastTimeout = setTimeout(() => { toastNode.hidden = true; }, 3600); }
+function hasInvestigationProgress() { return state.asked.length > 0 || state.discovered.length > 2 || state.tactics.length > 0 || state.confronted.length > 0 || state.proof.length > 0 || Boolean(state.result); }
 function revealLabel(ids) { return ids.length ? `새 증거 ${ids.length}개 발견 · ${ids.map(id => getEvidence(id)?.title).join(', ')}` : '진술을 확인했어.'; }
 
 function header() {
@@ -47,7 +48,7 @@ function header() {
 }
 
 function home() {
-  const canResume = state.asked.length > 0 || state.discovered.length > 2 || ['play', 'verdict', 'result'].includes(state.screen);
+  const canResume = hasInvestigationProgress() || ['play', 'verdict', 'result'].includes(state.screen);
   return `<main class="home-screen">
     <div class="home-hero">
       <div class="hero-copy"><p class="eyebrow">MYSTERY · SOCIAL DEDUCTION</p><h1>누구나 비밀은 있다.<br><em>하지만 모두가 범인은 아니다.</em></h1><p class="hero-lead">세 사람, 서로 다른 거짓말. 진실을 밝혀낼 단서는 이미 사건 안에 있다.</p><div class="hero-actions"><button class="primary-button" data-action="new">첫 사건 수사하기 <span aria-hidden="true">↗</span></button>${canResume ? '<button class="quiet-button" data-action="resume">이어하기</button>' : ''}</div></div>
@@ -110,14 +111,14 @@ function evidence() {
 }
 
 function play() {
-  return `<main class="play-screen"><div class="game-bar"><div><p class="eyebrow">ACTIVE INVESTIGATION</p><strong>${escapeHtml(CASE.title)}</strong></div><div class="progress-tags"><span>질문 ${state.asked.length}/${CASE.questions.length}</span><span>증거 ${state.discovered.length}/${CASE.evidence.length}</span><span>심리 ${state.tactics.length}/${TACTICS.length}</span><span class="confront-progress">대질 ${state.confronted.length}/${CONFRONTATIONS.length}</span><button class="plain-button" data-action="home">저장 후 나가기</button></div></div><div class="game-layout">${people()}${discussion()}${evidence()}</div></main>`;
+  return `<main class="play-screen"><div class="game-bar"><div><p class="eyebrow">ACTIVE INVESTIGATION</p><strong>${escapeHtml(CASE.title)}</strong></div><div class="progress-tags"><span>질문 ${state.asked.length}/${CASE.questions.length}</span><span>증거 ${state.discovered.length}/${CASE.evidence.length}</span><span>심리 ${state.tactics.length}/${TACTICS.length}</span><span class="confront-progress">대질 ${state.confronted.length}/${CONFRONTATIONS.length}</span><button class="timeline-button" data-action="timeline">수사 시간선</button><button class="plain-button" data-action="home">저장 후 나가기</button></div></div><div class="game-layout">${people()}${discussion()}${evidence()}</div></main>`;
 }
 
 function verdict() {
   return `<main class="verdict-screen"><article class="verdict-sheet"><p class="eyebrow">FINAL DEDUCTION</p><h1>누가 은빛 가면을 가져갔을까?</h1><p class="verdict-lead">한 명을 지목하고, 범행과 연결되는 서로 다른 출처의 증거를 두 개 이상 골라줘.</p>
     <div class="verdict-subhead">01 · 용의자 지목</div><div class="accuse-list">${CASE.suspects.map(item => `<button class="accuse-button ${state.accusation === item.id ? 'active' : ''}" data-action="accuse" data-id="${item.id}" aria-pressed="${state.accusation === item.id}"><span>${item.label}</span><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.role)}</small></button>`).join('')}</div>
     <div class="verdict-subhead">02 · 근거 선택 <small>${state.proof.length} / 3</small></div><div class="proof-list">${state.discovered.map(id => { const e = getEvidence(id); const selected = state.proof.includes(id); return `<button data-action="proof" data-id="${id}" class="proof-button ${selected ? 'active' : ''}" aria-pressed="${selected}"><span class="proof-check">${selected ? '✓' : '+'}</span><span><strong>${escapeHtml(e.title)}</strong><small>${escapeHtml(e.source)}</small></span></button>`; }).join('')}</div>
-    <div class="verdict-actions"><button class="quiet-button" data-action="back-to-play">추가 조사</button><button class="primary-button" data-action="submit" ${!state.accusation || state.proof.length < 2 ? 'disabled' : ''}>최종 고발하기 ↗</button></div>
+    <div class="verdict-actions"><button class="quiet-button" data-action="timeline">시간선 확인</button><button class="quiet-button" data-action="back-to-play">추가 조사</button><button class="primary-button" data-action="submit" ${!state.accusation || state.proof.length < 2 ? 'disabled' : ''}>최종 고발하기 ↗</button></div>
   </article></main>`;
 }
 
@@ -132,6 +133,11 @@ function result() {
 function renderModal() {
   if (!modal) return '';
   if (modal === 'help') return `<div class="modal-backdrop" data-action="close"><section class="modal-card" role="dialog" aria-modal="true" aria-label="게임 방법"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">HOW TO PLAY</p><h2>거짓말을 찾는 네 단계</h2><ol><li>관계자를 선택해 공감이나 압박으로 심리 반응을 관찰하고 질문해봐.</li><li>증거를 눌러 출처와 시간을 비교해.</li><li>해당 인물에게 증거를 직접 제시해 모순을 추궁해.</li><li>범인과 독립적인 증거를 두 개 이상 제출해.</li></ol><p class="modal-note">거짓말이 꼭 범죄를 뜻하지는 않아. 질문과 증거를 신중하게 연결해봐.</p></section></div>`;
+  if (modal === 'confirm-reset') return `<div class="modal-backdrop" data-action="close"><section class="modal-card reset-modal" role="dialog" aria-modal="true" aria-label="새 사건 시작 확인"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">CASE FILE / NOTICE</p><h2>현재 수사를 처음부터 시작할까?</h2><p>새 사건을 시작하면 현재 사건의 질문, 증거, 대질과 추리 기록이 초기화돼. 기존 기록을 계속 이어갈 수도 있어.</p><div class="reset-actions"><button class="quiet-button" data-action="close">기존 수사 유지</button><button class="primary-button" data-action="confirm-new">처음부터 다시 시작</button></div></section></div>`;
+  if (modal === 'timeline') {
+    const entries = getInvestigationTimeline(state);
+    return `<div class="modal-backdrop" data-action="close"><section class="modal-card timeline-modal" role="dialog" aria-modal="true" aria-label="수사 시간선"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">CHRONOLOGY / ${escapeHtml(CASE.id)}</p><h2>수사 시간선</h2><p class="timeline-lead">확보한 자료 ${entries.length}/${CASE.evidence.length}건 · 실제 확인한 기록만 시간순으로 정리했어. 시간선의 빈칸은 아직 확인되지 않았어.</p><div class="timeline-list">${entries.map(item => `<button class="timeline-entry" data-action="timeline-detail" data-id="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.stamp)} ${escapeHtml(item.title)} 증거 보기"><span class="timeline-time">${escapeHtml(item.stamp)}</span><span class="timeline-art art-${escapeHtml(item.id)}" aria-hidden="true"></span><span class="timeline-copy"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.source)}</small><em>${escapeHtml(item.leads)}</em></span><span class="timeline-status">${escapeHtml(item.confrontation)}</span></button>`).join('')}</div><p class="timeline-note">주의 · 거짓 진술 하나가 곧 범행 증거는 아니야. 서로 다른 출처의 기록을 교차 확인해.</p><button class="quiet-button" data-action="close">수사 화면으로 돌아가기</button></section></div>`;
+  }
   if (modal === 'history') return `<div class="modal-backdrop" data-action="close"><section class="modal-card history-modal" role="dialog" aria-modal="true" aria-label="심문 기록"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">INTERROGATION LOG</p><h2>심문 기록</h2><p class="psych-journal-title">심리 접근 ${state.tactics.length}/${TACTICS.length}건 · 긴장은 유죄의 증거가 아니야</p><div class="psych-journal">${state.tactics.map(id => { const t = TACTICS.find(item => item.id === id); return t ? `<div><strong>${escapeHtml(getSuspect(t.suspect).name)} · ${escapeHtml(t.label)}</strong><p>${escapeHtml(t.signal)}</p></div>` : ''; }).join('') || '<p>인물을 선택하고 심리 접근을 시도해봐.</p>'}</div><p class="confront-journal-title">증거 대질 ${state.confronted.length}/${CONFRONTATIONS.length}건</p><div class="confront-journal">${state.confronted.map(id => { const item = CONFRONTATIONS.find(c => c.id === id); return item ? `<div><strong>${escapeHtml(getSuspect(item.suspect).name)} · ${escapeHtml(getEvidence(item.evidence).title)}</strong><p>${escapeHtml(item.insight)}</p></div>` : ''; }).join('') || '<p>증거를 확보한 다음 해당 인물에게 직접 제시해봐.</p>'}</div><div class="transcript">${state.log.map(item => `<div class="transcript-entry"><strong>${escapeHtml(item.who)}</strong><p>${escapeHtml(item.text)}</p></div>`).join('')}</div></section></div>`;
   const e = getEvidence(modal);
   if (!e) return '';
@@ -185,9 +191,14 @@ root.addEventListener('click', event => {
     } else announce('먼저 관련 진술과 증거를 확보해야 해.');
     return;
   }
-  if (action === 'help' || action === 'history' || action === 'detail') { modal = action === 'detail' ? id : action; render(); return; }
+  if (action === 'help' || action === 'history' || action === 'detail' || action === 'timeline') { modal = action === 'detail' ? id : action; render(); return; }
+  if (action === 'timeline-detail') { if (state.discovered.includes(id)) { modal = id; render(); } return; }
+  if (action === 'confirm-new') { modal = ''; update({ ...createGame(), screen: 'intro' }); return; }
   if (action === 'home') { modal = ''; update({ ...state, screen: 'home' }); return; }
-  if (action === 'new') { modal = ''; update({ ...createGame(), screen: 'intro' }); return; }
+  if (action === 'new') {
+    if (hasInvestigationProgress()) { modal = 'confirm-reset'; render(); return; }
+    modal = ''; update({ ...createGame(), screen: 'intro' }); return;
+  }
   if (action === 'resume') { modal = ''; update({ ...state, screen: state.result ? 'result' : 'play' }); return; }
   if (action === 'enter') { update({ ...state, screen: 'play' }); return; }
   if (action === 'suspect') { update({ ...state, selectedSuspect: id }); return; }

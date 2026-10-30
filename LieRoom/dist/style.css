@@ -237,3 +237,31 @@
 .tactic-button.used{opacity:.76;filter:saturate(.58)}
 .tactic-button.used.empathy{color:#e5e9e3}
 .tactic-button.used.pressure{color:#ecd8cf}
+
+/* LR-006: illustrated chronological case board and protected restart. */
+.timeline-button{min-height:34px;border:1px solid #a58a65;border-radius:8px;padding:7px 12px;background-image:var(--lr-panels);background-size:200% 200%;background-position:0 0;color:#f8e8c8;font-weight:800;font-size:.77rem;text-shadow:0 1px 3px #17151a}
+.timeline-button:active,.timeline-entry:active{transform:translateY(1px)}
+.timeline-modal{width:min(100%,760px);background:linear-gradient(155deg,rgba(36,42,53,.94),rgba(25,30,41,.98)),var(--lr-scene);background-size:cover}
+.timeline-lead{font-size:.87rem;padding-right:28px}
+.timeline-list{position:relative;display:flex;flex-direction:column;gap:9px;padding:3px 1px}
+.timeline-list:before{content:"";position:absolute;left:55px;top:11px;bottom:13px;border-left:2px solid rgba(214,176,117,.5);pointer-events:none}
+.timeline-entry{position:relative;display:grid;grid-template-columns:45px 60px minmax(0,1fr) auto;align-items:center;gap:12px;min-width:0;padding:10px 12px;text-align:left;border:1px solid rgba(210,172,113,.45);border-radius:11px;background:linear-gradient(105deg,rgba(47,47,56,.94),rgba(32,39,49,.97));box-shadow:inset 0 0 0 1px rgba(255,234,184,.04)}
+.timeline-entry:hover{border-color:#e5bd81;background-color:#4d4040}
+.timeline-time{color:#f1c789;font:800 .85rem Georgia,serif;z-index:1;text-shadow:0 2px 4px #151923}
+.timeline-art{width:60px;height:53px;display:block;border:1px solid #a58a65;border-radius:7px;background-image:var(--lr-props);background-size:300% 300%;background-repeat:no-repeat}
+.timeline-copy{display:flex;flex-direction:column;gap:3px;min-width:0}.timeline-copy strong{font-size:.9rem}.timeline-copy small{font-size:.72rem;color:#cbbcaf}.timeline-copy em{font-size:.74rem;color:#e5c99e;line-height:1.35}
+.timeline-status{font-size:.69rem;color:#d3e9d8;border:1px solid rgba(146,197,161,.3);padding:4px 6px;border-radius:5px;white-space:nowrap}
+.timeline-note{font-size:.78rem;border-top:1px solid var(--edge);padding-top:10px}
+.reset-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:9px}.reset-actions>button{min-height:42px}
+@media(max-width:600px){
+  .timeline-button{font-size:.68rem;min-height:30px;padding:5px 7px}
+  .timeline-modal{padding:16px 12px;gap:11px}
+  .timeline-modal h2{font-size:1.35rem}
+  .timeline-entry{grid-template-columns:37px 45px minmax(0,1fr);gap:7px;padding:8px 7px}
+  .timeline-list:before{left:42px}
+  .timeline-art{width:45px;height:44px}
+  .timeline-time{font-size:.69rem}
+  .timeline-copy strong{font-size:.79rem}.timeline-copy small{font-size:.65rem}.timeline-copy em{font-size:.65rem}
+  .timeline-status{grid-column:3;justify-self:start;font-size:.61rem;padding:2px 4px}
+  .reset-actions{flex-direction:column}.reset-actions>button{width:100%}
+}
