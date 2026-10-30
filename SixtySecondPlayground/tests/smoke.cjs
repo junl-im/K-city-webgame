@@ -70,7 +70,7 @@ for(const game of games){
 }
 assert.match(guides.spot.steps.join(' '),/오른쪽/,'다른 그림 찾기는 오른쪽 판이 정답 터치 대상입니다');
 assert.match(guides.stroop.steps.join(' '),/실제 색/,'색깔 함정은 글자 색 구별을 설명해야 합니다');
-assert.match(guides.memory.steps.join(' '),/사라지고/,'기억왕은 별이 사라진 다음 누르는 구조입니다');
+assert.match(guides.memory.steps.join(' '),/바로 누르거나/,'기억왕은 별이 보일 때도 선택할 수 있어야 합니다');
 
 const mascots = ['lulu', 'momo', 'coco', 'dudu'];
 const required = [
@@ -357,7 +357,7 @@ assert.match(js, /error\.name==='AbortError'/, '사용자가 공유를 취소하
 assert.match(js, /copyFallback\(\)/, '공유 오류가 발생하면 복사 경로로 전환해야 합니다');
 assert.match(js, /matchMedia\('\(pointer:coarse\)'\)/, 'PC에서는 기본 공유창 대신 직접 복사를, 터치 기기에서는 네이티브 공유를 우선해야 합니다');
 
-assert.match(html, /\.\/app\.js\?v=20261030-quick-play-v39/, '빠른 문제 전환 JS는 새 캐시 버전으로 로드해야 합니다');
+assert.match(html, /\.\/app\.js\?v=20261030-answer-ready-v40/, '입력 활성화 JS는 새 캐시 버전으로 로드해야 합니다');
 
 console.log(`OK: ${games.length}개 게임, ${Object.keys(hostLines).length}명 안내원, ${questions.length}개 미스터리, 다른 그림 600판, 색 조합 66개, 9칸 중복 방지 1,800회, ${required.length}개 필수 WebP, SVG 0개`);
 
