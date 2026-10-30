@@ -414,7 +414,7 @@ function gameScreen() {
       <span class="table-play__flower table-play__flower--left" aria-hidden="true">✿</span>
       <span class="table-play__flower table-play__flower--right" aria-hidden="true">✿</span>
       <div class="captured-grid">${capturedRack(g,'computer')}</div>
-      <div class="center-status"><span class="status-orb"></span>${active}<span class="round-counter">${g.turnNumber+1}턴</span></div>
+      <div class="center-status"><span class="status-orb"></span>${active}<span class="round-counter">${g.turnNumber+1}턴</span>${(g.roundMultiplier || 1)>1?`<strong class="round-multiplier" aria-label="이번 판 정산 ${g.roundMultiplier}배">${g.roundMultiplier}배 판</strong>`:''}</div>
       <div class="field-heading"><strong>바닥패 ${floor.length}장</strong><span>같은 무늬를 맞춰 획득!</span></div>
       <div class="field-row">
         <div class="deck-pile">${cardBack()}<small>남은 패 <b>${g.drawPile.length}</b></small></div>
@@ -484,7 +484,7 @@ function gameOverlay(g) {
         <div><span>${nagari?'다음 판 배수':win?'획득 놀이머니':'사용 놀이머니'}</span><strong class="${win?'positive':''}">${nagari?'×'+app.nextMultiplier:(win?'+':'−')+kr(amount)+' 냥'}</strong></div></div>
       <div class="result-wallet">보유 놀이머니 <b>✦ ${kr(app.wallet)}냥</b></div>
       <div class="result-actions">${btn('다음 판 치기','next','btn--primary btn--wide')}
-        ${win && hasEnoughForTable(app.wallet, g.pointValue * 2) ? btn('묻고 더블! 다음 판 점수 2배','next-double','btn--warm btn--wide') : ''}
+        ${win && hasEnoughForTable(app.wallet, g.pointValue * 2) ? `${btn('묻고 더블! 다음 판 점수 2배','next-double','btn--warm btn--wide')}<small class="double-explanation">다음 판은 승리와 패배 모두 정산 점수가 2배예요.</small>` : ''}
         ${canEmergencyRecharge(app.wallet)?btn('긴급 무료 충전 +30만 냥','recharge','btn--ghost btn--wide'):''}
         ${btn('메인으로','home','btn--quiet')}</div>
     </section></div>`;
@@ -774,9 +774,9 @@ function clearOpening() {
 
 function finishOpening() {
   if (!opening || !opening.winner || app.screen !== 'opening') return;
-  const {seed, winner, rematch} = opening;
+  const {seed, winner, rematch, roundMultiplier} = opening;
   clearOpening();
-  app.game = createInitialGame(seed,app.difficulty,app.stake,winner,app.nextMultiplier);
+  app.game = createInitialGame(seed,app.difficulty,app.stake,winner,roundMultiplier);
   if (!rematch && app.game.phase !== 'round-ended') {
     app.game.lastAction = `${winner === 'human' ? '내가' : '상대가'} 선 뽑기에서 이겨 먼저 칩니다.`;
   }
@@ -813,7 +813,7 @@ function pickOpeningDealer(index) {
   } catch(error) { console.error('Dealer selection failed:',error); }
 }
 
-function startNew(rematch = false) {
+function startNew(rematch = false, roundMultiplier = app.nextMultiplier) {
   app.stake = normalizeStake(app.difficulty,app.stake);
   if (!hasEnoughForTable(app.wallet, app.stake)) {
     overlay=null; effects(canEmergencyRecharge(app.wallet)?'오링! 긴급 충전을 이용해줘!':'더 낮은 판을 선택해줘!');
@@ -826,6 +826,7 @@ function startNew(rematch = false) {
     rematch,
     daytime: new Date().getHours() >= 6 && new Date().getHours() < 18
   });
+  opening.roundMultiplier = roundMultiplier;
   if (!rematch) app.game=null;
   app.screen='opening';selectedMatch=null;overlay=null;
   save();render();
@@ -859,7 +860,7 @@ function mutate(action, value, cardId) {
     case 'next': startNew(true);return;
     case 'next-double':
       if (!app.game || app.game.phase!=='round-ended' || app.game.winner!=='human' || app.game.roundResult==='nagari' || !hasEnoughForTable(app.wallet,app.game.pointValue*2)) return;
-      app.nextMultiplier=2; startNew(true);return;
+      startNew(true,2);return;
     case 'recharge':
       if (!canEmergencyRecharge(app.wallet)) { effects('오링일 때만 긴급 충전할 수 있어');render();return; }
       app.wallet+=EMERGENCY_RECHARGE;
