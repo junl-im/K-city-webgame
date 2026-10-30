@@ -422,3 +422,13 @@ button[aria-pressed="true"],button[aria-selected="true"]{outline-offset:-3px}
 .clue-graphic{border-style:solid;box-shadow:inset 0 0 18px rgba(8,13,21,.4)}
 .toast{border:2px solid #d4a973;background:#302c32;box-shadow:0 8px 28px rgba(0,0,0,.55)}
 @media(max-width:600px){.game-bar{padding-bottom:3px}.people-pane,.interrogation-pane,.evidence-pane{box-shadow:inset 0 0 0 1px rgba(244,208,151,.06)}.person-item:before,.evidence-card:before{inset:2px}.modal-card{border-width:1px}}
+
+
+/* LR-015 investigation reveal: cinematic, unobtrusive, CSS-only; no SVG */
+.reveal-moment{position:fixed;inset:0;z-index:1100;display:grid;place-items:center;pointer-events:none;background:rgba(6,10,17,.48);animation:lr-reveal-in .18s ease-out}
+.reveal-moment-inner{width:min(520px,calc(100vw - 32px));padding:25px 28px;border:2px solid #d5aa73;border-top:5px solid #f0ca8c;border-radius:10px;background:linear-gradient(145deg,#303342,#171e2b);box-shadow:0 22px 65px #000b,inset 0 0 0 3px #cfa96b20;text-align:center;display:grid;gap:9px}
+.reveal-moment-inner small{font-size:11px;letter-spacing:.2em;color:#c3a67e}
+.reveal-moment-inner strong{font-size:clamp(21px,4vw,31px);color:#ffe2b4;text-shadow:0 2px 12px #000}
+.reveal-moment-inner span{font-size:14px;line-height:1.6;color:#eee1cf}
+@keyframes lr-reveal-in{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.reveal-moment{animation:none}}
