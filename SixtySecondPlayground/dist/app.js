@@ -774,16 +774,41 @@
     window.history.pushState({view:next},'',url.pathname+url.search);
     renderView(next,true);
   }
+  const arcadeHadPrevious=history.state?.arcadeHadPrevious ?? (history.length>1 && Boolean(document.referrer));
+  if(!history.state?.arcadeGuard){
+    const incoming=location.pathname+location.search+location.hash;
+    const home=new URL(location.href);home.searchParams.delete('view');home.hash='';
+    history.replaceState({arcadeBase:true,arcadeHadPrevious},'',home.pathname+home.search);
+    history.pushState({arcadeGuard:true,arcadeHadPrevious},'',incoming);
+  }
+  function showArcadeExit(){
+    modal('<div class="modal-title" id="modalTitle">'+artIcon('star')+' 놀이공원을 나갈까?</div><p class="helper-text">잠깐 쉬어 가도 괜찮아! 기록은 이 기기에 남아 있어.</p><button class="action-button illustrated-primary" id="arcadeStay" type="button">'+artIcon('play')+'계속 놀기</button><button class="action-button secondary" id="arcadeLeave" type="button">'+artIcon('scroll')+'나가기</button>');
+    $('#arcadeStay').addEventListener('click',closeModal);
+    $('#arcadeLeave').addEventListener('click',function(){closeModal();if(arcadeHadPrevious&&history.length>2)history.go(-2);else location.assign('https://meta-deee1.web.app/ai-cleaner/');});
+    $('#arcadeStay').focus();
+  }
   $$('#heroDaily, #dailyCardStart').forEach(function(b){b.addEventListener('click',function(){preview(dailyGame().id,!hasDaily());});});
   $('#heroExplore').addEventListener('click',function(){navigateView('games');});
   $('#backHome').addEventListener('click',function(){navigateView('home');});
   $('.brand').addEventListener('click',function(event){event.preventDefault();navigateView('home');});
-  window.addEventListener('popstate',function(){
+  window.addEventListener('popstate',function(event){
     if(sessionHistoryCleanup){sessionHistoryCleanup=false;return;}
     if(session){
       // Restore a same-page guard so Back pauses rather than abandoning the round.
       history.pushState(Object.assign({},history.state,{sixtyGameSession:true}),'',location.href);
       showPause('exit');return;
+    }
+    if(event.state?.arcadeBase){
+      history.pushState({arcadeGuard:true,arcadeHadPrevious},'',location.href);
+      if(!$('#overlay').classList.contains('hidden')){closeModal();return;}
+      if(document.body.dataset.view!=='home'){renderView('home',true);return;}
+      showArcadeExit();return;
+    }
+    if(!$('#overlay').classList.contains('hidden')){
+      const view=document.body.dataset.view;const url=new URL(location.href);
+      if(view==='games')url.searchParams.set('view','games');else url.searchParams.delete('view');
+      history.pushState({view,arcadeHadPrevious},'',url.pathname+url.search);
+      closeModal();return;
     }
     renderView(currentView(),true);
   });
