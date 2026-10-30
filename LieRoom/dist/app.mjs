@@ -119,11 +119,14 @@ function discussion() {
   const questions = CASE.questions.filter(item => item.suspect === person.id);
   const mood = getPsychology(state, person.id);
   const tactics = TACTICS.filter(item => item.suspect === person.id);
+  const total = CASE.questions.filter(item => item.suspect === person.id).length;
+  const asked = questions.filter(item => state.asked.includes(item.id)).length;
+  const signal = mood.stress >= 2 ? '상대가 경계하고 있어. 표정보다 객관적인 기록을 확인해.' : mood.trust >= 2 ? '대화가 부드러워졌어. 아직 진술을 증거로 검증해야 해.' : '중립적인 분위기야. 먼저 동선을 확인해봐.';
   return `<section class="interrogation-pane">
     ${portrait()}
     <div class="dialogue-panel"><div class="dialogue-heading"><strong>${escapeHtml(person.name)}</strong><span>진술 확인</span></div><p>${escapeHtml(text)}</p></div>
-    <div class="psychology-panel" aria-label="심리 접근"><div class="psy-head"><strong>심리 접근</strong><span>신뢰 ${mood.trust} · 긴장 ${mood.stress} · ${escapeHtml(mood.label)}</span></div><div class="tactic-list">${tactics.map(tactic => `<button class="tactic-button ${tactic.tone} ${state.tactics.includes(tactic.id) ? 'used' : ''}" data-action="tactic" data-id="${escapeHtml(tactic.id)}" ${state.tactics.includes(tactic.id) ? 'disabled' : ''}>${escapeHtml(tactic.label)} ${state.tactics.includes(tactic.id) ? '✓' : '↗'}</button>`).join('')}</div></div>
-    <div class="question-panel"><div class="pane-title"><span>QUESTION</span><strong>어떤 질문을 하겠어?</strong></div><div class="question-list">${questions.map((question, index) => `<button class="question-button" data-action="ask" data-id="${question.id}" ${state.asked.includes(question.id) ? 'disabled' : ''}><span>${index + 1 < 10 ? `0${index + 1}` : index + 1}</span><strong>${escapeHtml(question.title)}</strong><span class="question-arrow">${state.asked.includes(question.id) ? '확인' : '↗'}</span></button>`).join('')}</div></div>
+    <div class="psychology-panel" aria-label="심리 접근"><div class="psy-head"><strong>심리 접근</strong><span>신뢰 ${mood.trust} · 긴장 ${mood.stress} · ${escapeHtml(mood.label)}</span></div><div class="psy-meters"><div class="psy-meter"><span>신뢰</span><div class="psy-meter-track"><i style="width:${Math.min(100,mood.trust/3*100)}%"></i></div></div><div class="psy-meter stress"><span>긴장</span><div class="psy-meter-track"><i style="width:${Math.min(100,mood.stress/3*100)}%"></i></div></div></div><p class="psy-signal">${escapeHtml(signal)}</p><div class="tactic-list">${tactics.map(tactic => `<button class="tactic-button ${tactic.tone} ${state.tactics.includes(tactic.id) ? 'used' : ''}" data-action="tactic" data-id="${escapeHtml(tactic.id)}" ${state.tactics.includes(tactic.id) ? 'disabled' : ''}>${escapeHtml(tactic.label)} ${state.tactics.includes(tactic.id) ? '✓' : '↗'}</button>`).join('')}</div></div>
+    <div class="question-panel"><div class="pane-title"><span>QUESTION</span><strong>어떤 질문을 하겠어? (${asked}/${total})</strong></div><div class="question-list">${questions.map((question, index) => `<button class="question-button" data-action="ask" data-id="${question.id}" ${state.asked.includes(question.id) ? 'disabled' : ''}><span>${index + 1 < 10 ? `0${index + 1}` : index + 1}</span><strong>${escapeHtml(question.title)}</strong><span class="question-arrow">${state.asked.includes(question.id) ? '확인' : '↗'}</span></button>`).join('')}</div></div>
   </section>`;
 }
 
