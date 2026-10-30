@@ -1220,6 +1220,29 @@ async function start() {
     showGuide(loc); updateHud(); persist(); drawPlots();
     refreshCamera(true);
   }
+
+  // Browser Back closes the current panel, then returns to town, then asks to leave.
+  const gardenHadPreviousPage = history.state?.gardenHadPreviousPage ?? history.length > 1;
+  if (!history.state?.gardenBackGuard) {
+    history.replaceState({ ...history.state, gardenBackBase: true, gardenHadPreviousPage }, '', location.href);
+    history.pushState({ ...history.state, gardenBackBase: false, gardenBackGuard: true }, '', location.href);
+  }
+  window.addEventListener('popstate', () => {
+    if (!history.state?.gardenBackBase) return;
+    history.pushState({ ...history.state, gardenBackBase: false, gardenBackGuard: true }, '', location.href);
+    if (!modalRoot.classList.contains('hidden')) { closeModal(); return; }
+    if (currentZone !== 'town') { switchZone('town'); return; }
+    openModal('마법정원에서 나갈까?', '<p>잠깐 쉬어 가도 괜찮아. 정원은 이 기기에 저장돼 있어!</p><button type="button" class="link-button" data-garden-exit="stay">계속 놀기</button><button type="button" class="link-button secondary-action" data-garden-exit="leave">나가기</button>');
+  });
+  modalContent.addEventListener('click', (event) => {
+    const action = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-garden-exit]')?.dataset.gardenExit;
+    if (action === 'stay') closeModal();
+    if (action === 'leave') {
+      closeModal();
+      if (gardenHadPreviousPage && history.length > 2) history.go(-2);
+      else location.assign('https://meta-deee1.web.app/ai-cleaner/');
+    }
+  });
   // Camera follows the character gently, but viewport or zone changes snap to a safe target.
   function refreshCamera(instant = false, elapsedMs = 16.667) {
     const width = Math.max(1, stageElement.clientWidth);
