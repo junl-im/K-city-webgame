@@ -5,6 +5,32 @@ const toastNode = document.querySelector('#toast');
 let state = load();
 let modal = '';
 let toastTimeout;
+const SFX_KEY = 'gomfox.lie-room.sfx';
+let sfxEnabled = false;
+let audioContext = null;
+try { sfxEnabled = localStorage.getItem(SFX_KEY) === 'on'; } catch {}
+
+function playSfx(kind = 'clue') {
+  if (!sfxEnabled) return;
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    audioContext ||= new AudioContextClass();
+    if (audioContext.state === 'suspended') audioContext.resume();
+    const now = audioContext.currentTime;
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    const frequencies = { clue: 610, tactic: 440, confront: 320, correct: 760, wrong: 220 };
+    oscillator.type = kind === 'confront' ? 'triangle' : 'sine';
+    oscillator.frequency.setValueAtTime(frequencies[kind] || 480, now);
+    oscillator.frequency.exponentialRampToValueAtTime((frequencies[kind] || 480) * 1.22, now + .13);
+    gain.gain.setValueAtTime(.0001, now);
+    gain.gain.exponentialRampToValueAtTime(.065, now + .022);
+    gain.gain.exponentialRampToValueAtTime(.0001, now + .2);
+    oscillator.connect(gain); gain.connect(audioContext.destination);
+    oscillator.start(now); oscillator.stop(now + .21);
+  } catch { /* Browsers without Web Audio remain fully playable. */ }
+}
 
 function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]); }
 function load() { try { return safeRestore(JSON.parse(localStorage.getItem(STORAGE_KEY))); } catch { return createGame(); } }
@@ -16,7 +42,7 @@ function revealLabel(ids) { return ids.length ? `새 증거 ${ids.length}개 발
 function header() {
   return `<header class="topbar">
     <button class="brand" data-action="home" aria-label="거짓말의 방 메인으로"><span class="brand-seal">狐</span><span><strong>거짓말의 방</strong><small>곰같은여우의 추리 기록</small></span></button>
-    <div class="top-actions"><span class="pilot-mark">CASE FILE / 001</span><button class="round-button" data-action="help" aria-label="게임 안내">?</button></div>
+    <div class="top-actions"><span class="pilot-mark">CASE FILE / 001</span><button class="sound-button" data-action="sfx" aria-pressed="${sfxEnabled}" aria-label="효과음 ${sfxEnabled ? '끄기' : '켜기'}">${sfxEnabled ? '효과음 켬' : '효과음 끔'}</button><button class="round-button" data-action="help" aria-label="게임 안내">?</button></div>
   </header>`;
 }
 
@@ -57,7 +83,7 @@ function portrait() {
   const person = getSuspect(state.selectedSuspect);
   const mood = getPsychology(state, person.id);
   const moodClass = mood.label === '경계' ? 'mood-guard' : mood.label === '신뢰' ? 'mood-trust' : 'mood-cautious';
-  return `<div class="portrait-stage ${person.color} ${moodClass}"><div class="window-blind"></div><div class="portrait-mark">${person.label}</div><div class="portrait-shine"></div><div class="portrait-name"><span>WITNESS ${person.label}</span><strong>${escapeHtml(person.name)}</strong><small>${escapeHtml(person.role)}</small></div><span class="portrait-hint">심리 신호 · ${escapeHtml(mood.label)} / 증언만으로 단정 금지</span></div>`;
+  return `<div class="portrait-stage ${person.color} ${moodClass}"><div class="portrait-art person-${person.id}" aria-hidden="true"></div><div class="window-blind"></div><div class="portrait-mark">${person.label}</div><div class="portrait-shine"></div><div class="portrait-name"><span>WITNESS ${person.label}</span><strong>${escapeHtml(person.name)}</strong><small>${escapeHtml(person.role)}</small></div><span class="portrait-hint">심리 신호 · ${escapeHtml(mood.label)} / 증언만으로 단정 금지</span></div>`;
 }
 
 function discussion() {
@@ -130,12 +156,21 @@ root.addEventListener('click', event => {
   if (!button || button.disabled) return;
   const action = button.dataset.action;
   const id = button.dataset.id;
+  if (action === 'sfx') {
+    sfxEnabled = !sfxEnabled;
+    try { localStorage.setItem(SFX_KEY, sfxEnabled ? 'on' : 'off'); } catch {}
+    render();
+    playSfx('clue');
+    announce(`효과음 ${sfxEnabled ? '켜짐' : '꺼짐'}`);
+    return;
+  }
   if (action === 'close' && event.target.closest('.modal-card') && event.target !== button) return;
   if (action === 'close') { modal = ''; render(); return; }
   if (action === 'tactic') {
     const reaction = applyTactic(state, id);
     if (reaction.state !== state) {
       update(reaction.state);
+      playSfx('tactic');
       announce(`심리 신호 · ${reaction.signal}`);
     } else announce('이미 사용했거나 현재 인물에게 사용할 수 없는 접근이야.');
     return;
@@ -145,6 +180,7 @@ root.addEventListener('click', event => {
     if (confrontation.state !== state) {
       modal = '';
       update(confrontation.state);
+      playSfx('confront');
       announce(`대질 완료 · ${confrontation.insight}`);
     } else announce('먼저 관련 진술과 증거를 확보해야 해.');
     return;
@@ -158,6 +194,7 @@ root.addEventListener('click', event => {
   if (action === 'ask') {
     const answer = askQuestion(state, id);
     update(answer.state);
+    if (answer.added.length) playSfx('clue');
     announce(revealLabel(answer.added));
     return;
   }
@@ -168,6 +205,7 @@ root.addEventListener('click', event => {
   if (action === 'submit') {
     const outcome = judgeAccusation(state.accusation, state.proof);
     update({ ...state, screen: 'result', result: outcome });
+    playSfx(outcome.kind === 'correct' ? 'correct' : 'wrong');
   }
 });
 
