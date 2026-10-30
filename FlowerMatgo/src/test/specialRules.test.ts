@@ -20,7 +20,7 @@ describe('맞고 특수 규칙', () => {
   it('손패 같은 월 3장에 맞는 바닥패가 없으면 흔들기를 허용한다', () => {
     const options = findShakeOptions(['m03-01', 'm03-02', 'm03-03'], ['m01-01']);
     expect(options).toEqual([{ month: 3, handCardIds: ['m03-01', 'm03-02', 'm03-03'] }]);
-    expect(findShakeOptions(['m03-01', 'm03-02', 'm03-03'], ['m03-04'])).toHaveLength(0);
+    expect(findShakeOptions(['m03-01', 'm03-02', 'm03-03'], ['m03-04'])).toHaveLength(1);
     expect(findShakeOptions(['m03-01', 'm03-02', 'm03-03'], [], [3])).toHaveLength(0);
   });
 

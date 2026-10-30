@@ -15,6 +15,13 @@ const MOMENTS = Object.freeze({
 export const SPECIAL_FLASH_MS = 1540;
 
 export function specialMoment(kind, originalText='') {
+  if (kind === 'go') {
+    const text = String(originalText || '');
+    const count = Math.max(1, Number(text.match(/(\d+)고/)?.[1]) || 1);
+    const rival = text.startsWith('상대');
+    const detail = count >= 7 ? '멈출 수 없는 연속 고!' : count >= 4 ? '점점 더 뜨거워지는 승부!' : count >= 2 ? '한 번 더 도전!' : '승부를 이어가요!';
+    return {kind:'go',title:`${rival?'상대 ':''}${count}고!`,detail,major:count>=3};
+  }
   const normalized = Object.hasOwn(MOMENTS,kind) ? kind : 'special';
   const text = String(originalText || '').trim();
   const fixed = MOMENTS[normalized];

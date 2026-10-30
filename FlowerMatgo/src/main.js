@@ -38,7 +38,7 @@ const safe = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 const defaultSave = () => ({
   screen: 'home', difficulty: 'normal', stake: 100, wallet: BASE_WALLET,
   stats: {wins:0, losses:0, draws:0, high:0, rounds:0},
-  game: null, settledUuid: null, nextMultiplier: 1, sound: true, autoMode: false
+  game: null, settledUuid: null, nextMultiplier: 1, sound: true, autoMode: false, pendingGookjinChoice: false
 });
 
 function loadSave() {
@@ -56,6 +56,7 @@ function loadSave() {
     if (!Number.isFinite(save.wallet)) save.wallet = BASE_WALLET;
     save.wallet = Math.max(0, Math.round(save.wallet));
     if (save.game && !isValidGameState(save.game)) save.game = null;
+    save.pendingGookjinChoice = save.pendingGookjinChoice === true && !!save.game?.humanCaptured?.includes('m09-01') && save.settledUuid !== save.game.gameUuid;
     save.screen = save.game && save.screen === 'game' ? 'game' : 'home';
     return save;
   } catch {
@@ -67,6 +68,7 @@ let overlay = null;
 let galleryOwner = 'human';
 let galleryType = null;
 let selectedMatch = null;
+let selectedTriple = app.game?.phase==='playing' && app.game?.currentPlayer==='human' && app.game?.humanPendingShakeMonth ? {month:app.game.humanPendingShakeMonth,mode:'shake'} : null;
 let aiTimer = null;
 let fxTimer = null;
 let flash = '';
@@ -426,7 +428,7 @@ function gameScreen() {
       <div class="player-status"><div><span class="mascot mascot--bear player-mini-avatar" aria-hidden="true"></span><span class="me-badge">나</span><strong>${me.total}점</strong><span class="go-count">${g.humanGoCount ? g.humanGoCount+'고' : '고 없음'}</span></div><span class="player-controls">${humanTurnSignature(app.screen,g) ? `<span class="turn-clock" role="timer" aria-label="내 차례 남은 시간"><span class="turn-clock__time"><strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</span><span class="turn-clock__rail"><span class="turn-clock__fill" data-turn-fill></span></span></span>` : '<span class="turn-clock turn-clock--waiting">상대 차례</span>'}<button type="button" class="action-chip action-chip--auto ${app.autoMode?'is-on':''}" data-action="automode" aria-pressed="${app.autoMode}">자동 ${app.autoMode?'ON':'OFF'}</button></span></div>
       ${capturedRack(g)}
       <div class="hand-heading"><strong>내 패 ${hand.length}장</strong> <span>${yourTurn?'패를 눌러 내기':'상대 차례'}</span></div>
-      <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{action:yourTurn?'play':null,matchHint:g.phase==='playing' && (!yourTurn || !pending || getCard(id)?.month===pending) && getMatchingFloorCards(g.floorCards,id).length>0})).join('') : '<span class="no-cards">손패를 모두 냈어!</span>'}</div>
+      <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{action:yourTurn?'play':null,matchHint:g.phase==='playing' && (!yourTurn || !pending || getCard(id)?.month===pending) && getMatchingFloorCards(g.floorCards,id).length>0})).join('') : ((g.humanBombSkips || 0)?'':'<span class="no-cards">손패를 모두 냈어!</span>')}${Array.from({length:g.humanBombSkips || 0},(_,index)=>`<button type="button" class="bomb-empty-card" data-action="flip" aria-label="폭탄 빈 패 ${index+1}, 사용하면 더미만 뒤집기" ${yourTurn && !pending?'':'disabled'}><span>빈 패</span><small>뒤집기</small></button>`).join('')}</div>
       <div class="action-row">${specialActionCount ? `<span class="action-row__desktop-special">${specialActionButtons}</span><details class="action-special-menu"><summary class="action-chip action-chip--special" aria-label="특수 동작 ${specialActionCount}개 펼치기">✿ 특수 ${specialActionCount}</summary><div class="action-special-menu__list" role="group" aria-label="특수 동작 선택">${specialActionButtons}</div></details>` : ''}<button type="button" class="action-chip action-chip--muted sound-control" data-action="sound" aria-label="${app.sound?'소리 켜짐':'소리 꺼짐'}" title="${app.sound?'소리 켜짐':'소리 꺼짐'}">${uiIcon('bell')} ${app.sound?'소리 켜짐':'소리 꺼짐'}</button></div>
     </div>
     ${flash ? (()=>{const moment=specialMoment(flashKind,flash);return `<div class="effect-burst effect-burst--${safe(moment.kind)} ${moment.major?'effect-burst--major':'effect-burst--minor'}" role="status" aria-live="assertive"><span class="effect-burst__illustration" aria-hidden="true"></span><strong class="effect-burst__headline">${safe(moment.title)}</strong>${moment.detail?`<small class="effect-burst__detail">${safe(moment.detail)}</small>`:''}</div>`;})() : ''}
@@ -435,8 +437,16 @@ function gameScreen() {
 }
 
 function gameOverlay(g) {
+  if (app.pendingGookjinChoice || overlay==='gookjin-choice') return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--choice" role="dialog" aria-modal="true" aria-labelledby="gookjin-choice-title">
+    <div class="decision-kicker">국진 · 9월 열끗</div><h2 id="gookjin-choice-title">국진을 어떻게 쓸까요?</h2><p class="decision-hint">열끗 또는 피 두 장으로 계산해요. 나중에 다시 바꿀 수 있어요.</p>
+    <div class="gookjin-card">${card('m09-01')}</div><div class="choice-actions"><button type="button" class="btn decision-option" data-action="gookjin-set" data-value="animal"><strong>열끗으로</strong><small>그림 패</small></button><button type="button" class="btn decision-option decision-option--go" data-action="gookjin-set" data-value="junk"><strong>쌍피로</strong><small>피 2장</small></button></div></section></div>`;
   if (overlay==='captures') return capturedGallery(g, galleryOwner, galleryType);
   if (overlay==='cardbook') return cardbookOverlay();
+  if (selectedTriple) {
+    const triple=selectedTriple, ids=g.humanHand.filter(id=>getCard(id)?.month===triple.month);
+    const bomb=findBombOptions(g.humanHand,g.floorCards,true).some(b=>b.month===triple.month && b.kind==='three-card-bomb');
+    return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--match triple-choice" role="dialog" aria-modal="true" aria-labelledby="triple-title"><div class="decision-kicker">${hwatuFamily(triple.month)} 세 장</div><h2 id="triple-title">${triple.mode==='shake'?'낼 패 한 장을 골라주세요':'어떻게 낼까요?'}</h2><p class="decision-hint">${triple.mode==='shake'?'흔들기를 선언했어요. 세 장 중 한 장을 내세요.':'흔들거나 폭탄으로 한 번에 낼 수 있어요.'}</p><div class="match-choices">${ids.map(id=>card(id,{action:triple.mode==='shake'?'triple-shake-card':null})).join('')}</div>${triple.mode==='choice'?`<div class="choice-actions"><button class="btn decision-option" type="button" data-action="triple-shake"><strong>흔들기</strong><small>한 장 골라 내기</small></button>${bomb?'<button class="btn decision-option decision-option--go" type="button" data-action="triple-bomb"><strong>폭탄</strong><small>세 장 내고 빈 차례 2회</small></button>':''}</div><div class="triple-secondary"><button type="button" class="btn btn--ghost" data-action="triple-ordinary">그냥 한 장 내기</button><button type="button" class="btn btn--quiet" data-action="triple-cancel">돌아가기</button></div>`:''}</section></div>`;
+  }
   if (selectedMatch) {
     return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--match" role="dialog" aria-modal="true" aria-labelledby="match-choice-title" aria-describedby="match-choice-help">
       <div class="decision-kicker">같은 무늬 2장</div><h2 id="match-choice-title">먹을 패를 골라줘!</h2>
@@ -550,7 +560,7 @@ function syncTurnClock() {
   }
   // A backgrounded mobile browser can suspend timers while wall time keeps
   // passing. Preserve the player's remaining time until they return.
-  const blocked = turnTransition || !!overlay || document.hidden;
+  const blocked = turnTransition || !!overlay || !!selectedTriple || app.pendingGookjinChoice || document.hidden;
   if (blocked) {
     if (!clockPaused) {
       clockRemaining = Math.max(0, clockDeadline - performance.now());
@@ -583,7 +593,7 @@ function syncTurnClock() {
 function autoTakeTurn(forced = false) {
   const g = app.game;
   if ((!forced && !app.autoMode) || !humanTurnSignature(app.screen,g) || turnTransition || overlay || document.hidden) return;
-  if (selectedMatch) { humanPlay(selectedMatch.cardId,selectedMatch.matches[0]); return; }
+  if (selectedMatch) { humanPlay(selectedMatch.cardId,selectedMatch.matches[0],true); return; }
   if (g.phase === 'awaiting-go-stop') { mutate('stop'); return; }
   if (g.phase === 'awaiting-chongtong') { mutate('chongtong-stop'); return; }
   if (g.phase !== 'playing' || g.currentPlayer !== 'human') return;
@@ -599,12 +609,12 @@ function autoTakeTurn(forced = false) {
       const id = chooseAiCard(structuredClone(g), 'human', 'normal');
       if (id) {
         const matches = getMatchingFloorCards(g.floorCards,id);
-        humanPlay(id, matches.length === 2 ? matches[0] : undefined);
+        humanPlay(id, matches.length === 2 ? matches[0] : undefined,true);
       }
       return;
     }
     const matches = getMatchingFloorCards(g.floorCards,move.cardId);
-    humanPlay(move.cardId,move.playedMatchId || (matches.length===2 ? matches[0] : undefined));
+    humanPlay(move.cardId,move.playedMatchId || (matches.length===2 ? matches[0] : undefined),true);
   } catch (error) {
     console.error('Automatic turn failed:',error);
     effects('다시 패를 선택해 줘');
@@ -615,7 +625,7 @@ function autoTakeTurn(forced = false) {
 }
 function finishRound() {
   const g = app.game;
-  if (!g || g.phase!=='round-ended' || app.settledUuid===g.gameUuid) return;
+  if (!g || app.pendingGookjinChoice || g.phase!=='round-ended' || app.settledUuid===g.gameUuid) return;
   app.settledUuid = g.gameUuid;
   app.stats.rounds++;
   if (g.roundResult === 'nagari') {
@@ -679,6 +689,7 @@ function showScoreSet(player, combo) {
   setTimeout(() => label.remove(), 1320);
 }
 function commitGame(next, result=null, motion=null) {
+  const gotGookjin = !!result && !app.game?.humanCaptured?.includes('m09-01') && next.humanCaptured.includes('m09-01');
   if (result && motion && app.screen==='game' && !turnTransition) {
     turnTransition = true;
     const scene = ROOT.querySelector('.scene--game');
@@ -687,7 +698,7 @@ function commitGame(next, result=null, motion=null) {
     syncTurnClock();
     // Keep the old cards visible while they fly, but checkpoint the resolved
     // engine state now. Reloading during the flight must never replay a turn.
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ ...app, game: next })); }
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ ...app, game: next, pendingGookjinChoice: app.pendingGookjinChoice || gotGookjin })); }
     catch { /* In-memory play is still supported when storage is unavailable. */ }
     let wait = 0;
     try { wait = animateResolvedTurn({root:ROOT, result, cardHTML:id=>card(id), sound:cardSound, ...motion}); }
@@ -711,6 +722,7 @@ function commitGame(next, result=null, motion=null) {
     newlyCompletedCombos(scoreOf(previous,player),scoreOf(next,player))
       .map(combo => ({player,combo}))) : [];
   app.game = next;
+  if (gotGookjin) app.pendingGookjinChoice = true;
   if (result?.specialEvents?.length) effects(result.specialEvents.map(e=>e.label).join(' · '), 'special', specialPresentation(result)?.kind || 'special');
   finishRound();
   save(); render();
@@ -723,7 +735,7 @@ function queueAI() {
   clearTimeout(aiTimer);
   if (turnTransition) return;
   const g=app.game;
-  if (app.screen!=='game' || !g || g.phase==='round-ended' || selectedMatch || overlay) return;
+  if (app.screen!=='game' || !g || g.phase==='round-ended' || selectedMatch || selectedTriple || overlay || app.pendingGookjinChoice) return;
   const computerChoice = g.pendingDecision==='computer' && (g.phase==='awaiting-go-stop' || g.phase==='awaiting-chongtong');
   if (!computerChoice && !(g.phase==='playing' && g.currentPlayer==='computer')) return;
   // commitGame already waits for the throw, flip and capture before the next turn.
@@ -731,13 +743,13 @@ function queueAI() {
 }
 function runAI() {
   const g=app.game;
-  if (!g || app.screen!=='game' || turnTransition || overlay) return;
+  if (!g || app.screen!=='game' || turnTransition || overlay || selectedTriple || app.pendingGookjinChoice) return;
   try {
     let next, result=null;
     if (g.phase==='awaiting-go-stop' && g.pendingDecision==='computer') {
       const c=chooseAiGoStop(g,'computer',app.difficulty);
       next=c==='go'?chooseGo(g,'computer'):chooseStop(g,'computer');
-      effects(c==='go'?'고!':'스톱!');
+      effects(c==='go'?`상대 ${next.computerGoCount}고!`:'상대 스톱!', 'special', c==='go'?'go':'special');
     } else if (g.phase==='awaiting-chongtong' && g.pendingDecision==='computer') {
       next=chooseChongtong(g,'computer',chooseAiChongtong(g,app.difficulty));
     } else if (g.phase==='playing' && g.currentPlayer==='computer') {
@@ -828,18 +840,23 @@ function startNew(rematch = false, roundMultiplier = app.nextMultiplier) {
   });
   opening.roundMultiplier = roundMultiplier;
   if (!rematch) app.game=null;
-  app.screen='opening';selectedMatch=null;overlay=null;
+  app.screen='opening';selectedMatch=null;selectedTriple=null;app.pendingGookjinChoice=false;overlay=null;
   save();render();
   openingTimer=setTimeout(advanceOpening,OPENING_SHUFFLE_MS);
 }
-function humanPlay(id, matchId) {
+function humanPlay(id, matchId, skipTriple=false) {
   const g=app.game;
   if (!g || turnTransition || g.currentPlayer!=='human' || g.phase!=='playing') return;
+  const month=getCard(id)?.month;
+  if (!skipTriple && !g.humanPendingShakeMonth && findShakeOptions(g.humanHand,g.floorCards,g.humanShakenMonths || []).some(option=>option.month===month)) {
+    selectedTriple={month,initial:id,mode:'choice'};render();return;
+  }
   const matches=getMatchingFloorCards(g.floorCards,id);
   if (!matchId && matches.length===2) {
     selectedMatch={cardId:id,matches};render();return;
   }
   selectedMatch=null;
+  ROOT.querySelector('.modal-shade--decision')?.remove();
   const handRect = motionOrigin(ROOT.querySelector(`.my-hand [data-card="${id}"]`));
   const deckRect = motionOrigin(ROOT.querySelector('.deck-pile .hwatu'));
   try { const result=playTurn(g,'human',id,{playedMatchId:matchId});commitGame(result.state,result,{player:'human',handRect,deckRect,playedMatchId:matchId}); }
@@ -848,7 +865,7 @@ function humanPlay(id, matchId) {
 function mutate(action, value, cardId) {
   if (turnTransition) return;
   switch (action) {
-    case 'home': clearOpening();clearTimeout(aiTimer); overlay=null; selectedMatch=null;app.screen='home';save();render();return;
+    case 'home': clearOpening();clearTimeout(aiTimer); overlay=null; selectedMatch=null;selectedTriple=null;app.screen='home';save();render();return;
     case 'opening-home': clearOpening();overlay=null;app.screen='home';save();render();return;
     case 'opening-skip': advanceOpening();return;
     case 'pick-dealer': pickOpeningDealer(Number(value));return;
@@ -881,21 +898,37 @@ function mutate(action, value, cardId) {
       if (app.autoMode) selectedMatch = null;
       save();render();return;
     case 'play': humanPlay(cardId);return;
-    case 'pickmatch': if (selectedMatch) humanPlay(selectedMatch.cardId,cardId);return;
+    case 'pickmatch': if (selectedMatch) humanPlay(selectedMatch.cardId,cardId,true);return;
     case 'cancelmatch': selectedMatch=null;render();return;
+    case 'triple-cancel': selectedTriple=null;render();return;
+    case 'triple-ordinary': { const id=selectedTriple?.initial; selectedTriple=null;if(id)humanPlay(id,undefined,true);return; }
+    case 'triple-shake': {
+      if (!selectedTriple || selectedTriple.mode!=='choice') return;
+      try { const next=declareShake(app.game,'human',selectedTriple.month); selectedTriple={...selectedTriple,mode:'shake'}; effects('흔들기!', 'special', 'shake');commitGame(next); }
+      catch(err) { effects(err.message||'흔들 수 없어요');render(); }
+      return;
+    }
+    case 'triple-shake-card': selectedTriple=null;humanPlay(cardId,undefined,true);return;
+    case 'triple-bomb': { const month=selectedTriple?.month; selectedTriple=null;ROOT.querySelector('.modal-shade--decision')?.remove();if(month)mutate('bomb',String(month));return; }
+    case 'gookjin': overlay='gookjin-choice';render();return;
+    case 'gookjin-set': {
+      if (value!=='animal' && value!=='junk') return;
+      try { const next=setGookjinChoice(app.game,'human',value==='junk');app.pendingGookjinChoice=false;overlay=null;commitGame(next); }
+      catch(err) { effects(err.message||'국진을 선택할 수 없어요');render(); }
+      return;
+    }
   }
   const g=app.game;
   if (!g || app.screen!=='game') return;
   try {
     let next=g, result=null;
-    if (action==='go') next=chooseGo(g,'human');
+    if (action==='go') { next=chooseGo(g,'human');effects(`${next.humanGoCount}고!`, 'special', 'go'); }
     else if (action==='stop') next=chooseStop(g,'human');
     else if (action==='chongtong-go') next=chooseChongtong(g,'human','continue');
     else if (action==='chongtong-stop') next=chooseChongtong(g,'human','stop');
     else if (action==='bomb') { result=playBomb(g,'human',Number(value));next=result.state; }
-    else if (action==='shake') { next=declareShake(g,'human',Number(value));effects('흔들기!', 'special', 'shake'); }
+    else if (action==='shake') { next=declareShake(g,'human',Number(value));selectedTriple={month:Number(value),mode:'shake'};effects('흔들기!', 'special', 'shake'); }
     else if (action==='flip') { result=playFlipOnlyTurn(g,'human');next=result.state; }
-    else if (action==='gookjin') { const {setGookjinChoice}=awaitImportHack(); next=setGookjinChoice(g,'human',!g.humanGookjinAsDoubleJunk); }
     else return;
     const handCard=result?.playedCardId && ROOT.querySelector(`.my-hand [data-card="${result.playedCardId}"]`);
     const handRect=motionOrigin(handCard || ROOT.querySelector('.my-hand .hwatu'));
@@ -903,9 +936,7 @@ function mutate(action, value, cardId) {
     commitGame(next,result,result?{player:'human',handRect:action==='flip'?deckRect:handRect,deckRect}:null);
   } catch(err) { console.error(err);effects(err.message||'진행할 수 없어');render(); }
 }
-// Static import uses this same shared engine. Kept as a small named adapter for the UI.
 import { setGookjinChoice } from './engine/gameState';
-function awaitImportHack() { return {setGookjinChoice}; }
 
 document.addEventListener('visibilitychange', syncTurnClock);
 document.addEventListener('click',e=>{
@@ -961,6 +992,7 @@ for (const type of ['contextmenu','dragstart','selectstart']) {
 document.addEventListener('keydown',e=>{
   if (e.key==='Escape') {
     if (selectedMatch) {selectedMatch=null;render()}
+    else if (selectedTriple) {if(selectedTriple.mode==='choice'){selectedTriple=null;render();}}
     else if (overlay) {overlay=null;render();queueAI()}
     else if(app.screen==='opening') mutate('opening-home');
     else if(app.screen==='game') mutate('home');
