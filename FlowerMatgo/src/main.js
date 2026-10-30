@@ -200,9 +200,9 @@ function card(id, options = {}) {
   // Every 광 face has its 光 seal printed inside the v19 raster already.
   // No extra bright mark: otherwise the glyph appears twice on small phones.
   const mark = `${visual.doubleJunkText ? `<span class="hwatu__double-mark" aria-hidden="true">${visual.doubleJunkText}</span>` : ''}`;
-  const classes = `hwatu hwatu--month-${String(month).padStart(2,'0')} hwatu--ordinal-${String(ordinal).padStart(2,'0')} ${small?'hwatu--small':''} ${options.tiny?'hwatu--tiny':''} ${bonus?'hwatu--bonus':''} ${interactive?'hwatu--interactive':''} ${options.matchHint?(interactive?'hwatu--match-hint':'hwatu--match-idle'):''} ${visual.gookjinConverted?'hwatu--converted':''}`;
+  const classes = `hwatu hwatu--month-${String(month).padStart(2,'0')} hwatu--ordinal-${String(ordinal).padStart(2,'0')} ${small?'hwatu--small':''} ${options.tiny?'hwatu--tiny':''} ${bonus?'hwatu--bonus':''} ${options.pileIndex?'hwatu--pile-'+options.pileIndex:''} ${interactive?'hwatu--interactive':''} ${options.matchHint?(interactive?'hwatu--match-hint':'hwatu--match-idle'):''} ${visual.gookjinConverted?'hwatu--converted':''}`;
   return `<${interactive ? 'button' : 'div'} class="${classes}" ${style} data-card="${safe(id)}" ${interactive ? `type="button" data-action="${options.action}" aria-label="${safe(aria)} ${options.action==='pickmatch'?'먹기':'내기'}"` : `role="img" aria-label="${safe(aria)}" title="${safe(aria)}"`}>
-    ${bonus ? `<span class="hwatu__face"></span><span class="hwatu__bonus-mark" aria-hidden="true">${safe(item.typeLabel)}</span>` : `<span class="hwatu__face"></span>${mark}`}
+    ${bonus ? `<span class="hwatu__face"></span><span class="hwatu__bonus-banner" aria-hidden="true">보너스</span><span class="hwatu__bonus-mark" aria-hidden="true">${safe(item.typeLabel)}</span>` : `<span class="hwatu__face"></span>${mark}`}
   </${interactive ? 'button' : 'div'}>`;
 }
 function cardBack(small = false) {
@@ -418,7 +418,7 @@ function gameScreen() {
       <div class="field-heading"><strong>바닥패 ${floor.length}장</strong><span>같은 무늬를 맞춰 획득!</span></div>
       <div class="field-row">
         <div class="deck-pile">${cardBack()}<small>남은 패 <b>${g.drawPile.length}</b></small></div>
-        <div class="floor-area" data-density="${floorDensity(floor.length)}" aria-label="바닥에 놓인 화투패">${floor.length ? floor.map(id=>card(id)).join('') : '<div class="empty-floor">바닥패가 없어요 ✿</div>'}</div>
+        <div class="floor-area" data-density="${floorDensity(floor.length)}" aria-label="바닥에 놓인 화투패">${floor.length ? floor.map(id=>{const pile=(g.ppeokPiles||[]).find(p=>p.cardIds.includes(id)); return card(id,{pileIndex:pile ? pile.cardIds.filter(cardId=>floor.includes(cardId)).sort().indexOf(id)+1 : 0});}).join('') : '<div class="empty-floor">바닥패가 없어요 ✿</div>'}</div>
       </div>
       <div class="game-message" aria-live="polite" title="${safe(spokenActionText(g.lastAction))}">${safe(spokenActionText(g.lastAction))}</div>
     </div>
@@ -484,6 +484,7 @@ function gameOverlay(g) {
         <div><span>${nagari?'다음 판 배수':win?'획득 놀이머니':'사용 놀이머니'}</span><strong class="${win?'positive':''}">${nagari?'×'+app.nextMultiplier:(win?'+':'−')+kr(amount)+' 냥'}</strong></div></div>
       <div class="result-wallet">보유 놀이머니 <b>✦ ${kr(app.wallet)}냥</b></div>
       <div class="result-actions">${btn('다음 판 치기','next','btn--primary btn--wide')}
+        ${win && hasEnoughForTable(app.wallet, g.pointValue * 2) ? btn('묻고 더블! 다음 판 점수 2배','next-double','btn--warm btn--wide') : ''}
         ${canEmergencyRecharge(app.wallet)?btn('긴급 무료 충전 +30만 냥','recharge','btn--ghost btn--wide'):''}
         ${btn('메인으로','home','btn--quiet')}</div>
     </section></div>`;
@@ -619,7 +620,7 @@ function finishRound() {
   app.stats.rounds++;
   if (g.roundResult === 'nagari') {
     app.stats.draws++;
-    app.nextMultiplier = nextRoundMultiplier(g.roundMultiplier || 1);
+    app.nextMultiplier = nextRoundMultiplier('nagari', g.roundMultiplier || 1);
   } else {
     const money = Math.max(0, g.settlement?.displayAmount || 0);
     if (g.winner === 'human') {
@@ -748,6 +749,7 @@ function runAI() {
       else if (move.kind==='flip-only') result=playFlipOnlyTurn(g,'computer');
       else if (move.kind==='shake') {
         const staged=declareShake(g,'computer',move.month);
+        effects('상대 흔들기!', 'special', 'shake');
         const target=staged.computerHand.find(id=>getCard(id)?.month===move.month);
         if (target) result=playTurn(staged,'computer',target);
         else return;
@@ -855,6 +857,9 @@ function mutate(action, value, cardId) {
     case 'stake': if(!canUseStake(app.difficulty,Number(value)))return;app.stake=Number(value);save();render();return;
     case 'start': startNew(false);return;
     case 'next': startNew(true);return;
+    case 'next-double':
+      if (!app.game || app.game.phase!=='round-ended' || app.game.winner!=='human' || app.game.roundResult==='nagari' || !hasEnoughForTable(app.wallet,app.game.pointValue*2)) return;
+      app.nextMultiplier=2; startNew(true);return;
     case 'recharge':
       if (!canEmergencyRecharge(app.wallet)) { effects('오링일 때만 긴급 충전할 수 있어');render();return; }
       app.wallet+=EMERGENCY_RECHARGE;
@@ -887,7 +892,7 @@ function mutate(action, value, cardId) {
     else if (action==='chongtong-go') next=chooseChongtong(g,'human','continue');
     else if (action==='chongtong-stop') next=chooseChongtong(g,'human','stop');
     else if (action==='bomb') { result=playBomb(g,'human',Number(value));next=result.state; }
-    else if (action==='shake') { next=declareShake(g,'human',Number(value));effects('흔들기!'); }
+    else if (action==='shake') { next=declareShake(g,'human',Number(value));effects('흔들기!', 'special', 'shake'); }
     else if (action==='flip') { result=playFlipOnlyTurn(g,'human');next=result.state; }
     else if (action==='gookjin') { const {setGookjinChoice}=awaitImportHack(); next=setGookjinChoice(g,'human',!g.humanGookjinAsDoubleJunk); }
     else return;

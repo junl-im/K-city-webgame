@@ -8,7 +8,7 @@ describe('꽃맞고 v27 넓은 신맞고형 플레이 화면', () => {
   it('화투패는 자체 제작 v19 캐릭터 화풍만 사용하고 구패로 회귀하지 않는다', () => {
     expect(css).toContain("background-image:url('/assets/hwatu-character-original-v19.webp')");
     expect(ui).toContain('hand.map(id=>card(id,');
-    expect(ui).toContain('floor.map(id=>card(id))');
+    expect(ui).toContain('floor.map(id=>{const pile=');
     expect(css).toContain('/* v27 — Shin Matgo-inspired *play hierarchy*');
   });
 
