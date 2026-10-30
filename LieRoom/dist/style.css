@@ -636,3 +636,24 @@ html,body,#app,.app-shell{max-width:100%;overflow-x:hidden}
 .play-screen .interrogation-pane .portrait-stage{height:18dvh!important}
 .play-screen .interrogation-pane .dialogue-panel{max-height:14dvh!important}
 }
+
+
+/* LR-026 raster art direction: every frame is a dedicated PNG; no SVG */
+:root{--lr-frame:url("./assets/noir-panel.png");--lr-card:url("./assets/noir-card.png");--lr-dialog:url("./assets/noir-dialogue.png");--lr-btn-red:url("./assets/noir-button-red.png");--lr-btn-blue:url("./assets/noir-button-blue.png");--lr-btn-violet:url("./assets/noir-button-violet.png");--lr-btn-gold:url("./assets/noir-button-gold.png")}
+.play-screen .people-pane,.play-screen .interrogation-pane,.play-screen .evidence-pane{border:14px solid transparent!important;border-image:var(--lr-frame) 28 fill / 14px / 0 stretch!important;border-radius:0!important;background:#17151b!important;box-shadow:0 6px 22px #0009!important;outline:none!important}
+.play-screen .people-pane:before,.play-screen .interrogation-pane:before,.play-screen .evidence-pane:before{display:none!important}
+.play-screen .dialogue-panel{border:12px solid transparent!important;border-image:var(--lr-dialog) 24 fill / 12px / 0 stretch!important;border-radius:0!important;background:#201b23!important}
+.play-screen .person-item,.play-screen .evidence-card,.play-screen .question-button{border:10px solid transparent!important;border-image:var(--lr-card) 20 fill / 10px / 0 stretch!important;border-radius:0!important;background:#26212a!important}
+.play-screen .person-item.selected{filter:brightness(1.18);box-shadow:inset 3px 0 0 #e3b56f}
+.play-screen .investigation-action{border:11px solid transparent!important;border-image:var(--lr-btn-red) 22 fill / 11px / 0 stretch!important;background:#5d242a!important;border-radius:0!important;box-shadow:none!important}
+.play-screen .investigation-action:before{display:none!important}
+.play-screen .action-evidence{border-image-source:var(--lr-btn-blue)!important;background:#1c4767!important}
+.play-screen .action-psych{border-image-source:var(--lr-btn-violet)!important;background:#563665!important}
+.play-screen .action-record{border-image-source:var(--lr-btn-gold)!important;background:#72502d!important}
+.play-screen .primary-button{border:11px solid transparent!important;border-image:var(--lr-btn-gold) 22 fill / 11px / 0 stretch!important;border-radius:0!important;background:#72502d!important;color:#fff1d2!important}
+@media(max-width:767px){
+.play-screen .people-pane,.play-screen .interrogation-pane,.play-screen .evidence-pane{border-width:8px!important;border-image-width:8px!important}
+.play-screen .dialogue-panel{border-width:7px!important;border-image-width:7px!important}
+.play-screen .person-item,.play-screen .evidence-card,.play-screen .question-button{border-width:6px!important;border-image-width:6px!important}
+.play-screen .investigation-action,.play-screen .primary-button{border-width:7px!important;border-image-width:7px!important}
+}
