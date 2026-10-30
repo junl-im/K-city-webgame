@@ -487,3 +487,32 @@ button[aria-pressed="true"],button[aria-selected="true"]{outline-offset:-3px}
 .evidence-filters button{min-height:35px;border:1px solid #896b46;border-radius:4px;background:#29232a;color:#dbc5a5;font-size:12px;font-weight:700;cursor:pointer}
 .evidence-filters button[aria-pressed="true"]{background:#76552f;color:#fff1d2;border-color:#e6bd76;box-shadow:inset 0 0 0 1px #d3ad75}
 .evidence-filters button:focus-visible{outline:2px solid #f0d3a1;outline-offset:2px}
+
+
+/* LR-022 noir investigation polish: CSS-only bevels, no SVG or recycled image assets */
+@media(min-width:1050px){
+.game-layout{gap:12px}
+.people-pane,.interrogation-pane,.evidence-pane{position:relative;border:2px solid #9e7b4c;outline:1px solid #201711;outline-offset:-6px;box-shadow:inset 0 0 0 4px #221c1b,inset 0 0 0 5px #705334,0 12px 30px #0009}
+.people-pane:before,.interrogation-pane:before,.evidence-pane:before{content:"";position:absolute;inset:7px;pointer-events:none;border:1px solid #b7955740;border-radius:2px}
+.people-list{gap:9px}
+.person-item{position:relative;transition:background .16s ease,border-color .16s ease,transform .16s ease;box-shadow:inset 0 1px 0 #f2c88b22,0 2px 8px #0005}
+.person-item:hover{transform:translateX(2px);background:linear-gradient(100deg,#49372d,#25232b)}
+.person-item.selected:before{content:"";position:absolute;left:-3px;top:14%;bottom:14%;width:3px;background:#f2ca83}
+.portrait-stage{position:relative;overflow:hidden}
+.portrait-stage:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#090a11a8,transparent 22%,transparent 76%,#090a11a0),linear-gradient(0deg,#0b0d15bd,transparent 35%)}
+.dialogue-panel{box-shadow:inset 0 1px 0 #d3ad784d,inset 0 -1px 0 #d3ad784d}
+.evidence-list{gap:9px}
+.evidence-card{position:relative;transition:border-color .18s,transform .18s,filter .18s;box-shadow:inset 0 1px 0 #f5d4a322,0 3px 8px #0006}
+.evidence-card:hover{transform:translateY(-2px);border-color:#efc17e;filter:brightness(1.09)}
+.evidence-card:focus-visible,.person-item:focus-visible{outline:2px solid #f5d28e;outline-offset:2px}
+}
+.pane-title{letter-spacing:.03em}
+.pane-title span{color:#d0a56b;letter-spacing:.16em;font-size:.66rem}
+.investigation-action{position:relative;overflow:hidden;transition:filter .15s ease,transform .1s ease;border-top-color:#ffffff55}
+.investigation-action:before{content:"";position:absolute;left:8%;right:8%;top:3px;height:1px;background:#ffffff50;pointer-events:none}
+.investigation-action:focus-visible{outline:2px solid #f6d49a;outline-offset:2px}
+@media(max-width:1049px){
+.game-layout{gap:8px}
+.people-pane,.interrogation-pane,.evidence-pane{border:1px solid #98754d;box-shadow:inset 0 0 0 2px #211b1b,0 4px 12px #0005}
+}
+@media(prefers-reduced-motion:reduce){.person-item,.evidence-card,.investigation-action{transition:none}.person-item:hover,.evidence-card:hover{transform:none}}
