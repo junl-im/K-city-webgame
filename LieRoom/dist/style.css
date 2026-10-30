@@ -443,3 +443,28 @@ button[aria-pressed="true"],button[aria-selected="true"]{outline-offset:-3px}
 .psy-signal{font-size:12px;line-height:1.5;color:#d7bd93;padding:8px 10px;margin:4px 0 10px;border-left:3px solid #b68c57;background:rgba(13,19,29,.6)}
 @media(max-width:600px){.psy-meters{gap:7px;margin:5px 0}.psy-signal{padding:6px 8px;font-size:11px}}
 @media(prefers-reduced-motion:reduce){.psy-meter-track i{transition:none}}
+
+
+/* LR-018: dedicated investigation room layout, preserving gameplay and raster portraits */
+@media(min-width:1050px){
+.play-screen{padding:10px 14px 12px;gap:9px;background:radial-gradient(ellipse at 50% 8%,#48372c70,transparent 62%),#13151b}
+.game-layout{grid-template-columns:minmax(180px,19fr) minmax(0,49fr) minmax(265px,32fr);gap:9px}
+.people-pane,.interrogation-pane,.evidence-pane{border-radius:4px;border:2px solid #856743;box-shadow:inset 0 0 0 2px #1a1716,0 9px 24px #0009}
+.people-pane{padding:10px;gap:10px;background:linear-gradient(135deg,#29252a,#141820)}
+.person-item{border-radius:3px;padding:6px;min-height:70px;border:1px solid #72543a;background:linear-gradient(120deg,#342a2a,#1b1b26)}
+.person-item.selected{border-color:#e5b56b;box-shadow:inset 0 0 0 1px #f0cc86,0 0 12px #b97a3650}
+.person-avatar{width:58px;height:58px;border-radius:2px}
+.interrogation-pane{background:#151923}
+.portrait-stage{height:46%;min-height:195px;background:radial-gradient(ellipse at 65% 40%,#9b663c55,transparent 58%),linear-gradient(115deg,#342925,#171824)}
+.dialogue-panel{background:#111318ed;border-top:2px solid #8e6a43;border-bottom:2px solid #8e6a43;min-height:84px;max-height:20%}
+.evidence-pane{padding:10px;background:linear-gradient(140deg,#322720,#1a1b22)}
+.evidence-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:8px}
+.evidence-card{min-height:105px;flex-direction:column;justify-content:center;text-align:center;border:1px solid #9d7a4f;border-radius:3px;background:linear-gradient(150deg,#514236,#211f24);padding:8px 5px}
+.evidence-id{width:45px;height:47px;font-size:1.3rem}
+.evidence-info{align-items:center}.evidence-info strong{font-size:.78rem}
+.evidence-open{display:none}
+.question-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start}
+.question-button{border-radius:4px}
+}
+@media(min-width:1400px){.evidence-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1049px){.game-layout{grid-template-columns:minmax(0,1fr)}}
