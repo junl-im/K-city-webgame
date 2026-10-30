@@ -401,3 +401,24 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 button:disabled{filter:saturate(.65);opacity:.62}
 button[aria-pressed="true"],button[aria-selected="true"]{outline-offset:-3px}
 @media(prefers-reduced-motion:reduce){.question-button,.evidence-card,.primary-button,.quiet-button{transform:none!important}}
+
+
+/* LR-013 — evidence dossier, tactile states, and polished spatial rhythm. Pure CSS + existing PNG. */
+:root{--lr013-paper:#e7d5b9;--lr013-ink:#171b26}
+.game-bar{border-bottom:1px solid rgba(210,173,119,.35);padding-bottom:8px}
+.people-pane,.interrogation-pane,.evidence-pane{box-shadow:inset 0 0 0 1px rgba(244,208,151,.07),0 8px 24px rgba(0,0,0,.23)}
+.pane-title>span{font-weight:900}
+.portrait-stage{isolation:isolate}
+.portrait-stage:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(0deg,rgba(8,13,22,.35),transparent 45%)}
+.portrait-name{z-index:3}
+.person-item,.evidence-card,.question-button,.tactic-button{position:relative;isolation:isolate}
+.person-item:before,.evidence-card:before{content:"";position:absolute;inset:3px;border:1px solid rgba(242,209,162,.075);border-radius:3px;pointer-events:none}
+.evidence-id{box-shadow:inset 0 0 0 1px rgba(255,222,160,.14),0 2px 7px rgba(0,0,0,.2)}
+.evidence-card:focus-visible,.person-item:focus-visible,.tactic-button:focus-visible{outline:3px solid #f2d6a3;outline-offset:2px}
+.person-item.selected:after{content:"";position:absolute;top:8px;bottom:8px;left:0;width:3px;background:#f4d29c;pointer-events:none}
+.question-button:active:not(:disabled),.tactic-button:active:not(:disabled){filter:brightness(1.16)}
+.modal-card{border:2px solid #b08a5f;box-shadow:inset 0 0 0 3px rgba(245,207,145,.07),0 22px 75px rgba(0,0,0,.55)}
+.modal-card h2{color:#f7dfb9}
+.clue-graphic{border-style:solid;box-shadow:inset 0 0 18px rgba(8,13,21,.4)}
+.toast{border:2px solid #d4a973;background:#302c32;box-shadow:0 8px 28px rgba(0,0,0,.55)}
+@media(max-width:600px){.game-bar{padding-bottom:3px}.people-pane,.interrogation-pane,.evidence-pane{box-shadow:inset 0 0 0 1px rgba(244,208,151,.06)}.person-item:before,.evidence-card:before{inset:2px}.modal-card{border-width:1px}}
