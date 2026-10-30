@@ -15,8 +15,11 @@ for (const file of pages) {
   assert.doesNotMatch(text, /https?:\/\/[^'"\s]+\.(svg|js|css)\b/i, `unexpected external dependency: ${file}`);
 }
 assert.match(fs.readFileSync(path.join(folder, 'index.html'), 'utf8'), /lang="ko"/);
-assert.match(fs.readFileSync(path.join(folder, 'index.html'), 'utf8'), /style\.css\?v=lr010/, 'stylesheet must use release version to avoid stale CDN');
-assert.match(fs.readFileSync(path.join(folder, 'index.html'), 'utf8'), /app\.mjs\?v=lr010/, 'application must use release version to avoid stale CDN');
+const documentHtml = fs.readFileSync(path.join(folder, 'index.html'), 'utf8');
+const styleVersion = documentHtml.match(/style\.css\?v=(lr\d+)/)?.[1];
+const appVersion = documentHtml.match(/app\.mjs\?v=(lr\d+)/)?.[1];
+assert.ok(styleVersion, 'stylesheet must use a release version to avoid stale CDN');
+assert.equal(appVersion, styleVersion, 'application and stylesheet must use the same release version');
 const atlas = fs.readFileSync(path.join(folder, 'assets', 'lie-room-expression-atlas-v1.png'));
 assert.ok(atlas.length > 100_000, 'expression atlas is missing');
 assert.equal(atlas.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', 'atlas must be a real PNG');
