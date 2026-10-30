@@ -209,8 +209,11 @@ root.addEventListener('click', event => {
   const id = button.dataset.id;
   if (action === 'jump-questions' || action === 'jump-evidence' || action === 'jump-psych') {
     const target = root.querySelector(action === 'jump-questions' ? '#investigation-questions' : action === 'jump-evidence' ? '#investigation-evidence' : '#investigation-psych');
-    target?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    target?.classList.add('investigation-focused');
+    if (target) {
+      target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
+      target.classList.add('investigation-focused');
+      setTimeout(() => target.classList.remove('investigation-focused'), 1800);
+    }
     return;
   }
   if (action === 'sfx') {
