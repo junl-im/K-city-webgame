@@ -623,6 +623,7 @@
       const cells=Array.from(grid.children);
       cells.forEach(function(b,i){
         b.className='memory-cell';b.innerHTML=i===target?artIcon('star'):'';b.disabled=false;
+        b.setAttribute('aria-label',(i+1)+'번째 칸'+(i===target?' · 별':''));
         b.onclick=function(){
           if(!canAnswer(s))return;
           revealAnswer(b,cells[target]);
@@ -633,7 +634,7 @@
       cells[target].classList.add('memory-target');
       scheduleRoundTask(s,function(){
         if(!session||session!==s)return;
-        cells.forEach(function(b){b.textContent='?';b.disabled=false;});
+        cells.forEach(function(b,i){b.innerHTML=artIcon('help');b.setAttribute('aria-label',(i+1)+'번째 칸');b.disabled=false;});
         cells[target].classList.remove('memory-target');
         prompt.textContent='별은 어디에 있었을까?';s.locked=false;
       },revealTime);
