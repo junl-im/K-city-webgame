@@ -1,6 +1,11 @@
 // Printed lettering follows the classic Korean hwatu faces: only Hongdan and
 // Cheongdan ribbons carry text. Chodan and the rain ribbon remain unlettered.
 import { spokenCardName } from './cardNames.js';
+// Artwork columns are not quite in engine order for August and December.
+// Keep game IDs stable for existing saves and change only the visible face.
+export function artworkOrdinal(id, ordinal) {
+  return ({'m08-02':4, 'm08-04':2, 'm12-03':4, 'm12-04':3})[id] ?? ordinal;
+}
 export function cardVisualDetails(item, options = {}) {
   const tags = item.tags || [];
   const ribbonText = item.type === 'ribbon'

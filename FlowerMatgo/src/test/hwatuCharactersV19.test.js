@@ -16,7 +16,7 @@ describe('v19 원판+우리 캐릭터 48장 아틀라스', () => {
   });
 
   it('48장 각 패는 4열×12행의 월별 4장 위치로 정확히 렌더링된다', () => {
-    expect(markup).toContain('((ordinal - 1) / 3 * 100)');
+    expect(markup).toContain('((artworkOrdinal(id, ordinal) - 1) / 3 * 100)');
     expect(markup).toContain('((month - 1) / 11 * 100)');
     expect(css).toContain('aspect-ratio:248 / 340');
   });

@@ -4,14 +4,14 @@ import {
   playTurn, playBomb, playFlipOnlyTurn, declareShake,
   getMatchingFloorCards, isValidGameState, nextRoundMultiplier
 } from './engine/gameState';
-import { chooseAiMove, chooseAiGoStop, chooseAiChongtong } from './engine/ai/strategy';
+import { chooseAiCard, chooseAiMove, chooseAiGoStop, chooseAiChongtong } from './engine/ai/strategy';
 import { calculateCapturedScore } from './engine/rules/scoring';
 import { findBombOptions, findShakeOptions } from './engine/rules/specialRules';
 import { getCard, HWATU_CARDS } from './engine/cards';
 import { ALLOWED_STAKES, STAKES, canUseStake, normalizeStake } from './stakeRules.js';
 import { groupedCaptures } from './capturedCards.js';
 import { floorDensity } from './floorLayout.js';
-import { cardBookLabel, cardVisualDetails } from './cardDisplay.js';
+import { artworkOrdinal, cardBookLabel, cardVisualDetails } from './cardDisplay.js';
 import { hwatuFamily, spokenActionText, spokenCardName } from './cardNames.js';
 import { animateResolvedTurn, motionOrigin } from './turnPresentation.js';
 import { specialPresentation } from './specialPresentation.js';
@@ -192,7 +192,7 @@ function card(id, options = {}) {
   const small = !!options.small;
   const bonus = item.month === 0;
   const [month, ordinal] = bonus ? [0, 0] : [item.month, Number(id.slice(-2))];
-  const x = ordinal ? ((ordinal - 1) / 3 * 100).toFixed(5) : 0;
+  const x = ordinal ? ((artworkOrdinal(id, ordinal) - 1) / 3 * 100).toFixed(5) : 0;
   const y = month ? ((month - 1) / 11 * 100).toFixed(5) : 0;
   const bonusSlot = ['bonus-pee-1','bonus-pee-2','bonus-double-pee-1'].indexOf(id);
   const style = bonus ? `style="--bonus-x:${(Math.max(0,bonusSlot)/2*100).toFixed(5)}%"` : `style="--card-x:${x}%;--card-y:${y}%"`;
@@ -413,7 +413,7 @@ function gameScreen() {
       <span class="table-play__flower table-play__flower--left" aria-hidden="true">✿</span>
       <span class="table-play__flower table-play__flower--right" aria-hidden="true">✿</span>
       <div class="captured-grid">${capturedRack(g,'computer')}</div>
-      <div class="center-status"><span class="status-orb"></span>${active}<span class="round-counter">${g.turnNumber+1}턴</span>${humanTurnSignature(app.screen,g) ? `<span class="turn-clock" role="timer" aria-label="내 차례 남은 시간"><span class="turn-clock__time"><strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</span><span class="turn-clock__rail"><span class="turn-clock__fill" data-turn-fill></span></span></span>` : ''}</div>
+      <div class="center-status"><span class="status-orb"></span>${active}<span class="round-counter">${g.turnNumber+1}턴</span></div>
       <div class="field-heading"><strong>바닥패 ${floor.length}장</strong><span>같은 무늬를 맞춰 획득!</span></div>
       <div class="field-row">
         <div class="deck-pile">${cardBack()}<small>남은 패 <b>${g.drawPile.length}</b></small></div>
@@ -422,11 +422,11 @@ function gameScreen() {
       <div class="game-message" aria-live="polite" title="${safe(spokenActionText(g.lastAction))}">${safe(spokenActionText(g.lastAction))}</div>
     </div>
     <div class="player-area bottom-safe">
-      <div class="player-status"><div><span class="mascot mascot--bear player-mini-avatar" aria-hidden="true"></span><span class="me-badge">나</span><strong>${me.total}점</strong><span class="go-count">${g.humanGoCount ? g.humanGoCount+'고' : '고 없음'}</span></div><span class="player-status__hint">${yourTurn ? (pending ? hwatuFamily(pending)+' 흔들기! 패를 내자' : '내 패를 골라줘!') : '화투패를 모아 7점을 노려봐 ✿'}</span></div>
+      <div class="player-status"><div><span class="mascot mascot--bear player-mini-avatar" aria-hidden="true"></span><span class="me-badge">나</span><strong>${me.total}점</strong><span class="go-count">${g.humanGoCount ? g.humanGoCount+'고' : '고 없음'}</span></div><span class="player-controls">${humanTurnSignature(app.screen,g) ? `<span class="turn-clock" role="timer" aria-label="내 차례 남은 시간"><span class="turn-clock__time"><strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</span><span class="turn-clock__rail"><span class="turn-clock__fill" data-turn-fill></span></span></span>` : '<span class="turn-clock turn-clock--waiting">상대 차례</span>'}<button type="button" class="action-chip action-chip--auto ${app.autoMode?'is-on':''}" data-action="automode" aria-pressed="${app.autoMode}">자동 ${app.autoMode?'ON':'OFF'}</button></span></div>
       ${capturedRack(g)}
       <div class="hand-heading"><strong>내 패 ${hand.length}장</strong> <span>${yourTurn?'패를 눌러 내기':'상대 차례'}</span></div>
       <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{action:yourTurn?'play':null,matchHint:g.phase==='playing' && (!yourTurn || !pending || getCard(id)?.month===pending) && getMatchingFloorCards(g.floorCards,id).length>0})).join('') : '<span class="no-cards">손패를 모두 냈어!</span>'}</div>
-      <div class="action-row"><button type="button" class="action-chip action-chip--auto ${app.autoMode?'is-on':''}" data-action="automode" aria-pressed="${app.autoMode}">자동 ${app.autoMode?'ON':'OFF'}</button>${specialActionCount ? `<span class="action-row__desktop-special">${specialActionButtons}</span><details class="action-special-menu"><summary class="action-chip action-chip--special" aria-label="특수 동작 ${specialActionCount}개 펼치기">✿ 특수 ${specialActionCount}</summary><div class="action-special-menu__list" role="group" aria-label="특수 동작 선택">${specialActionButtons}</div></details>` : ''}<button type="button" class="action-chip action-chip--muted sound-control" data-action="sound" aria-label="${app.sound?'소리 켜짐':'소리 꺼짐'}" title="${app.sound?'소리 켜짐':'소리 꺼짐'}">${uiIcon('bell')} ${app.sound?'소리 켜짐':'소리 꺼짐'}</button></div>
+      <div class="action-row">${specialActionCount ? `<span class="action-row__desktop-special">${specialActionButtons}</span><details class="action-special-menu"><summary class="action-chip action-chip--special" aria-label="특수 동작 ${specialActionCount}개 펼치기">✿ 특수 ${specialActionCount}</summary><div class="action-special-menu__list" role="group" aria-label="특수 동작 선택">${specialActionButtons}</div></details>` : ''}<button type="button" class="action-chip action-chip--muted sound-control" data-action="sound" aria-label="${app.sound?'소리 켜짐':'소리 꺼짐'}" title="${app.sound?'소리 켜짐':'소리 꺼짐'}">${uiIcon('bell')} ${app.sound?'소리 켜짐':'소리 꺼짐'}</button></div>
     </div>
     ${flash ? (()=>{const moment=specialMoment(flashKind,flash);return `<div class="effect-burst effect-burst--${safe(moment.kind)} ${moment.major?'effect-burst--major':'effect-burst--minor'}" role="status" aria-live="assertive"><span class="effect-burst__illustration" aria-hidden="true"></span><strong class="effect-burst__headline">${safe(moment.title)}</strong>${moment.detail?`<small class="effect-burst__detail">${safe(moment.detail)}</small>`:''}</div>`;})() : ''}
     ${gameOverlay(g)}
@@ -590,18 +590,14 @@ function autoTakeTurn(forced = false) {
     // game state while merely choosing a timed/automatic move.
     const move = chooseAiMove(structuredClone(g), 'human', 'normal').move;
     if (!move) return;
-    if (move.kind === 'bomb') { mutate('bomb',String(move.month)); return; }
     if (move.kind === 'flip-only') { mutate('flip'); return; }
-    if (move.kind === 'shake') {
-      const deckRect = motionOrigin(ROOT.querySelector('.deck-pile .hwatu'));
-      const shaken = declareShake(g,'human',move.month);
-      const id = shaken.humanHand.find(cardId => getCard(cardId)?.month === move.month);
+    // Shaking and bombs are explicit player choices, never silently declared
+    // by the countdown or auto-play (including a four-card shake/bomb).
+    if (move.kind === 'shake' || move.kind === 'bomb') {
+      const id = chooseAiCard(structuredClone(g), 'human', 'normal');
       if (id) {
-        const handRect = motionOrigin(ROOT.querySelector(`.my-hand [data-card="${id}"]`));
-        const matches = getMatchingFloorCards(shaken.floorCards,id);
-        const playedMatchId = matches.length === 2 ? matches[0] : undefined;
-        const result = playTurn(shaken,'human',id,{playedMatchId});
-        commitGame(result.state,result,{player:'human',handRect,deckRect,playedMatchId});
+        const matches = getMatchingFloorCards(g.floorCards,id);
+        humanPlay(id, matches.length === 2 ? matches[0] : undefined);
       }
       return;
     }
