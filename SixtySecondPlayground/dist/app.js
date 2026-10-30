@@ -556,7 +556,7 @@
         const b=choiceButton(String(n),function(){
           if(b.disabled||!canAnswer(s))return;
           if(n===s.nextNum) {
-            b.disabled=true;b.classList.add('done');b.textContent='✦';s.nextNum++;
+            b.disabled=true;b.classList.add('done');b.innerHTML=artIcon('star');s.nextNum++;
             feedback(true,'좋아! 다음 숫자!',100,b);
             if(s.nextNum>16)after(340);else prompt.textContent='순서대로 터치! 다음 숫자: '+s.nextNum;
           }else{
@@ -621,7 +621,7 @@
       }
       const cells=Array.from(grid.children);
       cells.forEach(function(b,i){
-        b.className='memory-cell';b.textContent=i===target?'⭐':'✧';b.disabled=false;
+        b.className='memory-cell';b.innerHTML=i===target?artIcon('star'):'';b.disabled=false;
         b.onclick=function(){
           if(!canAnswer(s))return;
           revealAnswer(b,cells[target]);
