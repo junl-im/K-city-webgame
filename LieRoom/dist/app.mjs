@@ -13,6 +13,15 @@ const SFX_KEY = 'gomfox.lie-room.sfx';
 let sfxEnabled = false;
 let audioContext = null;
 let castMood = 'neutral';
+let revealMoment = null;
+let revealTimer = null;
+function showReveal(title, detail) {
+  revealMoment = { title, detail };
+  clearTimeout(revealTimer);
+  render();
+  revealTimer = setTimeout(() => { revealMoment = null; render(); }, 1900);
+}
+
 const FIRST_CAST = Object.freeze([
   { id: 'A', name: '한유리', role: '야간 경비원', note: '첫 번째 사건 · 규정 위반을 숨긴 목격자' },
   { id: 'B', name: '윤서진', role: '전시 기획자', note: '첫 번째 사건 · 출입증을 빌려준 기획자' },
@@ -183,7 +192,7 @@ function renderModal() {
 
 function render() {
   const current = state.screen;
-  root.innerHTML = `<div class="app-shell ${IS_SECOND_CASE ? 'case-two' : 'case-one'}">${header()}${current === 'home' ? home() : current === 'intro' ? intro() : current === 'play' ? play() : current === 'verdict' ? verdict() : result()}${renderModal()}</div>`;
+  root.innerHTML = `<div class="app-shell ${IS_SECOND_CASE ? 'case-two' : 'case-one'}">${header()}${current === 'home' ? home() : current === 'intro' ? intro() : current === 'play' ? play() : current === 'verdict' ? verdict() : result()}${renderModal()}${revealMoment ? `<div class="reveal-moment" role="status" aria-live="polite"><div class="reveal-moment-inner"><small>INVESTIGATION UPDATE</small><strong>${escapeHtml(revealMoment.title)}</strong><span>${escapeHtml(revealMoment.detail)}</span></div></div>` : ''}</div>`;
   const dialog = root.querySelector('[role="dialog"]');
   if (dialog) dialog.querySelector('.close-button')?.focus();
 }
@@ -218,7 +227,7 @@ root.addEventListener('click', event => {
       modal = '';
       update(confrontation.state);
       playSfx('confront');
-      announce(`대질 완료 · ${confrontation.insight}`);
+      showReveal('증언과 증거가 충돌했다', confrontation.insight);
     } else announce('먼저 관련 진술과 증거를 확보해야 해.');
     return;
   }
@@ -245,7 +254,8 @@ root.addEventListener('click', event => {
     const answer = askQuestion(state, id);
     update(answer.state);
     if (answer.added.length) playSfx('clue');
-    announce(revealLabel(answer.added));
+    if (answer.added.length) showReveal('새로운 증거 발견', revealLabel(answer.added));
+    else announce(revealLabel(answer.added));
     return;
   }
   if (action === 'verdict') { update({ ...state, screen: 'verdict' }); return; }
