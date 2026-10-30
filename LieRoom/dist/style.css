@@ -347,3 +347,137 @@ img{-webkit-user-drag:none;user-select:none}
   .mode-grid .mode-card .mode-number{font-size:.49rem}
   .mode-grid .mode-card .mode-go{font-size:.61rem}
 }
+
+
+/* LR-011: distinct detective-game panel borders, dividers, and button hierarchy. Raster only. */
+:root{--lr011-brass:#b99663;--lr011-shadow:#0b1019;--lr011-edge:#78634a}
+.people-pane{border:2px solid #8e795e;border-left:5px solid #c09b66;background-color:#222a37}
+.interrogation-pane{border:2px solid #9d8061;border-top:5px solid #c5a06e;background-color:#1e2634}
+.evidence-pane{border:2px solid #7c8a8c;border-right:5px solid #a0afb0;background-color:#202b35}
+.pane-title{padding-bottom:9px;border-bottom:1px solid rgba(215,183,137,.34)}
+.question-panel{border-top:2px solid #806a51}
+.psychology-panel{border-top:1px solid #9d7b58;border-bottom:2px solid #8d7157}
+.submit-block{border-top:2px solid #a98961}
+.primary-button{border:2px solid #e6c18b;border-bottom:4px solid #8d6137;border-radius:8px;background-image:linear-gradient(180deg,rgba(255,234,191,.16),rgba(72,40,21,.18)),var(--lr-panels);box-shadow:inset 0 1px rgba(255,244,211,.35),0 3px 0 #513b2b}
+.quiet-button{border:2px solid #8f9a9d;border-bottom:3px solid #47525e;border-radius:8px;background-position:center,100% 0}
+.question-button{border:1px solid #8c775d;border-left:5px solid #d4a76e;border-radius:7px;background:linear-gradient(105deg,#343b49,#222c3b)}
+.evidence-card{border:1px solid #9b896b;border-bottom:3px solid #5c4a37;border-radius:6px;background:linear-gradient(115deg,#383c47,#252c39)}
+.person-item{border:1px solid #7e736b;border-left:4px solid #8d7e70;border-radius:7px}
+.person-item.selected{border-color:#d8b47a;border-left-color:#f0ca8b}
+.tactic-button.empathy{border:2px solid #7eab91;border-bottom:3px solid #456d59}
+.tactic-button.pressure{border:2px solid #bb8c7b;border-bottom:3px solid #754a48}
+.mode-card{border:2px solid #8d7556;border-bottom:4px solid #544333;border-radius:9px}
+.mode-card:focus-visible,.question-button:focus-visible,.evidence-card:focus-visible{outline:3px solid #f1d39e;outline-offset:2px}
+.primary-button:active:not(:disabled),.quiet-button:active:not(:disabled),.question-button:active:not(:disabled),.evidence-card:active:not(:disabled){transform:translateY(2px);box-shadow:none}
+@media(max-width:600px){.people-pane,.interrogation-pane,.evidence-pane{border-width:1px}.people-pane{border-left-width:3px}.interrogation-pane{border-top-width:3px}.evidence-pane{border-right-width:3px}.pane-title{padding-bottom:4px}.submit-block{border-top-width:1px}.primary-button{border-bottom-width:3px}}
+
+
+/* LR-012 — responsive interrogation layout and coherent interaction feedback. No SVG. */
+@media(min-width:981px){
+.game-layout{grid-template-columns:minmax(195px,.82fr) minmax(340px,1.7fr) minmax(225px,.98fr);gap:clamp(9px,1.1vw,17px)}
+.people-pane,.evidence-pane{padding:clamp(11px,1.25vw,18px)}
+.interrogation-pane{min-width:0}
+.question-button:hover:not(:disabled),.evidence-card:hover:not(:disabled){transform:translateX(2px)}
+}
+@media(min-width:601px) and (max-width:980px){
+.game-layout{grid-template-columns:minmax(165px,.72fr) minmax(0,1.28fr)}
+.evidence-pane{border-right-width:2px}
+}
+@media(max-width:600px){
+.game-layout{overscroll-behavior:contain}
+.people-pane{overflow:visible}
+.people-list{min-width:0}
+.person-item{min-width:0}
+.person-info{overflow:hidden}
+.interrogation-pane{overflow:hidden}
+.question-list{overscroll-behavior:contain}
+.evidence-list{overscroll-behavior-x:contain}
+.modal-card{max-width:calc(100vw - 20px)}
+}
+@media(hover:hover){
+.primary-button:hover:not(:disabled),.quiet-button:hover:not(:disabled),.mode-card:hover:not(:disabled){filter:brightness(1.1)}
+}
+button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:disabled{filter:saturate(.65);opacity:.62}
+button[aria-pressed="true"],button[aria-selected="true"]{outline-offset:-3px}
+@media(prefers-reduced-motion:reduce){.question-button,.evidence-card,.primary-button,.quiet-button{transform:none!important}}
+
+
+/* LR-013 — evidence dossier, tactile states, and polished spatial rhythm. Pure CSS + existing PNG. */
+:root{--lr013-paper:#e7d5b9;--lr013-ink:#171b26}
+.game-bar{border-bottom:1px solid rgba(210,173,119,.35);padding-bottom:8px}
+.people-pane,.interrogation-pane,.evidence-pane{box-shadow:inset 0 0 0 1px rgba(244,208,151,.07),0 8px 24px rgba(0,0,0,.23)}
+.pane-title>span{font-weight:900}
+.portrait-stage{isolation:isolate}
+.portrait-stage:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(0deg,rgba(8,13,22,.35),transparent 45%)}
+.portrait-name{z-index:3}
+.person-item,.evidence-card,.question-button,.tactic-button{position:relative;isolation:isolate}
+.person-item:before,.evidence-card:before{content:"";position:absolute;inset:3px;border:1px solid rgba(242,209,162,.075);border-radius:3px;pointer-events:none}
+.evidence-id{box-shadow:inset 0 0 0 1px rgba(255,222,160,.14),0 2px 7px rgba(0,0,0,.2)}
+.evidence-card:focus-visible,.person-item:focus-visible,.tactic-button:focus-visible{outline:3px solid #f2d6a3;outline-offset:2px}
+.person-item.selected:after{content:"";position:absolute;top:8px;bottom:8px;left:0;width:3px;background:#f4d29c;pointer-events:none}
+.question-button:active:not(:disabled),.tactic-button:active:not(:disabled){filter:brightness(1.16)}
+.modal-card{border:2px solid #b08a5f;box-shadow:inset 0 0 0 3px rgba(245,207,145,.07),0 22px 75px rgba(0,0,0,.55)}
+.modal-card h2{color:#f7dfb9}
+.clue-graphic{border-style:solid;box-shadow:inset 0 0 18px rgba(8,13,21,.4)}
+.toast{border:2px solid #d4a973;background:#302c32;box-shadow:0 8px 28px rgba(0,0,0,.55)}
+@media(max-width:600px){.game-bar{padding-bottom:3px}.people-pane,.interrogation-pane,.evidence-pane{box-shadow:inset 0 0 0 1px rgba(244,208,151,.06)}.person-item:before,.evidence-card:before{inset:2px}.modal-card{border-width:1px}}
+
+
+/* LR-015 investigation reveal: cinematic, unobtrusive, CSS-only; no SVG */
+.reveal-moment{position:fixed;inset:0;z-index:1100;display:grid;place-items:center;pointer-events:none;background:rgba(6,10,17,.48);animation:lr-reveal-in .18s ease-out}
+.reveal-moment-inner{width:min(520px,calc(100vw - 32px));padding:25px 28px;border:2px solid #d5aa73;border-top:5px solid #f0ca8c;border-radius:10px;background:linear-gradient(145deg,#303342,#171e2b);box-shadow:0 22px 65px #000b,inset 0 0 0 3px #cfa96b20;text-align:center;display:grid;gap:9px}
+.reveal-moment-inner small{font-size:11px;letter-spacing:.2em;color:#c3a67e}
+.reveal-moment-inner strong{font-size:clamp(21px,4vw,31px);color:#ffe2b4;text-shadow:0 2px 12px #000}
+.reveal-moment-inner span{font-size:14px;line-height:1.6;color:#eee1cf}
+@keyframes lr-reveal-in{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.reveal-moment{animation:none}}
+
+
+/* LR-016 psychology instrumentation: no SVG, accessible text retained */
+.psy-meters{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+.psy-meter{display:grid;gap:4px;font-size:12px;color:#d6d2c8}
+.psy-meter-track{height:8px;overflow:hidden;border:1px solid #746a61;border-radius:6px;background:#101722;box-shadow:inset 0 1px 3px #0008}
+.psy-meter-track i{display:block;height:100%;background:linear-gradient(90deg,#547c78,#b0d4a4);transition:width .25s ease}
+.psy-meter.stress .psy-meter-track i{background:linear-gradient(90deg,#a97b53,#d76657)}
+.psy-signal{font-size:12px;line-height:1.5;color:#d7bd93;padding:8px 10px;margin:4px 0 10px;border-left:3px solid #b68c57;background:rgba(13,19,29,.6)}
+@media(max-width:600px){.psy-meters{gap:7px;margin:5px 0}.psy-signal{padding:6px 8px;font-size:11px}}
+@media(prefers-reduced-motion:reduce){.psy-meter-track i{transition:none}}
+
+
+/* LR-018: dedicated investigation room layout, preserving gameplay and raster portraits */
+@media(min-width:1050px){
+.play-screen{padding:10px 14px 12px;gap:9px;background:radial-gradient(ellipse at 50% 8%,#48372c70,transparent 62%),#13151b}
+.game-layout{grid-template-columns:minmax(180px,19fr) minmax(0,49fr) minmax(265px,32fr);gap:9px}
+.people-pane,.interrogation-pane,.evidence-pane{border-radius:4px;border:2px solid #856743;box-shadow:inset 0 0 0 2px #1a1716,0 9px 24px #0009}
+.people-pane{padding:10px;gap:10px;background:linear-gradient(135deg,#29252a,#141820)}
+.person-item{border-radius:3px;padding:6px;min-height:70px;border:1px solid #72543a;background:linear-gradient(120deg,#342a2a,#1b1b26)}
+.person-item.selected{border-color:#e5b56b;box-shadow:inset 0 0 0 1px #f0cc86,0 0 12px #b97a3650}
+.person-avatar{width:58px;height:58px;border-radius:2px}
+.interrogation-pane{background:#151923}
+.portrait-stage{height:46%;min-height:195px;background:radial-gradient(ellipse at 65% 40%,#9b663c55,transparent 58%),linear-gradient(115deg,#342925,#171824)}
+.dialogue-panel{background:#111318ed;border-top:2px solid #8e6a43;border-bottom:2px solid #8e6a43;min-height:84px;max-height:20%}
+.evidence-pane{padding:10px;background:linear-gradient(140deg,#322720,#1a1b22)}
+.evidence-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:8px}
+.evidence-card{min-height:105px;flex-direction:column;justify-content:center;text-align:center;border:1px solid #9d7a4f;border-radius:3px;background:linear-gradient(150deg,#514236,#211f24);padding:8px 5px}
+.evidence-id{width:45px;height:47px;font-size:1.3rem}
+.evidence-info{align-items:center}.evidence-info strong{font-size:.78rem}
+.evidence-open{display:none}
+.question-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start}
+.question-button{border-radius:4px}
+}
+@media(min-width:1400px){.evidence-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1049px){.game-layout{grid-template-columns:minmax(0,1fr)}}
+
+
+/* LR-019: four purpose-built action treatments, no SVG */
+.investigation-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:7px 9px;background:#15151c;border-block:1px solid #755334}
+.investigation-action{min-height:48px;padding:8px 3px;border-radius:3px;border:2px solid var(--action-edge);color:#fff4e8;font-weight:800;font-size:clamp(10px,.95vw,14px);text-shadow:0 2px 3px #000;box-shadow:inset 0 2px 0 #ffffff25,0 3px 0 #0b0c10;background:linear-gradient(160deg,var(--action-light),var(--action-dark));cursor:pointer}
+.action-question{--action-edge:#c16e60;--action-light:#a94141;--action-dark:#4a1721}
+.action-evidence{--action-edge:#5eafdf;--action-light:#1e709b;--action-dark:#142b55}
+.action-psych{--action-edge:#b98bdb;--action-light:#7844a1;--action-dark:#302047}
+.action-record{--action-edge:#d5a358;--action-light:#aa783b;--action-dark:#4b2b17}
+.investigation-action:hover,.investigation-action:focus-visible{filter:brightness(1.17);outline:2px solid #f1d19a;outline-offset:1px}
+.investigation-action:active{transform:translateY(2px);box-shadow:inset 0 2px 4px #0007}
+.investigation-focused{outline:2px solid #d7b06d;outline-offset:-2px}
+@media(max-width:600px){.investigation-actions{gap:4px;padding:5px}.investigation-action{font-size:11px;min-height:42px}}
