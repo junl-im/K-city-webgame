@@ -70,3 +70,165 @@
 @keyframes witness-appear{from{opacity:.35;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
 @media(max-width:600px){.sound-button{min-height:31px;padding:5px 7px;font-size:.63rem}.portrait-art{right:3%;height:100%}.portrait-stage .portrait-name{padding:4px 7px}.portrait-stage .portrait-hint{max-width:67%;line-height:1.3}}
 @media(prefers-reduced-motion:reduce){.portrait-art{animation:none!important}}
+
+
+/* LR-005 ART DIRECTION: original illustrated raster UI, strictly PNG assets. */
+/* Evidence and material atlases stay local; separate texture variants identify actions. */
+:root{
+  --lr-scene:url("./assets/lie-room-museum-night-v1.png");
+  --lr-props:url("./assets/lie-room-evidence-icons-v1.png");
+  --lr-panels:url("./assets/lie-room-material-buttons-v1.png");
+}
+.app-shell{
+  background-color:#111925;
+  background-image:linear-gradient(115deg,rgba(13,17,27,.97),rgba(16,20,30,.78) 50%,rgba(12,16,27,.92)),var(--lr-scene);
+  background-size:cover,cover;background-position:center,center;
+}
+.app-shell:before{opacity:.05}
+.topbar{background:linear-gradient(90deg,rgba(15,20,30,.96),rgba(27,28,36,.96));border-bottom:2px solid #7a6048}
+.brand-seal{
+  border:2px solid #a68559;background:#252532 url("./assets/fox-detective.png") center 30% / cover no-repeat;
+  border-radius:9px;box-shadow:inset 0 0 0 2px rgba(10,13,20,.32),0 2px 6px rgba(0,0,0,.35);
+}
+.home-hero{
+  border:2px solid #816c56;border-radius:15px;
+  background-color:#1d2330;
+  background-image:linear-gradient(90deg,rgba(15,19,29,.96),rgba(15,19,29,.78) 49%,rgba(21,20,28,.13)),var(--lr-scene);
+  background-size:cover,cover;background-position:center,center 46%;
+  box-shadow:inset 0 0 0 3px rgba(206,165,101,.08),0 14px 38px rgba(0,0,0,.24);
+}
+.hero-copy h1{max-width:720px;text-shadow:0 3px 15px #0d1119}
+.hero-art{background:linear-gradient(165deg,rgba(12,14,21,.1),rgba(16,18,28,.4))}
+.hero-art:after{border-color:rgba(216,177,113,.32);border-radius:8px}
+.intro-screen,.verdict-screen,.result-screen{
+  background-image:linear-gradient(95deg,rgba(11,14,23,.87),rgba(10,13,21,.62)),var(--lr-scene);
+  background-size:cover,cover;background-position:center,center;
+}
+.case-opening,.verdict-sheet,.result-sheet,.modal-card{
+  border:2px solid #917455;
+  background-color:#1a2431;
+  background-image:linear-gradient(120deg,rgba(25,30,42,.93),rgba(28,31,40,.91)),var(--lr-panels);
+  background-size:100% 100%,200% 200%;background-position:center,100% 0;
+  box-shadow:inset 0 0 0 3px rgba(207,169,114,.08),0 18px 36px rgba(0,0,0,.34);
+}
+.people-pane,.interrogation-pane,.evidence-pane{
+  border:2px solid #77674f;border-radius:12px;
+  background-color:#242938;
+  background-image:linear-gradient(130deg,rgba(27,33,47,.94),rgba(35,39,52,.96)),var(--lr-panels);
+  background-size:100% 100%,200% 200%;background-position:center,100% 0;
+  box-shadow:inset 0 0 0 2px rgba(194,148,97,.07),0 5px 18px rgba(0,0,0,.15);
+}
+.pane-title>span{color:#ddbc8a;letter-spacing:.16em}
+.pane-title>strong{color:#f6e8d1}
+.primary-button,.quiet-button,.plain-button,.sound-button,.history-link,.tactic-button,.mode-card,.question-button,.person-item,.evidence-card,.accuse-button,.proof-button,.round-button,.close-button{
+  transition:filter .16s ease,transform .16s ease,border-color .16s ease;
+}
+.primary-button{
+  border:1px solid #dabb84;border-radius:9px;color:#1f1b1a;text-shadow:0 1px 0 rgba(255,229,173,.54);
+  background-color:#a98551;
+  background-image:linear-gradient(180deg,rgba(250,216,150,.08),rgba(61,40,25,.14)),var(--lr-panels);
+  background-size:100% 100%,200% 200%;background-position:center,0 0;
+  box-shadow:inset 0 0 0 2px rgba(255,227,165,.16),0 4px 10px rgba(0,0,0,.28);
+}
+.quiet-button,.plain-button,.sound-button,.history-link,.round-button,.close-button{
+  border:1px solid #8b785f;border-radius:8px;color:#efdbb9;
+  background-color:#1f2834;
+  background-image:linear-gradient(rgba(11,17,26,.12),rgba(14,19,28,.2)),var(--lr-panels);
+  background-size:100% 100%,200% 200%;background-position:center,100% 0;
+  box-shadow:inset 0 0 0 2px rgba(192,156,102,.08);
+}
+.question-button{background:linear-gradient(110deg,#313945,#262d3d);border-color:#7b6a55;border-left:4px solid #bd9667;border-radius:6px}
+.question-button:disabled{filter:saturate(.5);opacity:.62}
+.person-item{background:linear-gradient(108deg,#303642,#292e3c);border-color:#635e58;border-radius:7px}
+.person-item.selected{background:linear-gradient(108deg,#51433d,#33333d);border-color:#dfb577;box-shadow:inset 3px 0 #e3bc82}
+.evidence-card{background:linear-gradient(110deg,#343642,#252c39);border-color:#837053;border-radius:7px}
+.evidence-card:hover,.person-item:hover:not(:disabled),.question-button:hover:not(:disabled){filter:brightness(1.12);border-color:#d3ac77}
+.tactic-button.empathy{
+  color:#e6f2e8;border-color:#85a995;
+  background-image:linear-gradient(rgba(20,51,41,.25),rgba(18,36,31,.18)),var(--lr-panels);
+  background-size:100% 100%,200% 200%;background-position:center,0 100%;
+  box-shadow:inset 0 0 0 2px rgba(211,244,223,.08);
+}
+.tactic-button.pressure{
+  color:#f5e1d3;border-color:#b88e80;
+  background-image:linear-gradient(rgba(74,27,34,.2),rgba(45,20,27,.2)),var(--lr-panels);
+  background-size:100% 100%,200% 200%;background-position:center,100% 100%;
+  box-shadow:inset 0 0 0 2px rgba(244,218,194,.08);
+}
+.tactic-button.used{opacity:.52;filter:saturate(.45)}
+.mode-card{
+  position:relative;isolation:isolate;border:1px solid #786950;border-radius:10px;
+  background-image:linear-gradient(110deg,rgba(17,23,31,.7),rgba(18,24,34,.52)),var(--lr-panels);
+  background-size:100% 100%,200% 200%;background-position:center,100% 0;
+  box-shadow:inset 0 0 0 2px rgba(205,173,126,.09);
+  padding-right:58px;
+}
+.mode-card:nth-child(1){background-position:center,0 0;border-color:#bb9460}
+.mode-card:nth-child(2){background-position:center,100% 0}
+.mode-card:nth-child(3){background-position:center,0 100%}
+.mode-card:nth-child(4){background-position:center,100% 0}
+.mode-card:nth-child(5){background-position:center,100% 100%}
+.mode-card::after{
+  content:"";position:absolute;right:9px;top:50%;width:46px;height:32px;transform:translateY(-50%);
+  background-image:var(--lr-props);background-repeat:no-repeat;background-size:300% 300%;
+  background-position:100% 100%;opacity:.9;filter:drop-shadow(0 2px 3px rgba(0,0,0,.46));pointer-events:none;
+}
+.mode-card:nth-child(2)::after{background-position:0 50%}
+.mode-card:nth-child(3)::after{background-position:50% 0}
+.mode-card:nth-child(4)::after{background-position:50% 50%}
+.mode-card:nth-child(5)::after{background-position:50% 100%}
+.mode-locked{opacity:.83}
+.person-avatar,.person-avatar.peach,.person-avatar.lavender,.person-avatar.sage{
+  background-image:url("./assets/lie-room-expression-atlas-v1.png");
+  background-repeat:no-repeat;background-size:300% 300%;color:transparent;font-size:0;
+  border:1px solid #a99377;border-radius:7px;box-shadow:inset 0 0 0 1px rgba(239,220,185,.08);
+}
+.person-avatar.person-A{background-position:0 0}
+.person-avatar.person-B{background-position:50% 0}
+.person-avatar.person-C{background-position:100% 0}
+.evidence-id{
+  position:relative;display:block;flex:none;width:49px;height:42px;padding:0;
+  border:1px solid rgba(216,180,122,.38);border-radius:6px;background:rgba(6,11,18,.55);
+  overflow:hidden;
+}
+.evidence-illustration,.clue-art{
+  display:block;background-image:var(--lr-props);background-size:300% 300%;background-repeat:no-repeat;
+  filter:saturate(.88) contrast(1.08);
+}
+.evidence-illustration{position:absolute;inset:3px 2px 7px}
+.art-E01{background-position:0 0}
+.art-E02{background-position:100% 0}
+.art-E03{background-position:50% 0}
+.art-E04{background-position:100% 50%}
+.art-E05{background-position:50% 50%}
+.art-E06{background-position:0 50%}
+.art-E07{background-position:0 100%}
+.evidence-index{position:absolute;bottom:0;right:2px;padding:0 3px;background:rgba(16,23,32,.85);border-radius:3px;color:#efd0a0;font:800 .56rem Georgia,serif}
+.clue-graphic{min-height:142px;gap:10px;border:1px solid #97744e;background:linear-gradient(105deg,#252c3a,#393640);border-radius:8px}
+.clue-art{flex:none;width:165px;height:110px;filter:drop-shadow(0 5px 5px rgba(0,0,0,.35))}
+.clue-meta{display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:0;text-align:right}
+.clue-meta>span{font-size:.77rem;color:#e8c99b;font-weight:800}
+.clue-meta small{color:#e0cead}
+.accuse-button,.proof-button{border-color:#806f5b;background:linear-gradient(110deg,#333743,#282d3b)}
+.accuse-button.active,.proof-button.active{background:linear-gradient(110deg,#65503d,#39343d);border-color:#d7ad72}
+.result-symbol{
+  font-size:0;background-image:var(--lr-props);background-repeat:no-repeat;background-size:300% 300%;
+  background-position:100% 100%;background-color:#282d39;border-color:#c49d73;
+}
+.result-sheet.correct .result-symbol{background-position:50% 100%}
+.result-sheet.wrong .result-symbol{background-position:0 50%}
+@media(max-width:980px){
+  .mode-card{padding-right:52px}
+  .mode-card::after{width:38px;height:27px;right:7px}
+}
+@media(max-width:600px){
+  .mode-card{padding-right:42px;min-height:96px}
+  .mode-card::after{width:34px;height:24px;right:4px}
+  .evidence-id{width:36px;height:33px}
+  .evidence-illustration{inset:2px 1px 5px}
+  .clue-art{width:112px;height:76px}
+  .clue-graphic{min-height:104px;padding:10px}
+  .person-avatar{border-radius:5px}
+  .people-pane,.interrogation-pane,.evidence-pane{border-width:1px}
+  .home-hero{background-position:center,62% center}
+}

@@ -26,6 +26,27 @@ assert.match(stylesheet, /lie-room-expression-atlas-v1\.png/, 'expression atlas 
 assert.match(application, /data-action="sfx"/, 'sound toggle must exist');
 assert.match(application, /sfxEnabled = false/, 'sound must be off by default');
 
+/* LR-005: artwork must be real local PNGs, and game controls must consume them. */
+const illustratedAssets = [
+  'lie-room-evidence-icons-v1.png',
+  'lie-room-museum-night-v1.png',
+  'lie-room-material-buttons-v1.png',
+];
+for (const file of illustratedAssets) {
+  const asset = fs.readFileSync(path.join(folder, 'assets', file));
+  assert.ok(asset.length > 100_000, 'art asset missing or empty: ' + file);
+  assert.equal(asset.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', 'must be a real PNG: ' + file);
+  assert.ok(asset.readUInt32BE(16) >= 900 && asset.readUInt32BE(20) >= 600, 'art asset too small: ' + file);
+  assert.ok(stylesheet.includes(file), 'art asset not used: ' + file);
+}
+assert.match(application, /evidence-illustration art-/, 'evidence inventory requires illustrated item icons');
+assert.match(application, /clue-art art-/, 'evidence detail requires the illustrated item art');
+assert.match(application, /person-avatar \$\{person\.color\} person-/, 'suspect picker requires real portraits');
+assert.match(stylesheet, /tactic-button\.empathy[\s\S]*?var\(--lr-panels\)/, 'empathy actions have dedicated painted material');
+assert.match(stylesheet, /tactic-button\.pressure[\s\S]*?var\(--lr-panels\)/, 'pressure actions have dedicated painted material');
+assert.match(stylesheet, /--lr-scene:url\(/, 'museum night backdrop must be local');
+
+
 assert.equal(CASE.suspects.length, 3);
 assert.equal(CASE.questions.length, 7);
 assert.equal(CASE.evidence.length, 7);
