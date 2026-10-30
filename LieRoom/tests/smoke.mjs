@@ -15,8 +15,8 @@ for (const file of pages) {
   assert.doesNotMatch(text, /https?:\/\/[^'"\s]+\.(svg|js|css)\b/i, `unexpected external dependency: ${file}`);
 }
 assert.match(fs.readFileSync(path.join(folder, 'index.html'), 'utf8'), /lang="ko"/);
-assert.match(fs.readFileSync(path.join(folder, 'index.html'), 'utf8'), /style\.css\?v=lr008/, 'stylesheet must use release version to avoid stale CDN');
-assert.match(fs.readFileSync(path.join(folder, 'index.html'), 'utf8'), /app\.mjs\?v=lr008/, 'application must use release version to avoid stale CDN');
+assert.match(fs.readFileSync(path.join(folder, 'index.html'), 'utf8'), /style\.css\?v=lr009/, 'stylesheet must use release version to avoid stale CDN');
+assert.match(fs.readFileSync(path.join(folder, 'index.html'), 'utf8'), /app\.mjs\?v=lr009/, 'application must use release version to avoid stale CDN');
 const atlas = fs.readFileSync(path.join(folder, 'assets', 'lie-room-expression-atlas-v1.png'));
 assert.ok(atlas.length > 100_000, 'expression atlas is missing');
 assert.equal(atlas.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', 'atlas must be a real PNG');
@@ -69,6 +69,11 @@ assert.match(stylesheet, /lie-room-next-cast-atlas-v1\.png/, 'new cast atlas mus
 assert.match(application, /data-action="cast"/, 'cast archive needs an entry');
 assert.match(application, /data-action="cast-mood"/, 'cast portraits must have expression controls');
 assert.match(application, /id: 'D'[\s\S]*id: 'E'[\s\S]*id: 'F'/, 'new cast identities must remain distinct');
+
+assert.match(stylesheet, /\.cast-card-body\{position:absolute/, 'cast names must overlay portraits');
+assert.match(stylesheet, /\.cast-gallery\{flex:0 0 auto\}/, 'cast grid must not shrink into clipping');
+assert.match(application, /addEventListener\('contextmenu'/, 'disable browser right-click in game');
+assert.match(application, /addEventListener\('dragstart'/, 'disable native drag in game');
 
 assert.equal(CASE.suspects.length, 3);
 assert.equal(CASE.questions.length, 7);

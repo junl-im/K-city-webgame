@@ -1,4 +1,4 @@
-import { CASE, GAME_VERSION, STORAGE_KEY, createGame, safeRestore, getSuspect, getEvidence, askQuestion, toggleProof, judgeAccusation, CONFRONTATIONS, getConfrontation, canConfront, confrontEvidence, TACTICS, getPsychology, applyTactic, getInvestigationTimeline } from './core.mjs?v=lr008';
+import { CASE, GAME_VERSION, STORAGE_KEY, createGame, safeRestore, getSuspect, getEvidence, askQuestion, toggleProof, judgeAccusation, CONFRONTATIONS, getConfrontation, canConfront, confrontEvidence, TACTICS, getPsychology, applyTactic, getInvestigationTimeline } from './core.mjs?v=lr009';
 
 const root = document.querySelector('#app');
 const toastNode = document.querySelector('#toast');
@@ -235,6 +235,8 @@ root.addEventListener('click', event => {
   }
 });
 
+document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('dragstart', event => event.preventDefault());
 document.addEventListener('keydown', event => { if (event.key === 'Escape' && modal) { modal = ''; render(); } });
 window.addEventListener('storage', event => { if (event.key !== STORAGE_KEY) return; state = load(); modal = ''; render(); announce('다른 탭의 최신 진행 기록을 반영했어.'); });
 render();

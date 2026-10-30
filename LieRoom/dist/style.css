@@ -296,3 +296,22 @@
   .cast-card-body p{font-size:.62rem}
   .cast-face{aspect-ratio:1.08}
 }
+
+/* LR-009: keep character names visible without covering the portrait faces. */
+.cast-gallery{flex:0 0 auto}
+.cast-card{position:relative;isolation:isolate}
+.cast-face{aspect-ratio:1.16}
+.cast-card-body{position:absolute;inset:auto 0 0;z-index:1;padding:24px 11px 9px;background:linear-gradient(180deg,rgba(6,10,16,0),rgba(6,10,16,.87) 35%,rgba(6,10,16,.97));text-shadow:0 1px 3px #080b10}
+.cast-card-body small{color:#f0d8a8}.cast-card-body span{color:#f7e9d6}.cast-card-body p{color:#dac7b3}
+html,body,#app{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+img{-webkit-user-drag:none;user-select:none}
+.modal-card,.game-layout,.transcript,.evidence-list,.question-list{scrollbar-width:thin;scrollbar-color:#ae8e61 #252b36}
+.modal-card::-webkit-scrollbar,.game-layout::-webkit-scrollbar,.transcript::-webkit-scrollbar,.evidence-list::-webkit-scrollbar,.question-list::-webkit-scrollbar{width:7px;height:7px}
+.modal-card::-webkit-scrollbar-track,.game-layout::-webkit-scrollbar-track,.transcript::-webkit-scrollbar-track,.evidence-list::-webkit-scrollbar-track,.question-list::-webkit-scrollbar-track{background:#252b36;border-radius:8px}
+.modal-card::-webkit-scrollbar-thumb,.game-layout::-webkit-scrollbar-thumb,.transcript::-webkit-scrollbar-thumb,.evidence-list::-webkit-scrollbar-thumb,.question-list::-webkit-scrollbar-thumb{background:#a8875d;border:1px solid #393d44;border-radius:8px}
+@media(max-width:600px){
+  .cast-face{aspect-ratio:1.04}
+  .cast-card-body{padding:19px 7px 6px}
+  .cast-card-body p{display:none}
+  .cast-card-body strong{font-size:.84rem}
+}
