@@ -3402,3 +3402,23 @@ button:disabled { cursor: not-allowed; opacity:.48; }
   .scene--game .collection-rack--opponent .collection-groups {height:30px;}
   .scene--game .collection-rack--opponent .collection-preview .hwatu {width:22px;}
 }
+
+/* The countdown and auto switch live next to the player's captured cards. */
+.scene--game .player-status {display:flex;justify-content:space-between;align-items:center;gap:4px;width:min(960px,100%);}
+.scene--game .player-controls {display:flex;align-items:center;justify-content:flex-end;gap:5px;min-width:0;}
+.scene--game .player-controls .turn-clock {display:flex;align-items:center;gap:5px;margin:0;padding:2px 7px;border:1px solid #d2ad78;border-radius:10px;background:#fff5dc;white-space:nowrap;}
+.scene--game .player-controls .turn-clock__time {font-size:13px;color:#7f5439;}
+.scene--game .player-controls .turn-clock__time strong {font-size:22px;line-height:1;color:#bb4d32;}
+.scene--game .player-controls .turn-clock__rail {width:36px;}
+.scene--game .player-controls .turn-clock--waiting {font-size:11px;font-weight:800;color:#806a51;}
+.scene--game .player-controls .action-chip--auto {min-height:32px;padding:4px 10px;font-size:12px;white-space:nowrap;}
+.scene--game .collection-rack--human .collection-preview .hwatu {width:clamp(26px,3vw,36px);margin-left:-8px;}
+.scene--game .collection-rack--human .collection-preview .hwatu:first-child {margin-left:0;}
+@media(max-width:650px){
+  .scene--game .player-controls {gap:3px;}
+  .scene--game .player-controls .turn-clock {padding:1px 4px;}
+  .scene--game .player-controls .turn-clock__time strong {font-size:19px;}
+  .scene--game .player-controls .turn-clock__rail {width:20px;}
+  .scene--game .player-controls .action-chip--auto {min-height:27px;padding:3px 6px;font-size:11px;}
+  .scene--game .collection-rack--human .collection-preview .hwatu {width:clamp(23px,6vw,29px);margin-left:-9px;}
+}

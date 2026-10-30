@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { getCard, HWATU_CARDS } from '../engine/cards';
-import { cardBookLabel, cardVisualDetails } from '../cardDisplay.js';
+import { artworkOrdinal, cardBookLabel, cardVisualDetails } from '../cardDisplay.js';
 
 describe('전통 화투패 인쇄·특수패 인지성', () => {
+  it('실제 원화의 띠·피와 열끗 위치를 패 종류에 맞게 표시한다', () => {
+    expect(['m08-02','m08-04','m12-03','m12-04'].map(id => artworkOrdinal(id, Number(id.slice(-2))))).toEqual([4,2,4,3]);
+    expect(artworkOrdinal('m01-02', 2)).toBe(2);
+  });
   it('홍단 3장·청단 3장만 띠 안에 글씨를 넣는다', () => {
     const printed = HWATU_CARDS.filter(c => cardVisualDetails(c).ribbonText)
       .map(c => [c.id, cardVisualDetails(c).ribbonText]);
