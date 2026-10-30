@@ -432,3 +432,14 @@ button[aria-pressed="true"],button[aria-selected="true"]{outline-offset:-3px}
 .reveal-moment-inner span{font-size:14px;line-height:1.6;color:#eee1cf}
 @keyframes lr-reveal-in{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){.reveal-moment{animation:none}}
+
+
+/* LR-016 psychology instrumentation: no SVG, accessible text retained */
+.psy-meters{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+.psy-meter{display:grid;gap:4px;font-size:12px;color:#d6d2c8}
+.psy-meter-track{height:8px;overflow:hidden;border:1px solid #746a61;border-radius:6px;background:#101722;box-shadow:inset 0 1px 3px #0008}
+.psy-meter-track i{display:block;height:100%;background:linear-gradient(90deg,#547c78,#b0d4a4);transition:width .25s ease}
+.psy-meter.stress .psy-meter-track i{background:linear-gradient(90deg,#a97b53,#d76657)}
+.psy-signal{font-size:12px;line-height:1.5;color:#d7bd93;padding:8px 10px;margin:4px 0 10px;border-left:3px solid #b68c57;background:rgba(13,19,29,.6)}
+@media(max-width:600px){.psy-meters{gap:7px;margin:5px 0}.psy-signal{padding:6px 8px;font-size:11px}}
+@media(prefers-reduced-motion:reduce){.psy-meter-track i{transition:none}}
