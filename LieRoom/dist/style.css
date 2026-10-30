@@ -481,3 +481,9 @@ button[aria-pressed="true"],button[aria-selected="true"]{outline-offset:-3px}
 .investigation-action:active{transform:translateY(2px);box-shadow:inset 0 2px 4px #0007}
 .investigation-focused{outline:2px solid #d7b06d;outline-offset:-2px}
 @media(max-width:600px){.investigation-actions{gap:4px;padding:5px}.investigation-action{font-size:11px;min-height:42px}}
+
+/* LR-021 evidence filters */
+.evidence-filters{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.evidence-filters button{min-height:35px;border:1px solid #896b46;border-radius:4px;background:#29232a;color:#dbc5a5;font-size:12px;font-weight:700;cursor:pointer}
+.evidence-filters button[aria-pressed="true"]{background:#76552f;color:#fff1d2;border-color:#e6bd76;box-shadow:inset 0 0 0 1px #d3ad75}
+.evidence-filters button:focus-visible{outline:2px solid #f0d3a1;outline-offset:2px}
