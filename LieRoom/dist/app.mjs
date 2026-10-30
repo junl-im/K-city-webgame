@@ -143,8 +143,9 @@ function evidence() {
   </aside>`;
 }
 
+let mobilePanel = 'interrogation';
 function play() {
-  return `<main class="play-screen"><div class="game-bar"><div><p class="eyebrow">ACTIVE INVESTIGATION</p><strong>${escapeHtml(CASE.title)}</strong></div><div class="progress-tags"><span>질문 ${state.asked.length}/${CASE.questions.length}</span><span>증거 ${state.discovered.length}/${CASE.evidence.length}</span><span>심리 ${state.tactics.length}/${TACTICS.length}</span><span class="confront-progress">대질 ${state.confronted.length}/${CONFRONTATIONS.length}</span><button class="timeline-button" data-action="timeline">수사 시간선</button><button class="plain-button" data-action="home">저장 후 나가기</button></div></div><div class="game-layout">${people()}${discussion()}${evidence()}</div></main>`;
+  return `<main class="play-screen" data-mobile-panel="${mobilePanel}"><div class="game-bar"><div><p class="eyebrow">ACTIVE INVESTIGATION</p><strong>${escapeHtml(CASE.title)}</strong></div><div class="progress-tags"><span>질문 ${state.asked.length}/${CASE.questions.length}</span><span>증거 ${state.discovered.length}/${CASE.evidence.length}</span><span>심리 ${state.tactics.length}/${TACTICS.length}</span><span class="confront-progress">대질 ${state.confronted.length}/${CONFRONTATIONS.length}</span><button class="timeline-button" data-action="timeline">수사 시간선</button><button class="plain-button" data-action="home">저장 후 나가기</button></div></div><nav class="mobile-investigation-tabs" aria-label="수사 화면 전환"><button data-action="mobile-panel" data-id="people" aria-pressed="${mobilePanel === 'people'}">인물</button><button data-action="mobile-panel" data-id="interrogation" aria-pressed="${mobilePanel === 'interrogation'}">심문</button><button data-action="mobile-panel" data-id="evidence" aria-pressed="${mobilePanel === 'evidence'}">증거 ${state.discovered.length}</button></nav><div class="game-layout">${people()}${discussion()}${evidence()}</div></main>`;
 }
 
 function verdict() {
@@ -210,7 +211,9 @@ root.addEventListener('click', event => {
   if (!button || button.disabled) return;
   const action = button.dataset.action;
   const id = button.dataset.id;
+  if (action === 'mobile-panel') { if (['people', 'interrogation', 'evidence'].includes(id)) { mobilePanel = id; render(); } return; }
   if (action === 'jump-questions' || action === 'jump-evidence' || action === 'jump-psych') {
+    if (window.matchMedia('(max-width: 767px)').matches) { mobilePanel = action === 'jump-evidence' ? 'evidence' : 'interrogation'; render(); }
     const target = root.querySelector(action === 'jump-questions' ? '#investigation-questions' : action === 'jump-evidence' ? '#investigation-evidence' : '#investigation-psych');
     if (target) {
       target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
