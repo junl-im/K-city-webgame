@@ -176,7 +176,7 @@ assert.equal(SECOND.createGame().selectedSuspect, 'D');
 assert.deepEqual(SECOND.createGame().discovered, ['E01', 'E02']);
 const CASE_TWO = fs.readFileSync(path.join(folder, 'case2-core.mjs'), 'utf8');
 assert.doesNotMatch(CASE_TWO, /<\s*svg\b|\.svg\b|data:image\/svg\+xml/i);
-assert.match(application, /data-action="switch-case"/, 'home requires selectable playable chapters');
+assert.match(application, /action === 'switch-case'/, 'home requires selectable playable chapters');
 assert.match(application, /case2-core\.mjs\?v=lr010/, 'second module version must be cache-busted');
 assert.match(stylesheet, /\.case-two \.portrait-art\.person-D/, 'new witnesses must appear in interrogation scene');
 assert.match(stylesheet, /\.case-two \.person-avatar\.person-F/, 'new witnesses must appear in suspect selector');
