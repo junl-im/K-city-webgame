@@ -347,3 +347,26 @@ img{-webkit-user-drag:none;user-select:none}
   .mode-grid .mode-card .mode-number{font-size:.49rem}
   .mode-grid .mode-card .mode-go{font-size:.61rem}
 }
+
+
+/* LR-011: distinct detective-game panel borders, dividers, and button hierarchy. Raster only. */
+:root{--lr011-brass:#b99663;--lr011-shadow:#0b1019;--lr011-edge:#78634a}
+.people-pane{border:2px solid #8e795e;border-left:5px solid #c09b66;background-color:#222a37}
+.interrogation-pane{border:2px solid #9d8061;border-top:5px solid #c5a06e;background-color:#1e2634}
+.evidence-pane{border:2px solid #7c8a8c;border-right:5px solid #a0afb0;background-color:#202b35}
+.pane-title{padding-bottom:9px;border-bottom:1px solid rgba(215,183,137,.34)}
+.question-panel{border-top:2px solid #806a51}
+.psychology-panel{border-top:1px solid #9d7b58;border-bottom:2px solid #8d7157}
+.submit-block{border-top:2px solid #a98961}
+.primary-button{border:2px solid #e6c18b;border-bottom:4px solid #8d6137;border-radius:8px;background-image:linear-gradient(180deg,rgba(255,234,191,.16),rgba(72,40,21,.18)),var(--lr-panels);box-shadow:inset 0 1px rgba(255,244,211,.35),0 3px 0 #513b2b}
+.quiet-button{border:2px solid #8f9a9d;border-bottom:3px solid #47525e;border-radius:8px;background-position:center,100% 0}
+.question-button{border:1px solid #8c775d;border-left:5px solid #d4a76e;border-radius:7px;background:linear-gradient(105deg,#343b49,#222c3b)}
+.evidence-card{border:1px solid #9b896b;border-bottom:3px solid #5c4a37;border-radius:6px;background:linear-gradient(115deg,#383c47,#252c39)}
+.person-item{border:1px solid #7e736b;border-left:4px solid #8d7e70;border-radius:7px}
+.person-item.selected{border-color:#d8b47a;border-left-color:#f0ca8b}
+.tactic-button.empathy{border:2px solid #7eab91;border-bottom:3px solid #456d59}
+.tactic-button.pressure{border:2px solid #bb8c7b;border-bottom:3px solid #754a48}
+.mode-card{border:2px solid #8d7556;border-bottom:4px solid #544333;border-radius:9px}
+.mode-card:focus-visible,.question-button:focus-visible,.evidence-card:focus-visible{outline:3px solid #f1d39e;outline-offset:2px}
+.primary-button:active:not(:disabled),.quiet-button:active:not(:disabled),.question-button:active:not(:disabled),.evidence-card:active:not(:disabled){transform:translateY(2px);box-shadow:none}
+@media(max-width:600px){.people-pane,.interrogation-pane,.evidence-pane{border-width:1px}.people-pane{border-left-width:3px}.interrogation-pane{border-top-width:3px}.evidence-pane{border-right-width:3px}.pane-title{padding-bottom:4px}.submit-block{border-top-width:1px}.primary-button{border-bottom-width:3px}}
