@@ -15,6 +15,17 @@ for (const file of pages) {
   assert.doesNotMatch(text, /https?:\/\/[^'"\s]+\.(svg|js|css)\b/i, `unexpected external dependency: ${file}`);
 }
 assert.match(fs.readFileSync(path.join(folder, 'index.html'), 'utf8'), /lang="ko"/);
+const atlas = fs.readFileSync(path.join(folder, 'assets', 'lie-room-expression-atlas-v1.png'));
+assert.ok(atlas.length > 100_000, 'expression atlas is missing');
+assert.equal(atlas.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', 'atlas must be a real PNG');
+assert.ok(atlas.readUInt32BE(16) >= 900 && atlas.readUInt32BE(20) >= 900, 'atlas dimensions are too small');
+const application = fs.readFileSync(path.join(folder, 'app.mjs'), 'utf8');
+const stylesheet = fs.readFileSync(path.join(folder, 'style.css'), 'utf8');
+assert.match(application, /portrait-art person-/, 'witness artwork is not in the game');
+assert.match(stylesheet, /lie-room-expression-atlas-v1\.png/, 'expression atlas is not linked');
+assert.match(application, /data-action="sfx"/, 'sound toggle must exist');
+assert.match(application, /sfxEnabled = false/, 'sound must be off by default');
+
 assert.equal(CASE.suspects.length, 3);
 assert.equal(CASE.questions.length, 7);
 assert.equal(CASE.evidence.length, 7);
@@ -94,4 +105,4 @@ assert.equal(getPsychology(safeRestore(JSON.parse(JSON.stringify(empathyThenPres
 assert.equal(safeRestore({ version: -1 }).screen, 'home');
 assert.equal(safeRestore({ version: 1, caseId: 'LR-001', discovered: ['fake'], asked: ['fake'] }).discovered.length, 2);
 
-console.log(`PASS LieRoom ${CASE.id}: 3 suspects, 7 clues, 7 questions, 3 outcomes, 5 confrontations, 6 psychology choices, safe save, no SVG`);
+console.log(`PASS LieRoom ${CASE.id}: 3 suspects, 7 clues, 7 questions, 3 outcomes, 5 confrontations, 6 psychology choices, original PNG portraits, optional audio, safe save, no SVG`);
