@@ -30,6 +30,7 @@
     {name:'바다',icon:'🌊',items:['🐬','🐟','🦀','🐙']},
     {name:'하늘',icon:'☁️',items:['☁️','🌪️','🌬️','🪁']}
   ];
+  const SORT_ITEM_NAMES=[['아기 용','화산','혜성','촛불'],['선인장','버섯','나무','화분'],['유령','해골','좀비','뼈'],['돌고래','물고기','게','문어'],['구름','회오리','바람','연']];
   const SPOT_ICON_SETS = [
     ['cat','rabbit','fox','bear','unicorn','frog','panda','penguin','koala','octopus','turtle','butterfly','dolphin','pig','monkey','chick'],
     ['cat','rabbit','fox','bear','frog','panda','penguin','koala','octopus','turtle','dolphin','pig','monkey','chick','tiger','wolf','hamster','dog'],
@@ -645,11 +646,14 @@
       const picked=(fresh.length?fresh:families)[rand((fresh.length?fresh:families).length)];
       const family=families.indexOf(picked),item=drawWithoutRepeats(s,'sort-'+picked.name,picked.items);
       s.lastSortFamily=picked.name;
-      const monster=document.createElement('div');monster.className='sort-monster';monster.textContent=item;
+      const monster=document.createElement('div');monster.className='sort-monster sort-painted';
+      const row=SORT_FAMILIES.indexOf(picked),col=picked.items.indexOf(item);
+      monster.style.backgroundPosition=(col*100/3)+'% '+(row*25)+'%';
+      monster.setAttribute('role','img');monster.setAttribute('aria-label',SORT_ITEM_NAMES[row][col]);
       const title=document.createElement('div');title.className='sort-label';title.textContent='그림에 맞는 속성을 선택해!';
       const grid=document.createElement('div');grid.className='sort-choices';
       families.forEach(function(f,i){
-        const b=choiceButton(f.icon+' '+f.name,function(){
+        const b=choiceButton(f.name,function(){
           if(!canAnswer(s))return;
           revealAnswer(b,grid.children[family]);
           feedback(i===family,i===family?'분류 성공!':'이 속성은 아니야!',100,b);after(410);
@@ -660,7 +664,7 @@
     case 'mystery': {
       const q=drawWithoutRepeats(s,'mystery-'+stage,MYSTERY_QUIZ[stage]);
       const options=shuffle(q.a.map(function(answer,i){return {text:answer,valid:i===0};}));
-      prompt.textContent='🗝️ 코코의 수수께끼 · '+stage+'단계';
+      prompt.textContent='코코의 수수께끼 · '+stage+'단계';
       const clue=document.createElement('div');clue.className='mystery-clue';clue.textContent=q.q;
       const opts=document.createElement('div');opts.className='mystery-choices';
       const answerIndex=options.findIndex(function(option){return option.valid;});

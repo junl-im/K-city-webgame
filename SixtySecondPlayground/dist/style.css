@@ -928,3 +928,4 @@ body[data-view="games"] #games{animation:gamePageFade .24s ease-out both}
   .modal.is-playing .hud-box{white-space:nowrap;font-size:12px;}
   .modal.is-playing .hud-box strong{font-size:16px;}
 }
+.sort-monster.sort-painted{width:144px;height:144px;margin-inline:auto;background-image:url('./assets/sort-storybook-atlas-v1.png');background-size:400% 500%;background-repeat:no-repeat}
