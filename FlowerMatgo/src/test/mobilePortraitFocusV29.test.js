@@ -36,7 +36,7 @@ describe('꽃맞고 v29: 모바일 패판과 손패 중심 플레이', () => {
     expect(ui).toContain('data-turn-seconds');
     expect(ui).toContain('data-action="automode"');
     expect(ui).toContain('capturedRack(g)');
-    expect(ui).toContain('capturedSummary(g,\'computer\')');
+    expect(ui).toContain('capturedRack(g,\'computer\')');
     expect(ui).toContain('gameButtons(g)');
     expect(mobileV29).toContain('min-height:35px');
   });

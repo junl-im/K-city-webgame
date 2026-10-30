@@ -19,7 +19,7 @@ describe('꽃맞고 v27 넓은 신맞고형 플레이 화면', () => {
     expect(css).toContain('width:clamp(43px,14vw,58px)');
     expect(css).toContain('grid-template-rows:clamp(39px,6.1svh,49px)');
     expect(ui).toContain('class="action-chip action-chip--auto');
-    expect(ui).toContain('capturedSummary(g,\'computer\')');
+    expect(ui).toContain('capturedRack(g,\'computer\')');
   });
 
   it('일반적인 작은 모바일 너비에서 10장의 손패가 화면 안에 들어온다', () => {
