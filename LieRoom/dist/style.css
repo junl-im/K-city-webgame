@@ -370,3 +370,34 @@ img{-webkit-user-drag:none;user-select:none}
 .mode-card:focus-visible,.question-button:focus-visible,.evidence-card:focus-visible{outline:3px solid #f1d39e;outline-offset:2px}
 .primary-button:active:not(:disabled),.quiet-button:active:not(:disabled),.question-button:active:not(:disabled),.evidence-card:active:not(:disabled){transform:translateY(2px);box-shadow:none}
 @media(max-width:600px){.people-pane,.interrogation-pane,.evidence-pane{border-width:1px}.people-pane{border-left-width:3px}.interrogation-pane{border-top-width:3px}.evidence-pane{border-right-width:3px}.pane-title{padding-bottom:4px}.submit-block{border-top-width:1px}.primary-button{border-bottom-width:3px}}
+
+
+/* LR-012 — responsive interrogation layout and coherent interaction feedback. No SVG. */
+@media(min-width:981px){
+.game-layout{grid-template-columns:minmax(195px,.82fr) minmax(340px,1.7fr) minmax(225px,.98fr);gap:clamp(9px,1.1vw,17px)}
+.people-pane,.evidence-pane{padding:clamp(11px,1.25vw,18px)}
+.interrogation-pane{min-width:0}
+.question-button:hover:not(:disabled),.evidence-card:hover:not(:disabled){transform:translateX(2px)}
+}
+@media(min-width:601px) and (max-width:980px){
+.game-layout{grid-template-columns:minmax(165px,.72fr) minmax(0,1.28fr)}
+.evidence-pane{border-right-width:2px}
+}
+@media(max-width:600px){
+.game-layout{overscroll-behavior:contain}
+.people-pane{overflow:visible}
+.people-list{min-width:0}
+.person-item{min-width:0}
+.person-info{overflow:hidden}
+.interrogation-pane{overflow:hidden}
+.question-list{overscroll-behavior:contain}
+.evidence-list{overscroll-behavior-x:contain}
+.modal-card{max-width:calc(100vw - 20px)}
+}
+@media(hover:hover){
+.primary-button:hover:not(:disabled),.quiet-button:hover:not(:disabled),.mode-card:hover:not(:disabled){filter:brightness(1.1)}
+}
+button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:disabled{filter:saturate(.65);opacity:.62}
+button[aria-pressed="true"],button[aria-selected="true"]{outline-offset:-3px}
+@media(prefers-reduced-motion:reduce){.question-button,.evidence-card,.primary-button,.quiet-button{transform:none!important}}
