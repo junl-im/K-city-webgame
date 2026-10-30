@@ -232,3 +232,8 @@
   .people-pane,.interrogation-pane,.evidence-pane{border-width:1px}
   .home-hero{background-position:center,62% center}
 }
+
+/* LR-005 image QA: keep already-used psychology buttons visibly readable. */
+.tactic-button.used{opacity:.76;filter:saturate(.58)}
+.tactic-button.used.empathy{color:#e5e9e3}
+.tactic-button.used.pressure{color:#ecd8cf}
