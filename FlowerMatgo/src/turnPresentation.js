@@ -21,6 +21,12 @@ export const SPECIAL_CONTACT_MS = 480;
 export function cardHeightForWidth(width) {
   return width * CARD_ASPECT.height / CARD_ASPECT.width;
 }
+export function readableFlightOrigin(source, target, opponent, isDraw) {
+  if (!opponent || isDraw || source.width >= target.width * .8) return source;
+  const width = Math.max(source.width, target.width * .8);
+  const height = cardHeightForWidth(width);
+  return {left:source.left + (source.width-width)/2, top:source.top + (source.height-height)/2, width, height};
+}
 export function captureVisualType(cardId, asDoubleJunk = false) {
   if (cardId === 'm09-01' && asDoubleJunk) return 'junk';
   const type = getCard(cardId)?.type;
@@ -220,6 +226,9 @@ function pulseDeck(root, delay) {
 
 function spawnFlight(root, id, source, target, delay, cardHTML, opponent, isDraw = false, retentionMs = TURN_PRESENTATION_MS) {
   if (!source || !target || !id) return;
+  // The opponent's hand is deliberately tiny. Start the actual thrown card
+  // at a readable board size, centered on that hand, instead of scaling a dot.
+  source = readableFlightOrigin(source, target, opponent, isDraw);
   const ghost = document.createElement('div');
   ghost.className = `turn-flight${isDraw ? ' turn-flight--draw' : ''}`;
   ghost.setAttribute('aria-hidden', 'true');

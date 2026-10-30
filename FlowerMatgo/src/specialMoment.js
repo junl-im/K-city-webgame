@@ -2,6 +2,7 @@
 // A concise title stays readable on a narrow phone; the rules engine's
 // original event wording remains available as the small detail line.
 const MOMENTS = Object.freeze({
+  shake: {title:'흔들기!', detail:'같은 무늬 세 장을 흔들었어!', major:false},
   bomb: {title:'폭탄!', detail:'한 번에 몰아치는 강력한 한 수!', major:true},
   sweep: {title:'싹쓸이!', detail:'바닥패를 전부 가져왔어!', major:true},
   ppeok: {title:'뻑!', detail:'앗, 예상 못 한 반전!', major:false},

@@ -259,6 +259,11 @@ button:disabled { cursor: not-allowed; opacity:.48; }
 .hwatu--bonus .hwatu__face {background-image:url('/assets/hwatu-bonus-atlas-v1.webp');background-size:300% 100%;background-position:var(--bonus-x,0%) center;}
 .hwatu__bonus-mark {position:absolute;z-index:1;right:6%;top:10%;width:31%;aspect-ratio:1;display:grid;place-items:center;color:#891d16;font-size:clamp(8px,1vw,11px);font-weight:950;letter-spacing:-1px;line-height:1;text-shadow:0 1px #fff4;pointer-events:none;}
 .hwatu--tiny .hwatu__bonus-mark {font-size:7px;}
+.hwatu__bonus-banner {position:absolute;z-index:2;left:3%;right:3%;bottom:12%;padding:3px 0;border:1px solid #ffe99e;border-radius:5px;background:linear-gradient(#a81e16,#68130f);color:#fff5c4;text-align:center;font-size:clamp(10px,1.6vw,17px);font-weight:950;line-height:1.1;letter-spacing:-.06em;text-shadow:0 1px 2px #500;pointer-events:none;}
+.hwatu--tiny .hwatu__bonus-banner {font-size:clamp(7px,1vw,10px);padding:1px 0;}
+.scene--game .floor-area .hwatu--pile-2,.scene--game .floor-area .hwatu--pile-3 {margin-left:clamp(-30px,-4vw,-16px);}
+.scene--game .floor-area .hwatu--pile-2 {transform:translateY(-3px) rotate(3deg);z-index:1;}
+.scene--game .floor-area .hwatu--pile-3 {transform:translateY(-6px) rotate(-3deg);z-index:2;}
 
 /* 350ms table-shot animation. Standalone visual clones are never game cards. */
 .turn-flight {position:fixed;z-index:60;pointer-events:none;transform-origin:center center;will-change:transform,opacity;filter:drop-shadow(1px 9px 8px #070d0ca8);}
@@ -3421,4 +3426,15 @@ button:disabled { cursor: not-allowed; opacity:.48; }
   .scene--game .player-controls .turn-clock__rail {width:20px;}
   .scene--game .player-controls .action-chip--auto {min-height:27px;padding:3px 6px;font-size:11px;}
   .scene--game .collection-rack--human .collection-preview .hwatu {width:clamp(23px,6vw,29px);margin-left:-9px;}
+}
+/* Earned cards remain legible for both players without enlarging the board. */
+.scene--game .collection-rack .collection-preview .hwatu {width:clamp(30px,3.5vw,42px);margin-left:-10px;}
+@media(max-width:650px) and (min-height:701px){
+  .scene--game .collection-rack .collection-preview .hwatu {width:clamp(30px,8.7vw,36px);}
+}
+@media(max-width:650px) and (max-height:700px){
+  .scene--game .collection-rack .collection-preview .hwatu {width:clamp(25px,7.8vw,30px);}
+}
+@media(max-width:650px) and (max-height:560px){
+  .scene--game .collection-rack .collection-preview .hwatu {width:clamp(22px,7vw,26px);}
 }

@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { TURN_PRESENTATION_MS, TURN_STAGES, CARD_ASPECT, cardHeightForWidth, cardFlightFrames, captureSweepFrames, matchingFloorCardId, stackedLandingRect, resolveTurnLandings, emptyLandingRect, turnCue } from '../turnPresentation.js';
+import { TURN_PRESENTATION_MS, TURN_STAGES, CARD_ASPECT, cardHeightForWidth, cardFlightFrames, captureSweepFrames, matchingFloorCardId, stackedLandingRect, resolveTurnLandings, emptyLandingRect, readableFlightOrigin, turnCue } from '../turnPresentation.js';
 
 describe('화투패 타격감 시각 연출', () => {
+  it('상대의 작은 손패에서 나가는 카드도 중앙을 유지하며 읽을 크기로 출발한다', () => {
+    const source={left:100,top:20,width:10,height:14}, target={left:200,top:200,width:60,height:82};
+    const origin=readableFlightOrigin(source,target,true,false);
+    expect(origin.width).toBe(48);
+    expect(origin.left+origin.width/2).toBe(105);
+    expect(readableFlightOrigin(source,target,false,false)).toEqual(source);
+    expect(readableFlightOrigin(source,target,true,true)).toEqual(source);
+  });
   it('득점·뻑·특수 이벤트의 안내를 엔진 결과에만 따라 결정한다', () => {
     expect(turnCue(null)).toBeNull();
     expect(turnCue({ playedCardId: 'm01-01', drawnCardId: 'm06-02', captured: [] })).toMatchObject({

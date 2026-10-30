@@ -85,7 +85,7 @@ export function createInitialGame(
     lastAction: (chongtong.reason || (confirmedStartingPlayer
       ? `${confirmedStartingPlayer === 'human' ? '내가' : '상대가'} 전 판 승자로 선공합니다.${initialBonusCount ? ` 바닥 보너스패 ${initialBonusCount}장도 가져갑니다.` : ''}`
       : initialBonusCount ? `바닥 보너스패 ${initialBonusCount}장을 선이 가져가고 시작합니다.` : '새 판을 시작했습니다.'))
-      + (roundMultiplier > 1 ? ` 나가리 이월로 이번 판 점수는 ${roundMultiplier}배입니다.` : ''),
+      + (roundMultiplier > 1 ? ` 이번 판 점수는 ${roundMultiplier}배입니다.` : ''),
     createdAt: new Date().toISOString()
   };
 }
