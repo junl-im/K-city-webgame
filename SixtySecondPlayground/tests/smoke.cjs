@@ -14,7 +14,7 @@ const asset = file => path.join(dist, 'assets', file);
 new vm.Script(js, {filename: 'app.js'});
 assert.match(html, /시제품 v2\.2/);
 assert.match(html, /<title>곰같은여우와 함께하는 오늘의 60초 놀이터<\/title>/, '게임 정식 제목은 정확해야 합니다');
-assert.match(html, /\.\/style\.css\?v=20261030-hud-readability-v41/, '점수판 CSS는 새 버전으로 로드해야 합니다');
+assert.match(html, /\.\/style\.css\?v=20261030-sort-art-v44/, '게임 CSS는 새 버전으로 로드해야 합니다');
 assert.match(html, /<h1 tabindex="-1">오늘의 <em>60초 놀이터<\/em><\/h1>/, '메인 제목은 오늘의 60초 놀이터여야 합니다');
 assert.match(html, /<span>곰같은여우와 함께하는<\/span><span>오늘의 60초 놀이터<\/span>/, '상위 브랜드는 전체 제목을 유지해야 합니다');
 assert.match(js, /<button type="button" class="game-card" data-game=/, '게임 카드 전체를 누르면 열려야 합니다');
@@ -254,7 +254,8 @@ for (const level of [1, 2, 3]) {
 }
 assert.equal(new Set(questions).size, 30, '30문항이 모두 달라야 합니다');
 
-const familyText = js.split('const SORT_FAMILIES = ')[1].split('\n  const SPOT_ICON_SETS')[0].trim().replace(/;$/, '');
+const familyText = js.split('const SORT_FAMILIES = ')[1].split('\n  const SORT_ITEM_NAMES')[0].trim().replace(/;$/, '');
+assert.ok(fs.existsSync(path.join(dist,'assets','sort-storybook-atlas-v1.png')), '분류 게임 그림 자산이 필요합니다');
 const families = vm.runInNewContext(`(${familyText})`);
 assert.equal(families.length, 5, '분류 대상은 5개 속성');
 assert.ok(families.every(group => group.items.length >= 4), '각 속성별 4개 이상 원소');
@@ -357,7 +358,7 @@ assert.match(js, /error\.name==='AbortError'/, '사용자가 공유를 취소하
 assert.match(js, /copyFallback\(\)/, '공유 오류가 발생하면 복사 경로로 전환해야 합니다');
 assert.match(js, /matchMedia\('\(pointer:coarse\)'\)/, 'PC에서는 기본 공유창 대신 직접 복사를, 터치 기기에서는 네이티브 공유를 우선해야 합니다');
 
-assert.match(html, /\.\/app\.js\?v=20261030-art-answers-v43/, '게임 JS는 새 캐시 버전으로 로드해야 합니다');
+assert.match(html, /\.\/app\.js\?v=20261030-sort-art-v44/, '게임 JS는 새 캐시 버전으로 로드해야 합니다');
 
 console.log(`OK: ${games.length}개 게임, ${Object.keys(hostLines).length}명 안내원, ${questions.length}개 미스터리, 다른 그림 600판, 색 조합 66개, 9칸 중복 방지 1,800회, ${required.length}개 필수 WebP, SVG 0개`);
 
