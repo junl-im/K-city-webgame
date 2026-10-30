@@ -1,4 +1,4 @@
-import { CASE, GAME_VERSION, STORAGE_KEY, createGame, safeRestore, getSuspect, getEvidence, askQuestion, toggleProof, judgeAccusation, CONFRONTATIONS, getConfrontation, canConfront, confrontEvidence } from './core.mjs';
+import { CASE, GAME_VERSION, STORAGE_KEY, createGame, safeRestore, getSuspect, getEvidence, askQuestion, toggleProof, judgeAccusation, CONFRONTATIONS, getConfrontation, canConfront, confrontEvidence, TACTICS, getPsychology, applyTactic } from './core.mjs';
 
 const root = document.querySelector('#app');
 const toastNode = document.querySelector('#toast');
@@ -55,7 +55,9 @@ function people() {
 
 function portrait() {
   const person = getSuspect(state.selectedSuspect);
-  return `<div class="portrait-stage ${person.color}"><div class="window-blind"></div><div class="portrait-mark">${person.label}</div><div class="portrait-shine"></div><div class="portrait-name"><span>WITNESS ${person.label}</span><strong>${escapeHtml(person.name)}</strong><small>${escapeHtml(person.role)}</small></div><span class="portrait-hint">증언은 사실과 다를 수 있어</span></div>`;
+  const mood = getPsychology(state, person.id);
+  const moodClass = mood.label === '경계' ? 'mood-guard' : mood.label === '신뢰' ? 'mood-trust' : 'mood-cautious';
+  return `<div class="portrait-stage ${person.color} ${moodClass}"><div class="window-blind"></div><div class="portrait-mark">${person.label}</div><div class="portrait-shine"></div><div class="portrait-name"><span>WITNESS ${person.label}</span><strong>${escapeHtml(person.name)}</strong><small>${escapeHtml(person.role)}</small></div><span class="portrait-hint">심리 신호 · ${escapeHtml(mood.label)} / 증언만으로 단정 금지</span></div>`;
 }
 
 function discussion() {
@@ -63,9 +65,12 @@ function discussion() {
   const last = [...state.log].reverse().find(item => item.who === person.name);
   const text = last ? last.text : person.intro;
   const questions = CASE.questions.filter(item => item.suspect === person.id);
+  const mood = getPsychology(state, person.id);
+  const tactics = TACTICS.filter(item => item.suspect === person.id);
   return `<section class="interrogation-pane">
     ${portrait()}
     <div class="dialogue-panel"><div class="dialogue-heading"><strong>${escapeHtml(person.name)}</strong><span>진술 확인</span></div><p>${escapeHtml(text)}</p></div>
+    <div class="psychology-panel" aria-label="심리 접근"><div class="psy-head"><strong>심리 접근</strong><span>신뢰 ${mood.trust} · 긴장 ${mood.stress} · ${escapeHtml(mood.label)}</span></div><div class="tactic-list">${tactics.map(tactic => `<button class="tactic-button ${tactic.tone} ${state.tactics.includes(tactic.id) ? 'used' : ''}" data-action="tactic" data-id="${escapeHtml(tactic.id)}" ${state.tactics.includes(tactic.id) ? 'disabled' : ''}>${escapeHtml(tactic.label)} ${state.tactics.includes(tactic.id) ? '✓' : '↗'}</button>`).join('')}</div></div>
     <div class="question-panel"><div class="pane-title"><span>QUESTION</span><strong>어떤 질문을 하겠어?</strong></div><div class="question-list">${questions.map((question, index) => `<button class="question-button" data-action="ask" data-id="${question.id}" ${state.asked.includes(question.id) ? 'disabled' : ''}><span>${index + 1 < 10 ? `0${index + 1}` : index + 1}</span><strong>${escapeHtml(question.title)}</strong><span class="question-arrow">${state.asked.includes(question.id) ? '확인' : '↗'}</span></button>`).join('')}</div></div>
   </section>`;
 }
@@ -79,7 +84,7 @@ function evidence() {
 }
 
 function play() {
-  return `<main class="play-screen"><div class="game-bar"><div><p class="eyebrow">ACTIVE INVESTIGATION</p><strong>${escapeHtml(CASE.title)}</strong></div><div class="progress-tags"><span>질문 ${state.asked.length}/${CASE.questions.length}</span><span>증거 ${state.discovered.length}/${CASE.evidence.length}</span><span class="confront-progress">대질 ${state.confronted.length}/${CONFRONTATIONS.length}</span><button class="plain-button" data-action="home">저장 후 나가기</button></div></div><div class="game-layout">${people()}${discussion()}${evidence()}</div></main>`;
+  return `<main class="play-screen"><div class="game-bar"><div><p class="eyebrow">ACTIVE INVESTIGATION</p><strong>${escapeHtml(CASE.title)}</strong></div><div class="progress-tags"><span>질문 ${state.asked.length}/${CASE.questions.length}</span><span>증거 ${state.discovered.length}/${CASE.evidence.length}</span><span>심리 ${state.tactics.length}/${TACTICS.length}</span><span class="confront-progress">대질 ${state.confronted.length}/${CONFRONTATIONS.length}</span><button class="plain-button" data-action="home">저장 후 나가기</button></div></div><div class="game-layout">${people()}${discussion()}${evidence()}</div></main>`;
 }
 
 function verdict() {
@@ -100,8 +105,8 @@ function result() {
 
 function renderModal() {
   if (!modal) return '';
-  if (modal === 'help') return `<div class="modal-backdrop" data-action="close"><section class="modal-card" role="dialog" aria-modal="true" aria-label="게임 방법"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">HOW TO PLAY</p><h2>거짓말을 찾는 네 단계</h2><ol><li>관계자를 선택해 여러 질문을 해봐.</li><li>증거를 눌러 출처와 시간을 비교해.</li><li>해당 인물에게 증거를 직접 제시해 모순을 추궁해.</li><li>범인과 독립적인 증거를 두 개 이상 제출해.</li></ol><p class="modal-note">거짓말이 꼭 범죄를 뜻하지는 않아. 질문과 증거를 신중하게 연결해봐.</p></section></div>`;
-  if (modal === 'history') return `<div class="modal-backdrop" data-action="close"><section class="modal-card history-modal" role="dialog" aria-modal="true" aria-label="심문 기록"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">INTERROGATION LOG</p><h2>심문 기록</h2><p class="confront-journal-title">증거 대질 ${state.confronted.length}/${CONFRONTATIONS.length}건</p><div class="confront-journal">${state.confronted.map(id => { const item = CONFRONTATIONS.find(c => c.id === id); return item ? `<div><strong>${escapeHtml(getSuspect(item.suspect).name)} · ${escapeHtml(getEvidence(item.evidence).title)}</strong><p>${escapeHtml(item.insight)}</p></div>` : ''; }).join('') || '<p>증거를 확보한 다음 해당 인물에게 직접 제시해봐.</p>'}</div><div class="transcript">${state.log.map(item => `<div class="transcript-entry"><strong>${escapeHtml(item.who)}</strong><p>${escapeHtml(item.text)}</p></div>`).join('')}</div></section></div>`;
+  if (modal === 'help') return `<div class="modal-backdrop" data-action="close"><section class="modal-card" role="dialog" aria-modal="true" aria-label="게임 방법"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">HOW TO PLAY</p><h2>거짓말을 찾는 네 단계</h2><ol><li>관계자를 선택해 공감이나 압박으로 심리 반응을 관찰하고 질문해봐.</li><li>증거를 눌러 출처와 시간을 비교해.</li><li>해당 인물에게 증거를 직접 제시해 모순을 추궁해.</li><li>범인과 독립적인 증거를 두 개 이상 제출해.</li></ol><p class="modal-note">거짓말이 꼭 범죄를 뜻하지는 않아. 질문과 증거를 신중하게 연결해봐.</p></section></div>`;
+  if (modal === 'history') return `<div class="modal-backdrop" data-action="close"><section class="modal-card history-modal" role="dialog" aria-modal="true" aria-label="심문 기록"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">INTERROGATION LOG</p><h2>심문 기록</h2><p class="psych-journal-title">심리 접근 ${state.tactics.length}/${TACTICS.length}건 · 긴장은 유죄의 증거가 아니야</p><div class="psych-journal">${state.tactics.map(id => { const t = TACTICS.find(item => item.id === id); return t ? `<div><strong>${escapeHtml(getSuspect(t.suspect).name)} · ${escapeHtml(t.label)}</strong><p>${escapeHtml(t.signal)}</p></div>` : ''; }).join('') || '<p>인물을 선택하고 심리 접근을 시도해봐.</p>'}</div><p class="confront-journal-title">증거 대질 ${state.confronted.length}/${CONFRONTATIONS.length}건</p><div class="confront-journal">${state.confronted.map(id => { const item = CONFRONTATIONS.find(c => c.id === id); return item ? `<div><strong>${escapeHtml(getSuspect(item.suspect).name)} · ${escapeHtml(getEvidence(item.evidence).title)}</strong><p>${escapeHtml(item.insight)}</p></div>` : ''; }).join('') || '<p>증거를 확보한 다음 해당 인물에게 직접 제시해봐.</p>'}</div><div class="transcript">${state.log.map(item => `<div class="transcript-entry"><strong>${escapeHtml(item.who)}</strong><p>${escapeHtml(item.text)}</p></div>`).join('')}</div></section></div>`;
   const e = getEvidence(modal);
   if (!e) return '';
   return `<div class="modal-backdrop" data-action="close"><section class="modal-card detail-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(e.title)}"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">EVIDENCE / ${escapeHtml(e.id)}</p><div class="clue-graphic"><span>${escapeHtml(e.icon)}</span><small>${escapeHtml(e.kind)}</small></div><h2>${escapeHtml(e.title)}</h2><p class="detail-stamp">기록 시각 ${escapeHtml(e.stamp)} · ${escapeHtml(e.source)}</p><p>${escapeHtml(e.detail)}</p><div class="evidence-insight"><strong>수사 포인트</strong><span>${escapeHtml(e.leads)}</span></div>${(() => {
@@ -127,6 +132,14 @@ root.addEventListener('click', event => {
   const id = button.dataset.id;
   if (action === 'close' && event.target.closest('.modal-card') && event.target !== button) return;
   if (action === 'close') { modal = ''; render(); return; }
+  if (action === 'tactic') {
+    const reaction = applyTactic(state, id);
+    if (reaction.state !== state) {
+      update(reaction.state);
+      announce(`심리 신호 · ${reaction.signal}`);
+    } else announce('이미 사용했거나 현재 인물에게 사용할 수 없는 접근이야.');
+    return;
+  }
   if (action === 'confront') {
     const confrontation = confrontEvidence(state, id);
     if (confrontation.state !== state) {

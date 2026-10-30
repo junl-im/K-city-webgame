@@ -45,6 +45,50 @@ export const CONFRONTATIONS = Object.freeze([
   { id: 'F05', suspect: 'C', evidence: 'E07', question: 'c-parcel', prompt: '당신 명의로 출고된 상자는 신고한 물품보다 훨씬 무거웠어요.', reply: '그건… 포장할 때 제가 따로 넣은 게 있어서… 정확히 기억나지 않아요. 실제 상자를 열어 봤나요?', insight: '출고 기록만으로는 내용물을 단정할 수 없다. 상자의 봉인과 실물 확인 결과를 함께 보자.' },
 ]);
 
+// LR-003: optional psychology choices. Non-verbal cues do not replace evidence.
+export const TACTICS = Object.freeze([
+  { id: 'A_E', suspect: 'A', tone: 'empathy', label: '가족 사정 이해하기', prompt: '근무를 떠날 수밖에 없었던 이유부터 차분히 말해줄래요?', reply: '가족에게 급한 일이 있었어요. 경비원으로서 잘못했지만, 그게 가면을 훔쳤다는 뜻은 아니잖아요.', signal: '가족 이야기를 할 때 말의 속도가 느려지고 어깨의 긴장이 풀린다.' },
+  { id: 'A_P', suspect: 'A', tone: 'pressure', label: '근무 이탈 추궁하기', prompt: '당신이 자리를 비운 순간에 가면이 사라졌어요. 왜 숨겼죠?', reply: '근무 기록 때문에 혼날까 봐요! 제가 잘못한 건 알지만 도둑으로 몰아가진 말아 주세요.', signal: '근무 규정 이야기에 즉각 반응하지만 전시품의 위치에 대한 정보는 드러나지 않는다.' },
+  { id: 'B_E', suspect: 'B', tone: 'empathy', label: '규정 위반과 절도 구분하기', prompt: '출입증을 빌려준 실수와 도난에 관여한 일은 다를 수 있어요.', reply: '그렇게 말해 주니 다행이에요. 카드 사용 기록 때문에 제가 범인으로 보일까 두려웠어요.', signal: '출입증의 책임을 언급하자 설명이 길어진다. 실제 사용자 확인은 여전히 필요하다.' },
+  { id: 'B_P', suspect: 'B', tone: 'pressure', label: '출입증 책임 묻기', prompt: '규정을 어기고 출입증을 건넨 사실을 왜 처음부터 감췄나요?', reply: '징계가 무서웠어요. 그렇다고 제가 가면을 가져간 건 아니에요. 사용한 사람을 먼저 확인해 주세요.', signal: '질문의 핵심이 범행에서 징계로 옮겨갈 때 방어적으로 변한다.' },
+  { id: 'C_E', suspect: 'C', tone: 'empathy', label: '포장 업무부터 듣기', prompt: '바쁜 포장 근무 중이었겠죠. 당시 동선부터 함께 정리해 볼까요?', reply: '상자가 여럿이었어요. 제가 어디를 들렀는지 하나하나 기억할 자신은 없어요.', signal: '동선을 넓게 설명하지만 시각과 상자 번호를 특정하는 데 주저한다.' },
+  { id: 'C_P', suspect: 'C', tone: 'pressure', label: '동선 모순 압박하기', prompt: '경보 기록과 뒷문 영상이 달라요. 같은 설명을 반복할 생각인가요?', reply: '기록이 전부 정확하다는 보장이 있나요? 그날 포장 업무가 얼마나 혼잡했는지 아세요?', signal: '질문에 직접 답하지 않고 기록 자체의 신뢰성을 먼저 공격한다.' },
+]);
+
+export function getPsychology(state, suspectId) {
+  let trust = 0;
+  let stress = 0;
+  for (const id of state.tactics || []) {
+    const tactic = TACTICS.find(item => item.id === id);
+    if (!tactic || tactic.suspect !== suspectId) continue;
+    if (tactic.tone === 'empathy') {
+      if (stress > 0) { stress = Math.max(0, stress - 1); trust = Math.min(3, trust + 1); }
+      else trust = Math.min(3, trust + 2);
+    } else if (trust > 0) {
+      // Established rapport cushions a hard question, but tension still rises.
+      stress = Math.min(3, stress + 1);
+    } else stress = Math.min(3, stress + 2);
+  }
+  const label = stress >= 2 ? '경계' : trust >= 2 ? '신뢰' : '신중';
+  return { trust, stress, label };
+}
+
+export function applyTactic(state, tacticId) {
+  const tactic = TACTICS.find(item => item.id === tacticId);
+  if (!tactic || tactic.suspect !== state.selectedSuspect || state.tactics?.includes(tacticId)) return { state, message: '', signal: '' };
+  const before = getPsychology(state, tactic.suspect);
+  const reply = before.stress >= 2 && tactic.tone === 'empathy'
+    ? '상대는 경계를 늦추지 않지만 조금씩 설명을 이어간다. ' + tactic.reply
+    : before.trust >= 2 && tactic.tone === 'pressure'
+      ? '상대는 감정을 추스르며 답한다. ' + tactic.reply
+      : tactic.reply;
+  const next = {
+    ...state, tactics: [...(state.tactics || []), tacticId],
+    log: [...state.log, { who: '나 · 심리 접근', text: tactic.prompt }, { who: getSuspect(tactic.suspect).name, text: reply }].slice(-22),
+  };
+  return { state: next, message: reply, signal: tactic.signal };
+}
+
 export function getConfrontation(suspectId, evidenceId) {
   return CONFRONTATIONS.find(item => item.suspect === suspectId && item.evidence === evidenceId);
 }
@@ -60,9 +104,12 @@ export function confrontEvidence(state, evidenceId) {
   const next = {
     ...state,
     confronted: [...(state.confronted || []), entry.id],
-    log: [...state.log, { who: '나 · 증거 제시', text: entry.prompt }, { who: getSuspect(entry.suspect).name, text: entry.reply }].slice(-22),
+    log: [...state.log, { who: '나 · 증거 제시', text: entry.prompt }, { who: getSuspect(entry.suspect).name, text: (
+      getPsychology(state, entry.suspect).stress >= 2 ? '상대가 목소리를 높인다. ' :
+      getPsychology(state, entry.suspect).trust >= 2 ? '상대는 질문을 끝까지 듣고 답한다. ' : ''
+    ) + entry.reply }].slice(-22),
   };
-  return { state: next, message: entry.reply, insight: entry.insight };
+  return { state: next, message: next.log.at(-1).text, insight: entry.insight };
 }
 
 const defaultLog = [{ who: '사건 기록', text: '은빛 가면이 사라졌다. 세 사람을 심문하고 서로 다른 출처의 증거를 모아 진상을 밝히자.' }];
@@ -70,7 +117,7 @@ const defaultLog = [{ who: '사건 기록', text: '은빛 가면이 사라졌다
 export function createGame() {
   return {
     version: GAME_VERSION, caseId: CASE.id, screen: 'home', selectedSuspect: 'A',
-    asked: [], confronted: [], discovered: ['E01', 'E02'], proof: [], accusation: '',
+    asked: [], confronted: [], tactics: [], discovered: ['E01', 'E02'], proof: [], accusation: '',
     log: defaultLog.map(item => ({ ...item })), result: null, detailId: '',
   };
 }
@@ -92,6 +139,7 @@ export function safeRestore(input) {
     screen: ['home', 'intro', 'play', 'verdict', 'result'].includes(input.screen) ? input.screen : 'home',
     selectedSuspect: getSuspect(input.selectedSuspect) ? input.selectedSuspect : 'A',
     asked,
+    tactics: [...new Set((Array.isArray(input.tactics) ? input.tactics : []).filter(id => TACTICS.some(item => item.id === id)))],
     confronted: [...new Set((Array.isArray(input.confronted) ? input.confronted : []).filter(id => {
       const item = CONFRONTATIONS.find(c => c.id === id);
       return item && discovered.includes(item.evidence) && asked.includes(item.question);
@@ -115,9 +163,12 @@ export function askQuestion(state, questionId) {
     ...state,
     asked: [...state.asked, questionId],
     discovered: [...state.discovered, ...added],
-    log: [...state.log, { who: '나', text: question.title }, { who: suspect.name, text: question.reply }].slice(-22),
+    log: [...state.log, { who: '나', text: question.title }, { who: suspect.name, text: (
+      getPsychology(state, question.suspect).stress >= 2 ? '상대는 한동안 말없이 손을 만지작거린다. ' :
+      getPsychology(state, question.suspect).trust >= 2 ? '상대는 차분해진 목소리로 말한다. ' : ''
+    ) + question.reply }].slice(-22),
   };
-  return { state: next, added, message: question.reply };
+  return { state: next, added, message: next.log.at(-1).text };
 }
 
 export function toggleProof(state, evidenceId) {
@@ -149,6 +200,9 @@ export function validateCaseDefinition() {
     for (const id of q.reveals) if (!ids.includes(id)) errors.push(`missing evidence ${id}`);
   }
   for (const e of CASE.evidence) if (e.unlock && !getQuestion(e.unlock).reveals.includes(e.id)) errors.push(`unreachable evidence ${e.id}`);
+  const tacticIds = TACTICS.map(t => t.id);
+  if (new Set(tacticIds).size !== tacticIds.length) errors.push('duplicate tactic IDs');
+  for (const tactic of TACTICS) if (!getSuspect(tactic.suspect) || !['empathy', 'pressure'].includes(tactic.tone)) errors.push(`invalid tactic ${tactic.id}`);
   const confrontationIds = CONFRONTATIONS.map(c => c.id);
   if (new Set(confrontationIds).size !== confrontationIds.length) errors.push('duplicate confrontation IDs');
   for (const item of CONFRONTATIONS) {
