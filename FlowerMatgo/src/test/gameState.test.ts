@@ -226,6 +226,20 @@ describe('기본 맞고 진행 상태', () => {
     expect(result.state.computerCaptured).toHaveLength(0);
   });
 
+  it('쌍피로 쓰던 국진을 가져오면 새 주인에게 쌍피 상태가 함께 이동한다', () => {
+    const game = createArrangedGame({
+      humanHand: ['m01-01'], floorCards: [], floorSize: 8, drawFirst: ['m01-02'],
+      humanCaptured: ['m01-03', 'm01-04'], computerCaptured: ['m09-01']
+    });
+    game.computerGookjinAsDoubleJunk = true;
+    const result = playTurn(game, 'human', 'm01-01');
+    expect(result.stolenPee).toContain('m09-01');
+    expect(result.state.humanCaptured).toContain('m09-01');
+    expect(result.state.computerCaptured).not.toContain('m09-01');
+    expect(result.state.humanGookjinAsDoubleJunk).toBe(true);
+    expect(result.state.computerGookjinAsDoubleJunk).toBe(false);
+  });
+
   it('따닥과 싹쓸이가 한 번에 겹치면 각각 상대 피 한 장씩 가져온다', () => {
     const game = createArrangedGame({
       humanHand: ['m01-01'], floorCards: ['m01-02', 'm01-03'], floorSize: 2, drawFirst: ['m01-04'],

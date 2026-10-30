@@ -59,6 +59,12 @@ describe('맞고 특수 규칙', () => {
     expect(result.remaining).toEqual([]);
   });
 
+  it('국진을 쌍피로 전환한 경우에만 피로 가져오고 두 장 값으로 센다', () => {
+    expect(stealPeeForBonus(['m09-01']).stolenCardId).toBeNull();
+    expect(stealPeeForBonus(['m09-01', 'm01-03'], true).stolenCardId).toBe('m01-03');
+    expect(stealPeeByValue(['m09-01', 'bonus-double-pee-1'], 2, true).stolenCardIds).toEqual(['m09-01']);
+  });
+
   it('자뻑처럼 피 두 장을 뺏을 때도 낮은 가치의 피부터 순서대로 가져온다', () => {
     const result = stealPeeCards(['bonus-double-pee-1', 'm01-03', 'm02-03'], 2);
     expect(result.stolenCardIds).toEqual(['m01-03', 'm02-03']);

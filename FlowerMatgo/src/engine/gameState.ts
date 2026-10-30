@@ -186,18 +186,22 @@ function stealPee(state: GameState, player: PlayerId, count: number): string[] {
   if (count <= 0) return [];
   const actorKey = player === 'human' ? 'humanCaptured' : 'computerCaptured';
   const opponentKey = player === 'human' ? 'computerCaptured' : 'humanCaptured';
-  const result = stealPeeCards(state[opponentKey], count);
+  const opponentGookjin = keysFor(player === 'human' ? 'computer' : 'human').gookjin;
+  const result = stealPeeCards(state[opponentKey], count, state[opponentGookjin]);
   state[opponentKey] = result.remaining;
   state[actorKey].push(...result.stolenCardIds);
+  if (result.stolenCardIds.includes('m09-01')) { state[opponentGookjin] = false; state[keysFor(player).gookjin] = true; }
   return result.stolenCardIds;
 }
 
 function stealPeeValue(state: GameState, player: PlayerId, targetValue: number): string[] {
   const actorKey = player === 'human' ? 'humanCaptured' : 'computerCaptured';
   const opponentKey = player === 'human' ? 'computerCaptured' : 'humanCaptured';
-  const result = stealPeeByValue(state[opponentKey], targetValue);
+  const opponentGookjin = keysFor(player === 'human' ? 'computer' : 'human').gookjin;
+  const result = stealPeeByValue(state[opponentKey], targetValue, state[opponentGookjin]);
   state[opponentKey] = result.remaining;
   state[actorKey].push(...result.stolenCardIds);
+  if (result.stolenCardIds.includes('m09-01')) { state[opponentGookjin] = false; state[keysFor(player).gookjin] = true; }
   return result.stolenCardIds;
 }
 
