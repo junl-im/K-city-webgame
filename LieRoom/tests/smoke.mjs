@@ -37,6 +37,7 @@ for (const file of illustratedAssets) {
   assert.ok(asset.length > 100_000, 'art asset missing or empty: ' + file);
   assert.equal(asset.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', 'must be a real PNG: ' + file);
   assert.ok(asset.readUInt32BE(16) >= 900 && asset.readUInt32BE(20) >= 600, 'art asset too small: ' + file);
+  assert.equal(asset.toString('ascii', 37, 41), 'IDAT', 'no embedded metadata chunks allowed: ' + file);
   assert.ok(stylesheet.includes(file), 'art asset not used: ' + file);
 }
 assert.match(application, /evidence-illustration art-/, 'evidence inventory requires illustrated item icons');
