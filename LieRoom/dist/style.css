@@ -468,3 +468,16 @@ button[aria-pressed="true"],button[aria-selected="true"]{outline-offset:-3px}
 }
 @media(min-width:1400px){.evidence-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:1049px){.game-layout{grid-template-columns:minmax(0,1fr)}}
+
+
+/* LR-019: four purpose-built action treatments, no SVG */
+.investigation-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:7px 9px;background:#15151c;border-block:1px solid #755334}
+.investigation-action{min-height:48px;padding:8px 3px;border-radius:3px;border:2px solid var(--action-edge);color:#fff4e8;font-weight:800;font-size:clamp(10px,.95vw,14px);text-shadow:0 2px 3px #000;box-shadow:inset 0 2px 0 #ffffff25,0 3px 0 #0b0c10;background:linear-gradient(160deg,var(--action-light),var(--action-dark));cursor:pointer}
+.action-question{--action-edge:#c16e60;--action-light:#a94141;--action-dark:#4a1721}
+.action-evidence{--action-edge:#5eafdf;--action-light:#1e709b;--action-dark:#142b55}
+.action-psych{--action-edge:#b98bdb;--action-light:#7844a1;--action-dark:#302047}
+.action-record{--action-edge:#d5a358;--action-light:#aa783b;--action-dark:#4b2b17}
+.investigation-action:hover,.investigation-action:focus-visible{filter:brightness(1.17);outline:2px solid #f1d19a;outline-offset:1px}
+.investigation-action:active{transform:translateY(2px);box-shadow:inset 0 2px 4px #0007}
+.investigation-focused{outline:2px solid #d7b06d;outline-offset:-2px}
+@media(max-width:600px){.investigation-actions{gap:4px;padding:5px}.investigation-action{font-size:11px;min-height:42px}}
