@@ -596,3 +596,43 @@ html,body,#app,.app-shell{max-width:100%;overflow-x:hidden}
 .play-screen .portrait-stage{height:24dvh!important}
 .mobile-investigation-tabs button{height:36px}
 }
+
+
+/* LR-025 mobile command center: fixed workspace and focused interrogation */
+.mobile-interrogation-switch{display:none}
+@media(max-width:767px){
+.app-shell:has(.play-screen){height:100dvh!important;max-height:100dvh!important;min-height:0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+.app-shell:has(.play-screen)>header{flex:0 0 auto!important;min-height:0!important;max-height:58px!important;overflow:hidden!important}
+.app-shell:has(.play-screen)>.play-screen{flex:1 1 0!important;height:auto!important;min-height:0!important;max-height:none!important}
+.play-screen .game-bar{max-height:52px!important;flex-wrap:nowrap!important}
+.play-screen .game-bar>div:first-child{min-width:0;max-width:34%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.play-screen .game-bar>div:first-child strong{font-size:12px}
+.play-screen .progress-tags{flex:1;justify-content:flex-end;overflow:hidden;max-height:48px}
+.play-screen .progress-tags span{display:none}
+.play-screen .progress-tags button{font-size:10px;padding:4px!important}
+.play-screen .game-layout>.interrogation-pane{flex-direction:column!important}
+.play-screen .interrogation-pane .portrait-stage{height:clamp(110px,23dvh,200px)!important;min-height:0!important;flex:0 0 auto!important}
+.play-screen .interrogation-pane .dialogue-panel{max-height:18dvh!important;min-height:44px!important;flex:0 0 auto!important;overflow:auto!important}
+.play-screen .interrogation-pane .dialogue-panel p{margin:3px 0;line-height:1.35}
+.play-screen .interrogation-pane .investigation-actions{flex:0 0 auto!important;order:1}
+.play-screen .interrogation-pane .mobile-interrogation-switch{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:5px 3px;order:2;flex:0 0 auto}
+.mobile-interrogation-switch button{min-height:34px;border-radius:4px;border:1px solid #8b6d49;background:#28232a;color:#dbc6a3;font-size:12px;font-weight:800}
+.mobile-interrogation-switch button[aria-pressed="true"]{background:#6b4b2e;color:#ffedc6;border-color:#d6aa6a}
+.play-screen .interrogation-pane .question-panel{order:3;flex:1 1 0!important;min-height:0!important;overflow-y:auto!important}
+.play-screen .interrogation-pane .psychology-panel{order:3;flex:1 1 0!important;min-height:0!important;overflow-y:auto!important}
+.play-screen .interrogation-pane[data-mobile-mode="questions"] .psychology-panel{display:none!important}
+.play-screen .interrogation-pane[data-mobile-mode="psych"] .question-panel{display:none!important}
+.play-screen .question-list{display:grid;gap:4px}
+.play-screen .question-button{min-height:43px;padding:7px!important}
+.play-screen .evidence-pane{display:flex;flex-direction:column}
+.play-screen .evidence-pane .evidence-list{flex:1 1 auto;min-height:0;overflow-y:auto!important;align-content:start}
+.play-screen .evidence-pane .submit-block{flex:0 0 auto;padding:5px}
+.play-screen .evidence-pane .submit-block p{display:none}
+.play-screen .evidence-pane .pane-description{display:none}
+}
+@media(max-width:767px) and (max-height:670px){
+.app-shell:has(.play-screen)>header{max-height:42px!important}
+.play-screen .game-bar{max-height:38px!important}
+.play-screen .interrogation-pane .portrait-stage{height:18dvh!important}
+.play-screen .interrogation-pane .dialogue-panel{max-height:14dvh!important}
+}
