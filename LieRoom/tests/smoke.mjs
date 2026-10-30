@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CASE, createGame, safeRestore, askQuestion, toggleProof, judgeAccusation, validateCaseDefinition } from '../dist/core.mjs';
+import { CASE, createGame, safeRestore, askQuestion, toggleProof, judgeAccusation, validateCaseDefinition, CONFRONTATIONS, getConfrontation, canConfront, confrontEvidence } from '../dist/core.mjs';
 
 const folder = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 for (const file of ['index.html', 'style.css', 'app.mjs', 'core.mjs']) assert.ok(fs.statSync(path.join(folder, file)).size > 200, `${file} missing`);
@@ -18,6 +18,7 @@ assert.match(fs.readFileSync(path.join(folder, 'index.html'), 'utf8'), /lang="ko
 assert.equal(CASE.suspects.length, 3);
 assert.equal(CASE.questions.length, 7);
 assert.equal(CASE.evidence.length, 7);
+assert.equal(CONFRONTATIONS.length, 5);
 
 let game = createGame();
 assert.deepEqual(game.discovered, ['E01', 'E02']);
@@ -25,15 +26,30 @@ game = { ...game, screen: 'play', selectedSuspect: 'A' };
 const a = askQuestion(game, 'a-alibi');
 game = a.state;
 assert.deepEqual(a.added, ['E03']);
+assert.equal(canConfront(game, 'E03'), true);
+const confrontedA = confrontEvidence(game, 'E03');
+assert.deepEqual(confrontedA.state.confronted, ['F01']);
+assert.match(confrontedA.message, /가족/);
+assert.equal(canConfront(confrontedA.state, 'E03'), false);
+assert.equal(confrontEvidence(confrontedA.state, 'E03').state, confrontedA.state);
+game = confrontedA.state;
 assert.equal(askQuestion(game, 'a-alibi').added.length, 0, 'questions cannot duplicate discoveries');
 assert.equal(askQuestion(game, 'c-gallery').state, game, 'cannot question other suspect by ID');
 
 game = { ...game, selectedSuspect: 'B' };
 game = askQuestion(game, 'b-card').state;
 assert.ok(game.discovered.includes('E04'));
+assert.equal(canConfront(game, 'E05'), false, 'cannot confront a different suspect');
+assert.equal(getConfrontation('B', 'E04').id, 'F02');
+game = confrontEvidence(game, 'E04').state;
 game = { ...game, selectedSuspect: 'C' };
 for (const id of ['c-alarm', 'c-gallery', 'c-parcel']) game = askQuestion(game, id).state;
 assert.equal(game.discovered.length, 7);
+game = confrontEvidence(game, 'E05').state;
+game = confrontEvidence(game, 'E06').state;
+game = confrontEvidence(game, 'E07').state;
+assert.equal(game.confronted.length, 5);
+assert.equal(game.log.at(-1).who, '박도하');
 
 game = toggleProof(game, 'E05');
 game = toggleProof(game, 'E06');
@@ -51,7 +67,11 @@ assert.equal(toggleProof(game, 'E05').proof.includes('E05'), false, 'selected pr
 const restored = safeRestore(JSON.parse(JSON.stringify(game)));
 assert.equal(restored.discovered.length, 7);
 assert.equal(restored.asked.length, 5);
+assert.equal(restored.confronted.length, 5);
+assert.deepEqual(safeRestore({ version: 1, caseId: 'LR-001', confronted: ['F01'] }).confronted, [], 'cannot restore confrontations without discovery and questioning');
+assert.deepEqual(safeRestore({ version: 1, caseId: 'LR-001', asked: ['a-alibi'], discovered: ['E03'], confronted: ['F01','F01','FAKE'] }).confronted, ['F01']);
+assert.deepEqual(safeRestore({ version: 1, caseId: 'LR-001' }).confronted, [], 'existing v1 saves migrate without data loss');
 assert.equal(safeRestore({ version: -1 }).screen, 'home');
 assert.equal(safeRestore({ version: 1, caseId: 'LR-001', discovered: ['fake'], asked: ['fake'] }).discovered.length, 2);
 
-console.log(`PASS LieRoom ${CASE.id}: 3 suspects, 7 clues, 7 questions, 3 outcomes, safe save, no SVG`);
+console.log(`PASS LieRoom ${CASE.id}: 3 suspects, 7 clues, 7 questions, 3 outcomes, 5 confrontations, safe save, no SVG`);

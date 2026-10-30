@@ -1,4 +1,4 @@
-import { CASE, GAME_VERSION, STORAGE_KEY, createGame, safeRestore, getSuspect, getEvidence, askQuestion, toggleProof, judgeAccusation } from './core.mjs';
+import { CASE, GAME_VERSION, STORAGE_KEY, createGame, safeRestore, getSuspect, getEvidence, askQuestion, toggleProof, judgeAccusation, CONFRONTATIONS, getConfrontation, canConfront, confrontEvidence } from './core.mjs';
 
 const root = document.querySelector('#app');
 const toastNode = document.querySelector('#toast');
@@ -73,13 +73,13 @@ function discussion() {
 function evidence() {
   const discovered = state.discovered.map(id => getEvidence(id)).filter(Boolean);
   return `<aside class="evidence-pane"><div class="pane-title"><span>EVIDENCE</span><strong>확보한 증거 <small>${discovered.length} / ${CASE.evidence.length}</small></strong></div><p class="pane-description">증거를 눌러 출처와 발생 시각을 확인해봐.</p>
-    <div class="evidence-list">${discovered.map(item => `<button class="evidence-card" data-action="detail" data-id="${item.id}"><span class="evidence-id">${item.icon}</span><span class="evidence-info"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.kind)} · ${escapeHtml(item.stamp)}</small></span><span class="evidence-open" aria-hidden="true">+</span></button>`).join('')}</div>
+    <div class="evidence-list">${discovered.map(item => `<button class="evidence-card" data-action="detail" data-id="${item.id}"><span class="evidence-id">${item.icon}</span><span class="evidence-info"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.kind)} · ${escapeHtml(item.stamp)}</small>${canConfront(state, item.id) ? '<small class="confront-ready">대질 가능</small>' : state.confronted.includes(getConfrontation(state.selectedSuspect, item.id)?.id) ? '<small class="confront-done">대질 완료</small>' : ''}</span><span class="evidence-open" aria-hidden="true">+</span></button>`).join('')}</div>
     <div class="submit-block"><p>거짓말이 진범을 뜻하지는 않아.</p><button class="primary-button" data-action="verdict">추리 정리 · 고발하기 ↗</button></div>
   </aside>`;
 }
 
 function play() {
-  return `<main class="play-screen"><div class="game-bar"><div><p class="eyebrow">ACTIVE INVESTIGATION</p><strong>${escapeHtml(CASE.title)}</strong></div><div class="progress-tags"><span>질문 ${state.asked.length}/${CASE.questions.length}</span><span>증거 ${state.discovered.length}/${CASE.evidence.length}</span><button class="plain-button" data-action="home">저장 후 나가기</button></div></div><div class="game-layout">${people()}${discussion()}${evidence()}</div></main>`;
+  return `<main class="play-screen"><div class="game-bar"><div><p class="eyebrow">ACTIVE INVESTIGATION</p><strong>${escapeHtml(CASE.title)}</strong></div><div class="progress-tags"><span>질문 ${state.asked.length}/${CASE.questions.length}</span><span>증거 ${state.discovered.length}/${CASE.evidence.length}</span><span class="confront-progress">대질 ${state.confronted.length}/${CONFRONTATIONS.length}</span><button class="plain-button" data-action="home">저장 후 나가기</button></div></div><div class="game-layout">${people()}${discussion()}${evidence()}</div></main>`;
 }
 
 function verdict() {
@@ -93,18 +93,24 @@ function verdict() {
 function result() {
   const result = state.result || { kind: 'partial', heading: '더 조사해보자', explanation: '증거를 다시 확인해줘.' };
   return `<main class="result-screen"><article class="result-sheet ${result.kind}"><p class="eyebrow">CASE REPORT / ${CASE.id}</p><div class="result-symbol">${result.kind === 'correct' ? '✓' : result.kind === 'wrong' ? '×' : '?'}</div><h1>${escapeHtml(result.heading)}</h1><p>${escapeHtml(result.explanation)}</p>
-  ${result.kind === 'correct' ? `<div class="truth-timeline"><strong>확정된 사건 시간선</strong><div>21:11 · B의 출입증을 C가 전달받음</div><div>21:13 · C의 PIN으로 경보 해제</div><div>21:14 · C의 뒷문 출입 확인</div><div>21:16 · 출고 상자에서 가면 발견</div></div><div class="completed-stamp">CASE SOLVED · 첫 사건 해결</div>` : `<div class="mission-box"><strong>다시 생각할 점</strong><p>의심스러운 진술과 범행의 직접 증거를 구분하면 진실에 더 가까워질 수 있어.</p></div>`}
+  ${result.kind === 'correct' ? `<div class="truth-timeline"><strong>확정된 사건 시간선</strong><div>21:11 · B의 출입증을 C가 전달받음</div><div>21:13 · C의 PIN으로 경보 해제</div><div>21:14 · C의 뒷문 출입 확인</div><div>21:16 · C 명의의 무게가 다른 상자 출고 등록</div><div>사후 검증 · 상자의 봉인과 실물 확인으로 가면 발견</div></div><div class="completed-stamp">CASE SOLVED · 첫 사건 해결</div><p class="confront-summary">증거 대질 ${state.confronted.length}/${CONFRONTATIONS.length}건 · 진범을 맞혔어도 다른 사람의 거짓말을 더 검증할 수 있어.</p>` : `<div class="mission-box"><strong>다시 생각할 점</strong><p>의심스러운 진술과 범행의 직접 증거를 구분하면 진실에 더 가까워질 수 있어.</p></div>`}
     <div class="result-actions"><button class="primary-button" data-action="back-to-play">${result.kind === 'correct' ? '사건 다시 살펴보기' : '추가 조사하기'} ↗</button><button class="quiet-button" data-action="home">메인으로</button></div>
   </article></main>`;
 }
 
 function renderModal() {
   if (!modal) return '';
-  if (modal === 'help') return `<div class="modal-backdrop" data-action="close"><section class="modal-card" role="dialog" aria-modal="true" aria-label="게임 방법"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">HOW TO PLAY</p><h2>거짓말을 찾는 세 단계</h2><ol><li>관계자를 선택해 여러 질문을 해봐.</li><li>확보한 증거의 출처와 시간대를 비교해.</li><li>범인과 독립적인 증거를 두 개 이상 제출해.</li></ol><p class="modal-note">거짓말이 꼭 범죄를 뜻하지는 않아. 질문과 증거를 신중하게 연결해봐.</p></section></div>`;
-  if (modal === 'history') return `<div class="modal-backdrop" data-action="close"><section class="modal-card history-modal" role="dialog" aria-modal="true" aria-label="심문 기록"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">INTERROGATION LOG</p><h2>심문 기록</h2><div class="transcript">${state.log.map(item => `<div class="transcript-entry"><strong>${escapeHtml(item.who)}</strong><p>${escapeHtml(item.text)}</p></div>`).join('')}</div></section></div>`;
+  if (modal === 'help') return `<div class="modal-backdrop" data-action="close"><section class="modal-card" role="dialog" aria-modal="true" aria-label="게임 방법"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">HOW TO PLAY</p><h2>거짓말을 찾는 네 단계</h2><ol><li>관계자를 선택해 여러 질문을 해봐.</li><li>증거를 눌러 출처와 시간을 비교해.</li><li>해당 인물에게 증거를 직접 제시해 모순을 추궁해.</li><li>범인과 독립적인 증거를 두 개 이상 제출해.</li></ol><p class="modal-note">거짓말이 꼭 범죄를 뜻하지는 않아. 질문과 증거를 신중하게 연결해봐.</p></section></div>`;
+  if (modal === 'history') return `<div class="modal-backdrop" data-action="close"><section class="modal-card history-modal" role="dialog" aria-modal="true" aria-label="심문 기록"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">INTERROGATION LOG</p><h2>심문 기록</h2><p class="confront-journal-title">증거 대질 ${state.confronted.length}/${CONFRONTATIONS.length}건</p><div class="confront-journal">${state.confronted.map(id => { const item = CONFRONTATIONS.find(c => c.id === id); return item ? `<div><strong>${escapeHtml(getSuspect(item.suspect).name)} · ${escapeHtml(getEvidence(item.evidence).title)}</strong><p>${escapeHtml(item.insight)}</p></div>` : ''; }).join('') || '<p>증거를 확보한 다음 해당 인물에게 직접 제시해봐.</p>'}</div><div class="transcript">${state.log.map(item => `<div class="transcript-entry"><strong>${escapeHtml(item.who)}</strong><p>${escapeHtml(item.text)}</p></div>`).join('')}</div></section></div>`;
   const e = getEvidence(modal);
   if (!e) return '';
-  return `<div class="modal-backdrop" data-action="close"><section class="modal-card detail-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(e.title)}"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">EVIDENCE / ${escapeHtml(e.id)}</p><div class="clue-graphic"><span>${escapeHtml(e.icon)}</span><small>${escapeHtml(e.kind)}</small></div><h2>${escapeHtml(e.title)}</h2><p class="detail-stamp">기록 시각 ${escapeHtml(e.stamp)} · ${escapeHtml(e.source)}</p><p>${escapeHtml(e.detail)}</p><div class="evidence-insight"><strong>수사 포인트</strong><span>${escapeHtml(e.leads)}</span></div><button class="primary-button" data-action="close">기록 확인</button></section></div>`;
+  return `<div class="modal-backdrop" data-action="close"><section class="modal-card detail-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(e.title)}"><button class="close-button" data-action="close" aria-label="닫기">×</button><p class="eyebrow">EVIDENCE / ${escapeHtml(e.id)}</p><div class="clue-graphic"><span>${escapeHtml(e.icon)}</span><small>${escapeHtml(e.kind)}</small></div><h2>${escapeHtml(e.title)}</h2><p class="detail-stamp">기록 시각 ${escapeHtml(e.stamp)} · ${escapeHtml(e.source)}</p><p>${escapeHtml(e.detail)}</p><div class="evidence-insight"><strong>수사 포인트</strong><span>${escapeHtml(e.leads)}</span></div>${(() => {
+    const match = getConfrontation(state.selectedSuspect, e.id);
+    if (!match) return '<p class="confront-hint">이 증거와 직접 연결되는 인물을 선택하면 대질할 수 있어.</p>';
+    if (state.confronted.includes(match.id)) return `<div class="evidence-insight confronted-note"><strong>대질 완료 · ${escapeHtml(getSuspect(match.suspect).name)}</strong><span>${escapeHtml(match.insight)}</span></div>`;
+    if (!canConfront(state, e.id)) return '<p class="confront-hint">먼저 해당 인물의 관련 질문을 확인해야 대질할 수 있어.</p>';
+    return `<button class="primary-button confront-button" data-action="confront" data-id="${escapeHtml(e.id)}">${escapeHtml(getSuspect(match.suspect).name)}에게 증거 제시하기 ↗</button>`;
+  })()}<button class="quiet-button" data-action="close">기록 확인</button></section></div>`;
 }
 
 function render() {
@@ -121,6 +127,15 @@ root.addEventListener('click', event => {
   const id = button.dataset.id;
   if (action === 'close' && event.target.closest('.modal-card') && event.target !== button) return;
   if (action === 'close') { modal = ''; render(); return; }
+  if (action === 'confront') {
+    const confrontation = confrontEvidence(state, id);
+    if (confrontation.state !== state) {
+      modal = '';
+      update(confrontation.state);
+      announce(`대질 완료 · ${confrontation.insight}`);
+    } else announce('먼저 관련 진술과 증거를 확보해야 해.');
+    return;
+  }
   if (action === 'help' || action === 'history' || action === 'detail') { modal = action === 'detail' ? id : action; render(); return; }
   if (action === 'home') { modal = ''; update({ ...state, screen: 'home' }); return; }
   if (action === 'new') { modal = ''; update({ ...createGame(), screen: 'intro' }); return; }

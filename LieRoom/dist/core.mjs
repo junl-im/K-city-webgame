@@ -36,12 +36,41 @@ export const CASE = Object.freeze({
   ],
 });
 
+// Evidence confrontation is optional: it deepens the interview without blocking the verdict.
+export const CONFRONTATIONS = Object.freeze([
+  { id: 'F01', suspect: 'A', evidence: 'E03', question: 'a-alibi', prompt: '복도 목격 기록에는 21시 13분에 당신이 있었다고 적혀 있어요.', reply: '맞아요. 가족이 걱정돼서 잠깐 만났어요. 근무지를 비운 게 들킬까 봐 로비에 있었다고 거짓말했어요. 가면은 손대지 않았어요.', insight: '근무 규정 위반을 감추려는 거짓말과 절도 증거는 서로 다르다.' },
+  { id: 'F02', suspect: 'B', evidence: 'E04', question: 'b-card', prompt: '출입증을 도하 씨에게 건네는 장면이 사진에 찍혔어요.', reply: '사진은 사실이에요. 출입증을 빌려준 일로 징계를 받을까 봐 숨겼죠. 하지만 도하 씨가 그걸로 뭘 할지는 몰랐어요.', insight: '출입증 소유자와 실제 사용자를 구분해야 한다.' },
+  { id: 'F03', suspect: 'C', evidence: 'E05', question: 'c-alarm', prompt: '경보 장치에 당신 개인 PIN이 입력된 기록이 있어요.', reply: '제 PIN을 누가 알아냈을 수도 있잖아요. 저는 경보 장치를 해제한 적이 없어요. 기록만으로 저라고 할 수 있나요?', insight: '개인 PIN은 중요한 연결고리지만 영상 또는 물류 기록과 교차 확인해야 한다.' },
+  { id: 'F04', suspect: 'C', evidence: 'E06', question: 'c-gallery', prompt: '21시 14분 뒷문 영상에 포장 상자를 든 당신이 보여요.', reply: '…포장재를 옮기러 갔던 건 맞아요. 전시실 근처에는 안 갔다고 한 건 잘못 말했어요. 하지만 상자 안이 가면이었다는 증거는요?', insight: '전시장 접근에 대한 부인은 뒤집혔다. 상자의 내용물을 입증할 자료가 남아 있다.' },
+  { id: 'F05', suspect: 'C', evidence: 'E07', question: 'c-parcel', prompt: '당신 명의로 출고된 상자는 신고한 물품보다 훨씬 무거웠어요.', reply: '그건… 포장할 때 제가 따로 넣은 게 있어서… 정확히 기억나지 않아요. 실제 상자를 열어 봤나요?', insight: '출고 기록만으로는 내용물을 단정할 수 없다. 상자의 봉인과 실물 확인 결과를 함께 보자.' },
+]);
+
+export function getConfrontation(suspectId, evidenceId) {
+  return CONFRONTATIONS.find(item => item.suspect === suspectId && item.evidence === evidenceId);
+}
+
+export function canConfront(state, evidenceId) {
+  const entry = getConfrontation(state.selectedSuspect, evidenceId);
+  return Boolean(entry && state.discovered.includes(evidenceId) && state.asked.includes(entry.question) && !state.confronted?.includes(entry.id));
+}
+
+export function confrontEvidence(state, evidenceId) {
+  if (!canConfront(state, evidenceId)) return { state, message: '', insight: '' };
+  const entry = getConfrontation(state.selectedSuspect, evidenceId);
+  const next = {
+    ...state,
+    confronted: [...(state.confronted || []), entry.id],
+    log: [...state.log, { who: '나 · 증거 제시', text: entry.prompt }, { who: getSuspect(entry.suspect).name, text: entry.reply }].slice(-22),
+  };
+  return { state: next, message: entry.reply, insight: entry.insight };
+}
+
 const defaultLog = [{ who: '사건 기록', text: '은빛 가면이 사라졌다. 세 사람을 심문하고 서로 다른 출처의 증거를 모아 진상을 밝히자.' }];
 
 export function createGame() {
   return {
     version: GAME_VERSION, caseId: CASE.id, screen: 'home', selectedSuspect: 'A',
-    asked: [], discovered: ['E01', 'E02'], proof: [], accusation: '',
+    asked: [], confronted: [], discovered: ['E01', 'E02'], proof: [], accusation: '',
     log: defaultLog.map(item => ({ ...item })), result: null, detailId: '',
   };
 }
@@ -63,6 +92,10 @@ export function safeRestore(input) {
     screen: ['home', 'intro', 'play', 'verdict', 'result'].includes(input.screen) ? input.screen : 'home',
     selectedSuspect: getSuspect(input.selectedSuspect) ? input.selectedSuspect : 'A',
     asked,
+    confronted: [...new Set((Array.isArray(input.confronted) ? input.confronted : []).filter(id => {
+      const item = CONFRONTATIONS.find(c => c.id === id);
+      return item && discovered.includes(item.evidence) && asked.includes(item.question);
+    }))],
     discovered,
     proof: [...new Set((Array.isArray(input.proof) ? input.proof : []).filter(id => discovered.includes(id)))].slice(0, 3),
     accusation: getSuspect(input.accusation) ? input.accusation : '',
@@ -116,6 +149,14 @@ export function validateCaseDefinition() {
     for (const id of q.reveals) if (!ids.includes(id)) errors.push(`missing evidence ${id}`);
   }
   for (const e of CASE.evidence) if (e.unlock && !getQuestion(e.unlock).reveals.includes(e.id)) errors.push(`unreachable evidence ${e.id}`);
+  const confrontationIds = CONFRONTATIONS.map(c => c.id);
+  if (new Set(confrontationIds).size !== confrontationIds.length) errors.push('duplicate confrontation IDs');
+  for (const item of CONFRONTATIONS) {
+    const q = getQuestion(item.question);
+    if (!getSuspect(item.suspect) || !getEvidence(item.evidence) || !q || q.suspect !== item.suspect || !q.reveals.includes(item.evidence)) {
+      errors.push(`invalid confrontation ${item.id}`);
+    }
+  }
   if (!getSuspect(CASE.culprit)) errors.push('culprit missing');
   if (judgeAccusation(CASE.culprit, ['E05', 'E06']).kind !== 'correct') errors.push('solution cannot be reached');
   return errors;

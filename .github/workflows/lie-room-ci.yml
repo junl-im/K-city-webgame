@@ -1,0 +1,40 @@
+name: Lie Room — isolated investigation checks
+
+on:
+  pull_request:
+    paths:
+      - 'LieRoom/**'
+      - '.github/workflows/lie-room-ci.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'LieRoom/**'
+      - '.github/workflows/lie-room-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lie-room-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check module syntax
+        run: |
+          node --check LieRoom/dist/core.mjs
+          node --check LieRoom/dist/app.mjs
+      - name: Run mystery logic, evidence confrontation and safe-save tests
+        run: node LieRoom/tests/smoke.mjs
+      - name: Confirm independent page and original art
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s LieRoom/dist/index.html
+          test -s LieRoom/dist/assets/fox-detective.png
+          grep -q '곰같은여우' LieRoom/dist/index.html
