@@ -125,11 +125,11 @@ function discussion() {
   const total = CASE.questions.filter(item => item.suspect === person.id).length;
   const asked = questions.filter(item => state.asked.includes(item.id)).length;
   const signal = mood.stress >= 2 ? '상대가 경계하고 있어. 표정보다 객관적인 기록을 확인해.' : mood.trust >= 2 ? '대화가 부드러워졌어. 아직 진술을 증거로 검증해야 해.' : '중립적인 분위기야. 먼저 동선을 확인해봐.';
-  return `<section class="interrogation-pane">
+  return `<section class="interrogation-pane" data-mobile-mode="${mobileInterrogationMode}">
     ${portrait()}
     <div class="dialogue-panel"><div class="dialogue-heading"><strong>${escapeHtml(person.name)}</strong><span>진술 확인</span></div><p>${escapeHtml(text)}</p></div>
     <div class="psychology-panel" id="investigation-psych" aria-label="심리 접근"><div class="psy-head"><strong>심리 접근</strong><span>신뢰 ${mood.trust} · 긴장 ${mood.stress} · ${escapeHtml(mood.label)}</span></div><div class="psy-meters"><div class="psy-meter"><span>신뢰</span><div class="psy-meter-track"><i style="width:${Math.min(100,mood.trust/3*100)}%"></i></div></div><div class="psy-meter stress"><span>긴장</span><div class="psy-meter-track"><i style="width:${Math.min(100,mood.stress/3*100)}%"></i></div></div></div><p class="psy-signal">${escapeHtml(signal)}</p><div class="tactic-list">${tactics.map(tactic => `<button class="tactic-button ${tactic.tone} ${state.tactics.includes(tactic.id) ? 'used' : ''}" data-action="tactic" data-id="${escapeHtml(tactic.id)}" ${state.tactics.includes(tactic.id) ? 'disabled' : ''}>${escapeHtml(tactic.label)} ${state.tactics.includes(tactic.id) ? '✓' : '↗'}</button>`).join('')}</div></div>
-    <div class="investigation-actions" aria-label="수사 도구"><button class="investigation-action action-question" data-action="jump-questions">질문하기</button><button class="investigation-action action-evidence" data-action="jump-evidence">증거 확인</button><button class="investigation-action action-psych" data-action="jump-psych">심리 분석</button><button class="investigation-action action-record" data-action="history">심문 기록</button></div><div class="question-panel" id="investigation-questions"><div class="pane-title"><span>QUESTION</span><strong>어떤 질문을 하겠어? (${asked}/${total})</strong></div><div class="question-list">${questions.map((question, index) => `<button class="question-button" data-action="ask" data-id="${question.id}" ${state.asked.includes(question.id) ? 'disabled' : ''}><span>${index + 1 < 10 ? `0${index + 1}` : index + 1}</span><strong>${escapeHtml(question.title)}</strong><span class="question-arrow">${state.asked.includes(question.id) ? '확인' : '↗'}</span></button>`).join('')}</div></div>
+    <div class="mobile-interrogation-switch" aria-label="심문 세부 화면"><button data-action="mobile-mode" data-id="questions" aria-pressed="${mobileInterrogationMode === 'questions'}">질문 ${asked}/${total}</button><button data-action="mobile-mode" data-id="psych" aria-pressed="${mobileInterrogationMode === 'psych'}">심리 · 설득</button></div><div class="investigation-actions" aria-label="수사 도구"><button class="investigation-action action-question" data-action="jump-questions">질문하기</button><button class="investigation-action action-evidence" data-action="jump-evidence">증거 확인</button><button class="investigation-action action-psych" data-action="jump-psych">심리 분석</button><button class="investigation-action action-record" data-action="history">심문 기록</button></div><div class="question-panel" id="investigation-questions"><div class="pane-title"><span>QUESTION</span><strong>어떤 질문을 하겠어? (${asked}/${total})</strong></div><div class="question-list">${questions.map((question, index) => `<button class="question-button" data-action="ask" data-id="${question.id}" ${state.asked.includes(question.id) ? 'disabled' : ''}><span>${index + 1 < 10 ? `0${index + 1}` : index + 1}</span><strong>${escapeHtml(question.title)}</strong><span class="question-arrow">${state.asked.includes(question.id) ? '확인' : '↗'}</span></button>`).join('')}</div></div>
   </section>`;
 }
 
@@ -144,6 +144,7 @@ function evidence() {
 }
 
 let mobilePanel = 'interrogation';
+let mobileInterrogationMode = 'questions';
 function play() {
   return `<main class="play-screen" data-mobile-panel="${mobilePanel}"><div class="game-bar"><div><p class="eyebrow">ACTIVE INVESTIGATION</p><strong>${escapeHtml(CASE.title)}</strong></div><div class="progress-tags"><span>질문 ${state.asked.length}/${CASE.questions.length}</span><span>증거 ${state.discovered.length}/${CASE.evidence.length}</span><span>심리 ${state.tactics.length}/${TACTICS.length}</span><span class="confront-progress">대질 ${state.confronted.length}/${CONFRONTATIONS.length}</span><button class="timeline-button" data-action="timeline">수사 시간선</button><button class="plain-button" data-action="home">저장 후 나가기</button></div></div><nav class="mobile-investigation-tabs" aria-label="수사 화면 전환"><button data-action="mobile-panel" data-id="people" aria-pressed="${mobilePanel === 'people'}">인물</button><button data-action="mobile-panel" data-id="interrogation" aria-pressed="${mobilePanel === 'interrogation'}">심문</button><button data-action="mobile-panel" data-id="evidence" aria-pressed="${mobilePanel === 'evidence'}">증거 ${state.discovered.length}</button></nav><div class="game-layout">${people()}${discussion()}${evidence()}</div></main>`;
 }
@@ -211,9 +212,10 @@ root.addEventListener('click', event => {
   if (!button || button.disabled) return;
   const action = button.dataset.action;
   const id = button.dataset.id;
+  if (action === 'mobile-mode') { if (['questions','psych'].includes(id)) { mobileInterrogationMode = id; render(); } return; }
   if (action === 'mobile-panel') { if (['people', 'interrogation', 'evidence'].includes(id)) { mobilePanel = id; render(); } return; }
   if (action === 'jump-questions' || action === 'jump-evidence' || action === 'jump-psych') {
-    if (window.matchMedia('(max-width: 767px)').matches) { mobilePanel = action === 'jump-evidence' ? 'evidence' : 'interrogation'; render(); }
+    if (window.matchMedia('(max-width: 767px)').matches) { mobilePanel = action === 'jump-evidence' ? 'evidence' : 'interrogation'; mobileInterrogationMode = action === 'jump-psych' ? 'psych' : 'questions'; render(); }
     const target = root.querySelector(action === 'jump-questions' ? '#investigation-questions' : action === 'jump-evidence' ? '#investigation-evidence' : '#investigation-psych');
     if (target) {
       target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
