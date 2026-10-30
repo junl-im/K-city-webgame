@@ -71,6 +71,8 @@ describe('화투패 타격감 시각 연출', () => {
     expect(target).not.toBeNull();
     expect(target.left >= occupied[0].left+occupied[0].width-2 || target.top >= occupied[0].top+occupied[0].height-2).toBe(true);
     expect(emptyLandingRect({left:0,top:0,width:50,height:70},[{left:0,top:0,width:50,height:70}],50)).toBeNull();
+    const narrow=emptyLandingRect({left:0,top:0,width:110,height:75},[{left:3,top:3,width:32,height:69},{left:85,top:3,width:22,height:69}],50);
+    expect(narrow).not.toBeNull();expect(narrow.left).toBe(35);
   });
 
   it('착지→뒤집기→획득→패판 갱신 순서가 유지된다', () => {

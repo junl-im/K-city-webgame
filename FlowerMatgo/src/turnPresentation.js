@@ -142,9 +142,15 @@ export function specialContactBeats(kind, bombCount = 1, throwGap = 0) {
 export function emptyLandingRect(bounds, occupied, width) {
   if (!bounds || !Number.isFinite(width) || width <= 0) return null;
   const height=cardHeightForWidth(width);
-  const inset=3, stepX=Math.max(12,width*.48), stepY=Math.max(12,height*.48);
+  const inset=3, left=bounds.left+inset, top=bounds.top+inset;
   const right=bounds.left+bounds.width-inset-width, bottom=bounds.top+bounds.height-inset-height;
-  for(let y=bounds.top+inset;y<=bottom;y+=stepY) for(let x=bounds.left+inset;x<=right;x+=stepX) {
+  if(right<left || bottom<top)return null;
+  // Check the exact edges of existing cards as well as the field edges. A
+  // regular grid alone can skip a narrow but perfectly usable empty space.
+  const xs=[left,right], ys=[top,bottom];
+  for(const r of occupied) if(r) { xs.push(r.left-width,r.left+r.width);ys.push(r.top-height,r.top+r.height); }
+  const valid=(values,min,max)=>[...new Set(values.map(v=>Math.max(min,Math.min(max,v))))].sort((a,b)=>a-b);
+  for(const y of valid(ys,top,bottom)) for(const x of valid(xs,left,right)) {
     const candidate={left:x,top:y,width,height};
     const overlaps=occupied.some(r=>r && x<r.left+r.width-2 && x+width>r.left+2 && y<r.top+r.height-2 && y+height>r.top+2);
     if(!overlaps)return candidate;
@@ -271,7 +277,7 @@ function spawnCapturedNotice(root, destination, count, delay) {
 
 function spawnCaptureSweep(root, ids, source, drawnTarget, cue, player, result, cardHTML, sound) {
   if (!ids.length || !source) return;
-  const destination = root.querySelector(player === 'human' ? '.collection-rack' : '.captured-grid');
+  const destination = root.querySelector(player === 'human' ? '.collection-rack--human' : '.collection-rack--opponent');
   if (!measure(destination)) return;
   const bouncedGroups = new Set();
   const width = player === 'human' ? 40 : 35;
@@ -291,7 +297,7 @@ function spawnCaptureSweep(root, ids, source, drawnTarget, cue, player, result, 
       if (!root.isConnected) return;
       const from = fromFloor.get(id) || (id === cue.drawn ? drawnTarget : source);
       const type = captureVisualType(id,asDoubleJunk);
-      const group = player === 'human' && type
+      const group = type
         ? destination.querySelector(`[data-capture-type="${type}"]`) : null;
       const rect = measure(group || destination);
       if (!rect) return;
