@@ -764,3 +764,7 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 @media(max-height:620px){.brand .eyebrow{padding-top:25px}.title-forest-crest{height:67px}.crest-hero{width:55px;height:55px}
 .brand h1{font-size:31px;margin-top:9px}.story-panel p{display:none}.menu .story-panel{padding:5px 10px}
 .menu-actions-top .rune-btn.primary{min-height:34px;font-size:13px}}
+
+/* v1.7.2: keep title painting above page background but behind live title text */
+.title-forest-crest{z-index:0}
+.brand .eyebrow,.brand>p:last-child{z-index:1}

@@ -132,6 +132,19 @@ try{
     reports.push({viewport:size,menu:'PASS',battle:'PASS',hud: battle.hud.length,buttons:battle.buttons.length});
     await context.close();
   }
+  // If the stage painting fails, the game must never expose the old Canvas fallback.
+  const failedCtx=await browser.newContext({viewport:{width:360,height:740},deviceScaleFactor:1,isMobile:true,hasTouch:true});
+  const failedPage=await failedCtx.newPage();
+  await failedPage.route('**/forest-entrance-v08.png**',route=>route.abort('failed'));
+  await failedPage.goto(origin,{waitUntil:'domcontentloaded'});
+  await failedPage.locator('#start-btn').click();
+  await failedPage.waitForFunction(()=>{
+    const layer=document.getElementById('modal-layer');
+    return !layer.hidden&&document.getElementById('modal-kicker').textContent==='원화 로딩 문제';
+  },null,{timeout:25000});
+  assert.equal(await failedPage.locator('#game-root canvas').count(),0,'No primitive canvas fallback on asset failure');
+  assert.equal(await failedPage.locator('#menu').isVisible(),true,'Menu must remain available');
+  await failedCtx.close();
 }finally{await browser.close();}
 console.log('ForestGuard Chromium mobile viewport QA PASS');
 console.log(JSON.stringify(reports,null,2));

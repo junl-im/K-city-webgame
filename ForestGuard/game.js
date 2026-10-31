@@ -1,4 +1,4 @@
-/* 라니 수비대 v0.9.0 — © 2026 곰같은여우
+/* 라니 수비대 v1.7.2 — © 2026 곰같은여우
  * Original game rules, PNG character art, Canvas field art and interface.
  * Combat architecture informed by MIT-licensed Phaser 3 and the WaveManager,
  * EnemyManager and Projectile patterns of rupertgermann/tower-defence.
@@ -143,7 +143,7 @@
     const biome=Math.floor(stageIndex/4);
     if(!biomeLoading[biome])biomeLoading[biome]=load('./art/'+biomeFiles[biome]+'?v=20261031i',art=>{biomeBitmaps[biome]=art;});
     await Promise.all([atlasPromise,biomeLoading[biome]]);
-    if(!biomeBitmaps[biome]||!atlasBitmap){
+    if(!biomeBitmaps[biome]||!atlasBitmap||!monsterBitmap||!evolutionBitmap||!fortBitmap){
       atlasPromise=null;biomeLoading[biome]=null;return false;
     }
     return true;
@@ -1094,6 +1094,7 @@
       this.pendingRecruit=false;this.drafting=false;this.betweenWaves=1100;
       if(activeModal&&activeModal.kicker==='첫 번째 공세 완료')closeModal(true);
       renderHUD();
+      renderSlots();
       if(automatic)showBanner(HEROES[id].name+' 자동 합류!');
       return true;
     }

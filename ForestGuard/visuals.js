@@ -1,4 +1,4 @@
-/* 라니 수비대 v0.6 — 독자 Canvas 모션 및 PNG UI 문양 | © 2026 곰같은여우
+/* 라니 수비대 v1.7.2 — 독자 Canvas 모션 및 PNG UI 문양 | © 2026 곰같은여우
  * Source character paintings remain the original ForestGuard PNG assets.
  * Every animation frame below is newly assembled from that character's painting.
  * No SVG, emoji glyphs or third-party character art.
