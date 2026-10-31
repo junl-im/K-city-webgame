@@ -114,7 +114,7 @@
   const biomeBitmaps = [null,null,null];
   const biomeLoading = [null,null,null];
   const biomeFiles = ['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'];
-  let monsterBitmap = null, fortBitmap = null;
+  let monsterBitmap = null, fortBitmap = null, mushroomAttackBitmap = null;
   const ART_VERSION = '20261031r';
   async function prepareAtlas(stageIndex){
     const load=(url,assign)=>new Promise(resolve=>{
@@ -138,7 +138,8 @@
       load('./art/rani-evolution.png?v=20261031c',art=>{evolutionBitmap=art;}),
       load('./art/forest-battleground-v04.webp?v=20261031d',art=>{fieldBitmap=art;}),
       load('./art/forest-monsters-v14-clean.webp?v='+ART_VERSION,art=>{monsterBitmap=art;}),
-      load('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;})
+      load('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;}),
+      load('./art/mushroom-colossus-attack-v19.webp?v=20261101d',art=>{mushroomAttackBitmap=art;})
     ]);
     const biome=Math.floor(stageIndex/4);
     if(!biomeLoading[biome])biomeLoading[biome]=load('./art/'+biomeFiles[biome]+'?v=20261031i',art=>{biomeBitmaps[biome]=art;});
@@ -523,9 +524,23 @@
       }
       c.restore();
     };
-    for(const kind of ['fox','megafox','bear','rabbit','cat'])
+    for(const kind of ['fox','megafox','bear','rabbit','cat']){
       createCanvasTexture(scene,'shot-'+kind,64,64,c=>paintShot(c,kind));
+      createCanvasTexture(scene,'trail-'+kind,96,28,c=>{
+        const rgb=kind==='rabbit'?'112,222,254':kind==='cat'?'255,169,95':kind==='megafox'?'255,229,107':kind==='bear'?'244,215,163':'164,226,121';
+        const glow=c.createLinearGradient(0,0,94,0);
+        glow.addColorStop(0,'rgba('+rgb+',0)');glow.addColorStop(.54,'rgba('+rgb+',.14)');
+        glow.addColorStop(.88,'rgba('+rgb+',.62)');glow.addColorStop(1,'rgba(255,255,229,.90)');
+        c.fillStyle=glow;c.beginPath();c.moveTo(0,14);c.quadraticCurveTo(58,1,94,12);
+        c.quadraticCurveTo(58,27,0,14);c.closePath();c.fill();
+      });
+    }
     V.build(scene);
+    if(mushroomAttackBitmap)for(let frame=0;frame<4;frame++){
+      const key='motion-shroom-attack-'+frame;
+      if(scene.textures.exists(key))scene.textures.remove(key);
+      createCanvasTexture(scene,key,320,320,c=>c.drawImage(mushroomAttackBitmap,frame*320,0,320,320,0,0,320,320));
+    }
   }
   class WaveDirector {
     // Adapted wave lifecycle from rupertgermann/tower-defence (MIT); custom fixed-wall rules.
@@ -625,16 +640,21 @@
       const soloScoutScale=this.wave.current===1?1/(1+this.stage.id*.045):1;
       const hp=Math.round(hpbase*(1+this.stage.id*.13+(this.wave.current-1)*.1)*soloScoutScale*this.assistScale);
       const spd={sprout:33,runner:60,brute:23,boss:18,thorn:49,spore:31,imp:55,crystal:21,shroom:19,guardian:17}[type]+this.stage.id*.8;
-      const sizes={sprout:[56,48],runner:[56,48],brute:[69,63],boss:[132,94],thorn:[61,54],spore:[69,61],imp:[55,65],crystal:[79,67],shroom:[107,105],guardian:[145,126]};
+      const sizes={sprout:[56,48],runner:[56,48],brute:[69,63],boss:[160,142],thorn:[61,54],spore:[69,61],imp:[55,65],crystal:[79,67],shroom:[170,156],guardian:[165,144]};
       const [sw,sh]=sizes[type],lifeWidth=type==='guardian'||type==='boss'?88:type==='shroom'?60:40;
       const lifeYOffset=Math.round(sh*.53)+8;
       const spr=this.add.image(lane,-38,'motion-'+type+'-run-0').setDisplaySize(sw,sh).setDepth(4);
       const lifeBg=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth+2,6,0x302a20).setDepth(5);
+      if(['shroom','guardian','boss'].includes(type)){
+        const ring=this.add.ellipse(lane,-25,type==='shroom'?142:155,34,
+          type==='shroom'?0xd69c57:0xe0c574,.14).setStrokeStyle(2,0xe3c17c,.46).setDepth(3);
+        this.tweens.add({targets:ring,alpha:0,scaleX:1.28,scaleY:1.45,duration:840,onComplete:()=>ring.destroy()});
+      }
       const life=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth,4,type==='guardian'?0xffcb73:type==='shroom'?0xf4a86e:0xe18754).setDepth(5);
       const nameLabel=['guardian','boss','shroom'].includes(type)?this.add.text(lane,-38-lifeYOffset-15,ENEMY_INTEL[type].name,{font:'bold 12px system-ui',color:'#fff1c7',stroke:'#423622',strokeThickness:4}).setOrigin(.5).setDepth(7):null;
       const enemy={nameLabel,type,x:lane,baseX:lane,windPhase:Math.random()*Math.PI*2,y:-38,spr,lifeBg,life,lifeWidth,lifeYOffset,hp,maxHP:hp,spd,slow:0,rooted:0,
         armor:type==='crystal'?.34:type==='shroom'?.12:this.stage.id===9?(type==='runner'?0:.3):(type==='brute'?.18:0),
-        abilityCooldown:type==='guardian'?4100:5400,warning:0,hidden:0,untargetable:false,surge:0,
+        abilityCooldown:type==='guardian'?4100:type==='shroom'?7700:5400,warning:0,hidden:0,untargetable:false,surge:0,
         tellRing:null,tellBack:null,tellFill:null,guarding:false,hasDashed:false,hasRallied:false,hasSpores:false,crystalShatterUntil:0};
       enemy.baseArmor=enemy.armor;
       spr.setInteractive({useHandCursor:true}).on('pointerdown',()=>{
@@ -672,7 +692,7 @@
         const offset=(p-(num-1)/2)*12;
         const bolt=this.add.image(x+offset,568,'shot-'+id).setDisplaySize(id==='cat'?31:id==='rabbit'?27:32,32).setDepth(6);
         const trailColor=id==='rabbit'?0x8fe5ff:id==='cat'?0xffb56c:id==='megafox'?0xffe77f:id==='bear'?0xe8cf9e:0xb9e18a;
-        const trail=this.add.rectangle(bolt.x-14,bolt.y,24,id==='megafox'?5:3,trailColor,.58).setDepth(5);
+        const trail=this.add.image(bolt.x-23,bolt.y,'trail-'+id).setDisplaySize(id==='megafox'?78:65,22).setAlpha(.72).setDepth(5);
         const evolvePower=id==='megafox'&&this.evolutionPath==='sun'?1.25:1;
         this.projectiles.push({spr:bolt,trail,target,x:bolt.x,y:bolt.y,damage:hero.damage*this.damageBonus*evolvePower,kind:id});
       }
@@ -744,11 +764,11 @@
         onComplete:()=>{ring.destroy();const index=this.effects.indexOf(ring);if(index>=0)this.effects.splice(index,1);}});
       if(critical&&this.effects.length<24){
         for(let n=0;n<3;n++){
-          const particle=this.add.circle(x,y,2.2,color,.8).setDepth(7);
+          const particle=this.add.image(x,y,'shard-'+(kind==='rabbit'?'crystal':kind==='cat'?'spore':'leaf')).setDisplaySize(9,9).setAlpha(.82).setDepth(7);
           this.effects.push(particle);
           const angle=(n*2*Math.PI/3)+.22;
           this.tweens.add({targets:particle,x:x+Math.cos(angle)*29,y:y+Math.sin(angle)*29,alpha:0,scale:.3,duration:320,
-            onComplete:()=>{particle.destroy();this.effects.splice(this.effects.indexOf(particle),1);}});
+            onComplete:()=>{particle.destroy();const i=this.effects.indexOf(particle);if(i>=0)this.effects.splice(i,1);}});
         }
       }
     }
@@ -845,11 +865,11 @@
     }
     startBossWarning(e){
       this.clearBossWarning(e);
-      const color=e.type==='guardian'?0xffdd83:this.stage.id===11?0xce77ff:this.stage.id===7?0xffc46b:0xff8068;
-      e.tellRing=this.add.ellipse(e.x,e.y+23,e.type==='guardian'?145:112,35,color,.21).setStrokeStyle(3,color,.9).setDepth(5);
+      const color=e.type==='shroom'?0xf5a658:e.type==='guardian'?0xffdd83:this.stage.id===11?0xce77ff:this.stage.id===7?0xffc46b:0xff8068;
+      e.tellRing=this.add.ellipse(e.x,e.y+23,e.type==='shroom'?165:e.type==='guardian'?145:112,35,color,.21).setStrokeStyle(3,color,.9).setDepth(5);
       e.tellBack=this.add.rectangle(e.x,e.y-56,100,10,0x382a30,.95).setDepth(7);
       e.tellFill=this.add.rectangle(e.x,e.y-56,94,6,color,1).setDepth(8);
-      e.tellZone=this.add.ellipse(e.x,(e.y+540)/2,e.type==='guardian'?155:110,Math.max(40,540-e.y),color,.075)
+      e.tellZone=this.add.ellipse(e.x,(e.y+540)/2,e.type==='shroom'?180:e.type==='guardian'?155:110,Math.max(40,540-e.y),color,.075)
         .setStrokeStyle(2,color,.45).setDepth(3);
     }
     drawFortHUD(){
@@ -948,9 +968,30 @@
       this.syncBattleOverlay();
       showBanner(this.terrainCueText);
     }
+    sporeVolley(e){
+      if(!this.enemies.includes(e)||this.ended)return;
+      const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      const points=[116,210,303],damage=this.synergies.has('fortress')?17:28;
+      for(let i=0;i<3;i++){
+        const target=points[i];
+        const orb=this.add.image(e.x+(i-1)*12,e.y-20,'shard-spore')
+          .setDisplaySize(i===1?29:22,i===1?29:22).setDepth(7);
+        this.tweens.add({targets:orb,x:target,y:558,angle:(i-1)*145,alpha:.45,
+          duration:reduced?240:510+i*90,ease:'Cubic.easeIn',
+          onComplete:()=>{
+            orb.destroy();if(this.ended||!this.enemies.includes(e))return;
+            const pulse=this.add.ellipse(target,558,47,19,0xffc17b,.17).setStrokeStyle(2,0xfce4af,.75).setDepth(6);
+            this.tweens.add({targets:pulse,alpha:0,scale:1.8,duration:280,onComplete:()=>pulse.destroy()});
+          }});
+      }
+      this.hp=Math.max(0,this.hp-damage);renderHUD();
+      if(!reduced)this.cameras.main.shake(135,.0019);
+      showBanner('버섯 거한 · 포자 충격! 성벽 -'+damage);
+      if(this.hp<=0)this.finish(false);
+    }
     updateBosses(dt){
       for(const e of this.enemies){
-        if(e.type!=='boss'&&e.type!=='guardian')continue;
+        if(e.type!=='boss'&&e.type!=='guardian'&&e.type!=='shroom')continue;
         if(e.hidden>0){
           e.hidden=Math.max(0,e.hidden-dt);
           if(e.hidden===0){e.untargetable=false;e.spr.alpha=1;e.life.alpha=1;e.lifeBg.alpha=1;}
@@ -960,13 +1001,14 @@
           if(e.tellRing){
             e.tellRing.setPosition(e.x,e.y+23).setAlpha(.55+Math.sin(this.gameClock/120)*.25);
             e.tellBack.setPosition(e.x,e.y-56);
-            if(e.tellZone)e.tellZone.setPosition(e.x,(e.y+540)/2).setDisplaySize(e.type==='guardian'?155:110,Math.max(40,540-e.y));
+            if(e.tellZone)e.tellZone.setPosition(e.x,(e.y+540)/2).setDisplaySize(e.type==='shroom'?180:e.type==='guardian'?155:110,Math.max(40,540-e.y));
             const remaining=Math.max(0,e.warning/1250);
             e.tellFill.setPosition(e.x-47+47*remaining,e.y-56).setDisplaySize(94*remaining,6);
           }
           if(e.warning<=0){
             e.warning=0;e.spr.clearTint();this.clearBossWarning(e);
             V.trigger(e.spr,'attack',this.gameClock+490);
+            if(e.type==='shroom'){this.sporeVolley(e);e.abilityCooldown=7800;}
             if(e.type==='guardian'){
               e.surge=1250;this.hp=Math.max(0,this.hp-45);renderHUD();
               this.cameras.main.shake(95,.0016);
@@ -992,7 +1034,7 @@
             V.trigger(e.spr,'attack',this.gameClock+700);
             e.warning=1250;e.abilityCooldown=6900;
             e.spr.setTint(0xff9b60);this.startBossWarning(e);
-            const title=e.type==='guardian'?'숲의 수호자 · 충격파 예고':this.stage.id===3?'뿌리 돌진 예고':this.stage.id===7?'잠복 이동 예고':'검은 종 진동 예고';
+            const title=e.type==='shroom'?'버섯 거한 · 포자탄 경고':e.type==='guardian'?'숲의 수호자 · 충격파 예고':this.stage.id===3?'뿌리 돌진 예고':this.stage.id===7?'잠복 이동 예고':'검은 종 진동 예고';
             showBanner(title+' · 일제사격으로 저지!');
           }
         }
@@ -1034,7 +1076,7 @@
         this.terrainCueText='포자비 저지 성공!';this.terrainCueUntil=this.gameClock+2100;
         this.syncBattleOverlay();showBanner('포자비 저지! 적 가속 취소');
       }
-      for(const enemy of this.enemies)if(['boss','guardian'].includes(enemy.type)&&enemy.warning>0){
+      for(const enemy of this.enemies)if(['boss','guardian','shroom'].includes(enemy.type)&&enemy.warning>0){
         enemy.warning=0;enemy.abilityCooldown=6200;enemy.spr.clearTint();this.clearBossWarning(enemy);showBanner('보스 공격 저지!');
       }
       const flash=this.add.rectangle(210,270,420,540,0xffe2a1,.22).setDepth(6);

@@ -867,3 +867,9 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
  .menu .map-title{margin:4px 1px 2px}
  .menu-actions-top .rune-btn{height:34px!important;min-height:34px!important}
 }
+
+/* v1.9 mushroom boss and projectile material polish */
+.boss-portrait.shroom{background-image:url('./art/mushroom-colossus-attack-v19.webp')!important;background-size:400% 100%!important;background-position:0 0!important}
+.arena-wrap.has-boss .boss-hud{box-shadow:inset 0 0 0 1px #ffe0a89c,0 0 14px #e2a66e6e,0 5px 16px #071913cf}
+.battle-toolbar{border-top:3px solid #bb8d51}
+@media(prefers-reduced-motion:reduce){.arena-wrap.has-boss .boss-hud{transition:none}}
