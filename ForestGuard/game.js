@@ -543,7 +543,7 @@
         if(e.untargetable)continue;
         const distance=Math.hypot(e.x-heroX,e.y-575);
         if(distance>range)continue;
-        const score=mode==='threat'?(e.type==='boss'?1200:e.type==='brute'?280:0)+e.hp*.18+e.y*.14-Math.abs(e.x-heroX)*.10:
+        const score=mode==='threat'?(e.type==='boss'?1200:e.type==='brute'?280:0)+e.maxHP*.18-e.hp*.14+e.y*.12-Math.abs(e.x-heroX)*.10:
           e.y-Math.abs(e.x-heroX)*.45;
         if(score>best){best=score;result=e;}
       }
