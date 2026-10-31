@@ -567,3 +567,28 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
  .rune-btn,.skill-button,.evo-button,.hp-fill{transition:none}
  .arena-wrap.fort-danger .fort-hp{animation:none}
 }
+
+
+/* v1.1 — illustrated squad recruitment and short target-mode labels */
+.recruit-grid{gap:7px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.recruit-card{min-height:174px;padding:10px 5px;gap:5px;justify-content:flex-start}
+.recruit-card .recruit-portrait{display:block;width:86px;height:82px;flex:0 0 82px;
+ background-repeat:no-repeat;filter:drop-shadow(0 3px 2px #6e4d3280)}
+.recruit-card.recruit-bear{border-color:#81633d;background:linear-gradient(#fff2c9,#cba97a)}
+.recruit-card.recruit-rabbit{border-color:#688caa;background:linear-gradient(#ecf8f7,#a7cce0)}
+.recruit-card.recruit-cat{border-color:#ad7545;background:linear-gradient(#fff1d0,#deb08c)}
+.recruit-card strong{font-size:12px;white-space:nowrap}
+.recruit-card small{font-size:10px;line-height:1.35}
+.hero-slot[data-mode-label]:not(.empty)::before{content:attr(data-mode-label);position:absolute;right:3px;top:2px;z-index:2;
+ font-size:8px;font-weight:900;line-height:1;padding:2px 3px;border-radius:5px;
+ color:#fff3ce;background:#274d3fdc;border:1px solid #c5ad6d;box-shadow:0 1px 2px #17291d}
+.hero-slot[data-target-mode="threat"]{border-color:#d7a75a;background:linear-gradient(#766a44,#3c4630)}
+.hero-slot[data-target-mode="threat"]::before{background:#76503ae8}
+@media(max-width:350px){
+ .recruit-grid{gap:4px}
+ .recruit-card{min-height:150px;padding:7px 2px}
+ .recruit-card .recruit-portrait{width:65px;height:64px;flex-basis:64px}
+ .recruit-card strong{font-size:10px}
+ .recruit-card small{font-size:9px;line-height:1.25}
+ .hero-slot[data-mode-label]:not(.empty)::before{right:1px;top:1px;font-size:7px;padding:1px 2px}
+}

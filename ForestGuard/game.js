@@ -62,6 +62,7 @@
     {id:'ice',icon:'❄',title:'서리 화살',desc:'타격한 적을 잠시 둔화',rare:false},
     {id:'wall',icon:'▣',title:'튼튼한 성벽',desc:'성벽 HP 600 회복',rare:false},
     {id:'flame',icon:'♨',title:'불꽃의 맹세',desc:'타격 후 추가 화상 피해',rare:true},
+    {id:'bear',icon:'▣',title:'곰 수호자',desc:'튼튼한 창 공격 용병이 합류',rare:true},
     {id:'rabbit',icon:'☾',title:'토끼 마법사',desc:'빙결 마법사가 합류',rare:true},
     {id:'cat',icon:'✹',title:'고양이 기술자',desc:'폭탄의 달인이 합류',rare:true},
     {id:'crit',icon:'✦',title:'약점 간파',desc:'치명타 확률 +13%',rare:false},
@@ -248,7 +249,7 @@
   }
   function showHelp(){
     const el=document.createElement('div');el.className='howto';
-    [['① 자동 전투','여우와 곰이 달려오는 몬스터를 알아서 공격해요.'],['② 자리 바꾸기','아래 용병 하나를 선택하고 다른 칸을 누르면 서로 바뀌어요.'],['③ 특별한 공격','일제사격 버튼이 밝아지면 눌러 몬스터를 한꺼번에 공격해요.'],['④ 강화 카드','두 공세마다 3개 중 하나를 고르고 조합을 완성해요.'],['⑤ 갈래 진화','진화 에너지 10개로 햇살 또는 달빛 계열을 선택해요.'],['⑥ 전장 대응','모험 지도에서 적 정보를 확인하고, 안개에는 추적·갑옷에는 관통을 선택해요.'],['⑦ 다시 도전','패배해도 이전에 깬 스테이지 기록은 남아요.']].forEach(row=>{
+    [['① 자동 전투','여우 궁수 1명으로 시작해 첫 공세를 막으면 동료를 골라요.'],['② 자리·표적 전술','용병을 누르고 다른 칸을 누르면 자리 교환, 같은 칸을 한 번 더 누르면 선두·위협 표적 변경!'],['③ 특별한 공격','일제사격 버튼이 밝아지면 눌러 몬스터를 한꺼번에 공격해요.'],['④ 강화 카드','첫 공세 뒤 동료를 영입하고, 두 공세마다 3개 강화 중 하나를 골라요.'],['⑤ 갈래 진화','진화 에너지 10개로 햇살 또는 달빛 계열을 선택해요.'],['⑥ 전장 대응','모험 지도에서 적 정보를 확인하고, 안개에는 추적·갑옷에는 관통을 선택해요.'],['⑦ 다시 도전','패배해도 이전에 깬 스테이지 기록은 남아요.']].forEach(row=>{
       const item=document.createElement('div');const strong=document.createElement('strong');strong.textContent=row[0];item.append(strong,document.createElement('br'),document.createTextNode(row[1]));el.appendChild(item);
     });
     showModal('수비대 안내','5초 만에 배우는 수비대','한 손으로도 충분해요!', [el],[button('좋아, 출발!',closeModal.bind(null,true))],true);
@@ -277,7 +278,7 @@
         const wasPause=activeModal.kicker==='잠깐 쉬어가기';
         const wasEvolution=activeModal.kicker==='진화 선택';
         closeModal(true);if((wasExit||wasPause||wasEvolution) && battle && !suspended)battle.manualPause=false;
-        if(battle&&battle.drafting)showBanner('아래 강화 선택을 눌러 계속하세요');
+        if(battle&&battle.drafting)showBanner(battle.pendingRecruit?'아래 동료 선택을 눌러 계속하세요':'아래 강화 선택을 눌러 계속하세요');
         renderCooldown();
       }else{
         // End-of-run choices remain visible until the user selects a destination.
@@ -463,6 +464,8 @@
       if(this.current>=this.scene.stage.waves)return;
       this.current++;this.spawned=0;this.active=true;this.tick=500;
       this.count=4+this.current*2+Math.ceil(this.scene.stage.id*.55);
+      // One-hero opening: 5–7 scouts, then a guaranteed tactical recruit.
+      if(this.current===1)this.count=5+Math.min(2,Math.floor(this.scene.stage.id/4));
       if(this.isBoss())this.count=Math.floor(this.count*.7)+1;
       if(this.scene.stage.id===6&&this.current%3===0)this.count+=Math.ceil(this.count*.35);
       if(this.scene.stage.id===10&&this.current%4===0)this.count+=4;
@@ -478,6 +481,8 @@
     isBoss(){return this.current===this.scene.stage.waves && this.scene.stage.id%4===3;}
     nextType(){
       if(this.isBoss()&&this.spawned===this.count-1)return'boss';
+      // The solo tutorial wave introduces sprout/runner movement before armor.
+      if(this.current===1)return this.scene.stage.id>0&&Math.random()<.22?'runner':'sprout';
       const n=Math.random();
       if(this.scene.stage.id>=5&&n<.24)return'brute';
       if(this.scene.stage.id===1&&n<.68)return'runner';
@@ -500,14 +505,14 @@
     constructor(){super({key:'ForestBattle'});}
     create(){
       battle=this;this.stage=STAGES[pendingStageIndex];this.ended=false;
-      this.manualPause=false;this.autoPause=false;this.drafting=false;this.speed=1;
+      this.manualPause=false;this.autoPause=false;this.drafting=false;this.pendingRecruit=false;this.speed=1;
       this.hp=3000;this.maxHP=3000;this.coins=0;this.skillCooldown=0;this.rerollUsed=false;
       this.repairs=0;this.waveStartHP=3000;
       this.damageBonus=1;this.speedBonus=1;this.multi=0;this.freeze=0;this.flame=0;this.crit=0;
       this.spark=0;this.roots=0;this.pierce=0;this.ward=0;this.hunter=0;
       this.wardCharges=0;this.trapTimer=7600;this.evolutionPath=null;
       this.cardCounts={};this.synergies=new Set();this.gameClock=0;
-      this.heroIds=['fox','bear',null];this.attackTimes=[0,0,0];this.enemies=[];this.projectiles=[];this.effects=[];
+      this.heroIds=['fox',null,null];this.targetModes=['front','front','front'];this.attackTimes=[0,0,0];this.enemies=[];this.projectiles=[];this.effects=[];
       this.foxSpirit=0;this.evolved=false;
       this.betweenWaves=0;this.wave=new WaveDirector(this);
       buildTextures(this);this.add.image(210,325,'field');
@@ -516,12 +521,14 @@
       $('arena-wrap').classList.remove('boss-warning');
       this.heroSprites=this.heroIds.map((id,i)=>id?this.add.image([104,210,316][i],595,'motion-'+id+'-idle-0').setDisplaySize(83,83):null);
       this.wave.begin();renderSlots();renderHUD();
+      if(this.stage.id===0)showBanner('여우 궁수 혼자 첫 공세를 막아보세요!');
     }
     spawnEnemy(type){
       // Enemy entry is broad at the top, including bridge levels.
       const lane=this.stage.id===2 ? (Math.random()<.5?48:372) : 38+Math.random()*344;
       const hpbase={sprout:55,runner:37,brute:160,boss:1400}[type];
-      const hp=Math.round(hpbase*(1+this.stage.id*.13+(this.wave.current-1)*.1));
+      const soloScoutScale=this.wave.current===1?1/(1+this.stage.id*.045):1;
+      const hp=Math.round(hpbase*(1+this.stage.id*.13+(this.wave.current-1)*.1)*soloScoutScale);
       const spd={sprout:33,runner:60,brute:23,boss:18}[type]+this.stage.id*.8;
       const spr=this.add.image(lane,-38,'motion-'+type+'-run-0').setDisplaySize(type==='boss'?132:type==='brute'?69:56,type==='boss'?94:type==='brute'?63:48);
       const lifeBg=this.add.rectangle(lane,-68,40,4,0x3d3024).setDepth(3);
@@ -530,13 +537,14 @@
         armor:this.stage.id===9?(type==='runner'?0:.3):(type==='brute'?.18:0),abilityCooldown:5400,warning:0,hidden:0,untargetable:false,surge:0,
         tellRing:null,tellBack:null,tellFill:null});
     }
-    targetFor(heroX,range){
+    targetFor(heroX,range,mode='front'){
       let result=null,best=-Infinity;
       for(const e of this.enemies){
         if(e.untargetable)continue;
         const distance=Math.hypot(e.x-heroX,e.y-575);
         if(distance>range)continue;
-        const score=e.y-Math.abs(e.x-heroX)*.45;
+        const score=mode==='threat'?(e.type==='boss'?1200:e.type==='brute'?280:0)+e.hp*.18+e.y*.14-Math.abs(e.x-heroX)*.10:
+          e.y-Math.abs(e.x-heroX)*.45;
         if(score>best){best=score;result=e;}
       }
       return result;
@@ -546,7 +554,7 @@
       const x=[104,210,316][i],hero=HEROES[id];
       const fog=(this.stage.id>=4&&this.stage.id<=7&&!this.hunter) ? 0.9 : 1;
       const vision=hero.range*(1+this.hunter*.16)*fog*(id==='megafox'&&this.evolutionPath==='moon'?1.2:1);
-      const target=this.targetFor(x,vision);if(!target)return;
+      const target=this.targetFor(x,vision,this.targetModes[i]);if(!target)return;
       const num=id==='fox'?1+this.multi:id==='megafox'?2+this.multi:1;
       for(let p=0;p<num;p++){
         const offset=(p-(num-1)/2)*12;
@@ -785,7 +793,11 @@
         renderHUD();
       }
       if(w>=this.stage.waves){this.finish(true);return;}
-      if(w%2===0){this.drafting=true;setTimeout(()=>{if(!this.ended)this.showDraft();},220);}
+      if(w===1){
+        this.drafting=true;this.pendingRecruit=true;
+        setTimeout(()=>{if(!this.ended&&this.pendingRecruit)this.showRecruitDraft();},260);
+      }
+      else if(w%2===0){this.drafting=true;setTimeout(()=>{if(!this.ended)this.showDraft();},220);}
       else{this.betweenWaves=1100;showBanner('성벽 방어 성공!');}
     }
     comboFor(id){
@@ -795,7 +807,7 @@
       return recipe?recipe[3]:null;
     }
     chooseCards(){
-      const pool=CARDS.filter(c=>!['rabbit','cat'].includes(c.id) || (!this.heroIds.includes(c.id)&&this.heroIds.includes(null)));
+      const pool=CARDS.filter(c=>!['bear','rabbit','cat'].includes(c.id) || (!this.heroIds.includes(c.id)&&this.heroIds.includes(null)));
       const shuffled=[...pool];
       for(let i=shuffled.length-1;i>0;i--){
         const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
@@ -809,13 +821,51 @@
       }
       return result;
     }
+    recruitHero(id){
+      if(!['bear','rabbit','cat'].includes(id)||this.heroIds.includes(id))return false;
+      const idx=this.heroIds.indexOf(null);if(idx<0)return false;
+      this.heroIds[idx]=id;this.attackTimes[idx]=400;
+      const sprite=this.add.image([104,210,316][idx],595,'motion-'+id+'-idle-0').setDisplaySize(80,80).setDepth(5);
+      this.heroSprites[idx]=sprite;
+      V.trigger(sprite,'victory',this.gameClock+700);
+      const glow=this.add.circle(sprite.x,580,19,0xffdf91,.28).setDepth(4);
+      this.tweens.add({targets:glow,scale:3,alpha:0,duration:450,onComplete:()=>glow.destroy()});
+      renderSlots();showBanner(HEROES[id].name+' 합류!');
+      return true;
+    }
+    showRecruitDraft(){
+      if(this.ended||!this.pendingRecruit)return;
+      this.drafting=true;
+      const descriptions={
+        bear:'묵직한 창 공격 · 가까운 적 대응',
+        rabbit:'서리 마법으로 적의 이동 둔화',
+        cat:'폭탄 투사체로 꾸준한 원거리 공격'
+      };
+      const wrap=document.createElement('div');wrap.className='card-grid recruit-grid';
+      for(const id of ['bear','rabbit','cat']){
+        const pick=document.createElement('button');pick.type='button';pick.className='spell-card recruit-card recruit-'+id;
+        const portrait=document.createElement('span');V.portrait(portrait,id);portrait.classList.add('recruit-portrait');
+        const name=document.createElement('strong');name.textContent=HEROES[id].name;
+        const detail=document.createElement('small');detail.textContent=descriptions[id];
+        pick.append(portrait,name,detail);
+        pick.addEventListener('click',()=>{
+          if(!this.pendingRecruit||!this.recruitHero(id))return;
+          this.pendingRecruit=false;this.drafting=false;this.betweenWaves=1100;
+          closeModal(true);renderHUD();
+        });
+        wrap.appendChild(pick);
+      }
+      showModal('첫 번째 공세 완료','첫 동료를 선택하세요!','세 동료 중 하나가 무료로 합류합니다. 선택에 따라 전투 방식이 달라져요.',[wrap],[],true);
+      renderHUD();
+    }
     showDraft(){
       if(this.ended)return;
+      if(this.pendingRecruit)return this.showRecruitDraft();
       this.drafting=true;const cards=this.chooseCards();
       const wrap=document.createElement('div');wrap.className='card-grid';
       cards.forEach(card=>{
         const b=document.createElement('button');b.type='button';b.className='spell-card'+(card.rare?' rare':'')+(this.comboFor(card.id)?' combo':'');
-        const icon=document.createElement('span');icon.className='spell-emoji';V.setIcon(icon,card.id);
+        const icon=document.createElement('span');icon.className='spell-emoji';V.setIcon(icon,card.id==='bear'?'shield':card.id);
         const title=document.createElement('strong');title.textContent=card.title;
         const desc=document.createElement('small');
         const combo=this.comboFor(card.id);
@@ -852,11 +902,7 @@
         this.synergies.add('heartwood');this.maxHP+=250;this.hp=Math.min(this.maxHP,this.hp+250);
         showBanner('조합 완성 · 고목의 맹세!');
       }
-      if((id==='rabbit'||id==='cat')&&!this.heroIds.includes(id)){
-        const idx=this.heroIds.indexOf(null);if(idx>=0){this.heroIds[idx]=id;
-          this.heroSprites[idx]=this.add.image([104,210,316][idx],595,'motion-'+id+'-idle-0').setDisplaySize(70,70);
-        }
-      }
+      if(['bear','rabbit','cat'].includes(id))this.recruitHero(id);
       renderSlots();
     }
     finish(win){
@@ -943,15 +989,22 @@
     battle.heroIds.forEach((id,i)=>{
       const b=document.createElement('button');b.type='button';
       b.className='hero-slot'+(id?'':' empty')+(chosenSlot===i?' picked':'');
+      b.dataset.targetMode=battle.targetModes[i];
+      b.dataset.modeLabel=id?(battle.targetModes[i]==='threat'?'위협':'선두'):'';
       const icon=document.createElement('strong');V.portrait(icon,id);
       const text=document.createElement('span');text.textContent=id?HEROES[id].name:'빈 자리';
-      b.append(icon,text);b.setAttribute('aria-label','전열 '+(i+1)+'번 '+text.textContent);
+      b.append(icon,text);b.setAttribute('aria-label','전열 '+(i+1)+'번 '+text.textContent+(id?' · 타깃 '+b.dataset.modeLabel+' · 같은 칸 두 번 선택해 변경':''));
       b.addEventListener('click',()=>{
         if(!battle||battle.ended||battle.drafting)return;
         if(chosenSlot<0){chosenSlot=i;battle.previewRange(i);renderSlots();return;}
-        const a=chosenSlot,ids=battle.heroIds,sprites=battle.heroSprites,times=battle.attackTimes;
+        if(chosenSlot===i){
+          if(id){battle.targetModes[i]=battle.targetModes[i]==='front'?'threat':'front';
+            showBanner(HEROES[id].name+' 표적 전술: '+(battle.targetModes[i]==='threat'?'강한 적 우선':'성벽 가까운 적 우선'));}
+          chosenSlot=-1;renderSlots();return;
+        }
+        const a=chosenSlot,ids=battle.heroIds,sprites=battle.heroSprites,times=battle.attackTimes,modes=battle.targetModes;
         [ids[a],ids[i]]=[ids[i],ids[a]];[sprites[a],sprites[i]]=[sprites[i],sprites[a]];
-        [times[a],times[i]]=[times[i],times[a]];
+        [times[a],times[i]]=[times[i],times[a]];[modes[a],modes[i]]=[modes[i],modes[a]];
         sprites.forEach((spr,k)=>{if(spr)spr.x=[104,210,316][k];});
         chosenSlot=-1;renderSlots();
       });wrap.appendChild(b);
@@ -969,7 +1022,7 @@
     const remaining=Math.ceil(battle.skillCooldown/1000);
     $('skill-timer').textContent=remaining?String(remaining):'';
     $('skill-timer').hidden=!remaining;
-    $('skill-caption').textContent=battle.drafting?'강화 선택':'일제사격';
+    $('skill-caption').textContent=battle.pendingRecruit?'동료 선택':battle.drafting?'강화 선택':'일제사격';
     $('skill-btn').disabled=(!battle.drafting&&!!remaining)||battle.manualPause;
   }
   function renderHUD(){
@@ -987,6 +1040,8 @@
     $('arena-wrap').classList.toggle('fort-danger',battle.hp/battle.maxHP<.3);
     $('fort-health').setAttribute('aria-valuenow',String(battle.hp));
     $('speed-btn').textContent='×'+battle.speed;
+    $('battle-hint').textContent=battle.pendingRecruit?'동료 선택을 눌러 수비대를 키워보세요':
+      battle.heroIds.filter(Boolean).length===1?'첫 공세를 막으면 동료 한 명이 합류해요':'용병 한 번 선택·다른 칸은 자리 교환·같은 칸은 표적 전술';
     renderCooldown();renderEvolution();
   }
   $('start-btn').addEventListener('click',()=>startStage(state.selected));
@@ -997,14 +1052,14 @@
   $('pause-btn').addEventListener('click',showPause);
   $('repair-btn').addEventListener('click',()=>{if(battle)battle.repairWall();});
   $('speed-btn').addEventListener('click',()=>{if(battle&&!battle.ended){battle.speed=battle.speed===1?2:1;renderHUD();}});
-  $('skill-btn').addEventListener('click',()=>{if(battle){if(battle.drafting)battle.showDraft();else battle.castSkill();}});
+  $('skill-btn').addEventListener('click',()=>{if(battle){if(battle.pendingRecruit)battle.showRecruitDraft();else if(battle.drafting)battle.showDraft();else battle.castSkill();}});
   $('evo-btn').addEventListener('click',()=>{if(battle)battle.evolveFox();});
   $('modal-close').addEventListener('click',()=>{
     if(activeModal&&(activeModal.kicker==='잠깐 쉬어가기'||activeModal.kicker==='진화 선택')&&battle)battle.manualPause=false;
     if(activeModal&&activeModal.kicker==='숲에서 나가기'&&battle&&!suspended)battle.manualPause=false;
     const pendingDraft=!!battle&&battle.drafting;
     closeModal(false);renderCooldown();
-    if(pendingDraft)showBanner('아래 강화 선택을 눌러 계속하세요');
+    if(pendingDraft)showBanner(battle.pendingRecruit?'아래 동료 선택을 눌러 계속하세요':'아래 강화 선택을 눌러 계속하세요');
   });
   V.setIcon(document.querySelector('.brand-seal'),'fox');
   V.setIcon(document.querySelector('#start-btn span'),'play');

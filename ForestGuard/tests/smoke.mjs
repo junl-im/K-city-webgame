@@ -46,6 +46,17 @@ assert.match(html,/id="repair-btn"/);
 assert.match(html,/id="fort-health"/);
 assert.match(html,/aria-valuenow="3000"/);
 assert.match(js,/repairWall\(\)/);
+assert.match(js,/this\.heroIds=\['fox',null,null\]/);
+assert.match(js,/this\.pendingRecruit=false/);
+assert.match(js,/showRecruitDraft\(\)/);
+assert.match(js,/this\.count=5\+Math\.min\(2,Math\.floor\(this\.scene\.stage\.id\/4\)\)/);
+assert.match(js,/soloScoutScale/);
+assert.match(js,/this\.targetModes=\['front','front','front'\]/);
+assert.match(js,/mode==='threat'/);
+assert.match(js,/\[modes\[a\],modes\[i\]\]/);
+assert.match(css,/\.recruit-grid/);
+assert.match(css,/data-target-mode="threat"/);
+
 assert.match(js,/for\(const kind of \['fox','megafox','bear','rabbit','cat'\]\)/);
 assert.match(js,/createCanvasTexture\(scene,'shot-'\+kind/);
 assert.match(js,/this\.impactAt\(e\.x,e\.y,kind,crit\)/);
@@ -93,4 +104,4 @@ for(const system of ['SYNERGY_RECIPES','completeEvolution','evolutionPath','acti
 assert.match(visuals,/roots:4,pierce:5,ward:13,hunter:14/);
 assert.doesNotMatch(html+css+js+visuals,/<svg\b|data:image\/svg\+xml|\.svg(?:["'(])/i);
 assert.doesNotMatch(js,/eval\s*\(/);
-console.log('라니 수비대 v1.0 smoke: PASS (biome PNGs, boss tells, tactical repairs, robust image load, no SVG).');
+console.log('라니 수비대 v1.1 smoke: PASS (biome PNGs, boss tells, tactical repairs, robust image load, no SVG).');
