@@ -6,9 +6,15 @@ const read=name=>readFileSync(new URL(name,root),'utf8');
 const html=read('index.html'),css=read('style.css'),js=read('game.js'),visuals=read('visuals.js');
 const atlas=new URL('art/forest-characters.png',root),evo=new URL('art/rani-evolution.png',root);
 const field=new URL('art/forest-battleground-v04.webp',root),icons=new URL('art/rani-ui-icons-v04.webp',root),map=new URL('art/forest-worldmap-v05.webp',root);
+const biomes=['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'].map(name=>new URL('art/'+name,root));
 for(const asset of [atlas,evo]){
   assert.ok(statSync(asset).size>100_000,'Original PNG asset must be present');
   assert.equal(readFileSync(asset).subarray(1,4).toString(),'PNG');
+}
+for(const asset of biomes){
+  const bytes=readFileSync(asset);
+  assert.ok(bytes.length>100_000,'New biome PNG must be present');
+  assert.equal(bytes.subarray(1,4).toString(),'PNG');
 }
 for(const asset of [field,icons,map]){
   const bytes=readFileSync(asset);
@@ -21,6 +27,10 @@ assert.match(html,/game\.js\?v=/);
 assert.match(js,/forest-characters\.png/);
 assert.match(js,/rani-evolution\.png/);
 assert.match(js,/forest-battleground-v04\.webp/);
+for(const biome of ['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'])assert.ok(js.includes(biome),'Biome image load missing: '+biome);
+assert.match(js,/function funnelX\(entryX,y,wind=0\)/);
+assert.match(js,/this\.startBossWarning\(e\)/);
+assert.match(js,/this\.clearBossWarning\(enemy\)/);
 assert.match(visuals,/rani-ui-icons-v04\.webp/);
 execFileSync(process.execPath,['--check',new URL('game.js',root).pathname]);
 execFileSync(process.execPath,['--check',new URL('visuals.js',root).pathname]);
@@ -69,4 +79,4 @@ for(const system of ['SYNERGY_RECIPES','completeEvolution','evolutionPath','acti
 assert.match(visuals,/roots:4,pierce:5,ward:13,hunter:14/);
 assert.doesNotMatch(html+css+js+visuals,/<svg\b|data:image\/svg\+xml|\.svg(?:["'(])/i);
 assert.doesNotMatch(js,/eval\s*\(/);
-console.log('라니 수비대 v0.7 smoke: PASS (compact actions, monster scouting, actual enemy counters, original art, no SVG).');
+console.log('라니 수비대 v0.8 smoke: PASS (3 biome PNG illustrations, top-wide bottom-narrow enemy funnel, boss tells, no SVG).');

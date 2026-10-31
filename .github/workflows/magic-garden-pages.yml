@@ -120,9 +120,12 @@ jobs:
           test -s ForestGuard/art/forest-battleground-v04.webp
           test -s ForestGuard/art/rani-ui-icons-v04.webp
           test -s ForestGuard/art/forest-worldmap-v05.webp
+          test -s ForestGuard/art/forest-entrance-v08.png
+          test -s ForestGuard/art/misty-canyon-v08.png
+          test -s ForestGuard/art/moonlit-highland-v08.png
           mkdir -p MagicGarden/dist/ForestGuard/art
           cp ForestGuard/index.html ForestGuard/style.css ForestGuard/visuals.js ForestGuard/game.js MagicGarden/dist/ForestGuard/
-          cp ForestGuard/art/forest-characters.png ForestGuard/art/rani-evolution.png ForestGuard/art/forest-battleground-v04.webp ForestGuard/art/rani-ui-icons-v04.webp ForestGuard/art/forest-worldmap-v05.webp MagicGarden/dist/ForestGuard/art/
+          cp ForestGuard/art/forest-characters.png ForestGuard/art/rani-evolution.png ForestGuard/art/forest-battleground-v04.webp ForestGuard/art/rani-ui-icons-v04.webp ForestGuard/art/forest-worldmap-v05.webp ForestGuard/art/forest-entrance-v08.png ForestGuard/art/misty-canyon-v08.png ForestGuard/art/moonlit-highland-v08.png MagicGarden/dist/ForestGuard/art/
           echo "Independent Forest Guard staged at /ForestGuard/"
 
       - name: Upload short-lived Pages deployment artifact
