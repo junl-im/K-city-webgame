@@ -115,6 +115,27 @@
       c.save();c.translate(64,52);c.rotate((frame-1)*.18);
       stroke(c,id==='rabbit'?'#b7f2fc':'#ffebb0',4);
       c.beginPath();c.arc(0,0,44,-1.35,-.85);c.stroke();c.restore();
+      // Distinct species action accents drawn into four pre-baked Canvas attack frames.
+      const monsters=['thorn','imp','spore','shroom','crystal','guardian','boss','runner','brute','sprout'];
+      if(monsters.includes(id)){
+        c.save();c.translate(64,55);c.lineCap='round';c.lineWidth=frame%2?5:3;
+        if(id==='crystal'){
+          c.strokeStyle='#b3eeff';c.fillStyle='#d9f8ff';
+          for(let i=0;i<3;i++){const x=-32+i*29,y=-20+(i%2)*12;
+            c.beginPath();c.moveTo(x,y-13);c.lineTo(x+6,y);c.lineTo(x,y+12);c.lineTo(x-6,y);c.closePath();c.stroke();}
+        }else if(id==='shroom'||id==='spore'||id==='runner'){
+          c.fillStyle=id==='shroom'?'rgba(195,113,183,.75)':'rgba(247,183,107,.8)';
+          for(let i=0;i<4;i++){c.beginPath();c.arc(-24+i*16,-16-(frame%2)*7,3+(i%2)*3,0,Math.PI*2);c.fill();}
+        }else if(id==='thorn'||id==='imp'||id==='sprout'){
+          c.strokeStyle='#d9ef9c';
+          for(let i=0;i<3;i++){c.beginPath();c.moveTo(-29+i*17,-15);c.lineTo(-12+i*18,-34-frame*3);c.stroke();}
+        }else{
+          c.strokeStyle=id==='boss'?'#ecae8d':'#f0db9c';
+          c.beginPath();c.arc(0,7,24+frame*5,.1,Math.PI-.1);c.stroke();
+          c.beginPath();c.moveTo(-18,15);c.lineTo(-25,30);c.moveTo(19,16);c.lineTo(26,29);c.stroke();
+        }
+        c.restore();
+      }
     }
     if(state==='hurt'){c.fillStyle='rgba(255,106,86,.19)';c.fillRect(0,0,128,128);}
     if(state==='victory'){c.fillStyle='#ffe0a1';for(let i=0;i<3;i++){const x=22+i*40,y=17+(i%2)*17;c.beginPath();c.arc(x,y,2+frame%2,0,Math.PI*2);c.fill();}}

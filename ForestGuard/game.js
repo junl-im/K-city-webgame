@@ -99,13 +99,14 @@
     rabbit:{name:'토끼 마법사',icon:'🐰',damage:24,interval:1050,range:555,color:0xa9eafa},
     cat:{name:'고양이 기술자',icon:'🐱',damage:31,interval:1150,range:495,color:0xff9b6f}
   };
-  const state = {unlocked:1,clears:[],best:{},selected:0,muted:false};
+  const state = {unlocked:1,clears:[],best:{},stats:{},selected:0,muted:false};
   try {
     const loaded = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}');
     if (loaded && typeof loaded === 'object') {
       state.unlocked = Math.min(12,Math.max(1,Number(loaded.unlocked) || 1));
       state.clears = Array.isArray(loaded.clears) ? loaded.clears.filter(n=>Number.isInteger(n)&&n>=0&&n<12) : [];
       state.best = loaded.best && typeof loaded.best === 'object' ? loaded.best : {};
+      state.stats = loaded.stats && typeof loaded.stats==='object' ? loaded.stats : {};
     }
   } catch(_e) { /* Private browsing may restrict storage. */ }
   let game = null, battle = null, activeModal = null, focusBeforeModal = null, suspended = false;
@@ -149,7 +150,7 @@
   }
   let closeBannerTimer = 0, chosenSlot = -1, historyInitialized = false;
   function save() {
-    try { localStorage.setItem(SAVE_KEY,JSON.stringify({unlocked:state.unlocked,clears:state.clears,best:state.best})); }
+    try { localStorage.setItem(SAVE_KEY,JSON.stringify({unlocked:state.unlocked,clears:state.clears,best:state.best,stats:state.stats})); }
     catch(_e) { /* Play remains available without persistent storage. */ }
   }
   function button(label, onClick, variant) {
@@ -598,6 +599,9 @@
       this.cardCounts={};this.synergies=new Set();this.gameClock=0;
       this.heroIds=['fox',null,null];this.targetModes=['front','front','front'];this.attackTimes=[0,0,0];this.enemies=[];this.projectiles=[];this.effects=[];this.dyingSprites=0;
       this.focusEnemy=null;this.focusUntil=0;this.focusReticle=null;this.lastFortHP=-1;
+      const personal=state.stats[this.stage.id]||{};
+      const losses=Math.max(0,Math.min(100,Number(personal.streak)||0));
+      this.assistScale=losses>=4?.88:losses>=2?.93:1;
       this.foxSpirit=0;this.evolved=false;
       this.recruitRemaining=RECRUIT_TIMEOUT;this.recruitLastSecond=-1;
       this.betweenWaves=0;this.wave=new WaveDirector(this);
@@ -610,14 +614,15 @@
       this.wave.begin();renderSlots();renderHUD();
       this.syncBattleOverlay();
       requestAnimationFrame(()=>requestAnimationFrame(()=>{if(battle===this)$('battle-loading').hidden=true;}));
-      if(this.stage.id===0)showBanner('여우 궁수 혼자 첫 공세를 막아보세요!');
+      if(this.assistScale<1)showBanner('재도전 지원 · 몬스터 체력 '+Math.round((1-this.assistScale)*100)+'% 완화');
+      else if(this.stage.id===0)showBanner('여우 궁수 혼자 첫 공세를 막아보세요!');
     }
     spawnEnemy(type){
       // Enemy entry is broad at the top, including bridge levels.
       const lane=this.stage.id===2 ? (Math.random()<.5?48:372) : 38+Math.random()*344;
       const hpbase={sprout:55,runner:37,brute:160,boss:1400,thorn:48,spore:105,imp:44,crystal:195,shroom:420,guardian:680}[type];
       const soloScoutScale=this.wave.current===1?1/(1+this.stage.id*.045):1;
-      const hp=Math.round(hpbase*(1+this.stage.id*.13+(this.wave.current-1)*.1)*soloScoutScale);
+      const hp=Math.round(hpbase*(1+this.stage.id*.13+(this.wave.current-1)*.1)*soloScoutScale*this.assistScale);
       const spd={sprout:33,runner:60,brute:23,boss:18,thorn:49,spore:31,imp:55,crystal:21,shroom:19,guardian:17}[type]+this.stage.id*.8;
       const sizes={sprout:[56,48],runner:[56,48],brute:[69,63],boss:[132,94],thorn:[61,54],spore:[69,61],imp:[55,65],crystal:[79,67],shroom:[107,105],guardian:[145,126]};
       const [sw,sh]=sizes[type],lifeWidth=type==='guardian'||type==='boss'?88:type==='shroom'?60:40;
@@ -833,7 +838,7 @@
         onComplete:()=>{this.dyingSprites=Math.max(0,this.dyingSprites-1);spr.destroy();}});
     }
     clearBossWarning(e){
-      for(const key of ['tellRing','tellBack','tellFill']){
+      for(const key of ['tellRing','tellBack','tellFill','tellZone']){
         if(e[key]){e[key].destroy();e[key]=null;}
       }
     }
@@ -843,6 +848,8 @@
       e.tellRing=this.add.ellipse(e.x,e.y+23,e.type==='guardian'?145:112,35,color,.21).setStrokeStyle(3,color,.9).setDepth(5);
       e.tellBack=this.add.rectangle(e.x,e.y-56,100,10,0x382a30,.95).setDepth(7);
       e.tellFill=this.add.rectangle(e.x,e.y-56,94,6,color,1).setDepth(8);
+      e.tellZone=this.add.ellipse(e.x,(e.y+540)/2,e.type==='guardian'?155:110,Math.max(40,540-e.y),color,.075)
+        .setStrokeStyle(2,color,.45).setDepth(3);
     }
     drawFortHUD(){
       if(this.lastFortHP===this.hp&&this.lastFortMaxHP===this.maxHP)return;
@@ -876,7 +883,22 @@
       cue.hidden=!active;
       if(active){cue.textContent=this.terrainCueText;cue.classList.toggle('warning',this.terrainWarning);}
     }
+    heroTerrainReaction(kind){
+      if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+      const color=kind==='crystal'?0xa8efff:kind==='spore'?0xf5b57b:0xc8e69c;
+      for(let i=0;i<this.heroSprites.length;i++){
+        const hero=this.heroSprites[i];
+        if(!hero||!hero.active)continue;
+        const x=hero.x,y=hero.y;
+        const flash=this.add.ellipse(x,y+13,40,14,color,.16).setStrokeStyle(2,color,.8).setDepth(5);
+        this.tweens.add({targets:flash,alpha:0,scale:1.6,duration:370,onComplete:()=>flash.destroy()});
+        if(kind==='crystal')V.trigger(hero,'victory',this.gameClock+400);
+        else if(kind==='spore')V.trigger(hero,'attack',this.gameClock+330);
+        else V.trigger(hero,'idle',this.gameClock+250);
+      }
+    }
     terrainVisual(kind,x=210,y=294){
+      this.heroTerrainReaction(kind);
       if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
       const particle=kind==='crystal'?'crystal':kind==='spore'?'spore':'leaf';
       for(let n=0;n<5;n++){
@@ -937,6 +959,7 @@
           if(e.tellRing){
             e.tellRing.setPosition(e.x,e.y+23).setAlpha(.55+Math.sin(this.gameClock/120)*.25);
             e.tellBack.setPosition(e.x,e.y-56);
+            if(e.tellZone)e.tellZone.setPosition(e.x,(e.y+540)/2).setDisplaySize(e.type==='guardian'?155:110,Math.max(40,540-e.y));
             const remaining=Math.max(0,e.warning/1250);
             e.tellFill.setPosition(e.x-47+47*remaining,e.y-56).setDisplaySize(94*remaining,6);
           }
@@ -965,6 +988,7 @@
         }else if(!e.untargetable&&e.y>105){
           e.abilityCooldown-=dt;
           if(e.abilityCooldown<=0){
+            V.trigger(e.spr,'attack',this.gameClock+700);
             e.warning=1250;e.abilityCooldown=6900;
             e.spr.setTint(0xff9b60);this.startBossWarning(e);
             const title=e.type==='guardian'?'숲의 수호자 · 충격파 예고':this.stage.id===3?'뿌리 돌진 예고':this.stage.id===7?'잠복 이동 예고':'검은 종 진동 예고';
@@ -1165,6 +1189,12 @@
         spr.setTexture('motion-'+id+'-'+pose+'-2');
         this.tweens.add({targets:spr,y:spr.y-(win?16:0),duration:240,yoyo:win,repeat:win?3:0});
       }});
+      const record=state.stats[this.stage.id]||{wins:0,losses:0,streak:0};
+      record.wins=Math.min(9999,(Number(record.wins)||0)+(win?1:0));
+      record.losses=Math.min(9999,(Number(record.losses)||0)+(win?0:1));
+      record.streak=win?0:Math.min(10,(Number(record.streak)||0)+1);
+      state.stats[this.stage.id]=record;
+      save();
       if(win){
         if(!state.clears.includes(this.stage.id))state.clears.push(this.stage.id);
         state.unlocked=Math.max(state.unlocked,Math.min(12,this.stage.id+2));
@@ -1172,7 +1202,8 @@
         save();
       }
       const title=win?'숲길을 지켜냈어!':'성벽이 무너졌어!';
-      const desc=win?'성벽 체력 '+this.hp+' · 얻은 별빛 '+this.coins+'개':'다른 용병 조합을 선택해서 다시 도전해 보세요.';
+      const desc=win?'성벽 체력 '+this.hp+' · 얻은 별빛 '+this.coins+'개':
+        '재도전 '+record.streak+'회 · 연속 실패 시 다음 전투에서 적 체력 최대 12% 완화';
       const actions=[button(win?'다음 스테이지':'다시 도전',()=>{
         const next=win?Math.min(11,this.stage.id+1):this.stage.id;
         closeModal(true);startStage(next);
@@ -1229,14 +1260,14 @@
           const guarding=(this.gameClock+e.windPhase*300)%5200<1550;
           const cracked=e.crystalShatterUntil>this.gameClock;
           e.armor=Math.max(0,(guarding?Math.min(.55,e.baseArmor+.16):e.baseArmor)-(cracked?.15:0));
-          if(guarding&&!e.guarding){
+          if(guarding&&!e.guarding){V.trigger(e.spr,'attack',this.gameClock+400);
             const shield=this.add.ellipse(e.x,e.y+12,65,32,0x81e2f8,.16).setStrokeStyle(2,0x93efff,.75).setDepth(3);
             this.tweens.add({targets:shield,scale:1.38,alpha:0,duration:490,onComplete:()=>shield.destroy()});
           }
           e.guarding=guarding;
         }
         if(e.type==='shroom'&&!e.hasRallied&&e.y>=245){
-          e.hasRallied=true;
+          e.hasRallied=true;V.trigger(e.spr,'attack',this.gameClock+600);
           let allies=0;
           for(const ally of this.enemies){
             if(ally===e||!['sprout','runner','thorn','imp'].includes(ally.type)||Math.hypot(ally.x-e.x,ally.y-e.y)>145)continue;
@@ -1247,7 +1278,7 @@
           if(allies)showBanner('버섯 거한의 포자 함성 · 주변 적 돌진!');
         }
         if(e.type==='spore'&&!e.hasSpores&&e.hp<e.maxHP*.5){
-          e.hasSpores=true;let buffed=0;
+          e.hasSpores=true;V.trigger(e.spr,'attack',this.gameClock+450);let buffed=0;
           for(const ally of this.enemies){
             if(ally===e||ally.untargetable||Math.hypot(ally.x-e.x,ally.y-e.y)>105)continue;
             ally.surge=Math.max(ally.surge,520);buffed++;
