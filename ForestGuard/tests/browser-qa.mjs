@@ -18,6 +18,16 @@ try{
     const errors=[];page.on('pageerror',error=>errors.push(error.message));
     await page.goto(origin,{waitUntil:'domcontentloaded',timeout:25000});
     await page.locator('#stage-grid button').first().waitFor({timeout:25000});
+    const menuOrder=await page.evaluate(()=>{
+      const actions=document.querySelector('.menu-actions').getBoundingClientRect();
+      const story=document.querySelector('.story-panel').getBoundingClientRect();
+      const title=document.querySelector('.brand').getBoundingClientRect();
+      return {actionsTop:actions.top,actionsBottom:actions.bottom,storyTop:story.top,titleBottom:title.bottom,
+        illustrated:!!document.querySelector('.title-forest-crest')};
+    });
+    assert.equal(menuOrder.illustrated,true,'Illustrated title must be present');
+    assert.ok(menuOrder.actionsTop>=menuOrder.titleBottom-2,'Buttons must not overlap the title');
+    assert.ok(menuOrder.actionsBottom<=menuOrder.storyTop+2,'Buttons must sit above story panel');
     const menu=await page.evaluate(()=>{
       const shell=document.querySelector('.shell').getBoundingClientRect();
       const start=document.querySelector('#start-btn').getBoundingClientRect();
@@ -84,6 +94,24 @@ try{
       assert.equal(await page.locator('.hero-slot:not(.empty)').count(),2,'Recruit joins the defense');
       assert.equal(await page.locator('.hero-slot.empty').count(),1,'Only one bench slot remains');
       await page.screenshot({path:new URL('../test-output/forest-recruited-rabbit.png',import.meta.url).pathname});
+      // Restart once and verify real-time expiry without touching any companion card.
+      await page.locator('#home-btn').click();
+      await page.locator('#start-btn').click();
+      await page.locator('#game-root canvas').waitFor();
+      await page.locator('#speed-btn').click();
+      await page.waitForFunction(()=>{
+        const modal=document.getElementById('modal-layer');
+        return !modal.hidden&&document.querySelectorAll('.recruit-card').length===3;
+      },null,{timeout:50000});
+      const initialCountdown=await page.locator('#recruit-countdown').textContent();
+      assert.match(initialCountdown,/남은 시간/);
+      await page.waitForFunction(()=>{
+        const alive=document.querySelectorAll('.hero-slot:not(.empty)');
+        return alive.length===2&&document.getElementById('modal-layer').hidden;
+      },null,{timeout:20000});
+      assert.equal(await page.locator('.hero-slot:not(.empty)').count(),2,'Timed choice should add a hero');
+      assert.match((await page.locator('.hero-slot:not(.empty)').allTextContents()).join(' '),/곰 수호자/,'Stage 1 fallback should be bear');
+      await page.screenshot({path:new URL('../test-output/forest-auto-recruit-bear.png',import.meta.url).pathname});
     }
     // The boss HUD uses the same DOM as combat; test a visible long-name state at each viewport.
     const bossLayout=await page.evaluate(()=>{
