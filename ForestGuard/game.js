@@ -37,7 +37,9 @@
     thorn:{name:'가시 딱정벌레',trait:'작고 빠른 돌파형',counter:'서리 · 연사',detail:'무리 속에서 빠르게 전진해요.'},
     crystal:{name:'수정갑각수',trait:'단단한 수정 껍질',counter:'관통 · 마법',detail:'일반 물리 공격의 일부를 견뎌요.'},
     shroom:{name:'버섯 거한',trait:'3공세마다 나타나는 정예',counter:'집중 공격 · 화상',detail:'큰 몸집으로 전열을 압박해요.'},
-    guardian:{name:'숲의 수호자',trait:'일반 스테이지 중간보스',counter:'일제사격으로 충격파 저지',detail:'전투 한복판에 나타나 성벽에 충격파를 가해요.'}
+    guardian:{name:'숲의 수호자',trait:'일반 스테이지 중간보스',counter:'일제사격으로 충격파 저지',detail:'전투 한복판에 나타나 성벽에 충격파를 가해요.'},
+    spore:{name:'포자 딱정벌레',trait:'버섯 장갑 · 근처 적 가속',counter:'집중 사격 · 불꽃',detail:'체력이 줄면 주변 몬스터를 한 번 재촉해요.'},
+    imp:{name:'이끼 숲 임프',trait:'고속 회피 정찰병',counter:'서리 · 선두 우선',detail:'화살 사이를 빠르게 비집고 뛰어와요.'}
   };
   // Wide enemy front narrows naturally toward the defenders. Movement uses no SVG paths.
   function funnelX(entryX,y,wind=0){
@@ -104,8 +106,8 @@
   const biomeBitmaps = [null,null,null];
   const biomeLoading = [null,null,null];
   const biomeFiles = ['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'];
-  let monsterBitmap = null;
-  const ART_VERSION = '20261031n';
+  let monsterBitmap = null, fortBitmap = null;
+  const ART_VERSION = '20261031q';
   async function prepareAtlas(stageIndex){
     const load=(url,assign)=>new Promise(resolve=>{
       if(!url){resolve();return;}
@@ -127,7 +129,8 @@
       load('./art/forest-characters.png?v=20261031c',art=>{atlasBitmap=art;}),
       load('./art/rani-evolution.png?v=20261031c',art=>{evolutionBitmap=art;}),
       load('./art/forest-battleground-v04.webp?v=20261031d',art=>{fieldBitmap=art;}),
-      load('./art/forest-monsters-v12.png?v='+ART_VERSION,art=>{monsterBitmap=art;})
+      load('./art/forest-monsters-v14-hq.webp?v='+ART_VERSION,art=>{monsterBitmap=art;}),
+      load('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;})
     ]);
     const biome=Math.floor(stageIndex/4);
     if(!biomeLoading[biome])biomeLoading[biome]=load('./art/'+biomeFiles[biome]+'?v=20261031i',art=>{biomeBitmaps[biome]=art;});
@@ -238,7 +241,7 @@
     const stage=STAGES[state.selected];
     const first=stage.id%4===3?'boss':stage.elite;
     const companion=stage.id>=5?'crystal':stage.id>=2?'thorn':stage.id===0?'sprout':'runner';
-    const types=[...new Set([first,companion,'shroom','guardian'])];
+    const types=[...new Set([first,companion,'spore','imp','shroom','guardian'])];
     const list=document.createElement('div');list.className='enemy-intel-list';
     types.forEach(type=>{
       const data=ENEMY_INTEL[type];
@@ -312,6 +315,17 @@
   function paintFortPlaque(c,hp,maxHP){
     const w=328,h=59,ratio=Math.max(0,Math.min(1,hp/maxHP));
     c.clearRect(0,0,w,h);c.save();
+    if(fortBitmap){
+      c.drawImage(fortBitmap,0,0,w,h);
+      c.fillStyle='rgba(29,31,24,.87)';c.fillRect(97,20,152,29);
+      c.fillStyle='rgba(9,22,14,.88)';c.fillRect(102,26,141,11);
+      c.fillStyle=ratio<.3?'#e98b62':'#7fba73';c.fillRect(104,28,137*ratio,7);
+      c.lineWidth=1;c.strokeStyle='#f0d5a3';c.strokeRect(102.5,26.5,140,10);
+      c.textAlign='center';c.font='900 11px system-ui';c.textBaseline='middle';
+      c.shadowColor='#1c271a';c.shadowBlur=3;c.fillStyle='#fff0cb';
+      c.fillText('성벽 '+Math.ceil(hp)+' / '+Math.ceil(maxHP),170,43);
+      c.restore();return;
+    }
     c.shadowColor='rgba(9,22,16,.8)';c.shadowBlur=8;c.shadowOffsetY=5;
     c.beginPath();c.moveTo(22,9);c.quadraticCurveTo(50,2,94,6);
     c.lineTo(246,6);c.quadraticCurveTo(280,3,307,9);
@@ -453,11 +467,11 @@
     ['sprout','runner','brute','boss'].forEach(type=>createCanvasTexture(scene,'enemy-'+type,128,128,(c,w,h)=>{
       if(atlasBitmap)atlasCell(c,w,h,{sprout:4,runner:5,brute:6,boss:7}[type]);else paintEnemy(c,w,h,type);
     }));
-    ['thorn','crystal','shroom','guardian'].forEach((type,i)=>createCanvasTexture(scene,'enemy-'+type,128,128,(c,w,h)=>{
+    Object.entries({thorn:0,spore:1,imp:2,crystal:3,shroom:4,guardian:5}).forEach(([type,i])=>createCanvasTexture(scene,'enemy-'+type,128,128,(c,w,h)=>{
       if(monsterBitmap){
-        const tw=monsterBitmap.naturalWidth/2,th=monsterBitmap.naturalHeight/2;
-        c.drawImage(monsterBitmap,(i%2)*tw,Math.floor(i/2)*th,tw,th,0,0,w,h);
-      }else paintEnemy(c,w,h,type==='thorn'?'sprout':type==='crystal'?'brute':'boss');
+        const tw=monsterBitmap.naturalWidth/3,th=monsterBitmap.naturalHeight/2;
+        c.drawImage(monsterBitmap,(i%3)*tw,Math.floor(i/3)*th,tw,th,0,0,w,h);
+      }else paintEnemy(c,w,h,['thorn','spore','imp'].includes(type)?'sprout':type==='crystal'?'brute':'boss');
     }));
     for(let i=0;i<8;i++)createCanvasTexture(scene,'evo-'+i,128,128,(c,w,h)=>{
       if(evolutionBitmap){const cw=evolutionBitmap.naturalWidth/4,ch=evolutionBitmap.naturalHeight/2;
@@ -536,7 +550,9 @@
       // First wave stays one-hero friendly; specialist monsters arrive as the squad grows.
       if(this.current===1)return this.scene.stage.id>0&&Math.random()<.22?'runner':'sprout';
       const n=Math.random(),chapter=Math.floor(this.scene.stage.id/4);
-      if(chapter>=2&&n<.19)return'crystal';
+      if(this.current>=2&&n<.095)return'imp';
+      if(this.current>=3&&n>=.095&&n<.17)return'spore';
+      if(chapter>=2&&n<.26)return'crystal';
       if(chapter>=1&&n<.23)return this.current%2?'crystal':'thorn';
       if(n<.16)return'thorn';
       if(this.scene.stage.id>=5&&n<.34)return'brute';
@@ -583,11 +599,11 @@
     spawnEnemy(type){
       // Enemy entry is broad at the top, including bridge levels.
       const lane=this.stage.id===2 ? (Math.random()<.5?48:372) : 38+Math.random()*344;
-      const hpbase={sprout:55,runner:37,brute:160,boss:1400,thorn:48,crystal:195,shroom:420,guardian:680}[type];
+      const hpbase={sprout:55,runner:37,brute:160,boss:1400,thorn:48,spore:105,imp:44,crystal:195,shroom:420,guardian:680}[type];
       const soloScoutScale=this.wave.current===1?1/(1+this.stage.id*.045):1;
       const hp=Math.round(hpbase*(1+this.stage.id*.13+(this.wave.current-1)*.1)*soloScoutScale);
-      const spd={sprout:33,runner:60,brute:23,boss:18,thorn:49,crystal:21,shroom:19,guardian:17}[type]+this.stage.id*.8;
-      const sizes={sprout:[56,48],runner:[56,48],brute:[69,63],boss:[132,94],thorn:[61,54],crystal:[79,67],shroom:[107,105],guardian:[145,126]};
+      const spd={sprout:33,runner:60,brute:23,boss:18,thorn:49,spore:31,imp:55,crystal:21,shroom:19,guardian:17}[type]+this.stage.id*.8;
+      const sizes={sprout:[56,48],runner:[56,48],brute:[69,63],boss:[132,94],thorn:[61,54],spore:[69,61],imp:[55,65],crystal:[79,67],shroom:[107,105],guardian:[145,126]};
       const [sw,sh]=sizes[type],lifeWidth=type==='guardian'||type==='boss'?88:type==='shroom'?60:40;
       const lifeYOffset=Math.round(sh*.53)+8;
       const spr=this.add.image(lane,-38,'motion-'+type+'-run-0').setDisplaySize(sw,sh).setDepth(4);
@@ -596,7 +612,7 @@
       const enemy={type,x:lane,baseX:lane,windPhase:Math.random()*Math.PI*2,y:-38,spr,lifeBg,life,lifeWidth,lifeYOffset,hp,maxHP:hp,spd,slow:0,rooted:0,
         armor:type==='crystal'?.34:type==='shroom'?.12:this.stage.id===9?(type==='runner'?0:.3):(type==='brute'?.18:0),
         abilityCooldown:type==='guardian'?4100:5400,warning:0,hidden:0,untargetable:false,surge:0,
-        tellRing:null,tellBack:null,tellFill:null,guarding:false,hasDashed:false,hasRallied:false};
+        tellRing:null,tellBack:null,tellFill:null,guarding:false,hasDashed:false,hasRallied:false,hasSpores:false};
       enemy.baseArmor=enemy.armor;
       spr.setInteractive({useHandCursor:true}).on('pointerdown',()=>{
         if(this.ended||this.manualPause||this.drafting)return;
@@ -754,7 +770,7 @@
         }
       }
       if(e.hp<=0){
-        this.coins+=e.type==='boss'?150:e.type==='guardian'?85:e.type==='shroom'?36:e.type==='crystal'?22:e.type==='brute'?18:8;
+        this.coins+=e.type==='boss'?150:e.type==='guardian'?85:e.type==='shroom'?36:e.type==='crystal'?22:e.type==='brute'?18:e.type==='spore'?15:8;
         const ring=this.add.circle(e.x,e.y,10,0xf7da8c,.55).setDepth(6);
         this.tweens.add({targets:ring,scale:3,alpha:0,duration:260,onComplete:()=>ring.destroy()});
         this.removeEnemy(e);renderHUD();
@@ -1048,8 +1064,8 @@
         const wind=(this.stage.id===8||this.stage.id===10)?Math.sin(this.gameClock/900+e.windPhase)*18:0;
         // Illustrated creature behavior: thorn beetles weave and lunge, crystals pulse armor,
         // and the mushroom elite rallies nearby scouts once. No per-frame new textures.
-        if(e.type==='thorn' && e.y>185 && !e.hasDashed){
-          e.hasDashed=true;e.surge=720;V.trigger(e.spr,'attack',this.gameClock+400);
+        if((e.type==='thorn'||e.type==='imp') && e.y>(e.type==='imp'?260:185) && !e.hasDashed){
+          e.hasDashed=true;e.surge=e.type==='imp'?380:720;V.trigger(e.spr,'attack',this.gameClock+400);
           const dash=this.add.ellipse(e.x,e.y+15,56,18,0xc9df76,.18).setDepth(3);
           this.tweens.add({targets:dash,scale:1.7,alpha:0,duration:380,onComplete:()=>dash.destroy()});
         }
@@ -1066,14 +1082,25 @@
           e.hasRallied=true;
           let allies=0;
           for(const ally of this.enemies){
-            if(ally===e||!['sprout','runner','thorn'].includes(ally.type)||Math.hypot(ally.x-e.x,ally.y-e.y)>145)continue;
+            if(ally===e||!['sprout','runner','thorn','imp'].includes(ally.type)||Math.hypot(ally.x-e.x,ally.y-e.y)>145)continue;
             ally.surge=Math.max(ally.surge,850);allies++;
           }
           const spores=this.add.ellipse(e.x,e.y,110,48,0xe4bd81,.22).setStrokeStyle(3,0xf5d799,.7).setDepth(3);
           this.tweens.add({targets:spores,scale:1.65,alpha:0,duration:570,onComplete:()=>spores.destroy()});
           if(allies)showBanner('버섯 거한의 포자 함성 · 주변 적 돌진!');
         }
-        const weave=e.type==='thorn'?Math.sin(this.gameClock/310+e.windPhase)*Math.min(13,Math.max(0,e.y/18)):0;
+        if(e.type==='spore'&&!e.hasSpores&&e.hp<e.maxHP*.5){
+          e.hasSpores=true;let buffed=0;
+          for(const ally of this.enemies){
+            if(ally===e||ally.untargetable||Math.hypot(ally.x-e.x,ally.y-e.y)>105)continue;
+            ally.surge=Math.max(ally.surge,520);buffed++;
+          }
+          const pulse=this.add.ellipse(e.x,e.y,50,24,0xdca26a,.25).setDepth(3);
+          this.tweens.add({targets:pulse,scale:2.3,alpha:0,duration:520,onComplete:()=>pulse.destroy()});
+          if(buffed)showBanner('포자 딱정벌레 · 주변 적 가속!');
+        }
+        const weave=e.type==='thorn'?Math.sin(this.gameClock/310+e.windPhase)*Math.min(13,Math.max(0,e.y/18)):
+          e.type==='imp'?Math.sin(this.gameClock/215+e.windPhase)*Math.min(15,Math.max(0,e.y/22)):0;
         e.x=funnelX(e.baseX,e.y,wind)+weave;
         e.spr.setPosition(e.x,e.y);e.lifeBg.setPosition(e.x,e.y-e.lifeYOffset);e.life.setPosition(e.x,e.y-e.lifeYOffset);
         V.animate(e.spr,e.type,'run',this.gameClock);

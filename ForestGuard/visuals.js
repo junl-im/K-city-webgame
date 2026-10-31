@@ -6,7 +6,7 @@
 (function(global){
   'use strict';
   const STATES=['idle','run','attack','hurt','victory'];
-  const COLORS={fox:'#ee9c56',megafox:'#f6cc6d',bear:'#d1a078',rabbit:'#b5e9ed',cat:'#f4af7b',sprout:'#9dd16a',runner:'#f38a6b',brute:'#aebc7e',boss:'#d1b58d',thorn:'#83bb66',crystal:'#a8d5e7',shroom:'#f2b371',guardian:'#b1c68a'};
+  const COLORS={fox:'#ee9c56',megafox:'#f6cc6d',bear:'#d1a078',rabbit:'#b5e9ed',cat:'#f4af7b',sprout:'#9dd16a',runner:'#f38a6b',brute:'#aebc7e',boss:'#d1b58d',thorn:'#83bb66',crystal:'#a8d5e7',shroom:'#f2b371',guardian:'#b1c68a',spore:'#e9a869',imp:'#99d179'};
   const cache=new Map();
   const ICON_SHEET='./art/rani-ui-icons-v04.webp?v=20261031g';
   const ICON_TILE={fox:0,play:1,back:2,help:3,coin:4,power:5,sword:5,skill:5,multi:5,haste:10,speed:10,ice:11,rabbit:11,wall:13,shield:13,flame:12,cat:6,crit:14,target:14,spark:6,roots:4,pierce:5,ward:13,hunter:14,evo:6,leaf:4,lock:7,star:8,pause:9,refresh:15};
@@ -97,7 +97,7 @@
     element.style.backgroundRepeat='no-repeat';element.textContent='';
     element.classList.add('portrait-icon');element.setAttribute('aria-hidden','true');
   }
-  function baseTexture(id){return id==='megafox'?'evo-0':(COLORS[id]&&['sprout','runner','brute','boss','thorn','crystal','shroom','guardian'].includes(id)?'enemy-'+id:'hero-'+id);}
+  function baseTexture(id){return id==='megafox'?'evo-0':(COLORS[id]&&['sprout','runner','brute','boss','thorn','spore','imp','crystal','shroom','guardian'].includes(id)?'enemy-'+id:'hero-'+id);}
   function motionPaint(c,img,id,state,frame){
     const phase=frame/4*Math.PI*2;
     c.clearRect(0,0,128,128);

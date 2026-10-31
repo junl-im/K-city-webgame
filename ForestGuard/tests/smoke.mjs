@@ -8,6 +8,14 @@ const atlas=new URL('art/forest-characters.png',root),evo=new URL('art/rani-evol
 const field=new URL('art/forest-battleground-v04.webp',root),icons=new URL('art/rani-ui-icons-v04.webp',root),map=new URL('art/forest-worldmap-v05.webp',root);
 const biomes=['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'].map(name=>new URL('art/'+name,root));
 const freshArt=['forest-monsters-v12.png','hero-station-v12.png'].map(name=>new URL('art/'+name,root));
+const paintedWebps=['forest-monsters-v14-hq.webp','hero-station-v14.webp','fort-hud-v14.webp'].map(name=>new URL('art/'+name,root));
+for(const file of paintedWebps){
+  const bytes=readFileSync(file);
+  assert.ok(bytes.length>5000,'WebP artwork present');
+  assert.equal(bytes.toString('ascii',0,4),'RIFF');
+  assert.equal(bytes.toString('ascii',8,12),'WEBP');
+  assert.equal(bytes.readUInt32LE(4),bytes.length-8,'WebP complete payload');
+}
 for(const asset of freshArt){
   const bytes=readFileSync(asset);
   assert.ok(bytes.length>60_000,'Original illustrated monster/slot art must exist');
@@ -58,15 +66,17 @@ assert.match(js,/hasDashed/);
 assert.match(js,/hasRallied/);
 assert.match(js,/guarding\?Math\.min\(\.55/);
 assert.match(css,/\.hero-slot\.empty\{border:0!important/);
-assert.match(html,/game\.js\?v=20261031p/);
+assert.match(html,/game\.js\?v=20261031q/);
 assert.match(js,/isMidBoss\(\)/);
 assert.match(js,/isEliteWave\(\)/);
-assert.match(js,/forest-monsters-v12\.png/);
+assert.match(js,/forest-monsters-v14-hq\.webp/);
+assert.match(js,/fort-hud-v14\.webp/);
+assert.match(js,/Object\.entries\(\{thorn:0,spore:1,imp:2,crystal:3,shroom:4,guardian:5\}\)/);
 assert.match(js,/e\.type==='guardian'/);
 assert.match(js,/this\.focusEnemy=enemy/);
 assert.match(js,/drawFortHUD\(\)/);
-assert.match(visuals,/guardian:'#b1c68a'/);
-assert.match(css,/hero-station-v12\.png/);
+assert.match(visuals,/guardian:'#b1c68a',spore:'#e9a869',imp:'#99d179'/);
+assert.match(css,/hero-station-v14\.webp/);
 assert.match(css,/\.wave-scout/);
 assert.match(css,/clip-path:inset\(50%\)/);
 assert.match(html,/aria-valuenow="3000"/);
@@ -79,6 +89,8 @@ assert.match(js,/soloScoutScale/);
 assert.match(js,/this\.targetModes=\['front','front','front'\]/);
 assert.match(js,/mode==='threat'/);
 assert.match(js,/e\.maxHP\*\.18-e\.hp\*\.14/);
+assert.match(js,/e\.type==='spore'&&!e\.hasSpores/);
+assert.match(js,/e\.type==='imp'/);
 assert.match(js,/\[modes\[a\],modes\[i\]\]/);
 assert.match(css,/\.recruit-grid/);
 assert.match(css,/data-target-mode="threat"/);
@@ -130,4 +142,4 @@ for(const system of ['SYNERGY_RECIPES','completeEvolution','evolutionPath','acti
 assert.match(visuals,/roots:4,pierce:5,ward:13,hunter:14/);
 assert.doesNotMatch(html+css+js+visuals,/<svg\b|data:image\/svg\+xml|\.svg(?:["'(])/i);
 assert.doesNotMatch(js,/eval\s*\(/);
-console.log('라니 수비대 v1.3 smoke: PASS (new painted sprites, midboss, focus, canvas fort HUD, no SVG).');
+console.log('라니 수비대 v1.4 smoke: PASS (new painted sprites, midboss, focus, canvas fort HUD, no SVG).');
