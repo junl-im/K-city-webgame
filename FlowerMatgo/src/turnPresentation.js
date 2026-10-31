@@ -258,7 +258,7 @@ function spawnFlip(root, id, target, delay, cardHTML) {
     flip.style.cssText = `left:${target.left}px;top:${target.top}px;width:${target.width}px;height:${target.height}px`;
     flip.innerHTML = `<span class="turn-deck-flip__spin"><span class="turn-deck-flip__side turn-deck-flip__side--back"><span class="hwatu hwatu--back"><span class="hwatu__face"></span></span></span><span class="turn-deck-flip__side turn-deck-flip__side--front">${cardHTML(id)}</span></span>`;
     root.appendChild(flip);
-    setTimeout(() => flip.remove(), 270);
+    setTimeout(() => flip.remove(), TURN_STAGES.collect - TURN_STAGES.flip + 30);
   }, delay);
 }
 
