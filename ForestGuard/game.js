@@ -1,4 +1,4 @@
-/* 라니 수비대 v0.6.0 — © 2026 곰같은여우
+/* 라니 수비대 v0.7.0 — © 2026 곰같은여우
  * Original game rules, PNG character art, Canvas field art and interface.
  * Combat architecture informed by MIT-licensed Phaser 3 and the WaveManager,
  * EnemyManager and Projectile patterns of rupertgermann/tower-defence.
@@ -27,6 +27,27 @@
   // Percent coordinates for the original continuous illustrated forest trail.
   // Bottom camp -> moonlit summit; no SVG path or tile boundaries.
   const STAGE_SPOTS = [[22,91],[48,83],[29,76],[55,68],[34,60],[61,53],[39,45],[70,38],[49,31],[76,24],[60,16],[81,9]];
+  // This single data source drives the scouting panel and matches actual combat effects.
+  const ENEMY_INTEL = {
+    sprout:{name:'새싹 괴물',trait:'느린 무리형',counter:'불꽃 추가 피해 +25%',detail:'약하지만 공세가 길어질수록 무리가 커져요.'},
+    runner:{name:'달리는 버섯',trait:'고속 돌파형',counter:'서리 화살 · 덩굴 덫',detail:'성벽까지 빨리 달려와요. 이동 방해가 유리해요.'},
+    brute:{name:'바위 갑옷 짐승',trait:'기본 화살 피해 18% 방어',counter:'관통 화살 · 마법사',detail:'수정 연못에서는 방어가 30%로 증가해요.'},
+    boss:{name:'우두머리',trait:'공격 예고 · 특수 행동',counter:'일제사격 저지 · 추적',detail:'뿌리 돌진, 잠복, 검은 종 충격을 예고해요.'}
+  };
+  const STAGE_TIPS = [
+    '처음에는 새싹 무리를 막고 성벽을 지켜 주세요.',
+    '빠른 버섯이 쏟아져요. 서리 또는 덩굴로 진군을 늦추세요.',
+    '양쪽 길에서 달려와요. 용병 위치를 수시로 조정하세요.',
+    '뿌리 거인의 돌진 예고에 맞춰 일제사격으로 저지하세요.',
+    '안개로 사정거리가 줄어요. 추적의 눈으로 시야를 회복하세요.',
+    '부서진 다리 때문에 적들이 중앙으로 모여요. 관통이 유리해요.',
+    '3공세마다 포자 군단이 늘어나요. 범위 공격을 준비하세요.',
+    '가면 두더지가 잠복하며 위치를 바꿔요. 경고를 놓치지 마세요.',
+    '돌풍에 적의 위치가 흔들려요. 다중 화살이 유리해요.',
+    '수정 갑옷은 일반 화살 피해를 30% 줄여요. 관통을 선택하세요.',
+    '4공세마다 적이 증원돼요. 성벽 방어와 범위 공격이 중요해요.',
+    '검은 종이 성벽을 직접 흔들어요. 예고에 맞춰 끊어 주세요.'
+  ];
   const CARDS = [
     {id:'power',icon:'⚔',title:'날카로운 일격',desc:'전체 공격력 +25%',rare:false},
     {id:'haste',icon:'➶',title:'빠른 손놀림',desc:'공격 속도 +20%',rare:false},
@@ -115,7 +136,7 @@
     box.querySelector('.story-chapter').textContent='제'+stage.chapter+'장 · '+stage.gimmick;
     box.querySelector('h2').textContent=stage.name;
     box.querySelector('p').textContent=stage.story;
-    $('start-btn').firstChild.textContent='모험 시작 ';
+    $('start-btn').firstChild.textContent='시작 ';
     $('resume-btn').hidden=!suspended;
   }
   function showMenu(preserve) {
@@ -176,9 +197,29 @@
     activeModal=null;$('modal-layer').hidden=true;
     if(focusBeforeModal && typeof focusBeforeModal.focus==='function')focusBeforeModal.focus();
   }
+  function showIntel(){
+    const stage=STAGES[state.selected];
+    const first=stage.id%4===3?'boss':stage.elite;
+    const companion=stage.id===0?null:stage.id>=5?(first==='brute'?'runner':'brute'):(first==='runner'?'sprout':'runner');
+    const types=companion?[first,companion]:[first];
+    const list=document.createElement('div');list.className='enemy-intel-list';
+    types.forEach(type=>{
+      const data=ENEMY_INTEL[type];
+      const row=document.createElement('div');row.className='enemy-intel-row';
+      const portrait=document.createElement('span');portrait.className='enemy-portrait '+type;portrait.setAttribute('aria-hidden','true');
+      const info=document.createElement('div');info.className='enemy-intel-text';
+      const name=document.createElement('strong');name.textContent=data.name;
+      const trait=document.createElement('small');trait.textContent=data.trait;
+      const counter=document.createElement('em');counter.textContent='대응: '+data.counter;
+      info.append(name,trait,counter);row.append(portrait,info);list.appendChild(row);
+    });
+    showModal('정찰 수첩',stage.name+' · 적 정보',STAGE_TIPS[stage.id],[list],[
+      button('알겠어',()=>closeModal(true))
+    ],true);
+  }
   function showHelp(){
     const el=document.createElement('div');el.className='howto';
-    [['① 자동 전투','여우와 곰이 달려오는 몬스터를 알아서 공격해요.'],['② 자리 바꾸기','아래 용병 하나를 선택하고 다른 칸을 누르면 서로 바뀌어요.'],['③ 특별한 공격','일제사격 버튼이 밝아지면 눌러 몬스터를 한꺼번에 공격해요.'],['④ 강화 카드','두 공세마다 3개 중 하나를 고르고 조합을 완성해요.'],['⑤ 갈래 진화','진화 에너지 10개로 햇살 또는 달빛 계열을 선택해요.'],['⑥ 전장 대응','안개는 추적, 수정 갑옷은 관통 화살이 유리해요.'],['⑦ 다시 도전','패배해도 이전에 깬 스테이지 기록은 남아요.']].forEach(row=>{
+    [['① 자동 전투','여우와 곰이 달려오는 몬스터를 알아서 공격해요.'],['② 자리 바꾸기','아래 용병 하나를 선택하고 다른 칸을 누르면 서로 바뀌어요.'],['③ 특별한 공격','일제사격 버튼이 밝아지면 눌러 몬스터를 한꺼번에 공격해요.'],['④ 강화 카드','두 공세마다 3개 중 하나를 고르고 조합을 완성해요.'],['⑤ 갈래 진화','진화 에너지 10개로 햇살 또는 달빛 계열을 선택해요.'],['⑥ 전장 대응','모험 지도에서 적 정보를 확인하고, 안개에는 추적·갑옷에는 관통을 선택해요.'],['⑦ 다시 도전','패배해도 이전에 깬 스테이지 기록은 남아요.']].forEach(row=>{
       const item=document.createElement('div');const strong=document.createElement('strong');strong.textContent=row[0];item.append(strong,document.createElement('br'),document.createTextNode(row[1]));el.appendChild(item);
     });
     showModal('수비대 안내','5초 만에 배우는 수비대','한 손으로도 충분해요!', [el],[button('좋아, 출발!',closeModal.bind(null,true))],true);
@@ -413,7 +454,7 @@
       const lifeBg=this.add.rectangle(lane,-68,40,4,0x3d3024).setDepth(3);
       const life=this.add.rectangle(lane,-68,39,3,0xe18754).setDepth(4);
       this.enemies.push({type,x:lane,baseX:lane,windPhase:Math.random()*Math.PI*2,y:-38,spr,lifeBg,life,hp,maxHP:hp,spd,slow:0,rooted:0,
-        armor:this.stage.id===9&&type!=='runner'?.3:0,abilityCooldown:5400,warning:0,hidden:0,untargetable:false,surge:0});
+        armor:this.stage.id===9?(type==='runner'?0:.3):(type==='brute'?.18:0),abilityCooldown:5400,warning:0,hidden:0,untargetable:false,surge:0});
     }
     targetFor(heroX,range){
       let result=null,best=-Infinity;
@@ -507,7 +548,7 @@
       e.hp-=actual;
       if(kind==='rabbit'||this.freeze||(kind==='megafox'&&this.evolutionPath==='moon'))
         e.slow=Math.max(e.slow,kind==='rabbit'?1900:kind==='megafox'&&this.evolutionPath==='moon'?1150:650);
-      if(this.flame)e.hp-=Math.max(4,Math.floor(actual*(this.synergies.has('wildfire')?.38:.15)));
+      if(this.flame)e.hp-=Math.max(4,Math.floor(actual*(this.synergies.has('wildfire')?.38:.15)*(e.type==='sprout'?1.25:1)));
       if(this.spark && Math.random()<.20+this.spark*.1){
         const near=this.enemies.find(other=>other!==e&&!other.untargetable&&Math.hypot(other.x-e.x,other.y-e.y)<100);
         if(near){near.hp-=Math.round(actual*.55);near.life.width=39*Math.max(0,near.hp/near.maxHP);
@@ -805,6 +846,7 @@
   $('start-btn').addEventListener('click',()=>startStage(state.selected));
   $('resume-btn').addEventListener('click',resumeBattle);
   $('help-btn').addEventListener('click',showHelp);
+  $('intel-btn').addEventListener('click',showIntel);
   $('home-btn').addEventListener('click',()=>showMenu(true));
   $('pause-btn').addEventListener('click',showPause);
   $('speed-btn').addEventListener('click',()=>{if(battle&&!battle.ended){battle.speed=battle.speed===1?2:1;renderHUD();}});

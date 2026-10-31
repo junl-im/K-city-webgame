@@ -300,3 +300,52 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 .evo-path.moon{border-color:#648eb3;background:linear-gradient(#eefaff,#a6cee2)}
 .evo-path .spell-emoji{filter:drop-shadow(0 3px 2px #49382a55)}
 @media(max-width:350px){.evo-choice-grid{gap:6px}.evo-choice-grid .spell-card{min-height:127px;padding:9px 4px}.evo-choice-grid .spell-card strong{font-size:11px}}
+
+/* v0.7 — compact, centered painted controls. Tap targets stay at least 44px high. */
+.menu-actions{display:flex;flex-wrap:nowrap;justify-content:center;align-items:center;
+  width:100%;max-width:302px;gap:6px;padding:3px 0 0;margin:6px auto 0}
+.menu-actions .rune-btn{grid-column:auto;flex:0 0 auto;min-width:0;min-height:44px;
+  padding:5px 7px;border-radius:12px;font-size:12px;white-space:nowrap;line-height:1.1}
+.menu-actions #start-btn{flex-basis:104px;min-height:44px;font-size:14px}
+.menu-actions #resume-btn{flex-basis:91px;font-size:12px}
+.menu-actions #help-btn{flex-basis:87px;font-size:12px;gap:4px}
+.menu-actions #start-btn span.painted-icon{width:23px;height:23px;padding:0;margin-left:4px}
+.menu-actions #help-btn .help-icon{width:21px;height:21px;flex-basis:21px}
+.story-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:28px}
+.story-meta .story-chapter{flex:1;min-width:0}
+.intel-pill{flex:0 0 auto;min-height:30px;padding:4px 10px;border-radius:100px;
+  border:1px solid #986538;background:linear-gradient(#fff5d8,#e5c38d);color:#66452b;
+  box-shadow:inset 0 1px #fffaf0,0 2px #986d46;font-weight:900;font-size:10px}
+.enemy-intel-list{display:grid;gap:8px}
+.enemy-intel-row{display:flex;align-items:center;gap:10px;padding:7px 9px;
+  border:2px solid #c5a474;border-radius:14px;background:#fff7dd}
+.enemy-portrait{display:block;flex:0 0 58px;width:58px;height:58px;
+  background-image:url('./art/forest-characters.png?v=20261031c');background-size:400% 200%;
+  background-repeat:no-repeat;filter:drop-shadow(0 2px 2px #6e533933)}
+.enemy-portrait.sprout{background-position:0% 100%}
+.enemy-portrait.runner{background-position:33.333% 100%}
+.enemy-portrait.brute{background-position:66.667% 100%}
+.enemy-portrait.boss{background-position:100% 100%}
+.enemy-intel-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.enemy-intel-text strong{font-size:13px;color:#503821}
+.enemy-intel-text small{font-size:11px;line-height:1.3;color:#765e42}
+.enemy-intel-text em{font-style:normal;font-size:11px;line-height:1.3;font-weight:900;color:#426b3d}
+.battle-toolbar{height:77px;flex-basis:77px;gap:6px;padding:4px 7px}
+.hero-slots{gap:5px}
+.hero-slot{height:59px;border-width:2px;border-radius:11px}
+.evo-button,.skill-button{height:61px;flex-basis:62px;border-width:3px;border-radius:13px}
+.evo-button>span.painted-icon,.skill-button>span.painted-icon{width:33px;height:33px}
+.evo-button small,.skill-button small{font-size:9px}
+.modal-action{min-height:44px;padding:7px 13px;border-radius:10px}
+@media(max-width:340px){
+  .menu-actions{gap:4px}
+  .menu-actions #start-btn{flex-basis:99px}
+  .menu-actions #resume-btn{flex-basis:87px}
+  .menu-actions #help-btn{flex-basis:83px}
+  .menu-actions #help-btn .help-icon{width:19px;height:19px;flex-basis:19px}
+  .enemy-portrait{flex-basis:50px;width:50px;height:50px}
+  .enemy-intel-text strong{font-size:12px}
+}
+@media(max-width:300px){.menu-actions{flex-wrap:wrap;max-width:220px}}
+@media(max-height:620px){.battle-toolbar{height:71px;flex-basis:71px}.hero-slot{height:55px}
+ .evo-button,.skill-button{height:55px}.story-meta{min-height:25px}}
