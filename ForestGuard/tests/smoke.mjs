@@ -70,6 +70,10 @@ assert.match(html,/game\.js\?v=20261031s/);
 assert.match(js,/isMidBoss\(\)/);
 assert.match(js,/isEliteWave\(\)/);
 assert.match(js,/isFinalElite\(\)/);
+assert.match(js,/removeEnemy\(e,defeated=false\)/);
+assert.match(js,/this\.dyingSprites=0/);
+assert.match(js,/shard-'\+element/);
+assert.match(js,/this\.removeEnemy\(e,true\)/);
 assert.match(js,/if\(battle\.pendingRecruit&&!id\)/);
 assert.match(js,/if\(e\.nameLabel\)e\.nameLabel\.setPosition/);
 assert.match(js,/forest-monsters-v14-clean\.webp/);
@@ -145,4 +149,4 @@ for(const system of ['SYNERGY_RECIPES','completeEvolution','evolutionPath','acti
 assert.match(visuals,/roots:4,pierce:5,ward:13,hunter:14/);
 assert.doesNotMatch(html+css+js+visuals,/<svg\b|data:image\/svg\+xml|\.svg(?:["'(])/i);
 assert.doesNotMatch(js,/eval\s*\(/);
-console.log('라니 수비대 v1.5 smoke: PASS (new painted sprites, midboss, focus, canvas fort HUD, no SVG).');
+console.log('라니 수비대 v1.5.1 smoke: PASS (new painted sprites, midboss, focus, canvas fort HUD, no SVG).');

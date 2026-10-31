@@ -478,6 +478,21 @@
         c.drawImage(evolutionBitmap,(i%4)*cw,Math.floor(i/4)*ch,cw,ch,0,0,w,h);
       }else paintHero(c,w,h,'fox');
     });
+    // Reusable illustration-like elemental fragments, painted once per battle on Canvas.
+    for(const [element,core,rim] of [
+      ['leaf','#91bb5e','#e9df9b'],['crystal','#69d1ee','#e3faff'],
+      ['spore','#eab06a','#fff0b1'],['stone','#aa9479','#e9d5b7']]){
+      createCanvasTexture(scene,'shard-'+element,56,56,ctx=>{
+        ctx.save();ctx.translate(28,28);
+        ctx.shadowColor=rim;ctx.shadowBlur=8;ctx.fillStyle=core;ctx.strokeStyle=rim;ctx.lineWidth=2;
+        ctx.beginPath();
+        if(element==='leaf'){ctx.moveTo(-19,7);ctx.quadraticCurveTo(-8,-21,17,-14);ctx.quadraticCurveTo(14,12,-15,18);ctx.closePath();}
+        else if(element==='crystal'){ctx.moveTo(-3,-22);ctx.lineTo(16,-10);ctx.lineTo(9,18);ctx.lineTo(-14,10);ctx.closePath();}
+        else if(element==='spore'){ctx.ellipse(0,0,14,15,0,0,Math.PI*2);}
+        else{ctx.moveTo(-19,-7);ctx.lineTo(-6,-18);ctx.lineTo(18,-12);ctx.lineTo(12,17);ctx.lineTo(-16,12);ctx.closePath();}
+        ctx.fill();ctx.stroke();ctx.restore();
+      });
+    }
     createCanvasTexture(scene,'bolt',32,32,(c)=>{blob(c,16,16,10,5,'#ffd47e','#9b6b3a');blob(c,18,14,5,3,'#fff1b1');});
     createCanvasTexture(scene,'frostbolt',32,32,(c)=>{blob(c,16,16,10,8,'#80d9f5','#477f9f');blob(c,13,12,5,4,'#e4faff');});
 
@@ -584,7 +599,7 @@
       this.spark=0;this.roots=0;this.pierce=0;this.ward=0;this.hunter=0;
       this.wardCharges=0;this.trapTimer=7600;this.evolutionPath=null;
       this.cardCounts={};this.synergies=new Set();this.gameClock=0;
-      this.heroIds=['fox',null,null];this.targetModes=['front','front','front'];this.attackTimes=[0,0,0];this.enemies=[];this.projectiles=[];this.effects=[];
+      this.heroIds=['fox',null,null];this.targetModes=['front','front','front'];this.attackTimes=[0,0,0];this.enemies=[];this.projectiles=[];this.effects=[];this.dyingSprites=0;
       this.focusEnemy=null;this.focusUntil=0;this.focusReticle=null;this.lastFortHP=-1;
       this.foxSpirit=0;this.evolved=false;
       this.betweenWaves=0;this.wave=new WaveDirector(this);
@@ -719,7 +734,7 @@
       const ring=this.add.circle(x,y,radius,color,.08).setStrokeStyle(critical?4:2,color,.92).setDepth(7);
       this.effects.push(ring);
       this.tweens.add({targets:ring,scale:critical?2.1:1.65,alpha:0,duration:critical?340:240,
-        onComplete:()=>{ring.destroy();this.effects.splice(this.effects.indexOf(ring),1);}});
+        onComplete:()=>{ring.destroy();const index=this.effects.indexOf(ring);if(index>=0)this.effects.splice(index,1);}});
       if(critical&&this.effects.length<24){
         for(let n=0;n<3;n++){
           const particle=this.add.circle(x,y,2.2,color,.8).setDepth(7);
@@ -747,7 +762,7 @@
         const near=this.enemies.find(other=>other!==e&&!other.untargetable&&Math.hypot(other.x-e.x,other.y-e.y)<100);
         if(near){near.hp-=Math.round(actual*.55);near.life.width=near.lifeWidth*Math.max(0,near.hp/near.maxHP);
           if(this.synergies.has('thunderfrost'))near.slow=Math.max(near.slow,1700);
-          if(near.hp<=0){this.coins+=8;this.removeEnemy(near);}}
+          if(near.hp<=0){this.coins+=8;this.removeEnemy(near,true);}}
       }
       if(kind==='megafox')e.hp-=Math.floor(actual*.2);
       e.life.width=e.lifeWidth*Math.max(0,e.hp/e.maxHP);
@@ -760,7 +775,7 @@
           if(other===e||other.untargetable||Math.hypot(other.x-e.x,other.y-e.y)>78)continue;
           other.hp-=Math.round(actual*.20);
           other.life.width=other.lifeWidth*Math.max(0,other.hp/other.maxHP);
-          if(other.hp<=0){this.coins+=8;this.removeEnemy(other);}
+          if(other.hp<=0){this.coins+=8;this.removeEnemy(other,true);}
         }
       }
       if(kind==='cat'){
@@ -768,22 +783,52 @@
         this.tweens.add({targets:boom,scale:4,alpha:0,duration:260,onComplete:()=>boom.destroy()});
         for(const other of [...this.enemies])if(other!==e&&Math.hypot(other.x-e.x,other.y-e.y)<75){
           other.hp-=Math.round(actual*.45);other.life.width=other.lifeWidth*Math.max(0,other.hp/other.maxHP);
-          if(other.hp<=0){this.coins+=8;this.removeEnemy(other);}
+          if(other.hp<=0){this.coins+=8;this.removeEnemy(other,true);}
         }
       }
       if(e.hp<=0){
         this.coins+=e.type==='boss'?150:e.type==='guardian'?85:e.type==='shroom'?36:e.type==='crystal'?22:e.type==='brute'?18:e.type==='spore'?15:8;
         const ring=this.add.circle(e.x,e.y,10,0xf7da8c,.55).setDepth(6);
         this.tweens.add({targets:ring,scale:3,alpha:0,duration:260,onComplete:()=>ring.destroy()});
-        this.removeEnemy(e);renderHUD();
+        this.removeEnemy(e,true);renderHUD();
       }
     }
-    removeEnemy(e){
-      const i=this.enemies.indexOf(e);if(i>=0)this.enemies.splice(i,1);
-      if(this.focusEnemy===e){this.focusEnemy=null;if(this.focusReticle){this.focusReticle.destroy();this.focusReticle=null;}}
+    removeEnemy(e,defeated=false){
+      const i=this.enemies.indexOf(e);
+      if(i<0)return;
+      this.enemies.splice(i,1);
+      if(this.focusEnemy===e){
+        this.focusEnemy=null;
+        if(this.focusReticle){this.focusReticle.destroy();this.focusReticle=null;}
+      }
       this.clearBossWarning(e);
       if(e.nameLabel)e.nameLabel.destroy();
-      e.spr.destroy();e.life.destroy();e.lifeBg.destroy();
+      e.life.destroy();e.lifeBg.destroy();
+      // Breaches vanish immediately; defeated creatures play a bounded death sequence.
+      if(!defeated||this.dyingSprites>=12){e.spr.destroy();return;}
+      this.dyingSprites++;
+      const spr=e.spr;
+      spr.disableInteractive();spr.clearTint();spr.setAlpha(1);
+      const kind=e.type==='crystal'?'crystal':
+        ['runner','spore','shroom'].includes(e.type)?'spore':
+        ['guardian','boss','brute'].includes(e.type)?'stone':'leaf';
+      const large=['guardian','boss','shroom'].includes(e.type);
+      const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      const hurt='motion-'+e.type+'-hurt-2';
+      if(this.textures.exists(hurt))spr.setTexture(hurt);
+      if(!reduced&&this.dyingSprites<=9){
+        const total=large?5:3;
+        for(let n=0;n<total;n++){
+          const particle=this.add.image(e.x,e.y,'shard-'+kind).setDepth(7).setDisplaySize(large?21:13,large?21:13);
+          const angle=n/total*Math.PI*2,dist=large?53:32;
+          this.tweens.add({targets:particle,x:e.x+Math.cos(angle)*dist,y:e.y+Math.sin(angle)*dist-13,
+            alpha:0,angle:n%2?100:-120,scale:0.35,duration:large?430:340,
+            onComplete:()=>particle.destroy()});
+        }
+      }
+      this.tweens.add({targets:spr,alpha:0,y:spr.y+16,angle:spr.angle+(large?7:17),
+        scaleX:spr.scaleX*.70,scaleY:spr.scaleY*.68,duration:reduced?100:large?440:300,
+        onComplete:()=>{this.dyingSprites=Math.max(0,this.dyingSprites-1);spr.destroy();}});
     }
     clearBossWarning(e){
       for(const key of ['tellRing','tellBack','tellFill']){
