@@ -114,8 +114,10 @@ jobs:
           test -s ForestGuard/index.html
           test -s ForestGuard/style.css
           test -s ForestGuard/game.js
+          test -s ForestGuard/atlas-data.js
+          test -s ForestGuard/evolution-data.js
           mkdir -p MagicGarden/dist/ForestGuard
-          cp ForestGuard/index.html ForestGuard/style.css ForestGuard/game.js MagicGarden/dist/ForestGuard/
+          cp ForestGuard/index.html ForestGuard/style.css ForestGuard/game.js ForestGuard/atlas-data.js ForestGuard/evolution-data.js MagicGarden/dist/ForestGuard/
           echo "Independent Forest Guard staged at /ForestGuard/"
 
       - name: Upload short-lived Pages deployment artifact
