@@ -302,7 +302,7 @@
       const cw=atlasBitmap.naturalWidth/4,ch=atlasBitmap.naturalHeight/2;
       c.drawImage(atlasBitmap,(idx%4)*cw,Math.floor(idx/4)*ch,cw,ch,0,0,w,h);
     };
-    Object.keys(HEROES).forEach(type=>createCanvasTexture(scene,'hero-'+type,128,128,(c,w,h)=>{
+    Object.keys(HEROES).filter(type=>type!=='megafox').forEach(type=>createCanvasTexture(scene,'hero-'+type,128,128,(c,w,h)=>{
       if(atlasBitmap)atlasCell(c,w,h,{fox:0,bear:1,rabbit:2,cat:3}[type]);else paintHero(c,w,h,type);
     }));
     ['sprout','runner','brute','boss'].forEach(type=>createCanvasTexture(scene,'enemy-'+type,128,128,(c,w,h)=>{
