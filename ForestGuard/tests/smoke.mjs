@@ -15,6 +15,7 @@ for(const asset of [field,icons,map]){
   assert.ok(bytes.length>30_000,'WebP game artwork must be present');
   assert.equal(bytes.toString('ascii',0,4),'RIFF');
   assert.equal(bytes.toString('ascii',8,12),'WEBP');
+  if(asset.href===map.href) assert.equal(bytes.readUInt32LE(4),bytes.length-8,'Worldmap WebP RIFF header must be valid');
 }
 assert.match(html,/game\.js\?v=/);
 assert.match(js,/forest-characters\.png/);

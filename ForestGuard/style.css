@@ -123,7 +123,7 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 .menu {
   isolation:isolate;
   background-color:#193728;
-  background-image:url('./art/forest-worldmap-v05.webp?v=20261031e');
+  background-image:url('./art/forest-worldmap-v05.webp?v=20261031f');
   background-size:cover;
   background-position:center center;
 }
@@ -211,6 +211,8 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 .stage-tile.selected,.stage-tile.selected.boss{
   transform:translate(-50%,-50%) scale(1.19);
   background-color:transparent;
+  background-image:url('./art/rani-ui-icons-v04.webp?v=20261031d');
+  background-size:400% 400%;
   border:none;
   box-shadow:none;
   filter:drop-shadow(0 0 5px #ffe29c) drop-shadow(0 3px 3px #102515);
