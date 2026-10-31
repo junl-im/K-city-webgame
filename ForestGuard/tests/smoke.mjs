@@ -189,4 +189,5 @@ assert.doesNotMatch(html+css+js+visuals,/<svg\b|data:image\/svg\+xml|\.svg(?:["'
 assert.doesNotMatch(js,/eval\s*\(/);
 console.log(execFileSync(process.execPath,[new URL('tests/balance-matrix.mjs',root).pathname],{encoding:'utf8'}).trim());
 console.log(execFileSync(process.execPath,[new URL('tests/terrain-matrix.mjs',root).pathname],{encoding:'utf8'}).trim());
+console.log(execFileSync(process.execPath,[new URL('tests/boss-volley.mjs',root).pathname],{encoding:'utf8'}).trim());
 console.log('라니 수비대 v1.9 smoke: PASS (new painted sprites, midboss, focus, canvas fort HUD, no SVG).');
