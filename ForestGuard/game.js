@@ -1,4 +1,4 @@
-/* 라니 수비대 v0.5.0 — © 2026 곰같은여우
+/* 라니 수비대 v0.6.0 — © 2026 곰같은여우
  * Original game rules, PNG character art, Canvas field art and interface.
  * Combat architecture informed by MIT-licensed Phaser 3 and the WaveManager,
  * EnemyManager and Projectile patterns of rupertgermann/tower-defence.
@@ -37,7 +37,18 @@
     {id:'rabbit',icon:'☾',title:'토끼 마법사',desc:'빙결 마법사가 합류',rare:true},
     {id:'cat',icon:'✹',title:'고양이 기술자',desc:'폭탄의 달인이 합류',rare:true},
     {id:'crit',icon:'✦',title:'약점 간파',desc:'치명타 확률 +13%',rare:false},
-    {id:'spark',icon:'⚡',title:'번개의 씨앗',desc:'타격 시 연쇄 번개 피해',rare:true}
+    {id:'spark',icon:'⚡',title:'번개의 씨앗',desc:'타격 시 연쇄 번개 피해',rare:true},
+    {id:'roots',icon:'♣',title:'덩굴 덫',desc:'주기적으로 앞선 적을 묶어 둠',rare:false},
+    {id:'pierce',icon:'➤',title:'관통 화살',desc:'수정·중장갑 방어력 무시',rare:true},
+    {id:'ward',icon:'▤',title:'숲의 수호',desc:'공세마다 성벽 피해 1회 감소',rare:false},
+    {id:'hunter',icon:'◎',title:'추적의 눈',desc:'안개 시야 회복·사정거리 증가',rare:false}
+  ];
+  const SYNERGY_RECIPES = [
+    ['flame','haste','wildfire','화염폭풍'],
+    ['ice','spark','thunderfrost','빙뢰연쇄'],
+    ['multi','crit','stormshot','폭풍 화살'],
+    ['roots','flame','bramblefire','불꽃 덩굴'],
+    ['ward','wall','heartwood','고목의 맹세']
   ];
   const HEROES = {
     fox:{name:'여우 궁수',icon:'🦊',damage:27,interval:680,range:590,color:0xffce6a},
@@ -167,7 +178,7 @@
   }
   function showHelp(){
     const el=document.createElement('div');el.className='howto';
-    [['① 자동 전투','여우와 곰이 달려오는 몬스터를 알아서 공격해요.'],['② 자리 바꾸기','아래 용병 하나를 선택하고 다른 칸을 누르면 서로 바뀌어요.'],['③ 특별한 공격','일제사격 버튼이 밝아지면 눌러 몬스터를 한꺼번에 공격해요.'],['④ 강화 카드','두 웨이브마다 3개 중 하나를 고르세요.'],['⑤ 다시 도전','패배해도 이전에 깬 스테이지 기록은 남아요.']].forEach(row=>{
+    [['① 자동 전투','여우와 곰이 달려오는 몬스터를 알아서 공격해요.'],['② 자리 바꾸기','아래 용병 하나를 선택하고 다른 칸을 누르면 서로 바뀌어요.'],['③ 특별한 공격','일제사격 버튼이 밝아지면 눌러 몬스터를 한꺼번에 공격해요.'],['④ 강화 카드','두 공세마다 3개 중 하나를 고르고 조합을 완성해요.'],['⑤ 갈래 진화','진화 에너지 10개로 햇살 또는 달빛 계열을 선택해요.'],['⑥ 전장 대응','안개는 추적, 수정 갑옷은 관통 화살이 유리해요.'],['⑦ 다시 도전','패배해도 이전에 깬 스테이지 기록은 남아요.']].forEach(row=>{
       const item=document.createElement('div');const strong=document.createElement('strong');strong.textContent=row[0];item.append(strong,document.createElement('br'),document.createTextNode(row[1]));el.appendChild(item);
     });
     showModal('수비대 안내','5초 만에 배우는 수비대','한 손으로도 충분해요!', [el],[button('좋아, 출발!',closeModal.bind(null,true))],true);
@@ -193,7 +204,8 @@
       if(activeModal.allowClose){
         const wasExit=activeModal.kicker==='숲에서 나가기';
         const wasPause=activeModal.kicker==='잠깐 쉬어가기';
-        closeModal(true);if((wasExit||wasPause) && battle && !suspended)battle.manualPause=false;
+        const wasEvolution=activeModal.kicker==='진화 선택';
+        closeModal(true);if((wasExit||wasPause||wasEvolution) && battle && !suspended)battle.manualPause=false;
         renderCooldown();
       }else{
         // End-of-run choices remain visible until the user selects a destination.
@@ -341,7 +353,15 @@
       this.current++;this.spawned=0;this.active=true;this.tick=500;
       this.count=4+this.current*2+Math.ceil(this.scene.stage.id*.55);
       if(this.isBoss())this.count=Math.floor(this.count*.7)+1;
-      renderHUD();showBanner(this.isBoss()?'우두머리가 다가온다!':'제 '+this.current+'차 공세');
+      if(this.scene.stage.id===6&&this.current%3===0)this.count+=Math.ceil(this.count*.35);
+      if(this.scene.stage.id===10&&this.current%4===0)this.count+=4;
+      if(this.scene.ward){
+        this.scene.wardCharges=Math.min(3,this.scene.ward+(this.scene.synergies.has('heartwood')?1:0));
+        this.scene.hp=Math.min(this.scene.maxHP,this.scene.hp+35*this.scene.ward);
+      }
+      renderHUD();
+      const hazard=this.scene.stage.id===6&&this.current%3===0?'포자 군단 급습!':this.scene.stage.id===10&&this.current%4===0?'달빛 아래 대공세!':null;
+      showBanner(hazard||(this.isBoss()?'우두머리가 다가온다!':'제 '+this.current+'차 공세'));
     }
     isBoss(){return this.current===this.scene.stage.waves && this.scene.stage.id%4===3;}
     nextType(){
@@ -371,7 +391,9 @@
       this.manualPause=false;this.autoPause=false;this.drafting=false;this.speed=1;
       this.hp=3000;this.maxHP=3000;this.coins=0;this.skillCooldown=0;this.rerollUsed=false;
       this.damageBonus=1;this.speedBonus=1;this.multi=0;this.freeze=0;this.flame=0;this.crit=0;
-      this.spark=0;this.cardCounts={};this.synergies=new Set();this.gameClock=0;
+      this.spark=0;this.roots=0;this.pierce=0;this.ward=0;this.hunter=0;
+      this.wardCharges=0;this.trapTimer=7600;this.evolutionPath=null;
+      this.cardCounts={};this.synergies=new Set();this.gameClock=0;
       this.heroIds=['fox','bear',null];this.attackTimes=[0,0,0];this.enemies=[];this.projectiles=[];this.effects=[];
       this.foxSpirit=0;this.evolved=false;
       this.betweenWaves=0;this.wave=new WaveDirector(this);
@@ -382,14 +404,15 @@
       this.wave.begin();renderSlots();renderHUD();
     }
     spawnEnemy(type){
-      const lane=this.stage.id===2 ? (Math.random()<.5?96:324):70+Math.random()*280;
+      const lane=this.stage.id===2 ? (Math.random()<.5?96:324)
+        :this.stage.id===5 ? 160+Math.random()*100 :70+Math.random()*280;
       const hpbase={sprout:55,runner:37,brute:160,boss:1400}[type];
       const hp=Math.round(hpbase*(1+this.stage.id*.13+(this.wave.current-1)*.1));
       const spd={sprout:33,runner:60,brute:23,boss:18}[type]+this.stage.id*.8;
       const spr=this.add.image(lane,-38,'motion-'+type+'-run-0').setDisplaySize(type==='boss'?132:type==='brute'?69:56,type==='boss'?94:type==='brute'?63:48);
       const lifeBg=this.add.rectangle(lane,-68,40,4,0x3d3024).setDepth(3);
       const life=this.add.rectangle(lane,-68,39,3,0xe18754).setDepth(4);
-      this.enemies.push({type,x:lane,y:-38,spr,lifeBg,life,hp,maxHP:hp,spd,slow:0,
+      this.enemies.push({type,x:lane,baseX:lane,windPhase:Math.random()*Math.PI*2,y:-38,spr,lifeBg,life,hp,maxHP:hp,spd,slow:0,rooted:0,
         armor:this.stage.id===9&&type!=='runner'?.3:0,abilityCooldown:5400,warning:0,hidden:0,untargetable:false,surge:0});
     }
     targetFor(heroX,range){
@@ -405,11 +428,15 @@
     }
     shoot(i){
       const id=this.heroIds[i];if(!id)return;
-      const x=[104,210,316][i],hero=HEROES[id],target=this.targetFor(x,hero.range);if(!target)return;
+      const x=[104,210,316][i],hero=HEROES[id];
+      const fog=(this.stage.id>=4&&this.stage.id<=7&&!this.hunter) ? 0.9 : 1;
+      const vision=hero.range*(1+this.hunter*.16)*fog*(id==='megafox'&&this.evolutionPath==='moon'?1.2:1);
+      const target=this.targetFor(x,vision);if(!target)return;
       const num=id==='fox'?1+this.multi:id==='megafox'?2+this.multi:1;
       for(let p=0;p<num;p++){
         const bolt=this.add.image(x+(p-(num-1)/2)*12,568,id==='rabbit'?'frostbolt':'bolt').setDisplaySize(17,17);
-        this.projectiles.push({spr:bolt,target,x:bolt.x,y:bolt.y,damage:hero.damage*this.damageBonus,kind:id});
+        const evolvePower=id==='megafox'&&this.evolutionPath==='sun'?1.25:1;
+        this.projectiles.push({spr:bolt,target,x:bolt.x,y:bolt.y,damage:hero.damage*this.damageBonus*evolvePower,kind:id});
       }
       const sprite=this.heroSprites[i];if(sprite){
         V.trigger(sprite,'attack',this.gameClock+310);
@@ -429,26 +456,57 @@
     }
     evolveFox(){
       if(this.evolved||this.foxSpirit<10||this.ended||this.manualPause||this.drafting)return;
+      if(!this.heroIds.includes('fox'))return;
+      this.manualPause=true;
+      const choices=[
+        {id:'sun',title:'햇살의 곰같은여우',desc:'공격 피해 강화·불꽃 범위 피해',icon:'flame'},
+        {id:'moon',title:'달빛의 곰같은여우',desc:'사정거리·연사 강화·서리 둔화',icon:'ice'}
+      ];
+      const wrap=document.createElement('div');wrap.className='card-grid evo-choice-grid';
+      choices.forEach(choice=>{
+        const b=document.createElement('button');b.type='button';b.className='spell-card evo-path '+choice.id;
+        const icon=document.createElement('span');icon.className='spell-emoji';V.setIcon(icon,choice.icon);
+        const title=document.createElement('strong');title.textContent=choice.title;
+        const desc=document.createElement('small');desc.textContent=choice.desc;
+        b.append(icon,title,desc);
+        b.addEventListener('click',()=>{
+          this.completeEvolution(choice.id);closeModal(true);
+          this.manualPause=false;renderHUD();
+        });
+        wrap.appendChild(b);
+      });
+      showModal('진화 선택','곰같은여우 · 두 갈래의 힘','어느 길로 진화할까요? 이번 전투 동안 유지돼요.',[wrap],[
+        button('조금 더 생각하기',()=>{closeModal(true);this.manualPause=false;renderHUD();},'alt')
+      ],true);
+      renderHUD();
+    }
+    completeEvolution(path){
+      if(this.evolved||this.foxSpirit<10)return;
       const index=this.heroIds.indexOf('fox');if(index<0)return;
-      this.evolved=true;this.heroIds[index]='megafox';
+      this.evolved=true;this.evolutionPath=path;this.heroIds[index]='megafox';
       const spr=this.heroSprites[index];spr.setTexture('motion-megafox-idle-0').setDisplaySize(110,110).setDepth(5);
+      spr.setTint(path==='sun'?0xffedc4:0xb2e8ff);
       V.trigger(spr,'victory',this.gameClock+900);
-      this.cameras.main.flash(350,250,224,143);
-      const aura=this.add.circle([104,210,316][index],575,25,0xffe8aa,.42).setDepth(4);
+      this.cameras.main.flash(350,path==='sun'?250:142,path==='sun'?224:208,path==='sun'?143:250);
+      const aura=this.add.circle([104,210,316][index],575,25,path==='sun'?0xffd77a:0x9ddfff,.42).setDepth(4);
       this.tweens.add({targets:aura,scale:5,alpha:0,duration:650,onComplete:()=>aura.destroy()});
-      const rise=this.add.text([104,210,316][index],505,'곰같은여우!',{font:'bold 20px system-ui',color:'#fff4c7',stroke:'#543929',strokeThickness:5})
+      const name=path==='sun'?'햇살의 곰같은여우!':'달빛의 곰같은여우!';
+      const rise=this.add.text([104,210,316][index],505,name,{font:'bold 17px system-ui',color:'#fff4c7',stroke:'#543929',strokeThickness:5})
         .setOrigin(.5).setDepth(8);
       this.tweens.add({targets:rise,y:455,alpha:0,duration:1500,onComplete:()=>rise.destroy()});
-      showBanner('곰같은여우로 진화!');
-      renderSlots();renderHUD();
+      showBanner(name);renderSlots();renderHUD();
     }
     hitEnemy(e,damage,kind){
       if(!this.enemies.includes(e)||e.untargetable)return;
       const crit=Math.random()<this.crit;
-      const armor=e.armor&&kind!=='rabbit'&&kind!=='skill'?(1-e.armor):1;
-      const actual=Math.max(1,Math.round(damage*(crit?1.7:1)*armor));
+      const armor=e.armor&&kind!=='rabbit'&&kind!=='skill'?
+        (1-e.armor*(1-Math.min(1,this.pierce*.5))):1;
+      const huntBonus=e.type==='boss'&&this.hunter?1+Math.min(.3,this.hunter*.12):1;
+      const actual=Math.max(1,Math.round(damage*(crit?1.7:1)*armor*huntBonus));
       if(kind==='fox'&&!this.evolved){this.foxSpirit=Math.min(10,this.foxSpirit+1);renderEvolution();}
-      e.hp-=actual;if(kind==='rabbit'||this.freeze)e.slow=Math.max(e.slow,kind==='rabbit'?1900:650);
+      e.hp-=actual;
+      if(kind==='rabbit'||this.freeze||(kind==='megafox'&&this.evolutionPath==='moon'))
+        e.slow=Math.max(e.slow,kind==='rabbit'?1900:kind==='megafox'&&this.evolutionPath==='moon'?1150:650);
       if(this.flame)e.hp-=Math.max(4,Math.floor(actual*(this.synergies.has('wildfire')?.38:.15)));
       if(this.spark && Math.random()<.20+this.spark*.1){
         const near=this.enemies.find(other=>other!==e&&!other.untargetable&&Math.hypot(other.x-e.x,other.y-e.y)<100);
@@ -462,6 +520,14 @@
       this.tweens.add({targets:number,y:number.y-25,alpha:0,duration:580,onComplete:()=>number.destroy()});
       V.trigger(e.spr,'hurt',this.gameClock+250);
       e.spr.setTintFill(0xffffff);this.time.delayedCall(75,()=>{if(e.spr.active)e.spr.clearTint();});
+      if(kind==='megafox'&&this.evolutionPath==='sun'){
+        for(const other of [...this.enemies]){
+          if(other===e||other.untargetable||Math.hypot(other.x-e.x,other.y-e.y)>78)continue;
+          other.hp-=Math.round(actual*.20);
+          other.life.width=39*Math.max(0,other.hp/other.maxHP);
+          if(other.hp<=0){this.coins+=8;this.removeEnemy(other);}
+        }
+      }
       if(kind==='cat'){
         const boom=this.add.circle(e.x,e.y,16,0xffac65,.4).setDepth(5);
         this.tweens.add({targets:boom,scale:4,alpha:0,duration:260,onComplete:()=>boom.destroy()});
@@ -517,6 +583,21 @@
         }
       }
     }
+    activateRoots(){
+      if(!this.roots||!this.enemies.length)return;
+      const target=this.enemies.filter(e=>!e.untargetable).sort((a,b)=>b.y-a.y)[0];
+      if(!target)return;
+      target.rooted=Math.max(target.rooted,1150+450*this.roots);
+      const vines=this.add.circle(target.x,target.y,23,0x7acb5b,.14).setStrokeStyle(4,0x9adc75,.9).setDepth(6);
+      this.tweens.add({targets:vines,scale:1.6,alpha:0,duration:570,onComplete:()=>vines.destroy()});
+      if(this.synergies.has('bramblefire')){
+        for(const e of [...this.enemies]){
+          if(e.untargetable||Math.hypot(e.x-target.x,e.y-target.y)>85)continue;
+          this.hitEnemy(e,45*this.roots*this.damageBonus,'trap');
+        }
+      }
+      showBanner(this.synergies.has('bramblefire')?'불꽃 덩굴 발동!':'덩굴 덫 발동!');
+    }
     castSkill(){
       if(this.ended||this.manualPause||this.autoPause||this.drafting||this.skillCooldown>0)return;
       this.skillCooldown=14500;showBanner('수비대 일제사격!');
@@ -534,19 +615,38 @@
       if(w%2===0){this.drafting=true;setTimeout(()=>{if(!this.ended)this.showDraft();},220);}
       else{this.betweenWaves=1100;showBanner('성벽 방어 성공!');}
     }
+    comboFor(id){
+      const recipe=SYNERGY_RECIPES.find(([a,b,key])=>!this.synergies.has(key)&&(
+        (id===a&&this.cardCounts[b]>0)||(id===b&&this.cardCounts[a]>0)
+      ));
+      return recipe?recipe[3]:null;
+    }
     chooseCards(){
       const pool=CARDS.filter(c=>!['rabbit','cat'].includes(c.id) || (!this.heroIds.includes(c.id)&&this.heroIds.includes(null)));
-      const shuffled=[...pool].sort(()=>Math.random()-.5);return shuffled.slice(0,3);
+      const shuffled=[...pool];
+      for(let i=shuffled.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+      }
+      const result=[];
+      const combo=shuffled.find(c=>this.comboFor(c.id));
+      if(combo&&Math.random()<.85)result.push(combo);
+      for(const c of shuffled){
+        if(result.length>=3)break;
+        if(!result.some(x=>x.id===c.id))result.push(c);
+      }
+      return result;
     }
     showDraft(){
       if(this.ended)return;
       this.drafting=true;const cards=this.chooseCards();
       const wrap=document.createElement('div');wrap.className='card-grid';
       cards.forEach(card=>{
-        const b=document.createElement('button');b.type='button';b.className='spell-card'+(card.rare?' rare':'');
+        const b=document.createElement('button');b.type='button';b.className='spell-card'+(card.rare?' rare':'')+(this.comboFor(card.id)?' combo':'');
         const icon=document.createElement('span');icon.className='spell-emoji';V.setIcon(icon,card.id);
         const title=document.createElement('strong');title.textContent=card.title;
-        const desc=document.createElement('small');desc.textContent=card.desc;
+        const desc=document.createElement('small');
+        const combo=this.comboFor(card.id);
+        desc.textContent=card.desc+(combo?' · '+combo+' 재료':'');
         b.append(icon,title,desc);b.addEventListener('click',()=>{
           this.applyCard(card.id);closeModal(true);this.drafting=false;this.betweenWaves=700;renderHUD();
         });wrap.appendChild(b);
@@ -565,11 +665,20 @@
       if(id==='flame')this.flame++;
       if(id==='crit')this.crit=Math.min(.65,this.crit+.13);
       if(id==='spark')this.spark=Math.min(3,this.spark+1);
+      if(id==='roots')this.roots=Math.min(3,this.roots+1);
+      if(id==='pierce')this.pierce=Math.min(2,this.pierce+1);
+      if(id==='ward'){this.ward=Math.min(2,this.ward+1);this.wardCharges=Math.min(3,this.wardCharges+1);}
+      if(id==='hunter')this.hunter=Math.min(2,this.hunter+1);
       this.cardCounts[id]=(this.cardCounts[id]||0)+1;
       if(this.flame&&this.cardCounts.haste&&!this.synergies.has('wildfire')){this.synergies.add('wildfire');showBanner('조합 완성 · 화염폭풍!');}
       if(this.freeze&&this.spark&&!this.synergies.has('thunderfrost')){this.synergies.add('thunderfrost');showBanner('조합 완성 · 빙뢰연쇄!');}
       if(this.multi&&this.crit>0&&!this.synergies.has('stormshot')){this.synergies.add('stormshot');this.multi=Math.min(4,this.multi+1);showBanner('조합 완성 · 폭풍 화살!');}
       if(this.cardCounts.wall>=2&&!this.synergies.has('fortress')){this.synergies.add('fortress');this.maxHP+=600;this.hp+=600;showBanner('조합 완성 · 불굴의 성벽!');}
+      if(this.roots&&this.flame&&!this.synergies.has('bramblefire')){this.synergies.add('bramblefire');showBanner('조합 완성 · 불꽃 덩굴!');}
+      if(this.ward&&this.cardCounts.wall&&!this.synergies.has('heartwood')){
+        this.synergies.add('heartwood');this.maxHP+=250;this.hp=Math.min(this.maxHP,this.hp+250);
+        showBanner('조합 완성 · 고목의 맹세!');
+      }
       if((id==='rabbit'||id==='cat')&&!this.heroIds.includes(id)){
         const idx=this.heroIds.indexOf(null);if(idx>=0){this.heroIds[idx]=id;
           this.heroSprites[idx]=this.add.image([104,210,316][idx],595,'motion-'+id+'-idle-0').setDisplaySize(70,70);
@@ -602,25 +711,39 @@
       if(this.ended||this.manualPause||this.autoPause||this.drafting)return;
       const dt=Math.min(delta,40)*this.speed;this.gameClock+=dt;
       this.skillCooldown=Math.max(0,this.skillCooldown-dt);
+      if(this.roots&&this.enemies.length){
+        this.trapTimer-=dt;
+        if(this.trapTimer<=0){
+          this.trapTimer=Math.max(5200,10000-this.roots*1400);
+          this.activateRoots();
+        }
+      }
       if(this.betweenWaves>0){this.betweenWaves-=dt;if(this.betweenWaves<=0)this.wave.begin();}
       else this.wave.update(dt);
       for(let i=0;i<this.heroIds.length;i++){
         if(!this.heroIds[i])continue;
         this.attackTimes[i]-=dt;
         if(this.attackTimes[i]<=0&&this.enemies.length){
-          this.shoot(i);this.attackTimes[i]=HEROES[this.heroIds[i]].interval/this.speedBonus;
+          this.shoot(i);this.attackTimes[i]=HEROES[this.heroIds[i]].interval/
+            (this.speedBonus*(this.heroIds[i]==='megafox'&&this.evolutionPath==='moon'?1.18:1));
         }
       }
       this.updateBosses(dt);
       this.heroSprites.forEach((sprite,i)=>V.animate(sprite,this.heroIds[i],'idle',this.gameClock));
       for(const e of [...this.enemies]){
         e.slow=Math.max(0,e.slow-dt);
+        e.rooted=Math.max(0,e.rooted-dt);
         e.surge=Math.max(0,e.surge-dt);
-        e.y+=e.spd*(e.slow>0?.42:1)*(e.surge>0?2.2:1)*dt/1000;
-        e.spr.y=e.y;e.lifeBg.y=e.y-32;e.life.y=e.y-32;
+        e.y+=e.rooted>0?0:e.spd*(e.slow>0?.42:1)*(e.surge>0?2.2:1)*dt/1000;
+        if(this.stage.id===8||this.stage.id===10){
+          e.x=Math.max(60,Math.min(360,e.baseX+Math.sin(this.gameClock/900+e.windPhase)*24));
+        }
+        e.spr.setPosition(e.x,e.y);e.lifeBg.setPosition(e.x,e.y-32);e.life.setPosition(e.x,e.y-32);
         V.animate(e.spr,e.type,'run',this.gameClock);
         if(e.y>=538){
-          this.hp=Math.max(0,this.hp-(e.type==='boss'?580:e.type==='brute'?220:90));
+          let leak=e.type==='boss'?580:e.type==='brute'?220:90;
+          if(this.wardCharges>0){leak=Math.ceil(leak*.5);this.wardCharges--;showBanner('숲의 수호 · 성벽 피해 감소!');}
+          this.hp=Math.max(0,this.hp-leak);
           this.removeEnemy(e);renderHUD();if(this.hp<=0){this.finish(false);return;}
         }
       }
@@ -660,7 +783,7 @@
     const ready=!battle.evolved&&battle.foxSpirit>=10&&battle.heroIds.includes('fox');
     const b=$('evo-btn');b.disabled=!ready||battle.manualPause||battle.drafting;
     b.classList.toggle('ready',ready);
-    $('evo-caption').textContent=battle.evolved?'진화 완료':ready?'곰같은여우':'진화 '+battle.foxSpirit+'/10';
+    $('evo-caption').textContent=battle.evolved?(battle.evolutionPath==='sun'?'햇살 진화':'달빛 진화'):ready?'진화 선택':'진화 '+battle.foxSpirit+'/10';
   }
   function renderCooldown(){
     if(!battle)return;
@@ -688,7 +811,7 @@
   $('skill-btn').addEventListener('click',()=>{if(battle){if(battle.drafting)battle.showDraft();else battle.castSkill();}});
   $('evo-btn').addEventListener('click',()=>{if(battle)battle.evolveFox();});
   $('modal-close').addEventListener('click',()=>{
-    if(activeModal&&activeModal.kicker==='잠깐 쉬어가기'&&battle)battle.manualPause=false;
+    if(activeModal&&(activeModal.kicker==='잠깐 쉬어가기'||activeModal.kicker==='진화 선택')&&battle)battle.manualPause=false;
     if(activeModal&&activeModal.kicker==='숲에서 나가기'&&battle&&!suspended)battle.manualPause=false;
     closeModal(false);renderCooldown();
   });

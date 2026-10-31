@@ -291,3 +291,12 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
   .stage-tile .num{font-size:9px!important;padding:0 3px}
 }
 @media(prefers-reduced-motion:reduce){.stage-tile{transition:none}}
+
+/* v0.6 — two distinct painted evolution branches and visible combo offers. */
+.evo-choice-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.evo-choice-grid .spell-card{min-height:146px;justify-content:center}
+.spell-card.combo{border-color:#bf7133;background:linear-gradient(155deg,#fff1bb,#e6be74);box-shadow:inset 0 0 0 2px #fff3d4,0 5px #81502d}
+.evo-path.sun{border-color:#d18930;background:linear-gradient(#fff2c4,#f3bd72)}
+.evo-path.moon{border-color:#648eb3;background:linear-gradient(#eefaff,#a6cee2)}
+.evo-path .spell-emoji{filter:drop-shadow(0 3px 2px #49382a55)}
+@media(max-width:350px){.evo-choice-grid{gap:6px}.evo-choice-grid .spell-card{min-height:127px;padding:9px 4px}.evo-choice-grid .spell-card strong{font-size:11px}}

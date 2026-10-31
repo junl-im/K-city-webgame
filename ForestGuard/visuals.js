@@ -1,4 +1,4 @@
-/* 라니 수비대 v0.4 — 독자 Canvas 모션 및 PNG UI 문양 | © 2026 곰같은여우
+/* 라니 수비대 v0.6 — 독자 Canvas 모션 및 PNG UI 문양 | © 2026 곰같은여우
  * Source character paintings remain the original ForestGuard PNG assets.
  * Every animation frame below is newly assembled from that character's painting.
  * No SVG, emoji glyphs or third-party character art.
@@ -8,8 +8,8 @@
   const STATES=['idle','run','attack','hurt','victory'];
   const COLORS={fox:'#ee9c56',megafox:'#f6cc6d',bear:'#d1a078',rabbit:'#b5e9ed',cat:'#f4af7b',sprout:'#9dd16a',runner:'#f38a6b',brute:'#aebc7e',boss:'#d1b58d'};
   const cache=new Map();
-  const ICON_SHEET='./art/rani-ui-icons-v04.webp?v=20261031d';
-  const ICON_TILE={fox:0,play:1,back:2,help:3,coin:4,power:5,sword:5,skill:5,multi:5,haste:10,speed:10,ice:11,rabbit:11,wall:13,shield:13,flame:12,cat:6,crit:14,target:14,spark:6,evo:6,leaf:4,lock:7,star:8,pause:9,refresh:15};
+  const ICON_SHEET='./art/rani-ui-icons-v04.webp?v=20261031g';
+  const ICON_TILE={fox:0,play:1,back:2,help:3,coin:4,power:5,sword:5,skill:5,multi:5,haste:10,speed:10,ice:11,rabbit:11,wall:13,shield:13,flame:12,cat:6,crit:14,target:14,spark:6,roots:4,pierce:5,ward:13,hunter:14,evo:6,leaf:4,lock:7,star:8,pause:9,refresh:15};
   function stroke(c,color,width){c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';c.lineJoin='round';}
   function line(c,coords){c.beginPath();c.moveTo(coords[0],coords[1]);for(let i=2;i<coords.length;i+=2)c.lineTo(coords[i],coords[i+1]);c.stroke();}
   function polygon(c,points,fill){c.beginPath();points.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.closePath();c.fillStyle=fill;c.fill();}
