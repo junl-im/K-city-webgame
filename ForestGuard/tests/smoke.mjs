@@ -69,7 +69,7 @@ assert.match(css,/\.hero-slot\.empty\{border:0!important/);
 assert.match(html,/game\.js\?v=20261031r/);
 assert.match(js,/isMidBoss\(\)/);
 assert.match(js,/isEliteWave\(\)/);
-assert.match(js,/forest-monsters-v14-hq\.webp/);
+assert.match(js,/forest-monsters-v14-clean\.webp/);
 assert.match(js,/fort-hud-v14\.webp/);
 assert.match(js,/Object\.entries\(\{thorn:0,spore:1,imp:2,crystal:3,shroom:4,guardian:5\}\)/);
 assert.match(js,/e\.type==='guardian'/);
