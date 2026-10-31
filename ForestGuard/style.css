@@ -768,3 +768,102 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 /* v1.7.2: keep title painting above page background but behind live title text */
 .title-forest-crest{z-index:0}
 .brand .eyebrow,.brand>p:last-child{z-index:1}
+
+
+/* v1.8 — composed from the approved painted game preview, functional UI stays in DOM */
+/* Title: single original WebP painting, never the preview's inert button pixels */
+.menu{background:linear-gradient(180deg,#0c231b99 0%,#12271de8 36%,#091a14f0 100%),url('./art/forest-entrance-v08.png') center center / cover; background-blend-mode:multiply,normal}
+.menu:before{opacity:.15;background:radial-gradient(ellipse 90% 48% at 50% 0%,#ebdf99ad,transparent)}
+.menu:after{height:20%;opacity:.48}
+.menu{padding-left:clamp(9px,3vw,19px);padding-right:clamp(9px,3vw,19px);padding-top:calc(5px + env(safe-area-inset-top,0px))}
+.menu .brand{height:clamp(124px,22.5dvh,210px);flex:0 0 auto;padding:0;display:flex;align-items:center;justify-content:center;isolation:isolate;overflow:visible}
+.title-hero-art{display:block;width:100%;max-width:470px;height:100%;object-fit:contain;object-position:center center;filter:drop-shadow(0 6px 7px #081a139e);pointer-events:none}
+.menu .brand .title-forest-crest,.menu .brand .brand-seal{display:none!important}
+.menu .brand h1,.menu .brand .eyebrow,.menu .brand>p:last-child{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;border:0!important;clip-path:inset(50%)!important;overflow:hidden!important;white-space:nowrap!important}
+.menu-actions.menu-actions-top{gap:7px;margin:1px 0 5px;justify-content:center}
+.menu-actions-top .rune-btn{min-height:41px!important;height:41px!important;max-height:41px;position:relative;overflow:hidden;border:2px solid #b68a53;border-radius:9px 12px 10px 8px;
+ color:#fff0ca;text-shadow:0 2px 2px #28180d,0 1px #382519;
+ box-shadow:inset 0 2px 0 #efcc8473,inset 0 -3px 4px #241409bb,0 3px 0 #392418,0 5px 11px #08160ec2;
+ background:linear-gradient(100deg,#624025,#8b6139 20%,#694629 49%,#987449 76%,#48301b)!important;
+ font-size:13px!important;font-weight:1000;padding:5px 14px;transition:filter .12s,transform .12s}
+.menu-actions-top .rune-btn.primary{flex-basis:51%;max-width:185px;color:#fff6d8;background:linear-gradient(110deg,#bd7a2d,#efb456 35%,#b66c24 73%,#70431d)!important;font-size:16px!important}
+.menu-actions-top .rune-btn.tertiary{flex-basis:30%;max-width:124px}
+.menu-actions-top .rune-btn:after{content:"";position:absolute;inset:4px;pointer-events:none;border:1px solid #efd69b40;border-radius:5px 8px 6px 4px}
+.menu-actions-top .rune-btn:active{transform:translateY(2px);filter:brightness(1.15)}
+.menu-actions-top .rune-btn:focus-visible{outline:2px solid #fff4ba;outline-offset:2px}
+.menu .story-panel{padding:9px 12px 10px;margin-top:6px;border:2px solid #9d804e;border-radius:9px 14px 11px 10px;
+ background:linear-gradient(150deg,#2c3e2eea,#18271ef6 65%,#43331fb9);color:#f9e8bc;
+ box-shadow:inset 0 0 0 1px #e5bd726b,0 4px 10px #07150cbc}
+.menu .story-panel h2{color:#fff0cc;font-size:13px}
+.menu .story-panel p{color:#d2dfb6}
+.menu .story-chapter{color:#edd18d}
+.menu .story-panel:before,.menu .story-panel:after{color:#cbaa69}
+.menu .intel-pill{border-color:#a87b3f;color:#ffebaf;background:linear-gradient(#6b5334,#352b21)}
+.menu .map-title{margin:7px 1px 5px;color:#ffefba;font-size:13px}
+.menu .map-title small{font-size:10px;color:#e6d39b}
+.menu .stage-grid{gap:6px;align-content:stretch}
+.menu .stage-tile{min-height:0;border:2px solid #a17b49;border-radius:9px 12px 9px 11px;color:#ead9b9;
+ background:linear-gradient(150deg,#3c4a34ee,#172a22ec 50%,#3e3528ee);
+ box-shadow:inset 0 1px 0 #e9cf9670,inset 0 -2px 0 #0d1c14b5,0 2px 4px #07190e95}
+.menu .stage-tile .num{color:#ffdfa1;text-shadow:0 2px #211b13}
+.menu .stage-tile .tiny{color:#d5debb}
+.menu .stage-tile.selected{color:#3b2a1a;border-color:#e9c075;
+ background:linear-gradient(145deg,#ffedae,#efbc66 57%,#b37736);
+ box-shadow:inset 0 0 0 2px #fff3c5,0 2px 12px #f3b75d71;transform:translateY(-1px)}
+.menu .stage-tile.selected .num,.menu .stage-tile.selected .tiny{color:#593816}
+.menu .stage-tile.locked{opacity:.72;filter:saturate(.65)}
+.menu .menu-bottom{margin-top:4px}
+/* Dark framed live companion cards with distinct portrait paintings */
+.modal-box.recruit-dialog{background:linear-gradient(155deg,#152d27,#071b1b 60%,#1a3024);border:3px solid #be965f;
+ box-shadow:inset 0 0 0 2px #f6cd8d65,0 15px 42px #000d;padding:13px 11px 16px;color:#fff2cf}
+.recruit-dialog #modal-kicker{color:#e3bd74}
+.recruit-dialog #modal-title{color:#fff1c6;text-shadow:0 2px 3px #000b;font-size:clamp(18px,5vw,24px)}
+.recruit-dialog #modal-description{color:#d2dfd1;font-size:11px}
+.recruit-dialog .recruit-countdown{margin:8px auto 5px;color:#f5e3b6;background:transparent;border:0;padding:2px;font-size:12px}
+.recruit-dialog .recruit-progress{height:9px;margin:0 8px 12px;border-radius:6px;border:1px solid #b38e5b;overflow:hidden;
+ background:#081613;box-shadow:inset 0 2px 3px #0009}
+.recruit-dialog #recruit-progress-fill{display:block;height:100%;background:linear-gradient(90deg,#ba8837,#fce17f 76%,#ffefa8);transition:width .16s linear;box-shadow:0 0 8px #f7c76d84}
+.recruit-dialog .recruit-grid{gap:6px}
+.recruit-dialog .recruit-card{background:linear-gradient(180deg,#233a30 0%,#132720 60%,#0d1a19 100%);
+ border:2px solid #ab8756;border-radius:10px;min-height:213px;overflow:hidden;padding:6px 3px 8px;gap:4px;position:relative;
+ box-shadow:inset 0 0 0 1px #f5d6a45c,0 4px 8px #0007}
+.recruit-dialog .recruit-card.recruit-bear{border-color:#9b8063}
+.recruit-dialog .recruit-card.recruit-rabbit{border-color:#83cbb7}
+.recruit-dialog .recruit-card.recruit-cat{border-color:#8e81c8}
+.recruit-dialog .recruit-card .recruit-portrait{display:block;width:100%;height:105px;flex:0 0 105px;margin:0;border-radius:8px 8px 4px 4px;
+ background-size:cover!important;background-position:center top!important;background-repeat:no-repeat!important;filter:none}
+.recruit-dialog .recruit-bear .recruit-portrait{background-image:url('./art/recruit-bear-v18.webp')!important}
+.recruit-dialog .recruit-rabbit .recruit-portrait{background-image:url('./art/recruit-rabbit-v18.webp')!important}
+.recruit-dialog .recruit-cat .recruit-portrait{background-image:url('./art/recruit-cat-v18.webp')!important}
+.recruit-dialog .recruit-card strong{font-size:clamp(11px,3vw,14px);color:#ffe0a2;text-shadow:0 1px #000b;white-space:normal}
+.recruit-dialog .recruit-card small{font-size:9px;color:#e6e9dd;line-height:1.3;font-weight:700}
+.recruit-dialog .recruit-card.recommended{border-color:#f9ce77;box-shadow:inset 0 0 0 1px #ffe0a2,0 0 0 1px #e9b55e,0 0 14px #ffc85d8c}
+.recruit-dialog .recruit-tag{position:absolute;top:4px;right:4px;background:#f3bb66;color:#57341c;border:1px solid #fff0a3;
+ padding:1px 5px;font-size:9px;font-weight:1000;border-radius:9px;z-index:1}
+.recruit-dialog .recruit-card:active{transform:scale(.97)}
+.recruit-dialog .close-button{background:linear-gradient(#65402f,#30231f);border-color:#b48a52;color:#ffebb8}
+/* Combat receives the same gilded wooden frame without replacing existing click handlers. */
+.boss-hud{border-color:#f0c578;background:linear-gradient(165deg,#231f1dec,#442b22f1 58%,#151d19f2);
+ box-shadow:inset 0 0 0 1px #f1d5a580,0 3px 12px #000d}
+#boss-bar{background:linear-gradient(#ffcf8c,#e86f4e 55%,#ad382b)}
+.battle-hud,.battle-toolbar{border-color:#a7834e;box-shadow:inset 0 1px #eaca895c,0 3px 7px #0619109b}
+.skill-button,.evo-button{border-radius:50%;border-color:#bf9456;box-shadow:inset 0 0 0 2px #ffe2a285,0 4px 7px #081a11a6}
+.skill-button b{border-radius:50%}
+@media(max-width:360px){
+ .menu .brand{height:clamp(120px,21dvh,155px)}
+ .menu-actions.menu-actions-top{margin:0 0 3px;gap:5px}
+ .menu-actions-top .rune-btn{height:37px!important;min-height:37px!important;font-size:12px!important;padding:5px 8px}
+ .menu-actions-top .rune-btn.primary{font-size:14px!important}
+ .menu .story-panel{padding:6px 8px}
+ .menu .map-title{margin:4px 1px 3px}
+ .menu .stage-grid{gap:4px}
+ .recruit-dialog .recruit-card .recruit-portrait{height:85px;flex-basis:85px}
+ .recruit-dialog .recruit-card{min-height:183px}
+}
+@media(max-height:640px){
+ .menu .brand{height:clamp(105px,21dvh,135px)}
+ .menu .story-panel{padding:4px 8px}
+ .menu .story-panel p{display:none}
+ .menu .map-title{margin:4px 1px 2px}
+ .menu-actions-top .rune-btn{height:34px!important;min-height:34px!important}
+}

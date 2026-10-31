@@ -1,4 +1,4 @@
-/* 라니 수비대 v1.7.2 — © 2026 곰같은여우
+/* 라니 수비대 v1.8.0 — © 2026 곰같은여우
  * Original game rules, PNG character art, Canvas field art and interface.
  * Combat architecture informed by MIT-licensed Phaser 3 and the WaveManager,
  * EnemyManager and Projectile patterns of rupertgermann/tower-defence.
@@ -250,6 +250,7 @@
     $('modal-description').textContent=description;
     $('modal-body').replaceChildren(...contents);$('modal-actions').replaceChildren(...actions);
     $('modal-close').hidden=!activeModal.allowClose;
+    $('modal-box').classList.toggle('recruit-dialog',kicker==='첫 번째 공세 완료');
     $('modal-layer').hidden=false;
     requestAnimationFrame(()=>{const el=$('modal-box').querySelector('button');if(el)el.focus();});
   }
@@ -1106,6 +1107,7 @@
         this.recruitLastSecond=seconds;
         const timer=$('recruit-countdown');
         if(timer)timer.textContent='남은 시간 '+seconds+'초 · 미선택 시 자동 영입';
+        const bar=$('recruit-progress-fill');if(bar)bar.style.width=(this.recruitRemaining/RECRUIT_TIMEOUT*100)+'%';
       }
       if(this.recruitRemaining===0)this.chooseFirstCompanion(['bear','rabbit','cat'][this.stage.id%3],true);
     }
@@ -1119,10 +1121,18 @@
       };
       const timer=document.createElement('div');timer.className='recruit-countdown';timer.id='recruit-countdown';
       timer.textContent='남은 시간 '+Math.ceil(this.recruitRemaining/1000)+'초 · 미선택 시 자동 영입';
+      const track=document.createElement('div');track.className='recruit-progress';track.setAttribute('aria-hidden','true');
+      const fill=document.createElement('span');fill.id='recruit-progress-fill';
+      fill.style.width=(this.recruitRemaining/RECRUIT_TIMEOUT*100)+'%';track.appendChild(fill);
       const wrap=document.createElement('div');wrap.className='card-grid recruit-grid';
       for(const id of ['bear','rabbit','cat']){
         const pick=document.createElement('button');pick.type='button';pick.className='spell-card recruit-card recruit-'+id;
         const portrait=document.createElement('span');V.portrait(portrait,id);portrait.classList.add('recruit-portrait');
+        if(id===(this.stage.id%3===0?'rabbit':this.stage.id%3===1?'bear':'cat')){
+          pick.classList.add('recommended');
+          const tag=document.createElement('span');tag.className='recruit-tag';tag.textContent='추천';
+          pick.append(tag);
+        }
         const name=document.createElement('strong');name.textContent=HEROES[id].name;
         const detail=document.createElement('small');detail.textContent=descriptions[id];
         pick.append(portrait,name,detail);
@@ -1131,7 +1141,7 @@
         });
         wrap.appendChild(pick);
       }
-      showModal('첫 번째 공세 완료','첫 동료를 선택하세요!','세 동료 중 하나가 무료로 합류합니다. 미선택 시 자동 영입됩니다.',[timer,wrap],[],true);
+      showModal('첫 번째 공세 완료','첫 동료를 선택하세요!','세 동료 중 하나가 무료로 합류합니다. 미선택 시 자동 영입됩니다.',[timer,track,wrap],[],true);
       renderHUD();
     }
     showDraft(){

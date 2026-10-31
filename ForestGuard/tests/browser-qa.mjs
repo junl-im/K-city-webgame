@@ -23,9 +23,13 @@ try{
       const story=document.querySelector('.story-panel').getBoundingClientRect();
       const title=document.querySelector('.brand').getBoundingClientRect();
       return {actionsTop:actions.top,actionsBottom:actions.bottom,storyTop:story.top,titleBottom:title.bottom,
-        illustrated:!!document.querySelector('.title-forest-crest')};
+        illustrated:!!document.querySelector('.title-hero-art')};
     });
     assert.equal(menuOrder.illustrated,true,'Illustrated title must be present');
+    await page.locator('.title-hero-art').evaluate(async img=>{
+      if(!img.complete)await new Promise(resolve=>{img.addEventListener('load',resolve,{once:true});img.addEventListener('error',resolve,{once:true});});
+      if(!img.naturalWidth)throw new Error('Title original art unavailable');
+    });
     assert.ok(menuOrder.actionsTop>=menuOrder.titleBottom-2,'Buttons must not overlap the title');
     assert.ok(menuOrder.actionsBottom<=menuOrder.storyTop+2,'Buttons must sit above story panel');
     const menu=await page.evaluate(()=>{
