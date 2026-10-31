@@ -8,6 +8,10 @@ const atlas=new URL('art/forest-characters.png',root),evo=new URL('art/rani-evol
 const field=new URL('art/forest-battleground-v04.webp',root),icons=new URL('art/rani-ui-icons-v04.webp',root),map=new URL('art/forest-worldmap-v05.webp',root);
 const biomes=['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'].map(name=>new URL('art/'+name,root));
 const freshArt=['forest-monsters-v12.png','hero-station-v12.png'].map(name=>new URL('art/'+name,root));
+const bossBytes=readFileSync(new URL('art/mushroom-colossus-attack-v19.webp',root));
+assert.ok(bossBytes.length>10000);
+assert.equal(bossBytes.toString('ascii',0,4),'RIFF');
+assert.equal(bossBytes.toString('ascii',8,12),'WEBP');
 const paintedWebps=['forest-monsters-v14-clean.webp','hero-station-v14.webp','fort-hud-v14.webp'].map(name=>new URL('art/'+name,root));
 for(const file of paintedWebps){
   const bytes=readFileSync(file);
@@ -84,7 +88,12 @@ assert.match(js,/hasDashed/);
 assert.match(js,/hasRallied/);
 assert.match(js,/guarding\?Math\.min\(\.55/);
 assert.match(css,/\.hero-slot\.empty\{border:0!important/);
-assert.match(html,/game\.js\?v=20261101c/);
+assert.match(html,/game\.js\?v=20261101d/);
+assert.match(js,/mushroom-colossus-attack-v19\.webp/);
+assert.match(js,/motion-shroom-attack-'\+frame/);
+assert.match(js,/sporeVolley\(e\)/);
+assert.match(js,/trail-'\+kind/);
+assert.match(css,/boss-portrait\.shroom/);
 assert.match(js,/isMidBoss\(\)/);
 assert.match(js,/isEliteWave\(\)/);
 assert.match(js,/isFinalElite\(\)/);
@@ -180,4 +189,4 @@ assert.doesNotMatch(html+css+js+visuals,/<svg\b|data:image\/svg\+xml|\.svg(?:["'
 assert.doesNotMatch(js,/eval\s*\(/);
 console.log(execFileSync(process.execPath,[new URL('tests/balance-matrix.mjs',root).pathname],{encoding:'utf8'}).trim());
 console.log(execFileSync(process.execPath,[new URL('tests/terrain-matrix.mjs',root).pathname],{encoding:'utf8'}).trim());
-console.log('라니 수비대 v1.8 smoke: PASS (new painted sprites, midboss, focus, canvas fort HUD, no SVG).');
+console.log('라니 수비대 v1.9 smoke: PASS (new painted sprites, midboss, focus, canvas fort HUD, no SVG).');
