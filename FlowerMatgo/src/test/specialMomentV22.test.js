@@ -17,6 +17,8 @@ describe('꽃맞고 v22 특별 상황 연출', () => {
     expect(specialMoment('bomb', '폭탄!')).toMatchObject({ kind:'bomb', title:'폭탄!', major:true });
     expect(specialMoment('sweep', '싹쓸이!')).toMatchObject({ kind:'sweep', title:'싹쓸이!', major:true });
     expect(specialMoment('ppeok', '뻑!')).toMatchObject({ kind:'ppeok', title:'뻑!', major:false });
+    expect(specialMoment('ppeok', '싼 패 먹기!').title).toBe('싼 패 획득!');
+    expect(specialMoment('ppeok', '자뻑!').title).toBe('자뻑!');
     expect(specialMoment('ttadak', '따닥!')).toMatchObject({ kind:'ttadak', title:'따닥!', major:false });
     expect(specialMoment('jjok', '쪽!')).toMatchObject({ kind:'jjok', title:'쪽!', major:false });
     expect(specialMoment('bright', '광 획득!').title).toBe('광 획득!');

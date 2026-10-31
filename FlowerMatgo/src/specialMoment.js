@@ -32,6 +32,12 @@ export function specialMoment(kind, originalText='') {
   if (normalized === 'bomb' && /두장폭탄/.test(text)) {
     return {kind:normalized,title:'두 장 폭탄!',detail:'두 장을 착착 이어 냈어!',major:true};
   }
+  if (normalized === 'ppeok' && /자뻑/.test(text)) {
+    return {kind:normalized,title:'자뻑!',detail:'내가 싼 패를 다시 가져왔어!',major:false};
+  }
+  if (normalized === 'ppeok' && /싼 패 먹기/.test(text)) {
+    return {kind:normalized,title:'싼 패 획득!',detail:'쌓여 있던 세 장을 가져왔어!',major:false};
+  }
   return {
     kind:normalized,
     title:fixed.title,

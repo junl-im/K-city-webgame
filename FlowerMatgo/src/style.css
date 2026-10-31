@@ -3392,6 +3392,14 @@ button:disabled { cursor: not-allowed; opacity:.48; }
 .scene--game .collection-rack--opponent .collection-preview .hwatu {width:clamp(27px,7.8vw,36px);margin-left:-9px;}
 .scene--game .collection-rack--opponent .collection-preview .hwatu:first-child {margin-left:0;}
 .scene--game .my-hand .hwatu--match-idle:not(.hwatu--departing) {transform:translateY(-6px);z-index:2;}
+/* Keep the hand's natural stacking order so a hint never covers its neighbour. */
+.scene--game .my-hand .hwatu--match-hint:not(.hwatu--departing),
+.scene--game .my-hand .hwatu--match-idle:not(.hwatu--departing) {z-index:auto;}
+/* A pile is one wrapping unit: its three real cards stay together on narrow boards. */
+.scene--game .floor-area .floor-pile {display:inline-flex;align-items:center;flex:none;isolation:isolate;padding:6px 2px 0;}
+.scene--game .floor-area .floor-pile .hwatu--pile-2,
+.scene--game .floor-area .floor-pile .hwatu--pile-3 {margin-left:clamp(-36px,-5vw,-22px);}
+.turn-deck-flip__spin {animation-duration:.30s;}
 /* Keep the entire portrait-oriented back artwork visible, including during a flip. */
 .hwatu--back .hwatu__face {background-color:#aa1015;background-size:contain;background-repeat:no-repeat;}
 @media(max-width:650px){
