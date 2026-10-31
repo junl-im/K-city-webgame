@@ -539,7 +539,7 @@
     if(mushroomAttackBitmap)for(let frame=0;frame<4;frame++){
       const key='motion-shroom-attack-'+frame;
       if(scene.textures.exists(key))scene.textures.remove(key);
-      createCanvasTexture(scene,key,320,320,c=>c.drawImage(mushroomAttackBitmap,frame*320,0,320,320,0,0,320,320));
+      createCanvasTexture(scene,key,128,128,c=>c.drawImage(mushroomAttackBitmap,frame*320,0,320,320,0,0,128,128));
     }
   }
   class WaveDirector {
