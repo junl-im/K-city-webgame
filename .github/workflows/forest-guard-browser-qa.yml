@@ -1,0 +1,46 @@
+name: Forest Guard — mobile browser viewport QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ForestGuard/**'
+      - '.github/workflows/forest-guard-browser-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: forest-guard-browser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  viewport:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright (isolated CI dependency only)
+        run: npm install --no-save --ignore-scripts playwright@1.64.1
+      - name: Install Chromium for repeatable viewport tests
+        run: npx playwright install --with-deps chromium
+      - name: Run browser touch, viewport and combat shell QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/forest-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" || true' EXIT
+          sleep 2
+          node ForestGuard/tests/browser-qa.mjs
+      - name: Keep inspection screenshots on pass or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: forest-guard-browser-screens
+          path: ForestGuard/test-output
+          if-no-files-found: ignore
+          retention-days: 3
