@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#182a25">
+  <meta name="description" content="곰같은여우의 숲끝 수비대 — 한 손으로 즐기는 전략 용병 디펜스">
+  <title>숲끝 수비대 | 곰같은여우</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.88.2/dist/phaser.min.js" defer></script>
+  <script src="./game.js" defer></script>
+</head>
+<body>
+<div id="app" class="shell">
+  <section id="menu" class="menu screen">
+    <div class="menu-vines" aria-hidden="true"></div>
+    <header class="brand">
+      <div class="brand-seal" aria-hidden="true">🦊</div>
+      <p class="eyebrow">곰같은여우의 작은 모험</p>
+      <h1>숲끝 <em>수비대</em></h1>
+      <p>마지막 숲길을 지켜라!</p>
+    </header>
+    <div class="story-panel">
+      <span class="story-chapter">CHAPTER 01 · 사라진 숲길</span>
+      <h2>오늘 밤, 숲에 이상한 발자국이 나타났다!</h2>
+      <p>여우 궁수와 친구들을 모아 마을을 지켜 주세요.</p>
+    </div>
+    <div class="map-title"><span>모험 지도</span><small id="progress-label">0 / 12 클리어</small></div>
+    <div id="stage-grid" class="stage-grid" aria-label="스테이지 선택"></div>
+    <div class="menu-actions">
+      <button id="start-btn" class="rune-btn primary" type="button">모험 시작 <span>▶</span></button>
+      <button id="resume-btn" class="rune-btn secondary" type="button" hidden>이어서 싸우기</button>
+      <button id="help-btn" class="rune-btn tertiary" type="button">놀이 방법</button>
+    </div>
+    <div class="menu-bottom"><span>무료 · 광고 없음 · 자동 저장</span><span>© 2026 곰같은여우</span></div>
+  </section>
+  <section id="game-screen" class="battle-screen screen" hidden>
+    <header class="battle-hud">
+      <button id="home-btn" class="hud-control" type="button" aria-label="모험 지도로 돌아가기">〈</button>
+      <div class="hud-stage"><span id="stage-name">첫 번째 침입</span><strong id="wave-label">1 / 8 WAVE</strong></div>
+      <div class="hud-right"><span id="coin-label" class="coin-pill">✦ 0</span><button id="speed-btn" class="hud-control" type="button" aria-label="전투 속도 변경">×1</button><button id="pause-btn" class="hud-control" type="button" aria-label="일시정지">Ⅱ</button></div>
+    </header>
+    <div id="arena-wrap" class="arena-wrap">
+      <div id="game-root" class="game-root"></div>
+      <div class="wave-banner" id="wave-banner" role="status" aria-live="polite"></div>
+      <div class="fort-hp"><span>성벽</span><div class="hp-track"><div id="hp-fill" class="hp-fill"></div></div><strong id="hp-label">3000</strong></div>
+    </div>
+    <footer class="battle-toolbar">
+      <div id="hero-slots" class="hero-slots" aria-label="용병 위치 바꾸기"></div>
+      <button id="skill-btn" class="skill-button" type="button"><span>⚔</span><small id="skill-caption">일제사격</small><b id="skill-timer"></b></button>
+    </footer>
+    <div id="battle-hint" class="battle-hint">용병을 누르고 다른 칸을 누르면 자리를 바꿔요</div>
+  </section>
+  <div id="modal-layer" class="modal-layer" hidden>
+    <div class="modal-scrim"></div>
+    <section id="modal-box" class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-top"><span id="modal-kicker">숲끝 수비대</span><button id="modal-close" type="button" class="close-button" aria-label="닫기">×</button></div>
+      <h2 id="modal-title">선택</h2>
+      <p id="modal-description"></p>
+      <div id="modal-body"></div>
+      <div id="modal-actions"></div>
+    </section>
+  </div>
+</div>
+<noscript>숲끝 수비대는 JavaScript를 활성화해야 플레이할 수 있어요.</noscript>
+</body>
+</html>
