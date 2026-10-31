@@ -103,3 +103,16 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 @keyframes forest-mist{from{opacity:.48;transform:translateX(-12px)}to{opacity:.9;transform:translateX(12px)}}
 @media(max-height:760px){.hero-slot .portrait-icon{width:38px;height:36px}.hero-slot strong.portrait-icon{flex-basis:36px}.evo-button>span.painted-icon,.skill-button>span.painted-icon{width:32px;height:32px}.spell-card .spell-emoji.painted-icon{width:42px;height:42px;flex-basis:42px}}
 @media(prefers-reduced-motion:reduce){.arena-wrap.foggy:after{animation:none}}
+
+/* v0.4 — original painted UI atlas, SVG-free. */
+.brand-seal.painted-icon{width:86px;height:86px;border:0;border-radius:0;background-color:transparent;box-shadow:none;transform:none;margin-bottom:1px}
+#help-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+#help-btn .help-icon{display:inline-block;width:28px;height:28px;flex:0 0 28px}
+.rune-btn.primary .painted-icon{width:36px;height:36px;vertical-align:middle}
+.coin-pill:before{background-image:url('./art/rani-ui-icons-v04.webp?v=20261031d');background-size:400% 400%;background-position:0% 33.333%;width:22px;height:22px;flex:0 0 22px}
+.hud-control.painted-icon{background-size:400% 400%;background-origin:border-box}
+.evo-button>span.painted-icon,.skill-button>span.painted-icon{background-size:400% 400%}
+.stage-tile.locked .num.painted-icon{background-size:400% 400%}
+.spell-card .spell-emoji.painted-icon{background-size:400% 400%}
+@media(max-height:760px){.brand-seal.painted-icon{width:65px;height:65px}.rune-btn.primary .painted-icon{width:30px;height:30px}}
+@media(max-width:350px){#help-btn .help-icon{width:22px;height:22px;flex-basis:22px}.brand-seal.painted-icon{width:58px;height:58px}}

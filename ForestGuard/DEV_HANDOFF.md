@@ -32,3 +32,10 @@
 - SVG·이모지·우클릭·드래그 필수 조작·강제 광고 금지.
 - 모바일 세로 한 화면, 3개 중 선택 카드, 수동 스킬, 진화.
 - 루트와 ForestGuard/AGENTS.md의 뒤로가기/QA 규칙.
+
+## 2026-10-31 v0.4 (첨부 원화 실사용 및 재개 안정화)
+- 사용자 제공 숲길·성벽 원화를 WebP로 최적화한 `art/forest-battleground-v04.webp`를 전투 Phaser 배경에 연결. 원화 비율 유지 중앙 크롭, 실패 시 기존 Canvas 배경으로 진행.
+- 사용자 제공 4×4 독자 아이콘 시트를 알파 유지 WebP `art/rani-ui-icons-v04.webp`로 최적화해 로고·시작·도움말·귀환·일시정지·스킬·강화·재화에 연결. SVG 및 시스템 이모지 UI 사용 없음.
+- 기존 세이브 키 `gomfox.forestguard.v1`, 12스테이지·용병·3보스 패턴 보존. WebP 2개를 CI와 Pages 복사 대상에 명시.
+- 대화 재개 순서: GitHub main/최신 Pages Action 확인 → 이 파일 미완료 QA 확인 → ForestGuard만 수정 → CI+실기기 QA → 이 파일과 Notion·Drive 갱신.
+- 미완료: 6~8프레임 파츠별 전용 애니메이션, 320px 안드로이드 실기기, 3보스 풀플레이, 성능 계측. 구현 완료로 표기 금지.

@@ -1,4 +1,4 @@
-/* 라니 수비대 v0.3.0 — © 2026 곰같은여우
+/* 라니 수비대 v0.4.0 — © 2026 곰같은여우
  * Original game rules, PNG character art, Canvas field art and interface.
  * Combat architecture informed by MIT-licensed Phaser 3 and the WaveManager,
  * EnemyManager and Projectile patterns of rupertgermann/tower-defence.
@@ -53,7 +53,7 @@
     }
   } catch(_e) { /* Private browsing may restrict storage. */ }
   let game = null, battle = null, activeModal = null, focusBeforeModal = null, suspended = false;
-  let pendingStageIndex = 0, atlasBitmap = null, evolutionBitmap = null, atlasPromise = null, starting = false;
+  let pendingStageIndex = 0, atlasBitmap = null, evolutionBitmap = null, fieldBitmap = null, atlasPromise = null, starting = false;
   function prepareAtlas(){
     if(atlasPromise)return atlasPromise;
     const load=(url,assign)=>new Promise(resolve=>{
@@ -63,7 +63,8 @@
     });
     atlasPromise=Promise.all([
       load('./art/forest-characters.png?v=20261031c',art=>{atlasBitmap=art;}),
-      load('./art/rani-evolution.png?v=20261031c',art=>{evolutionBitmap=art;})
+      load('./art/rani-evolution.png?v=20261031c',art=>{evolutionBitmap=art;}),
+      load('./art/forest-battleground-v04.webp?v=20261031d',art=>{fieldBitmap=art;})
     ]);
     return atlasPromise;
   }
@@ -301,7 +302,14 @@
     for(let i=0;i<90;i++){let x=random()*w,y=h-88+random()*86;blob(c,x,y,3+random()*5,1+random()*2,random()>.5?'#806d57':'#a18e73');}
   }
   function buildTextures(scene){
-    createCanvasTexture(scene,'field',420,650,(c,w,h)=>paintField(c,w,h,scene.stage.id));
+    createCanvasTexture(scene,'field',420,650,(c,w,h)=>{
+      if(!fieldBitmap){paintField(c,w,h,scene.stage.id);return;}
+      const iw=fieldBitmap.naturalWidth,ih=fieldBitmap.naturalHeight;
+      const scale=Math.max(w/iw,h/ih),cw=w/scale,ch=h/scale;
+      c.drawImage(fieldBitmap,(iw-cw)/2,(ih-ch)/2,cw,ch,0,0,w,h);
+      if(scene.stage.id>=8){c.fillStyle='rgba(55,70,115,.24)';c.fillRect(0,0,w,h);}
+      else if(scene.stage.id>=4){c.fillStyle='rgba(92,114,83,.12)';c.fillRect(0,0,w,h);}
+    });
     const atlasCell=(c,w,h,idx)=>{
       const cw=atlasBitmap.naturalWidth/4,ch=atlasBitmap.naturalHeight/2;
       c.drawImage(atlasBitmap,(idx%4)*cw,Math.floor(idx/4)*ch,cw,ch,0,0,w,h);
@@ -680,12 +688,13 @@
     if(activeModal&&activeModal.kicker==='숲에서 나가기'&&battle&&!suspended)battle.manualPause=false;
     closeModal(false);renderCooldown();
   });
-  V.portrait(document.querySelector('.brand-seal'),'fox');
+  V.setIcon(document.querySelector('.brand-seal'),'fox');
   V.setIcon(document.querySelector('#start-btn span'),'play');
+  V.setIcon(document.querySelector('#help-btn .help-icon'),'help');
   V.setIcon(document.querySelector('#evo-btn span'),'evo');
   V.setIcon(document.querySelector('#skill-btn span'),'skill');
   V.setIcon($('home-btn'),'back');
   V.setIcon($('pause-btn'),'pause');
-  $('coin-label').style.setProperty('--coin-art','url("'+V.icon('star')+'")');
+  // Coin uses the dedicated artwork from CSS.
   renderMap();updateMenuStory();setupHistory();
 })();
