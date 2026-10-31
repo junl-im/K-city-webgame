@@ -364,3 +364,206 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 .repair-btn.ready{border-color:#f2c276;box-shadow:0 0 0 1px #e8b75c,inset 0 0 12px #8d612955}
 @media(max-width:350px){.battle-hud{gap:5px;padding-left:6px;padding-right:6px}.hud-right{gap:3px}.repair-btn{padding:2px 4px}.repair-btn .coin-glyph.painted-icon{flex-basis:17px;width:17px;height:17px}}
 @media(max-height:620px){.repair-btn{min-height:33px}}
+
+
+/* v1.0 — Forestcraft UI. Original user-owned paintings + CSS materials, never SVG.
+   Separate wood, parchment, stone, foliage and metal treatments by function. */
+:root{--pine:#183a30;--bark:#4d3525;--bark-dark:#211d17;--leaf:#86a957;--parchment:#ffedbd;--ember:#e9a35d;--rim:#d6aa66}
+.shell{background:#17382c}
+.menu .brand{filter:drop-shadow(0 2px 5px #081b14)}
+.brand h1{text-shadow:0 1px 0 #fff7d5,0 3px #6e492b,0 7px 10px #081914}
+.story-panel{
+  border:3px solid #7c512a;
+  border-radius:15px 20px 16px 18px;
+  background:
+    radial-gradient(ellipse at 12% 5%,rgba(255,253,215,.87),transparent 52%),
+    radial-gradient(ellipse at 96% 100%,rgba(165,120,65,.15),transparent 55%),
+    linear-gradient(155deg,#fdf0c9,#e8c993 80%);
+  box-shadow:inset 0 0 0 2px #fce9ac,inset 0 0 0 5px #c3985b,0 4px 0 #3b2b20,0 7px 12px #0d1c13a8;
+}
+.story-panel h2{color:#533b25}
+.intel-pill{
+  border:2px solid #6e6935;border-radius:11px 14px 12px 10px;
+  background:linear-gradient(160deg,#dce5b2,#9eb46a 65%,#6c8a4b);
+  box-shadow:inset 0 1px #f3f6c4,inset 0 -2px #6a8747,0 2px #563d25;
+  color:#33412a;
+}
+.map-title{
+  border:2px solid #b79a5e;border-radius:12px 14px 11px 13px;
+  background:linear-gradient(110deg,rgba(55,44,29,.92),rgba(37,68,43,.91));
+  box-shadow:inset 0 0 0 1px #6b5835,0 3px 7px #07191085;
+  color:#fff0be;text-shadow:0 2px #241f16;
+}
+.map-title:before{content:"";flex:0 0 14px;height:17px;margin-right:4px;
+ background:url('./art/rani-ui-icons-v04.webp?v=20261031d') 0% 66.667%/400% 400% no-repeat}
+.stage-tile.selected{filter:drop-shadow(0 0 4px #ffe090) drop-shadow(0 1px 4px #21190c)}
+.menu-actions{gap:7px;max-width:302px}
+.menu-actions .rune-btn{
+  position:relative;border:3px solid #5b3d26;border-radius:11px 15px 10px 14px;
+  box-shadow:inset 0 2px 0 #fff2c2,inset 0 -3px 0 #9d6d3e,0 3px 0 #3c2d20,0 6px 9px #0b1d16b3;
+  font-weight:1000;text-shadow:0 1px #fff1c0;
+  transition:filter .14s,transform .14s;
+}
+.menu-actions #start-btn{
+  background:radial-gradient(ellipse at 32% 0,#fff5bd,transparent 58%),linear-gradient(135deg,#f9d58b,#d4974b 74%,#a46a35);
+  color:#472e1e;
+}
+.menu-actions #resume-btn{
+  border-color:#50623e;background:linear-gradient(150deg,#e7ebb5,#91b46d 72%,#557947);
+  box-shadow:inset 0 2px #fcffdb,inset 0 -3px #5a8049,0 3px #2b4129;
+}
+.menu-actions #help-btn{
+  background:radial-gradient(ellipse at 20% 0,#fff8dc,transparent 45%),linear-gradient(135deg,#f5dfb1,#bda078 85%);
+}
+.menu-actions .rune-btn:active{transform:translateY(2px);box-shadow:inset 0 1px #fff1c1,0 1px #3a2c1b}
+.menu-bottom{color:#f4eac7;text-shadow:0 2px 3px #102316}
+.battle-hud{
+  position:relative;isolation:isolate;
+  background:
+    linear-gradient(90deg,rgba(180,130,70,.09) 0 1px,transparent 1px 34px),
+    radial-gradient(ellipse at 50% -40%,#5a6d44,transparent 72%),
+    linear-gradient(180deg,#4c4a31,#263b2c 65%,#1b3026);
+  border-bottom:4px solid #74502c;
+  box-shadow:inset 0 -2px #d5b574,0 4px 7px #0e201bb0;
+  gap:7px;
+}
+.battle-hud:after{content:"";pointer-events:none;position:absolute;inset:0 0 auto;height:3px;
+ background:linear-gradient(90deg,#4b6d3f,#cdb778 21%,#4b6d3f 47%,#cdb778 79%,#4b6d3f);opacity:.76;z-index:1}
+.hud-stage{padding:3px 5px;border-radius:5px;background:linear-gradient(90deg,rgba(29,47,35,.58),transparent)}
+.hud-stage span{text-shadow:0 2px 2px #0e1e14;color:#fff1d0}
+.hud-stage strong{color:#ffdb89;letter-spacing:.3px}
+.hud-control{
+  min-width:37px;height:39px;border:3px solid #6b4b30;border-radius:11px;
+  background:radial-gradient(circle at 25% 8%,#f8e9b3,transparent 60%),linear-gradient(145deg,#dab578,#957344);
+  box-shadow:inset 0 1px #fff1ca,inset 0 -3px #8b643a,0 2px #1b2218;color:#473223;
+}
+#home-btn{border-color:#6b633e;background-color:#69814e}
+#pause-btn{border-color:#67452b;background-color:#a3794b}
+#speed-btn{border-color:#76633c;background:linear-gradient(155deg,#f4e6bb,#b7a16d);font-size:12px}
+#speed-btn:active,#pause-btn:active,#home-btn:active{transform:translateY(2px)}
+.repair-btn{
+  max-width:101px;min-height:39px;border:2px solid #866038;border-radius:11px 13px 10px 12px;
+  background:radial-gradient(ellipse at 20% 20%,#645535,#312d23 80%);
+  box-shadow:inset 0 0 0 1px #bf9654,0 2px 0 #1a231b;
+}
+.repair-btn.ready{border-color:#e8bd6e;background:linear-gradient(125deg,#5e6333,#4b3b21);
+ box-shadow:inset 0 0 0 1px #e9c47a,0 0 9px #f3d77c61}
+.repair-btn:disabled{opacity:.63}
+.repair-btn .repair-hint{border-left:1px solid #bd9b5d;color:#fff0c2}
+.arena-wrap{background:#263e31}
+.fort-hp{
+  bottom:17%;left:8%;width:84%;height:30px;gap:7px;padding:4px 9px;
+  border:3px solid #76614a;border-radius:8px 11px 9px 12px;
+  background:linear-gradient(160deg,rgba(101,89,68,.94),rgba(45,48,39,.96));
+  box-shadow:inset 0 1px #d7c18d,inset 0 -2px #292d23,0 4px 7px #111c15a1;
+  font-size:11px;color:#fff3d2;
+}
+.fort-hp:before{content:"";width:19px;height:21px;flex:0 0 19px;
+ background:url('./art/rani-ui-icons-v04.webp?v=20261031d') 33.333% 100%/400% 400% no-repeat}
+.fort-hp>span{flex:0 0 auto}
+.hp-track{
+  height:13px;border:2px solid #302c23;border-radius:6px;
+  background:linear-gradient(#422b20,#241f1b);
+  box-shadow:inset 0 1px 2px #130f0d,0 1px #aa9273
+}
+.hp-fill{background:linear-gradient(180deg,#ffe19a 0%,#ef9963 28%,#c74e35 75%,#9d352a 100%);
+ box-shadow:inset 0 2px #ffdf94;transition:width .2s}
+.fort-hp strong{min-width:35px;text-align:right;font-variant-numeric:tabular-nums;color:#fff4d3}
+.arena-wrap.fort-danger .fort-hp{border-color:#d28c69;box-shadow:inset 0 1px #ffe2a3,0 0 10px #ef68478c}
+.battle-toolbar{
+  height:82px;flex-basis:82px;padding:7px 7px 6px;gap:6px;
+  border-top:4px solid #79613b;
+  background:
+    radial-gradient(ellipse at 50% -30%,rgba(160,190,110,.28),transparent 63%),
+    linear-gradient(180deg,#40533a,#203b2b 57%,#192c23);
+  box-shadow:inset 0 2px #ab9c5a,0 -3px 8px #10201996;
+}
+.hero-slots{gap:4px}
+.hero-slot{
+  position:relative;height:64px;border:3px solid #705239;border-radius:12px 13px 10px 14px;
+  background:radial-gradient(ellipse at 45% 2%,rgba(203,224,148,.48),transparent 60%),linear-gradient(#4c6844,#2c4835);
+  box-shadow:inset 0 1px #c0c48a,inset 0 -3px #27412d,0 2px #18291d;
+  padding:2px 1px 1px;overflow:hidden;color:#fff1c7;
+}
+.hero-slot:after{content:"";position:absolute;left:12%;right:12%;bottom:1px;height:1px;background:#bd9e65a6}
+.hero-slot.picked{border-color:#f2c775;box-shadow:inset 0 1px #ffedac,0 0 0 2px #f9d68a66;background:linear-gradient(#8c8755,#4a5135)}
+.hero-slot.empty{background:linear-gradient(#4b5942,#35443b);opacity:.8}
+.hero-slot strong.portrait-icon{width:49px;height:43px;flex-basis:43px;filter:drop-shadow(0 2px 2px #132519)}
+.hero-slot span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-size:9px}
+.evo-button,.skill-button{
+  position:relative;height:64px;flex-basis:62px;border-width:3px;border-radius:13px 16px 11px 14px;
+  box-shadow:inset 0 2px #f5e2a4,inset 0 -3px #6d572e,0 2px #152318;transition:transform .12s,filter .12s
+}
+.evo-button{background:radial-gradient(circle at 35% 10%,#e1eebb,transparent 55%),linear-gradient(145deg,#96b674,#456e4a);
+ border-color:#56713e;color:#213f2c}
+.evo-button.ready{background:radial-gradient(circle at 50% 18%,#fff5c8,transparent 55%),linear-gradient(#f5db89,#a8a651);
+ border-color:#b78038}
+.skill-button{background:radial-gradient(circle at 35% 9%,#fff1bd,transparent 52%),linear-gradient(145deg,#e5bc78,#9e653e);
+ border-color:#79502f;color:#422e1d}
+.evo-button>span.painted-icon,.skill-button>span.painted-icon{width:38px;height:38px}
+.skill-button b{inset:4px;border-radius:8px;background:#14231ce0;color:#ffe8a9}
+.evo-button:active:not(:disabled),.skill-button:active:not(:disabled){transform:translateY(2px)}
+.battle-hint{flex-basis:22px;height:22px;background:#132b20;color:#d8dbac;white-space:nowrap;
+ overflow:hidden;text-overflow:ellipsis;padding:4px 7px;font-size:9px}
+.modal-box{
+  border:5px solid #674829;border-radius:16px 23px 18px 22px;
+  background:
+    radial-gradient(ellipse at 50% -15%,#fff8dc,transparent 65%),
+    radial-gradient(ellipse at 5% 95%,rgba(135,97,56,.17),transparent 52%),
+    linear-gradient(145deg,#f7e6b9,#dab77e);
+  box-shadow:inset 0 0 0 2px #fff2d1,inset 0 0 0 6px #c39a63,0 7px 0 #3f2d1e,0 17px 35px #000b;
+  padding:13px 12px 16px;scrollbar-color:#997448 #ead6a3;scrollbar-width:thin;
+}
+.modal-top{padding-bottom:7px;border-bottom:2px solid #b99b6b}
+.close-button{background:linear-gradient(140deg,#e9b98a,#9e6246);border-color:#7b5139}
+.spell-card{
+  min-height:162px;gap:6px;padding:10px 6px;
+  border:3px solid #9a7446;border-radius:14px 16px 12px 15px;
+  background:radial-gradient(ellipse at 40% -12%,#fffce5,transparent 60%),linear-gradient(#f4e5bb,#d3b07b);
+  box-shadow:inset 0 0 0 2px #fff0c7,inset 0 -4px #ba9364,0 4px #785537;
+}
+.spell-card.rare{border-color:#776c9f;background:radial-gradient(ellipse at 50% 0,#fff8e6,transparent 58%),linear-gradient(#e9e1ef,#b9a6cf);
+ box-shadow:inset 0 0 0 2px #fdf0ff,0 4px #65547e}
+.spell-card.combo{border-color:#bc7436;background:radial-gradient(ellipse at 50% 0,#fff9da,transparent 60%),linear-gradient(#f7dda3,#d69954)}
+.spell-card .spell-emoji.painted-icon{width:56px;height:56px;flex-basis:56px;filter:drop-shadow(0 3px 3px #73512d65)}
+.spell-card strong{font-size:12px}.spell-card small{font-size:10px;line-height:1.35}
+.modal-action{border:3px solid #7b5631;border-radius:9px 13px 10px 12px;
+ background:linear-gradient(#ffe6a4,#d99d56);box-shadow:inset 0 1px #fff3c3,0 3px #553b25}
+.modal-action.alt{border-color:#72724c;background:linear-gradient(#f1e5bf,#c0c098)}
+.enemy-intel-row{border-color:#b38d55;background:linear-gradient(145deg,#fff5d9,#e8d4ac)}
+@media(max-height:760px){
+ .battle-toolbar{height:75px;flex-basis:75px;padding:5px 6px}
+ .hero-slot,.evo-button,.skill-button{height:59px}
+ .hero-slot strong.portrait-icon{height:38px;flex-basis:38px}
+ .fort-hp{bottom:17%;height:26px;padding:2px 6px}
+ .spell-card{min-height:145px;padding:7px 5px}
+ .spell-card .spell-emoji.painted-icon{width:43px;height:43px;flex-basis:43px}
+}
+@media(max-width:360px){
+ .battle-hud{gap:3px;padding-left:5px;padding-right:5px}
+ .hud-control{min-width:32px;height:36px;border-width:2px}
+ .hud-stage{padding:2px}
+ .hud-stage span{font-size:11px}.hud-stage strong{font-size:10px}
+ .repair-btn{min-height:35px;padding:2px 3px}
+ .repair-btn .repair-hint{font-size:8px;padding-left:2px}
+ .hero-slots{gap:3px}
+ .hero-slot{border-width:2px}
+ .evo-button,.skill-button{flex-basis:54px}
+ .fort-hp{left:4%;width:92%;font-size:10px}
+ .fort-hp:before{width:16px;flex-basis:16px;height:18px}
+ .modal-box{padding:9px 8px}
+ .card-grid{gap:5px}
+}
+@media(max-height:570px){
+ .battle-hud{height:52px;flex-basis:52px}
+ .battle-toolbar{height:63px;flex-basis:63px}
+ .hero-slot,.evo-button,.skill-button{height:51px}
+ .hero-slot strong.portrait-icon{height:32px;flex-basis:32px}
+ .evo-button>span.painted-icon,.skill-button>span.painted-icon{width:28px;height:28px}
+ .battle-hint{display:none}
+ .brand-seal.painted-icon{width:44px;height:44px}
+}
+@media(prefers-reduced-motion:reduce){
+ .rune-btn,.skill-button,.evo-button,.hp-fill{transition:none}
+ .arena-wrap.fort-danger .fort-hp{animation:none}
+}
