@@ -7,10 +7,10 @@
   <meta name="description" content="라니 수비대 — 곰같은여우 진화와 전술이 살아있는 한글 용병 디펜스">
   <title>라니 수비대 | 곰같은여우</title>
   <link rel="preload" as="image" href="./art/forest-worldmap-v05.webp?v=20261031f">
-  <link rel="stylesheet" href="./style.css?v=20261031l">
+  <link rel="stylesheet" href="./style.css?v=20261031n">
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.88.2/dist/phaser.min.js" defer></script>
-  <script src="./visuals.js?v=20261031i" defer></script>
-  <script src="./game.js?v=20261031m" defer></script>
+  <script src="./visuals.js?v=20261031n" defer></script>
+  <script src="./game.js?v=20261031n" defer></script>
 </head>
 <body>
 <div id="app" class="shell">
@@ -45,6 +45,7 @@
     <div id="arena-wrap" class="arena-wrap">
       <div id="game-root" class="game-root"></div>
       <div class="wave-banner" id="wave-banner" role="status" aria-live="polite"></div>
+      <div class="wave-scout" id="wave-scout" role="status" aria-live="polite" hidden></div>
       <div id="fort-health" class="fort-hp" role="progressbar" aria-label="성벽 내구도" aria-valuemin="0" aria-valuemax="3000" aria-valuenow="3000"><span>성벽</span><div class="hp-track"><div id="hp-fill" class="hp-fill"></div></div><strong id="hp-label">3000</strong></div>
     </div>
     <footer class="battle-toolbar">

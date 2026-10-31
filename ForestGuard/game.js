@@ -33,7 +33,11 @@
     sprout:{name:'새싹 괴물',trait:'느린 무리형',counter:'불꽃 추가 피해 +25%',detail:'약하지만 공세가 길어질수록 무리가 커져요.'},
     runner:{name:'달리는 버섯',trait:'고속 돌파형',counter:'서리 화살 · 덩굴 덫',detail:'성벽까지 빨리 달려와요. 이동 방해가 유리해요.'},
     brute:{name:'바위 갑옷 짐승',trait:'기본 화살 피해 18% 방어',counter:'관통 화살 · 마법사',detail:'수정 연못에서는 방어가 30%로 증가해요.'},
-    boss:{name:'우두머리',trait:'공격 예고 · 특수 행동',counter:'일제사격 저지 · 추적',detail:'뿌리 돌진, 잠복, 검은 종 충격을 예고해요.'}
+    boss:{name:'우두머리',trait:'공격 예고 · 특수 행동',counter:'일제사격 저지 · 추적',detail:'뿌리 돌진, 잠복, 검은 종 충격을 예고해요.'},
+    thorn:{name:'가시 딱정벌레',trait:'작고 빠른 돌파형',counter:'서리 · 연사',detail:'무리 속에서 빠르게 전진해요.'},
+    crystal:{name:'수정갑각수',trait:'단단한 수정 껍질',counter:'관통 · 마법',detail:'일반 물리 공격의 일부를 견뎌요.'},
+    shroom:{name:'버섯 거한',trait:'3공세마다 나타나는 정예',counter:'집중 공격 · 화상',detail:'큰 몸집으로 전열을 압박해요.'},
+    guardian:{name:'숲의 수호자',trait:'일반 스테이지 중간보스',counter:'일제사격으로 충격파 저지',detail:'전투 한복판에 나타나 성벽에 충격파를 가해요.'}
   };
   // Wide enemy front narrows naturally toward the defenders. Movement uses no SVG paths.
   function funnelX(entryX,y,wind=0){
@@ -100,6 +104,8 @@
   const biomeBitmaps = [null,null,null];
   const biomeLoading = [null,null,null];
   const biomeFiles = ['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'];
+  let monsterBitmap = null;
+  const ART_VERSION = '20261031n';
   async function prepareAtlas(stageIndex){
     const load=(url,assign)=>new Promise(resolve=>{
       if(!url){resolve();return;}
@@ -120,7 +126,8 @@
     if(!atlasPromise)atlasPromise=Promise.all([
       load('./art/forest-characters.png?v=20261031c',art=>{atlasBitmap=art;}),
       load('./art/rani-evolution.png?v=20261031c',art=>{evolutionBitmap=art;}),
-      load('./art/forest-battleground-v04.webp?v=20261031d',art=>{fieldBitmap=art;})
+      load('./art/forest-battleground-v04.webp?v=20261031d',art=>{fieldBitmap=art;}),
+      load('./art/forest-monsters-v12.png?v='+ART_VERSION,art=>{monsterBitmap=art;})
     ]);
     const biome=Math.floor(stageIndex/4);
     if(!biomeLoading[biome])biomeLoading[biome]=load('./art/'+biomeFiles[biome]+'?v=20261031i',art=>{biomeBitmaps[biome]=art;});
@@ -230,8 +237,8 @@
   function showIntel(){
     const stage=STAGES[state.selected];
     const first=stage.id%4===3?'boss':stage.elite;
-    const companion=stage.id===0?null:stage.id>=5?(first==='brute'?'runner':'brute'):(first==='runner'?'sprout':'runner');
-    const types=companion?[first,companion]:[first];
+    const companion=stage.id>=5?'crystal':stage.id>=2?'thorn':stage.id===0?'sprout':'runner';
+    const types=[...new Set([first,companion,'guardian'])];
     const list=document.createElement('div');list.className='enemy-intel-list';
     types.forEach(type=>{
       const data=ENEMY_INTEL[type];
@@ -249,7 +256,7 @@
   }
   function showHelp(){
     const el=document.createElement('div');el.className='howto';
-    [['① 자동 전투','여우 궁수 1명으로 시작해 첫 공세를 막으면 동료를 골라요.'],['② 자리·표적 전술','용병을 누르고 다른 칸을 누르면 자리 교환, 같은 칸을 한 번 더 누르면 선두·위협 표적 변경!'],['③ 특별한 공격','일제사격 버튼이 밝아지면 눌러 몬스터를 한꺼번에 공격해요.'],['④ 강화 카드','첫 공세 뒤 동료를 영입하고, 두 공세마다 3개 강화 중 하나를 골라요.'],['⑤ 갈래 진화','진화 에너지 10개로 햇살 또는 달빛 계열을 선택해요.'],['⑥ 전장 대응','모험 지도에서 적 정보를 확인하고, 안개에는 추적·갑옷에는 관통을 선택해요.'],['⑦ 다시 도전','패배해도 이전에 깬 스테이지 기록은 남아요.']].forEach(row=>{
+    [['① 자동 전투','여우 궁수 1명으로 시작해 첫 공세를 막으면 동료를 골라요.'],['② 자리·표적 전술','용병을 누르고 다른 칸을 누르면 자리 교환, 같은 칸을 한 번 더 누르면 선두·위협 표적 변경!'],['③ 특별한 공격','일제사격 버튼이 밝아지면 눌러 몬스터를 한꺼번에 공격해요.'],['④ 강화 카드','첫 공세 뒤 동료를 영입하고, 두 공세마다 3개 강화 중 하나를 골라요.'],['⑤ 갈래 진화','진화 에너지 10개로 햇살 또는 달빛 계열을 선택해요.'],['⑥ 전장 대응','모험 지도에서 적 정보를 확인하고, 안개에는 추적·갑옷에는 관통을 선택해요.'],['⑦ 직접 집중 공격','위험한 몬스터를 터치하면 8초 동안 수비대가 그 적을 집중해서 공격해요.'],['⑧ 정예와 중간보스','3공세마다 정예가 등장하고 중반에는 수호자 중간보스가 나타나요.'],['⑨ 다시 도전','패배해도 이전에 깬 스테이지 기록은 남아요.']].forEach(row=>{
       const item=document.createElement('div');const strong=document.createElement('strong');strong.textContent=row[0];item.append(strong,document.createElement('br'),document.createTextNode(row[1]));el.appendChild(item);
     });
     showModal('수비대 안내','5초 만에 배우는 수비대','한 손으로도 충분해요!', [el],[button('좋아, 출발!',closeModal.bind(null,true))],true);
@@ -300,6 +307,38 @@
     const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
     paint(canvas.getContext('2d'),width,height);
     scene.textures.addCanvas(key,canvas);
+  }
+  // Paint a softly irregular stone plaque once per HP change; heroes overlap it in front.
+  function paintFortPlaque(c,hp,maxHP){
+    const w=328,h=59,ratio=Math.max(0,Math.min(1,hp/maxHP));
+    c.clearRect(0,0,w,h);c.save();
+    c.shadowColor='rgba(9,22,16,.8)';c.shadowBlur=8;c.shadowOffsetY=5;
+    c.beginPath();c.moveTo(22,9);c.quadraticCurveTo(50,2,94,6);
+    c.lineTo(246,6);c.quadraticCurveTo(280,3,307,9);
+    c.quadraticCurveTo(327,21,310,47);c.quadraticCurveTo(240,56,160,52);
+    c.quadraticCurveTo(72,56,17,47);c.quadraticCurveTo(0,28,22,9);c.closePath();
+    const stone=c.createLinearGradient(0,4,0,55);
+    stone.addColorStop(0,'#c5b79b');stone.addColorStop(.3,'#807b6d');
+    stone.addColorStop(.65,'#565a51');stone.addColorStop(1,'#353e37');
+    c.fillStyle=stone;c.fill();c.shadowBlur=0;c.shadowOffsetY=0;
+    c.strokeStyle='#463f2d';c.lineWidth=3;c.stroke();
+    c.strokeStyle='rgba(246,224,167,.62)';c.lineWidth=1.4;
+    c.beginPath();c.moveTo(25,13);c.quadraticCurveTo(165,7,303,13);c.stroke();
+    for(let i=0;i<38;i++){const x=27+((i*73)%275),y=14+((i*29)%33);
+      c.fillStyle=i%3===0?'rgba(229,215,180,.16)':'rgba(27,42,32,.24)';
+      c.fillRect(x,y,i%5+2,1+i%3);}
+    c.fillStyle='#302c26';c.fillRect(78,25,198,15);
+    c.fillStyle='#d6c6a0';c.fillRect(79,26,196,2);
+    const bar=c.createLinearGradient(0,28,0,40);
+    if(ratio<.3){bar.addColorStop(0,'#ffab81');bar.addColorStop(1,'#aa3b38');}
+    else{bar.addColorStop(0,'#cbea9c');bar.addColorStop(1,'#4e9260');}
+    c.fillStyle=bar;c.fillRect(80,29,194*ratio,9);
+    c.font='900 12px sans-serif';c.fillStyle='#f8e6b5';c.textBaseline='middle';
+    c.shadowColor='#20291d';c.shadowBlur=3;c.fillText('성벽',29,32);
+    c.textAlign='right';c.fillText(Math.ceil(hp)+' / '+Math.ceil(maxHP),294,49);c.shadowBlur=0;
+    c.strokeStyle='rgba(120,87,44,.9)';c.lineWidth=3;
+    c.beginPath();c.moveTo(21,20);c.quadraticCurveTo(8,32,24,43);
+    c.moveTo(302,19);c.quadraticCurveTo(320,28,301,44);c.stroke();c.restore();
   }
   function blob(c,x,y,rx,ry,color,stroke){
     c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fillStyle=color;c.fill();
@@ -391,6 +430,7 @@
     for(let i=0;i<90;i++){let x=random()*w,y=h-88+random()*86;blob(c,x,y,3+random()*5,1+random()*2,random()>.5?'#806d57':'#a18e73');}
   }
   function buildTextures(scene){
+    createCanvasTexture(scene,'fort-plaque',328,59,c=>paintFortPlaque(c,3000,3000));
     createCanvasTexture(scene,'field',420,650,(c,w,h)=>{
       const scenery=biomeBitmaps[Math.floor(scene.stage.id/4)]||fieldBitmap;
       if(!scenery){paintField(c,w,h,scene.stage.id);return;}
@@ -412,6 +452,12 @@
     }));
     ['sprout','runner','brute','boss'].forEach(type=>createCanvasTexture(scene,'enemy-'+type,128,128,(c,w,h)=>{
       if(atlasBitmap)atlasCell(c,w,h,{sprout:4,runner:5,brute:6,boss:7}[type]);else paintEnemy(c,w,h,type);
+    }));
+    ['thorn','crystal','shroom','guardian'].forEach((type,i)=>createCanvasTexture(scene,'enemy-'+type,128,128,(c,w,h)=>{
+      if(monsterBitmap){
+        const tw=monsterBitmap.naturalWidth/2,th=monsterBitmap.naturalHeight/2;
+        c.drawImage(monsterBitmap,(i%2)*tw,Math.floor(i/2)*th,tw,th,0,0,w,h);
+      }else paintEnemy(c,w,h,type==='thorn'?'sprout':type==='crystal'?'brute':'boss');
     }));
     for(let i=0;i<8;i++)createCanvasTexture(scene,'evo-'+i,128,128,(c,w,h)=>{
       if(evolutionBitmap){const cw=evolutionBitmap.naturalWidth/4,ch=evolutionBitmap.naturalHeight/2;
@@ -467,6 +513,8 @@
       // One-hero opening: 5–7 scouts, then a guaranteed tactical recruit.
       if(this.current===1)this.count=5+Math.min(2,Math.floor(this.scene.stage.id/4));
       if(this.isBoss())this.count=Math.floor(this.count*.7)+1;
+      if(this.isMidBoss())this.count=Math.max(6,Math.floor(this.count*.78));
+      if(this.isEliteWave())this.count=Math.max(5,Math.floor(this.count*.87));
       if(this.scene.stage.id===6&&this.current%3===0)this.count+=Math.ceil(this.count*.35);
       if(this.scene.stage.id===10&&this.current%4===0)this.count+=4;
       if(this.scene.ward){
@@ -476,17 +524,24 @@
       this.scene.waveStartHP=this.scene.hp;
       renderHUD();
       const hazard=this.scene.stage.id===6&&this.current%3===0?'포자 군단 급습!':this.scene.stage.id===10&&this.current%4===0?'달빛 아래 대공세!':null;
-      showBanner(hazard||(this.isBoss()?'우두머리가 다가온다!':'제 '+this.current+'차 공세'));
+      showBanner(this.isMidBoss()?'중간보스 · 숲의 수호자 접근!':this.isEliteWave()?'정예 · 버섯 거한 등장!':hazard||(this.isBoss()?'우두머리가 다가온다!':'제 '+this.current+'차 공세'));
     }
     isBoss(){return this.current===this.scene.stage.waves && this.scene.stage.id%4===3;}
+    isMidBoss(){return this.current===Math.max(4,Math.ceil(this.scene.stage.waves*.55));}
+    isEliteWave(){return this.current>=3&&this.current%3===0&&!this.isBoss()&&!this.isMidBoss();}
     nextType(){
       if(this.isBoss()&&this.spawned===this.count-1)return'boss';
-      // The solo tutorial wave introduces sprout/runner movement before armor.
+      if(this.isMidBoss()&&this.spawned===this.count-1)return'guardian';
+      if(this.isEliteWave()&&this.spawned===this.count-1)return'shroom';
+      // First wave stays one-hero friendly; specialist monsters arrive as the squad grows.
       if(this.current===1)return this.scene.stage.id>0&&Math.random()<.22?'runner':'sprout';
-      const n=Math.random();
-      if(this.scene.stage.id>=5&&n<.24)return'brute';
-      if(this.scene.stage.id===1&&n<.68)return'runner';
-      if(this.scene.stage.id>=1&&n<.42)return'runner';
+      const n=Math.random(),chapter=Math.floor(this.scene.stage.id/4);
+      if(chapter>=2&&n<.19)return'crystal';
+      if(chapter>=1&&n<.23)return this.current%2?'crystal':'thorn';
+      if(n<.16)return'thorn';
+      if(this.scene.stage.id>=5&&n<.34)return'brute';
+      if(this.scene.stage.id===1&&n<.72)return'runner';
+      if(this.scene.stage.id>=1&&n<.55)return'runner';
       return'sprout';
     }
     update(dt){
@@ -513,37 +568,53 @@
       this.wardCharges=0;this.trapTimer=7600;this.evolutionPath=null;
       this.cardCounts={};this.synergies=new Set();this.gameClock=0;
       this.heroIds=['fox',null,null];this.targetModes=['front','front','front'];this.attackTimes=[0,0,0];this.enemies=[];this.projectiles=[];this.effects=[];
+      this.focusEnemy=null;this.focusUntil=0;this.focusReticle=null;this.lastFortHP=-1;
       this.foxSpirit=0;this.evolved=false;
       this.betweenWaves=0;this.wave=new WaveDirector(this);
       buildTextures(this);this.add.image(210,325,'field');
       $('arena-wrap').classList.toggle('foggy',this.stage.id>=4&&this.stage.id<=7);
       $('arena-wrap').classList.toggle('moonlit',this.stage.id>=8);
       $('arena-wrap').classList.remove('boss-warning');
-      this.heroSprites=this.heroIds.map((id,i)=>id?this.add.image([104,210,316][i],595,'motion-'+id+'-idle-0').setDisplaySize(83,83):null);
+      this.fortPlaque=this.add.image(210,625,'fort-plaque').setDepth(2);
+      this.heroSprites=this.heroIds.map((id,i)=>id?this.add.image([104,210,316][i],595,'motion-'+id+'-idle-0').setDisplaySize(83,83).setDepth(6):null);
       this.wave.begin();renderSlots();renderHUD();
       if(this.stage.id===0)showBanner('여우 궁수 혼자 첫 공세를 막아보세요!');
     }
     spawnEnemy(type){
       // Enemy entry is broad at the top, including bridge levels.
       const lane=this.stage.id===2 ? (Math.random()<.5?48:372) : 38+Math.random()*344;
-      const hpbase={sprout:55,runner:37,brute:160,boss:1400}[type];
+      const hpbase={sprout:55,runner:37,brute:160,boss:1400,thorn:48,crystal:195,shroom:420,guardian:680}[type];
       const soloScoutScale=this.wave.current===1?1/(1+this.stage.id*.045):1;
       const hp=Math.round(hpbase*(1+this.stage.id*.13+(this.wave.current-1)*.1)*soloScoutScale);
-      const spd={sprout:33,runner:60,brute:23,boss:18}[type]+this.stage.id*.8;
-      const spr=this.add.image(lane,-38,'motion-'+type+'-run-0').setDisplaySize(type==='boss'?132:type==='brute'?69:56,type==='boss'?94:type==='brute'?63:48);
-      const lifeBg=this.add.rectangle(lane,-68,40,4,0x3d3024).setDepth(3);
-      const life=this.add.rectangle(lane,-68,39,3,0xe18754).setDepth(4);
-      this.enemies.push({type,x:lane,baseX:lane,windPhase:Math.random()*Math.PI*2,y:-38,spr,lifeBg,life,hp,maxHP:hp,spd,slow:0,rooted:0,
-        armor:this.stage.id===9?(type==='runner'?0:.3):(type==='brute'?.18:0),abilityCooldown:5400,warning:0,hidden:0,untargetable:false,surge:0,
-        tellRing:null,tellBack:null,tellFill:null});
+      const spd={sprout:33,runner:60,brute:23,boss:18,thorn:49,crystal:21,shroom:19,guardian:17}[type]+this.stage.id*.8;
+      const sizes={sprout:[56,48],runner:[56,48],brute:[69,63],boss:[132,94],thorn:[61,54],crystal:[79,67],shroom:[107,105],guardian:[145,126]};
+      const [sw,sh]=sizes[type],lifeWidth=type==='guardian'||type==='boss'?88:type==='shroom'?60:40;
+      const lifeYOffset=Math.round(sh*.53)+8;
+      const spr=this.add.image(lane,-38,'motion-'+type+'-run-0').setDisplaySize(sw,sh).setDepth(4);
+      const lifeBg=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth+2,6,0x302a20).setDepth(5);
+      const life=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth,4,type==='guardian'?0xffcb73:type==='shroom'?0xf4a86e:0xe18754).setDepth(5);
+      const enemy={type,x:lane,baseX:lane,windPhase:Math.random()*Math.PI*2,y:-38,spr,lifeBg,life,lifeWidth,lifeYOffset,hp,maxHP:hp,spd,slow:0,rooted:0,
+        armor:type==='crystal'?.34:type==='shroom'?.12:this.stage.id===9?(type==='runner'?0:.3):(type==='brute'?.18:0),
+        abilityCooldown:type==='guardian'?4100:5400,warning:0,hidden:0,untargetable:false,surge:0,
+        tellRing:null,tellBack:null,tellFill:null};
+      spr.setInteractive({useHandCursor:true}).on('pointerdown',()=>{
+        if(this.ended||this.manualPause||this.drafting)return;
+        this.focusEnemy=enemy;this.focusUntil=this.gameClock+8500;
+        if(this.focusReticle){this.focusReticle.destroy();this.focusReticle=null;}
+        this.focusReticle=this.add.ellipse(enemy.x,enemy.y+20,72,25,0xf8d67b,.07).setStrokeStyle(3,0xffe49c,.95).setDepth(3);
+        showBanner(ENEMY_INTEL[type].name+' 집중 공격!');
+      });
+      this.enemies.push(enemy);
     }
     targetFor(heroX,range,mode='front'){
+      if(this.focusEnemy&&this.enemies.includes(this.focusEnemy)&&this.gameClock<this.focusUntil&&!this.focusEnemy.untargetable
+        &&Math.hypot(this.focusEnemy.x-heroX,this.focusEnemy.y-575)<=range)return this.focusEnemy;
       let result=null,best=-Infinity;
       for(const e of this.enemies){
         if(e.untargetable)continue;
         const distance=Math.hypot(e.x-heroX,e.y-575);
         if(distance>range)continue;
-        const score=mode==='threat'?(e.type==='boss'?1200:e.type==='brute'?280:0)+e.maxHP*.18-e.hp*.14+e.y*.12-Math.abs(e.x-heroX)*.10:
+        const score=mode==='threat'?(e.type==='boss'?1200:e.type==='guardian'?900:e.type==='shroom'?460:e.type==='crystal'?320:e.type==='brute'?280:0)+e.maxHP*.18-e.hp*.14+e.y*.12-Math.abs(e.x-heroX)*.10:
           e.y-Math.abs(e.x-heroX)*.45;
         if(score>best){best=score;result=e;}
       }
@@ -646,7 +717,7 @@
       this.impactAt(e.x,e.y,kind,crit);
       const armor=e.armor&&kind!=='rabbit'&&kind!=='skill'?
         (1-e.armor*(1-Math.min(1,this.pierce*.5))):1;
-      const huntBonus=e.type==='boss'&&this.hunter?1+Math.min(.3,this.hunter*.12):1;
+      const huntBonus=['boss','guardian'].includes(e.type)&&this.hunter?1+Math.min(.3,this.hunter*.12):1;
       const actual=Math.max(1,Math.round(damage*(crit?1.7:1)*armor*huntBonus));
       if(kind==='fox'&&!this.evolved){this.foxSpirit=Math.min(10,this.foxSpirit+1);renderEvolution();}
       e.hp-=actual;
@@ -655,12 +726,12 @@
       if(this.flame)e.hp-=Math.max(4,Math.floor(actual*(this.synergies.has('wildfire')?.38:.15)*(e.type==='sprout'?1.25:1)));
       if(this.spark && Math.random()<.20+this.spark*.1){
         const near=this.enemies.find(other=>other!==e&&!other.untargetable&&Math.hypot(other.x-e.x,other.y-e.y)<100);
-        if(near){near.hp-=Math.round(actual*.55);near.life.width=39*Math.max(0,near.hp/near.maxHP);
+        if(near){near.hp-=Math.round(actual*.55);near.life.width=near.lifeWidth*Math.max(0,near.hp/near.maxHP);
           if(this.synergies.has('thunderfrost'))near.slow=Math.max(near.slow,1700);
           if(near.hp<=0){this.coins+=8;this.removeEnemy(near);}}
       }
       if(kind==='megafox')e.hp-=Math.floor(actual*.2);
-      e.life.width=39*Math.max(0,e.hp/e.maxHP);
+      e.life.width=e.lifeWidth*Math.max(0,e.hp/e.maxHP);
       const number=this.add.text(e.x,e.y-24,String(actual)+(crit?'!':''),{font:'bold 13px system-ui',color:crit?'#fff5a4':'#fef5d7',stroke:'#493423',strokeThickness:3}).setOrigin(.5).setDepth(8);
       this.tweens.add({targets:number,y:number.y-25,alpha:0,duration:580,onComplete:()=>number.destroy()});
       V.trigger(e.spr,'hurt',this.gameClock+250);
@@ -669,7 +740,7 @@
         for(const other of [...this.enemies]){
           if(other===e||other.untargetable||Math.hypot(other.x-e.x,other.y-e.y)>78)continue;
           other.hp-=Math.round(actual*.20);
-          other.life.width=39*Math.max(0,other.hp/other.maxHP);
+          other.life.width=other.lifeWidth*Math.max(0,other.hp/other.maxHP);
           if(other.hp<=0){this.coins+=8;this.removeEnemy(other);}
         }
       }
@@ -677,12 +748,12 @@
         const boom=this.add.circle(e.x,e.y,16,0xffac65,.4).setDepth(5);
         this.tweens.add({targets:boom,scale:4,alpha:0,duration:260,onComplete:()=>boom.destroy()});
         for(const other of [...this.enemies])if(other!==e&&Math.hypot(other.x-e.x,other.y-e.y)<75){
-          other.hp-=Math.round(actual*.45);other.life.width=39*Math.max(0,other.hp/other.maxHP);
+          other.hp-=Math.round(actual*.45);other.life.width=other.lifeWidth*Math.max(0,other.hp/other.maxHP);
           if(other.hp<=0){this.coins+=8;this.removeEnemy(other);}
         }
       }
       if(e.hp<=0){
-        this.coins+=e.type==='boss'?150:e.type==='brute'?18:8;
+        this.coins+=e.type==='boss'?150:e.type==='guardian'?85:e.type==='shroom'?36:e.type==='crystal'?22:e.type==='brute'?18:8;
         const ring=this.add.circle(e.x,e.y,10,0xf7da8c,.55).setDepth(6);
         this.tweens.add({targets:ring,scale:3,alpha:0,duration:260,onComplete:()=>ring.destroy()});
         this.removeEnemy(e);renderHUD();
@@ -690,6 +761,7 @@
     }
     removeEnemy(e){
       const i=this.enemies.indexOf(e);if(i>=0)this.enemies.splice(i,1);
+      if(this.focusEnemy===e){this.focusEnemy=null;if(this.focusReticle){this.focusReticle.destroy();this.focusReticle=null;}}
       this.clearBossWarning(e);
       e.spr.destroy();e.life.destroy();e.lifeBg.destroy();
     }
@@ -700,14 +772,20 @@
     }
     startBossWarning(e){
       this.clearBossWarning(e);
-      const color=this.stage.id===11?0xce77ff:this.stage.id===7?0xffc46b:0xff8068;
-      e.tellRing=this.add.ellipse(e.x,e.y+23,112,32,color,.21).setStrokeStyle(3,color,.9).setDepth(5);
+      const color=e.type==='guardian'?0xffdd83:this.stage.id===11?0xce77ff:this.stage.id===7?0xffc46b:0xff8068;
+      e.tellRing=this.add.ellipse(e.x,e.y+23,e.type==='guardian'?145:112,35,color,.21).setStrokeStyle(3,color,.9).setDepth(5);
       e.tellBack=this.add.rectangle(e.x,e.y-56,100,10,0x382a30,.95).setDepth(7);
       e.tellFill=this.add.rectangle(e.x,e.y-56,94,6,color,1).setDepth(8);
     }
+    drawFortHUD(){
+      if(this.lastFortHP===this.hp&&this.lastFortMaxHP===this.maxHP)return;
+      this.lastFortHP=this.hp;this.lastFortMaxHP=this.maxHP;
+      const texture=this.textures.get('fort-plaque'),canvas=texture.getSourceImage();
+      paintFortPlaque(canvas.getContext('2d'),this.hp,this.maxHP);texture.refresh();
+    }
     updateBosses(dt){
       for(const e of this.enemies){
-        if(e.type!=='boss')continue;
+        if(e.type!=='boss'&&e.type!=='guardian')continue;
         if(e.hidden>0){
           e.hidden=Math.max(0,e.hidden-dt);
           if(e.hidden===0){e.untargetable=false;e.spr.alpha=1;e.life.alpha=1;e.lifeBg.alpha=1;}
@@ -723,13 +801,19 @@
           if(e.warning<=0){
             e.warning=0;e.spr.clearTint();this.clearBossWarning(e);
             V.trigger(e.spr,'attack',this.gameClock+490);
-            if(this.stage.id===3){e.surge=1750;showBanner('뿌리 거인 · 돌진!');}
-            if(this.stage.id===7){
+            if(e.type==='guardian'){
+              e.surge=1250;this.hp=Math.max(0,this.hp-45);renderHUD();
+              this.cameras.main.shake(95,.0016);
+              showBanner('숲 수호자 · 진동 충격! 성벽 -45');
+              if(this.hp<=0){this.finish(false);return;}
+            }
+            if(e.type==='boss'&&this.stage.id===3){e.surge=1750;showBanner('뿌리 거인 · 돌진!');}
+            if(e.type==='boss'&&this.stage.id===7){
               e.hidden=1450;e.untargetable=true;e.spr.alpha=.23;e.life.alpha=0;e.lifeBg.alpha=0;
               e.x=e.x<210?316:104;e.baseX=e.x;e.spr.x=e.x;e.life.x=e.x;e.lifeBg.x=e.x;
               showBanner('가면 두더지 · 잠복!');
             }
-            if(this.stage.id===11){
+            if(e.type==='boss'&&this.stage.id===11){
               const damage=this.synergies.has('fortress')?40:90;
               this.hp=Math.max(0,this.hp-damage);renderHUD();
               this.cameras.main.shake(150,.003);showBanner('검은 종 · 성벽 충격!');
@@ -741,7 +825,7 @@
           if(e.abilityCooldown<=0){
             e.warning=1250;e.abilityCooldown=6900;
             e.spr.setTint(0xff9b60);this.startBossWarning(e);
-            const title=this.stage.id===3?'뿌리 돌진 예고':this.stage.id===7?'잠복 이동 예고':'검은 종 진동 예고';
+            const title=e.type==='guardian'?'숲의 수호자 · 충격파 예고':this.stage.id===3?'뿌리 돌진 예고':this.stage.id===7?'잠복 이동 예고':'검은 종 진동 예고';
             showBanner(title+' · 일제사격으로 저지!');
           }
         }
@@ -777,7 +861,7 @@
     castSkill(){
       if(this.ended||this.manualPause||this.autoPause||this.drafting||this.skillCooldown>0)return;
       this.skillCooldown=14500;showBanner('수비대 일제사격!');
-      for(const enemy of this.enemies)if(enemy.type==='boss'&&enemy.warning>0){
+      for(const enemy of this.enemies)if(['boss','guardian'].includes(enemy.type)&&enemy.warning>0){
         enemy.warning=0;enemy.abilityCooldown=6200;enemy.spr.clearTint();this.clearBossWarning(enemy);showBanner('보스 공격 저지!');
       }
       const flash=this.add.rectangle(210,270,420,540,0xffe2a1,.22).setDepth(6);
@@ -948,7 +1032,12 @@
         }
       }
       this.updateBosses(dt);
-      $('arena-wrap').classList.toggle('boss-warning',this.enemies.some(e=>e.type==='boss'&&e.warning>0));
+      $('arena-wrap').classList.toggle('boss-warning',this.enemies.some(e=>['boss','guardian'].includes(e.type)&&e.warning>0));
+       if(this.focusReticle){
+         if(this.focusEnemy&&this.enemies.includes(this.focusEnemy)&&this.gameClock<this.focusUntil){
+           this.focusReticle.setPosition(this.focusEnemy.x,this.focusEnemy.y+20).setScale(1+Math.sin(this.gameClock/140)*.06);
+         }else{this.focusReticle.destroy();this.focusReticle=null;this.focusEnemy=null;}
+       }
       this.heroSprites.forEach((sprite,i)=>V.animate(sprite,this.heroIds[i],'idle',this.gameClock));
       for(const e of [...this.enemies]){
         e.slow=Math.max(0,e.slow-dt);
@@ -957,10 +1046,10 @@
         e.y+=e.rooted>0?0:e.spd*(e.slow>0?.42:1)*(e.surge>0?2.2:1)*dt/1000;
         const wind=(this.stage.id===8||this.stage.id===10)?Math.sin(this.gameClock/900+e.windPhase)*18:0;
         e.x=funnelX(e.baseX,e.y,wind);
-        e.spr.setPosition(e.x,e.y);e.lifeBg.setPosition(e.x,e.y-32);e.life.setPosition(e.x,e.y-32);
+        e.spr.setPosition(e.x,e.y);e.lifeBg.setPosition(e.x,e.y-e.lifeYOffset);e.life.setPosition(e.x,e.y-e.lifeYOffset);
         V.animate(e.spr,e.type,'run',this.gameClock);
         if(e.y>=538){
-          let leak=e.type==='boss'?580:e.type==='brute'?220:90;
+          let leak=e.type==='boss'?580:e.type==='guardian'?360:e.type==='shroom'?255:e.type==='crystal'?190:e.type==='brute'?220:90;
           if(this.wardCharges>0){leak=Math.ceil(leak*.5);this.wardCharges--;showBanner('숲의 수호 · 성벽 피해 감소!');}
           this.hp=Math.max(0,this.hp-leak);
           this.cameras.main.shake(110,.002);
@@ -991,8 +1080,8 @@
       b.className='hero-slot'+(id?'':' empty')+(chosenSlot===i?' picked':'');
       b.dataset.targetMode=battle.targetModes[i];
       b.dataset.modeLabel=id?(battle.targetModes[i]==='threat'?'위협':'선두'):'';
-      const icon=document.createElement('strong');V.portrait(icon,id);
-      const text=document.createElement('span');text.textContent=id?HEROES[id].name:'빈 자리';
+      const icon=document.createElement('strong');if(id)V.portrait(icon,id);else icon.className='empty-station';
+      const text=document.createElement('span');text.textContent=id?HEROES[id].name:'영입 대기';
       b.append(icon,text);b.setAttribute('aria-label','전열 '+(i+1)+'번 '+text.textContent+(id?' · 타깃 '+b.dataset.modeLabel+' · 같은 칸 두 번 선택해 변경':''));
       b.addEventListener('click',()=>{
         if(!battle||battle.ended||battle.drafting)return;
@@ -1035,6 +1124,13 @@
     repair.classList.toggle('ready',repairable&&battle.coins>=REPAIR_COST);
     repair.title='별빛 '+REPAIR_COST+'개로 성벽 '+REPAIR_HEAL+' 회복 · 남은 수리 '+(REPAIR_LIMIT-battle.repairs)+'회';
     repair.setAttribute('aria-label',repair.title);
+    battle.drawFortHUD();
+    const scout=$('wave-scout'),next=battle.wave.current+1;
+    const mid=Math.max(4,Math.ceil(battle.stage.waves*.55));
+    const warning=battle.wave.isMidBoss()?'중간보스 출현 중':battle.wave.isEliteWave()?'정예 몬스터 출현 중':
+      next===mid?'다음 공세 · 숲의 수호자':next<=battle.stage.waves&&next>=3&&next%3===0?'다음 공세 · 버섯 거한':null;
+    scout.hidden=!warning;scout.textContent=warning||'';
+    scout.classList.toggle('danger',battle.wave.isMidBoss()||battle.wave.isEliteWave());
     $('hp-label').textContent=String(battle.hp);
     $('hp-fill').style.width=(battle.hp/battle.maxHP*100)+'%';
     $('arena-wrap').classList.toggle('fort-danger',battle.hp/battle.maxHP<.3);

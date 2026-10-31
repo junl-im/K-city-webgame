@@ -7,6 +7,12 @@ const html=read('index.html'),css=read('style.css'),js=read('game.js'),visuals=r
 const atlas=new URL('art/forest-characters.png',root),evo=new URL('art/rani-evolution.png',root);
 const field=new URL('art/forest-battleground-v04.webp',root),icons=new URL('art/rani-ui-icons-v04.webp',root),map=new URL('art/forest-worldmap-v05.webp',root);
 const biomes=['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'].map(name=>new URL('art/'+name,root));
+const freshArt=['forest-monsters-v12.png','hero-station-v12.png'].map(name=>new URL('art/'+name,root));
+for(const asset of freshArt){
+  const bytes=readFileSync(asset);
+  assert.ok(bytes.length>60_000,'Original illustrated monster/slot art must exist');
+  assert.equal(bytes.subarray(1,4).toString(),'PNG');
+}
 for(const asset of [atlas,evo]){
   assert.ok(statSync(asset).size>100_000,'Original PNG asset must be present');
   assert.equal(readFileSync(asset).subarray(1,4).toString(),'PNG');
@@ -44,6 +50,18 @@ assert.match(html,/id="skill-btn"/);
 assert.match(html,/id="evo-btn"/);
 assert.match(html,/id="repair-btn"/);
 assert.match(html,/id="fort-health"/);
+assert.match(html,/id="wave-scout"/);
+assert.match(html,/game\.js\?v=20261031n/);
+assert.match(js,/isMidBoss\(\)/);
+assert.match(js,/isEliteWave\(\)/);
+assert.match(js,/forest-monsters-v12\.png/);
+assert.match(js,/e\.type==='guardian'/);
+assert.match(js,/this\.focusEnemy=enemy/);
+assert.match(js,/drawFortHUD\(\)/);
+assert.match(visuals,/guardian:'#b1c68a'/);
+assert.match(css,/hero-station-v12\.png/);
+assert.match(css,/\.wave-scout/);
+assert.match(css,/clip-path:inset\(50%\)/);
 assert.match(html,/aria-valuenow="3000"/);
 assert.match(js,/repairWall\(\)/);
 assert.match(js,/this\.heroIds=\['fox',null,null\]/);
@@ -105,4 +123,4 @@ for(const system of ['SYNERGY_RECIPES','completeEvolution','evolutionPath','acti
 assert.match(visuals,/roots:4,pierce:5,ward:13,hunter:14/);
 assert.doesNotMatch(html+css+js+visuals,/<svg\b|data:image\/svg\+xml|\.svg(?:["'(])/i);
 assert.doesNotMatch(js,/eval\s*\(/);
-console.log('라니 수비대 v1.1 smoke: PASS (biome PNGs, boss tells, tactical repairs, robust image load, no SVG).');
+console.log('라니 수비대 v1.2 smoke: PASS (new painted sprites, midboss, focus, canvas fort HUD, no SVG).');
