@@ -8,7 +8,7 @@ const atlas=new URL('art/forest-characters.png',root),evo=new URL('art/rani-evol
 const field=new URL('art/forest-battleground-v04.webp',root),icons=new URL('art/rani-ui-icons-v04.webp',root),map=new URL('art/forest-worldmap-v05.webp',root);
 const biomes=['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'].map(name=>new URL('art/'+name,root));
 const freshArt=['forest-monsters-v12.png','hero-station-v12.png'].map(name=>new URL('art/'+name,root));
-const paintedWebps=['forest-monsters-v14-hq.webp','hero-station-v14.webp','fort-hud-v14.webp'].map(name=>new URL('art/'+name,root));
+const paintedWebps=['forest-monsters-v14-clean.webp','hero-station-v14.webp','fort-hud-v14.webp'].map(name=>new URL('art/'+name,root));
 for(const file of paintedWebps){
   const bytes=readFileSync(file);
   assert.ok(bytes.length>5000,'WebP artwork present');
@@ -66,7 +66,7 @@ assert.match(js,/hasDashed/);
 assert.match(js,/hasRallied/);
 assert.match(js,/guarding\?Math\.min\(\.55/);
 assert.match(css,/\.hero-slot\.empty\{border:0!important/);
-assert.match(html,/game\.js\?v=20261031q/);
+assert.match(html,/game\.js\?v=20261031r/);
 assert.match(js,/isMidBoss\(\)/);
 assert.match(js,/isEliteWave\(\)/);
 assert.match(js,/forest-monsters-v14-hq\.webp/);

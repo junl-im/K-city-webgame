@@ -124,9 +124,15 @@
 
 
 ## 2026-10-31 v1.4 — 새 원화 실제 게임 이식
-- 고화질 독자 WebP 3종 `art/forest-monsters-v14-hq.webp`(3×2, 6종), `hero-station-v14.webp`(영입 제단), `fort-hud-v14.webp`(성벽 판넬) GitHub 바이너리 추가. Google Drive /ForestGuard 에도 별도 백업.
+- 고화질 독자 WebP 3종 `art/forest-monsters-v14-clean.webp`(3×2, 6종), `hero-station-v14.webp`(영입 제단), `fort-hud-v14.webp`(성벽 판넬) GitHub 바이너리 추가. Google Drive /ForestGuard 에도 별도 백업.
 - 몬스터 원화 6종은 Phaser 128×128 텍스처 및 5상태×4프레임 동작 시스템에 연결. 가시 딱정벌레, 포자 딱정벌레, 이끼 숲 임프, 수정갑각수, 버섯 거한, 숲 수호자.
 - 포자 딱정벌레: 3공세 이후, 체력 50% 아래 1회 105px 이내 적 520ms 가속. 이끼 숲 임프: 2공세 이후 회피/일회 짧은 돌진. 첫 공세 1명 출전 및 공세/보스 흐름, 세이브 키/12개 스테이지 유지.
 - 성벽 HP 판넬을 영웅 발밑 뒤 PNG + Canvas 텍스트/바로 교체. 이미지 실패 시 기존 Canvas fallback 유지. 빈자리 전용 새 원화 CSS 연결.
 - 공식 배포 워크플로에 새 WebP 복사 목록/검사 추가. smoke 검사 WebP RIFF/크기/코드 참조 검증. SVG 없음.
 - 검증 대기: GitHub Actions 결과, 실브라우저 신규 6종 공세/보스, 모바일 320px와 Samsung Internet/iOS Safari 실측. 완료 선언 금지.
+
+### v1.4.1 몬스터 원화 실제 크롭 QA 수정
+- 초기 v1.4 시트는 일부 중간보스 머리/장식이 잘리는 현상을 원화 실물 점검에서 발견.
+- 별도 독자 원화에서 6종을 각각 온전히 추출한 576×384 투명 WebP `art/forest-monsters-v14-clean.webp`로 교체. 3열×2행 각 192×192.
+- 원본/이전 버전 파일은 Git 기록 보존. 실게임·정찰·Pages 복사 목록은 정리된 새 WebP로 교체.
+- 캐시 20261031r. 실제 320px Android, iOS Safari/Samsung Internet, 12스테이지 계측은 미완.

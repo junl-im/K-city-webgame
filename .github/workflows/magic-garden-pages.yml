@@ -125,12 +125,12 @@ jobs:
           test -s ForestGuard/art/moonlit-highland-v08.png
           test -s ForestGuard/art/forest-monsters-v12.png
           test -s ForestGuard/art/hero-station-v12.png
-          test -s ForestGuard/art/forest-monsters-v14-hq.webp
+          test -s ForestGuard/art/forest-monsters-v14-clean.webp
           test -s ForestGuard/art/hero-station-v14.webp
           test -s ForestGuard/art/fort-hud-v14.webp
           mkdir -p MagicGarden/dist/ForestGuard/art
           cp ForestGuard/index.html ForestGuard/style.css ForestGuard/visuals.js ForestGuard/game.js MagicGarden/dist/ForestGuard/
-          cp ForestGuard/art/forest-characters.png ForestGuard/art/rani-evolution.png ForestGuard/art/forest-battleground-v04.webp ForestGuard/art/rani-ui-icons-v04.webp ForestGuard/art/forest-worldmap-v05.webp ForestGuard/art/forest-entrance-v08.png ForestGuard/art/misty-canyon-v08.png ForestGuard/art/moonlit-highland-v08.png ForestGuard/art/forest-monsters-v12.png ForestGuard/art/hero-station-v12.png ForestGuard/art/forest-monsters-v14-hq.webp ForestGuard/art/hero-station-v14.webp ForestGuard/art/fort-hud-v14.webp MagicGarden/dist/ForestGuard/art/
+          cp ForestGuard/art/forest-characters.png ForestGuard/art/rani-evolution.png ForestGuard/art/forest-battleground-v04.webp ForestGuard/art/rani-ui-icons-v04.webp ForestGuard/art/forest-worldmap-v05.webp ForestGuard/art/forest-entrance-v08.png ForestGuard/art/misty-canyon-v08.png ForestGuard/art/moonlit-highland-v08.png ForestGuard/art/forest-monsters-v12.png ForestGuard/art/hero-station-v12.png ForestGuard/art/forest-monsters-v14-clean.webp ForestGuard/art/hero-station-v14.webp ForestGuard/art/fort-hud-v14.webp MagicGarden/dist/ForestGuard/art/
           echo "Independent Forest Guard staged at /ForestGuard/"
 
       - name: Upload short-lived Pages deployment artifact

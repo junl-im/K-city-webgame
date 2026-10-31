@@ -686,7 +686,7 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 
 /* v1.4 original painted WebP: 6 enemy characters, leafy empty slot and castle HUD */
 .hero-slot .empty-station{background-image:url('./art/hero-station-v14.webp')!important;background-position:center bottom!important;background-size:contain!important;filter:drop-shadow(0 3px 3px #14251aaa)}
-.enemy-portrait.thorn,.enemy-portrait.spore,.enemy-portrait.imp,.enemy-portrait.crystal,.enemy-portrait.shroom,.enemy-portrait.guardian{background-image:url('./art/forest-monsters-v14-hq.webp');background-size:300% 200%;background-repeat:no-repeat;background-color:transparent}
+.enemy-portrait.thorn,.enemy-portrait.spore,.enemy-portrait.imp,.enemy-portrait.crystal,.enemy-portrait.shroom,.enemy-portrait.guardian{background-image:url('./art/forest-monsters-v14-clean.webp');background-size:300% 200%;background-repeat:no-repeat;background-color:transparent}
 .enemy-portrait.thorn{background-position:0% 0%}.enemy-portrait.spore{background-position:50% 0%}.enemy-portrait.imp{background-position:100% 0%}
 .enemy-portrait.crystal{background-position:0% 100%}.enemy-portrait.shroom{background-position:50% 100%}.enemy-portrait.guardian{background-position:100% 100%}
 .hero-slot.empty{border:none!important;background:transparent!important;box-shadow:none!important}

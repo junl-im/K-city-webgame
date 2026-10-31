@@ -107,7 +107,7 @@
   const biomeLoading = [null,null,null];
   const biomeFiles = ['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'];
   let monsterBitmap = null, fortBitmap = null;
-  const ART_VERSION = '20261031q';
+  const ART_VERSION = '20261031r';
   async function prepareAtlas(stageIndex){
     const load=(url,assign)=>new Promise(resolve=>{
       if(!url){resolve();return;}
@@ -129,7 +129,7 @@
       load('./art/forest-characters.png?v=20261031c',art=>{atlasBitmap=art;}),
       load('./art/rani-evolution.png?v=20261031c',art=>{evolutionBitmap=art;}),
       load('./art/forest-battleground-v04.webp?v=20261031d',art=>{fieldBitmap=art;}),
-      load('./art/forest-monsters-v14-hq.webp?v='+ART_VERSION,art=>{monsterBitmap=art;}),
+      load('./art/forest-monsters-v14-clean.webp?v='+ART_VERSION,art=>{monsterBitmap=art;}),
       load('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;})
     ]);
     const biome=Math.floor(stageIndex/4);
