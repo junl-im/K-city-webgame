@@ -1,4 +1,4 @@
-/* Forest Guard v0.1.0 — © 2026 곰같은여우
+/* 라니 수비대 v0.2.0 — © 2026 곰같은여우
  * Original game, game rules, Canvas-painted sprites and interface.
  * Combat architecture informed by MIT-licensed Phaser 3 and the WaveManager,
  * EnemyManager and Projectile patterns of rupertgermann/tower-defence.
@@ -31,12 +31,15 @@
     {id:'wall',icon:'▣',title:'튼튼한 성벽',desc:'성벽 HP 600 회복',rare:false},
     {id:'flame',icon:'♨',title:'불꽃의 맹세',desc:'타격 후 추가 화상 피해',rare:true},
     {id:'rabbit',icon:'☾',title:'토끼 마법사',desc:'빙결 마법사가 합류',rare:true},
+    {id:'cat',icon:'✹',title:'고양이 기술자',desc:'폭탄의 달인이 합류',rare:true},
     {id:'crit',icon:'✦',title:'약점 간파',desc:'치명타 확률 +13%',rare:false}
   ];
   const HEROES = {
-    fox:{name:'여우 궁수',icon:'🦊',damage:27,interval:680,color:0xffce6a},
-    bear:{name:'곰 수호자',icon:'🐻',damage:42,interval:1250,color:0xeab68c},
-    rabbit:{name:'토끼 마법사',icon:'🐰',damage:24,interval:1050,color:0xa9eafa}
+    fox:{name:'여우 궁수',icon:'🦊',damage:27,interval:680,range:590,color:0xffce6a},
+    megafox:{name:'곰같은여우',icon:'🦊',damage:69,interval:460,range:740,color:0xffdf80},
+    bear:{name:'곰 수호자',icon:'🐻',damage:42,interval:1250,range:445,color:0xeab68c},
+    rabbit:{name:'토끼 마법사',icon:'🐰',damage:24,interval:1050,range:555,color:0xa9eafa},
+    cat:{name:'고양이 기술자',icon:'🐱',damage:31,interval:1150,range:495,color:0xff9b6f}
   };
   const state = {unlocked:1,clears:[],best:{},selected:0,muted:false};
   try {
@@ -48,7 +51,20 @@
     }
   } catch(_e) { /* Private browsing may restrict storage. */ }
   let game = null, battle = null, activeModal = null, focusBeforeModal = null, suspended = false;
-  let pendingStageIndex = 0;
+  let pendingStageIndex = 0, atlasBitmap = null, evolutionBitmap = null, atlasPromise = null, starting = false;
+  function prepareAtlas(){
+    if(atlasPromise)return atlasPromise;
+    const load=(url,assign)=>new Promise(resolve=>{
+      if(!url){resolve();return;}
+      const art=new Image();art.onload=()=>{assign(art);resolve();};
+      art.onerror=()=>resolve();art.src=url;
+    });
+    atlasPromise=Promise.all([
+      load(window.ForestGuardAtlas,art=>{atlasBitmap=art;}),
+      load(window.RaniEvolutionAtlas,art=>{evolutionBitmap=art;})
+    ]);
+    return atlasPromise;
+  }
   let closeBannerTimer = 0, chosenSlot = -1, historyInitialized = false;
   function save() {
     try { localStorage.setItem(SAVE_KEY,JSON.stringify({unlocked:state.unlocked,clears:state.clears,best:state.best})); }
@@ -67,7 +83,7 @@
       b.className='stage-tile'+(locked?' locked':'')+(cleared?' cleared':'')+(state.selected===index?' selected':'');
       b.disabled=locked;
       const n=document.createElement('span'); n.className='num'; n.textContent=locked?'♧':(stage.chapter+'-'+((index%4)+1));
-      const small=document.createElement('span'); small.className='tiny'; small.textContent=locked?'잠김':(index%4===3?'BOSS':cleared?'완료':'도전');
+      const small=document.createElement('span'); small.className='tiny'; small.textContent=locked?'잠김':(index%4===3?'두목':cleared?'완료':'도전');
       b.append(n,small); b.setAttribute('aria-label',stage.name+(locked?' 잠김':' 선택'));
       b.addEventListener('click',()=>{state.selected=index;renderMap();updateMenuStory();});
       grid.appendChild(b);
@@ -76,7 +92,7 @@
   }
   function updateMenuStory(){
     const stage=STAGES[state.selected], box=document.querySelector('.story-panel');
-    box.querySelector('.story-chapter').textContent='CHAPTER 0'+stage.chapter+' · '+stage.gimmick;
+    box.querySelector('.story-chapter').textContent='제'+stage.chapter+'장 · '+stage.gimmick;
     box.querySelector('h2').textContent=stage.name;
     box.querySelector('p').textContent=stage.story;
     $('start-btn').firstChild.textContent='모험 시작 ';
@@ -98,12 +114,15 @@
     setVisible('menu',false);setVisible('game-screen',true);
     suspended=false;battle.manualPause=false;renderHUD();
   }
-  function startStage(index){
-    if(index>=state.unlocked)return;
+  async function startStage(index){
+    if(index>=state.unlocked||starting)return;
+    starting=true;
+    await prepareAtlas();
+    starting=false;
     if(game){game.destroy(true);game=null;battle=null;}
     state.selected=index; suspended=false;chosenSlot=-1;
     setVisible('menu',false);setVisible('game-screen',true);
-    $('stage-name').textContent=STAGES[index].name; $('wave-label').textContent='준비 중';
+    $('stage-name').textContent=STAGES[index].name; $('wave-label').textContent='전투 준비';
     const root=$('game-root');root.replaceChildren();
     if(typeof Phaser==='undefined'){
       showModal('연결 확인','게임 엔진을 불러오지 못했어요.','인터넷 연결 후 다시 시도해 주세요.',[],[
@@ -279,8 +298,21 @@
   }
   function buildTextures(scene){
     createCanvasTexture(scene,'field',420,650,(c,w,h)=>paintField(c,w,h,scene.stage.id));
-    Object.keys(HEROES).forEach(type=>createCanvasTexture(scene,'hero-'+type,96,96,(c,w,h)=>paintHero(c,w,h,type)));
-    ['sprout','runner','brute','boss'].forEach(type=>createCanvasTexture(scene,'enemy-'+type,96,96,(c,w,h)=>paintEnemy(c,w,h,type)));
+    const atlasCell=(c,w,h,idx)=>{
+      const cw=atlasBitmap.naturalWidth/4,ch=atlasBitmap.naturalHeight/2;
+      c.drawImage(atlasBitmap,(idx%4)*cw,Math.floor(idx/4)*ch,cw,ch,0,0,w,h);
+    };
+    Object.keys(HEROES).forEach(type=>createCanvasTexture(scene,'hero-'+type,128,128,(c,w,h)=>{
+      if(atlasBitmap)atlasCell(c,w,h,{fox:0,bear:1,rabbit:2,cat:3}[type]);else paintHero(c,w,h,type);
+    }));
+    ['sprout','runner','brute','boss'].forEach(type=>createCanvasTexture(scene,'enemy-'+type,128,128,(c,w,h)=>{
+      if(atlasBitmap)atlasCell(c,w,h,{sprout:4,runner:5,brute:6,boss:7}[type]);else paintEnemy(c,w,h,type);
+    }));
+    for(let i=0;i<8;i++)createCanvasTexture(scene,'evo-'+i,128,128,(c,w,h)=>{
+      if(evolutionBitmap){const cw=evolutionBitmap.naturalWidth/4,ch=evolutionBitmap.naturalHeight/2;
+        c.drawImage(evolutionBitmap,(i%4)*cw,Math.floor(i/4)*ch,cw,ch,0,0,w,h);
+      }else paintHero(c,w,h,'fox');
+    });
     createCanvasTexture(scene,'bolt',32,32,(c)=>{blob(c,16,16,10,5,'#ffd47e','#9b6b3a');blob(c,18,14,5,3,'#fff1b1');});
     createCanvasTexture(scene,'frostbolt',32,32,(c)=>{blob(c,16,16,10,8,'#80d9f5','#477f9f');blob(c,13,12,5,4,'#e4faff');});
   }
@@ -292,7 +324,7 @@
       this.current++;this.spawned=0;this.active=true;this.tick=500;
       this.count=4+this.current*2+Math.ceil(this.scene.stage.id*.55);
       if(this.isBoss())this.count=Math.floor(this.count*.7)+1;
-      renderHUD();showBanner(this.isBoss()?'보스가 다가온다!':'WAVE '+this.current);
+      renderHUD();showBanner(this.isBoss()?'우두머리가 다가온다!':'제 '+this.current+'차 공세');
     }
     isBoss(){return this.current===this.scene.stage.waves && this.scene.stage.id%4===3;}
     nextType(){
@@ -322,9 +354,10 @@
       this.hp=3000;this.maxHP=3000;this.coins=0;this.skillCooldown=0;this.rerollUsed=false;
       this.damageBonus=1;this.speedBonus=1;this.multi=0;this.freeze=0;this.flame=0;this.crit=0;
       this.heroIds=['fox','bear',null];this.attackTimes=[0,0,0];this.enemies=[];this.projectiles=[];this.effects=[];
+      this.foxSpirit=0;this.evolved=false;
       this.betweenWaves=0;this.wave=new WaveDirector(this);
       buildTextures(this);this.add.image(210,325,'field');
-      this.heroSprites=this.heroIds.map((id,i)=>id?this.add.image([104,210,316][i],595,'hero-'+id).setDisplaySize(67,67):null);
+      this.heroSprites=this.heroIds.map((id,i)=>id?this.add.image([104,210,316][i],595,'hero-'+id).setDisplaySize(83,83):null);
       this.heroSprites.forEach((spr,i)=>{if(spr)this.tweens.add({targets:spr,y:593+(i%2)*3,duration:600+i*200,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});});
       this.wave.begin();renderSlots();renderHUD();
     }
@@ -333,14 +366,16 @@
       const hpbase={sprout:55,runner:37,brute:160,boss:1400}[type];
       const hp=Math.round(hpbase*(1+this.stage.id*.13+(this.wave.current-1)*.1));
       const spd={sprout:33,runner:60,brute:23,boss:18}[type]+this.stage.id*.8;
-      const spr=this.add.image(lane,-38,'enemy-'+type).setDisplaySize(type==='boss'?94:type==='brute'?63:48,type==='boss'?94:type==='brute'?63:48);
+      const spr=this.add.image(lane,-38,'enemy-'+type).setDisplaySize(type==='boss'?132:type==='brute'?69:56,type==='boss'?94:type==='brute'?63:48);
       const lifeBg=this.add.rectangle(lane,-68,40,4,0x3d3024).setDepth(3);
       const life=this.add.rectangle(lane,-68,39,3,0xe18754).setDepth(4);
       this.enemies.push({type,x:lane,y:-38,spr,lifeBg,life,hp,maxHP:hp,spd,slow:0});
     }
-    targetFor(heroX){
+    targetFor(heroX,range){
       let result=null,best=-Infinity;
       for(const e of this.enemies){
+        const distance=Math.hypot(e.x-heroX,e.y-575);
+        if(distance>range)continue;
         const score=e.y-Math.abs(e.x-heroX)*.45;
         if(score>best){best=score;result=e;}
       }
@@ -348,23 +383,65 @@
     }
     shoot(i){
       const id=this.heroIds[i];if(!id)return;
-      const x=[104,210,316][i],target=this.targetFor(x);if(!target)return;
-      const hero=HEROES[id],num=id==='fox'?1+this.multi:1;
+      const x=[104,210,316][i],hero=HEROES[id],target=this.targetFor(x,hero.range);if(!target)return;
+      const num=id==='fox'?1+this.multi:id==='megafox'?2+this.multi:1;
       for(let p=0;p<num;p++){
         const bolt=this.add.image(x+(p-(num-1)/2)*12,568,id==='rabbit'?'frostbolt':'bolt').setDisplaySize(17,17);
         this.projectiles.push({spr:bolt,target,x:bolt.x,y:bolt.y,damage:hero.damage*this.damageBonus,kind:id});
       }
-      const sprite=this.heroSprites[i];if(sprite){this.tweens.add({targets:sprite,scaleX:.86,scaleY:1.12,duration:75,yoyo:true,repeat:0});}
+      const sprite=this.heroSprites[i];if(sprite){
+        if(id==='megafox')this.animateEvolutionAttack(sprite);
+        else this.tweens.add({targets:sprite,scaleX:sprite.scaleX*.9,scaleY:sprite.scaleY*1.12,duration:80,yoyo:true,repeat:0});
+      }
+    }
+    animateEvolutionAttack(sprite){
+      const frames=[1,2,3,4,5,0];
+      frames.forEach((frame,index)=>{
+        this.time.delayedCall(index*70,()=>{
+          if(sprite.active&&sprite.texture.key.startsWith('evo-'))sprite.setTexture('evo-'+frame);
+        });
+      });
+      this.cameras.main.shake(80,.0017);
+    }
+    previewRange(index){
+      const id=this.heroIds[index];if(!id)return;
+      const x=[104,210,316][index],radius=HEROES[id].range;
+      const circle=this.add.circle(x,595,radius,0xf1e8a0,.035).setStrokeStyle(2,0xf4d16b,.45).setDepth(1);
+      this.tweens.add({targets:circle,alpha:0,duration:900,onComplete:()=>circle.destroy()});
+    }
+    evolveFox(){
+      if(this.evolved||this.foxSpirit<10||this.ended||this.manualPause||this.drafting)return;
+      const index=this.heroIds.indexOf('fox');if(index<0)return;
+      this.evolved=true;this.heroIds[index]='megafox';
+      const spr=this.heroSprites[index];spr.setTexture('evo-0').setDisplaySize(110,110).setDepth(5);
+      this.cameras.main.flash(350,250,224,143);
+      const aura=this.add.circle([104,210,316][index],575,25,0xffe8aa,.42).setDepth(4);
+      this.tweens.add({targets:aura,scale:5,alpha:0,duration:650,onComplete:()=>aura.destroy()});
+      const rise=this.add.text([104,210,316][index],505,'곰같은여우!',{font:'bold 20px system-ui',color:'#fff4c7',stroke:'#543929',strokeThickness:5})
+        .setOrigin(.5).setDepth(8);
+      this.tweens.add({targets:rise,y:455,alpha:0,duration:1500,onComplete:()=>rise.destroy()});
+      showBanner('곰같은여우로 진화!');
+      renderSlots();renderHUD();
     }
     hitEnemy(e,damage,kind){
       if(!this.enemies.includes(e))return;
       const crit=Math.random()<this.crit;const actual=Math.round(damage*(crit?1.7:1));
+      if(kind==='fox'&&!this.evolved){this.foxSpirit=Math.min(10,this.foxSpirit+1);renderEvolution();}
       e.hp-=actual;if(kind==='rabbit'||this.freeze)e.slow=Math.max(e.slow,kind==='rabbit'?1900:650);
       if(this.flame)e.hp-=Math.max(4,Math.floor(actual*.15));
+      if(kind==='megafox')e.hp-=Math.floor(actual*.2);
       e.life.width=39*Math.max(0,e.hp/e.maxHP);
       const number=this.add.text(e.x,e.y-24,String(actual)+(crit?'!':''),{font:'bold 13px system-ui',color:crit?'#fff5a4':'#fef5d7',stroke:'#493423',strokeThickness:3}).setOrigin(.5).setDepth(8);
       this.tweens.add({targets:number,y:number.y-25,alpha:0,duration:580,onComplete:()=>number.destroy()});
       e.spr.setTintFill(0xffffff);this.time.delayedCall(75,()=>{if(e.spr.active)e.spr.clearTint();});
+      if(kind==='cat'){
+        const boom=this.add.circle(e.x,e.y,16,0xffac65,.4).setDepth(5);
+        this.tweens.add({targets:boom,scale:4,alpha:0,duration:260,onComplete:()=>boom.destroy()});
+        for(const other of [...this.enemies])if(other!==e&&Math.hypot(other.x-e.x,other.y-e.y)<75){
+          other.hp-=Math.round(actual*.45);other.life.width=39*Math.max(0,other.hp/other.maxHP);
+          if(other.hp<=0){this.coins+=8;this.removeEnemy(other);}
+        }
+      }
       if(e.hp<=0){
         this.coins+=e.type==='boss'?150:e.type==='brute'?18:8;
         const ring=this.add.circle(e.x,e.y,10,0xf7da8c,.55).setDepth(6);
@@ -391,7 +468,7 @@
       else{this.betweenWaves=1100;showBanner('성벽 방어 성공!');}
     }
     chooseCards(){
-      const pool=CARDS.filter(c=>c.id!=='rabbit'||!this.heroIds.includes('rabbit'));
+      const pool=CARDS.filter(c=>!['rabbit','cat'].includes(c.id) || (!this.heroIds.includes(c.id)&&this.heroIds.includes(null)));
       const shuffled=[...pool].sort(()=>Math.random()-.5);return shuffled.slice(0,3);
     }
     showDraft(){
@@ -409,7 +486,7 @@
       });
       const actions=[];
       if(!this.rerollUsed)actions.push(button('한 번 무료 새로고침',()=>{this.rerollUsed=true;closeModal(true);this.showDraft();},'alt'));
-      showModal('WAVE '+this.wave.current+' 완료','성장의 순간!','셋 중 하나의 힘을 골라 수비대를 키워 주세요.',[wrap],actions,true);
+      showModal('제 '+this.wave.current+'차 공세 완료','성장의 순간!','셋 중 하나의 힘을 골라 수비대를 키워 주세요.',[wrap],actions,true);
       renderCooldown();
     }
     applyCard(id){
@@ -420,9 +497,9 @@
       if(id==='wall')this.hp=Math.min(this.maxHP,this.hp+600);
       if(id==='flame')this.flame++;
       if(id==='crit')this.crit=Math.min(.65,this.crit+.13);
-      if(id==='rabbit'&&!this.heroIds.includes('rabbit')){
-        const idx=this.heroIds.indexOf(null);if(idx>=0){this.heroIds[idx]='rabbit';
-          this.heroSprites[idx]=this.add.image([104,210,316][idx],595,'hero-rabbit').setDisplaySize(67,67);
+      if((id==='rabbit'||id==='cat')&&!this.heroIds.includes(id)){
+        const idx=this.heroIds.indexOf(null);if(idx>=0){this.heroIds[idx]=id;
+          this.heroSprites[idx]=this.add.image([104,210,316][idx],595,'hero-'+id).setDisplaySize(70,70);
           this.tweens.add({targets:this.heroSprites[idx],y:590,duration:680,yoyo:true,repeat:-1});
         }
       }
@@ -442,7 +519,7 @@
         const next=win?Math.min(11,this.stage.id+1):this.stage.id;
         closeModal(true);startStage(next);
       }),button('모험 지도',()=>showMenu(false),'alt')];
-      showModal(win?'STAGE CLEAR':'TRY AGAIN',title,desc,[],actions,false);
+      showModal(win?'방어 성공':'재도전',title,desc,[],actions,false);
     }
     update(_time,delta){
       if(this.ended||this.manualPause||this.autoPause||this.drafting)return;
@@ -488,7 +565,7 @@
       b.append(icon,text);b.setAttribute('aria-label','전열 '+(i+1)+'번 '+text.textContent);
       b.addEventListener('click',()=>{
         if(!battle||battle.ended||battle.drafting)return;
-        if(chosenSlot<0){chosenSlot=i;renderSlots();return;}
+        if(chosenSlot<0){chosenSlot=i;battle.previewRange(i);renderSlots();return;}
         const a=chosenSlot,ids=battle.heroIds,sprites=battle.heroSprites,times=battle.attackTimes;
         [ids[a],ids[i]]=[ids[i],ids[a]];[sprites[a],sprites[i]]=[sprites[i],sprites[a]];
         [times[a],times[i]]=[times[i],times[a]];
@@ -496,6 +573,13 @@
         chosenSlot=-1;renderSlots();
       });wrap.appendChild(b);
     });
+  }
+  function renderEvolution(){
+    if(!battle)return;
+    const ready=!battle.evolved&&battle.foxSpirit>=10&&battle.heroIds.includes('fox');
+    const b=$('evo-btn');b.disabled=!ready||battle.manualPause||battle.drafting;
+    b.classList.toggle('ready',ready);
+    $('evo-caption').textContent=battle.evolved?'진화 완료':ready?'곰같은여우':'진화 '+battle.foxSpirit+'/10';
   }
   function renderCooldown(){
     if(!battle)return;
@@ -507,12 +591,12 @@
   }
   function renderHUD(){
     if(!battle)return;
-    $('wave-label').textContent=battle.wave.current+' / '+battle.stage.waves+' WAVE';
+    $('wave-label').textContent=battle.wave.current+' / '+battle.stage.waves+' 공세';
     $('coin-label').textContent='✦ '+battle.coins;
     $('hp-label').textContent=String(battle.hp);
     $('hp-fill').style.width=(battle.hp/battle.maxHP*100)+'%';
     $('speed-btn').textContent='×'+battle.speed;
-    renderCooldown();
+    renderCooldown();renderEvolution();
   }
   $('start-btn').addEventListener('click',()=>startStage(state.selected));
   $('resume-btn').addEventListener('click',resumeBattle);
@@ -521,10 +605,17 @@
   $('pause-btn').addEventListener('click',showPause);
   $('speed-btn').addEventListener('click',()=>{if(battle&&!battle.ended){battle.speed=battle.speed===1?2:1;renderHUD();}});
   $('skill-btn').addEventListener('click',()=>{if(battle){if(battle.drafting)battle.showDraft();else battle.castSkill();}});
+  $('evo-btn').addEventListener('click',()=>{if(battle)battle.evolveFox();});
   $('modal-close').addEventListener('click',()=>{
     if(activeModal&&activeModal.kicker==='잠깐 쉬어가기'&&battle)battle.manualPause=false;
     if(activeModal&&activeModal.kicker==='숲에서 나가기'&&battle&&!suspended)battle.manualPause=false;
     closeModal(false);renderCooldown();
   });
+  if(window.ForestGuardAtlas){
+    const seal=document.querySelector('.brand-seal');
+    seal.textContent='';seal.style.backgroundImage='url('+window.ForestGuardAtlas+')';
+    seal.style.backgroundSize='400% 200%';seal.style.backgroundPosition='0% 0%';
+    seal.style.backgroundRepeat='no-repeat';
+  }
   renderMap();updateMenuStory();setupHistory();
 })();
