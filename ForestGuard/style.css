@@ -691,3 +691,13 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 .enemy-portrait.crystal{background-position:0% 100%}.enemy-portrait.shroom{background-position:50% 100%}.enemy-portrait.guardian{background-position:100% 100%}
 .hero-slot.empty{border:none!important;background:transparent!important;box-shadow:none!important}
 .wave-scout{border-radius:12px 9px 13px 8px;box-shadow:inset 0 1px rgba(255,244,188,.2),0 3px 9px #13251999}
+
+/* v1.5 compact mobile layout and painting-friendly banner rules */
+.wave-banner{z-index:5;width:max-content;max-width:calc(100% - 24px);white-space:normal;text-align:center;line-height:1.16;font-size:clamp(15px,4.3vw,26px);overflow-wrap:break-word}
+.wave-scout{z-index:4;max-width:calc(100% - 18px);white-space:normal;text-align:center;line-height:1.2}
+.hero-slot.empty{min-width:0}.hero-slot.empty:focus-visible{border-radius:10px!important}
+.hero-slot:not(.empty){min-width:0}.hud-stage{min-width:0}.hud-right{flex-shrink:0}.battle-hud{min-width:0}
+.battle-toolbar{min-width:0}.hero-slots{min-width:0}.hero-slot{min-width:0}
+.modal-box{max-height:calc(100dvh - 22px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+@media(max-width:360px){.battle-hud{gap:4px;padding-left:5px;padding-right:5px}.hud-stage span{font-size:10px}.hud-stage strong{font-size:10px}.hud-right{gap:2px}.hero-slots{gap:2px}.battle-toolbar{gap:3px;padding-left:4px;padding-right:4px}.hero-slot span:last-child{font-size:8px}.wave-banner{font-size:15px}}
+@media(max-height:660px){.battle-hint{display:none}.battle-toolbar{flex-basis:65px;height:65px}.hero-slot,.skill-button,.evo-button{height:52px}.hero-slot .empty-station{height:32px;flex-basis:32px}}

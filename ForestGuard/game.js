@@ -542,7 +542,8 @@
     }
     isBoss(){return this.current===this.scene.stage.waves && this.scene.stage.id%4===3;}
     isMidBoss(){return this.current===Math.max(4,Math.ceil(this.scene.stage.waves*.55));}
-    isEliteWave(){return this.current>=3&&this.current%3===0&&!this.isBoss()&&!this.isMidBoss();}
+    isFinalElite(){return this.current===this.scene.stage.waves&&!this.isBoss();}
+    isEliteWave(){return this.current>=3&&(this.current%3===0||this.isFinalElite())&&!this.isBoss()&&!this.isMidBoss();}
     nextType(){
       if(this.isBoss()&&this.spawned===this.count-1)return'boss';
       if(this.isMidBoss()&&this.spawned===this.count-1)return'guardian';
@@ -609,7 +610,8 @@
       const spr=this.add.image(lane,-38,'motion-'+type+'-run-0').setDisplaySize(sw,sh).setDepth(4);
       const lifeBg=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth+2,6,0x302a20).setDepth(5);
       const life=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth,4,type==='guardian'?0xffcb73:type==='shroom'?0xf4a86e:0xe18754).setDepth(5);
-      const enemy={type,x:lane,baseX:lane,windPhase:Math.random()*Math.PI*2,y:-38,spr,lifeBg,life,lifeWidth,lifeYOffset,hp,maxHP:hp,spd,slow:0,rooted:0,
+      const nameLabel=['guardian','boss','shroom'].includes(type)?this.add.text(lane,-38-lifeYOffset-15,ENEMY_INTEL[type].name,{font:'bold 12px system-ui',color:'#fff1c7',stroke:'#423622',strokeThickness:4}).setOrigin(.5).setDepth(7):null;
+      const enemy={nameLabel,type,x:lane,baseX:lane,windPhase:Math.random()*Math.PI*2,y:-38,spr,lifeBg,life,lifeWidth,lifeYOffset,hp,maxHP:hp,spd,slow:0,rooted:0,
         armor:type==='crystal'?.34:type==='shroom'?.12:this.stage.id===9?(type==='runner'?0:.3):(type==='brute'?.18:0),
         abilityCooldown:type==='guardian'?4100:5400,warning:0,hidden:0,untargetable:false,surge:0,
         tellRing:null,tellBack:null,tellFill:null,guarding:false,hasDashed:false,hasRallied:false,hasSpores:false};
@@ -780,6 +782,7 @@
       const i=this.enemies.indexOf(e);if(i>=0)this.enemies.splice(i,1);
       if(this.focusEnemy===e){this.focusEnemy=null;if(this.focusReticle){this.focusReticle.destroy();this.focusReticle=null;}}
       this.clearBossWarning(e);
+      if(e.nameLabel)e.nameLabel.destroy();
       e.spr.destroy();e.life.destroy();e.lifeBg.destroy();
     }
     clearBossWarning(e){
@@ -1103,6 +1106,7 @@
           e.type==='imp'?Math.sin(this.gameClock/215+e.windPhase)*Math.min(15,Math.max(0,e.y/22)):0;
         e.x=funnelX(e.baseX,e.y,wind)+weave;
         e.spr.setPosition(e.x,e.y);e.lifeBg.setPosition(e.x,e.y-e.lifeYOffset);e.life.setPosition(e.x,e.y-e.lifeYOffset);
+        if(e.nameLabel)e.nameLabel.setPosition(e.x,e.y-e.lifeYOffset-19);
         V.animate(e.spr,e.type,'run',this.gameClock);
         if(e.y>=538){
           let leak=e.type==='boss'?580:e.type==='guardian'?360:e.type==='shroom'?255:e.type==='crystal'?190:e.type==='brute'?220:90;
@@ -1137,10 +1141,12 @@
       b.dataset.targetMode=battle.targetModes[i];
       b.dataset.modeLabel=id?(battle.targetModes[i]==='threat'?'위협':'선두'):'';
       const icon=document.createElement('strong');if(id)V.portrait(icon,id);else icon.className='empty-station';
-      const text=document.createElement('span');text.textContent=id?HEROES[id].name:'영입 대기';
+      const text=document.createElement('span');text.textContent=id?HEROES[id].name:battle.pendingRecruit?'영입 선택':'영입 대기';
       b.append(icon,text);b.setAttribute('aria-label','전열 '+(i+1)+'번 '+text.textContent+(id?' · 타깃 '+b.dataset.modeLabel+' · 같은 칸 두 번 선택해 변경':''));
       b.addEventListener('click',()=>{
-        if(!battle||battle.ended||battle.drafting)return;
+        if(!battle||battle.ended)return;
+        if(battle.pendingRecruit&&!id){battle.showRecruitDraft();return;}
+        if(battle.drafting)return;
         if(chosenSlot<0){chosenSlot=i;battle.previewRange(i);renderSlots();return;}
         if(chosenSlot===i){
           if(id){battle.targetModes[i]=battle.targetModes[i]==='front'?'threat':'front';
@@ -1184,7 +1190,9 @@
     const scout=$('wave-scout'),next=battle.wave.current+1;
     const mid=Math.max(4,Math.ceil(battle.stage.waves*.55));
     const warning=battle.wave.isMidBoss()?'중간보스 출현 중':battle.wave.isEliteWave()?'정예 몬스터 출현 중':
-      next===mid?'다음 공세 · 숲의 수호자':next<=battle.stage.waves&&next>=3&&next%3===0?'다음 공세 · 버섯 거한':null;
+      next===mid?'다음 공세 · 숲의 수호자':
+      next===battle.stage.waves&&battle.stage.id%4!==3?'최종 공세 · 버섯 거한':
+      next<=battle.stage.waves&&next>=3&&next%3===0?'다음 공세 · 버섯 거한':null;
     scout.hidden=!warning;scout.textContent=warning||'';
     scout.classList.toggle('danger',battle.wave.isMidBoss()||battle.wave.isEliteWave());
     $('hp-label').textContent=String(battle.hp);
