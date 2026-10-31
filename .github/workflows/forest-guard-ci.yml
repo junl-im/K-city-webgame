@@ -1,0 +1,23 @@
+name: Forest Guard — smoke and safety checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ForestGuard/**'
+      - '.github/workflows/forest-guard-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify independent game source and syntax
+        run: node ForestGuard/tests/smoke.mjs
