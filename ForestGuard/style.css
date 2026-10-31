@@ -701,3 +701,27 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 .modal-box{max-height:calc(100dvh - 22px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
 @media(max-width:360px){.battle-hud{gap:4px;padding-left:5px;padding-right:5px}.hud-stage span{font-size:10px}.hud-stage strong{font-size:10px}.hud-right{gap:2px}.hero-slots{gap:2px}.battle-toolbar{gap:3px;padding-left:4px;padding-right:4px}.hero-slot span:last-child{font-size:8px}.wave-banner{font-size:15px}}
 @media(max-height:660px){.battle-hint{display:none}.battle-toolbar{flex-basis:65px;height:65px}.hero-slot,.skill-button,.evo-button{height:52px}.hero-slot .empty-station{height:32px;flex-basis:32px}}
+
+/* v1.6 — illustrated material boss ledger and discrete environment callouts; never SVG */
+.boss-hud{position:absolute;z-index:5;top:7px;left:50%;transform:translateX(-50%);width:min(90%,346px);height:55px;padding:4px 8px 5px 5px;display:flex;align-items:center;gap:7px;pointer-events:none;overflow:hidden;
+ border:2px solid #cda55c;border-radius:17px 10px 15px 12px;background:linear-gradient(155deg,#2f4532eb,#182e26f2 68%,#4c4231ed);box-shadow:inset 0 1px 0 #f3d89e7d,0 3px 10px #081c16c5}
+.boss-portrait{display:block;width:42px;height:42px;flex:0 0 42px;background-image:url('./art/forest-monsters-v14-clean.webp');background-size:300% 200%;background-repeat:no-repeat;filter:drop-shadow(0 1px 2px #0008)}
+.boss-portrait.guardian{background-position:100% 100%}.boss-portrait.shroom{background-position:50% 100%}
+.boss-portrait.boss{background-image:url('./art/forest-characters.png');background-size:400% 200%;background-position:100% 100%}
+.boss-details{flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0}
+.boss-title-row{display:flex;align-items:center;gap:5px;min-width:0;white-space:nowrap}
+#boss-role{flex:0 0 auto;font-size:9px;font-weight:900;color:#ffe29d;border:1px solid #cfa66c8c;border-radius:5px;padding:1px 3px;background:#714b2a7d}
+#boss-title{font-size:12px;color:#fff3cc;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#boss-hp-text{font-size:9px;white-space:nowrap;margin-left:auto;color:#f6d79b;font-variant-numeric:tabular-nums}
+.boss-meter{height:9px;overflow:hidden;background:#17251e;border:1px solid #bd9e66;border-radius:6px;box-shadow:inset 0 1px 3px #0009}
+#boss-bar{display:block;height:100%;width:100%;background:linear-gradient(#ffd18a,#db784b 53%,#923b32);transition:width .12s linear}
+#boss-warning-note{color:#e7d5a9;font-size:9px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;line-height:10px}
+.arena-wrap.has-boss .wave-scout{top:69px;max-width:calc(100% - 42px);left:50%;transform:translateX(-50%)}
+.terrain-indicator{position:absolute;z-index:5;right:6px;top:55px;max-width:calc(100% - 18px);padding:4px 9px;pointer-events:none;
+ border:1px solid #c1a464;border-radius:12px 7px 10px 9px;color:#fff0c6;text-shadow:0 1px 2px #07190f;font-size:10px;font-weight:900;
+ background:linear-gradient(145deg,#3f5b3be8,#203527f0);box-shadow:0 3px 7px #0c1c1599;white-space:normal;text-align:center}
+.terrain-indicator.warning{color:#fff1c5;background:linear-gradient(145deg,#875c32ee,#4f332bf5);border-color:#efb779}
+.arena-wrap.has-boss .terrain-indicator{top:105px;right:7px;font-size:9px}
+@media(max-width:360px){.boss-hud{height:51px;gap:5px;width:94%;padding:4px}.boss-portrait{flex-basis:35px;width:35px;height:35px}#boss-title{font-size:11px}#boss-hp-text{font-size:8px}.arena-wrap.has-boss .wave-scout{top:63px}.terrain-indicator{top:53px;font-size:9px}.arena-wrap.has-boss .terrain-indicator{top:99px}}
+@media(max-height:620px){.boss-hud{height:45px;top:3px}.boss-portrait{width:33px;height:33px;flex-basis:33px}.arena-wrap.has-boss .wave-scout{top:54px}.arena-wrap.has-boss .terrain-indicator{top:87px}}
+@media(prefers-reduced-motion:reduce){#boss-bar{transition:none}}

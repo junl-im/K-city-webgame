@@ -7,10 +7,10 @@
   <meta name="description" content="라니 수비대 — 곰같은여우 진화와 전술이 살아있는 한글 용병 디펜스">
   <title>라니 수비대 | 곰같은여우</title>
   <link rel="preload" as="image" href="./art/forest-worldmap-v05.webp?v=20261031f">
-  <link rel="stylesheet" href="./style.css?v=20261031s">
+  <link rel="stylesheet" href="./style.css?v=20261031t">
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.88.2/dist/phaser.min.js" defer></script>
-  <script src="./visuals.js?v=20261031s" defer></script>
-  <script src="./game.js?v=20261031s" defer></script>
+  <script src="./visuals.js?v=20261031t" defer></script>
+  <script src="./game.js?v=20261031t" defer></script>
 </head>
 <body>
 <div id="app" class="shell">
@@ -45,7 +45,15 @@
     <div id="arena-wrap" class="arena-wrap">
       <div id="game-root" class="game-root"></div>
       <div class="wave-banner" id="wave-banner" role="status" aria-live="polite"></div>
+      <div id="boss-hud" class="boss-hud" hidden>
+        <span id="boss-portrait" class="boss-portrait" aria-hidden="true"></span>
+        <div class="boss-details"><div class="boss-title-row"><span id="boss-role">정예</span><strong id="boss-title">숲의 수호자</strong><small id="boss-hp-text">0 / 0</small></div>
+          <div id="boss-meter" class="boss-meter" role="progressbar" aria-label="몬스터 체력" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0"><span id="boss-bar"></span></div>
+          <small id="boss-warning-note">몬스터를 터치하면 집중 사격</small>
+        </div>
+      </div>
       <div class="wave-scout" id="wave-scout" role="status" aria-live="polite" hidden></div>
+      <div id="terrain-indicator" class="terrain-indicator" role="status" aria-live="polite" hidden></div>
       <div id="fort-health" class="fort-hp" role="progressbar" aria-label="성벽 내구도" aria-valuemin="0" aria-valuemax="3000" aria-valuenow="3000"><span>성벽</span><div class="hp-track"><div id="hp-fill" class="hp-fill"></div></div><strong id="hp-label">3000</strong></div>
     </div>
     <footer class="battle-toolbar">

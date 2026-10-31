@@ -47,17 +47,23 @@
     const easing=progress*progress*(3-2*progress);
     return 210+(entryX-210)*(1-.53*easing)+wind*(1-.45*progress);
   }
+  // Active only after first recruitment; every stage hazard is bounded, announced and reversible.
+  const TERRAIN_EVENTS=Object.freeze({
+    5:{title:'낡은 다리 균열',detail:'다리가 흔들려 선두 적이 잠깐 멈춰요',interval:16500},
+    6:{title:'포자비 경보',detail:'일제사격으로 포자비를 저지하세요',interval:18000},
+    9:{title:'수정 연못 공명',detail:'수정 장갑이 잠시 약해져요',interval:18500}
+  });
   const STAGE_TIPS = [
     '처음에는 새싹 무리를 막고 성벽을 지켜 주세요.',
     '빠른 버섯이 쏟아져요. 서리 또는 덩굴로 진군을 늦추세요.',
     '양쪽 길에서 달려와요. 용병 위치를 수시로 조정하세요.',
     '뿌리 거인의 돌진 예고에 맞춰 일제사격으로 저지하세요.',
     '안개로 사정거리가 줄어요. 추적의 눈으로 시야를 회복하세요.',
-    '부서진 다리 때문에 적들이 중앙으로 모여요. 관통이 유리해요.',
-    '3공세마다 포자 군단이 늘어나요. 범위 공격을 준비하세요.',
+    '낡은 다리 균열이 적을 잠깐 묶어요. 강한 적을 집중 공격하세요.',
+    '포자비 예고 중 일제사격을 누르면 군단 가속을 저지할 수 있어요.',
     '가면 두더지가 잠복하며 위치를 바꿔요. 경고를 놓치지 마세요.',
     '돌풍에 적의 위치가 흔들려요. 다중 화살이 유리해요.',
-    '수정 갑옷은 일반 화살 피해를 30% 줄여요. 관통을 선택하세요.',
+    '수정 연못이 공명할 때 갑옷이 약해져요. 관통·집중사격을 활용하세요.',
     '4공세마다 적이 증원돼요. 성벽 방어와 범위 공격이 중요해요.',
     '검은 종이 성벽을 직접 흔들어요. 예고에 맞춰 끊어 주세요.'
   ];
@@ -598,6 +604,10 @@
       this.damageBonus=1;this.speedBonus=1;this.multi=0;this.freeze=0;this.flame=0;this.crit=0;
       this.spark=0;this.roots=0;this.pierce=0;this.ward=0;this.hunter=0;
       this.wardCharges=0;this.trapTimer=7600;this.evolutionPath=null;
+      this.terrainConfig=TERRAIN_EVENTS[this.stage.id]||null;
+      this.terrainTimer=this.terrainConfig?this.terrainConfig.interval:Infinity;
+      this.terrainWarned=false;this.terrainWarning=false;this.terrainCueUntil=0;this.terrainCueText='';
+      this.terrainEvents=0;this.overlayTimer=0;
       this.cardCounts={};this.synergies=new Set();this.gameClock=0;
       this.heroIds=['fox',null,null];this.targetModes=['front','front','front'];this.attackTimes=[0,0,0];this.enemies=[];this.projectiles=[];this.effects=[];this.dyingSprites=0;
       this.focusEnemy=null;this.focusUntil=0;this.focusReticle=null;this.lastFortHP=-1;
@@ -610,6 +620,7 @@
       this.fortPlaque=this.add.image(210,625,'fort-plaque').setDepth(2);
       this.heroSprites=this.heroIds.map((id,i)=>id?this.add.image([104,210,316][i],595,'motion-'+id+'-idle-0').setDisplaySize(83,83).setDepth(6):null);
       this.wave.begin();renderSlots();renderHUD();
+      this.syncBattleOverlay();
       if(this.stage.id===0)showBanner('여우 궁수 혼자 첫 공세를 막아보세요!');
     }
     spawnEnemy(type){
@@ -629,7 +640,7 @@
       const enemy={nameLabel,type,x:lane,baseX:lane,windPhase:Math.random()*Math.PI*2,y:-38,spr,lifeBg,life,lifeWidth,lifeYOffset,hp,maxHP:hp,spd,slow:0,rooted:0,
         armor:type==='crystal'?.34:type==='shroom'?.12:this.stage.id===9?(type==='runner'?0:.3):(type==='brute'?.18:0),
         abilityCooldown:type==='guardian'?4100:5400,warning:0,hidden:0,untargetable:false,surge:0,
-        tellRing:null,tellBack:null,tellFill:null,guarding:false,hasDashed:false,hasRallied:false,hasSpores:false};
+        tellRing:null,tellBack:null,tellFill:null,guarding:false,hasDashed:false,hasRallied:false,hasSpores:false,crystalShatterUntil:0};
       enemy.baseArmor=enemy.armor;
       spr.setInteractive({useHandCursor:true}).on('pointerdown',()=>{
         if(this.ended||this.manualPause||this.drafting)return;
@@ -639,6 +650,7 @@
         showBanner(ENEMY_INTEL[type].name+' 집중 공격!');
       });
       this.enemies.push(enemy);
+      if(['boss','guardian','shroom'].includes(type))this.syncBattleOverlay();
     }
     targetFor(heroX,range,mode='front'){
       if(this.focusEnemy&&this.enemies.includes(this.focusEnemy)&&this.gameClock<this.focusUntil&&!this.focusEnemy.untargetable
@@ -802,6 +814,7 @@
         if(this.focusReticle){this.focusReticle.destroy();this.focusReticle=null;}
       }
       this.clearBossWarning(e);
+      if(['guardian','shroom','boss'].includes(e.type))this.syncBattleOverlay();
       if(e.nameLabel)e.nameLabel.destroy();
       e.life.destroy();e.lifeBg.destroy();
       // Breaches vanish immediately; defeated creatures play a bounded death sequence.
@@ -847,6 +860,81 @@
       this.lastFortHP=this.hp;this.lastFortMaxHP=this.maxHP;
       const texture=this.textures.get('fort-plaque'),canvas=texture.getSourceImage();
       paintFortPlaque(canvas.getContext('2d'),this.hp,this.maxHP);texture.refresh();
+    }
+    // Boss and elite portraits are existing original WebP assets, not SVG overlays.
+    syncBattleOverlay(){
+      const box=$('boss-hud'),target=this.enemies.find(e=>e.type==='boss')||
+        this.enemies.find(e=>e.type==='guardian')||this.enemies.find(e=>e.type==='shroom');
+      box.hidden=!target;
+      $('arena-wrap').classList.toggle('has-boss',!!target);
+      if(target){
+        const kind=target.type;
+        const title=kind==='boss'?this.stage.id===3?'뿌리 거인':this.stage.id===7?'가면 두더지':'검은 종의 주인':ENEMY_INTEL[kind].name;
+        $('boss-title').textContent=title;
+        $('boss-role').textContent=kind==='boss'?'최종 보스':kind==='guardian'?'중간보스':'정예';
+        $('boss-portrait').className='boss-portrait '+kind;
+        const max=Math.max(1,target.maxHP),hp=Math.max(0,target.hp);
+        $('boss-bar').style.width=(Math.min(100,hp/max*100))+'%';
+        $('boss-meter').setAttribute('aria-valuemax',String(max));
+        $('boss-meter').setAttribute('aria-valuenow',String(Math.ceil(hp)));
+        $('boss-meter').setAttribute('aria-label',title+' 체력');
+        $('boss-hp-text').textContent=Math.ceil(hp)+' / '+Math.ceil(max);
+        $('boss-warning-note').textContent=target.warning>0?'공격 예고! 일제사격으로 저지':
+          target.untargetable?'잠복 중 · 잠시 표적 불가':'몬스터를 터치하면 집중 사격';
+      }
+      const cue=$('terrain-indicator');
+      const active=this.terrainConfig&&this.gameClock<this.terrainCueUntil;
+      cue.hidden=!active;
+      if(active){cue.textContent=this.terrainCueText;cue.classList.toggle('warning',this.terrainWarning);}
+    }
+    terrainVisual(kind,x=210,y=294){
+      if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+      const particle=kind==='crystal'?'crystal':kind==='spore'?'spore':'leaf';
+      for(let n=0;n<5;n++){
+        const a=n/5*Math.PI*2;
+        const sprite=this.add.image(x,y,'shard-'+particle).setDepth(7).setDisplaySize(19,19).setAlpha(.9);
+        this.tweens.add({targets:sprite,x:x+Math.cos(a)*70,y:y+Math.sin(a)*45,
+          alpha:0,scale:.3,angle:n%2?90:-85,duration:520,onComplete:()=>sprite.destroy()});
+      }
+    }
+    tickTerrain(dt){
+      if(!this.terrainConfig||!this.wave.active||this.wave.current<2||!this.enemies.length)return;
+      this.terrainTimer=Math.max(0,this.terrainTimer-dt);
+      if(!this.terrainWarned&&this.terrainTimer<=1150){
+        this.terrainWarned=true;this.terrainWarning=true;
+        this.terrainCueText=this.terrainConfig.title+' · 곧 발동';
+        this.terrainCueUntil=this.gameClock+2600;
+        showBanner(this.terrainConfig.title+'! 준비하세요');
+        this.syncBattleOverlay();
+      }
+      if(this.terrainTimer>0)return;
+      this.terrainTimer=this.terrainConfig.interval;
+      this.terrainWarned=false;this.terrainWarning=false;
+      this.terrainEvents++;
+      if(this.stage.id===5){
+        const target=[...this.enemies].filter(e=>!e.untargetable&&e.type!=='boss').sort((a,b)=>b.y-a.y)[0];
+        if(target){
+          target.rooted=Math.max(target.rooted,1250);
+          this.terrainVisual('leaf',target.x,target.y);
+          this.hitEnemy(target,48,'terrain');
+        }
+        this.terrainCueText='낡은 다리 · 선두 저지';
+      }else if(this.stage.id===6){
+        const candidates=[...this.enemies].filter(e=>!e.untargetable&&['sprout','runner','thorn','spore','imp'].includes(e.type))
+          .sort((a,b)=>b.y-a.y).slice(0,2);
+        for(const enemy of candidates)enemy.surge=Math.max(enemy.surge,680);
+        this.terrainVisual('spore');
+        this.terrainCueText='포자비 · 정찰병 가속 '+candidates.length+'명';
+      }else if(this.stage.id===9){
+        for(const enemy of this.enemies){
+          if(enemy.type==='crystal'){enemy.crystalShatterUntil=this.gameClock+2600;enemy.armor=Math.max(0,enemy.armor-.15);}
+        }
+        this.terrainVisual('crystal');
+        this.terrainCueText='수정 공명 · 갑옷 약화';
+      }
+      this.terrainCueUntil=this.gameClock+2400;
+      this.syncBattleOverlay();
+      showBanner(this.terrainCueText);
     }
     updateBosses(dt){
       for(const e of this.enemies){
@@ -926,6 +1014,12 @@
     castSkill(){
       if(this.ended||this.manualPause||this.autoPause||this.drafting||this.skillCooldown>0)return;
       this.skillCooldown=14500;showBanner('수비대 일제사격!');
+      if(this.stage.id===6&&this.terrainWarned&&this.terrainTimer>0){
+        this.terrainWarned=false;this.terrainWarning=false;
+        this.terrainTimer=this.terrainConfig.interval;
+        this.terrainCueText='포자비 저지 성공!';this.terrainCueUntil=this.gameClock+2100;
+        this.syncBattleOverlay();showBanner('포자비 저지! 적 가속 취소');
+      }
       for(const enemy of this.enemies)if(['boss','guardian'].includes(enemy.type)&&enemy.warning>0){
         enemy.warning=0;enemy.abilityCooldown=6200;enemy.spr.clearTint();this.clearBossWarning(enemy);showBanner('보스 공격 저지!');
       }
@@ -1056,6 +1150,8 @@
     }
     finish(win){
       if(this.ended)return;this.ended=true;this.manualPause=true;
+      $('boss-hud').hidden=true;$('terrain-indicator').hidden=true;
+      $('arena-wrap').classList.remove('has-boss');
       this.heroSprites.forEach((spr,i)=>{if(spr&&spr.active){
         const id=this.heroIds[i],pose=win?'victory':'hurt';
         spr.setTexture('motion-'+id+'-'+pose+'-2');
@@ -1097,6 +1193,9 @@
         }
       }
       this.updateBosses(dt);
+      this.tickTerrain(dt);
+      this.overlayTimer-=dt;
+      if(this.overlayTimer<=0){this.overlayTimer=160;this.syncBattleOverlay();}
       $('arena-wrap').classList.toggle('boss-warning',this.enemies.some(e=>['boss','guardian'].includes(e.type)&&e.warning>0));
        if(this.focusReticle){
          if(this.focusEnemy&&this.enemies.includes(this.focusEnemy)&&this.gameClock<this.focusUntil){
@@ -1119,7 +1218,8 @@
         }
         if(e.type==='crystal'){
           const guarding=(this.gameClock+e.windPhase*300)%5200<1550;
-          e.armor=guarding?Math.min(.55,e.baseArmor+.16):e.baseArmor;
+          const cracked=e.crystalShatterUntil>this.gameClock;
+          e.armor=Math.max(0,(guarding?Math.min(.55,e.baseArmor+.16):e.baseArmor)-(cracked?.15:0));
           if(guarding&&!e.guarding){
             const shield=this.add.ellipse(e.x,e.y+12,65,32,0x81e2f8,.16).setStrokeStyle(2,0x93efff,.75).setDepth(3);
             this.tweens.add({targets:shield,scale:1.38,alpha:0,duration:490,onComplete:()=>shield.destroy()});
