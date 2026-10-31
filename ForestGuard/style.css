@@ -725,3 +725,42 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 @media(max-width:360px){.boss-hud{height:51px;gap:5px;width:94%;padding:4px}.boss-portrait{flex-basis:35px;width:35px;height:35px}#boss-title{font-size:11px}#boss-hp-text{font-size:8px}.arena-wrap.has-boss .wave-scout{top:63px}.terrain-indicator{top:53px;font-size:9px}.arena-wrap.has-boss .terrain-indicator{top:99px}}
 @media(max-height:620px){.boss-hud{height:45px;top:3px}.boss-portrait{width:33px;height:33px;flex-basis:33px}.arena-wrap.has-boss .wave-scout{top:54px}.arena-wrap.has-boss .terrain-indicator{top:87px}}
 @media(prefers-reduced-motion:reduce){#boss-bar{transition:none}}
+
+/* v1.7 main menu: original illustrated forest art, moved actions, compact hierarchy */
+.brand{position:relative;isolation:isolate;padding-top:0}
+.brand-seal{display:none!important}
+.title-forest-crest{position:absolute;left:50%;top:-4px;width:min(94%,355px);height:108px;transform:translateX(-50%);pointer-events:none;z-index:-1;
+ background:radial-gradient(ellipse 60% 70% at 48% 52%,#dbbd7d65,transparent 85%),url('./art/forest-entrance-v08.png') center 38%/cover;
+ border-radius:60% 60% 35% 35%;box-shadow:inset 0 0 14px 12px #244032,0 9px 17px #0c2a20b0}
+.crest-hero{display:block;position:absolute;width:76px;height:76px;background-image:url('./art/forest-characters.png?v=20261031c');
+ background-size:400% 200%;background-repeat:no-repeat;filter:drop-shadow(0 2px 3px #1d2919b0)}
+.crest-fox{left:calc(50% - 38px);top:5px;background-position:0% 0%;transform:scale(1.16)}
+.crest-bear{left:calc(50% - 118px);top:19px;background-position:33.333% 0%;transform:rotate(-8deg) scale(.82)}
+.crest-rabbit{right:calc(50% - 118px);top:19px;background-position:66.667% 0%;transform:rotate(8deg) scale(.82)}
+.brand .eyebrow{position:relative;padding-top:58px;font-size:9px;letter-spacing:1.6px}
+.brand h1{position:relative;margin-top:22px;padding:7px 0 3px;font-size:clamp(32px,8.8vw,47px);z-index:1;
+ text-shadow:-2px -2px 0 #4a3523,2px -2px 0 #4a3523,-2px 2px 0 #4a3523,2px 2px 0 #4a3523,0 5px #77532e,0 8px 10px #11271ad4}
+.brand>p:last-child{margin-top:1px;font-size:11px}
+.menu-actions.menu-actions-top{display:flex;gap:8px;align-items:center;justify-content:center;margin:9px 0 2px;flex:0 0 auto}
+.menu-actions-top .rune-btn{width:auto;flex:0 1 auto;min-height:40px;height:40px;padding:6px 12px;font-size:13px;border-radius:11px}
+.menu-actions-top .rune-btn.primary{grid-column:auto;min-height:42px;font-size:15px;flex-basis:49%;max-width:185px}
+.menu-actions-top .rune-btn.tertiary{flex-basis:32%;max-width:125px}
+.menu-actions-top .rune-btn.secondary{flex-basis:32%;max-width:140px}
+.menu-actions-top .rune-btn.primary span{padding-left:5px}
+.menu-actions-top:has(#resume-btn:not([hidden])) .rune-btn{padding-inline:7px;flex:1;min-width:0}
+.menu-actions-top:has(#resume-btn:not([hidden])) .rune-btn.primary{flex:1.2}
+.menu .story-panel{margin-top:10px}.menu .map-title{margin-top:11px;margin-bottom:7px}.menu .menu-bottom{margin-top:7px}
+.battle-loading{position:absolute;z-index:6;inset:0;display:grid;place-items:center;pointer-events:none;
+ background:linear-gradient(#071b16a8,#183e3085),url('./art/forest-entrance-v08.png') center center/cover}
+.battle-loading span{font-size:14px;padding:12px 20px;font-weight:900;color:#fff0c8;background:#2b3c2cbf;border:1px solid #b99856;border-radius:12px}
+.recruit-countdown{font-size:12px;line-height:1.3;font-weight:900;color:#744c27;text-align:center;margin:0 auto 9px;
+ border-radius:10px;padding:6px 11px;background:#fff1c9;border:1px solid #c3985c;max-width:230px}
+@media(max-width:360px){.title-forest-crest{height:94px}.crest-hero{width:65px;height:65px}.crest-fox{left:calc(50% - 33px)}
+.crest-bear{left:calc(50% - 105px)}.crest-rabbit{right:calc(50% - 105px)}.brand .eyebrow{padding-top:47px}
+.brand h1{margin-top:21px;padding:3px 0}.menu-actions-top .rune-btn{height:37px;padding:5px 8px}}
+@media(max-height:730px){.brand .eyebrow{padding-top:42px}.title-forest-crest{height:82px}.brand h1{margin-top:12px}
+.brand>p:last-child{display:none}.menu .story-panel{margin-top:6px;padding-block:9px}
+.menu .map-title{margin:6px 3px 4px}.menu-actions.menu-actions-top{margin:5px 0 0}.menu-actions-top .rune-btn{height:35px;min-height:35px}}
+@media(max-height:620px){.brand .eyebrow{padding-top:25px}.title-forest-crest{height:67px}.crest-hero{width:55px;height:55px}
+.brand h1{font-size:31px;margin-top:9px}.story-panel p{display:none}.menu .story-panel{padding:5px 10px}
+.menu-actions-top .rune-btn.primary{min-height:34px;font-size:13px}}
