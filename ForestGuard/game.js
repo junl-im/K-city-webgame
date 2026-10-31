@@ -238,7 +238,7 @@
     const stage=STAGES[state.selected];
     const first=stage.id%4===3?'boss':stage.elite;
     const companion=stage.id>=5?'crystal':stage.id>=2?'thorn':stage.id===0?'sprout':'runner';
-    const types=[...new Set([first,companion,'guardian'])];
+    const types=[...new Set([first,companion,'shroom','guardian'])];
     const list=document.createElement('div');list.className='enemy-intel-list';
     types.forEach(type=>{
       const data=ENEMY_INTEL[type];
@@ -596,7 +596,8 @@
       const enemy={type,x:lane,baseX:lane,windPhase:Math.random()*Math.PI*2,y:-38,spr,lifeBg,life,lifeWidth,lifeYOffset,hp,maxHP:hp,spd,slow:0,rooted:0,
         armor:type==='crystal'?.34:type==='shroom'?.12:this.stage.id===9?(type==='runner'?0:.3):(type==='brute'?.18:0),
         abilityCooldown:type==='guardian'?4100:5400,warning:0,hidden:0,untargetable:false,surge:0,
-        tellRing:null,tellBack:null,tellFill:null};
+        tellRing:null,tellBack:null,tellFill:null,guarding:false,hasDashed:false,hasRallied:false};
+      enemy.baseArmor=enemy.armor;
       spr.setInteractive({useHandCursor:true}).on('pointerdown',()=>{
         if(this.ended||this.manualPause||this.drafting)return;
         this.focusEnemy=enemy;this.focusUntil=this.gameClock+8500;
@@ -1045,7 +1046,35 @@
         e.surge=Math.max(0,e.surge-dt);
         e.y+=e.rooted>0?0:e.spd*(e.slow>0?.42:1)*(e.surge>0?2.2:1)*dt/1000;
         const wind=(this.stage.id===8||this.stage.id===10)?Math.sin(this.gameClock/900+e.windPhase)*18:0;
-        e.x=funnelX(e.baseX,e.y,wind);
+        // Illustrated creature behavior: thorn beetles weave and lunge, crystals pulse armor,
+        // and the mushroom elite rallies nearby scouts once. No per-frame new textures.
+        if(e.type==='thorn' && e.y>185 && !e.hasDashed){
+          e.hasDashed=true;e.surge=720;V.trigger(e.spr,'attack',this.gameClock+400);
+          const dash=this.add.ellipse(e.x,e.y+15,56,18,0xc9df76,.18).setDepth(3);
+          this.tweens.add({targets:dash,scale:1.7,alpha:0,duration:380,onComplete:()=>dash.destroy()});
+        }
+        if(e.type==='crystal'){
+          const guarding=(this.gameClock+e.windPhase*300)%5200<1550;
+          e.armor=guarding?Math.min(.55,e.baseArmor+.16):e.baseArmor;
+          if(guarding&&!e.guarding){
+            const shield=this.add.ellipse(e.x,e.y+12,65,32,0x81e2f8,.16).setStrokeStyle(2,0x93efff,.75).setDepth(3);
+            this.tweens.add({targets:shield,scale:1.38,alpha:0,duration:490,onComplete:()=>shield.destroy()});
+          }
+          e.guarding=guarding;
+        }
+        if(e.type==='shroom'&&!e.hasRallied&&e.y>=245){
+          e.hasRallied=true;
+          let allies=0;
+          for(const ally of this.enemies){
+            if(ally===e||!['sprout','runner','thorn'].includes(ally.type)||Math.hypot(ally.x-e.x,ally.y-e.y)>145)continue;
+            ally.surge=Math.max(ally.surge,850);allies++;
+          }
+          const spores=this.add.ellipse(e.x,e.y,110,48,0xe4bd81,.22).setStrokeStyle(3,0xf5d799,.7).setDepth(3);
+          this.tweens.add({targets:spores,scale:1.65,alpha:0,duration:570,onComplete:()=>spores.destroy()});
+          if(allies)showBanner('버섯 거한의 포자 함성 · 주변 적 돌진!');
+        }
+        const weave=e.type==='thorn'?Math.sin(this.gameClock/310+e.windPhase)*Math.min(13,Math.max(0,e.y/18)):0;
+        e.x=funnelX(e.baseX,e.y,wind)+weave;
         e.spr.setPosition(e.x,e.y);e.lifeBg.setPosition(e.x,e.y-e.lifeYOffset);e.life.setPosition(e.x,e.y-e.lifeYOffset);
         V.animate(e.spr,e.type,'run',this.gameClock);
         if(e.y>=538){
@@ -1146,6 +1175,25 @@
   $('intel-btn').addEventListener('click',showIntel);
   $('home-btn').addEventListener('click',()=>showMenu(true));
   $('pause-btn').addEventListener('click',showPause);
+  // A real browser fullscreen toggle, not just a CSS zoom. iOS Safari may not expose this API.
+  const viewButton=$('view-btn');
+  const fullscreenTarget=$('app');
+  viewButton.hidden=typeof fullscreenTarget.requestFullscreen!=='function';
+  function syncViewButton(){
+    const on=!!document.fullscreenElement;
+    viewButton.textContent=on?'창모드':'전체';
+    viewButton.setAttribute('aria-label',on?'전체화면 종료':'전체화면으로 플레이');
+    viewButton.setAttribute('aria-pressed',String(on));
+  }
+  viewButton.addEventListener('click',async()=>{
+    try{
+      if(document.fullscreenElement)await document.exitFullscreen();
+      else await fullscreenTarget.requestFullscreen({navigationUI:'hide'});
+    }catch(_error){showBanner('이 브라우저는 전체화면 전환을 지원하지 않아요');}
+    syncViewButton();
+  });
+  document.addEventListener('fullscreenchange',syncViewButton);
+  syncViewButton();
   $('repair-btn').addEventListener('click',()=>{if(battle)battle.repairWall();});
   $('speed-btn').addEventListener('click',()=>{if(battle&&!battle.ended){battle.speed=battle.speed===1?2:1;renderHUD();}});
   $('skill-btn').addEventListener('click',()=>{if(battle){if(battle.pendingRecruit)battle.showRecruitDraft();else if(battle.drafting)battle.showDraft();else battle.castSkill();}});
