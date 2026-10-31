@@ -42,6 +42,12 @@ assert.match(html,/id="intel-btn"/);
 assert.match(html,/aria-label="모험 시작"/);
 assert.match(html,/id="skill-btn"/);
 assert.match(html,/id="evo-btn"/);
+assert.match(html,/id="repair-btn"/);
+assert.match(js,/repairWall\(\)/);
+assert.match(js,/waveStartHP/);
+assert.match(js,/REPAIR_COST = 120/);
+assert.match(js,/timer=setTimeout\(\(\)=>\{finish\(false\)/);
+assert.match(css,/\.repair-btn\.ready/);
 assert.match(html,/라니 수비대/);
 assert.match(css,/100dvh/);
 assert.match(css,/forest-worldmap-v05\.webp/);
@@ -79,4 +85,4 @@ for(const system of ['SYNERGY_RECIPES','completeEvolution','evolutionPath','acti
 assert.match(visuals,/roots:4,pierce:5,ward:13,hunter:14/);
 assert.doesNotMatch(html+css+js+visuals,/<svg\b|data:image\/svg\+xml|\.svg(?:["'(])/i);
 assert.doesNotMatch(js,/eval\s*\(/);
-console.log('라니 수비대 v0.8 smoke: PASS (3 biome PNG illustrations, top-wide bottom-narrow enemy funnel, boss tells, no SVG).');
+console.log('라니 수비대 v0.9 smoke: PASS (biome PNGs, boss tells, tactical repairs, robust image load, no SVG).');

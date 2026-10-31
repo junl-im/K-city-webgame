@@ -1,4 +1,4 @@
-/* 라니 수비대 v0.8.0 — © 2026 곰같은여우
+/* 라니 수비대 v0.9.0 — © 2026 곰같은여우
  * Original game rules, PNG character art, Canvas field art and interface.
  * Combat architecture informed by MIT-licensed Phaser 3 and the WaveManager,
  * EnemyManager and Projectile patterns of rupertgermann/tower-defence.
@@ -7,6 +7,7 @@
 (() => {
   'use strict';
   const SAVE_KEY = 'gomfox.forestguard.v1';
+  const REPAIR_COST = 120, REPAIR_HEAL = 420, REPAIR_LIMIT = 2;
   const HOME_URL = 'https://meta-deee1.web.app/';
   const $ = id => document.getElementById(id);
   const V = window.ForestGuardVisuals;
@@ -101,8 +102,19 @@
   async function prepareAtlas(stageIndex){
     const load=(url,assign)=>new Promise(resolve=>{
       if(!url){resolve();return;}
-      const art=new Image();art.onload=()=>{assign(art);resolve();};
-      art.onerror=()=>{console.warn('원화 불러오기 실패:',url);resolve();};art.src=url;
+      const art=new Image();
+      let settled=false, timer=0;
+      const finish=ok=>{
+        if(settled)return;
+        settled=true;clearTimeout(timer);art.onload=null;art.onerror=null;
+        if(ok)assign(art);
+        else console.warn('원화 불러오기 지연/실패, 기본 화면 사용:',url);
+        resolve();
+      };
+      art.onload=()=>finish(true);
+      art.onerror=()=>finish(false);
+      timer=setTimeout(()=>{finish(false);art.src='';},8000);
+      art.src=url;
     });
     if(!atlasPromise)atlasPromise=Promise.all([
       load('./art/forest-characters.png?v=20261031c',art=>{atlasBitmap=art;}),
@@ -168,8 +180,14 @@
   async function startStage(index){
     if(index>=state.unlocked||starting)return;
     starting=true;
-    await prepareAtlas(index);
-    starting=false;
+    $('start-btn').disabled=true;
+    $('start-btn').firstChild.textContent='준비 중 ';
+    try{await prepareAtlas(index);}
+    finally{
+      starting=false;
+      $('start-btn').disabled=false;
+      updateMenuStory();
+    }
     if(game){game.destroy(true);game=null;battle=null;}
     state.selected=index; suspended=false;chosenSlot=-1;
     setVisible('menu',false);setVisible('game-screen',true);
@@ -206,6 +224,7 @@
     if(activeModal && !activeModal.allowClose && !force)return;
     activeModal=null;$('modal-layer').hidden=true;
     if(focusBeforeModal && typeof focusBeforeModal.focus==='function')focusBeforeModal.focus();
+    if(battle)renderHUD();
   }
   function showIntel(){
     const stage=STAGES[state.selected];
@@ -237,6 +256,7 @@
   function showPause(){
     if(!battle||battle.ended)return;
     battle.manualPause=true;
+    renderHUD();
     showModal('잠깐 쉬어가기','전투 일시정지','진행 상태는 그대로 유지돼요.',[],[
       button('계속하기',()=>{closeModal(true);battle.manualPause=false;}),
       button('모험 지도',()=>showMenu(true),'alt')
@@ -257,6 +277,7 @@
         const wasPause=activeModal.kicker==='잠깐 쉬어가기';
         const wasEvolution=activeModal.kicker==='진화 선택';
         closeModal(true);if((wasExit||wasPause||wasEvolution) && battle && !suspended)battle.manualPause=false;
+        if(battle&&battle.drafting)showBanner('아래 강화 선택을 눌러 계속하세요');
         renderCooldown();
       }else{
         // End-of-run choices remain visible until the user selects a destination.
@@ -414,6 +435,7 @@
         this.scene.wardCharges=Math.min(3,this.scene.ward+(this.scene.synergies.has('heartwood')?1:0));
         this.scene.hp=Math.min(this.scene.maxHP,this.scene.hp+35*this.scene.ward);
       }
+      this.scene.waveStartHP=this.scene.hp;
       renderHUD();
       const hazard=this.scene.stage.id===6&&this.current%3===0?'포자 군단 급습!':this.scene.stage.id===10&&this.current%4===0?'달빛 아래 대공세!':null;
       showBanner(hazard||(this.isBoss()?'우두머리가 다가온다!':'제 '+this.current+'차 공세'));
@@ -445,6 +467,7 @@
       battle=this;this.stage=STAGES[pendingStageIndex];this.ended=false;
       this.manualPause=false;this.autoPause=false;this.drafting=false;this.speed=1;
       this.hp=3000;this.maxHP=3000;this.coins=0;this.skillCooldown=0;this.rerollUsed=false;
+      this.repairs=0;this.waveStartHP=3000;
       this.damageBonus=1;this.speedBonus=1;this.multi=0;this.freeze=0;this.flame=0;this.crit=0;
       this.spark=0;this.roots=0;this.pierce=0;this.ward=0;this.hunter=0;
       this.wardCharges=0;this.trapTimer=7600;this.evolutionPath=null;
@@ -674,6 +697,17 @@
       }
       showBanner(this.synergies.has('bramblefire')?'불꽃 덩굴 발동!':'덩굴 덫 발동!');
     }
+    repairWall(){
+      if(this.ended||this.manualPause||this.autoPause||this.drafting||this.hp>=this.maxHP||this.repairs>=REPAIR_LIMIT)return;
+      if(this.coins<REPAIR_COST){showBanner('성벽 수리에는 별빛 120개가 필요해요');return;}
+      this.coins-=REPAIR_COST;this.repairs++;
+      const healed=Math.min(REPAIR_HEAL,this.maxHP-this.hp);
+      this.hp+=healed;
+      const shine=this.add.rectangle(210,532,340,12,0xa7efae,.55).setDepth(8);
+      this.tweens.add({targets:shine,scaleY:4,alpha:0,duration:430,onComplete:()=>shine.destroy()});
+      showBanner('성벽 보수 성공! 체력 +'+healed+' · '+this.repairs+'/'+REPAIR_LIMIT);
+      renderHUD();
+    }
     castSkill(){
       if(this.ended||this.manualPause||this.autoPause||this.drafting||this.skillCooldown>0)return;
       this.skillCooldown=14500;showBanner('수비대 일제사격!');
@@ -687,6 +721,11 @@
     }
     onWaveDone(w){
       if(this.ended)return;
+      if(this.hp>=this.waveStartHP){
+        this.coins+=35;
+        showBanner('무피해 방어! 별빛 +35');
+        renderHUD();
+      }
       if(w>=this.stage.waves){this.finish(true);return;}
       if(w%2===0){this.drafting=true;setTimeout(()=>{if(!this.ended)this.showDraft();},220);}
       else{this.betweenWaves=1100;showBanner('성벽 방어 성공!');}
@@ -730,7 +769,7 @@
       const actions=[];
       if(!this.rerollUsed)actions.push(button('한 번 무료 새로고침',()=>{this.rerollUsed=true;closeModal(true);this.showDraft();},'alt'));
       showModal('제 '+this.wave.current+'차 공세 완료','성장의 순간!','셋 중 하나의 힘을 골라 수비대를 키워 주세요.',[wrap],actions,true);
-      renderCooldown();
+      renderHUD();
     }
     applyCard(id){
       if(id==='power')this.damageBonus*=1.25;
@@ -873,6 +912,12 @@
     if(!battle)return;
     $('wave-label').textContent=battle.wave.current+' / '+battle.stage.waves+' 공세';
     $('coin-label').textContent=String(battle.coins);
+    const repair=$('repair-btn');
+    const repairable=!battle.ended&&battle.hp<battle.maxHP&&battle.repairs<REPAIR_LIMIT;
+    repair.disabled=!repairable||battle.manualPause||battle.autoPause||battle.drafting;
+    repair.classList.toggle('ready',repairable&&battle.coins>=REPAIR_COST);
+    repair.title='별빛 '+REPAIR_COST+'개로 성벽 '+REPAIR_HEAL+' 회복 · 남은 수리 '+(REPAIR_LIMIT-battle.repairs)+'회';
+    repair.setAttribute('aria-label',repair.title);
     $('hp-label').textContent=String(battle.hp);
     $('hp-fill').style.width=(battle.hp/battle.maxHP*100)+'%';
     $('speed-btn').textContent='×'+battle.speed;
@@ -884,13 +929,16 @@
   $('intel-btn').addEventListener('click',showIntel);
   $('home-btn').addEventListener('click',()=>showMenu(true));
   $('pause-btn').addEventListener('click',showPause);
+  $('repair-btn').addEventListener('click',()=>{if(battle)battle.repairWall();});
   $('speed-btn').addEventListener('click',()=>{if(battle&&!battle.ended){battle.speed=battle.speed===1?2:1;renderHUD();}});
   $('skill-btn').addEventListener('click',()=>{if(battle){if(battle.drafting)battle.showDraft();else battle.castSkill();}});
   $('evo-btn').addEventListener('click',()=>{if(battle)battle.evolveFox();});
   $('modal-close').addEventListener('click',()=>{
     if(activeModal&&(activeModal.kicker==='잠깐 쉬어가기'||activeModal.kicker==='진화 선택')&&battle)battle.manualPause=false;
     if(activeModal&&activeModal.kicker==='숲에서 나가기'&&battle&&!suspended)battle.manualPause=false;
+    const pendingDraft=!!battle&&battle.drafting;
     closeModal(false);renderCooldown();
+    if(pendingDraft)showBanner('아래 강화 선택을 눌러 계속하세요');
   });
   V.setIcon(document.querySelector('.brand-seal'),'fox');
   V.setIcon(document.querySelector('#start-btn span'),'play');
@@ -898,6 +946,7 @@
   V.setIcon(document.querySelector('#evo-btn span'),'evo');
   V.setIcon(document.querySelector('#skill-btn span'),'skill');
   V.setIcon($('home-btn'),'back');
+  V.setIcon(document.querySelector('#repair-btn .coin-glyph'),'coin');
   V.setIcon($('pause-btn'),'pause');
   // Coin uses the dedicated artwork from CSS.
   renderMap();updateMenuStory();setupHistory();
