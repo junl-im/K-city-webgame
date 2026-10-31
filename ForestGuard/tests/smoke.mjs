@@ -149,4 +149,5 @@ for(const system of ['SYNERGY_RECIPES','completeEvolution','evolutionPath','acti
 assert.match(visuals,/roots:4,pierce:5,ward:13,hunter:14/);
 assert.doesNotMatch(html+css+js+visuals,/<svg\b|data:image\/svg\+xml|\.svg(?:["'(])/i);
 assert.doesNotMatch(js,/eval\s*\(/);
+console.log(execFileSync(process.execPath,[new URL('tests/balance-matrix.mjs',root).pathname],{encoding:'utf8'}).trim());
 console.log('라니 수비대 v1.5.1 smoke: PASS (new painted sprites, midboss, focus, canvas fort HUD, no SVG).');
