@@ -72,3 +72,13 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 .howto{display:grid;gap:10px;text-align:left;font-size:13px;line-height:1.5}.howto div{background:#fff9e2a8;border-radius:9px;padding:9px 12px}
 @media(max-height:760px){.menu{padding-left:15px;padding-right:15px}.brand-seal{width:53px;height:53px;font-size:32px}.brand h1{font-size:33px}.story-panel{margin-top:10px;padding:9px 13px}.story-panel h2{font-size:13px;margin:4px 0 3px}.map-title{margin-top:11px;margin-bottom:6px}.stage-grid{gap:6px}.stage-tile{min-height:38px}.menu-actions{margin-top:10px;gap:7px}.rune-btn{min-height:39px}.rune-btn.primary{min-height:47px}.menu-bottom{margin-top:9px}.battle-hud{height:57px;flex-basis:57px}.battle-toolbar{height:79px;flex-basis:79px}.hero-slot{height:59px}.skill-button{height:63px}}
 @media(max-width:350px){.menu{padding-left:11px;padding-right:11px}.stage-grid{gap:6px}.stage-tile .tiny{font-size:8px}.hud-stage span{font-size:11px}.coin-pill{font-size:9px}.spell-card{min-height:155px}.spell-card strong{font-size:11px}.spell-card small{font-size:9px}}
+/* 라니 전용 진화 조작: 성벽 계열 버튼과 별도 금빛 나뭇잎 문양 */
+.evo-button{position:relative;flex:0 0 73px;height:69px;border:4px solid #536334;border-radius:17px;color:#6c5224;background:linear-gradient(160deg,#dad9a6,#7b9e69);box-shadow:inset 0 2px #f8efba,0 3px #2d3822;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;filter:saturate(.8)}
+.evo-button>span{font-size:27px;line-height:27px;color:#d6c674;text-shadow:0 2px #5d672f}
+.evo-button small{font-size:10px;font-weight:1000;white-space:nowrap}
+.evo-button:disabled{opacity:.76;cursor:default}
+.evo-button.ready{background:linear-gradient(#fff0a2,#d8a84f);border-color:#a06c2b;filter:saturate(1.1);box-shadow:inset 0 2px #fff5ca,0 3px #584027}
+.evo-button.ready>span{color:#fff6d1;text-shadow:0 2px #a05c20}
+.skill-button{flex-basis:69px}
+@media(max-height:760px){.evo-button{height:63px}.skill-button{height:63px}}
+@media(max-width:360px){.evo-button{flex-basis:62px}.skill-button{flex-basis:62px}.hero-slots{gap:4px}.battle-toolbar{gap:5px;padding:5px}.hero-slot{font-size:9px}}
