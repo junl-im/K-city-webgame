@@ -11,6 +11,7 @@ on:
       - 'PhysicsPopbook/**'
       - 'FlowerMatgo/**'
       - 'LieRoom/**'
+      - 'ForestGuard/**'
       - '.github/workflows/magic-garden-pages.yml'
   workflow_dispatch:
 
@@ -104,6 +105,18 @@ jobs:
           cp -a LieRoom/dist/. MagicGarden/dist/LieRoom/
           test -s MagicGarden/dist/LieRoom/index.html
           echo "Independent Lie Room staged at /LieRoom/"
+
+      - name: Verify and stage Forest Guard as an isolated page
+        shell: bash
+        run: |
+          set -euo pipefail
+          node ForestGuard/tests/smoke.mjs
+          test -s ForestGuard/index.html
+          test -s ForestGuard/style.css
+          test -s ForestGuard/game.js
+          mkdir -p MagicGarden/dist/ForestGuard
+          cp ForestGuard/index.html ForestGuard/style.css ForestGuard/game.js MagicGarden/dist/ForestGuard/
+          echo "Independent Forest Guard staged at /ForestGuard/"
 
       - name: Upload short-lived Pages deployment artifact
         uses: actions/upload-pages-artifact@v4
