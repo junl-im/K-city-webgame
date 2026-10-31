@@ -85,6 +85,20 @@ try{
       assert.equal(await page.locator('.hero-slot.empty').count(),1,'Only one bench slot remains');
       await page.screenshot({path:new URL('../test-output/forest-recruited-rabbit.png',import.meta.url).pathname});
     }
+    // The boss HUD uses the same DOM as combat; test a visible long-name state at each viewport.
+    const bossLayout=await page.evaluate(()=>{
+      const boss=document.getElementById('boss-hud');
+      const arena=document.getElementById('arena-wrap');
+      boss.hidden=false;
+      arena.classList.add('has-boss');
+      document.getElementById('boss-title').textContent='거대한 숲의 수호자';
+      const r=boss.getBoundingClientRect();
+      boss.hidden=true;
+      arena.classList.remove('has-boss');
+      return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};
+    });
+    assert.ok(bossLayout.left>=-2&&bossLayout.right<=size.width+2,'Boss HUD must fit mobile viewport');
+    assert.ok(bossLayout.top>=-2&&bossLayout.bottom<=size.height+2,'Boss HUD vertical clipping');
     await page.screenshot({path:new URL('../test-output/forest-'+size.width+'x'+size.height+'.png',import.meta.url).pathname});
     assert.deepEqual(errors,[],'Uncaught browser error');
     reports.push({viewport:size,menu:'PASS',battle:'PASS',hud: battle.hud.length,buttons:battle.buttons.length});
