@@ -116,3 +116,176 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 .spell-card .spell-emoji.painted-icon{background-size:400% 400%}
 @media(max-height:760px){.brand-seal.painted-icon{width:65px;height:65px}.rune-btn.primary .painted-icon{width:30px;height:30px}}
 @media(max-width:350px){#help-btn .help-icon{width:22px;height:22px;flex-basis:22px}.brand-seal.painted-icon{width:58px;height:58px}}
+
+
+/* v0.5 — one uninterrupted ORIGINAL PAINTED world, 12 trail stamps.
+   The supplied artwork is a single WebP: no SVG, tiled paths, or seam strips. */
+.menu {
+  isolation:isolate;
+  background-color:#193728;
+  background-image:url('./art/forest-worldmap-v05.webp?v=20261031e');
+  background-size:cover;
+  background-position:center center;
+}
+.menu::before {
+  background:linear-gradient(180deg,rgba(9,30,24,.83) 0%,rgba(12,35,26,.46) 25%,rgba(15,40,28,.08) 47%,rgba(11,34,26,.20) 68%,rgba(8,28,22,.87) 100%);
+  opacity:1;
+  z-index:0;
+}
+.menu::after {
+  inset:0;
+  height:auto;
+  background:radial-gradient(ellipse at 49% 3%,rgba(31,66,43,.56),transparent 40%);
+  opacity:1;
+  z-index:0;
+}
+.menu-vines{display:none}
+.menu > *{position:relative;z-index:1}
+.menu{padding:calc(7px + env(safe-area-inset-top,0px)) 13px calc(7px + env(safe-area-inset-bottom,0px))}
+.brand{padding-top:0}
+.brand-seal.painted-icon{width:65px;height:65px;margin-bottom:-4px;filter:drop-shadow(0 4px 6px #08180d)}
+.brand .eyebrow{margin-top:3px;font-size:9px;letter-spacing:2.5px}
+.brand h1{font-size:clamp(27px,7.4vw,39px);letter-spacing:-2px;line-height:1.04}
+.brand>p:last-child{margin-top:2px;font-size:11px}
+.story-panel {
+  margin-top:8px;
+  padding:9px 13px 10px;
+  border:2px solid #b99158;
+  border-radius:17px 20px 15px 19px;
+  background:linear-gradient(150deg,rgba(255,245,208,.96),rgba(224,198,140,.93));
+  box-shadow:inset 0 0 0 2px #fff1c9,0 4px 13px #081c1388;
+}
+.story-panel::before,.story-panel::after{display:none}
+.story-panel h2{margin:2px 0 3px;font-size:14px}
+.story-panel p{font-size:10px;line-height:1.24}
+.map-title{
+  position:relative;
+  margin:8px 2px 2px;
+  padding:4px 10px;
+  border-radius:20px;
+  background:rgba(16,42,30,.69);
+  border:1px solid rgba(247,217,150,.5);
+  font-size:12px;
+}
+.map-title small{font-size:10px}
+.stage-grid{
+  display:block;
+  position:relative;
+  flex:1 1 auto;
+  align-content:initial;
+  min-height:180px;
+  margin:0 -5px;
+  overflow:visible;
+}
+.stage-tile{
+  position:absolute;
+  left:var(--spot-x);
+  top:var(--spot-y);
+  transform:translate(-50%,-50%);
+  width:clamp(32px,8.6vw,44px);
+  height:clamp(32px,8.6vw,44px);
+  min-width:0;
+  min-height:0;
+  padding:0;
+  display:grid;
+  place-items:center;
+  border:none;
+  border-radius:0;
+  background-color:transparent;
+  background-image:url('./art/rani-ui-icons-v04.webp?v=20261031d');
+  background-repeat:no-repeat;
+  background-size:400% 400%;
+  background-position:0% 33.333%;
+  box-shadow:none;
+  filter:drop-shadow(0 2px 3px #102719);
+  transition:transform .15s,filter .15s;
+  z-index:2;
+}
+.stage-tile.boss{background-position:66.667% 100%}
+.stage-tile.cleared{background-position:0% 66.667%}
+.stage-tile.locked{
+  background-position:100% 33.333%;
+  opacity:.72;
+  filter:grayscale(.36) drop-shadow(0 2px 3px #0e1d16);
+}
+.stage-tile.selected,.stage-tile.selected.boss{
+  transform:translate(-50%,-50%) scale(1.19);
+  background-color:transparent;
+  border:none;
+  box-shadow:none;
+  filter:drop-shadow(0 0 5px #ffe29c) drop-shadow(0 3px 3px #102515);
+  z-index:5;
+}
+.stage-tile .num{
+  display:block;
+  margin-top:56%;
+  min-height:15px;
+  padding:1px 4px;
+  border-radius:8px;
+  border:1px solid rgba(247,218,151,.75);
+  background:#33271bcf;
+  color:#fff8d5;
+  font-weight:1000;
+  line-height:12px;
+  font-size:10px!important;
+  text-shadow:0 1px 2px #241406;
+  box-shadow:0 1px 3px #07180d;
+}
+.stage-tile.locked .num.painted-icon{display:none}
+.stage-tile .tiny,.stage-tile .clear-star{display:none}
+.stage-tile:focus-visible{outline:3px solid #fff0bd;outline-offset:3px;border-radius:50%}
+.stage-tile:active:not(:disabled){transform:translate(-50%,-50%) scale(.98)}
+.menu-actions{
+  margin-top:5px;
+  gap:8px;
+  padding:4px 0 0;
+}
+.rune-btn{
+  min-height:42px;
+  padding:6px 9px;
+  border:2px solid #70462a;
+  border-radius:14px 17px 12px 16px;
+  box-shadow:inset 0 2px #f4e2a1,0 3px #36291d,0 5px 9px #07180f88;
+  font-size:12px;
+}
+.rune-btn.primary{
+  min-height:50px;
+  background:linear-gradient(110deg,#f9e2a4,#e6a956 75%,#9f622f);
+  font-size:17px;
+}
+.rune-btn.secondary{
+  background:linear-gradient(120deg,#d2e5a6,#8caf70 75%,#557942);
+}
+.rune-btn.tertiary{
+  background:linear-gradient(120deg,#f3e0b8,#c6a976 75%,#9f744c);
+}
+.menu-bottom{margin-top:7px;font-size:9px;text-shadow:0 1px 2px #071a10}
+@media (max-height:760px){
+  .brand-seal.painted-icon{width:51px;height:51px}
+  .brand h1{font-size:30px}
+  .brand>p:last-child{font-size:10px}
+  .story-panel{margin-top:5px;padding:6px 11px 7px}
+  .story-panel h2{font-size:12px}
+  .story-panel p{font-size:9px}
+  .map-title{margin-top:5px;margin-bottom:0}
+  .stage-grid{min-height:130px}
+  .menu-actions{margin-top:3px;gap:5px}
+  .rune-btn{min-height:36px}
+  .rune-btn.primary{min-height:42px}
+  .menu-bottom{margin-top:4px}
+}
+@media (max-height:620px){
+  .brand .eyebrow,.brand>p:last-child{display:none}
+  .story-panel{padding:5px 10px}
+  .story-panel p{display:none}
+  .stage-grid{min-height:95px}
+  .menu-bottom{display:none}
+}
+@media (max-width:350px){
+  .menu{padding-left:9px;padding-right:9px}
+  .stage-tile{width:32px;height:32px}
+  .story-panel{padding-left:9px;padding-right:9px}
+  .story-panel p{font-size:9px}
+  .stage-tile .num{font-size:9px!important;padding:0 3px}
+}
+@media(prefers-reduced-motion:reduce){.stage-tile{transition:none}}

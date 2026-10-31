@@ -5,12 +5,12 @@ const root=new URL('../',import.meta.url);
 const read=name=>readFileSync(new URL(name,root),'utf8');
 const html=read('index.html'),css=read('style.css'),js=read('game.js'),visuals=read('visuals.js');
 const atlas=new URL('art/forest-characters.png',root),evo=new URL('art/rani-evolution.png',root);
-const field=new URL('art/forest-battleground-v04.webp',root),icons=new URL('art/rani-ui-icons-v04.webp',root);
+const field=new URL('art/forest-battleground-v04.webp',root),icons=new URL('art/rani-ui-icons-v04.webp',root),map=new URL('art/forest-worldmap-v05.webp',root);
 for(const asset of [atlas,evo]){
   assert.ok(statSync(asset).size>100_000,'Original PNG asset must be present');
   assert.equal(readFileSync(asset).subarray(1,4).toString(),'PNG');
 }
-for(const asset of [field,icons]){
+for(const asset of [field,icons,map]){
   const bytes=readFileSync(asset);
   assert.ok(bytes.length>30_000,'WebP game artwork must be present');
   assert.equal(bytes.toString('ascii',0,4),'RIFF');
@@ -31,6 +31,10 @@ assert.match(html,/id="skill-btn"/);
 assert.match(html,/id="evo-btn"/);
 assert.match(html,/라니 수비대/);
 assert.match(css,/100dvh/);
+assert.match(css,/forest-worldmap-v05\.webp/);
+assert.match(js,/STAGE_SPOTS/);
+assert.match(js,/--spot-x/);
+assert.match(html,/forest-worldmap-v05\.webp/);
 assert.match(css,/\[hidden\]\{display:none!important\}/);
 assert.match(js,/class WaveDirector/);
 assert.match(js,/class ForestBattle/);
@@ -55,4 +59,4 @@ assert.match(js,/const STAGES = \[/);
 assert.match(js,/const CARDS = \[/);
 assert.doesNotMatch(html+css+js+visuals,/<svg\b|data:image\/svg\+xml|\.svg(?:["'(])/i);
 assert.doesNotMatch(js,/eval\s*\(/);
-console.log('라니 수비대 v0.4 smoke: PASS (original WebP art, syntax, motion, boss patterns, no SVG).');
+console.log('라니 수비대 v0.5 smoke: PASS (continuous illustrated map, original art, motion, boss patterns, no SVG).');

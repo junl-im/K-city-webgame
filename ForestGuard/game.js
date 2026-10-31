@@ -1,4 +1,4 @@
-/* 라니 수비대 v0.4.0 — © 2026 곰같은여우
+/* 라니 수비대 v0.5.0 — © 2026 곰같은여우
  * Original game rules, PNG character art, Canvas field art and interface.
  * Combat architecture informed by MIT-licensed Phaser 3 and the WaveManager,
  * EnemyManager and Projectile patterns of rupertgermann/tower-defence.
@@ -24,6 +24,9 @@
     ['마지막 밤',12,'brute','혼합 공격','적들이 한꺼번에 숲으로 밀려들어요.'],
     ['검은 종의 주인',12,'boss','최종 보스','숲을 어둡게 만든 검은 종의 주인을 만나세요.']
   ].map((s,i) => ({id:i,chapter:Math.floor(i/4)+1,name:s[0],waves:s[1],elite:s[2],gimmick:s[3],story:s[4]}));
+  // Percent coordinates for the original continuous illustrated forest trail.
+  // Bottom camp -> moonlit summit; no SVG path or tile boundaries.
+  const STAGE_SPOTS = [[22,91],[48,83],[29,76],[55,68],[34,60],[61,53],[39,45],[70,38],[49,31],[76,24],[60,16],[81,9]];
   const CARDS = [
     {id:'power',icon:'⚔',title:'날카로운 일격',desc:'전체 공격력 +25%',rare:false},
     {id:'haste',icon:'➶',title:'빠른 손놀림',desc:'공격 속도 +20%',rare:false},
@@ -83,7 +86,8 @@
     STAGES.forEach((stage,index)=>{
       const b=document.createElement('button'); b.type='button';
       const locked = index>=state.unlocked, cleared=state.clears.includes(index);
-      b.className='stage-tile'+(locked?' locked':'')+(cleared?' cleared':'')+(state.selected===index?' selected':'');
+      b.className='stage-tile'+(locked?' locked':'')+(cleared?' cleared':'')+(state.selected===index?' selected':'')+(index%4===3?' boss':'');
+      const spot=STAGE_SPOTS[index];b.style.setProperty('--spot-x',spot[0]+'%');b.style.setProperty('--spot-y',spot[1]+'%');
       b.disabled=locked;
       const n=document.createElement('span'); n.className='num'; n.textContent=locked?'':(stage.chapter+'-'+((index%4)+1));
       if(locked)V.setIcon(n,'lock');
