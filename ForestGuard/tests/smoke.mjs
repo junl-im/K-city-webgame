@@ -1,12 +1,17 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,statSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 const root=new URL('../',import.meta.url);
 const read=name=>readFileSync(new URL(name,root),'utf8');
 const html=read('index.html'),css=read('style.css'),js=read('game.js');
-const atlas=read('atlas-data.js'),evo=read('evolution-data.js');
-assert.match(atlas,/data:image\/png;base64,/);
-assert.match(evo,/data:image\/png;base64,/);
+const atlas=new URL('art/forest-characters.png',root),evo=new URL('art/rani-evolution.png',root);
+for(const asset of [atlas,evo]){
+  assert.ok(statSync(asset).size>100_000,'Original PNG asset must be present');
+  assert.equal(readFileSync(asset).subarray(1,4).toString(),'PNG');
+}
+assert.match(html,/game\.js\?v=/);
+assert.match(js,/forest-characters\.png/);
+assert.match(js,/rani-evolution\.png/);
 execFileSync(process.execPath,['--check',new URL('game.js',root).pathname]);
 assert.match(html,/lang="ko"/);
 assert.match(html,/viewport-fit=cover/);

@@ -21,7 +21,7 @@
 ## 코드 및 디자인
 - 게임 프레임워크: Phaser 3.88.2 (MIT).
 - 참고 오픈소스: https://github.com/rupertgermann/tower-defence (MIT), 특히 웨이브 관리·적 처리·투사체 처리 패턴. 원작의 가로형 타워 배치 대신 고정 성벽형 로그라이크 용병 전투로 새 설계.
-- 이미지: 자체 제작 PNG 원화 8종과 곰같은여우 진화형 8프레임 시트를 atlas-data.js / evolution-data.js로 묶음. 일부 지형과 효과는 Canvas 2D. SVG 없음. UI 일부 시스템 이모지는 임시이며 이후 전용 PNG/WebP로 교체.
+- 이미지: 자체 제작 PNG 원화 8종과 곰같은여우 진화형 8프레임 시트를 art/forest-characters.png / art/rani-evolution.png로 직접 제공. 일부 지형과 효과는 Canvas 2D. SVG 없음. UI 일부 시스템 이모지는 임시이며 이후 전용 PNG/WebP로 교체.
 - 운영: 정적 웹 호스팅 가능. 서버·로그인·광고·인앱 결제 불필요.
 - 분리: K-city-webgame/ForestGuard/ 단독 진입점. 다른 게임 소스·에셋은 수정하지 않음.
 

@@ -1,5 +1,5 @@
 /* 라니 수비대 v0.2.0 — © 2026 곰같은여우
- * Original game, game rules, Canvas-painted sprites and interface.
+ * Original game rules, PNG character art, Canvas field art and interface.
  * Combat architecture informed by MIT-licensed Phaser 3 and the WaveManager,
  * EnemyManager and Projectile patterns of rupertgermann/tower-defence.
  * No SVG, forced advertisements, telemetry, accounts or external art assets.
@@ -57,11 +57,11 @@
     const load=(url,assign)=>new Promise(resolve=>{
       if(!url){resolve();return;}
       const art=new Image();art.onload=()=>{assign(art);resolve();};
-      art.onerror=()=>resolve();art.src=url;
+      art.onerror=()=>{console.warn('원화 불러오기 실패:',url);resolve();};art.src=url;
     });
     atlasPromise=Promise.all([
-      load(window.ForestGuardAtlas,art=>{atlasBitmap=art;}),
-      load(window.RaniEvolutionAtlas,art=>{evolutionBitmap=art;})
+      load('./art/forest-characters.png?v=20261031b',art=>{atlasBitmap=art;}),
+      load('./art/rani-evolution.png?v=20261031b',art=>{evolutionBitmap=art;})
     ]);
     return atlasPromise;
   }
