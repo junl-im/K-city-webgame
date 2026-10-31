@@ -68,6 +68,23 @@ try{
         }
       }
     }
+    if(size.width===390){
+      // A real first-wave combat smoke: fast-forward, verify the free recruit, reopen it from the empty perch.
+      await page.locator('#speed-btn').click();
+      await page.waitForFunction(()=>{
+        const modal=document.querySelector('#modal-layer');
+        return !modal.hidden && modal.querySelectorAll('.recruit-card').length===3;
+      },null,{timeout:50000});
+      assert.equal(await page.locator('.recruit-card').count(),3,'Three distinct first companions');
+      await page.locator('#modal-close').click();
+      assert.equal(await page.locator('#modal-layer').isHidden(),true,'Recruit can be deferred');
+      await page.locator('.hero-slot.empty').first().click();
+      assert.equal(await page.locator('.recruit-card').count(),3,'Empty pedestal reopens recruitment');
+      await page.locator('.recruit-rabbit').click();
+      assert.equal(await page.locator('.hero-slot:not(.empty)').count(),2,'Recruit joins the defense');
+      assert.equal(await page.locator('.hero-slot.empty').count(),1,'Only one bench slot remains');
+      await page.screenshot({path:new URL('../test-output/forest-recruited-rabbit.png',import.meta.url).pathname});
+    }
     await page.screenshot({path:new URL('../test-output/forest-'+size.width+'x'+size.height+'.png',import.meta.url).pathname});
     assert.deepEqual(errors,[],'Uncaught browser error');
     reports.push({viewport:size,menu:'PASS',battle:'PASS',hud: battle.hud.length,buttons:battle.buttons.length});
