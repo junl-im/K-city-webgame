@@ -115,7 +115,7 @@
   const biomeBitmaps = [null,null,null];
   const biomeLoading = [null,null,null];
   const biomeFiles = ['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'];
-  let monsterBitmap = null, fortBitmap = null, mushroomAttackBitmap = null;
+  let monsterBitmap = null, fortBitmap = null, mushroomAttackBitmap = null, rampartBitmap = null;
   const ART_VERSION = '20261031r';
   async function prepareAtlas(stageIndex){
     const load=(url,assign)=>new Promise(resolve=>{
@@ -140,12 +140,13 @@
       load('./art/forest-battleground-v04.webp?v=20261031d',art=>{fieldBitmap=art;}),
       load('./art/forest-monsters-v14-clean.webp?v='+ART_VERSION,art=>{monsterBitmap=art;}),
       load('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;}),
-      load('./art/mushroom-colossus-attack-v19.webp?v=20261101d',art=>{mushroomAttackBitmap=art;})
+      load('./art/mushroom-colossus-attack-v19.webp?v=20261101d',art=>{mushroomAttackBitmap=art;}),
+      load('./art/painted-rampart-front-v24.webp?v=20261101j',art=>{rampartBitmap=art;})
     ]);
     const biome=Math.floor(stageIndex/4);
     if(!biomeLoading[biome])biomeLoading[biome]=load('./art/'+biomeFiles[biome]+'?v=20261031i',art=>{biomeBitmaps[biome]=art;});
     await Promise.all([atlasPromise,biomeLoading[biome]]);
-    if(!biomeBitmaps[biome]||!atlasBitmap||!monsterBitmap||!evolutionBitmap||!fortBitmap){
+    if(!biomeBitmaps[biome]||!atlasBitmap||!monsterBitmap||!evolutionBitmap||!fortBitmap||!rampartBitmap){
       atlasPromise=null;biomeLoading[biome]=null;return false;
     }
     return true;
@@ -498,6 +499,8 @@
   }
   function buildTextures(scene){
     createCanvasTexture(scene,'fort-plaque',328,59,c=>paintFortPlaque(c,3000,3000));
+    // Independent transparent stone wall from a NEW game illustration, not a field crop.
+    createCanvasTexture(scene,'painted-rampart-front',420,60,c=>c.drawImage(rampartBitmap,0,0,420,60));
     createCanvasTexture(scene,'field',420,650,(c,w,h)=>{
       const scenery=biomeBitmaps[Math.floor(scene.stage.id/4)]||fieldBitmap;
       if(!scenery)throw new Error('Illustrated background missing: '+scene.stage.id);
@@ -679,7 +682,7 @@
       this.terrainTimer=this.terrainConfig?this.terrainConfig.interval:Infinity;
       this.terrainWarned=false;this.terrainWarning=false;this.terrainCueUntil=0;this.terrainCueText='';
       this.terrainEvents=0;this.overlayTimer=0;
-      this.cardCounts={};this.synergies=new Set();this.gameClock=0;
+      this.cardCounts={};this.synergies=new Set();this.gameClock=0;this.attackFxActive=0;
       this.heroIds=['fox',null,null];this.targetModes=['front','front','front'];this.attackTimes=[0,0,0];this.enemies=[];this.projectiles=[];this.effects=[];this.dyingSprites=0;
       this.focusEnemy=null;this.focusUntil=0;this.focusReticle=null;this.lastFortHP=-1;
       const personal=state.stats[this.stage.id]||{};
@@ -697,14 +700,15 @@
       buildTextures(this);this.add.image(210,325,'field');
       // Depth 1.8: foreground wall and torch lights sit under HP plaque (2)
       // and all combat characters (4–6). Each biome uses its own field texture.
-      // One illustrated field only; fort HUD and hero portraits remain on their own depths.
+      // One original stage field + one independently painted transparent foreground.
       this.setupAmbience();
+      this.rampartFront=this.add.image(210,620,'painted-rampart-front').setDepth(7);
       $('arena-wrap').classList.toggle('foggy',this.stage.id>=4&&this.stage.id<=7);
       $('arena-wrap').classList.toggle('moonlit',this.stage.id>=8);
       $('arena-wrap').classList.remove('boss-warning');
       // Status bar now lives below the battlefield in the DOM, never across hero feet.
       this.fortPlaque=this.add.image(210,625,'fort-plaque').setDepth(2).setVisible(false);
-      this.heroSprites=this.heroIds.map((id,i)=>id?this.add.image([104,210,316][i],595,'motion-'+id+'-idle-0').setDisplaySize(83,83).setDepth(6):null);
+      this.heroSprites=this.heroIds.map((id,i)=>id?this.add.image([104,210,316][i],568,'motion-'+id+'-idle-0').setDisplaySize(96,96).setDepth(6):null);
       this.wave.begin();renderSlots();renderHUD();
       this.syncBattleOverlay();
       requestAnimationFrame(()=>requestAnimationFrame(()=>{if(battle===this)$('battle-loading').hidden=true;}));
@@ -831,7 +835,7 @@
       const num=id==='fox'?1+this.multi:id==='megafox'?2+this.multi:1;
       for(let p=0;p<num;p++){
         const offset=(p-(num-1)/2)*12;
-        const bolt=this.add.image(x+offset,568,'shot-'+id).setDisplaySize(id==='cat'?31:id==='rabbit'?27:32,32).setDepth(6);
+        const bolt=this.add.image(x+offset,542,'shot-'+id).setDisplaySize(id==='cat'?31:id==='rabbit'?27:32,32).setDepth(6);
         const trailColor=id==='rabbit'?0x8fe5ff:id==='cat'?0xffb56c:id==='megafox'?0xffe77f:id==='bear'?0xe8cf9e:0xb9e18a;
         const trail=this.add.image(bolt.x-23,bolt.y,'trail-'+id).setDisplaySize(id==='megafox'?78:65,22).setAlpha(.72).setDepth(5);
         const evolvePower=id==='megafox'&&this.evolutionPath==='sun'?1.25:1;
@@ -840,7 +844,24 @@
       const sprite=this.heroSprites[i];if(sprite){
         V.trigger(sprite,'attack',this.gameClock+310);
         if(id==='megafox')this.animateEvolutionAttack(sprite);
-        else this.tweens.add({targets:sprite,x:x-4,duration:85,yoyo:true,repeat:0});
+        else this.tweens.add({targets:sprite,x:x-5,y:sprite.y-4,duration:85,yoyo:true,repeat:0});
+        this.playHeroAttackCue(x,id);
+      }
+    }
+    playHeroAttackCue(x,id){
+      const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if(reduced||this.attackFxActive>=12||this.ended)return;
+      const key=id==='rabbit'?'shard-crystal':id==='cat'?'shard-spore':'shard-leaf';
+      const tint=id==='cat'?0xc69df4:id==='bear'?0xf6d9a0:id==='megafox'?0xf6cf7d:null;
+      for(let n=0;n<2;n++){
+        if(this.attackFxActive>=12)break;
+        this.attackFxActive++;
+        const fx=this.add.image(x+(n?20:-8),535-n*7,key).setDisplaySize(15+n*4,16+n*3)
+          .setAlpha(.83).setDepth(6.5);
+        if(tint)fx.setTint(tint);
+        this.tweens.add({targets:fx,x:fx.x+(n?18:-12),y:fx.y-20-n*10,
+          alpha:0,scale:1.6,angle:n?42:-35,duration:330,ease:'Cubic.easeOut',
+          onComplete:()=>{fx.destroy();this.attackFxActive=Math.max(0,this.attackFxActive-1);}});
       }
     }
     animateEvolutionAttack(sprite){
@@ -850,7 +871,7 @@
     previewRange(index){
       const id=this.heroIds[index];if(!id)return;
       const x=[104,210,316][index],radius=HEROES[id].range;
-      const circle=this.add.circle(x,595,radius,0xf1e8a0,.035).setStrokeStyle(2,0xf4d16b,.45).setDepth(1);
+      const circle=this.add.circle(x,568,radius,0xf1e8a0,.035).setStrokeStyle(2,0xf4d16b,.45).setDepth(1);
       this.tweens.add({targets:circle,alpha:0,duration:900,onComplete:()=>circle.destroy()});
     }
     evolveFox(){
@@ -1271,10 +1292,10 @@
       if(!['bear','rabbit','cat'].includes(id)||this.heroIds.includes(id))return false;
       const idx=this.heroIds.indexOf(null);if(idx<0)return false;
       this.heroIds[idx]=id;this.attackTimes[idx]=400;
-      const sprite=this.add.image([104,210,316][idx],595,'motion-'+id+'-idle-0').setDisplaySize(80,80).setDepth(5);
+      const sprite=this.add.image([104,210,316][idx],568,'motion-'+id+'-idle-0').setDisplaySize(94,94).setDepth(6);
       this.heroSprites[idx]=sprite;
       V.trigger(sprite,'victory',this.gameClock+700);
-      const glow=this.add.circle(sprite.x,580,19,0xffdf91,.28).setDepth(4);
+      const glow=this.add.ellipse(sprite.x,591,45,17,0xffdf91,.23).setDepth(5);
       this.tweens.add({targets:glow,scale:3,alpha:0,duration:450,onComplete:()=>glow.destroy()});
       renderSlots();showBanner(HEROES[id].name+' 합류!');
       return true;
