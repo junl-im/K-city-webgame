@@ -313,3 +313,17 @@
 
 ### v2.7 테스트 — 5인 편성 실제 동작
 - Phaser 없는 Node 테스트에서 시작 여우 1명(중앙)→곰→토끼→고양이→토끼 재영입으로 정확히 5자리 점유 확인. 독립 종족 모두 모이기 전에 중복 영입 금지, 5자리 가득 찬 뒤 6번째 입단 금지, 화면 영웅 크기 94→86→79→72 확인.
+
+
+## 2026-11-01 v2.9 — 지역별 몬스터 공세 편성
+- 12스테이지마다 적 등장 종류별 가중치 프로필과 한국어 전투 주제 레이블을 추가. 같은 몬스터 집단이 모든 지역에 반복되는 단조로움을 낮추면서 기존 12스테이지 진행과 저장키 `gomfox.forestguard.v1`은 보존.
+- 1공세는 새싹 중심, 빠른 적은 최대 1마리, 갑옷/특수 적은 배제. 2공세에서는 특수 적의 비중을 낮춤. 3공세부터 각 스테이지 대표 적을 최소 1회 등장시키고, 일반 적 종류 3연속 출현을 방지.
+- 정예/중간보스/보스는 기존 예정 공세, 맨 마지막 스폰 위치 및 등장 횟수를 변경하지 않음. 전투 HP·공격력·스폰 수/타이밍과 수동 스킬 시스템도 유지.
+- `tests/balance-matrix.mjs`에 지역 특색·첫 공세 제한·연속 적 완화·보스 위치 회귀 검사를 확장하고 `tests/smoke.mjs`와 게임 script cache `20261101r` 갱신.
+- 개발 중 WaveDirector 독립 시뮬레이션 12,400개 공세 스케줄(100회×12지역), 연속 배치 검사 100회 통과. 이 수치는 실제 플레이 승률·기기 성능 측정이 아님.
+- GitHub 최종 반영: https://github.com/junl-im/K-city-webgame/commit/dab78de798f6c92b9ea7b54c4dde04eeae78769a
+- CI 성공: https://github.com/junl-im/K-city-webgame/actions/runs/41308232611 (ForestGuard smoke #85)
+- 모바일 Chromium 자동 QA 성공: https://github.com/junl-im/K-city-webgame/actions/runs/41308232573 (#54)
+- GitHub Pages 배포 성공: https://github.com/junl-im/K-city-webgame/actions/runs/41308232566 (#300). 실제 공개 `index.html`에서 `./game.js?v=20261101r` 참조 확인.
+- 직접 플레이: https://junl-im.github.io/K-city-webgame/ForestGuard/#forest-guard
+- 미완료 및 다음 목표: 12지역 실전 승률 계측·3보스 장시간 완주, Android 320px/Samsung Internet/iOS Safari 실기기 QA, 5번째 중복 영웅 대체할 신규 고유 원화와 6~8프레임 애니메이션, 보스 액션 전용 일러스트. SVG 추가 없음.
