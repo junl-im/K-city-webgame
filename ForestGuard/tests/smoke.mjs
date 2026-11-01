@@ -105,7 +105,7 @@ assert.match(js,/hasDashed/);
 assert.match(js,/hasRallied/);
 assert.match(js,/guarding\?Math\.min\(\.55/);
 assert.match(css,/\.hero-slot\.empty\{border:0!important/);
-assert.match(html,/game\.js\?v=20261101k/);
+assert.match(html,/game\.js\?v=20261101l/);
 assert.match(css,/One continuous forest illustration/);
 assert.match(js,/holdMs:2100,fadeMs:620/);
 assert.match(js,/createCanvasTexture\(scene,'cinematic-vignette'/);
