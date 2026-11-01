@@ -1,6 +1,14 @@
 /* 라니 수비대 v3.2 — six original transparent painted assets.
    No SVG, CSS-drawn imitation frames, emoji artwork, or scrollable home page. */
 :root{--rani-board-acorn:url('./art/rani-board-acorn-v31.webp');--rani-board-map:url('./art/rani-board-map-v31.webp');--rani-board-fox:url('./art/rani-board-fox-v31.webp');--rani-buttons:url('./art/rani-button-atlas-v31.webp')}
+/* Icon decals must stay above dark HUD frames; position updates with pause/play state. */
+.painted-icon,
+.battle-hud .hud-control.painted-icon{
+  background-image:var(--rani-icon-image)!important;
+  background-size:var(--rani-icon-size)!important;
+  background-position:var(--rani-icon-position)!important;
+  background-repeat:no-repeat!important
+}
 .menu:not(.stage-choosing){isolation:isolate}
 .menu:not(.stage-choosing):before{
   opacity:.7!important;
