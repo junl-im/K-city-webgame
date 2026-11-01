@@ -50,6 +50,10 @@ try{
     await page.locator('#stage-list-btn').click({timeout:20000});
     assert.equal(await page.locator('#stage-select-panel').isVisible(),true,'Stage selection opens as a real screen');
     await page.locator('#stage-grid button').first().waitFor({state:'visible'});
+    assert.equal(await page.locator('#stage-map-pins .stage-path-pin').count(),4,
+      'Each chapter must show exactly four illustrated route markers');
+    assert.equal(await page.locator('#stage-map-pins button:not([disabled])').count(),1,
+      'Only the first waypoint should be unlocked on fresh save');
     const picked=await page.evaluate(()=>{
       const p=document.querySelector('#stage-select-panel').getBoundingClientRect();
       const list=document.querySelector('#stage-grid').getBoundingClientRect();

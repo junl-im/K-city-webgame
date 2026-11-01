@@ -178,6 +178,28 @@
       b.addEventListener('click',()=>{state.selected=index;renderMap();updateMenuStory();});
       grid.appendChild(b);
     });
+    // Chapter map: functional painted badges over continuous artwork, no blank nodes.
+    const pins=$('stage-map-pins');pins.replaceChildren();
+    const chapter=Math.floor(state.selected/4);
+    const positions=[[33,22],[68,40],[34,60],[66,79]];
+    for(let chapterIndex=0;chapterIndex<4;chapterIndex++){
+      const index=chapter*4+chapterIndex,stage=STAGES[index];
+      const locked=index>=state.unlocked,cleared=state.clears.includes(index);
+      const pin=document.createElement('button');pin.type='button';
+      pin.className='stage-path-pin'+(locked?' locked':'')+
+        (cleared?' cleared':'')+(state.selected===index?' active':'');
+      pin.style.left=positions[chapterIndex][0]+'%';
+      pin.style.top=positions[chapterIndex][1]+'%';
+      pin.disabled=locked;
+      pin.setAttribute('aria-label',stage.chapter+'-'+(chapterIndex+1)+' '+stage.name+(locked?' 잠김':''));
+      const art=document.createElement('span');art.className='stage-pin-art';
+      V.setIcon(art,locked?'lock':cleared?'star':chapterIndex===3?'target':'play');
+      const num=document.createElement('span');num.className='stage-pin-number';
+      num.textContent=stage.chapter+'-'+(chapterIndex+1);
+      pin.append(art,num);
+      pin.addEventListener('click',()=>{state.selected=index;renderMap();updateMenuStory();});
+      pins.appendChild(pin);
+    }
     $('progress-label').textContent=state.clears.length+' / 12 클리어';
     const stage=STAGES[state.selected];
     $('stage-map-number').textContent=stage.chapter+'-'+((state.selected%4)+1);
