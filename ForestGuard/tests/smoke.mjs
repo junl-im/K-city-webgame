@@ -64,7 +64,7 @@ assert.match(js,/hero-rear-'\+id/);
 assert.match(visuals,/textures\.exists\('hero-rear-'\+id\)/);
 assert.doesNotMatch(illustrated31,/<svg|data:image\/svg/i);
 const button33=read('button-system-v33.css');
-assert.ok(html.includes('button-system-v33.css?v=20261102a'));
+assert.ok(html.includes('button-system-v33.css?v=20261102b'));
 for(const name of ['gold','emerald','stone','sapphire','parchment','crimson']){
   const assetName='btn-'+name+'-v33.webp';
   const bytes=readFileSync(new URL('art/'+assetName,root));

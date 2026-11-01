@@ -102,6 +102,16 @@ try{
     // Explicitly navigate the dedicated stage picker, no more scattered empty waypoint boxes.
     await page.locator('#stage-list-btn').click({timeout:20000});
     assert.equal(await page.locator('#stage-select-panel').isVisible(),true,'Stage selection opens as a real screen');
+    const stageCardArt=await page.evaluate(()=>{
+      const selected=getComputedStyle(document.querySelector('#stage-grid .stage-tile.selected')).backgroundImage;
+      const locked=getComputedStyle(document.querySelector('#stage-grid .stage-tile.locked')).backgroundImage;
+      return {selected,locked};
+    });
+    assert.ok(stageCardArt.selected.includes('btn-gold-v33.webp')&&
+      stageCardArt.selected.includes('linear-gradient'),
+      'Stage title must remain legible over its gold painted surface');
+    assert.ok(stageCardArt.locked.includes('btn-stone-v33.webp'),
+      'Locked stages must use the weathered stone painting');
     await page.locator('#stage-grid button').first().waitFor({state:'visible'});
     assert.equal(await page.locator('#stage-map-pins .stage-path-pin').count(),4,
       'Each chapter must show exactly four illustrated route markers');
