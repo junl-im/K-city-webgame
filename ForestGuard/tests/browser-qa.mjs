@@ -103,11 +103,14 @@ try{
         map:parseFloat(s('.stage-map-preview').borderLeftWidth),
         footer:parseFloat(s('.stage-choice-footer').borderTopWidth),
         world:s('.stage-select-panel').backgroundImage.includes('forest-worldmap-v05.webp'),
+        pickerColor:s('.stage-select-panel').backgroundColor,
         innerBackground:s('.stage-map-preview').backgroundImage};
     });
     assert.ok(continuous.world&&continuous.list===0&&continuous.map===0&&continuous.footer===0,
       'One painted map without vertical/horizontal dividing frames');
     assert.equal(continuous.innerBackground,'none','No second landscape in stage map section');
+    assert.equal(continuous.pickerColor,'rgb(7, 27, 22)',
+      'Stage picker must have an opaque painted base, never reveal title or home buttons');
     await page.screenshot({path:new URL('../test-output/stage-picker-'+size.width+'x'+size.height+'.png',import.meta.url).pathname});
     await page.locator('#stage-back-btn').click();
     assert.equal(await page.locator('#stage-select-panel').isHidden(),true,'Stage picker closes to home');
@@ -154,10 +157,12 @@ try{
     assert.deepEqual(roster.positions,[58,134,210,286,362]);
     assert.equal(await page.locator('.hero-slot').count(),5,'Five usable slots must fit in the battle toolbar');
     const edges=await page.locator('.hero-slot').evaluateAll(nodes=>nodes.map(node=>{
-      const p=node.getBoundingClientRect();return {x:p.x,right:p.right,width:p.width};
+      const p=node.getBoundingClientRect();return {x:p.x,right:p.right,width:p.width,top:p.top,bottom:p.bottom};
     }));
     assert.ok(edges.every(x=>x.width>=28&&x.x>=-2&&x.right<=size.width+2),
       'Five portraits must not clip off-screen');
+    assert.ok(edges.every(x=>Math.abs(x.top-edges[0].top)<=2&&x.bottom<=size.height+2),
+      'Five heroes must sit on ONE visible toolbar row, never wrap to a second row');
     const layers=await page.evaluate(()=>window.__ForestGuardQA?.renderInfo());
     assert.ok(layers&&layers.artLoaded,'New independent wall artwork must load');
     assert.equal(layers.frontTexture,'painted-rampart-front','Original painted wall foreground must render');
