@@ -8,7 +8,9 @@ const sizes=[
   {width:430,height:932},{width:1365,height:768}
 ];
 mkdirSync(new URL('../test-output/',import.meta.url),{recursive:true});
-const browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usage']});
+// CI software renderer: prevent headless SwiftShader framebuffer attachment errors.
+// Production retains Phaser.AUTO/WebGL; all gameplay and DOM flows are still tested.
+const browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usage','--disable-webgl']});
 const reports=[];
 try{
   for(const size of sizes){
