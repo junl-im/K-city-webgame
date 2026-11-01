@@ -62,6 +62,26 @@ try{
       'The actual home must prominently display the illustration, not a flat placeholder');
     assert.ok(homeArt.mainTop>=homeArt.heroBottom-2&&homeArt.help&&homeArt.intel,
       'Start action and home utility actions must remain reachable');
+    const homeFlow=await page.evaluate(()=>{
+      const start=document.getElementById('start-btn').getBoundingClientRect();
+      const spot=document.querySelector('.home-stage-spot').getBoundingClientRect();
+      const label=document.getElementById('home-stage-title').getBoundingClientRect();
+      const stage=document.getElementById('stage-list-btn').getBoundingClientRect();
+      const footer=document.querySelector('.menu-bottom').getBoundingClientRect();
+      const title=document.querySelector('.title-hero-art');
+      return {startBottom:start.bottom,stageTop:spot.top,cardHeight:spot.height,
+        labelCenter:(label.top+label.bottom)/2,stageCenter:(stage.top+stage.bottom)/2,
+        footerBottom:footer.bottom,mask:getComputedStyle(title).maskImage};
+    });
+    assert.ok(homeFlow.stageTop-homeFlow.startBottom>=-2&&
+      homeFlow.stageTop-homeFlow.startBottom<=50,
+      'Home quest and start action must form one compact composition: '+JSON.stringify(homeFlow));
+    assert.ok(homeFlow.cardHeight<=140&&
+      Math.abs(homeFlow.stageCenter-homeFlow.labelCenter)<=66,
+      'Stage info and stage-select action drift apart: '+JSON.stringify(homeFlow));
+    assert.ok(homeFlow.footerBottom<=size.height+2&&
+      homeFlow.mask.includes('radial-gradient'),
+      'Home illustrated title and footer must fit without hard rectangular art edges');
     await page.screenshot({path:new URL('../test-output/home-'+size.width+'x'+size.height+'.png',import.meta.url).pathname});
     // Explicitly navigate the dedicated stage picker, no more scattered empty waypoint boxes.
     await page.locator('#stage-list-btn').click({timeout:20000});

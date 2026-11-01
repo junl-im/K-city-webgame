@@ -1,64 +1,122 @@
-/* ForestGuard v2.6: one painted scene, UI as artwork, not boxed applications.
-   This file owns HOME and CHAPTER SELECT presentation; old CSS stays for engine/HUD.
-   No SVG, emojis, arbitrary blank placeholders, or separate background image on map child. */
+/* ForestGuard v3.1: the homepage is one illustrated invitation, not stacked boxes.
+   Reuses the original ForestGuard painted scene and title, without SVG or emoji UI.
+   Chapter select styling below remains independent. */
 .menu:not(.stage-choosing){
-  padding:calc(8px + env(safe-area-inset-top,0px)) clamp(9px,3vw,17px) calc(7px + env(safe-area-inset-bottom,0px));
+  padding:calc(8px + env(safe-area-inset-top,0px)) clamp(10px,3vw,18px)
+    calc(7px + env(safe-area-inset-bottom,0px));
   gap:0;overflow:hidden;
-  background:linear-gradient(180deg,rgba(4,22,16,.08),rgba(4,18,13,.06) 51%,rgba(4,16,13,.79) 100%),
-    url('./art/forest-entrance-v08.png') center /cover !important;
+  background:
+    linear-gradient(180deg,rgba(5,22,16,.22) 0%,rgba(5,18,13,.02) 35%,rgba(4,18,13,.18) 66%,rgba(4,16,13,.81) 100%),
+    url('./art/forest-entrance-v08.png') center /cover!important;
+}
+.menu:not(.stage-choosing):before{
+  inset:0;opacity:.55;
+  background:radial-gradient(ellipse 60% 30% at 50% 23%,rgba(242,197,114,.18),transparent 83%);
 }
 .menu:not(.stage-choosing) .home-utility-actions{
-  order:0;display:flex;justify-content:space-between;align-items:center;gap:9px;z-index:3;
-  height:35px;flex:0 0 35px}
+  order:0;display:flex;justify-content:space-between;align-items:center;
+  gap:9px;z-index:3;height:35px;flex:0 0 35px;
+}
 .menu:not(.stage-choosing) .home-utility-btn{
-  color:#fff0cd;font-weight:850;font-size:12px;line-height:1;
-  min-width:74px;min-height:32px;padding:5px 13px;
-  border:1px solid #d6b178;border-radius:9px;background:linear-gradient(140deg,#3e3a2cdc,#1a251fdc);
-  box-shadow:inset 0 1px #fff2d181,0 2px 6px #0006;text-shadow:0 2px #100f0e;
+  color:#fff0d0;font-weight:850;font-size:11px;letter-spacing:.2px;line-height:1;
+  min-width:72px;min-height:32px;padding:5px 12px;
+  border:1px solid #bda071;border-radius:7px;
+  background:linear-gradient(155deg,rgba(62,68,45,.91),rgba(15,36,25,.93));
+  box-shadow:inset 0 1px rgba(255,241,195,.36),0 2px 5px #06150e74;
+  text-shadow:0 1px 2px #030b06;
 }
 .menu:not(.stage-choosing) .brand{
-  order:1;flex:1 1 auto;min-height:0!important;height:auto!important;max-height:none!important;
-  width:100%;margin:0;align-self:center;overflow:visible!important;isolation:isolate;
-  align-items:center;justify-content:center}
+  order:1;flex:0 0 clamp(192px,33.5dvh,312px)!important;
+  height:clamp(192px,33.5dvh,312px)!important;
+  min-height:0!important;max-height:none!important;width:100%;
+  margin:clamp(2px,1dvh,9px) 0 0;align-self:center;
+  display:flex;align-items:center!important;justify-content:center!important;
+  overflow:visible!important;isolation:isolate;
+}
 .menu:not(.stage-choosing) .title-hero-art{
-  width:100%;height:100%;max-width:570px;object-fit:contain;
-  filter:drop-shadow(0 9px 8px rgba(0,0,0,.65))}
+  display:block;width:100%!important;height:100%!important;max-width:520px;
+  object-fit:contain!important;object-position:center bottom!important;
+  -webkit-mask-image:radial-gradient(ellipse 68% 60% at 50% 57%,#000 44%,rgba(0,0,0,.91) 62%,transparent 100%);
+  mask-image:radial-gradient(ellipse 68% 60% at 50% 57%,#000 44%,rgba(0,0,0,.91) 62%,transparent 100%);
+  filter:drop-shadow(0 5px 7px #07181294)!important;
+}
 .menu:not(.stage-choosing) .menu-actions-top{
   order:2;position:relative;z-index:3;
-  flex:0 0 auto;margin:0 auto 8px!important;gap:8px;align-items:center;justify-content:center;
-  width:100%;max-width:420px}
+  flex:0 0 auto;display:flex;flex-wrap:nowrap;align-items:center;
+  justify-content:center;gap:9px;width:100%;max-width:390px;
+  margin:0 auto!important;
+}
 .menu:not(.stage-choosing) .menu-actions-top #start-btn{
-  flex:1 1 65%!important;min-width:145px;max-width:280px;
-  height:clamp(49px,8.1dvh,66px)!important;min-height:49px!important;
-  border:3px solid #f6dba4!important;border-radius:12px!important;
-  background:linear-gradient(#ffd991,#eab363 49%,#b76d34)!important;
-  box-shadow:inset 0 2px #fff4cf,0 4px #6d4325,0 7px 14px #06130fae!important;
-  font-size:clamp(19px,5vw,25px)!important;color:#4b2b19!important;
-  text-shadow:0 1px #fff3c5!important}
+  flex:0 1 230px!important;width:min(58%,230px);min-width:158px;max-width:230px;
+  height:clamp(50px,6.7dvh,57px)!important;min-height:50px!important;
+  padding:7px 17px!important;border:2px solid #f0d18c!important;
+  border-radius:10px!important;
+  background:
+    linear-gradient(160deg,rgba(255,244,199,.38),transparent 37%),
+    linear-gradient(180deg,#c99d54 0%,#a46a36 57%,#693d24 100%)!important;
+  box-shadow:inset 0 1px #fff3cf,inset 0 -3px #6c4226,0 3px 7px #09150f8f!important;
+  color:#fff4d7!important;text-shadow:0 2px #56331f!important;
+  font-size:clamp(19px,5vw,23px)!important;letter-spacing:.1em;
+}
 .menu:not(.stage-choosing) .menu-actions-top #resume-btn:not([hidden]){
-  flex:0 1 40%;height:50px!important;min-width:110px;
-  border:2px solid #d5b274;background:linear-gradient(#795739,#3b3328);color:#fff1d0}
+  flex:0 1 145px!important;min-width:105px;max-width:145px;
+  height:50px!important;min-height:50px!important;
+  border:2px solid #b49d73;border-radius:9px;
+  background:linear-gradient(165deg,#526249,#293f34 69%,#162d26);color:#fff1cf;
+  box-shadow:inset 0 1px #e0d0a780,0 3px 6px #06150da0;
+}
 .menu:not(.stage-choosing) .story-panel{display:none!important}
 .menu:not(.stage-choosing) .home-stage-spot{
-  order:3;flex:0 0 clamp(108px,18.5dvh,160px)!important;min-height:85px!important;
-  margin:0!important;padding:12px 12px 9px!important;display:flex;justify-content:space-between;
-  background:linear-gradient(180deg,rgba(4,19,15,.06),rgba(3,18,14,.72) 68%,rgba(4,17,14,.85))!important;
-  border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible}
-.menu:not(.stage-choosing) .home-stage-spot:before{display:none}
-.menu:not(.stage-choosing) .home-stage-copy small{color:#fbd68c;font-size:10px}
-.menu:not(.stage-choosing) .home-stage-copy strong{font-size:16px;line-height:1.25}
-.menu:not(.stage-choosing) .home-stage-copy span{font-size:10px}
+  order:3;flex:0 0 auto!important;width:min(100%,410px);min-height:92px!important;
+  margin:clamp(13px,3.8dvh,31px) auto 0!important;padding:12px 15px!important;
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;justify-content:space-between;gap:8px;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:radial-gradient(ellipse 82% 76% at 50% 50%,rgba(8,31,21,.88),rgba(8,28,20,.64) 61%,transparent 100%)!important;
+  overflow:visible;
+}
+.menu:not(.stage-choosing) .home-stage-spot:before{display:none!important}
+.menu:not(.stage-choosing) .home-stage-copy{
+  margin:0!important;min-width:0;align-self:center;gap:5px;
+  text-shadow:0 2px 3px #06140fcf;
+}
+.menu:not(.stage-choosing) .home-stage-copy small{
+  color:#f4cd8d;font-size:11px;font-weight:800;letter-spacing:1.4px;
+}
+.menu:not(.stage-choosing) .home-stage-copy strong{
+  color:#fff3d2;font-size:clamp(15px,4vw,18px);font-weight:950;line-height:1.18;
+}
+.menu:not(.stage-choosing) .home-stage-copy span{
+  color:#e7e6cf;font-size:11px;line-height:1.3;
+}
 .menu:not(.stage-choosing) .home-stage-spot #stage-list-btn{
-  align-self:flex-end;width:auto!important;min-width:118px;max-width:190px;
-  height:40px!important;min-height:40px!important;
-  padding:5px 11px!important;margin:2px 0 0;
-  border:2px solid #d9b582!important;border-radius:9px;
-  background:linear-gradient(#715137,#322b25)!important;
-  box-shadow:inset 0 1px #ffdfae8f,0 3px #171d15!important;
-  color:#fff3d2;font-size:12px!important}
+  justify-self:end;align-self:center;width:115px!important;min-width:104px;max-width:120px;
+  height:43px!important;min-height:43px!important;padding:7px 8px!important;margin:0;
+  border:1px solid #dbbd85!important;border-radius:8px!important;
+  background:linear-gradient(160deg,#6b5b3f,#354535 55%,#1d3429)!important;
+  box-shadow:inset 0 1px #ffedb66e,0 3px 5px #08180fac!important;
+  color:#fff3d7!important;font-size:12px!important;font-weight:900;
+  white-space:nowrap;text-shadow:0 1px #12231a;
+}
 .menu:not(.stage-choosing) .menu-bottom{
-  order:4;margin:0!important;padding-top:2px;opacity:.78;
-  background:#06150f91;font-size:9px;height:18px;flex:0 0 18px}
+  order:4;flex:0 0 18px;height:18px;margin:auto 0 0!important;padding-top:2px;
+  background:transparent!important;font-size:9px;opacity:.78;
+}
+.menu:not(.stage-choosing) .home-utility-btn:focus-visible,
+.menu:not(.stage-choosing) .rune-btn:focus-visible{
+  outline:2px solid #fff0ba;outline-offset:2px;
+}
+@media(max-width:350px){
+  .menu:not(.stage-choosing) .home-stage-spot{padding:9px 6px!important;gap:3px}
+  .menu:not(.stage-choosing) .home-stage-spot #stage-list-btn{width:101px!important;min-width:101px;font-size:11px!important}
+  .menu:not(.stage-choosing) .home-stage-copy span{font-size:10px}
+  .menu:not(.stage-choosing) .brand{flex-basis:clamp(175px,34dvh,223px)!important;height:clamp(175px,34dvh,223px)!important}
+}
+@media(max-height:670px){
+  .menu:not(.stage-choosing) .brand{flex-basis:clamp(164px,32dvh,218px)!important;height:clamp(164px,32dvh,218px)!important}
+  .menu:not(.stage-choosing) .home-stage-spot{margin-top:8px!important;min-height:75px!important;padding:7px 11px!important}
+  .menu:not(.stage-choosing) .menu-actions-top #start-btn{height:49px!important;min-height:49px!important}
+}
 /* Full-bleed stage worldmap. Only stage cards and controls are separated, not the scene. */
 .stage-select-panel{
   background:linear-gradient(90deg,rgba(4,20,16,.88),rgba(7,28,21,.48) 45%,rgba(7,28,21,.04) 91%),
@@ -78,7 +136,7 @@
 .stage-chapter-tab.active{
   background:linear-gradient(#e7be76,#ae723b);color:#4a2d1a;
   border:2px solid #ffebbd;box-shadow:0 0 8px #ffd38485,inset 0 1px #fff0cd}
-.stage-chapter-tab:focus-visible,.home-utility-btn:focus-visible{outline:2px solid #fff3bb;outline-offset:1px}
+.stage-chapter-tab:focus-visible{outline:2px solid #fff3bb;outline-offset:1px}
 .stage-picker-content{
   display:grid!important;grid-template-columns:minmax(0,50%) minmax(0,50%)!important;
   gap:0!important;margin:3px 0!important}
@@ -135,7 +193,6 @@
   #stage-select-panel .stage-tile{min-height:57px!important}
   #stage-select-panel .stage-tile .stage-tile-art{min-height:43px}
   .stage-choice-footer{flex-basis:67px!important;height:67px!important}
-  .menu:not(.stage-choosing) .home-stage-spot{flex-basis:110px!important}
 }
 @media(max-width:350px){
   .stage-picker-content{grid-template-columns:minmax(0,52%) minmax(0,48%)!important}
@@ -143,8 +200,6 @@
   #stage-select-panel .stage-tile .stage-list-name{font-size:10px!important}
   #stage-select-panel .stage-tile .stage-tile-summary{font-size:8px!important}
   .stage-select-header span{font-size:9px!important}
-  .menu:not(.stage-choosing) .home-utility-actions{height:30px;flex-basis:30px}
-  .menu:not(.stage-choosing) .home-stage-spot{padding:6px 9px!important}
 }
 @media(prefers-reduced-motion:reduce){
   .stage-chapter-tab,.menu .title-hero-art{transition:none;animation:none}
@@ -168,22 +223,6 @@
 #stage-select-panel[data-chapter="3"] .stage-map-signet{
   color:#f7e9ff;text-shadow:0 2px #262242
 }
-
-/* v2.6.2 mobile home capture: join hero title artwork to start action. */
-.menu:not(.stage-choosing) .brand{
- flex:0 0 clamp(205px,42dvh,338px)!important;height:clamp(205px,42dvh,338px)!important;
- align-items:flex-end!important;justify-content:center!important;overflow:visible!important}
-.menu:not(.stage-choosing) .title-hero-art{
- width:100%!important;height:100%!important;object-fit:contain!important;object-position:center bottom!important;
- -webkit-mask-image:radial-gradient(ellipse 75% 66% at center 70%,#000 60%,transparent 100%);
- mask-image:radial-gradient(ellipse 75% 66% at center 70%,#000 60%,transparent 100%);
- filter:drop-shadow(0 5px 7px #071812a9)!important}
-.menu:not(.stage-choosing) .home-stage-spot{
- flex:1 1 auto!important;min-height:110px!important;justify-content:flex-end!important;gap:7px!important}
-.menu:not(.stage-choosing) .home-stage-copy{margin-bottom:auto}
-@media(max-height:650px){
- .menu:not(.stage-choosing) .brand{
-  flex-basis:clamp(170px,38dvh,245px)!important;height:clamp(170px,38dvh,245px)!important}}
 
 /* v2.8: Chapter picker is a real standalone painted scene.
    Its translucent vignette layers must never reveal the menu's title hero or buttons. */
