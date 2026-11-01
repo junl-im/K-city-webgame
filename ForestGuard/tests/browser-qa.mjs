@@ -17,7 +17,7 @@ try{
     const page=await context.newPage();
     const errors=[];page.on('pageerror',error=>errors.push(error.message));
     await page.goto(origin,{waitUntil:'domcontentloaded',timeout:25000});
-    await page.locator('#stage-grid button').first().waitFor({timeout:25000});
+    await page.locator('#stage-grid button').first().waitFor({state:'attached',timeout:25000});
     const menuOrder=await page.evaluate(()=>{
       const actions=document.querySelector('.menu-actions').getBoundingClientRect();
       const story=document.querySelector('.story-panel').getBoundingClientRect();
@@ -46,6 +46,21 @@ try{
     assert.equal(menu.svgCount,0,'SVG prohibited');
     assert.ok(menu.scrollX<=2&&menu.scrollY<=2,'Menu unexpectedly scrolls: '+JSON.stringify(menu));
     assert.ok(menu.start.top>=0&&menu.start.bottom<=size.height+2,'Start button clipped');
+    // Explicitly navigate the dedicated stage picker, no more scattered empty waypoint boxes.
+    await page.locator('#stage-list-btn').click({timeout:20000});
+    assert.equal(await page.locator('#stage-select-panel').isVisible(),true,'Stage selection opens as a real screen');
+    await page.locator('#stage-grid button').first().waitFor({state:'visible'});
+    const picked=await page.evaluate(()=>{
+      const p=document.querySelector('#stage-select-panel').getBoundingClientRect();
+      const list=document.querySelector('#stage-grid').getBoundingClientRect();
+      const enter=document.querySelector('#stage-enter-btn').getBoundingClientRect();
+      return {panel:p.width,listLeft:list.left,listRight:list.right,enterRight:enter.right,
+        scrollX:document.documentElement.scrollWidth-innerWidth,scrollY:document.documentElement.scrollHeight-innerHeight};
+    });
+    assert.ok(picked.scrollX<=2&&picked.scrollY<=2,'Stage picker overflow');
+    assert.ok(picked.enterRight<=size.width+2,'Stage entry clipped');
+    await page.locator('#stage-back-btn').click();
+    assert.equal(await page.locator('#stage-select-panel').isHidden(),true,'Stage picker closes to home');
     await page.locator('#start-btn').click({timeout:20000});
     await page.locator('#game-root canvas').waitFor({timeout:25000});
     await page.waitForTimeout(420);

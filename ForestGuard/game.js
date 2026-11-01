@@ -170,18 +170,37 @@
       const n=document.createElement('span'); n.className='num'; n.textContent=locked?'':(stage.chapter+'-'+((index%4)+1));
       if(locked)V.setIcon(n,'lock');
       if(cleared){const star=document.createElement('i');star.className='clear-star';V.setIcon(star,'star');b.appendChild(star);}
-      const small=document.createElement('span'); small.className='tiny'; small.textContent=locked?'잠김':(index%4===3?'두목':cleared?'완료':'도전');
-      b.append(n,small); b.setAttribute('aria-label',stage.name+(locked?' 잠김':' 선택'));
+      const small=document.createElement('span'); small.className='tiny'; small.textContent=locked?'잠김':(index%4===3?'우두머리':cleared?'완료':'도전');
+      const name=document.createElement('span');name.className='stage-list-name';name.textContent=stage.name;
+      b.append(n,name,small); b.setAttribute('aria-label',stage.name+(locked?' 잠김':' 선택'));
       b.addEventListener('click',()=>{state.selected=index;renderMap();updateMenuStory();});
       grid.appendChild(b);
     });
     $('progress-label').textContent=state.clears.length+' / 12 클리어';
+    const stage=STAGES[state.selected];
+    $('stage-map-number').textContent=stage.chapter+'-'+((state.selected%4)+1);
+    $('stage-picker-chapter').textContent='제'+stage.chapter+'장 · '+stage.gimmick;
+    $('stage-picker-name').textContent=stage.name;
+    $('stage-picker-tip').textContent=stage.story;
+    $('stage-enter-btn').disabled=state.selected>=state.unlocked;
+  }
+  function openStagePicker(){
+    $('stage-select-panel').hidden=false;
+    $('menu').classList.add('stage-choosing');
+    renderMap();
+    $('stage-back-btn').focus({preventScroll:true});
+  }
+  function closeStagePicker(){
+    $('stage-select-panel').hidden=true;
+    $('menu').classList.remove('stage-choosing');
   }
   function updateMenuStory(){
     const stage=STAGES[state.selected], box=document.querySelector('.story-panel');
     box.querySelector('.story-chapter').textContent='제'+stage.chapter+'장 · '+stage.gimmick;
     box.querySelector('h2').textContent=stage.name;
     box.querySelector('p').textContent=stage.story;
+    $('home-stage-title').textContent=stage.chapter+'-'+((state.selected%4)+1)+' · '+stage.name;
+    $('home-stage-story').textContent=stage.story;
     $('start-btn').firstChild.textContent='시작 ';
     $('resume-btn').hidden=!suspended;
   }
@@ -192,7 +211,7 @@
       suspended=false;
       if(game){game.destroy(true);game=null;battle=null;}
     }
-    closeModal(true);
+    closeModal(true);closeStagePicker();
     setVisible('menu',true); setVisible('game-screen',false);
     renderMap(); updateMenuStory();
   }
@@ -219,13 +238,15 @@
       return;
     }
     if(game){game.destroy(true);game=null;battle=null;}
+    closeStagePicker();
     state.selected=index; suspended=false;chosenSlot=-1;
     setVisible('menu',false);setVisible('game-screen',true);
     $('stage-name').textContent=STAGES[index].name; $('wave-label').textContent='전투 준비';
     const root=$('game-root');root.replaceChildren();
     const boot=$('battle-loading');boot.hidden=false;
     const image=biomeBitmaps[Math.floor(index/4)];
-    $('arena-wrap').style.backgroundImage="url('"+image.src+"')";
+    // No duplicate background outside Phaser: avoid the side-by-side panorama seam.
+    $('arena-wrap').style.backgroundImage='none';
     boot.style.backgroundImage="linear-gradient(#071b16a8,#183e3085),url('"+image.src+"')";
     if(typeof Phaser==='undefined'){
       showModal('연결 확인','게임 엔진을 불러오지 못했어요.','인터넷 연결 후 다시 시도해 주세요.',[],[
@@ -453,33 +474,7 @@
         'rgba(113,119,172,.045)','rgba(91,157,211,.075)','rgba(50,57,107,.12)','rgba(62,37,91,.16)'][scene.stage.id];
       c.fillStyle=tint;c.fillRect(0,0,w,h);
     });
-    // Match the original hand-painted field pixel-for-pixel, but place the lower
-    // rampart on a distinct depth plane behind heroes. No alien placeholder art.
-    createCanvasTexture(scene,'fort-foreground',420,224,(ctx,w,h)=>{
-      const field=scene.textures.get('field').getSourceImage();
-      ctx.clearRect(0,0,w,h);
-      ctx.drawImage(field,0,426,420,224,0,0,w,h);
-      const layer=ctx.getImageData(0,0,w,h);
-      for(let y=0;y<h;y++){
-        for(let x=0;x<w;x++){
-          const side=Math.min(x,w-1-x);
-          const start=side<42?0:side<73?(side-42)*1.71:53;
-          const irregular=start+2*Math.sin(x/13)+Math.sin(x/4);
-          const edge=Math.max(0,Math.min(1,(y-irregular)/12));
-          layer.data[(y*w+x)*4+3]=Math.round(layer.data[(y*w+x)*4+3]*edge*.96);
-        }
-      }
-      ctx.putImageData(layer,0,0);
-      // A soft underside shadow separates the battlement from the long forest road
-      // without covering the heroes or introducing foreign artwork.
-      const painted=document.createElement('canvas');painted.width=w;painted.height=h;
-      painted.getContext('2d').drawImage(ctx.canvas,0,0);
-      ctx.clearRect(0,0,w,h);
-      ctx.save();
-      ctx.shadowColor='rgba(9,26,19,.53)';ctx.shadowBlur=12;ctx.shadowOffsetY=5;
-      ctx.drawImage(painted,0,0);
-      ctx.restore();
-    });
+    // The painted field already contains the castle. Never paint its lower half twice.
     createCanvasTexture(scene,'torch-glow',72,72,(ctx)=>{
       const glow=ctx.createRadialGradient(36,36,2,36,36,35);
       glow.addColorStop(0,'rgba(255,249,173,.83)');
@@ -659,7 +654,7 @@
       buildTextures(this);this.add.image(210,325,'field');
       // Depth 1.8: foreground wall and torch lights sit under HP plaque (2)
       // and all combat characters (4–6). Each biome uses its own field texture.
-      this.wallForeground=this.add.image(210,538,'fort-foreground').setDepth(1.8);
+      // One illustrated field only; fort HUD and hero portraits remain on their own depths.
       this.setupAmbience();
       $('arena-wrap').classList.toggle('foggy',this.stage.id>=4&&this.stage.id<=7);
       $('arena-wrap').classList.toggle('moonlit',this.stage.id>=8);
@@ -1542,6 +1537,9 @@
     renderCooldown();renderEvolution();
   }
   $('start-btn').addEventListener('click',()=>startStage(state.selected));
+  $('stage-list-btn').addEventListener('click',openStagePicker);
+  $('stage-back-btn').addEventListener('click',closeStagePicker);
+  $('stage-enter-btn').addEventListener('click',()=>startStage(state.selected));
   $('resume-btn').addEventListener('click',resumeBattle);
   $('help-btn').addEventListener('click',showHelp);
   $('intel-btn').addEventListener('click',showIntel);

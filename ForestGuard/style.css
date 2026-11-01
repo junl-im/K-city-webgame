@@ -873,3 +873,97 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 .arena-wrap.has-boss .boss-hud{box-shadow:inset 0 0 0 1px #ffe0a89c,0 0 14px #e2a66e6e,0 5px 16px #071913cf}
 .battle-toolbar{border-top:3px solid #bb8d51}
 @media(prefers-reduced-motion:reduce){.arena-wrap.has-boss .boss-hud{transition:none}}
+
+/* v2.1 SCREEN RECONSTRUCTION — canonical rules: preview-first home and a distinct stage picker.
+   SVG-free; 100% live HTML and original WebP illustration. Earlier absolute waypoints
+   never enter the home screen. */
+.menu{background:linear-gradient(180deg,rgba(5,17,17,.08),rgba(6,20,17,.44) 42%,rgba(4,12,12,.86)),url('./art/forest-entrance-v08.png') center /cover}
+.menu .brand{height:clamp(180px,36dvh,340px);min-height:0;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.menu .title-hero-art{height:100%;width:100%;object-fit:contain;max-width:520px;filter:drop-shadow(0 7px 8px rgba(0,0,0,.75))}
+.menu .menu-actions-top{margin:1px 0 10px;gap:8px;display:flex;justify-content:center;flex:0 0 auto}
+.menu .menu-actions-top .rune-btn.primary{flex:1 1 58%;max-width:330px;height:51px!important;min-height:51px!important;font-size:20px!important;
+  background:linear-gradient(#ffe6a1,#eab45b 58%,#aa662c)!important;color:#482c1b;text-shadow:0 1px #fff2c8}
+.menu .menu-actions-top .rune-btn.tertiary{flex:0 0 31%;height:49px!important;min-height:49px!important}
+.menu .menu-actions-top:has(#resume-btn:not([hidden])) .rune-btn{flex:1;max-width:none;padding-inline:3px;font-size:12px!important}
+.menu .story-panel{flex:0 0 auto;margin:0 0 9px;padding:9px 12px;border-radius:11px;border:2px solid #d9ad6a;background:linear-gradient(130deg,rgba(23,37,32,.96),rgba(11,26,25,.93));}
+.menu .story-panel h2{margin:3px 0;color:#ffe1a5;font-size:13px}
+.menu .story-panel p{font-size:10px;max-height:2.8em;overflow:hidden}
+.menu .story-panel .intel-pill{border-color:#d19f5b}
+.home-stage-spot{position:relative;isolation:isolate;flex:1;min-height:100px;margin:2px 0 0;padding:13px;border:2px solid #b88d4e;border-radius:17px;
+ display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;overflow:hidden;
+ background:linear-gradient(180deg,rgba(7,23,19,.12) 12%,rgba(9,24,20,.19) 38%,rgba(3,12,13,.93) 95%),url('./art/forest-worldmap-v05.webp') center 63% /cover;
+ box-shadow:inset 0 0 0 2px #f6cc8d59,0 7px 18px #020e0b9e}
+.home-stage-spot:before{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 26px #0c261d;z-index:-1}
+.home-stage-copy{display:flex;flex-direction:column;gap:3px;max-width:100%;text-shadow:0 2px 3px #081511,0 1px #081511}
+.home-stage-copy small{font-size:10px;color:#ffe1a4;letter-spacing:.5px;font-weight:800}
+.home-stage-copy strong{color:#fff5c9;font-size:15px;line-height:1.2}
+.home-stage-copy span{font-size:10px;color:#f2f1dd;line-height:1.3}
+.home-stage-spot .stage-select-cta{align-self:center;width:min(76%,265px);min-height:41px;height:41px;padding:5px 15px;border:2px solid #e9c17b;
+ background:linear-gradient(#946037,#583821)!important;color:#fff2cc;text-shadow:0 2px #352019;
+ box-shadow:inset 0 1px #fff0a77c,0 3px #3e291a,0 5px 12px #06110de0;font-size:13px}
+.menu .menu-bottom{flex:0 0 auto;font-size:9px;margin:6px 2px 0}
+/* The map is its own usable screen. No scattered blank markers. */
+.stage-select-panel{position:absolute;inset:0;z-index:25;display:flex;flex-direction:column;min-height:0;padding:calc(9px + env(safe-area-inset-top,0px)) 8px calc(8px + env(safe-area-inset-bottom,0px));
+ background:linear-gradient(180deg,#122b27ed,#081d1cec),url('./art/forest-entrance-v08.png') center/cover}
+.stage-select-panel[hidden]{display:none!important}
+.stage-select-header{height:55px;flex:0 0 55px;display:flex;align-items:center;gap:12px;padding:4px 8px;border:2px solid #ad8450;border-radius:11px;
+ background:linear-gradient(#392b21,#1b2723);box-shadow:inset 0 1px #f6cf8d77}
+.stage-nav-btn{border:2px solid #d6ac72;border-radius:9px;background:linear-gradient(#7c5331,#473020);color:#fff1cc;padding:8px 11px;min-height:38px;font-size:12px;font-weight:900}
+.stage-select-header>div{display:flex;flex:1;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.stage-select-header strong{font-size:16px;color:#ffe0a2}
+.stage-select-header span{font-size:11px;color:#dcc18f;white-space:nowrap}
+.stage-picker-content{min-height:0;flex:1;display:grid;grid-template-columns:minmax(0,42%) minmax(0,58%);gap:7px;margin:9px 0}
+#stage-select-panel .stage-grid{position:relative;left:auto;top:auto;display:flex;flex-direction:column;gap:6px;min-width:0;min-height:0;height:100%;max-height:100%;
+ flex:none;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#ac8151 #1c3029;margin:0;padding:3px 3px 8px;
+ background:linear-gradient(#132922d9,#12231ee9);border:1px solid #927750;border-radius:9px}
+#stage-select-panel .stage-tile{position:relative!important;left:auto!important;top:auto!important;transform:none!important;min-height:54px!important;height:auto!important;
+ width:100%!important;max-width:none!important;flex:0 0 auto;display:grid!important;grid-template-columns:40px minmax(0,1fr);grid-template-rows:1fr 1fr;
+ place-items:initial;align-items:center;text-align:left;column-gap:6px;row-gap:0;padding:5px 6px!important;overflow:hidden;
+ background:linear-gradient(#534234,#222a27)!important;background-image:none!important;border:2px solid #9d7854!important;border-radius:10px!important;
+ color:#eee0bf!important;box-shadow:inset 0 1px #ffe1b055,0 3px 6px #06120bc0!important;opacity:1}
+#stage-select-panel .stage-tile .num{grid-row:1/3;grid-column:1;margin:0;font-size:14px!important;color:#ffdd9b!important;text-align:center!important}
+#stage-select-panel .stage-tile .stage-list-name{grid-column:2;grid-row:1;font-size:11px;font-weight:900;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#stage-select-panel .stage-tile .tiny{grid-column:2;grid-row:2;font-size:9px!important;color:#c6d6c0!important;text-align:left}
+#stage-select-panel .stage-tile.selected{border-color:#ffe4a6!important;background:linear-gradient(#a26c2f,#533a21)!important;
+ box-shadow:inset 0 0 0 1px #f0c36e,0 0 10px #df9a4c99!important}
+#stage-select-panel .stage-tile.locked{opacity:.7;filter:saturate(.55)}
+.stage-map-preview{min-width:0;position:relative;overflow:hidden;border:2px solid #b69458;border-radius:15px;
+ background:linear-gradient(180deg,#071a1300 45%,#071810c2 100%),url('./art/forest-worldmap-v05.webp') center center/cover;
+ box-shadow:inset 0 0 0 2px #fae0a44d,inset 0 0 20px #07190e}
+.stage-map-signet{position:absolute;left:50%;top:8px;transform:translateX(-50%);background:linear-gradient(#8a613b,#39251a);
+ border:2px solid #d9ad6b;box-shadow:inset 0 0 0 1px #f9db95,0 4px 9px #0007;border-radius:10px;padding:5px 11px;
+ min-width:90px;white-space:nowrap;text-align:center}
+.stage-map-signet span{display:block;color:#ebd6ac;font-size:8px}
+.stage-map-signet strong{display:block;color:#fff2c7;font-size:16px}
+.stage-choice-footer{flex:0 0 85px;min-height:0;display:flex;align-items:center;gap:8px;padding:8px;border:2px solid #ad8553;border-radius:12px;
+ background:linear-gradient(#334132,#1b2722);box-shadow:inset 0 1px #f5c17a75}
+.stage-choice-description{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px}
+.stage-choice-description span{font-size:10px;color:#e7c78a}
+.stage-choice-description strong{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff0b6}
+.stage-choice-description small{font-size:9px;color:#d7d8be;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.stage-choice-footer .stage-enter-btn{max-width:115px;min-width:82px;flex:0 0 30%;height:46px;min-height:46px;border:2px solid #fae5ad;
+ background:linear-gradient(#eab668,#9c5d2a)!important;color:#432819;text-shadow:0 1px #ffe5a5;font-weight:1000}
+.stage-choice-footer .stage-enter-btn:disabled{opacity:.5}
+.stage-picker-content .stage-tile:focus-visible{outline:2px solid #f9ecae;outline-offset:1px}
+.arena-wrap{background:#12271f!important;background-image:none!important}
+.game-root{background:#12271f!important;background-image:none!important}
+@media(max-width:360px){
+ .menu .brand{height:clamp(160px,33dvh,225px)}
+ .menu .menu-actions-top .rune-btn.primary{height:44px!important;min-height:44px!important;font-size:17px!important}
+ .menu .menu-actions-top .rune-btn.tertiary{height:43px!important;min-height:43px!important}
+ .home-stage-spot{padding:9px;min-height:100px}
+ #stage-select-panel .stage-tile{grid-template-columns:30px minmax(0,1fr);padding:4px!important;min-height:49px!important}
+ #stage-select-panel .stage-tile .num{font-size:12px!important}
+ #stage-select-panel .stage-tile .stage-list-name{font-size:10px}
+ .stage-select-header strong{font-size:14px}
+ .stage-choice-footer{flex-basis:78px}
+}
+@media(max-height:660px){
+ .menu .brand{height:clamp(136px,30dvh,215px)}
+ .menu .story-panel{padding:6px 10px;margin-bottom:5px}
+ .menu .story-panel p{display:none}
+ .home-stage-spot{min-height:85px}
+ .menu .menu-bottom{margin-top:4px}
+ .stage-select-header{height:45px;flex-basis:45px}
+ .stage-choice-footer{flex-basis:72px}
+}

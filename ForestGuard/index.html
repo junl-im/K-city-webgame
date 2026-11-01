@@ -8,10 +8,10 @@
   <title>라니 수비대 | 곰같은여우</title>
   <link rel="preload" as="image" href="./art/forest-worldmap-v05.webp?v=20261031f">
   <link rel="preload" as="image" href="./art/title-hero-v18.webp">
-  <link rel="stylesheet" href="./style.css?v=20261101e">
+  <link rel="stylesheet" href="./style.css?v=20261101f">
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.88.2/dist/phaser.min.js" defer></script>
-  <script src="./visuals.js?v=20261101e" defer></script>
-  <script src="./game.js?v=20261101e" defer></script>
+  <script src="./visuals.js?v=20261101f" defer></script>
+  <script src="./game.js?v=20261101f" defer></script>
 </head>
 <body>
 <div id="app" class="shell">
@@ -34,10 +34,29 @@
       <h2>오늘 밤, 숲에 이상한 발자국이 나타났다!</h2>
       <p>여우 궁수와 친구들을 모아 마을을 지켜 주세요.</p>
     </div>
-    <div class="map-title"><span>숲길 모험 지도</span><small id="progress-label">0 / 12 클리어</small></div>
-    <div id="stage-grid" class="stage-grid" aria-label="스테이지 선택"></div>
-
+    <div class="home-stage-spot">
+      <div class="home-stage-copy"><small>현재 모험</small><strong id="home-stage-title">1-1 · 첫 번째 침입</strong>
+        <span id="home-stage-story">첫 숲길을 지켜 주세요</span>
+      </div>
+      <button id="stage-list-btn" class="rune-btn stage-select-cta" type="button" aria-label="스테이지 선택 화면 열기">스테이지 선택</button>
+    </div>
     <div class="menu-bottom"><span>무료 · 광고 없음 · 자동 저장</span><span>© 2026 곰같은여우</span></div>
+    <section id="stage-select-panel" class="stage-select-panel" aria-label="숲길 스테이지 선택" hidden>
+      <header class="stage-select-header">
+        <button id="stage-back-btn" class="stage-nav-btn" type="button" aria-label="홈으로 돌아가기">돌아가기</button>
+        <div><strong>스테이지 선택</strong><span id="progress-label">0 / 12 클리어</span></div>
+      </header>
+      <div class="stage-picker-content">
+        <nav id="stage-grid" class="stage-grid" aria-label="스테이지 목록"></nav>
+        <div class="stage-map-preview" aria-hidden="true">
+          <div class="stage-map-signet"><span>라니 수비대</span><strong id="stage-map-number">1-1</strong></div>
+        </div>
+      </div>
+      <div class="stage-choice-footer">
+        <div class="stage-choice-description"><span id="stage-picker-chapter">제1장</span><strong id="stage-picker-name">첫 번째 침입</strong><small id="stage-picker-tip">숲길을 지켜 주세요</small></div>
+        <button id="stage-enter-btn" class="rune-btn stage-enter-btn" type="button">출전</button>
+      </div>
+    </section>
   </section>
   <section id="game-screen" class="battle-screen screen" hidden>
     <header class="battle-hud">
