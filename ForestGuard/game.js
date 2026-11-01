@@ -9,6 +9,9 @@
   const SAVE_KEY = 'gomfox.forestguard.v1';
   const REPAIR_COST = 120, REPAIR_HEAL = 420, REPAIR_LIMIT = 2;
   const RECRUIT_TIMEOUT = 12000;
+  const HERO_POSITIONS = Object.freeze([58,134,210,286,362]);
+  const HERO_RECRUIT_ORDER = Object.freeze([1,3,0,4]);
+  const HERO_CAPACITY = HERO_POSITIONS.length;
   const DRAFT_TIMEOUT = 10000;
   const HOME_URL = 'https://meta-deee1.web.app/';
   const $ = id => document.getElementById(id);
@@ -732,7 +735,7 @@
       this.terrainWarned=false;this.terrainWarning=false;this.terrainCueUntil=0;this.terrainCueText='';
       this.terrainEvents=0;this.overlayTimer=0;
       this.cardCounts={};this.synergies=new Set();this.gameClock=0;this.attackFxActive=0;this.damageFloatCount=0;this.damageFloatSerial=0;
-      this.heroIds=['fox',null,null];this.targetModes=['front','front','front'];this.attackTimes=[0,0,0];this.enemies=[];this.projectiles=[];this.effects=[];this.dyingSprites=0;
+      this.heroIds=[null,null,'fox',null,null];this.targetModes=Array(HERO_CAPACITY).fill('front');this.attackTimes=Array(HERO_CAPACITY).fill(0);this.enemies=[];this.projectiles=[];this.effects=[];this.dyingSprites=0;
       this.focusEnemy=null;this.focusUntil=0;this.focusReticle=null;this.lastFortHP=-1;
       const personal=state.stats[this.stage.id]||{};
       const losses=Math.max(0,Math.min(100,Number(personal.streak)||0));
@@ -757,12 +760,23 @@
       $('arena-wrap').classList.remove('boss-warning');
       // Status bar now lives below the battlefield in the DOM, never across hero feet.
       this.fortPlaque=this.add.image(210,625,'fort-plaque').setDepth(2).setVisible(false);
-      this.heroSprites=this.heroIds.map((id,i)=>id?this.add.image([104,210,316][i],568,'motion-'+id+'-idle-0').setDisplaySize(96,96).setDepth(6):null);
+      this.heroSprites=this.heroIds.map((id,i)=>id?this.add.image(HERO_POSITIONS[i],568,'motion-'+id+'-idle-0').setDisplaySize(94,94).setDepth(6):null);
+      this.layoutHeroSprites();
       this.wave.begin();renderSlots();renderHUD();
       this.syncBattleOverlay();
       requestAnimationFrame(()=>requestAnimationFrame(()=>{if(battle===this)$('battle-loading').hidden=true;}));
       if(this.assistScale<1)showBanner('재도전 지원 · 몬스터 체력 '+Math.round((1-this.assistScale)*100)+'% 완화');
       else if(this.stage.id===0)showBanner('여우 궁수 혼자 첫 공세를 막아보세요!');
+    }
+    layoutHeroSprites(){
+      // 5 painted defenders fit on 420px without covering one another.
+      const count=this.heroIds.filter(Boolean).length;
+      const base=count>=5?72:count===4?79:count===3?86:94;
+      this.heroSprites.forEach((sprite,i)=>{
+        if(!sprite||!sprite.active)return;
+        const size=this.heroIds[i]==='megafox'?Math.round(base*1.1):base;
+        sprite.setPosition(HERO_POSITIONS[i],568).setDisplaySize(size,size).setDepth(6);
+      });
     }
     resizeBattleCamera(){
       const width=Math.max(1,this.scale.width||420),height=Math.max(1,this.scale.height||650);
@@ -901,7 +915,7 @@
     }
     shoot(i){
       const id=this.heroIds[i];if(!id)return;
-      const x=[104,210,316][i],hero=HEROES[id];
+      const x=HERO_POSITIONS[i],hero=HEROES[id];
       const fog=(this.stage.id>=4&&this.stage.id<=7&&!this.hunter) ? 0.9 : 1;
       const vision=hero.range*(1+this.hunter*.16)*fog*(id==='megafox'&&this.evolutionPath==='moon'?1.2:1);
       const target=this.targetFor(x,vision,this.targetModes[i]);if(!target)return;
@@ -943,7 +957,7 @@
     }
     previewRange(index){
       const id=this.heroIds[index];if(!id)return;
-      const x=[104,210,316][index],radius=HEROES[id].range;
+      const x=HERO_POSITIONS[index],radius=HEROES[id].range;
       const circle=this.add.circle(x,568,radius,0xf1e8a0,.035).setStrokeStyle(2,0xf4d16b,.45).setDepth(1);
       this.tweens.add({targets:circle,alpha:0,duration:900,onComplete:()=>circle.destroy()});
     }
@@ -979,12 +993,13 @@
       this.evolved=true;this.evolutionPath=path;this.heroIds[index]='megafox';
       const spr=this.heroSprites[index];spr.setTexture('motion-megafox-idle-0').setDisplaySize(110,110).setDepth(5);
       spr.setTint(path==='sun'?0xffedc4:0xb2e8ff);
+      this.layoutHeroSprites();
       V.trigger(spr,'victory',this.gameClock+900);
       this.cameras.main.flash(350,path==='sun'?250:142,path==='sun'?224:208,path==='sun'?143:250);
-      const aura=this.add.circle([104,210,316][index],575,25,path==='sun'?0xffd77a:0x9ddfff,.42).setDepth(4);
+      const aura=this.add.circle(HERO_POSITIONS[index],575,25,path==='sun'?0xffd77a:0x9ddfff,.42).setDepth(4);
       this.tweens.add({targets:aura,scale:5,alpha:0,duration:650,onComplete:()=>aura.destroy()});
       const name=path==='sun'?'햇살의 곰같은여우!':'달빛의 곰같은여우!';
-      const rise=this.add.text([104,210,316][index],505,name,{font:'bold 17px system-ui',color:'#fff4c7',stroke:'#543929',strokeThickness:5})
+      const rise=this.add.text(HERO_POSITIONS[index],505,name,{font:'bold 17px system-ui',color:'#fff4c7',stroke:'#543929',strokeThickness:5})
         .setOrigin(.5).setDepth(8);
       this.tweens.add({targets:rise,y:455,alpha:0,duration:1500,onComplete:()=>rise.destroy()});
       showBanner(name);renderSlots();renderHUD();
@@ -1365,7 +1380,10 @@
       return recipe?recipe[3]:null;
     }
     chooseCards(){
-      const pool=CARDS.filter(c=>!['bear','rabbit','cat'].includes(c.id) || (!this.heroIds.includes(c.id)&&this.heroIds.includes(null)));
+      const missing=['bear','rabbit','cat'].filter(id=>!this.heroIds.includes(id));
+      const pool=CARDS.filter(c=>!['bear','rabbit','cat'].includes(c.id)||(
+        this.heroIds.includes(null)&&(missing.length?missing.includes(c.id):
+          this.heroIds.filter(id=>id===c.id).length<2)));
       const shuffled=[...pool];
       for(let i=shuffled.length-1;i>0;i--){
         const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
@@ -1380,11 +1398,17 @@
       return result;
     }
     recruitHero(id){
-      if(!['bear','rabbit','cat'].includes(id)||this.heroIds.includes(id))return false;
-      const idx=this.heroIds.indexOf(null);if(idx<0)return false;
+      if(!['bear','rabbit','cat'].includes(id))return false;
+      const owned=this.heroIds.filter(Boolean);
+      const missing=['bear','rabbit','cat'].filter(species=>!owned.includes(species));
+      // Prefer a complete four-species team; then allow exactly one reinforcement copy.
+      if(owned.includes(id)&&(missing.length>0||owned.filter(species=>species===id).length>=2))return false;
+      const idx=HERO_RECRUIT_ORDER.find(slot=>this.heroIds[slot]===null);
+      if(idx===undefined)return false;
       this.heroIds[idx]=id;this.attackTimes[idx]=400;
-      const sprite=this.add.image([104,210,316][idx],568,'motion-'+id+'-idle-0').setDisplaySize(94,94).setDepth(6);
+      const sprite=this.add.image(HERO_POSITIONS[idx],568,'motion-'+id+'-idle-0').setDisplaySize(94,94).setDepth(6);
       this.heroSprites[idx]=sprite;
+      this.layoutHeroSprites();
       V.trigger(sprite,'victory',this.gameClock+700);
       const glow=this.add.ellipse(sprite.x,591,45,17,0xffdf91,.23).setDepth(5);
       this.tweens.add({targets:glow,scale:3,alpha:0,duration:450,onComplete:()=>glow.destroy()});
@@ -1686,10 +1710,12 @@
     battle.heroIds.forEach((id,i)=>{
       const b=document.createElement('button');b.type='button';
       b.className='hero-slot'+(id?'':' empty')+(chosenSlot===i?' picked':'');
+      if(!id&&i===HERO_RECRUIT_ORDER.find(slot=>battle.heroIds[slot]===null))b.classList.add('next-slot');
       b.dataset.targetMode=battle.targetModes[i];
       b.dataset.modeLabel=id?(battle.targetModes[i]==='threat'?'위협':'선두'):'';
       const icon=document.createElement('strong');if(id)V.portrait(icon,id);else icon.className='empty-station';
-      const text=document.createElement('span');text.textContent=id?HEROES[id].name:battle.pendingRecruit?'영입 선택':'영입 대기';
+      const text=document.createElement('span');
+      text.textContent=id?HEROES[id].name:battle.pendingRecruit?'영입 선택':'대기';
       b.append(icon,text);b.setAttribute('aria-label','전열 '+(i+1)+'번 '+text.textContent+(id?' · 타깃 '+b.dataset.modeLabel+' · 같은 칸 두 번 선택해 변경':''));
       b.addEventListener('click',()=>{
         if(!battle||battle.ended)return;
@@ -1704,7 +1730,7 @@
         const a=chosenSlot,ids=battle.heroIds,sprites=battle.heroSprites,times=battle.attackTimes,modes=battle.targetModes;
         [ids[a],ids[i]]=[ids[i],ids[a]];[sprites[a],sprites[i]]=[sprites[i],sprites[a]];
         [times[a],times[i]]=[times[i],times[a]];[modes[a],modes[i]]=[modes[i],modes[a]];
-        sprites.forEach((spr,k)=>{if(spr)spr.x=[104,210,316][k];});
+        battle.layoutHeroSprites();
         chosenSlot=-1;renderSlots();
       });wrap.appendChild(b);
     });
@@ -1749,7 +1775,8 @@
     $('fort-health').setAttribute('aria-valuenow',String(battle.hp));
     $('speed-btn').textContent='×'+battle.speed;
     $('battle-hint').textContent=battle.pendingRecruit?'동료 선택을 눌러 수비대를 키워보세요':
-      battle.heroIds.filter(Boolean).length===1?'첫 공세를 막으면 동료 한 명이 합류해요':'용병 한 번 선택·다른 칸은 자리 교환·같은 칸은 표적 전술';
+      battle.heroIds.filter(Boolean).length===1?'첫 공세 후 동료 합류 · 최대 5명 편성':
+      '수비대 '+battle.heroIds.filter(Boolean).length+'/5 · 영웅 선택으로 표적과 위치 조정';
     renderCooldown();renderEvolution();
   }
   $('start-btn').addEventListener('click',()=>startStage(state.selected));
@@ -1819,9 +1846,10 @@
           elapsed:Math.round(battle.time.now-cut.startTime)}:null;
       },
       heroRanges(){return Object.fromEntries(Object.entries(HEROES).map(([id,role])=>[id,role.range]));},
+      rosterInfo(){return battle?{capacity:HERO_CAPACITY,ids:[...battle.heroIds],positions:[...HERO_POSITIONS]}:null;},
       renderInfo(){
         if(!battle||!battle.rampartFront)return null;
-        const front=battle.rampartFront,hero=battle.heroSprites[0];
+        const front=battle.rampartFront,hero=battle.heroSprites.find(Boolean);
         return {frontTexture:front.texture.key,frontDepth:front.depth,frontY:front.y,
           heroDepth:hero?.depth,heroY:hero?.y,heroHeight:hero?.displayHeight,
           artLoaded:!!rampartBitmap,fieldCount:game?.scene?.scenes?.[0]?.children?.list?.filter(
