@@ -970,7 +970,7 @@
         this.projectiles.push({spr:bolt,trail,target,x:bolt.x,y:bolt.y,damage:hero.damage*this.damageBonus*evolvePower,kind:id});
       }
       const sprite=this.heroSprites[i];if(sprite){
-        V.trigger(sprite,'attack',this.gameClock+310);
+        V.trigger(sprite,'attack',this.gameClock+465,this.gameClock);
         if(id==='megafox')this.animateEvolutionAttack(sprite);
         else this.tweens.add({targets:sprite,x:x-5,y:sprite.y-4,duration:85,yoyo:true,repeat:0});
         this.playHeroAttackCue(x,id);
@@ -993,7 +993,7 @@
       }
     }
     animateEvolutionAttack(sprite){
-      V.trigger(sprite,'attack',this.gameClock+380);
+      V.trigger(sprite,'attack',this.gameClock+465,this.gameClock);
       this.cameras.main.shake(80,.0017);
     }
     previewRange(index){
