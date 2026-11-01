@@ -151,3 +151,21 @@
     transition:none!important;
   }
 }
+
+/* The v2.6 home layout defined ID-level background shorthands. Match those
+   exact selectors so the newer original paintings win the cascade. */
+.menu:not(.stage-choosing) .menu-actions-top #start-btn{
+  background-image:var(--fg-btn-gold)!important;
+  background-position:center!important;background-size:100% 100%!important;
+  background-repeat:no-repeat!important;background-color:transparent!important;
+}
+.menu:not(.stage-choosing) .menu-actions-top #resume-btn:not([hidden]){
+  background-image:var(--fg-btn-emerald)!important;
+  background-position:center!important;background-size:100% 100%!important;
+  background-repeat:no-repeat!important;background-color:transparent!important;
+}
+.menu:not(.stage-choosing) .home-stage-spot #stage-list-btn{
+  background-image:var(--fg-btn-sapphire)!important;
+  background-position:center!important;background-size:100% 100%!important;
+  background-repeat:no-repeat!important;background-color:transparent!important;
+}
