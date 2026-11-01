@@ -9,7 +9,10 @@ assert.ok(ranges.bear<ranges.cat&&ranges.cat<ranges.fox&&ranges.fox<ranges.rabbi
 assert.match(src,/const distance=Math\.hypot\(e\.x-heroX,e\.y-568\)/);
 const cinematic=src.slice(src.indexOf('    announceElite(e){'),src.indexOf('    spawnEnemy(type){'));
 assert.match(cinematic,/holdMs:2100,fadeMs:620/);
-assert.match(cinematic,/this\.time\.delayedCall\(2100,/);
-assert.match(cinematic,/delay:155,repeat:11/);
+assert.match(src,/updateEliteCinematic\(\)/);
+assert.match(cinematic,/baseAlpha:nodes\.map\(node=>node\.alpha\)/);
+assert.doesNotMatch(cinematic,/delayedCall|this\.tweens\.add/);
+assert.match(src,/Math\.floor\(elapsed\/155\)%4/);
+assert.match(src,/elapsed>=cut\.holdMs\+cut\.fadeMs/);
 assert.doesNotMatch(cinematic,/duration:960/);
 console.log('ForestGuard hero-range / readable elite cinematic: PASS');

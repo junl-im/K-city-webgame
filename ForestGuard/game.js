@@ -785,40 +785,49 @@
     announceElite(e){
       if(this.lastEliteCinematicWave===this.wave.current)return;
       this.lastEliteCinematicWave=this.wave.current;
-      const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-      if(this.eliteCinematic?.hero?.active){
-        for(const node of this.eliteCinematic.nodes){this.tweens.killTweensOf(node);node.destroy();}
+      if(this.eliteCinematic){
+        for(const node of this.eliteCinematic.nodes)if(node.active)node.destroy();
+        this.eliteCinematic=null;
       }
+      const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
       const hue=e.type==='shroom'?0xe4a55e:e.type==='guardian'?0xd1bd7e:0xb191eb;
       const caption=e.type==='shroom'?'정예 출현 · 버섯 거한':
         e.type==='guardian'?'중간보스 출현 · 숲의 수호자':'보스 출현 · 전투 경계';
       const dusk=this.add.image(210,277,'cinematic-vignette').setDepth(8);
       const aura=this.add.ellipse(210,340,220,38,hue,.24).setDepth(8.5);
       const hero=this.add.image(210,258,'motion-'+e.type+'-attack-0')
-        .setDisplaySize(e.type==='shroom'?246:216,e.type==='shroom'?246:216)
-        .setAlpha(1).setDepth(9);
+        .setDisplaySize(e.type==='shroom'?246:216,e.type==='shroom'?246:216).setAlpha(1).setDepth(9);
       const label=this.add.text(210,395,caption,{
         font:'bold 19px system-ui',color:'#fff1cd',align:'center',
         stroke:'#35261b',strokeThickness:5
       }).setOrigin(.5).setAlpha(1).setDepth(9);
       const nodes=[dusk,aura,hero,label];
-      this.eliteCinematic={hero,label,nodes,startTime:this.time.now,holdMs:2100,fadeMs:620};
-      let frame=0;
-      if(!reduced)this.time.addEvent({delay:155,repeat:11,callback:()=>{
-        if(!hero.active)return;
-        frame=(frame+1)%4;
-        const texture='motion-'+e.type+'-attack-'+frame;
-        if(this.textures.exists(texture))hero.setTexture(texture);
-      }});
-      // NEVER fade the announcement during its readable hold window.
-      this.time.delayedCall(2100,()=>{
-        if(!hero.active)return;
-        this.tweens.add({targets:nodes,alpha:0,duration:620,ease:'Sine.easeIn',
-          onComplete:()=>{
-            for(const node of nodes)if(node.active)node.destroy();
-            if(this.eliteCinematic?.hero===hero)this.eliteCinematic=null;
-          }});
-      });
+      // Deterministic timing: Phaser scene update, independent of tween/event queues.
+      this.eliteCinematic={hero,label,nodes,type:e.type,reduced,
+        baseAlpha:nodes.map(node=>node.alpha),startTime:this.time.now,
+        holdMs:2100,fadeMs:620,lastFrame:-1};
+    }
+    updateEliteCinematic(){
+      const cut=this.eliteCinematic;if(!cut)return;
+      const elapsed=Math.max(0,this.time.now-cut.startTime);
+      const {nodes,hero}=cut;
+      if(!hero.active){this.eliteCinematic=null;return;}
+      if(elapsed>=cut.holdMs+cut.fadeMs){
+        for(const node of nodes)if(node.active)node.destroy();
+        this.eliteCinematic=null;
+        return;
+      }
+      const visibility=elapsed<=cut.holdMs?1:
+        Math.max(0,1-(elapsed-cut.holdMs)/cut.fadeMs);
+      nodes.forEach((node,i)=>{if(node.active)node.setAlpha(cut.baseAlpha[i]*visibility);});
+      if(!cut.reduced){
+        const frame=Math.floor(elapsed/155)%4;
+        if(frame!==cut.lastFrame){
+          cut.lastFrame=frame;
+          const texture='motion-'+cut.type+'-attack-'+frame;
+          if(this.textures.exists(texture))hero.setTexture(texture);
+        }
+      }
     }
     spawnEnemy(type){
       // Enemy entry is broad at the top, including bridge levels.
@@ -1525,6 +1534,7 @@
         '제'+this.stage.chapter+'장 · '+this.stage.name,[result],actions,false);
     }
     update(_time,delta){
+      this.updateEliteCinematic();
       this.tickRecruit(delta);
       this.tickDraft(delta);
       if(this.ended||this.manualPause||this.autoPause||this.drafting)return;
