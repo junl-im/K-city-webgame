@@ -336,3 +336,17 @@
 - `tests/hero-motion.mjs`에서 영웅별 30개(5상태×6) 텍스처, 적 4프레임 유지, 공격 프레임 0→5 순서와 대기 복귀를 검증. `tests/smoke.mjs` 통합. 캐시 버전 `20261101s`.
 - 기존 12스테이지, 첫 여우 1명, 5인 편성, 중간보스/보스, 성장 및 로컬 저장 키 호환. 범위는 ForestGuard 하위 코드/검사/기록만 수정.
 - 이 기록 작성 시점: V8 내 Canvas mock와 코드 구문 검사 통과; GitHub Actions·실브라우저 QA는 후속 결과 확인 필요. 파츠 분리 신규 원화·5번째 고유 영웅·삼성 인터넷/iOS Safari·실제 12스테이지 승률은 미완료.
+
+
+## 2026-11-01 v3.1 — 첫 화면의 시작·미션·지도선택 동선 재정비
+- `screen-rebuild-v26.css`의 HOME 규칙을 한곳으로 정리하고 v2.6.2 레거시 flex 확장 덮어쓰기를 제거. 기존 `.home-stage-spot` 영역의 `flex:1 1 auto`가 미션 글은 위, 지도 선택 버튼은 화면 아래로 떨어뜨리던 문제 해결.
+- 모바일·PC 공통 로고/시작/오늘의 숲길을 연속 구성: 시작 버튼 폭 230px 상한, 1-1 현재 스테이지 제목과 선택 버튼 동일 줄 정렬, 하단 저작권 표기 고정. 진행·세이브·전투 엔진 변경 없음.
+- 제목 원화 가장자리에 radial mask를 보강하고 목재/숲색 버튼 질감 조정. SVG/외부 원화 추가하지 않음. `index.html` CSS 캐시 `20261101t`.
+- Playwright QA에 홈 스테이지 안내-선택 버튼 간격 및 카드 높이/스크롤/마스크 검사를 추가. 첫 커밋에서 새 smoke 검사용 정규표현식 과다 이스케이프 오류가 발견되어 즉시 수정 후 검사 통과.
+- 적용 커밋: https://github.com/junl-im/K-city-webgame/commit/2cc49c770a1b49ba3acea07c523d7dde3c17ee52
+- smoke 수정: https://github.com/junl-im/K-city-webgame/commit/944fcf681d868fddc381f91ec50d22b371c9d200
+- 검증: Node smoke #89 성공 https://github.com/junl-im/K-city-webgame/actions/runs/41311961996
+- Chromium 모바일 뷰포트 QA #58 성공 https://github.com/junl-im/K-city-webgame/actions/runs/41311962066
+- Pages #304 배포 성공 https://github.com/junl-im/K-city-webgame/actions/runs/41311962023
+- 직접 공개 페이지: PC 1363×936에서 스크롤 없음, 시작 버튼 y367–417, 미션·스테이지 버튼을 포함한 영역 y448–540, CSS 버전 t 로드 확인.
+- **아직 완성 아님**: 제목 콜라주와 숲 원화의 색·가장자리 연결 더 개선, 첫 화면의 독자 전용 버튼 원화 신규 제작, 320px Android/Samsung Internet/iOS Safari 실기기/보스 전체 완주 미검증. 사용자 피드백에 따라 홈을 계속 고도화.
