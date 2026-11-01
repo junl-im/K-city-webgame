@@ -244,6 +244,7 @@ console.log(execFileSync(process.execPath,[new URL('tests/terrain-matrix.mjs',ro
 console.log(execFileSync(process.execPath,[new URL('tests/boss-volley.mjs',root).pathname],{encoding:'utf8'}).trim());
 console.log(execFileSync(process.execPath,[new URL('tests/growth-auto.mjs',root).pathname],{encoding:'utf8'}).trim());
 console.log(execFileSync(process.execPath,[new URL('tests/range-cinematic.mjs',root).pathname],{encoding:'utf8'}).trim());
+console.log(execFileSync(process.execPath,[new URL('tests/five-unit-roster.mjs',root).pathname],{encoding:'utf8'}).trim());
 assert.match(js,/function makeResultPresentation\(win,stage,hp,maxHP,coins,party,streak\)/);
 assert.match(js,/const atFinal=win&&this\.stage\.id===STAGES\.length-1/);
 assert.match(js,/classList\.toggle\('result-dialog'/);
