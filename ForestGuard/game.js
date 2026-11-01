@@ -1,4 +1,4 @@
-/* 라니 수비대 v2.0.1 — © 2026 곰같은여우
+/* 라니 수비대 v2.9 — © 2026 곰같은여우
  * Original game rules, PNG character art, Canvas field art and interface.
  * Combat architecture informed by MIT-licensed Phaser 3 and the WaveManager,
  * EnemyManager and Projectile patterns of rupertgermann/tower-defence.
@@ -665,7 +665,7 @@
   }
   class WaveDirector {
     // Adapted wave lifecycle from rupertgermann/tower-defence (MIT); custom fixed-wall rules.
-    constructor(scene){this.scene=scene;this.current=0;this.spawned=0;this.count=0;this.tick=0;this.active=false;}
+    constructor(scene){this.scene=scene;this.current=0;this.spawned=0;this.count=0;this.tick=0;this.active=false;this.plan=[];this.themeLabel='';}
     begin(){
       if(this.current>=this.scene.stage.waves)return;
       this.current++;this.spawned=0;this.active=true;this.tick=500;
@@ -677,6 +677,7 @@
       if(this.isEliteWave())this.count=Math.max(5,Math.floor(this.count*.87));
       if(this.scene.stage.id===6&&this.current%3===0)this.count+=Math.ceil(this.count*.35);
       if(this.scene.stage.id===10&&this.current%4===0)this.count+=4;
+      this.plan=this.makePlan();
       if(this.scene.ward){
         this.scene.wardCharges=Math.min(3,this.scene.ward+(this.scene.synergies.has('heartwood')?1:0));
         this.scene.hp=Math.min(this.scene.maxHP,this.scene.hp+35*this.scene.ward);
@@ -684,30 +685,70 @@
       this.scene.waveStartHP=this.scene.hp;
       renderHUD();
       const hazard=this.scene.stage.id===6&&this.current%3===0?'포자 군단 급습!':this.scene.stage.id===10&&this.current%4===0?'달빛 아래 대공세!':null;
-      showBanner(this.isMidBoss()?'중간보스 · 숲의 수호자 접근!':this.isEliteWave()?'정예 · 버섯 거한 등장!':hazard||(this.isBoss()?'우두머리가 다가온다!':'제 '+this.current+'차 공세'));
+      showBanner(this.isMidBoss()?'중간보스 · 숲의 수호자 접근!':this.isEliteWave()?'정예 · 버섯 거한 등장!':hazard||(this.isBoss()?'우두머리가 다가온다!':'제 '+this.current+'차 · '+this.themeLabel));
     }
     isBoss(){return this.current===this.scene.stage.waves && this.scene.stage.id%4===3;}
     isMidBoss(){return this.current===Math.max(4,Math.ceil(this.scene.stage.waves*.55));}
     isFinalElite(){return this.current===this.scene.stage.waves&&!this.isBoss();}
     isEliteWave(){return this.current>=3&&(this.current%3===0||this.isFinalElite())&&!this.isBoss()&&!this.isMidBoss();}
-    nextType(){
-      if(this.isBoss()&&this.spawned===this.count-1)return'boss';
-      if(this.isMidBoss()&&this.spawned===this.count-1)return'guardian';
-      if(this.isEliteWave()&&this.spawned===this.count-1)return'shroom';
-      // First wave stays one-hero friendly; specialist monsters arrive as the squad grows.
-      if(this.current===1)return this.scene.stage.id>0&&Math.random()<.22?'runner':'sprout';
-      const n=Math.random(),chapter=Math.floor(this.scene.stage.id/4);
-      if(this.current>=2&&n<.095)return'imp';
-      if(this.current>=3&&n>=.095&&n<.17)return'spore';
-      if(chapter>=2&&n<.26)return'crystal';
-      if(chapter>=1&&n<.23)return this.current%2?'crystal':'thorn';
-      if(n<.16)return'thorn';
-      if(this.scene.stage.id>=5&&n<.34)return'brute';
-      if(this.scene.stage.id===1&&n<.72)return'runner';
-      if(this.scene.stage.id===0&&this.current>=2&&n<.23)return'runner';
-      if(this.scene.stage.id>=1&&n<.55)return'runner';
-      return'sprout';
+    makePlan(){
+      // Curated enemy families give each chapter a recognizable rhythm without a scripted repeat.
+      // The solo first wave deliberately avoids armor, summoners and dash attackers.
+      const id=this.scene.stage.id,chapter=Math.floor(id/4);
+      const profiles=[
+        {sprout:65,runner:25,thorn:10},
+        {sprout:31,runner:55,thorn:14},
+        {sprout:32,runner:40,thorn:28},
+        {sprout:38,runner:19,thorn:18,brute:25},
+        {sprout:29,runner:29,spore:24,thorn:18},
+        {sprout:18,runner:27,brute:35,crystal:20},
+        {sprout:17,runner:29,spore:35,imp:19},
+        {sprout:16,runner:21,brute:25,crystal:23,imp:15},
+        {sprout:20,runner:39,thorn:26,imp:15},
+        {sprout:16,runner:18,brute:25,crystal:34,spore:7},
+        {sprout:14,runner:24,spore:24,imp:24,crystal:14},
+        {sprout:14,runner:21,brute:23,crystal:22,imp:20}
+      ];
+      const signatures=['runner','runner','thorn','brute','spore','brute','spore','crystal','thorn','crystal','imp','imp'];
+      const labels=['숲길 정찰','빠른 적 주의','갈라진 길','갑옷 짐승','포자 주의','단단한 적','포자 군단','수정 갑각','바람 속 돌파','수정 갑옷','혼합 공세','어둠의 선봉'];
+      this.themeLabel=labels[id]||'숲길 방어';
+      const special=this.isBoss()?'boss':this.isMidBoss()?'guardian':this.isEliteWave()?'shroom':null;
+      const normalCount=this.count-(special?1:0),plan=[];
+      const weights={...profiles[id]||profiles[0]};
+      if(this.current===2){
+        // A companion has just joined. Introduce special units slowly.
+        for(const kind of ['spore','imp','crystal'])if(weights[kind]){
+          const removed=weights[kind]*.6;weights[kind]-=removed;
+          weights[chapter===0?'sprout':'runner']=(weights[chapter===0?'sprout':'runner']||0)+removed;
+        }
+      }
+      function pick(excluded){
+        const pool=Object.entries(weights).filter(([type,value])=>value>0&&type!==excluded);
+        const total=pool.reduce((sum,[,value])=>sum+value,0);
+        let n=Math.random()*total;
+        for(const [type,value]of pool){n-=value;if(n<0)return type;}
+        return pool.at(-1)?.[0]||'sprout';
+      }
+      let soloRunners=0;
+      for(let i=0;i<normalCount;i++){
+        let type;
+        if(this.current===1){
+          const useRunner=id>0&&soloRunners===0&&i>=2&&Math.random()<.18;
+          type=useRunner?'runner':'sprout';if(useRunner)soloRunners++;
+        }else{
+          const last=plan.at(-1),repeat=plan.length>=2&&last===plan.at(-2);
+          type=pick(repeat?last:null);
+        }
+        plan.push(type);
+      }
+      // Keep one stage-signature enemy in the middle of developed waves.
+      if(this.current>=3&&normalCount>=6&&!plan.includes(signatures[id])){
+        plan[Math.floor(normalCount*.6)]=signatures[id];
+      }
+      if(special)plan.push(special); // Exactly one climax enemy, always last.
+      return plan;
     }
+    nextType(){return this.plan[this.spawned]||'sprout';}
     update(dt){
       if(!this.active)return;
       this.tick-=dt;
