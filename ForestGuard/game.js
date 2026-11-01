@@ -167,6 +167,7 @@
     renderMap();
   }
   function renderMap() {
+    $('stage-select-panel').dataset.chapter=String(viewedChapter+1);
     const grid=$('stage-grid'); grid.replaceChildren();
     document.querySelectorAll('#stage-chapter-tabs .stage-chapter-tab').forEach((tab,index)=>{
       const selected=index===viewedChapter;

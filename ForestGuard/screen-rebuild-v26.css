@@ -149,3 +149,22 @@
 @media(prefers-reduced-motion:reduce){
   .stage-chapter-tab,.menu .title-hero-art{transition:none;animation:none}
 }
+
+/* v2.6.1: Every chapter paints the ENTIRE scene with its own real environment artwork.
+   Never add a second map background to the individual stage/map columns. */
+#stage-select-panel[data-chapter="2"]{
+  background:linear-gradient(90deg,rgba(7,22,24,.83),rgba(13,35,39,.44) 43%,rgba(13,35,39,.06) 88%),
+    linear-gradient(180deg,rgba(5,20,24,.72),transparent 22%,rgba(5,20,24,.05) 64%,rgba(3,15,20,.91)),
+    url('./art/misty-canyon-v08.png') center 54% /cover!important
+}
+#stage-select-panel[data-chapter="3"]{
+  background:linear-gradient(90deg,rgba(8,14,36,.88),rgba(14,18,42,.37) 43%,rgba(15,18,46,.04) 88%),
+    linear-gradient(180deg,rgba(5,11,28,.65),transparent 22%,rgba(5,11,28,.02) 67%,rgba(4,11,30,.89)),
+    url('./art/moonlit-highland-v08.png') center 48% /cover!important
+}
+#stage-select-panel[data-chapter="2"] .stage-map-signet{
+  color:#e1effb;text-shadow:0 2px #1c343c
+}
+#stage-select-panel[data-chapter="3"] .stage-map-signet{
+  color:#f7e9ff;text-shadow:0 2px #262242
+}
