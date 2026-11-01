@@ -536,6 +536,15 @@
       c.fillStyle=tint;c.fillRect(0,0,w,h);
     });
     // The painted field already contains the castle. Never paint its lower half twice.
+    // Edge-free soft shadow under the illustrated boss cut-in, drawn once per battle.
+    createCanvasTexture(scene,'cinematic-vignette',420,380,(ctx)=>{
+      const grad=ctx.createRadialGradient(210,186,25,210,186,247);
+      grad.addColorStop(0,'rgba(8,25,19,.8)');
+      grad.addColorStop(.46,'rgba(8,25,19,.53)');
+      grad.addColorStop(.82,'rgba(8,25,19,.14)');
+      grad.addColorStop(1,'rgba(8,25,19,0)');
+      ctx.fillStyle=grad;ctx.fillRect(0,0,420,380);
+    });
     createCanvasTexture(scene,'torch-glow',72,72,(ctx)=>{
       const glow=ctx.createRadialGradient(36,36,2,36,36,35);
       glow.addColorStop(0,'rgba(255,249,173,.83)');
@@ -783,12 +792,12 @@
       const hue=e.type==='shroom'?0xe4a55e:e.type==='guardian'?0xd1bd7e:0xb191eb;
       const caption=e.type==='shroom'?'정예 출현 · 버섯 거한':
         e.type==='guardian'?'중간보스 출현 · 숲의 수호자':'보스 출현 · 전투 경계';
-      const dusk=this.add.rectangle(210,277,420,342,0x10241e,.42).setDepth(8);
-      const aura=this.add.ellipse(210,312,185,32,hue,.24).setDepth(8.5);
+      const dusk=this.add.image(210,277,'cinematic-vignette').setDepth(8);
+      const aura=this.add.ellipse(210,340,220,38,hue,.24).setDepth(8.5);
       const hero=this.add.image(210,258,'motion-'+e.type+'-attack-0')
-        .setDisplaySize(e.type==='shroom'?170:148,e.type==='shroom'?170:148)
+        .setDisplaySize(e.type==='shroom'?246:216,e.type==='shroom'?246:216)
         .setAlpha(1).setDepth(9);
-      const label=this.add.text(210,360,caption,{
+      const label=this.add.text(210,395,caption,{
         font:'bold 19px system-ui',color:'#fff1cd',align:'center',
         stroke:'#35261b',strokeThickness:5
       }).setOrigin(.5).setAlpha(1).setDepth(9);

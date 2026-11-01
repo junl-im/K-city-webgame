@@ -108,6 +108,8 @@ assert.match(css,/\.hero-slot\.empty\{border:0!important/);
 assert.match(html,/game\.js\?v=20261101k/);
 assert.match(css,/One continuous forest illustration/);
 assert.match(js,/holdMs:2100,fadeMs:620/);
+assert.match(js,/createCanvasTexture\(scene,'cinematic-vignette'/);
+assert.match(js,/e\.type==='shroom'\?246:216/);
 assert.match(js,/painted-rampart-front-v24\.webp/);
 assert.match(js,/createCanvasTexture\(scene,'painted-rampart-front'/);
 assert.match(js,/setDepth\(7\)/);
