@@ -783,12 +783,12 @@
       const hue=e.type==='shroom'?0xe4a55e:e.type==='guardian'?0xd1bd7e:0xb191eb;
       const caption=e.type==='shroom'?'정예 출현 · 버섯 거한':
         e.type==='guardian'?'중간보스 출현 · 숲의 수호자':'보스 출현 · 전투 경계';
-      const dusk=this.add.rectangle(210,179,420,280,0x10241e,.45).setDepth(8);
-      const aura=this.add.ellipse(210,218,185,32,hue,.24).setDepth(8.5);
-      const hero=this.add.image(210,170,'motion-'+e.type+'-attack-0')
+      const dusk=this.add.rectangle(210,277,420,342,0x10241e,.42).setDepth(8);
+      const aura=this.add.ellipse(210,312,185,32,hue,.24).setDepth(8.5);
+      const hero=this.add.image(210,258,'motion-'+e.type+'-attack-0')
         .setDisplaySize(e.type==='shroom'?170:148,e.type==='shroom'?170:148)
         .setAlpha(1).setDepth(9);
-      const label=this.add.text(210,277,caption,{
+      const label=this.add.text(210,360,caption,{
         font:'bold 19px system-ui',color:'#fff1cd',align:'center',
         stroke:'#35261b',strokeThickness:5
       }).setOrigin(.5).setAlpha(1).setDepth(9);
