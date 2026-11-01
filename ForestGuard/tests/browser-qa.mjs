@@ -157,6 +157,10 @@ try{
         hud,buttons,visibleStage:document.getElementById('wave-label').textContent
       };
     });
+    const paintedControls=await page.evaluate(()=>
+      ['home-btn','pause-btn'].map(id=>getComputedStyle(document.getElementById(id)).backgroundImage));
+    assert.ok(paintedControls.every(bg=>bg.includes('rani-ui-icons-v04.webp')),
+      'Home and pause must show actual hand-painted decals, not blank gradients');
     assert.equal(battle.svgCount,0,'No SVG in live battle');
     assert.equal(battle.backdrop,'none','Phaser battlefield must not have duplicate wallpaper');
     assert.ok(battle.scrollX<=2&&battle.scrollY<=2,'Battle page must fit a viewport: '+JSON.stringify(battle));
