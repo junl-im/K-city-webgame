@@ -107,7 +107,7 @@ assert.match(js,/createCanvasTexture\(scene,'torch-glow'/);
 assert.match(js,/setupAmbience\(\)/);
 assert.match(js,/updateAmbience\(dt\)/);
 assert.match(js,/announceElite\(enemy\)/);
-assert.match(js,/ctx\.shadowBlur=12/);
+assert.doesNotMatch(js,/ctx\.shadowBlur=12/,'Do not re-introduce the duplicate wall shadow layer');
 assert.match(js,/delay:140,repeat:3,callback/);
 assert.match(js,/if\(i===2\)/);
 assert.match(js,/trail-'\+kind/);
