@@ -80,6 +80,10 @@
       element.style.backgroundPosition='center';
     }
     element.style.backgroundRepeat='no-repeat';
+    // Keep live icon tile offsets even when illustrated panel CSS uses !important.
+    element.style.setProperty('--rani-icon-image',element.style.backgroundImage);
+    element.style.setProperty('--rani-icon-size',element.style.backgroundSize);
+    element.style.setProperty('--rani-icon-position',element.style.backgroundPosition);
     element.classList.add('painted-icon');element.textContent='';
     if(element.tagName!=='BUTTON')element.setAttribute('aria-hidden','true');
   }
