@@ -731,7 +731,7 @@
       this.terrainTimer=this.terrainConfig?this.terrainConfig.interval:Infinity;
       this.terrainWarned=false;this.terrainWarning=false;this.terrainCueUntil=0;this.terrainCueText='';
       this.terrainEvents=0;this.overlayTimer=0;
-      this.cardCounts={};this.synergies=new Set();this.gameClock=0;this.attackFxActive=0;
+      this.cardCounts={};this.synergies=new Set();this.gameClock=0;this.attackFxActive=0;this.damageFloatCount=0;this.damageFloatSerial=0;
       this.heroIds=['fox',null,null];this.targetModes=['front','front','front'];this.attackTimes=[0,0,0];this.enemies=[];this.projectiles=[];this.effects=[];this.dyingSprites=0;
       this.focusEnemy=null;this.focusUntil=0;this.focusReticle=null;this.lastFortHP=-1;
       const personal=state.stats[this.stage.id]||{};
@@ -855,16 +855,17 @@
       const hp=Math.round(hpbase*(1+this.stage.id*.13+(this.wave.current-1)*.1)*soloScoutScale*this.assistScale);
       const spd={sprout:33,runner:60,brute:23,boss:18,thorn:49,spore:31,imp:55,crystal:21,shroom:19,guardian:17}[type]+this.stage.id*.8;
       const sizes={sprout:[56,48],runner:[56,48],brute:[69,63],boss:[160,142],thorn:[61,54],spore:[69,61],imp:[55,65],crystal:[79,67],shroom:[170,156],guardian:[165,144]};
+      const elite=['shroom','guardian','boss'].includes(type);
       const [sw,sh]=sizes[type],lifeWidth=type==='guardian'||type==='boss'?88:type==='shroom'?60:40;
       const lifeYOffset=Math.round(sh*.53)+8;
       const spr=this.add.image(lane,-38,'motion-'+type+'-run-0').setDisplaySize(sw,sh).setDepth(4);
-      const lifeBg=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth+2,6,0x302a20).setDepth(5);
+      const lifeBg=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth+2,6,0x302a20).setDepth(5).setVisible(elite);
       if(['shroom','guardian','boss'].includes(type)){
         const ring=this.add.ellipse(lane,-25,type==='shroom'?142:155,34,
           type==='shroom'?0xd69c57:0xe0c574,.14).setStrokeStyle(2,0xe3c17c,.46).setDepth(3);
         this.tweens.add({targets:ring,alpha:0,scaleX:1.28,scaleY:1.45,duration:840,onComplete:()=>ring.destroy()});
       }
-      const life=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth,4,type==='guardian'?0xffcb73:type==='shroom'?0xf4a86e:0xe18754).setDepth(5);
+      const life=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth,4,type==='guardian'?0xffcb73:type==='shroom'?0xf4a86e:0xe18754).setDepth(5).setVisible(elite);
       const nameLabel=['guardian','boss','shroom'].includes(type)?this.add.text(lane,-38-lifeYOffset-15,ENEMY_INTEL[type].name,{font:'bold 12px system-ui',color:'#fff1c7',stroke:'#423622',strokeThickness:4}).setOrigin(.5).setDepth(7):null;
       const enemy={nameLabel,type,x:lane,baseX:lane,windPhase:Math.random()*Math.PI*2,y:-38,spr,lifeBg,life,lifeWidth,lifeYOffset,hp,maxHP:hp,spd,slow:0,rooted:0,
         armor:type==='crystal'?.34:type==='shroom'?.12:this.stage.id===9?(type==='runner'?0:.3):(type==='brute'?.18:0),
@@ -1006,6 +1007,25 @@
         }
       }
     }
+    showDamageNumber(e,damage,critical,kind){
+      if(this.damageFloatCount>=22||this.ended)return;
+      this.damageFloatCount++;
+      const ordinal=this.damageFloatSerial++;
+      const xOffset=[-13,0,13,-7,7][ordinal%5];
+      const elite=['boss','guardian','shroom'].includes(e.type);
+      const size=critical?24:elite?18:16;
+      const style={font:'900 '+size+'px system-ui',
+        color:critical?'#ffe072':kind==='rabbit'?'#b8efff':kind==='cat'?'#ffd0a5':'#fff4d7',
+        stroke:critical?'#633616':'#35271d',strokeThickness:critical?5:4};
+      const number=this.add.text(e.x+xOffset,e.y-(elite?55:29),String(damage)+(critical?'!':''),
+        style).setOrigin(.5).setDepth(9).setScale(critical?1.2:1);
+      this.tweens.add({targets:number,y:number.y-(critical?43:29),
+        x:number.x+(ordinal%2?6:-6),scale:critical?1.42:1.06,alpha:0,
+        duration:critical?780:650,ease:'Cubic.easeOut',onComplete:()=>{
+          if(number.active)number.destroy();
+          this.damageFloatCount=Math.max(0,this.damageFloatCount-1);
+        }});
+    }
     hitEnemy(e,damage,kind){
       if(!this.enemies.includes(e)||e.untargetable)return;
       const crit=Math.random()<this.crit;
@@ -1027,8 +1047,7 @@
       }
       if(kind==='megafox')e.hp-=Math.floor(actual*.2);
       e.life.width=e.lifeWidth*Math.max(0,e.hp/e.maxHP);
-      const number=this.add.text(e.x,e.y-24,String(actual)+(crit?'!':''),{font:'bold 13px system-ui',color:crit?'#fff5a4':'#fef5d7',stroke:'#493423',strokeThickness:3}).setOrigin(.5).setDepth(8);
-      this.tweens.add({targets:number,y:number.y-25,alpha:0,duration:580,onComplete:()=>number.destroy()});
+      this.showDamageNumber(e,actual,crit,kind);
       V.trigger(e.spr,'hurt',this.gameClock+250);
       e.spr.setTintFill(0xffffff);this.time.delayedCall(75,()=>{if(e.spr.active)e.spr.clearTint();});
       if(kind==='megafox'&&this.evolutionPath==='sun'){

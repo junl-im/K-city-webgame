@@ -246,3 +246,7 @@ assert.match(js,/classList\.toggle\('result-dialog'/);
 assert.match(css,/\.modal-box\.result-dialog/);
 assert.match(css,/\.result-hero-scene/);
 console.log('라니 수비대 v2.6 smoke: PASS (new painted sprites, midboss, focus, canvas fort HUD, no SVG).');
+assert.match(js,/showDamageNumber\(e,actual,crit,kind\)/);
+assert.match(js,/damageFloatCount>=22/);
+assert.match(js,/\.setVisible\(elite\)/);
+assert.match(js,/const elite=\['shroom','guardian','boss'\]\.includes\(type\)/);
