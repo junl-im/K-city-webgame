@@ -88,7 +88,7 @@ assert.match(js,/hasDashed/);
 assert.match(js,/hasRallied/);
 assert.match(js,/guarding\?Math\.min\(\.55/);
 assert.match(css,/\.hero-slot\.empty\{border:0!important/);
-assert.match(html,/game\.js\?v=20261101d/);
+assert.match(html,/game\.js\?v=20261101e/);
 assert.match(js,/mushroom-colossus-attack-v19\.webp/);
 assert.match(js,/motion-shroom-attack-'\+frame/);
 assert.match(js,/sporeVolley\(e\)/);
