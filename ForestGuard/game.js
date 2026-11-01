@@ -94,11 +94,11 @@
     ['ward','wall','heartwood','고목의 맹세']
   ];
   const HEROES = {
-    fox:{name:'여우 궁수',icon:'🦊',damage:27,interval:790,range:355,color:0xffce6a},
-    megafox:{name:'곰같은여우',icon:'🦊',damage:69,interval:460,range:740,color:0xffdf80},
-    bear:{name:'곰 수호자',icon:'🐻',damage:42,interval:1250,range:445,color:0xeab68c},
-    rabbit:{name:'토끼 마법사',icon:'🐰',damage:24,interval:1050,range:555,color:0xa9eafa},
-    cat:{name:'고양이 기술자',icon:'🐱',damage:31,interval:1150,range:495,color:0xff9b6f}
+    fox:{name:'여우 궁수',icon:'🦊',damage:27,interval:790,range:535,color:0xffce6a},
+    megafox:{name:'곰같은여우',icon:'🦊',damage:69,interval:460,range:690,color:0xffdf80},
+    bear:{name:'곰 수호자',icon:'🐻',damage:42,interval:1250,range:345,color:0xeab68c},
+    rabbit:{name:'토끼 마법사',icon:'🐰',damage:24,interval:1050,range:605,color:0xa9eafa},
+    cat:{name:'고양이 기술자',icon:'🐱',damage:31,interval:1150,range:470,color:0xff9b6f}
   };
   const state = {unlocked:1,clears:[],best:{},stats:{},selected:0,muted:false};
   try {
@@ -776,26 +776,40 @@
     announceElite(e){
       if(this.lastEliteCinematicWave===this.wave.current)return;
       this.lastEliteCinematicWave=this.wave.current;
-      if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-      const hue=e.type==='shroom'?0xebac60:e.type==='guardian'?0xd1bd7e:0xb191eb;
-      const dusk=this.add.rectangle(210,182,420,300,0x13251e,.22).setDepth(8);
-      const hero=this.add.image(210,172,'motion-'+e.type+'-attack-0')
-        .setDisplaySize(e.type==='shroom'?150:132,e.type==='shroom'?150:132).setAlpha(.91).setDepth(9);
-      const label=this.add.text(210,262,e.type==='shroom'?'정예 · 버섯 거한':
-        e.type==='guardian'?'중간보스 · 숲의 수호자':'보스 접근!',{
-          font:'bold 19px system-ui',color:'#fff1c9',stroke:'#403021',strokeThickness:5
-        }).setOrigin(.5).setDepth(9);
-      const aura=this.add.ellipse(210,235,165,32,hue,.19).setDepth(8);
-      this.time.addEvent({delay:140,repeat:3,callback:()=>{
+      const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      if(this.eliteCinematic?.hero?.active){
+        for(const node of this.eliteCinematic.nodes){this.tweens.killTweensOf(node);node.destroy();}
+      }
+      const hue=e.type==='shroom'?0xe4a55e:e.type==='guardian'?0xd1bd7e:0xb191eb;
+      const caption=e.type==='shroom'?'정예 출현 · 버섯 거한':
+        e.type==='guardian'?'중간보스 출현 · 숲의 수호자':'보스 출현 · 전투 경계';
+      const dusk=this.add.rectangle(210,179,420,280,0x10241e,.45).setDepth(8);
+      const aura=this.add.ellipse(210,218,185,32,hue,.24).setDepth(8.5);
+      const hero=this.add.image(210,170,'motion-'+e.type+'-attack-0')
+        .setDisplaySize(e.type==='shroom'?170:148,e.type==='shroom'?170:148)
+        .setAlpha(1).setDepth(9);
+      const label=this.add.text(210,277,caption,{
+        font:'bold 19px system-ui',color:'#fff1cd',align:'center',
+        stroke:'#35261b',strokeThickness:5
+      }).setOrigin(.5).setAlpha(1).setDepth(9);
+      const nodes=[dusk,aura,hero,label];
+      this.eliteCinematic={hero,label,nodes,startTime:this.time.now,holdMs:2100,fadeMs:620};
+      let frame=0;
+      if(!reduced)this.time.addEvent({delay:155,repeat:11,callback:()=>{
         if(!hero.active)return;
-        const frame=(Math.floor(this.gameClock/140)+1)%4;
-        const key='motion-'+e.type+'-attack-'+frame;
-        if(this.textures.exists(key))hero.setTexture(key);
+        frame=(frame+1)%4;
+        const texture='motion-'+e.type+'-attack-'+frame;
+        if(this.textures.exists(texture))hero.setTexture(texture);
       }});
-      this.tweens.add({targets:hero,scale:1.18,alpha:0,duration:960,ease:'Sine.easeOut',
-        onComplete:()=>hero.destroy()});
-      this.tweens.add({targets:[dusk,label,aura],alpha:0,duration:970,
-        onComplete:()=>{dusk.destroy();label.destroy();aura.destroy();}});
+      // NEVER fade the announcement during its readable hold window.
+      this.time.delayedCall(2100,()=>{
+        if(!hero.active)return;
+        this.tweens.add({targets:nodes,alpha:0,duration:620,ease:'Sine.easeIn',
+          onComplete:()=>{
+            for(const node of nodes)if(node.active)node.destroy();
+            if(this.eliteCinematic?.hero===hero)this.eliteCinematic=null;
+          }});
+      });
     }
     spawnEnemy(type){
       // Enemy entry is broad at the top, including bridge levels.
@@ -836,11 +850,11 @@
     }
     targetFor(heroX,range,mode='front'){
       if(this.focusEnemy&&this.enemies.includes(this.focusEnemy)&&this.gameClock<this.focusUntil&&!this.focusEnemy.untargetable
-        &&Math.hypot(this.focusEnemy.x-heroX,this.focusEnemy.y-575)<=range)return this.focusEnemy;
+        &&Math.hypot(this.focusEnemy.x-heroX,this.focusEnemy.y-568)<=range)return this.focusEnemy;
       let result=null,best=-Infinity;
       for(const e of this.enemies){
         if(e.untargetable)continue;
-        const distance=Math.hypot(e.x-heroX,e.y-575);
+        const distance=Math.hypot(e.x-heroX,e.y-568);
         if(distance>range)continue;
         const score=mode==='threat'?(e.type==='boss'?1200:e.type==='guardian'?900:e.type==='shroom'?460:e.type==='crystal'?320:e.type==='brute'?280:0)+e.maxHP*.18-e.hp*.14+e.y*.12-Math.abs(e.x-heroX)*.10:
           e.y-Math.abs(e.x-heroX)*.45;
@@ -1734,6 +1748,18 @@
   if((location.hostname==='127.0.0.1'||location.hostname==='localhost')&&new URLSearchParams(location.search).has('fgqa')){
     window.__ForestGuardQA={
       finish(win){if(battle&&!battle.ended)battle.finish(!!win);},
+      showEliteIntro(type='shroom'){
+        if(!battle||battle.ended)return false;
+        battle.lastEliteCinematicWave=-1;
+        battle.announceElite({type});return true;
+      },
+      eliteInfo(){
+        const cut=battle?.eliteCinematic;
+        return cut?.hero?.active?{alpha:cut.hero.alpha,labelAlpha:cut.label.alpha,
+          label:cut.label.text,holdMs:cut.holdMs,fadeMs:cut.fadeMs,
+          elapsed:Math.round(battle.time.now-cut.startTime)}:null;
+      },
+      heroRanges(){return Object.fromEntries(Object.entries(HEROES).map(([id,role])=>[id,role.range]));},
       renderInfo(){
         if(!battle||!battle.rampartFront)return null;
         const front=battle.rampartFront,hero=battle.heroSprites[0];

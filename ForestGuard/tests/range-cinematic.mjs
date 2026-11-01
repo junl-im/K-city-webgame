@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const src=readFileSync(new URL('../game.js',import.meta.url),'utf8');
+const heroes=src.slice(src.indexOf('  const HEROES = {'),src.indexOf('  const state = {'));
+const ranges=Object.fromEntries([...heroes.matchAll(/(fox|megafox|bear|rabbit|cat):\{[^\n]*?range:(\d+)/g)].map(m=>[m[1],Number(m[2])]));
+assert.deepEqual(ranges,{fox:535,megafox:690,bear:345,rabbit:605,cat:470});
+assert.ok(Math.hypot(568-105,135)<ranges.fox,'Fox can reach middle boss telegraph position');
+assert.ok(ranges.bear<ranges.cat&&ranges.cat<ranges.fox&&ranges.fox<ranges.rabbit&&ranges.rabbit<ranges.megafox);
+assert.match(src,/const distance=Math\.hypot\(e\.x-heroX,e\.y-568\)/);
+const cinematic=src.slice(src.indexOf('    announceElite(e){'),src.indexOf('    spawnEnemy(type){'));
+assert.match(cinematic,/holdMs:2100,fadeMs:620/);
+assert.match(cinematic,/this\.time\.delayedCall\(2100,/);
+assert.match(cinematic,/delay:155,repeat:11/);
+assert.doesNotMatch(cinematic,/duration:960/);
+console.log('ForestGuard hero-range / readable elite cinematic: PASS');
