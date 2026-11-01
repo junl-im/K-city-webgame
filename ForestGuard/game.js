@@ -118,7 +118,7 @@
   const biomeBitmaps = [null,null,null];
   const biomeLoading = [null,null,null];
   const biomeFiles = ['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'];
-  let monsterBitmap = null, fortBitmap = null, mushroomAttackBitmap = null, rampartBitmap = null;
+  let monsterBitmap = null, fortBitmap = null, mushroomAttackBitmap = null, rampartBitmap = null, rearBitmap = null;
   const ART_VERSION = '20261031r';
   async function prepareAtlas(stageIndex){
     const load=(url,assign)=>new Promise(resolve=>{
@@ -140,6 +140,8 @@
     if(!atlasPromise)atlasPromise=Promise.all([
       load('./art/forest-characters.png?v=20261031c',art=>{atlasBitmap=art;}),
       load('./art/rani-evolution.png?v=20261031c',art=>{evolutionBitmap=art;}),
+       // Five slim, rear-facing defenders: optional, with original art fallback.
+       load('./art/rani-rear-party-v31.webp?v=20261101a',art=>{rearBitmap=art;}),
       load('./art/forest-battleground-v04.webp?v=20261031d',art=>{fieldBitmap=art;}),
       load('./art/forest-monsters-v14-clean.webp?v='+ART_VERSION,art=>{monsterBitmap=art;}),
       load('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;}),
@@ -581,6 +583,25 @@
     Object.keys(HEROES).filter(type=>type!=='megafox').forEach(type=>createCanvasTexture(scene,'hero-'+type,128,128,(c,w,h)=>{
       if(atlasBitmap)atlasCell(c,w,h,{fox:0,bear:1,rabbit:2,cat:3}[type]);else paintHero(c,w,h,type);
     }));
+    // Render the defenders from behind, facing the approaching monsters at the top.
+    // The five figures are isolated without stretching the original proportions.
+    if(rearBitmap){
+      const cutouts={
+        fox:[0,0,445,682],bear:[445,0,400,682],rabbit:[845,0,385,682],
+        cat:[1230,0,395,682],megafox:[1615,0,433,682]
+      };
+      const scaleX=rearBitmap.naturalWidth/2048,scaleY=rearBitmap.naturalHeight/682;
+      for(const [id,part] of Object.entries(cutouts)){
+        createCanvasTexture(scene,'hero-rear-'+id,128,128,(c)=>{
+          const [sx,sy,sw,sh]=part;
+          const width=sw*scaleX,height=sh*scaleY;
+          const ratio=Math.min(120/width,124/height);
+          const dw=width*ratio,dh=height*ratio;
+          c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
+          c.drawImage(rearBitmap,sx*scaleX,sy*scaleY,width,height,(128-dw)/2,128-dh,dw,dh);
+        });
+      }
+    }
     ['sprout','runner','brute','boss'].forEach(type=>createCanvasTexture(scene,'enemy-'+type,128,128,(c,w,h)=>{
       if(atlasBitmap)atlasCell(c,w,h,{sprout:4,runner:5,brute:6,boss:7}[type]);else paintEnemy(c,w,h,type);
     }));

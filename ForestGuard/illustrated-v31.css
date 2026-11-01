@@ -1,0 +1,169 @@
+/* 라니 수비대 v3.2 — six original transparent painted assets.
+   No SVG, CSS-drawn imitation frames, emoji artwork, or scrollable home page. */
+:root{--rani-board-acorn:url('./art/rani-board-acorn-v31.webp');--rani-board-map:url('./art/rani-board-map-v31.webp');--rani-board-fox:url('./art/rani-board-fox-v31.webp');--rani-buttons:url('./art/rani-button-atlas-v31.webp')}
+.menu:not(.stage-choosing){isolation:isolate}
+.menu:not(.stage-choosing):before{
+  opacity:.7!important;
+  background:radial-gradient(ellipse 88% 49% at 50% 27%,rgba(255,216,142,.13),transparent 79%)!important;
+  pointer-events:none
+}
+/* The transparent master logo includes its typography and heroes.
+   Remove the previous feathered oval: it left a mismatched brown halo. */
+.menu:not(.stage-choosing) .brand{
+  flex:0 0 clamp(175px,30dvh,265px)!important;height:clamp(175px,30dvh,265px)!important;
+  margin:clamp(5px,1.3dvh,13px) auto clamp(4px,.9dvh,9px)!important;
+  padding:0!important;width:100%;max-width:510px
+}
+.menu:not(.stage-choosing) .title-hero-art{
+  width:100%!important;height:100%!important;max-width:510px!important;
+  object-fit:contain!important;object-position:center!important;
+  -webkit-mask-image:none!important;mask-image:none!important;
+  filter:drop-shadow(0 5px 4px rgba(5,18,12,.56))!important
+}
+.menu:not(.stage-choosing) .brand-seal,
+.menu:not(.stage-choosing) .brand .eyebrow,
+.menu:not(.stage-choosing) .brand>p{display:none!important}
+.menu:not(.stage-choosing) .brand h1{
+  position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0
+}
+/* Every touch target uses a hand-painted PNG/WebP panel, and keeps real HTML labels. */
+.menu:not(.stage-choosing) .home-utility-btn,
+.menu:not(.stage-choosing) .rune-btn,
+.stage-select-panel .rune-btn,
+.stage-select-panel .stage-nav-btn,
+.stage-select-panel .stage-chapter-tab,
+#modal-actions .modal-action{
+  appearance:none;border:0!important;border-radius:0!important;outline-offset:1px;
+  background-image:var(--rani-buttons)!important;
+  background-repeat:no-repeat!important;background-size:300% 200%!important;
+  box-shadow:none!important;
+  text-shadow:0 1px 1px rgba(0,0,0,.8)!important;
+  color:#fff0cd!important;
+  font-weight:900;transition:filter .13s ease,transform .13s ease
+}
+.menu:not(.stage-choosing) button:active,
+.stage-select-panel button:active,
+#modal-actions .modal-action:active{transform:translateY(1px);filter:brightness(.88)}
+.menu:not(.stage-choosing) button:focus-visible,
+.stage-select-panel button:focus-visible{outline:2px solid #fff1ae!important;outline-offset:2px}
+/* Atlas positions: gold / forest / stone; blue / parchment / crimson. */
+.menu:not(.stage-choosing) .home-utility-btn{
+  background-position:100% 0%!important;min-width:75px!important;
+  width:auto!important;height:39px!important;min-height:39px!important;
+  padding:7px 15px!important;font-size:12px!important
+}
+.menu:not(.stage-choosing) #help-btn{background-position:0% 100%!important}
+.menu:not(.stage-choosing) .menu-actions-top{
+  margin:0 auto!important;gap:7px!important;max-width:355px!important;
+  align-items:center!important
+}
+.menu:not(.stage-choosing) .menu-actions-top #start-btn{
+  flex:0 1 177px!important;width:177px!important;min-width:145px!important;max-width:177px!important;
+  min-height:59px!important;height:59px!important;padding:8px 18px!important;
+  background-position:0% 0%!important;color:#513014!important;
+  text-shadow:0 1px 0 rgba(255,229,162,.78)!important;font-size:20px!important;
+  letter-spacing:1px!important
+}
+.menu:not(.stage-choosing) .menu-actions-top #resume-btn:not([hidden]){
+  flex:0 1 151px!important;width:151px!important;max-width:151px!important;min-width:113px!important;
+  min-height:55px!important;height:55px!important;padding:6px 12px!important;
+  background-position:50% 0%!important;color:#ffefc7!important;font-size:16px!important
+}
+/* A single old-wood sign contains stage story and destination, not separate boxes. */
+.menu:not(.stage-choosing) .home-stage-spot{
+  width:min(100%,425px)!important;max-width:425px!important;
+  min-height:104px!important;padding:17px 23px 17px 30px!important;
+  gap:3px!important;margin:clamp(5px,1.7dvh,16px) auto 0!important;
+  background:var(--rani-board-map) center/100% 100% no-repeat!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important
+}
+.menu:not(.stage-choosing) .home-stage-copy{gap:3px!important;min-width:0}
+.menu:not(.stage-choosing) .home-stage-copy small{font-size:10px!important;color:#d0bb8c!important;letter-spacing:.5px!important}
+.menu:not(.stage-choosing) .home-stage-copy strong{
+  font-size:clamp(13px,3.8vw,17px)!important;color:#fff0c8!important;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+.menu:not(.stage-choosing) .home-stage-copy span{
+  color:#e3d6b1!important;font-size:10px!important;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis
+}
+.menu:not(.stage-choosing) .home-stage-spot #stage-list-btn{
+  width:116px!important;min-width:100px!important;max-width:116px!important;
+  min-height:48px!important;height:48px!important;padding:8px 8px!important;
+  background-position:50% 0%!important;font-size:12px!important
+}
+.menu:not(.stage-choosing) .menu-bottom{margin:auto 0 0!important;opacity:.74}
+/* Stage-selection art shares the same material language. */
+.stage-select-panel .stage-nav-btn{background-position:0% 100%!important;min-height:38px}
+.stage-select-panel .stage-chapter-tab{background-position:50% 0%!important;min-height:39px}
+.stage-select-panel .stage-chapter-tab.active{
+  background-position:0% 0%!important;color:#503014!important;
+  text-shadow:0 1px rgba(255,231,169,.75)!important
+}
+.stage-select-panel .stage-enter-btn{background-position:0% 0%!important;color:#563317!important}
+.stage-select-panel .stage-choice-footer{
+  background:var(--rani-board-acorn) center/100% 100% no-repeat!important;
+  border:0!important;box-shadow:none!important;padding:12px 20px!important
+}
+.stage-select-panel .stage-choice-footer .stage-choice-description{padding-inline:4px!important}
+.stage-select-panel .stage-choice-footer .stage-choice-description>*{
+  color:#ffebc0!important;text-shadow:0 1px 3px #201108
+}
+#stage-select-panel .stage-tile{
+  border:0!important;border-radius:0!important;
+  background:var(--rani-buttons) 50% 0%/300% 200% no-repeat!important;
+  box-shadow:none!important;color:#ffedc1!important
+}
+#stage-select-panel .stage-tile.selected{
+  background-position:0% 0%!important;color:#4a3017!important;
+  filter:brightness(1.08)
+}
+/* Illustrated battle HUD surfaces: the HP meter remains readable above the texture. */
+.fort-status-row{background:var(--rani-board-acorn) center/100% 100% no-repeat!important;border:0!important}
+.fort-status-row .fort-hp{background:transparent!important;box-shadow:none!important;border:0!important}
+.modal-box .modal-top{
+  background:var(--rani-board-fox) center/100% 100% no-repeat!important;
+  padding:13px 21px 13px 28px!important;min-height:53px
+}
+#modal-actions .modal-action{background-position:0% 0%!important;min-height:47px;padding:10px 14px!important}
+#modal-actions .modal-action.alt{background-position:50% 0%!important}
+.battle-toolbar .hero-slot:not(.empty){
+  background:var(--rani-buttons) 50% 0%/300% 200% no-repeat!important;
+  border:0!important;box-shadow:none!important;border-radius:0!important
+}
+.battle-toolbar .hero-slot.empty{background:transparent!important}
+@media(max-width:350px){
+  .menu:not(.stage-choosing) .brand{
+    flex-basis:clamp(155px,27dvh,208px)!important;height:clamp(155px,27dvh,208px)!important;
+    margin:2px auto 3px!important
+  }
+  .menu:not(.stage-choosing) .home-utility-btn{
+    min-width:68px!important;height:35px!important;min-height:35px!important;padding:6px 10px!important
+  }
+  .menu:not(.stage-choosing) .menu-actions-top #start-btn{
+    width:153px!important;max-width:153px!important;min-height:53px!important;height:53px!important;font-size:18px!important
+  }
+  .menu:not(.stage-choosing) .menu-actions-top #resume-btn:not([hidden]){
+    width:126px!important;max-width:126px!important;min-width:110px!important;min-height:51px!important;height:51px!important
+  }
+  .menu:not(.stage-choosing) .home-stage-spot{
+    min-height:90px!important;padding:13px 16px 13px 22px!important
+  }
+  .menu:not(.stage-choosing) .home-stage-spot #stage-list-btn{
+    width:102px!important;min-width:98px!important;height:43px!important;min-height:43px!important;font-size:11px!important
+  }
+}
+@media(max-height:650px){
+  .menu:not(.stage-choosing) .brand{
+    flex-basis:clamp(134px,27dvh,195px)!important;height:clamp(134px,27dvh,195px)!important;
+    margin:0 auto!important
+  }
+  .menu:not(.stage-choosing) .home-stage-spot{
+    min-height:83px!important;padding:11px 16px 11px 23px!important;margin-top:3px!important
+  }
+  .menu:not(.stage-choosing) .menu-actions-top #start-btn{height:51px!important;min-height:51px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .menu button,.stage-select-panel button,#modal-actions .modal-action{transition:none!important}
+}

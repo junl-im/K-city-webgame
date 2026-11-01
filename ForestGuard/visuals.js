@@ -100,7 +100,11 @@
     element.style.backgroundRepeat='no-repeat';element.textContent='';
     element.classList.add('portrait-icon');element.setAttribute('aria-hidden','true');
   }
-  function baseTexture(id){return id==='megafox'?'evo-0':(COLORS[id]&&['sprout','runner','brute','boss','thorn','spore','imp','crystal','shroom','guardian'].includes(id)?'enemy-'+id:'hero-'+id);}
+  function baseTexture(id,textures){
+    // Preserve original front portraits for menus; battle motion uses painted backs.
+    if(HERO_IDS.has(id)&&textures.exists('hero-rear-'+id))return 'hero-rear-'+id;
+    return id==='megafox'?'evo-0':(COLORS[id]&&['sprout','runner','brute','boss','thorn','spore','imp','crystal','shroom','guardian'].includes(id)?'enemy-'+id:'hero-'+id);
+  }
   function drawHeroWeapon(c,id,frame){
     // Weapon and spell silhouettes are painted into the character's own Canvas frames,
     // never rendered as an SVG, external asset, or per-frame runtime particle.
@@ -195,7 +199,7 @@
   function build(scene){
     const textures=scene.textures;
     for(const id of Object.keys(COLORS)){
-      const key=baseTexture(id);
+      const key=baseTexture(id,textures);
       if(!textures.exists(key))continue;
       const img=textures.get(key).getSourceImage();
       for(const state of STATES)for(let frame=0;frame<frameTotal(id);frame++){

@@ -45,6 +45,22 @@ for(const asset of [field,icons,map]){
   assert.equal(bytes.toString('ascii',8,12),'WEBP');
   if(asset.href===map.href) assert.equal(bytes.readUInt32LE(4),bytes.length-8,'Worldmap WebP RIFF header must be valid');
 }
+const painted31=['rani-title-v31.webp','rani-rear-party-v31.webp','rani-board-acorn-v31.webp','rani-board-map-v31.webp','rani-button-atlas-v31.webp','rani-board-fox-v31.webp'];
+for(const name of painted31){
+  const bytes=readFileSync(new URL('art/'+name,root));
+  assert.ok(bytes.length>20_000,'Rani v3.2 original painting absent: '+name);
+  assert.equal(bytes.toString('ascii',0,4),'RIFF');
+  assert.equal(bytes.toString('ascii',8,12),'WEBP');
+  assert.equal(bytes.readUInt32LE(4),bytes.length-8);
+}
+const illustrated31=read('illustrated-v31.css');
+assert.match(html,/illustrated-v31\.css\?v=/);
+assert.match(html,/rani-title-v31\.webp/);
+assert.match(illustrated31,/rani-button-atlas-v31\.webp/);
+assert.match(illustrated31,/rani-board-map-v31\.webp/);
+assert.match(js,/hero-rear-'\+id/);
+assert.match(visuals,/textures\.exists\('hero-rear-'\+id\)/);
+assert.doesNotMatch(illustrated31,/<svg|data:image\/svg/i);
 assert.match(html,/game\.js\?v=/);
 assert.match(js,/forest-characters\.png/);
 assert.match(js,/rani-evolution\.png/);
