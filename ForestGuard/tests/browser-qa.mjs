@@ -71,7 +71,8 @@ try{
       const title=document.querySelector('.title-hero-art');
       return {startBottom:start.bottom,stageTop:spot.top,cardHeight:spot.height,
         labelCenter:(label.top+label.bottom)/2,stageCenter:(stage.top+stage.bottom)/2,
-        footerBottom:footer.bottom,mask:getComputedStyle(title).maskImage};
+        footerBottom:footer.bottom,mask:getComputedStyle(title).maskImage,
+        artSrc:title.currentSrc};
     });
     assert.ok(homeFlow.stageTop-homeFlow.startBottom>=-2&&
       homeFlow.stageTop-homeFlow.startBottom<=50,
@@ -80,8 +81,8 @@ try{
       Math.abs(homeFlow.stageCenter-homeFlow.labelCenter)<=66,
       'Stage info and stage-select action drift apart: '+JSON.stringify(homeFlow));
     assert.ok(homeFlow.footerBottom<=size.height+2&&
-      homeFlow.mask.includes('radial-gradient'),
-      'Home illustrated title and footer must fit without hard rectangular art edges');
+      homeFlow.mask==='none'&&homeFlow.artSrc.includes('rani-title-v31.webp'),
+      'Transparent hand-painted title and footer must fit without clipping');
     await page.screenshot({path:new URL('../test-output/home-'+size.width+'x'+size.height+'.png',import.meta.url).pathname});
     // Explicitly navigate the dedicated stage picker, no more scattered empty waypoint boxes.
     await page.locator('#stage-list-btn').click({timeout:20000});
