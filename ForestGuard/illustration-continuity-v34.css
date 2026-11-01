@@ -34,7 +34,8 @@
   filter:drop-shadow(0 3px 4px rgba(3,22,13,.57))!important;
 }
 #stage-select-panel .stage-tile.selected{
-  background-image:var(--fg-btn-gold)!important;
+  /* A pale ink wash behind dark lettering, not a rectangular panel. */
+  background-image:linear-gradient(90deg,transparent 0%,rgba(255,240,201,.10) 40%,rgba(255,241,204,.40) 100%),var(--fg-btn-gold)!important;
   filter:drop-shadow(0 0 5px rgba(255,220,142,.74)) drop-shadow(0 3px 5px rgba(4,18,11,.64))!important;
 }
 #stage-select-panel .stage-tile.locked{
