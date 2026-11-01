@@ -1,4 +1,4 @@
-/* 라니 수비대 v2.0.0 — © 2026 곰같은여우
+/* 라니 수비대 v2.0.1 — © 2026 곰같은여우
  * Original game rules, PNG character art, Canvas field art and interface.
  * Combat architecture informed by MIT-licensed Phaser 3 and the WaveManager,
  * EnemyManager and Projectile patterns of rupertgermann/tower-defence.
@@ -470,6 +470,15 @@
         }
       }
       ctx.putImageData(layer,0,0);
+      // A soft underside shadow separates the battlement from the long forest road
+      // without covering the heroes or introducing foreign artwork.
+      const painted=document.createElement('canvas');painted.width=w;painted.height=h;
+      painted.getContext('2d').drawImage(ctx.canvas,0,0);
+      ctx.clearRect(0,0,w,h);
+      ctx.save();
+      ctx.shadowColor='rgba(9,26,19,.53)';ctx.shadowBlur=12;ctx.shadowOffsetY=5;
+      ctx.drawImage(painted,0,0);
+      ctx.restore();
     });
     createCanvasTexture(scene,'torch-glow',72,72,(ctx)=>{
       const glow=ctx.createRadialGradient(36,36,2,36,36,35);
@@ -705,6 +714,12 @@
           font:'bold 19px system-ui',color:'#fff1c9',stroke:'#403021',strokeThickness:5
         }).setOrigin(.5).setDepth(9);
       const aura=this.add.ellipse(210,235,165,32,hue,.19).setDepth(8);
+      this.time.addEvent({delay:140,repeat:3,callback:()=>{
+        if(!hero.active)return;
+        const frame=(Math.floor(this.gameClock/140)+1)%4;
+        const key='motion-'+e.type+'-attack-'+frame;
+        if(this.textures.exists(key))hero.setTexture(key);
+      }});
       this.tweens.add({targets:hero,scale:1.18,alpha:0,duration:960,ease:'Sine.easeOut',
         onComplete:()=>hero.destroy()});
       this.tweens.add({targets:[dusk,label,aura],alpha:0,duration:970,
