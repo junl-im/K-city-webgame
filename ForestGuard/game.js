@@ -161,11 +161,22 @@
     b.className='modal-action'+(variant==='alt'?' alt':''); b.addEventListener('click',onClick); return b;
   }
   function setVisible(id,show) { $(id).hidden=!show; }
+  let viewedChapter=Math.floor(state.selected/4);
+  function showMapChapter(chapter){
+    viewedChapter=Math.max(0,Math.min(2,chapter|0));
+    renderMap();
+  }
   function renderMap() {
     const grid=$('stage-grid'); grid.replaceChildren();
+    document.querySelectorAll('#stage-chapter-tabs .stage-chapter-tab').forEach((tab,index)=>{
+      const selected=index===viewedChapter;
+      tab.classList.toggle('active',selected);
+      tab.setAttribute('aria-pressed',selected?'true':'false');
+    });
     STAGES.forEach((stage,index)=>{
       const b=document.createElement('button'); b.type='button';
       const locked = index>=state.unlocked, cleared=state.clears.includes(index);
+      b.hidden=Math.floor(index/4)!==viewedChapter;
       b.className='stage-tile'+(locked?' locked':'')+(cleared?' cleared':'')+(state.selected===index?' selected':'')+(index%4===3?' boss':'');
       const spot=STAGE_SPOTS[index];b.style.setProperty('--spot-x',spot[0]+'%');b.style.setProperty('--spot-y',spot[1]+'%');
       b.disabled=locked;
@@ -173,14 +184,19 @@
       if(locked)V.setIcon(n,'lock');
       if(cleared){const star=document.createElement('i');star.className='clear-star';V.setIcon(star,'star');b.appendChild(star);}
       const small=document.createElement('span'); small.className='tiny'; small.textContent=locked?'잠김':(index%4===3?'우두머리':cleared?'완료':'도전');
+      const art=document.createElement('span');art.className='stage-tile-art';
+      art.style.backgroundImage="url('./art/"+biomeFiles[Math.floor(index/4)]+"')";
+      art.style.backgroundPosition=['center 19%','left 48%','right 64%','center 86%'][index%4];
       const name=document.createElement('span');name.className='stage-list-name';name.textContent=stage.name;
-      b.append(n,name,small); b.setAttribute('aria-label',stage.name+(locked?' 잠김':' 선택'));
+      const summary=document.createElement('span');summary.className='stage-tile-summary';
+      summary.textContent=locked?'앞 스테이지 클리어 후 열림':stage.gimmick;
+      b.append(art,n,name,summary,small); b.setAttribute('aria-label',stage.name+(locked?' 잠김':' 선택'));
       b.addEventListener('click',()=>{state.selected=index;renderMap();updateMenuStory();});
       grid.appendChild(b);
     });
     // Chapter map: functional painted badges over continuous artwork, no blank nodes.
     const pins=$('stage-map-pins');pins.replaceChildren();
-    const chapter=Math.floor(state.selected/4);
+    const chapter=viewedChapter;
     const positions=[[33,22],[68,40],[34,60],[66,79]];
     for(let chapterIndex=0;chapterIndex<4;chapterIndex++){
       const index=chapter*4+chapterIndex,stage=STAGES[index];
@@ -202,7 +218,7 @@
     }
     $('progress-label').textContent=state.clears.length+' / 12 클리어';
     const stage=STAGES[state.selected];
-    $('stage-map-number').textContent=stage.chapter+'-'+((state.selected%4)+1);
+    $('stage-map-number').textContent='제'+(viewedChapter+1)+'장';
     $('stage-picker-chapter').textContent='제'+stage.chapter+'장 · '+stage.gimmick;
     $('stage-picker-name').textContent=stage.name;
     $('stage-picker-tip').textContent=stage.story;
@@ -211,6 +227,7 @@
   function openStagePicker(){
     $('stage-select-panel').hidden=false;
     $('menu').classList.add('stage-choosing');
+    viewedChapter=Math.floor(state.selected/4);
     renderMap();
     $('stage-back-btn').focus({preventScroll:true});
   }
@@ -1717,6 +1734,9 @@
   }
   $('start-btn').addEventListener('click',()=>startStage(state.selected));
   $('stage-list-btn').addEventListener('click',openStagePicker);
+  document.querySelectorAll('#stage-chapter-tabs .stage-chapter-tab').forEach((tab,index)=>{
+    tab.addEventListener('click',()=>showMapChapter(index));
+  });
   $('stage-back-btn').addEventListener('click',closeStagePicker);
   $('stage-enter-btn').addEventListener('click',()=>startStage(state.selected));
   $('resume-btn').addEventListener('click',resumeBattle);

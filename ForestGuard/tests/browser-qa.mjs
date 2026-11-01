@@ -22,7 +22,9 @@ try{
       const actions=document.querySelector('.menu-actions').getBoundingClientRect();
       const story=document.querySelector('.story-panel').getBoundingClientRect();
       const title=document.querySelector('.brand').getBoundingClientRect();
+      const hero=document.querySelector('.title-hero-art').getBoundingClientRect();
       return {actionsTop:actions.top,actionsBottom:actions.bottom,storyTop:story.top,titleBottom:title.bottom,
+        heroHeight:hero.height,utilityButtons:document.querySelectorAll('.home-utility-btn').length,
         illustrated:!!document.querySelector('.title-hero-art')};
     });
     assert.equal(menuOrder.illustrated,true,'Illustrated title must be present');
@@ -31,7 +33,8 @@ try{
       if(!img.naturalWidth)throw new Error('Title original art unavailable');
     });
     assert.ok(menuOrder.actionsTop>=menuOrder.titleBottom-2,'Buttons must not overlap the title');
-    assert.ok(menuOrder.actionsBottom<=menuOrder.storyTop+2,'Buttons must sit above story panel');
+    assert.ok(menuOrder.utilityButtons===2&&menuOrder.heroHeight>=145,
+      'Home title art and top utility buttons must be clearly visible');
     const menu=await page.evaluate(()=>{
       const shell=document.querySelector('.shell').getBoundingClientRect();
       const start=document.querySelector('#start-btn').getBoundingClientRect();
@@ -54,6 +57,17 @@ try{
       'Each chapter must show exactly four illustrated route markers');
     assert.equal(await page.locator('#stage-map-pins button:not([disabled])').count(),1,
       'Only the first waypoint should be unlocked on fresh save');
+    assert.equal(await page.locator('#stage-grid .stage-tile:visible').count(),4,
+      'Chapter view must show four illustrated stages, not twelve plain text rows');
+    assert.equal(await page.locator('#stage-grid .stage-tile-art:visible').count(),4);
+    await page.locator('[data-chapter="1"]').click();
+    assert.equal(await page.locator('#stage-grid .stage-tile:visible').count(),4);
+    assert.equal(await page.locator('[data-chapter="1"]').getAttribute('aria-pressed'),'true');
+    assert.equal(await page.locator('#stage-map-number').innerText(),'제2장');
+    assert.equal(await page.locator('#stage-map-pins button:not([disabled])').count(),0,
+      'Future chapter map must not unlock stages prematurely');
+    await page.locator('[data-chapter="0"]').click();
+    assert.equal(await page.locator('#stage-map-number').innerText(),'제1장');
     const picked=await page.evaluate(()=>{
       const p=document.querySelector('#stage-select-panel').getBoundingClientRect();
       const list=document.querySelector('#stage-grid').getBoundingClientRect();

@@ -1,0 +1,151 @@
+/* ForestGuard v2.6: one painted scene, UI as artwork, not boxed applications.
+   This file owns HOME and CHAPTER SELECT presentation; old CSS stays for engine/HUD.
+   No SVG, emojis, arbitrary blank placeholders, or separate background image on map child. */
+.menu:not(.stage-choosing){
+  padding:calc(8px + env(safe-area-inset-top,0px)) clamp(9px,3vw,17px) calc(7px + env(safe-area-inset-bottom,0px));
+  gap:0;overflow:hidden;
+  background:linear-gradient(180deg,rgba(4,22,16,.08),rgba(4,18,13,.06) 51%,rgba(4,16,13,.79) 100%),
+    url('./art/forest-entrance-v08.png') center /cover !important;
+}
+.menu:not(.stage-choosing) .home-utility-actions{
+  order:0;display:flex;justify-content:space-between;align-items:center;gap:9px;z-index:3;
+  height:35px;flex:0 0 35px}
+.menu:not(.stage-choosing) .home-utility-btn{
+  color:#fff0cd;font-weight:850;font-size:12px;line-height:1;
+  min-width:74px;min-height:32px;padding:5px 13px;
+  border:1px solid #d6b178;border-radius:9px;background:linear-gradient(140deg,#3e3a2cdc,#1a251fdc);
+  box-shadow:inset 0 1px #fff2d181,0 2px 6px #0006;text-shadow:0 2px #100f0e;
+}
+.menu:not(.stage-choosing) .brand{
+  order:1;flex:1 1 auto;min-height:0!important;height:auto!important;max-height:none!important;
+  width:100%;margin:0;align-self:center;overflow:visible!important;isolation:isolate;
+  align-items:center;justify-content:center}
+.menu:not(.stage-choosing) .title-hero-art{
+  width:100%;height:100%;max-width:570px;object-fit:contain;
+  filter:drop-shadow(0 9px 8px rgba(0,0,0,.65))}
+.menu:not(.stage-choosing) .menu-actions-top{
+  order:2;position:relative;z-index:3;
+  flex:0 0 auto;margin:0 auto 8px!important;gap:8px;align-items:center;justify-content:center;
+  width:100%;max-width:420px}
+.menu:not(.stage-choosing) .menu-actions-top #start-btn{
+  flex:1 1 65%!important;min-width:145px;max-width:280px;
+  height:clamp(49px,8.1dvh,66px)!important;min-height:49px!important;
+  border:3px solid #f6dba4!important;border-radius:12px!important;
+  background:linear-gradient(#ffd991,#eab363 49%,#b76d34)!important;
+  box-shadow:inset 0 2px #fff4cf,0 4px #6d4325,0 7px 14px #06130fae!important;
+  font-size:clamp(19px,5vw,25px)!important;color:#4b2b19!important;
+  text-shadow:0 1px #fff3c5!important}
+.menu:not(.stage-choosing) .menu-actions-top #resume-btn:not([hidden]){
+  flex:0 1 40%;height:50px!important;min-width:110px;
+  border:2px solid #d5b274;background:linear-gradient(#795739,#3b3328);color:#fff1d0}
+.menu:not(.stage-choosing) .story-panel{display:none!important}
+.menu:not(.stage-choosing) .home-stage-spot{
+  order:3;flex:0 0 clamp(108px,18.5dvh,160px)!important;min-height:85px!important;
+  margin:0!important;padding:12px 12px 9px!important;display:flex;justify-content:space-between;
+  background:linear-gradient(180deg,rgba(4,19,15,.06),rgba(3,18,14,.72) 68%,rgba(4,17,14,.85))!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible}
+.menu:not(.stage-choosing) .home-stage-spot:before{display:none}
+.menu:not(.stage-choosing) .home-stage-copy small{color:#fbd68c;font-size:10px}
+.menu:not(.stage-choosing) .home-stage-copy strong{font-size:16px;line-height:1.25}
+.menu:not(.stage-choosing) .home-stage-copy span{font-size:10px}
+.menu:not(.stage-choosing) .home-stage-spot #stage-list-btn{
+  align-self:flex-end;width:auto!important;min-width:118px;max-width:190px;
+  height:40px!important;min-height:40px!important;
+  padding:5px 11px!important;margin:2px 0 0;
+  border:2px solid #d9b582!important;border-radius:9px;
+  background:linear-gradient(#715137,#322b25)!important;
+  box-shadow:inset 0 1px #ffdfae8f,0 3px #171d15!important;
+  color:#fff3d2;font-size:12px!important}
+.menu:not(.stage-choosing) .menu-bottom{
+  order:4;margin:0!important;padding-top:2px;opacity:.78;
+  background:#06150f91;font-size:9px;height:18px;flex:0 0 18px}
+/* Full-bleed stage worldmap. Only stage cards and controls are separated, not the scene. */
+.stage-select-panel{
+  background:linear-gradient(90deg,rgba(4,20,16,.88),rgba(7,28,21,.48) 45%,rgba(7,28,21,.04) 91%),
+    linear-gradient(180deg,rgba(3,15,13,.8),transparent 14%,transparent 77%,rgba(3,16,14,.9)),
+    url('./art/forest-worldmap-v05.webp') center /cover!important}
+.stage-select-header{flex:0 0 45px!important;height:45px!important;padding:2px 5px!important;gap:8px!important}
+.stage-select-header>div{gap:5px!important}
+.stage-select-header strong{font-size:clamp(14px,4.5vw,19px)!important}
+.stage-select-header span{font-size:10px!important}
+.stage-chapter-tabs{
+  z-index:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;
+  flex:0 0 41px;height:41px;margin:5px 0 4px 0;padding:0 2px;min-width:0}
+.stage-chapter-tab{
+  color:#fff0c8;white-space:nowrap;font-size:clamp(11px,3.6vw,14px);font-weight:950;cursor:pointer;
+  background:linear-gradient(160deg,#41513cbf,#182922ce);border:1px solid #aa895d;
+  border-radius:9px;box-shadow:0 2px 5px #061b13a8,inset 0 1px #e6d9b760}
+.stage-chapter-tab.active{
+  background:linear-gradient(#e7be76,#ae723b);color:#4a2d1a;
+  border:2px solid #ffebbd;box-shadow:0 0 8px #ffd38485,inset 0 1px #fff0cd}
+.stage-chapter-tab:focus-visible,.home-utility-btn:focus-visible{outline:2px solid #fff3bb;outline-offset:1px}
+.stage-picker-content{
+  display:grid!important;grid-template-columns:minmax(0,50%) minmax(0,50%)!important;
+  gap:0!important;margin:3px 0!important}
+#stage-select-panel .stage-grid{
+  display:flex!important;flex-direction:column;justify-content:space-evenly;
+  gap:6px!important;padding:5px 0 6px 2px!important;overflow:hidden!important;
+  background:linear-gradient(90deg,#071a16bd,transparent)!important;
+  border:0!important;box-shadow:none!important}
+#stage-select-panel .stage-tile{
+  position:relative!important;left:auto!important;top:auto!important;display:grid!important;
+  grid-template-columns:clamp(49px,13vw,72px) minmax(0,1fr)!important;
+  grid-template-rows:auto auto auto!important;
+  width:100%!important;min-width:0;min-height:clamp(64px,13dvh,92px)!important;
+  padding:4px 5px 4px 3px!important;gap:1px 5px!important;
+  border:1px solid #977950b8!important;border-radius:9px!important;
+  background:linear-gradient(110deg,#364a38f5,#20362dbf 72%,#13241d70)!important;
+  box-shadow:inset 0 1px #f6e1b46b,0 3px 6px #05171081!important;
+  overflow:hidden!important}
+#stage-select-panel .stage-tile[hidden]{display:none!important}
+#stage-select-panel .stage-tile.selected{
+  border:2px solid #ffe5ab!important;background:linear-gradient(110deg,#a77943e8,#5b542fd4 69%,#2a3c2ca1)!important;
+  box-shadow:inset 0 0 0 1px #ffe2a78f,0 0 12px #ffe2a47d!important}
+#stage-select-panel .stage-tile.locked{opacity:.8!important;filter:saturate(.68)}
+#stage-select-panel .stage-tile .stage-tile-art{
+  grid-column:1;grid-row:1/4;align-self:stretch;min-height:53px;
+  background-size:400% 170%;background-position:center;overflow:hidden;
+  border-radius:6px;border:1px solid #e7c88c66;
+  box-shadow:inset 0 -10px 9px #162b1a88}
+#stage-select-panel .stage-tile .num{
+  position:absolute;z-index:1;top:6px;left:5px;display:flex;align-items:center;justify-content:center;
+  grid-row:auto!important;grid-column:auto!important;
+  min-width:26px;padding:2px 3px;font-size:10px!important;
+  background:#2d301dce;border-radius:5px;color:#ffe8ad!important}
+#stage-select-panel .stage-tile .stage-list-name{
+  grid-column:2;grid-row:1;font-size:clamp(10px,3vw,13px)!important;
+  white-space:normal!important;line-height:1.12;text-overflow:clip!important;max-height:2.35em;
+  overflow:hidden;color:#fff1cb}
+#stage-select-panel .stage-tile .stage-tile-summary{
+  grid-column:2;grid-row:2;font-size:9px!important;color:#e6d0a0;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#stage-select-panel .stage-tile .tiny{
+  grid-column:2;grid-row:3;font-size:9px!important;font-weight:850;
+  color:#e1d6b2!important}
+#stage-select-panel .stage-tile .clear-star{position:absolute;right:4px;top:4px}
+.stage-map-preview{background:transparent!important;box-shadow:none!important;border:0!important}
+.stage-map-signet{top:4px!important}
+.stage-path-pin{width:clamp(42px,11.5vw,55px);height:clamp(48px,12vw,59px)}
+.stage-choice-footer{flex:0 0 74px!important;height:74px!important;padding:5px 7px!important}
+.stage-choice-footer .stage-enter-btn{height:46px!important;min-height:46px!important}
+@media(max-height:690px){
+  .stage-select-header{flex-basis:38px!important;height:38px!important}
+  .stage-chapter-tabs{flex-basis:35px;height:35px;margin:2px 0}
+  #stage-select-panel .stage-grid{gap:3px!important;padding:2px!important}
+  #stage-select-panel .stage-tile{min-height:57px!important}
+  #stage-select-panel .stage-tile .stage-tile-art{min-height:43px}
+  .stage-choice-footer{flex-basis:67px!important;height:67px!important}
+  .menu:not(.stage-choosing) .home-stage-spot{flex-basis:110px!important}
+}
+@media(max-width:350px){
+  .stage-picker-content{grid-template-columns:minmax(0,52%) minmax(0,48%)!important}
+  #stage-select-panel .stage-tile{grid-template-columns:43px minmax(0,1fr)!important;padding:3px!important}
+  #stage-select-panel .stage-tile .stage-list-name{font-size:10px!important}
+  #stage-select-panel .stage-tile .stage-tile-summary{font-size:8px!important}
+  .stage-select-header span{font-size:9px!important}
+  .menu:not(.stage-choosing) .home-utility-actions{height:30px;flex-basis:30px}
+  .menu:not(.stage-choosing) .home-stage-spot{padding:6px 9px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .stage-chapter-tab,.menu .title-hero-art{transition:none;animation:none}
+}
