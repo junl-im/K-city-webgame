@@ -1,4 +1,4 @@
-/* 라니 수비대 v1.8.0 — © 2026 곰같은여우
+/* 라니 수비대 v2.0.0 — © 2026 곰같은여우
  * Original game rules, PNG character art, Canvas field art and interface.
  * Combat architecture informed by MIT-licensed Phaser 3 and the WaveManager,
  * EnemyManager and Projectile patterns of rupertgermann/tower-defence.
@@ -453,6 +453,32 @@
         'rgba(113,119,172,.045)','rgba(91,157,211,.075)','rgba(50,57,107,.12)','rgba(62,37,91,.16)'][scene.stage.id];
       c.fillStyle=tint;c.fillRect(0,0,w,h);
     });
+    // Match the original hand-painted field pixel-for-pixel, but place the lower
+    // rampart on a distinct depth plane behind heroes. No alien placeholder art.
+    createCanvasTexture(scene,'fort-foreground',420,224,(ctx,w,h)=>{
+      const field=scene.textures.get('field').getSourceImage();
+      ctx.clearRect(0,0,w,h);
+      ctx.drawImage(field,0,426,420,224,0,0,w,h);
+      const layer=ctx.getImageData(0,0,w,h);
+      for(let y=0;y<h;y++){
+        for(let x=0;x<w;x++){
+          const side=Math.min(x,w-1-x);
+          const start=side<42?0:side<73?(side-42)*1.71:53;
+          const irregular=start+2*Math.sin(x/13)+Math.sin(x/4);
+          const edge=Math.max(0,Math.min(1,(y-irregular)/12));
+          layer.data[(y*w+x)*4+3]=Math.round(layer.data[(y*w+x)*4+3]*edge*.96);
+        }
+      }
+      ctx.putImageData(layer,0,0);
+    });
+    createCanvasTexture(scene,'torch-glow',72,72,(ctx)=>{
+      const glow=ctx.createRadialGradient(36,36,2,36,36,35);
+      glow.addColorStop(0,'rgba(255,249,173,.83)');
+      glow.addColorStop(.26,'rgba(255,196,90,.51)');
+      glow.addColorStop(.6,'rgba(240,110,48,.15)');
+      glow.addColorStop(1,'rgba(240,110,48,0)');
+      ctx.fillStyle=glow;ctx.fillRect(0,0,72,72);
+    });
     const atlasCell=(c,w,h,idx)=>{
       const cw=atlasBitmap.naturalWidth/4,ch=atlasBitmap.naturalHeight/2;
       c.drawImage(atlasBitmap,(idx%4)*cw,Math.floor(idx/4)*ch,cw,ch,0,0,w,h);
@@ -622,6 +648,10 @@
       this.recruitRemaining=RECRUIT_TIMEOUT;this.recruitLastSecond=-1;
       this.betweenWaves=0;this.wave=new WaveDirector(this);
       buildTextures(this);this.add.image(210,325,'field');
+      // Depth 1.8: foreground wall and torch lights sit under HP plaque (2)
+      // and all combat characters (4–6). Each biome uses its own field texture.
+      this.wallForeground=this.add.image(210,538,'fort-foreground').setDepth(1.8);
+      this.setupAmbience();
       $('arena-wrap').classList.toggle('foggy',this.stage.id>=4&&this.stage.id<=7);
       $('arena-wrap').classList.toggle('moonlit',this.stage.id>=8);
       $('arena-wrap').classList.remove('boss-warning');
@@ -632,6 +662,53 @@
       requestAnimationFrame(()=>requestAnimationFrame(()=>{if(battle===this)$('battle-loading').hidden=true;}));
       if(this.assistScale<1)showBanner('재도전 지원 · 몬스터 체력 '+Math.round((1-this.assistScale)*100)+'% 완화');
       else if(this.stage.id===0)showBanner('여우 궁수 혼자 첫 공세를 막아보세요!');
+    }
+    setupAmbience(){
+      const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      this.ambientLeaves=[];this.torchLights=[];
+      const type=Math.floor(this.stage.id/4)===2?'crystal':Math.floor(this.stage.id/4)===1?'spore':'leaf';
+      const count=reduced?0:(window.innerWidth<=390?5:8);
+      for(let i=0;i<count;i++){
+        const x=26+(i*103%370),y=95+(i*79%430);
+        const sprite=this.add.image(x,y,'shard-'+type).setDisplaySize(8+(i%3)*3,10+(i%3)*3)
+          .setAlpha(.2+(i%4)*.04).setDepth(1.85);
+        this.ambientLeaves.push({sprite,baseX:x,phase:i*1.4,speed:.004+(i%3)*.002});
+      }
+      for(const x of [18,402]){
+        const glow=this.add.image(x,563,'torch-glow').setDisplaySize(49,49).setAlpha(.48).setDepth(1.91);
+        this.torchLights.push(glow);
+      }
+    }
+    updateAmbience(dt){
+      for(const p of this.ambientLeaves){
+        p.sprite.y-=p.speed*dt;
+        if(p.sprite.y<80)p.sprite.y=545;
+        p.sprite.x=p.baseX+Math.sin(this.gameClock/1700+p.phase)*12;
+        p.sprite.angle=Math.sin(this.gameClock/800+p.phase)*12;
+      }
+      for(let i=0;i<this.torchLights.length;i++){
+        const flame=this.torchLights[i];
+        flame.alpha=.42+Math.sin(this.gameClock/190+i*2.1)*.13;
+        flame.scaleX=.65+Math.sin(this.gameClock/270+i)*.05;
+      }
+    }
+    announceElite(e){
+      if(this.lastEliteCinematicWave===this.wave.current)return;
+      this.lastEliteCinematicWave=this.wave.current;
+      if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+      const hue=e.type==='shroom'?0xebac60:e.type==='guardian'?0xd1bd7e:0xb191eb;
+      const dusk=this.add.rectangle(210,182,420,300,0x13251e,.22).setDepth(8);
+      const hero=this.add.image(210,172,'motion-'+e.type+'-attack-0')
+        .setDisplaySize(e.type==='shroom'?150:132,e.type==='shroom'?150:132).setAlpha(.91).setDepth(9);
+      const label=this.add.text(210,262,e.type==='shroom'?'정예 · 버섯 거한':
+        e.type==='guardian'?'중간보스 · 숲의 수호자':'보스 접근!',{
+          font:'bold 19px system-ui',color:'#fff1c9',stroke:'#403021',strokeThickness:5
+        }).setOrigin(.5).setDepth(9);
+      const aura=this.add.ellipse(210,235,165,32,hue,.19).setDepth(8);
+      this.tweens.add({targets:hero,scale:1.18,alpha:0,duration:960,ease:'Sine.easeOut',
+        onComplete:()=>hero.destroy()});
+      this.tweens.add({targets:[dusk,label,aura],alpha:0,duration:970,
+        onComplete:()=>{dusk.destroy();label.destroy();aura.destroy();}});
     }
     spawnEnemy(type){
       // Enemy entry is broad at the top, including bridge levels.
@@ -665,7 +742,10 @@
         showBanner(ENEMY_INTEL[type].name+' 집중 공격!');
       });
       this.enemies.push(enemy);
-      if(['boss','guardian','shroom'].includes(type))this.syncBattleOverlay();
+      if(['boss','guardian','shroom'].includes(type)){
+        this.syncBattleOverlay();
+        this.announceElite(enemy);
+      }
     }
     targetFor(heroX,range,mode='front'){
       if(this.focusEnemy&&this.enemies.includes(this.focusEnemy)&&this.gameClock<this.focusUntil&&!this.focusEnemy.untargetable
@@ -979,15 +1059,18 @@
         this.tweens.add({targets:orb,x:target,y:558,angle:(i-1)*145,alpha:.45,
           duration:reduced?240:510+i*90,ease:'Cubic.easeIn',
           onComplete:()=>{
-            orb.destroy();if(this.ended||!this.enemies.includes(e))return;
+            orb.destroy();if(this.ended)return;
             const pulse=this.add.ellipse(target,558,47,19,0xffc17b,.17).setStrokeStyle(2,0xfce4af,.75).setDepth(6);
             this.tweens.add({targets:pulse,alpha:0,scale:1.8,duration:280,onComplete:()=>pulse.destroy()});
+            // HP changes when the last visible projectile lands, never at launch.
+            if(i===2){
+              this.hp=Math.max(0,this.hp-damage);renderHUD();
+              if(!reduced)this.cameras.main.shake(135,.0019);
+              showBanner('버섯 거한 · 포자 충격! 성벽 -'+damage);
+              if(this.hp<=0)this.finish(false);
+            }
           }});
       }
-      this.hp=Math.max(0,this.hp-damage);renderHUD();
-      if(!reduced)this.cameras.main.shake(135,.0019);
-      showBanner('버섯 거한 · 포자 충격! 성벽 -'+damage);
-      if(this.hp<=0)this.finish(false);
     }
     updateBosses(dt){
       for(const e of this.enemies){
@@ -1267,6 +1350,7 @@
       this.tickRecruit(delta);
       if(this.ended||this.manualPause||this.autoPause||this.drafting)return;
       const dt=Math.min(delta,40)*this.speed;this.gameClock+=dt;
+      this.updateAmbience(dt);
       this.skillCooldown=Math.max(0,this.skillCooldown-dt);
       if(this.roots&&this.enemies.length){
         this.trapTimer-=dt;

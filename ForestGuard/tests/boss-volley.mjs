@@ -24,10 +24,12 @@ function makeScene(fortress=false){
 for(const fort of [false,true]){
  const {boss,enemy,tweens,images}=makeScene(fort);
  boss.sporeVolley(enemy);
- assert.equal(boss.hp,fort?983:972,'Expected fixed and synergy-adjusted damage');
+ assert.equal(boss.hp,1000,'HP should remain unchanged until the projectiles land');
  assert.equal(images.length,3,'Exactly three illustrated spore missiles');
  assert.equal(tweens.length,3,'Missile visuals must use three bounded tweens');
  assert.ok(images.every(x=>x.texture==='shard-spore'));
+ tweens[2].onComplete();
+ assert.equal(boss.hp,fort?983:972,'Final spore impact must apply synergy-adjusted damage');
  boss.sporeVolley({...enemy});assert.equal(images.length,3,'Removed enemy cannot fire');
  boss.ended=true;boss.sporeVolley(enemy);assert.equal(images.length,3,'Finished scene cannot fire');
 }
