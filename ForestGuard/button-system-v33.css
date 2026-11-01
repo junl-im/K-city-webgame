@@ -169,3 +169,21 @@
   background-position:center!important;background-size:100% 100%!important;
   background-repeat:no-repeat!important;background-color:transparent!important;
 }
+
+/* Keep the original wood/metal painting visible, while shading only the
+   text-bearing half of the narrow stage cards for Korean readability. */
+#stage-select-panel .stage-tile{
+  background-image:linear-gradient(90deg,transparent 0%,rgba(13,41,31,.5) 42%,rgba(7,24,19,.88) 100%),var(--fg-btn-emerald)!important;
+  background-size:100% 100%,100% 100%!important;
+}
+#stage-select-panel .stage-tile.selected{
+  background-image:linear-gradient(90deg,transparent 0%,rgba(55,34,17,.55) 43%,rgba(36,23,13,.88) 100%),var(--fg-btn-gold)!important;
+}
+#stage-select-panel .stage-tile.locked{
+  background-image:linear-gradient(90deg,transparent 0%,rgba(24,34,28,.46) 43%,rgba(14,24,18,.88) 100%),var(--fg-btn-stone)!important;
+}
+#stage-select-panel .stage-tile.selected .stage-list-name,
+#stage-select-panel .stage-tile.selected .stage-tile-summary,
+#stage-select-panel .stage-tile.selected .tiny{
+  color:#fff2d1!important;text-shadow:0 1px 3px #1c1007!important;
+}
