@@ -183,7 +183,7 @@ assert.match(js,/this\.pendingRecruit=false/);
 assert.match(js,/showRecruitDraft\(\)/);
 assert.match(js,/this\.count=5\+Math\.min\(2,Math\.floor\(this\.scene\.stage\.id\/4\)\)/);
 assert.match(js,/soloScoutScale/);
-assert.match(js,/this\.targetModes=\['front','front','front'\]/);
+assert.match(js,/this\.targetModes=Array\(HERO_CAPACITY\)\.fill\('front'\)/);
 assert.match(js,/mode==='threat'/);
 assert.match(js,/e\.maxHP\*\.18-e\.hp\*\.14/);
 assert.match(js,/e\.type==='spore'&&!e\.hasSpores/);
