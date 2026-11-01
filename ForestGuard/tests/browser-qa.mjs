@@ -63,6 +63,17 @@ try{
     });
     assert.ok(picked.scrollX<=2&&picked.scrollY<=2,'Stage picker overflow');
     assert.ok(picked.enterRight<=size.width+2,'Stage entry clipped');
+    const continuous=await page.evaluate(()=>{
+      const s=selector=>getComputedStyle(document.querySelector(selector));
+      return {list:parseFloat(s('#stage-grid').borderLeftWidth),
+        map:parseFloat(s('.stage-map-preview').borderLeftWidth),
+        footer:parseFloat(s('.stage-choice-footer').borderTopWidth),
+        world:s('.stage-select-panel').backgroundImage.includes('forest-worldmap-v05.webp'),
+        innerBackground:s('.stage-map-preview').backgroundImage};
+    });
+    assert.ok(continuous.world&&continuous.list===0&&continuous.map===0&&continuous.footer===0,
+      'One painted map without vertical/horizontal dividing frames');
+    assert.equal(continuous.innerBackground,'none','No second landscape in stage map section');
     await page.screenshot({path:new URL('../test-output/stage-picker-'+size.width+'x'+size.height+'.png',import.meta.url).pathname});
     await page.locator('#stage-back-btn').click();
     assert.equal(await page.locator('#stage-select-panel').isHidden(),true,'Stage picker closes to home');
@@ -111,6 +122,19 @@ try{
       'Hero bodies should stand behind the illustrated wall');
     assert.ok(layers.heroY<=575&&layers.heroHeight>=90,'Hero should stand above battlements');
     assert.equal(layers.fieldCount,1,'Exactly one stage background must render');
+    if(size.width===390){
+      const ranges=await page.evaluate(()=>window.__ForestGuardQA.heroRanges());
+      assert.deepEqual(ranges,{fox:535,megafox:690,bear:345,rabbit:605,cat:470});
+      assert.equal(await page.evaluate(()=>window.__ForestGuardQA.showEliteIntro('shroom')),true);
+      await page.waitForTimeout(1100);
+      const visible=await page.evaluate(()=>window.__ForestGuardQA.eliteInfo());
+      assert.ok(visible&&visible.alpha>.94&&visible.labelAlpha>.94,
+        'Elite announcement must remain legible after 1.1 seconds');
+      await page.screenshot({path:new URL('../test-output/elite-intro-held-390.png',import.meta.url).pathname});
+      await page.waitForTimeout(2200);
+      assert.equal(await page.evaluate(()=>window.__ForestGuardQA.eliteInfo()),null,
+        'Elite announcement should clear naturally after 2.7 seconds');
+    }
     assert.ok(battle.canvas.top>=battle.arena.top-2&&battle.canvas.bottom<=battle.arena.bottom+2,'Canvas vertical clipping');
     for(const group of [battle.hud,battle.buttons]){
       for(let i=0;i<group.length;i++){
