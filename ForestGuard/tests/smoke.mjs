@@ -63,6 +63,21 @@ assert.match(visuals,/setProperty\('--rani-icon-image'/);
 assert.match(js,/hero-rear-'\+id/);
 assert.match(visuals,/textures\.exists\('hero-rear-'\+id\)/);
 assert.doesNotMatch(illustrated31,/<svg|data:image\/svg/i);
+const button33=read('button-system-v33.css');
+assert.ok(html.includes('button-system-v33.css?v=20261102a'));
+for(const name of ['gold','emerald','stone','sapphire','parchment','crimson']){
+  const assetName='btn-'+name+'-v33.webp';
+  const bytes=readFileSync(new URL('art/'+assetName,root));
+  assert.ok(bytes.length>25_000,'Original individual illustrated button absent: '+assetName);
+  assert.equal(bytes.toString('ascii',0,4),'RIFF');
+  assert.equal(bytes.toString('ascii',8,12),'WEBP');
+  assert.equal(bytes.readUInt32LE(4),bytes.length-8,'Complete WebP: '+assetName);
+  assert.ok(button33.includes(assetName),'Standalone button stylesheet missing '+assetName);
+}
+assert.match(button33,/background-size:100% 100%!important/);
+assert.ok(button33.includes('#stage-select-panel .stage-tile'));
+assert.ok(button33.includes('.battle-toolbar .skill-button'));
+assert.ok(!button33.includes('<svg')&&!button33.includes('data:image/svg'));
 assert.match(html,/game\.js\?v=/);
 assert.match(js,/forest-characters\.png/);
 assert.match(js,/rani-evolution\.png/);

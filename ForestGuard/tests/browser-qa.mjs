@@ -47,6 +47,19 @@ try{
     });
     assert.equal(menu.stageCount,12,'All map stages must render');
     assert.equal(menu.svgCount,0,'SVG prohibited');
+    const paintedButtons=await page.evaluate(()=>{
+      const names=['start-btn','help-btn','intel-btn','stage-list-btn'];
+      return Object.fromEntries(names.map(name=>[name,getComputedStyle(document.getElementById(name)).backgroundImage]));
+    });
+    for(const [button,art] of Object.entries({
+      'start-btn':'btn-gold-v33.webp',
+      'help-btn':'btn-parchment-v33.webp',
+      'intel-btn':'btn-stone-v33.webp',
+      'stage-list-btn':'btn-sapphire-v33.webp'
+    })){
+      assert.ok(paintedButtons[button].includes(art),
+        'Original independent painted surface missing on '+button+': '+paintedButtons[button]);
+    }
     assert.ok(menu.scrollX<=2&&menu.scrollY<=2,'Menu unexpectedly scrolls: '+JSON.stringify(menu));
     assert.ok(menu.start.top>=0&&menu.start.bottom<=size.height+2,'Start button clipped');
     const homeArt=await page.evaluate(()=>{

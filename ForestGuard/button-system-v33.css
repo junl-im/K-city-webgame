@@ -1,0 +1,153 @@
+/* 라니 수비대 v3.3 — six independent hand-painted raster button surfaces.
+   Real accessible HTML controls; no SVG, gradients pretending to be artwork, or atlas cropping. */
+:root{
+  --fg-btn-gold:url('./art/btn-gold-v33.webp');
+  --fg-btn-emerald:url('./art/btn-emerald-v33.webp');
+  --fg-btn-stone:url('./art/btn-stone-v33.webp');
+  --fg-btn-sapphire:url('./art/btn-sapphire-v33.webp');
+  --fg-btn-parchment:url('./art/btn-parchment-v33.webp');
+  --fg-btn-crimson:url('./art/btn-crimson-v33.webp');
+}
+/* Each button displays its ENTIRE painting. 300% 200% atlas scaling blurred
+   the material details and could not keep different button proportions crisp. */
+.menu:not(.stage-choosing) .home-utility-btn,
+.menu:not(.stage-choosing) .rune-btn,
+.stage-select-panel .rune-btn,
+.stage-select-panel .stage-nav-btn,
+.stage-select-panel .stage-chapter-tab,
+#modal-actions .modal-action{
+  -webkit-appearance:none;appearance:none;
+  background-color:transparent!important;
+  background-repeat:no-repeat!important;
+  background-size:100% 100%!important;
+  background-position:center!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  line-height:1.14!important;
+  transition:transform .14s ease,filter .14s ease!important;
+}
+.menu:not(.stage-choosing) #start-btn,
+.stage-select-panel #stage-enter-btn,
+.stage-select-panel .stage-chapter-tab.active,
+#modal-actions .modal-action:not(.alt):not(.danger){
+  background-image:var(--fg-btn-gold)!important;
+  color:#4c2d12!important;
+  text-shadow:0 1px 1px #ffefb7!important;
+}
+.menu:not(.stage-choosing) #resume-btn,
+.stage-select-panel .stage-chapter-tab:not(.active){
+  background-image:var(--fg-btn-emerald)!important;
+  color:#fff3d7!important;
+  text-shadow:0 1px 2px #0c2818!important;
+}
+.menu:not(.stage-choosing) #stage-list-btn,
+.stage-select-panel #stage-back-btn,
+#modal-actions .modal-action.alt{
+  background-image:var(--fg-btn-sapphire)!important;
+  color:#fff5e1!important;
+  text-shadow:0 1px 2px #0b2435!important;
+}
+.menu:not(.stage-choosing) #help-btn{
+  background-image:var(--fg-btn-parchment)!important;
+  color:#533819!important;
+  text-shadow:0 1px 1px #fff1c9!important;
+}
+.menu:not(.stage-choosing) #intel-btn{
+  background-image:var(--fg-btn-stone)!important;
+  color:#fff7e6!important;
+  text-shadow:0 1px 2px #243027!important;
+}
+#modal-actions .modal-action.danger,
+#modal-actions .modal-action.warn{
+  background-image:var(--fg-btn-crimson)!important;
+  color:#fff3e3!important;
+  text-shadow:0 1px 2px #351716!important;
+}
+/* Keep the painted ends distinct while giving the Korean labels room to breathe. */
+.menu:not(.stage-choosing) .home-utility-btn{padding-inline:16px!important;letter-spacing:.02em}
+.menu:not(.stage-choosing) #start-btn{font-weight:1000!important}
+.menu:not(.stage-choosing) #stage-list-btn{padding-inline:6px!important;white-space:nowrap}
+.stage-select-panel .stage-chapter-tab{font-weight:950!important;padding:5px 6px!important}
+.stage-select-panel #stage-back-btn{padding:5px 12px!important;white-space:nowrap}
+.stage-select-panel #stage-enter-btn{font-weight:1000!important;letter-spacing:.07em}
+#modal-actions .modal-action{font-weight:950!important;padding:8px 15px!important}
+/* Chapter cards have full-picture backgrounds behind separate illustrated thumbnails. */
+#stage-select-panel .stage-tile{
+  background-image:var(--fg-btn-emerald)!important;
+  background-size:100% 100%!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  background-color:transparent!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+}
+#stage-select-panel .stage-tile.selected{
+  background-image:var(--fg-btn-gold)!important;
+  filter:brightness(1)!important;
+}
+#stage-select-panel .stage-tile.locked{
+  background-image:var(--fg-btn-stone)!important;
+  filter:saturate(.62)!important;
+}
+#stage-select-panel .stage-tile.selected .stage-list-name,
+#stage-select-panel .stage-tile.selected .stage-tile-summary,
+#stage-select-panel .stage-tile.selected .tiny{
+  color:#422a12!important;text-shadow:0 1px 1px #ffdf9a!important;
+}
+#stage-select-panel .stage-tile .stage-list-name,
+#stage-select-panel .stage-tile .stage-tile-summary,
+#stage-select-panel .stage-tile .tiny{
+  text-shadow:0 1px 2px #11291d;
+}
+#stage-select-panel .stage-tile .stage-tile-art{border-color:#f9dfaa80!important}
+/* Compact battle actions use original painted surfaces beneath their own icon artwork.
+   Icon decals retain their dedicated 4x4 PNG/WebP atlas and never become SVGs. */
+.battle-toolbar .hero-slot:not(.empty),
+.battle-toolbar .evo-button,
+.battle-toolbar .skill-button,
+.battle-hud #repair-btn{
+  background-color:transparent!important;
+  background-position:center!important;background-repeat:no-repeat!important;
+  background-size:100% 100%!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+}
+.battle-toolbar .hero-slot:not(.empty),
+.battle-toolbar .evo-button{background-image:var(--fg-btn-emerald)!important}
+.battle-toolbar .hero-slot.picked,
+.battle-toolbar .evo-button.ready{background-image:var(--fg-btn-gold)!important}
+.battle-toolbar .skill-button{background-image:var(--fg-btn-sapphire)!important}
+.battle-hud #repair-btn{background-image:var(--fg-btn-stone)!important}
+.battle-hud #repair-btn.ready{background-image:var(--fg-btn-gold)!important}
+.battle-toolbar .evo-button small,
+.battle-toolbar .skill-button small,
+.battle-toolbar .hero-slot span{
+  color:#fff5db!important;text-shadow:0 1px 2px #162b20!important
+}
+.battle-toolbar .evo-button.ready small,
+.battle-toolbar .hero-slot.picked span{color:#513215!important;text-shadow:0 1px #ffe2a7!important}
+.battle-hud #repair-btn #coin-label,
+.battle-hud #repair-btn .repair-hint{color:#fff0d2!important;text-shadow:0 1px 2px #1d2e26!important}
+.battle-hud #repair-btn.ready #coin-label,
+.battle-hud #repair-btn.ready .repair-hint{color:#503116!important;text-shadow:0 1px #fff0bc!important}
+.menu:not(.stage-choosing) button:active:not(:disabled),
+.stage-select-panel button:active:not(:disabled),
+#modal-actions .modal-action:active:not(:disabled),
+.battle-toolbar button:active:not(:disabled){
+  transform:translateY(1px) scale(.985)!important;
+  filter:brightness(.92)!important;
+}
+.menu:not(.stage-choosing) button:focus-visible,
+.stage-select-panel button:focus-visible,
+#modal-actions .modal-action:focus-visible,
+.battle-toolbar button:focus-visible{
+  outline:2px solid #fff2b9!important;outline-offset:2px;
+}
+@media (max-width:350px){
+  .menu:not(.stage-choosing) .home-utility-btn{padding-inline:9px!important}
+  .stage-select-panel .stage-chapter-tab{font-size:11px!important;padding:4px!important}
+}
+@media (prefers-reduced-motion:reduce){
+  .menu button,.stage-select-panel button,#modal-actions .modal-action,.battle-toolbar button{
+    transition:none!important;
+  }
+}
