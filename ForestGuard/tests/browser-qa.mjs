@@ -16,7 +16,7 @@ try{
       isMobile:size.width<500,hasTouch:size.width<500});
     const page=await context.newPage();
     const errors=[];page.on('pageerror',error=>errors.push(error.message));
-    await page.goto(origin,{waitUntil:'domcontentloaded',timeout:25000});
+    await page.goto(origin+'?fgqa=1',{waitUntil:'domcontentloaded',timeout:25000});
     await page.locator('#stage-grid button').first().waitFor({state:'attached',timeout:25000});
     const menuOrder=await page.evaluate(()=>{
       const actions=document.querySelector('.menu-actions').getBoundingClientRect();
@@ -100,6 +100,13 @@ try{
     });
     assert.ok(Math.abs(fortHud.stripTop-fortHud.arenaBottom)<=2,'Fort HP must be outside and below battlefield');
     assert.ok(fortHud.hpWidth>100,'Fort HP bar must be readable, not visually hidden');
+    const layers=await page.evaluate(()=>window.__ForestGuardQA?.renderInfo());
+    assert.ok(layers&&layers.artLoaded,'New independent wall artwork must load');
+    assert.equal(layers.frontTexture,'painted-rampart-front','Original painted wall foreground must render');
+    assert.ok(layers.frontDepth>layers.heroDepth&&layers.frontY>layers.heroY,
+      'Hero bodies should stand behind the illustrated wall');
+    assert.ok(layers.heroY<=575&&layers.heroHeight>=90,'Hero should stand above battlements');
+    assert.equal(layers.fieldCount,1,'Exactly one stage background must render');
     assert.ok(battle.canvas.top>=battle.arena.top-2&&battle.canvas.bottom<=battle.arena.bottom+2,'Canvas vertical clipping');
     for(const group of [battle.hud,battle.buttons]){
       for(let i=0;i<group.length;i++){

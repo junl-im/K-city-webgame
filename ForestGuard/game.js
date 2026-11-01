@@ -1710,7 +1710,17 @@
   // Coin uses the dedicated artwork from CSS.
   // Local development QA only; not exposed on public GitHub Pages.
   if((location.hostname==='127.0.0.1'||location.hostname==='localhost')&&new URLSearchParams(location.search).has('fgqa')){
-    window.__ForestGuardQA={finish(win){if(battle&&!battle.ended)battle.finish(!!win);}};
+    window.__ForestGuardQA={
+      finish(win){if(battle&&!battle.ended)battle.finish(!!win);},
+      renderInfo(){
+        if(!battle||!battle.rampartFront)return null;
+        const front=battle.rampartFront,hero=battle.heroSprites[0];
+        return {frontTexture:front.texture.key,frontDepth:front.depth,frontY:front.y,
+          heroDepth:hero?.depth,heroY:hero?.y,heroHeight:hero?.displayHeight,
+          artLoaded:!!rampartBitmap,fieldCount:game?.scene?.scenes?.[0]?.children?.list?.filter(
+            node=>node.texture?.key==='field').length||0};
+      }
+    };
   }
   renderMap();updateMenuStory();setupHistory();
 })();
