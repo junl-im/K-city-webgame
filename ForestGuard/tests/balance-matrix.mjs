@@ -21,6 +21,7 @@ try {
     const director=new WaveDirector(scene);
     const mid=Math.max(4,Math.ceil(stage.waves*.55));
     let guardian=0,elite=0,boss=0,firstWave=0;
+    const signatures=['runner','runner','thorn','brute','spore','brute','spore','crystal','thorn','crystal','imp','imp'];
     for(let w=1;w<=stage.waves;w++){
       director.begin();
       assert.equal(director.current,w,'Unexpected current wave');
@@ -36,6 +37,12 @@ try {
         firstWave=director.count;
         assert.equal(firstWave,5+Math.min(2,Math.floor(id/4)));
         assert.ok(kinds.every(type=>['sprout','runner'].includes(type)),'First wave must allow solo archer');
+        assert.ok(kinds.filter(type=>type==='runner').length<=1,'Solo archer faces at most one runner');
+      }
+      if(w>=3)assert.ok(kinds.includes(signatures[id]),'Stage signature enemy must be present');
+      if(w>1)for(let i=2;i<kinds.length;i++){
+        assert.ok(!(kinds[i]===kinds[i-1]&&kinds[i]===kinds[i-2]),
+          'Same ordinary enemy should not form three consecutive spawns');
       }
       if(w===mid){
         assert.equal(kinds.at(-1),'guardian','Midboss must close middle wave');
@@ -56,5 +63,5 @@ try {
     reports.push({stage:id+1,waves:stage.waves,firstWave,midWave:mid,elites:elite,boss});
   }
 } finally {Math.random=original;}
-console.log('ForestGuard 12-stage wave schedule: PASS');
+console.log('ForestGuard v2.9 themed and anti-streak 12-stage wave schedule: PASS');
 console.log(JSON.stringify(reports));
