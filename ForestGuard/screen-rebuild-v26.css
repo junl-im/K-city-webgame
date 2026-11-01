@@ -184,3 +184,7 @@
 @media(max-height:650px){
  .menu:not(.stage-choosing) .brand{
   flex-basis:clamp(170px,38dvh,245px)!important;height:clamp(170px,38dvh,245px)!important}}
+
+/* v2.8: Chapter picker is a real standalone painted scene.
+   Its translucent vignette layers must never reveal the menu's title hero or buttons. */
+#stage-select-panel{background-color:#071b16!important}
