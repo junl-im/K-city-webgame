@@ -122,7 +122,7 @@ assert.match(js,/setupAmbience\(\)/);
 assert.match(js,/updateAmbience\(dt\)/);
 assert.match(js,/announceElite\(enemy\)/);
 assert.doesNotMatch(js,/ctx\.shadowBlur=12/,'Do not re-introduce the duplicate wall shadow layer');
-assert.match(js,/delay:140,repeat:3,callback/);
+assert.match(js,/delay:155,repeat:11,callback/);
 assert.match(js,/if\(i===2\)/);
 assert.match(js,/trail-'\+kind/);
 assert.match(css,/boss-portrait\.shroom/);
