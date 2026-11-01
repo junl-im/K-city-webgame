@@ -1093,3 +1093,63 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 .stage-path-pin:focus-visible{outline:3px solid #ffefa8;outline-offset:2px}
 @media(max-width:360px){.stage-path-pin{width:42px;height:48px;border-radius:10px}
 .stage-path-pin .stage-pin-art{width:24px;height:24px}.stage-path-pin .stage-pin-number{font-size:9px}}
+
+/* v2.5 — One continuous forest illustration; panels float ON the scene instead
+   of forming separate bordered rectangles. Only active touch controls retain edge. */
+.menu .story-panel{
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:linear-gradient(180deg,rgba(7,24,19,.12),rgba(8,30,21,.56))!important;
+  margin:0 0 2px!important;padding:7px 10px!important}
+.menu .home-stage-spot{
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:linear-gradient(180deg,rgba(7,23,19,.1),rgba(6,22,16,.03) 40%,rgba(4,18,14,.65))!important;
+  margin-top:0!important}
+.menu .home-stage-spot:before{box-shadow:none!important}
+.stage-select-panel{
+  background:linear-gradient(90deg,rgba(5,24,21,.9),rgba(5,24,21,.64) 42%,rgba(5,24,21,.06) 80%),
+   linear-gradient(180deg,rgba(5,21,18,.8),transparent 17%,transparent 72%,rgba(6,21,16,.92)),
+   url('./art/forest-worldmap-v05.webp') center 48% /cover!important}
+.stage-select-header,.stage-choice-footer{
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:linear-gradient(180deg,rgba(13,31,24,.73),rgba(14,32,26,.06))!important}
+.stage-choice-footer{
+  background:linear-gradient(0deg,rgba(8,24,20,.84),rgba(8,24,20,.04))!important}
+.stage-picker-content{gap:0!important;margin:2px 0!important;
+  grid-template-columns:minmax(0,43%) minmax(0,57%)}
+#stage-select-panel .stage-grid{
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:linear-gradient(90deg,rgba(11,26,23,.62),rgba(11,26,23,.18) 75%,transparent)!important;
+  padding:3px 4px 7px 1px!important;gap:2px!important}
+#stage-select-panel .stage-tile{
+  min-height:50px!important;border:1px solid transparent!important;border-radius:9px!important;
+  background:linear-gradient(90deg,rgba(21,39,29,.76),rgba(18,37,28,.14))!important;
+  box-shadow:none!important;text-shadow:0 1px 2px #051a14}
+#stage-select-panel .stage-tile.selected{
+  border-color:rgba(255,226,159,.72)!important;
+  background:linear-gradient(100deg,rgba(185,126,53,.96),rgba(123,83,40,.62) 75%,rgba(55,59,35,.08))!important;
+  box-shadow:inset 2px 0 #ffe7b2,0 0 12px rgba(255,199,101,.31)!important}
+.stage-map-preview{
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:transparent!important;overflow:visible!important}
+.stage-map-signet{background:linear-gradient(180deg,rgba(43,43,26,.83),rgba(16,31,22,.52))!important;
+  border:0!important;box-shadow:0 3px 9px #081b15a8!important}
+.stage-path-pin{
+  border:1px solid #bb995e!important;
+  background:linear-gradient(145deg,rgba(120,79,39,.96),rgba(35,38,25,.97))!important;
+  box-shadow:0 3px 7px #091d15a8,inset 0 1px #ffe0a36b!important}
+.stage-path-pin.active{background:linear-gradient(#efc477,#ae7031)!important;
+  border-color:#ffdea2!important;box-shadow:0 0 14px #ffca72b5!important}
+.battle-hud{
+  border:0!important;box-shadow:none!important;
+  background:linear-gradient(180deg,rgba(19,41,32,.99),rgba(30,62,44,.92),rgba(30,62,44,.68))!important}
+.fort-status-row{
+  border:0!important;box-shadow:none!important;
+  background:linear-gradient(180deg,rgba(34,53,38,.67),rgba(34,51,36,.90))!important}
+.battle-toolbar{
+  border:0!important;box-shadow:none!important;
+  background:linear-gradient(180deg,rgba(33,57,39,.83),rgba(17,42,29,.96))!important}
+@media(max-height:650px){
+ .stage-picker-content{margin:0!important}
+ #stage-select-panel .stage-tile{min-height:44px!important}
+ .menu .story-panel{padding:4px 8px!important}
+}
