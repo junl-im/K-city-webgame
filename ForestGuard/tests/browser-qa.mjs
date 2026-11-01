@@ -59,6 +59,7 @@ try{
     });
     assert.ok(picked.scrollX<=2&&picked.scrollY<=2,'Stage picker overflow');
     assert.ok(picked.enterRight<=size.width+2,'Stage entry clipped');
+    await page.screenshot({path:new URL('../test-output/stage-picker-'+size.width+'x'+size.height+'.png',import.meta.url).pathname});
     await page.locator('#stage-back-btn').click();
     assert.equal(await page.locator('#stage-select-panel').isHidden(),true,'Stage picker closes to home');
     await page.locator('#start-btn').click({timeout:20000});
@@ -79,10 +80,12 @@ try{
         svgCount:document.querySelectorAll('svg').length,
         canvas:{left:canvas.left,right:canvas.right,top:canvas.top,bottom:canvas.bottom},
         arena:{left:arena.left,right:arena.right,top:arena.top,bottom:arena.bottom},
+        backdrop:getComputedStyle(document.getElementById('arena-wrap')).backgroundImage,
         hud,buttons,visibleStage:document.getElementById('wave-label').textContent
       };
     });
     assert.equal(battle.svgCount,0,'No SVG in live battle');
+    assert.equal(battle.backdrop,'none','Phaser battlefield must not have duplicate wallpaper');
     assert.ok(battle.scrollX<=2&&battle.scrollY<=2,'Battle page must fit a viewport: '+JSON.stringify(battle));
     assert.ok(battle.canvas.left>=battle.arena.left-2&&battle.canvas.right<=battle.arena.right+2,'Canvas horizontal clipping');
     assert.ok(battle.canvas.top>=battle.arena.top-2&&battle.canvas.bottom<=battle.arena.bottom+2,'Canvas vertical clipping');
