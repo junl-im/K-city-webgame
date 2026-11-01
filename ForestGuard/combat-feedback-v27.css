@@ -8,7 +8,7 @@
  box-shadow:inset 0 1px #f2e3ad5b,0 2px 4px #07160f80!important}
 .hero-slot strong.portrait-icon{display:block;width:clamp(31px,7.8vw,43px)!important;
  height:clamp(30px,5.1dvh,39px)!important;flex:0 0 auto!important;
- background-size:contain!important;margin:auto 0 0}
+ margin:auto 0 0}
 .hero-slot span:last-child{width:100%!important;white-space:nowrap!important;text-align:center;
  font-size:clamp(7px,1.9vw,9px)!important;line-height:1.1!important}
 .hero-slot.empty{opacity:.28!important;box-shadow:none!important;background:transparent!important;border:0!important}

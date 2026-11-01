@@ -1403,7 +1403,10 @@
       const missing=['bear','rabbit','cat'].filter(species=>!owned.includes(species));
       // Prefer a complete four-species team; then allow exactly one reinforcement copy.
       if(owned.includes(id)&&(missing.length>0||owned.filter(species=>species===id).length>=2))return false;
-      const idx=HERO_RECRUIT_ORDER.find(slot=>this.heroIds[slot]===null);
+      const preferred=this.preferredRecruitSlot;
+      const idx=preferred!==undefined&&this.heroIds[preferred]===null?preferred:
+        HERO_RECRUIT_ORDER.find(slot=>this.heroIds[slot]===null);
+      this.preferredRecruitSlot=undefined;
       if(idx===undefined)return false;
       this.heroIds[idx]=id;this.attackTimes[idx]=400;
       const sprite=this.add.image(HERO_POSITIONS[idx],568,'motion-'+id+'-idle-0').setDisplaySize(94,94).setDepth(6);
@@ -1719,7 +1722,7 @@
       b.append(icon,text);b.setAttribute('aria-label','전열 '+(i+1)+'번 '+text.textContent+(id?' · 타깃 '+b.dataset.modeLabel+' · 같은 칸 두 번 선택해 변경':''));
       b.addEventListener('click',()=>{
         if(!battle||battle.ended)return;
-        if(battle.pendingRecruit&&!id){battle.showRecruitDraft();return;}
+        if(battle.pendingRecruit&&!id){battle.preferredRecruitSlot=i;battle.showRecruitDraft();return;}
         if(battle.drafting)return;
         if(chosenSlot<0){chosenSlot=i;battle.previewRange(i);renderSlots();return;}
         if(chosenSlot===i){
@@ -1847,6 +1850,15 @@
       },
       heroRanges(){return Object.fromEntries(Object.entries(HEROES).map(([id,role])=>[id,role.range]));},
       rosterInfo(){return battle?{capacity:HERO_CAPACITY,ids:[...battle.heroIds],positions:[...HERO_POSITIONS]}:null;},
+      damageFeedback(){
+        if(!battle||battle.ended)return null;
+        const enemy=battle.enemies.find(e=>!['shroom','guardian','boss'].includes(e.type));
+        if(!enemy)return null;
+        const noBar=enemy.life.visible===false&&enemy.lifeBg.visible===false;
+        battle.hitEnemy(enemy,1,'fox');
+        return {ordinaryBarHidden:noBar,floatCount:battle.damageFloatCount,
+          heroCount:battle.heroIds.filter(Boolean).length};
+      },
       renderInfo(){
         if(!battle||!battle.rampartFront)return null;
         const front=battle.rampartFront,hero=battle.heroSprites.find(Boolean);

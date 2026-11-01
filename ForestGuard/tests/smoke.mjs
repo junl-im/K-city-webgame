@@ -256,3 +256,7 @@ assert.match(js,/\.setVisible\(elite\)/);
 assert.match(js,/const elite=\['shroom','guardian','boss'\]\.includes\(type\)/);
 
 assert.match(js,/missing\.length>0\|\|owned\.filter/);
+
+assert.match(js,/this\.preferredRecruitSlot=i;battle\.showRecruitDraft\(\)/);
+assert.match(js,/rosterInfo\(\)/);
+assert.match(js,/damageFeedback\(\)/);

@@ -149,6 +149,15 @@ try{
     });
     assert.ok(Math.abs(fortHud.stripTop-fortHud.arenaBottom)<=2,'Fort HP must be outside and below battlefield');
     assert.ok(fortHud.hpWidth>100,'Fort HP bar must be readable, not visually hidden');
+    const roster=await page.evaluate(()=>window.__ForestGuardQA.rosterInfo());
+    assert.deepEqual(roster.ids,[null,null,'fox',null,null],'Five-seat formation must open with central fox only');
+    assert.deepEqual(roster.positions,[58,134,210,286,362]);
+    assert.equal(await page.locator('.hero-slot').count(),5,'Five usable slots must fit in the battle toolbar');
+    const edges=await page.locator('.hero-slot').evaluateAll(nodes=>nodes.map(node=>{
+      const p=node.getBoundingClientRect();return {x:p.x,right:p.right,width:p.width};
+    }));
+    assert.ok(edges.every(x=>x.width>=28&&x.x>=-2&&x.right<=size.width+2),
+      'Five portraits must not clip off-screen');
     const layers=await page.evaluate(()=>window.__ForestGuardQA?.renderInfo());
     assert.ok(layers&&layers.artLoaded,'New independent wall artwork must load');
     assert.equal(layers.frontTexture,'painted-rampart-front','Original painted wall foreground must render');
@@ -157,6 +166,11 @@ try{
     assert.ok(layers.heroY<=575&&layers.heroHeight>=90,'Hero should stand above battlements');
     assert.equal(layers.fieldCount,1,'Exactly one stage background must render');
     if(size.width===390){
+      await page.waitForFunction(()=>window.__ForestGuardQA.damageFeedback()!==null,null,{timeout:12000});
+      const damageNow=await page.evaluate(()=>window.__ForestGuardQA.damageFeedback());
+      assert.ok(damageNow.ordinaryBarHidden,'Ordinary mobs must not show an HP bar');
+      assert.ok(damageNow.floatCount>0,'Real hits must create readable floating damage numbers');
+      await page.screenshot({path:new URL('../test-output/damage-feedback-390.png',import.meta.url).pathname});
       const ranges=await page.evaluate(()=>window.__ForestGuardQA.heroRanges());
       assert.deepEqual(ranges,{fox:535,megafox:690,bear:345,rabbit:605,cat:470});
       assert.equal(await page.evaluate(()=>window.__ForestGuardQA.showEliteIntro('shroom')),true);
@@ -195,7 +209,7 @@ try{
       assert.equal(await page.locator('.recruit-card').count(),3,'Empty pedestal reopens recruitment');
       await page.locator('.recruit-rabbit').click();
       assert.equal(await page.locator('.hero-slot:not(.empty)').count(),2,'Recruit joins the defense');
-      assert.equal(await page.locator('.hero-slot.empty').count(),1,'Only one bench slot remains');
+      assert.equal(await page.locator('.hero-slot.empty').count(),3,'Three future reinforcement slots remain');
       await page.screenshot({path:new URL('../test-output/forest-recruited-rabbit.png',import.meta.url).pathname});
       // Restart once and verify real-time expiry without touching any companion card.
       await page.locator('#home-btn').click();
