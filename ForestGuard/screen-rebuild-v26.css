@@ -168,3 +168,19 @@
 #stage-select-panel[data-chapter="3"] .stage-map-signet{
   color:#f7e9ff;text-shadow:0 2px #262242
 }
+
+/* v2.6.2 mobile home capture: join hero title artwork to start action. */
+.menu:not(.stage-choosing) .brand{
+ flex:0 0 clamp(205px,42dvh,338px)!important;height:clamp(205px,42dvh,338px)!important;
+ align-items:flex-end!important;justify-content:center!important;overflow:visible!important}
+.menu:not(.stage-choosing) .title-hero-art{
+ width:100%!important;height:100%!important;object-fit:contain!important;object-position:center bottom!important;
+ -webkit-mask-image:radial-gradient(ellipse 75% 66% at center 70%,#000 60%,transparent 100%);
+ mask-image:radial-gradient(ellipse 75% 66% at center 70%,#000 60%,transparent 100%);
+ filter:drop-shadow(0 5px 7px #071812a9)!important}
+.menu:not(.stage-choosing) .home-stage-spot{
+ flex:1 1 auto!important;min-height:110px!important;justify-content:flex-end!important;gap:7px!important}
+.menu:not(.stage-choosing) .home-stage-copy{margin-bottom:auto}
+@media(max-height:650px){
+ .menu:not(.stage-choosing) .brand{
+  flex-basis:clamp(170px,38dvh,245px)!important;height:clamp(170px,38dvh,245px)!important}}

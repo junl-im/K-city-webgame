@@ -74,19 +74,19 @@ try{
     assert.equal(await page.locator('#stage-grid .stage-tile:visible').count(),4,
       'Chapter view must show four illustrated stages, not twelve plain text rows');
     assert.equal(await page.locator('#stage-grid .stage-tile-art:visible').count(),4);
-    await page.locator('[data-chapter="1"]').click();
+    await page.locator('#stage-chapter-tabs [data-chapter="1"]').click();
     assert.equal(await page.locator('#stage-grid .stage-tile:visible').count(),4);
-    assert.equal(await page.locator('[data-chapter="1"]').getAttribute('aria-pressed'),'true');
+    assert.equal(await page.locator('#stage-chapter-tabs [data-chapter="1"]').getAttribute('aria-pressed'),'true');
     assert.equal(await page.locator('#stage-map-number').innerText(),'제2장');
     const chapterTwoArt=await page.locator('#stage-select-panel').evaluate(el=>getComputedStyle(el).backgroundImage);
     assert.ok(chapterTwoArt.includes('misty-canyon-v08.png'),'Chapter 2 must have independent canyon art');
     assert.equal(await page.locator('#stage-map-pins button:not([disabled])').count(),0,
       'Future chapter map must not unlock stages prematurely');
-    await page.locator('[data-chapter="2"]').click();
+    await page.locator('#stage-chapter-tabs [data-chapter="2"]').click();
     assert.equal(await page.locator('#stage-map-number').innerText(),'제3장');
     const chapterThreeArt=await page.locator('#stage-select-panel').evaluate(el=>getComputedStyle(el).backgroundImage);
     assert.ok(chapterThreeArt.includes('moonlit-highland-v08.png'),'Chapter 3 must use moonlit art');
-    await page.locator('[data-chapter="0"]').click();
+    await page.locator('#stage-chapter-tabs [data-chapter="0"]').click();
     assert.equal(await page.locator('#stage-map-number').innerText(),'제1장');
     const picked=await page.evaluate(()=>{
       const p=document.querySelector('#stage-select-panel').getBoundingClientRect();
