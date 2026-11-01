@@ -49,6 +49,20 @@ try{
     assert.equal(menu.svgCount,0,'SVG prohibited');
     assert.ok(menu.scrollX<=2&&menu.scrollY<=2,'Menu unexpectedly scrolls: '+JSON.stringify(menu));
     assert.ok(menu.start.top>=0&&menu.start.bottom<=size.height+2,'Start button clipped');
+    const homeArt=await page.evaluate(()=>{
+      const art=document.querySelector('.title-hero-art');
+      const hero=art.getBoundingClientRect();
+      const main=document.querySelector('.menu-actions-top').getBoundingClientRect();
+      return {heroHeight:hero.height,heroBottom:hero.bottom,mainTop:main.top,
+        artLoaded:art.complete&&art.naturalWidth>0,
+        help:!document.getElementById('help-btn').hidden,
+        intel:!document.getElementById('intel-btn').hidden};
+    });
+    assert.ok(homeArt.artLoaded&&homeArt.heroHeight>=145,
+      'The actual home must prominently display the illustration, not a flat placeholder');
+    assert.ok(homeArt.mainTop>=homeArt.heroBottom-2&&homeArt.help&&homeArt.intel,
+      'Start action and home utility actions must remain reachable');
+    await page.screenshot({path:new URL('../test-output/home-'+size.width+'x'+size.height+'.png',import.meta.url).pathname});
     // Explicitly navigate the dedicated stage picker, no more scattered empty waypoint boxes.
     await page.locator('#stage-list-btn').click({timeout:20000});
     assert.equal(await page.locator('#stage-select-panel').isVisible(),true,'Stage selection opens as a real screen');
