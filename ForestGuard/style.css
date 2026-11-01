@@ -1025,3 +1025,52 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
 .battle-toolbar .hero-slot.picked{border-color:#ffe0a1!important;box-shadow:0 0 8px #f1c36a9a!important}
 .modal-box.growth-dialog{background:linear-gradient(160deg,#132921dc,#071b1df0 75%,#10281eeb),
  url('./art/forest-entrance-v08.png') center/cover!important}
+
+/* v2.3 illustrated results — built from original PNG/WebP, no SVG or decorative emoji. */
+.modal-box.result-dialog{width:calc(100% - 3px);max-width:480px;max-height:calc(100dvh - 22px);
+  padding:12px 13px;border:3px solid #cfac6b;border-radius:17px;color:#ffeac0;overflow-y:auto;
+  background:linear-gradient(#091b18db,#0b221bf3 65%,#14281cfb),
+  url('./art/forest-entrance-v08.png') center/cover;box-shadow:inset 0 0 0 2px #f6d89d82,0 13px 35px #000c}
+.result-dialog .modal-top{border-bottom:1px solid #b89354a1;padding-bottom:4px}
+.result-dialog #modal-kicker{font-size:10px;color:#f0c782}
+.result-dialog #modal-title{font-size:clamp(23px,6vw,33px);color:#ffe2a4;margin:5px 0 2px;
+  text-shadow:-2px -2px #5b3926,2px -2px #5b3926,-2px 2px #5b3926,2px 2px #5b3926,0 5px #52331e}
+.result-dialog:not(.result-win) #modal-title{color:#f4c2a0}
+.result-dialog #modal-description{font-size:11px;color:#e8d4a5;margin:2px 0 8px}
+.result-presentation{display:flex;flex-direction:column;gap:8px}
+.result-stars{display:flex;align-items:center;justify-content:center;gap:6px;min-height:42px}
+.result-star{display:block;width:44px;height:44px;opacity:.22;filter:grayscale(1);transform:scale(.84)}
+.result-star.earned{opacity:1;filter:drop-shadow(0 3px 5px #ffbb60b9);transform:scale(1)}
+.result-star:nth-child(2).earned{width:53px;height:53px}
+.result-hero-scene{position:relative;display:flex;align-items:center;justify-content:center;
+ height:clamp(116px,22dvh,168px);min-height:100px;overflow:hidden;border:2px solid #bd9964;border-radius:16px;
+ background:radial-gradient(ellipse at 50% 30%,#f4e3a84d,transparent 67%),
+ linear-gradient(#1e3c31a1,#0d2019ed),
+ url('./art/forest-battleground-v04.webp') center/cover;
+ box-shadow:inset 0 0 0 2px #f1cf8a70,inset 0 -17px 29px #061611b8}
+.result-hero{display:block;width:clamp(110px,30vw,155px);height:clamp(110px,30vw,155px);
+ filter:drop-shadow(0 3px 6px #09140e)}
+.result-hero-banner{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);white-space:nowrap;
+ border:1px solid #c69d66;border-radius:9px;background:#213528e0;padding:4px 14px;color:#ffdf9f;
+ font-size:11px;font-weight:900;text-shadow:0 2px #221809}
+.result-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.result-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;gap:3px;
+ padding:6px 2px;border:2px solid #ae8756;border-radius:10px;background:linear-gradient(#344734,#142a24);
+ box-shadow:inset 0 0 0 1px #f7dfad70,0 4px 8px #0006}
+.result-stat-icon{display:block;width:32px;height:32px;filter:drop-shadow(0 2px 3px #09140a)}
+.result-stat>span:not(.result-stat-icon){font-size:10px;color:#e4d2ae;font-weight:800;text-align:center}
+.result-stat strong{font-size:clamp(10px,3.1vw,15px);font-variant-numeric:tabular-nums;color:#ffebbb;white-space:nowrap}
+.result-dialog .result-note{font-size:11px;color:#efdda9;text-align:center;line-height:1.35;margin:1px 0}
+.result-dialog #modal-actions{display:grid;grid-template-columns:1.2fr 1fr;gap:8px;margin:9px 0 2px}
+.result-dialog .modal-action{min-width:0;width:100%;min-height:48px;padding:8px 4px;border:2px solid #f2c67d;
+ background:linear-gradient(#efc77d,#b87d3a 62%,#925925);color:#462a1b;text-shadow:0 1px #fff3bf;
+ box-shadow:inset 0 2px #ffe5a9,0 4px #52331c;font-size:clamp(11px,3vw,15px)}
+.result-dialog .modal-action.alt{border-color:#a58758;background:linear-gradient(#5c4b35,#342e25);
+ color:#ffebc9;text-shadow:0 1px #170f0c}
+@media(max-height:680px){.modal-box.result-dialog{padding:7px 9px}
+ .result-presentation{gap:4px}.result-stars{min-height:28px;gap:3px}
+ .result-star{width:33px;height:33px}.result-star:nth-child(2).earned{width:40px;height:40px}
+ .result-hero-scene{height:103px;min-height:103px}.result-hero{width:108px;height:108px}
+ .result-stat{padding:3px;gap:1px}.result-stat-icon{width:26px;height:26px}
+ .result-dialog .modal-action{min-height:39px;padding:5px 3px}.result-dialog #modal-actions{margin-top:6px}}
+@media(max-width:340px){.result-stat>span:not(.result-stat-icon){font-size:9px}}

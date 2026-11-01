@@ -275,6 +275,8 @@
     $('modal-close').hidden=!activeModal.allowClose;
     $('modal-box').classList.toggle('recruit-dialog',kicker==='첫 번째 공세 완료');
     $('modal-box').classList.toggle('growth-dialog',title==='성장의 순간!');
+    $('modal-box').classList.toggle('result-dialog',kicker==='방어 성공'||kicker==='재도전');
+    $('modal-box').classList.toggle('result-win',kicker==='방어 성공');
     $('modal-layer').hidden=false;
     requestAnimationFrame(()=>{const el=$('modal-box').querySelector('button');if(el)el.focus();});
   }
@@ -283,6 +285,38 @@
     activeModal=null;$('modal-layer').hidden=true;
     if(focusBeforeModal && typeof focusBeforeModal.focus==='function')focusBeforeModal.focus();
     if(battle)renderHUD();
+  }
+
+  // Preview-grade victory screen assembled from real game artwork and earned battle data.
+  function makeResultPresentation(win,stage,hp,maxHP,coins,party,streak){
+    const root=document.createElement('div');root.className='result-presentation';
+    const ratio=Math.max(0,Math.min(1,hp/Math.max(1,maxHP)));
+    const rating=win?(ratio>=.8?3:ratio>=.45?2:1):0;
+    const stars=document.createElement('div');stars.className='result-stars';
+    stars.setAttribute('role','img');stars.setAttribute('aria-label',win?'별 '+rating+'개 획득':'방어 실패');
+    for(let i=0;i<3;i++){
+      const mark=document.createElement('span');mark.className='result-star'+(i<rating?' earned':'');
+      V.setIcon(mark,'star');stars.appendChild(mark);
+    }
+    const scene=document.createElement('div');scene.className='result-hero-scene';
+    const hero=document.createElement('span');hero.className='result-hero';V.portrait(hero,'fox');
+    const banner=document.createElement('span');banner.className='result-hero-banner';
+    banner.textContent=win?'숲길 방어 성공':'수비대 재정비';
+    scene.append(hero,banner);
+    const stats=document.createElement('div');stats.className='result-stats';
+    for(const [icon,label,value] of [['coin','남은 별빛',coins+''],['shield','성벽 체력',
+       Math.ceil(hp)+' / '+Math.ceil(maxHP)],['fox','함께한 영웅',party+'명']]){
+      const item=document.createElement('div');item.className='result-stat';
+      const art=document.createElement('span');art.className='result-stat-icon';V.setIcon(art,icon);
+      const name=document.createElement('span');name.textContent=label;
+      const amount=document.createElement('strong');amount.textContent=value;
+      item.append(art,name,amount);stats.appendChild(item);
+    }
+    const message=document.createElement('p');message.className='result-note';
+    message.textContent=win?'다음 숲길에도 동료들과 함께 나아가요!':
+      '연속 실패 '+streak+'회 · 다시 도전하면 도움을 받을 수 있어요.';
+    root.append(stars,scene,stats,message);
+    return root;
   }
   function showIntel(){
     const stage=STAGES[state.selected];
@@ -1410,14 +1444,19 @@
         state.best[this.stage.id]=Math.max(Number(state.best[this.stage.id])||0,this.hp);
         save();
       }
-      const title=win?'숲길을 지켜냈어!':'성벽이 무너졌어!';
-      const desc=win?'성벽 체력 '+this.hp+' · 얻은 별빛 '+this.coins+'개':
-        '재도전 '+record.streak+'회 · 연속 실패 시 다음 전투에서 적 체력 최대 12% 완화';
-      const actions=[button(win?'다음 스테이지':'다시 도전',()=>{
-        const next=win?Math.min(11,this.stage.id+1):this.stage.id;
+      const atFinal=win&&this.stage.id===STAGES.length-1;
+      const result=makeResultPresentation(win,this.stage,this.hp,this.maxHP,this.coins,
+        this.heroIds.filter(Boolean).length,record.streak);
+      const actions=[button(atFinal?'모험 지도':win?'다음 스테이지':'다시 도전',()=>{
+        if(atFinal){showMenu(false);return;}
+        const next=win?this.stage.id+1:this.stage.id;
         closeModal(true);startStage(next);
-      }),button('모험 지도',()=>showMenu(false),'alt')];
-      showModal(win?'방어 성공':'재도전',title,desc,[],actions,false);
+      }),button(atFinal?'최종 스테이지 다시':'모험 지도',()=>{
+        if(atFinal){closeModal(true);startStage(this.stage.id);}
+        else showMenu(false);
+      },'alt')];
+      showModal(win?'방어 성공':'재도전',win?'스테이지 클리어!':'성벽을 지키지 못했어',
+        '제'+this.stage.chapter+'장 · '+this.stage.name,[result],actions,false);
     }
     update(_time,delta){
       this.tickRecruit(delta);
@@ -1648,5 +1687,9 @@
   V.setIcon(document.querySelector('#repair-btn .coin-glyph'),'coin');
   V.setIcon($('pause-btn'),'pause');
   // Coin uses the dedicated artwork from CSS.
+  // Local development QA only; not exposed on public GitHub Pages.
+  if((location.hostname==='127.0.0.1'||location.hostname==='localhost')&&new URLSearchParams(location.search).has('fgqa')){
+    window.__ForestGuardQA={finish(win){if(battle&&!battle.ended)battle.finish(!!win);}};
+  }
   renderMap();updateMenuStory();setupHistory();
 })();
