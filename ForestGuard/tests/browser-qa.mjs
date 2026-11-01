@@ -166,6 +166,43 @@ try{
     reports.push({viewport:size,menu:'PASS',battle:'PASS',hud: battle.hud.length,buttons:battle.buttons.length});
     await context.close();
   }
+  // Render the ACTUAL full results screen in Chromium, not a simulated static preview.
+  for(const size of [{width:320,height:568},{width:390,height:844}]){
+    const context=await browser.newContext({viewport:size,deviceScaleFactor:1,isMobile:true,hasTouch:true});
+    const page=await context.newPage(),errors=[];
+    page.on('pageerror',err=>errors.push(err.message));
+    await page.goto(origin+'?fgqa=1',{waitUntil:'domcontentloaded'});
+    await page.locator('#start-btn').click();
+    await page.locator('#game-root canvas').waitFor({timeout:25000});
+    await page.waitForFunction(()=>typeof window.__ForestGuardQA?.finish==='function');
+    await page.evaluate(()=>window.__ForestGuardQA.finish(true));
+    await page.locator('#modal-box.result-dialog.result-win').waitFor();
+    assert.equal(await page.locator('.result-star.earned').count(),3,'Full HP victory earns three stars');
+    assert.equal(await page.locator('.result-stat').count(),3,'Show real currency, HP and squad metrics');
+    assert.equal(await page.locator('#modal-actions button').count(),2,'Next stage and map actions');
+    const winLayout=await page.evaluate(()=>{
+      const r=document.querySelector('#modal-box').getBoundingClientRect();
+      return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,
+        scrollX:document.documentElement.scrollWidth-innerWidth,
+        scrollY:document.documentElement.scrollHeight-innerHeight,
+        stats:[...document.querySelectorAll('.result-stat strong')].map(n=>n.textContent)};
+    });
+    assert.ok(winLayout.left>=-2&&winLayout.right<=size.width+2&&
+      winLayout.top>=-2&&winLayout.bottom<=size.height+2,'Illustrated results must fit mobile screen');
+    assert.ok(winLayout.scrollX<=2&&winLayout.scrollY<=2,'Results must not scroll document');
+    await page.screenshot({path:new URL('../test-output/forest-results-win-'+size.width+'.png',import.meta.url).pathname});
+    await page.locator('#modal-actions button').first().click();
+    await page.waitForFunction(()=>document.getElementById('stage-name').textContent==='달리는 버섯들'&&
+      document.getElementById('modal-layer').hidden,{timeout:25000});
+    await page.locator('#game-root canvas').waitFor();
+    await page.evaluate(()=>window.__ForestGuardQA.finish(false));
+    await page.locator('#modal-box.result-dialog:not(.result-win)').waitFor();
+    assert.equal(await page.locator('.result-star.earned').count(),0,'Failure must not show earned stars');
+    assert.match(await page.locator('#modal-actions button').first().innerText(),/다시 도전/);
+    await page.screenshot({path:new URL('../test-output/forest-results-loss-'+size.width+'.png',import.meta.url).pathname});
+    assert.deepEqual(errors,[],'Results browser exceptions');
+    await context.close();
+  }
   // If the stage painting fails, the game must never expose the old Canvas fallback.
   const failedCtx=await browser.newContext({viewport:{width:360,height:740},deviceScaleFactor:1,isMobile:true,hasTouch:true});
   const failedPage=await failedCtx.newPage();
