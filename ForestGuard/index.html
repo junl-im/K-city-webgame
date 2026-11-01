@@ -8,10 +8,10 @@
   <title>라니 수비대 | 곰같은여우</title>
   <link rel="preload" as="image" href="./art/forest-worldmap-v05.webp?v=20261031f">
   <link rel="preload" as="image" href="./art/title-hero-v18.webp">
-  <link rel="stylesheet" href="./style.css?v=20261101f">
+  <link rel="stylesheet" href="./style.css?v=20261101g">
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.88.2/dist/phaser.min.js" defer></script>
-  <script src="./visuals.js?v=20261101f" defer></script>
-  <script src="./game.js?v=20261101f" defer></script>
+  <script src="./visuals.js?v=20261101g" defer></script>
+  <script src="./game.js?v=20261101g" defer></script>
 </head>
 <body>
 <div id="app" class="shell">
@@ -77,8 +77,9 @@
       </div>
       <div class="wave-scout" id="wave-scout" role="status" aria-live="polite" hidden></div>
       <div id="terrain-indicator" class="terrain-indicator" role="status" aria-live="polite" hidden></div>
-      <div id="fort-health" class="fort-hp" role="progressbar" aria-label="성벽 내구도" aria-valuemin="0" aria-valuemax="3000" aria-valuenow="3000"><span>성벽</span><div class="hp-track"><div id="hp-fill" class="hp-fill"></div></div><strong id="hp-label">3000</strong></div>
+
     </div>
+    <div class="fort-status-row">      <div id="fort-health" class="fort-hp" role="progressbar" aria-label="성벽 내구도" aria-valuemin="0" aria-valuemax="3000" aria-valuenow="3000"><span>성벽</span><div class="hp-track"><div id="hp-fill" class="hp-fill"></div></div><strong id="hp-label">3000</strong></div></div>
     <footer class="battle-toolbar">
       <div id="hero-slots" class="hero-slots" aria-label="용병 위치 바꾸기"></div>
       <button id="evo-btn" class="evo-button" type="button" disabled aria-label="여우 궁수 진화"><span></span><small id="evo-caption">진화 0/10</small></button>

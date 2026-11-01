@@ -9,6 +9,7 @@
   const SAVE_KEY = 'gomfox.forestguard.v1';
   const REPAIR_COST = 120, REPAIR_HEAL = 420, REPAIR_LIMIT = 2;
   const RECRUIT_TIMEOUT = 12000;
+  const DRAFT_TIMEOUT = 10000;
   const HOME_URL = 'https://meta-deee1.web.app/';
   const $ = id => document.getElementById(id);
   const V = window.ForestGuardVisuals;
@@ -93,7 +94,7 @@
     ['ward','wall','heartwood','고목의 맹세']
   ];
   const HEROES = {
-    fox:{name:'여우 궁수',icon:'🦊',damage:27,interval:680,range:590,color:0xffce6a},
+    fox:{name:'여우 궁수',icon:'🦊',damage:27,interval:790,range:355,color:0xffce6a},
     megafox:{name:'곰같은여우',icon:'🦊',damage:69,interval:460,range:740,color:0xffdf80},
     bear:{name:'곰 수호자',icon:'🐻',damage:42,interval:1250,range:445,color:0xeab68c},
     rabbit:{name:'토끼 마법사',icon:'🐰',damage:24,interval:1050,range:555,color:0xa9eafa},
@@ -256,7 +257,7 @@
     game=new Phaser.Game({
       type:Phaser.AUTO,parent:'game-root',width:420,height:650,
       backgroundColor:'#172d21',render:{pixelArt:false,antialias:true},
-      scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:420,height:650},
+      scale:{mode:Phaser.Scale.RESIZE,autoCenter:Phaser.Scale.NO_CENTER,width:420,height:650},
       scene:[ForestBattle]
     });
     // Stage selection is passed through pendingStageIndex to avoid boot timing races.
@@ -273,6 +274,7 @@
     $('modal-body').replaceChildren(...contents);$('modal-actions').replaceChildren(...actions);
     $('modal-close').hidden=!activeModal.allowClose;
     $('modal-box').classList.toggle('recruit-dialog',kicker==='첫 번째 공세 완료');
+    $('modal-box').classList.toggle('growth-dialog',title==='성장의 순간!');
     $('modal-layer').hidden=false;
     requestAnimationFrame(()=>{const el=$('modal-box').querySelector('button');if(el)el.focus();});
   }
@@ -613,6 +615,7 @@
       if(n<.16)return'thorn';
       if(this.scene.stage.id>=5&&n<.34)return'brute';
       if(this.scene.stage.id===1&&n<.72)return'runner';
+      if(this.scene.stage.id===0&&this.current>=2&&n<.23)return'runner';
       if(this.scene.stage.id>=1&&n<.55)return'runner';
       return'sprout';
     }
@@ -650,7 +653,13 @@
       this.assistScale=losses>=4?.88:losses>=2?.93:1;
       this.foxSpirit=0;this.evolved=false;
       this.recruitRemaining=RECRUIT_TIMEOUT;this.recruitLastSecond=-1;
+      this.draftRemaining=0;this.draftChoices=null;this.draftLastSecond=-1;
       this.betweenWaves=0;this.wave=new WaveDirector(this);
+      // Fill the entire playable viewport with one camera, rather than FIT letterboxing.
+      // ZoomX/ZoomY adapt independently while all gameplay logic stays in 420×650 coordinates.
+      this.resizeBattleCamera();
+      this.scale.on('resize',this.resizeBattleCamera,this);
+      this.events.once('shutdown',()=>this.scale.off('resize',this.resizeBattleCamera,this));
       buildTextures(this);this.add.image(210,325,'field');
       // Depth 1.8: foreground wall and torch lights sit under HP plaque (2)
       // and all combat characters (4–6). Each biome uses its own field texture.
@@ -659,13 +668,21 @@
       $('arena-wrap').classList.toggle('foggy',this.stage.id>=4&&this.stage.id<=7);
       $('arena-wrap').classList.toggle('moonlit',this.stage.id>=8);
       $('arena-wrap').classList.remove('boss-warning');
-      this.fortPlaque=this.add.image(210,625,'fort-plaque').setDepth(2);
+      // Status bar now lives below the battlefield in the DOM, never across hero feet.
+      this.fortPlaque=this.add.image(210,625,'fort-plaque').setDepth(2).setVisible(false);
       this.heroSprites=this.heroIds.map((id,i)=>id?this.add.image([104,210,316][i],595,'motion-'+id+'-idle-0').setDisplaySize(83,83).setDepth(6):null);
       this.wave.begin();renderSlots();renderHUD();
       this.syncBattleOverlay();
       requestAnimationFrame(()=>requestAnimationFrame(()=>{if(battle===this)$('battle-loading').hidden=true;}));
       if(this.assistScale<1)showBanner('재도전 지원 · 몬스터 체력 '+Math.round((1-this.assistScale)*100)+'% 완화');
       else if(this.stage.id===0)showBanner('여우 궁수 혼자 첫 공세를 막아보세요!');
+    }
+    resizeBattleCamera(){
+      const width=Math.max(1,this.scale.width||420),height=Math.max(1,this.scale.height||650);
+      const camera=this.cameras.main;
+      camera.setViewport(0,0,width,height);
+      camera.setZoom(width/420,height/650);
+      camera.centerOn(210,325);
     }
     setupAmbience(){
       const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -1189,7 +1206,10 @@
         this.drafting=true;this.pendingRecruit=true;this.recruitRemaining=RECRUIT_TIMEOUT;this.recruitLastSecond=-1;
         setTimeout(()=>{if(!this.ended&&this.pendingRecruit)this.showRecruitDraft();},260);
       }
-      else if(w%2===0){this.drafting=true;setTimeout(()=>{if(!this.ended)this.showDraft();},220);}
+      else if(w%2===0){
+        this.drafting=true;this.draftChoices=null;this.draftRemaining=DRAFT_TIMEOUT;this.draftLastSecond=-1;
+        setTimeout(()=>{if(!this.ended&&this.drafting)this.showDraft();},220);
+      }
       else{this.betweenWaves=1100;showBanner('성벽 방어 성공!');}
     }
     comboFor(id){
@@ -1279,25 +1299,68 @@
       showModal('첫 번째 공세 완료','첫 동료를 선택하세요!','세 동료 중 하나가 무료로 합류합니다. 미선택 시 자동 영입됩니다.',[timer,track,wrap],[],true);
       renderHUD();
     }
-    showDraft(){
+    completeDraft(id,automatic=false){
+      if(this.ended||this.pendingRecruit||!this.drafting||!this.draftChoices?.some(c=>c.id===id))return false;
+      const card=this.draftChoices.find(c=>c.id===id);
+      this.applyCard(id);
+      this.draftRemaining=0;this.draftChoices=null;
+      this.drafting=false;this.betweenWaves=700;
+      if(activeModal&&activeModal.title==='성장의 순간!')closeModal(true);
+      renderHUD();
+      if(automatic)showBanner('자동 강화 · '+card.title);
+      return true;
+    }
+    tickDraft(delta){
+      if(!this.drafting||this.pendingRecruit||this.ended||!this.draftChoices?.length||
+        this.manualPause||this.autoPause||document.visibilityState==='hidden')return;
+      this.draftRemaining=Math.max(0,this.draftRemaining-Math.min(delta,100));
+      const seconds=Math.ceil(this.draftRemaining/1000);
+      if(seconds!==this.draftLastSecond){
+        this.draftLastSecond=seconds;
+        const label=$('draft-countdown');
+        if(label)label.textContent='남은 시간 '+seconds+'초 · 미선택 시 자동 강화';
+        const bar=$('draft-progress-fill');
+        if(bar)bar.style.width=(this.draftRemaining/DRAFT_TIMEOUT*100)+'%';
+      }
+      if(this.draftRemaining===0){
+        const best=this.draftChoices.find(c=>this.comboFor(c.id))||
+          this.draftChoices.find(c=>c.rare)||this.draftChoices[0];
+        this.completeDraft(best.id,true);
+      }
+    }
+    showDraft(forceReroll=false){
       if(this.ended)return;
       if(this.pendingRecruit)return this.showRecruitDraft();
-      this.drafting=true;const cards=this.chooseCards();
-      const wrap=document.createElement('div');wrap.className='card-grid';
-      cards.forEach(card=>{
-        const b=document.createElement('button');b.type='button';b.className='spell-card'+(card.rare?' rare':'')+(this.comboFor(card.id)?' combo':'');
+      this.drafting=true;
+      if(forceReroll||!this.draftChoices)this.draftChoices=this.chooseCards();
+      if(!this.draftRemaining)this.draftRemaining=DRAFT_TIMEOUT;
+      const timer=document.createElement('div');timer.className='draft-countdown';timer.id='draft-countdown';
+      timer.textContent='남은 시간 '+Math.ceil(this.draftRemaining/1000)+'초 · 미선택 시 자동 강화';
+      const track=document.createElement('div');track.className='draft-progress';
+      track.setAttribute('aria-hidden','true');
+      const fill=document.createElement('span');fill.id='draft-progress-fill';
+      fill.style.width=(this.draftRemaining/DRAFT_TIMEOUT*100)+'%';track.appendChild(fill);
+      const wrap=document.createElement('div');wrap.className='card-grid draft-grid';
+      this.draftChoices.forEach((card,i)=>{
+        const b=document.createElement('button');b.type='button';b.className='spell-card draft-card'+
+          (card.rare?' rare':'')+(this.comboFor(card.id)?' combo recommended':'');
         const icon=document.createElement('span');icon.className='spell-emoji';V.setIcon(icon,card.id==='bear'?'shield':card.id);
         const title=document.createElement('strong');title.textContent=card.title;
         const desc=document.createElement('small');
         const combo=this.comboFor(card.id);
         desc.textContent=card.desc+(combo?' · '+combo+' 재료':'');
-        b.append(icon,title,desc);b.addEventListener('click',()=>{
-          this.applyCard(card.id);closeModal(true);this.drafting=false;this.betweenWaves=700;renderHUD();
-        });wrap.appendChild(b);
+        const no=document.createElement('span');no.className='draft-index';no.textContent=String(i+1).padStart(2,'0');
+        b.append(no,icon,title,desc);
+        b.addEventListener('click',()=>this.completeDraft(card.id));
+        wrap.appendChild(b);
       });
       const actions=[];
-      if(!this.rerollUsed)actions.push(button('한 번 무료 새로고침',()=>{this.rerollUsed=true;closeModal(true);this.showDraft();},'alt'));
-      showModal('제 '+this.wave.current+'차 공세 완료','성장의 순간!','셋 중 하나의 힘을 골라 수비대를 키워 주세요.',[wrap],actions,true);
+      if(!this.rerollUsed)actions.push(button('한 번 무료 새로고침',()=>{
+        this.rerollUsed=true;closeModal(true);this.showDraft(true);
+      },'alt'));
+      showModal('제 '+this.wave.current+'차 공세 완료','성장의 순간!',
+        '강화를 골라 수비대를 키우세요. 선택하지 않으면 자동으로 적용돼요.',
+        [timer,track,wrap],actions,true);
       renderHUD();
     }
     applyCard(id){
@@ -1358,6 +1421,7 @@
     }
     update(_time,delta){
       this.tickRecruit(delta);
+      this.tickDraft(delta);
       if(this.ended||this.manualPause||this.autoPause||this.drafting)return;
       const dt=Math.min(delta,40)*this.speed;this.gameClock+=dt;
       this.updateAmbience(dt);
