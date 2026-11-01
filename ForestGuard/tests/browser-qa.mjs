@@ -174,7 +174,8 @@ try{
     await page.goto(origin+'?fgqa=1',{waitUntil:'domcontentloaded'});
     await page.locator('#start-btn').click();
     await page.locator('#game-root canvas').waitFor({timeout:25000});
-    await page.waitForFunction(()=>typeof window.__ForestGuardQA?.finish==='function');
+    await page.waitForFunction(()=>typeof window.__ForestGuardQA?.finish==='function'&&
+      document.getElementById('wave-label').textContent.includes(' / '));
     await page.evaluate(()=>window.__ForestGuardQA.finish(true));
     await page.locator('#modal-box.result-dialog.result-win').waitFor();
     assert.equal(await page.locator('.result-star.earned').count(),3,'Full HP victory earns three stars');
@@ -195,6 +196,7 @@ try{
     await page.waitForFunction(()=>document.getElementById('stage-name').textContent==='달리는 버섯들'&&
       document.getElementById('modal-layer').hidden,{timeout:25000});
     await page.locator('#game-root canvas').waitFor();
+    await page.waitForFunction(()=>document.getElementById('wave-label').textContent.includes(' / '));
     await page.evaluate(()=>window.__ForestGuardQA.finish(false));
     await page.locator('#modal-box.result-dialog:not(.result-win)').waitFor();
     assert.equal(await page.locator('.result-star.earned').count(),0,'Failure must not show earned stars');
