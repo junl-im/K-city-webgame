@@ -88,6 +88,18 @@ try{
     assert.equal(battle.backdrop,'none','Phaser battlefield must not have duplicate wallpaper');
     assert.ok(battle.scrollX<=2&&battle.scrollY<=2,'Battle page must fit a viewport: '+JSON.stringify(battle));
     assert.ok(battle.canvas.left>=battle.arena.left-2&&battle.canvas.right<=battle.arena.right+2,'Canvas horizontal clipping');
+    assert.ok(Math.abs(battle.canvas.left-battle.arena.left)<=2&&Math.abs(battle.canvas.right-battle.arena.right)<=2,
+      'Battle must fill both sides without gutters: '+JSON.stringify(battle));
+    assert.ok(Math.abs(battle.canvas.top-battle.arena.top)<=2&&Math.abs(battle.canvas.bottom-battle.arena.bottom)<=2,
+      'Battle canvas must fill arena height: '+JSON.stringify(battle));
+    const fortHud=await page.evaluate(()=>{
+      const strip=document.querySelector('.fort-status-row').getBoundingClientRect();
+      const arena=document.getElementById('arena-wrap').getBoundingClientRect();
+      const hp=document.getElementById('fort-health').getBoundingClientRect();
+      return {stripTop:strip.top,stripBottom:strip.bottom,arenaBottom:arena.bottom,hpWidth:hp.width};
+    });
+    assert.ok(Math.abs(fortHud.stripTop-fortHud.arenaBottom)<=2,'Fort HP must be outside and below battlefield');
+    assert.ok(fortHud.hpWidth>100,'Fort HP bar must be readable, not visually hidden');
     assert.ok(battle.canvas.top>=battle.arena.top-2&&battle.canvas.bottom<=battle.arena.bottom+2,'Canvas vertical clipping');
     for(const group of [battle.hud,battle.buttons]){
       for(let i=0;i<group.length;i++){

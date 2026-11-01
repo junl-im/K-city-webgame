@@ -1008,3 +1008,20 @@ button:focus-visible{outline:3px solid #fff7bf;outline-offset:3px}
  .growth-dialog .draft-card small{font-size:8px}}
 @media(max-height:650px){.fort-status-row{flex-basis:25px;height:25px}
  .growth-dialog .draft-card{min-height:145px}.growth-dialog .draft-card .spell-emoji{width:43px;height:43px}}
+
+/* v2.2.1 — refined preview-grade wood/brass HUD, not an inert illustrated mockup */
+.battle-hud{background:linear-gradient(180deg,#4c422f,#253d30 45%,#172d25)!important;
+ border-bottom:3px solid #d6a85e!important;box-shadow:inset 0 1px 0 #fce5b15e,0 3px 12px #0b1b14c7!important}
+.battle-hud .hud-control{color:#ffedc8!important;text-shadow:0 1px #2a170f;
+ background:linear-gradient(135deg,#7f5631,#483124 55%,#54402d)!important;border:2px solid #c39960!important;
+ box-shadow:inset 0 1px 0 #ffe2a581,0 2px 4px #14271b!important}
+.battle-hud .hud-control:active{transform:translateY(1px)}
+.battle-hud .coin-pill{background:linear-gradient(110deg,#635036,#253d30)!important;border:2px solid #c59d66!important;
+ border-radius:11px!important;box-shadow:inset 0 1px #ffe9a56b}
+.battle-toolbar{background:linear-gradient(#314333,#172e24 40%,#14251e)!important;
+ border-top:2px solid #b9905b!important;box-shadow:inset 0 1px #f4da9761!important}
+.battle-toolbar .hero-slot:not(.empty){background:linear-gradient(160deg,#465b3c,#1a3027)!important;
+ border-color:#c09b64!important;box-shadow:inset 0 1px #f6ddaa91,0 2px 4px #0b1c16!important}
+.battle-toolbar .hero-slot.picked{border-color:#ffe0a1!important;box-shadow:0 0 8px #f1c36a9a!important}
+.modal-box.growth-dialog{background:linear-gradient(160deg,#132921dc,#071b1df0 75%,#10281eeb),
+ url('./art/forest-entrance-v08.png') center/cover!important}
