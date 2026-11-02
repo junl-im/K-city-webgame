@@ -15,3 +15,13 @@ export function humanTurnSignature(screen, game) {
 export function secondsLeft(milliseconds) {
   return Math.min(HUMAN_TURN_SECONDS, Math.max(0, Math.ceil(milliseconds / 1000)));
 }
+
+export function humanChoiceSignature(screen, game, choice = {}) {
+  if (screen !== 'game' || !game) return null;
+  const prefix = `${game.gameUuid}:${game.turnNumber}`;
+  if (choice.gookjin) return `${prefix}:gookjin`;
+  if (choice.draw) return `${prefix}:draw-choice`;
+  if (choice.triple) return `${prefix}:triple:${choice.triple.mode}`;
+  if (choice.match) return `${prefix}:match:${choice.match.cardId}`;
+  return humanTurnSignature(screen,game);
+}

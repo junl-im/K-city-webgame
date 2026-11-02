@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HUMAN_TURN_MS, HUMAN_TURN_SECONDS, humanTurnSignature, secondsLeft } from '../turnTiming.js';
+import { HUMAN_TURN_MS, HUMAN_TURN_SECONDS, humanTurnSignature, humanChoiceSignature, secondsLeft } from '../turnTiming.js';
 
 const state = (overrides = {}) => ({
   gameUuid: 'round-one', turnNumber: 3, currentPlayer: 'human',
@@ -21,6 +21,15 @@ describe('20초 턴 제한 및 자동 플레이 시계', () => {
     const initial = humanTurnSignature('game',state());
     expect(humanTurnSignature('game',state({lastAction:'소리 꺼짐',wallet:150}))).toBe(initial);
     expect(humanTurnSignature('game',state({turnNumber:4}))).not.toBe(initial);
+  });
+
+  it('각 선택창은 별도 시계를 갖고 화면을 벗어나면 멈춘다', () => {
+    expect(humanChoiceSignature('game',state({phase:'round-ended'}),{gookjin:true})).toBe('round-one:3:gookjin');
+    expect(humanChoiceSignature('game',state(),{draw:{}})).toBe('round-one:3:draw-choice');
+    expect(humanChoiceSignature('game',state(),{triple:{mode:'shake'}})).toBe('round-one:3:triple:shake');
+    expect(humanChoiceSignature('game',state(),{match:{cardId:'m01-01'}})).toBe('round-one:3:match:m01-01');
+    expect(humanChoiceSignature('home',state(),{gookjin:true})).toBeNull();
+    expect(humanChoiceSignature('game',state())).toBe(humanTurnSignature('game',state()));
   });
 
   it('시간을 0~20초 범위에서 올림 표시한다', () => {

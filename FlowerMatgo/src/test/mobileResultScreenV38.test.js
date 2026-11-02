@@ -36,7 +36,7 @@ describe('꽃맞고 v38 모바일 판 결과·점수 피드백', () => {
   it('다음 판·메인·오링 충전이 유지되고 낮은 화면에선 결과창을 스크롤한다', () => {
     expect(result).toContain("btn('다음 판 치기','next','btn--primary btn--wide')");
     expect(result).toContain("canEmergencyRecharge(app.wallet)?btn('긴급 무료 충전 +30만 냥'");
-    expect(result).toContain("btn('메인으로','home','btn--quiet')");
+    expect(result).toContain("btn('그만치기','home','btn--quiet')");
     expect(v38).toContain('max-height:calc(100svh - 20px)');
     expect(v38).toContain('overflow-x:hidden;overflow-y:auto');
     expect(v38).toContain('@media (max-width:650px) and (max-height:600px)');

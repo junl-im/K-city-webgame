@@ -69,7 +69,7 @@ describe('꽃맞고 v28 첫 판 선 뽑기와 패섞기', () => {
     expect(ui).toContain("app.screen = 'game'");
     expect(ui).toContain("case 'pick-dealer': pickOpeningDealer(Number(value));return;");
     expect(ui).toContain('선 뽑기에서 이겨 먼저 칩니다.');
-    expect(ui).toContain("const key = humanTurnSignature(app.screen, app.game)");
+    expect(ui).toContain('const key = humanChoiceSignature(app.screen,app.game');
     expect(ui).toContain("const SAVE_KEY = 'gomfox-flower-matgo-v01'");
   });
 
