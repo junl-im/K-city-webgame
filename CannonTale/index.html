@@ -462,6 +462,19 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  #menu .hero-text small{display:none;}
 }
 
+
+/* Runtime escape hatch: fit narrow Android browsers whose dynamic toolbar reduces the usable height. */
+#menu .menu-panel.menu-tight{gap:2px!important;padding:5px 7px!important;}
+#menu .menu-panel.menu-tight .eyebrow,#menu .menu-panel.menu-tight .menu-subline,#menu .menu-panel.menu-tight .map-note,#menu .menu-panel.menu-tight .hero-picker-title small{display:none!important;}
+#menu .menu-panel.menu-tight .hero-art{max-height:55px;min-height:30px;}
+#menu .menu-panel.menu-tight .mode-card{min-height:55px;padding-top:4px;padding-bottom:4px;}
+#menu .menu-panel.menu-tight .mode-card span:last-child{display:none;}
+#menu .menu-panel.menu-tight .hero-choice{min-height:42px;padding:1px;}
+#menu .menu-panel.menu-tight .hero-portrait{height:24px;width:25px;}
+#menu .menu-panel.menu-ultra .hero-art,#menu .menu-panel.menu-ultra .hero-picker-title,#menu .menu-panel.menu-ultra .menu-progress{display:none!important;}
+#menu .menu-panel.menu-ultra .mode-card{min-height:47px;}
+#menu .menu-panel.menu-ultra .hero-choice{min-height:36px;}
+#menu .menu-panel.menu-ultra .hero-portrait{height:22px;width:22px;}
 </style>
 </head>
 <body>
@@ -1201,7 +1214,20 @@ const materialCells={
   ctx.restore();
  }
  function drawMessage(){if(game.messageTime<=0)return;ctx.save();ctx.font='900 20px system-ui, sans-serif';ctx.textAlign='center';const text=game.message,w=ctx.measureText(text).width;roundRect(game.camera+(cv.clientWidth/game.scale)/2-w/2-21,96,w+42,40,18,'#273c59d6','#fff1d2',2);ctx.fillStyle='#fff0d0';ctx.fillText(text,game.camera+(cv.clientWidth/game.scale)/2,123);ctx.restore();}
- function resize(){const w=cv.clientWidth,h=cv.clientHeight;if(w<1||h<1)return;const dpr=Math.min(2,devicePixelRatio||1),pw=Math.max(1,Math.round(w*dpr)),ph=Math.max(1,Math.round(h*dpr));if(cv.width!==pw)cv.width=pw;if(cv.height!==ph)cv.height=ph;const fit=game.overview?Math.min(w/W,h/H):h/H;game.scale=Math.max(.001,fit);game.topPad=game.overview?Math.max(0,(h-H*game.scale)/2):0;const visible=w/game.scale,edge=Math.max(0,W-visible);if(game.overview){game.camera=-(visible-W)/2;return;}const waitingForAi=game.mode==='duel'&&game.turn==='ai'&&game.phase==='aiWait';
+ let lastMenuSize='';
+ function fitMenuToViewport(){
+  const menu=$('menu');
+  if(menu.hidden){lastMenuSize='';return;}
+  const panel=document.querySelector?.('#menu .menu-panel');
+  if(!panel||!menu.clientWidth||!menu.clientHeight)return;
+  const size=menu.clientWidth+'x'+menu.clientHeight;
+  if(size===lastMenuSize)return;
+  lastMenuSize=size;
+  panel.classList.remove('menu-tight','menu-ultra');
+  if(panel.scrollHeight>panel.clientHeight+2)panel.classList.add('menu-tight');
+  if(panel.scrollHeight>panel.clientHeight+2)panel.classList.add('menu-ultra');
+ }
+ function resize(){fitMenuToViewport();const w=cv.clientWidth,h=cv.clientHeight;if(w<1||h<1)return;const dpr=Math.min(2,devicePixelRatio||1),pw=Math.max(1,Math.round(w*dpr)),ph=Math.max(1,Math.round(h*dpr));if(cv.width!==pw)cv.width=pw;if(cv.height!==ph)cv.height=ph;const fit=game.overview?Math.min(w/W,h/H):h/H;game.scale=Math.max(.001,fit);game.topPad=game.overview?Math.max(0,(h-H*game.scale)/2):0;const visible=w/game.scale,edge=Math.max(0,W-visible);if(game.overview){game.camera=-(visible-W)/2;return;}const waitingForAi=game.mode==='duel'&&game.turn==='ai'&&game.phase==='aiWait';
   const defaultCam=waitingForAi?clamp(1018-visible*.76,0,edge):game.mode==='duel'?clamp(190-visible*.24,0,edge):clamp(145-visible*.25,0,edge);
   const active=game.projectiles.find(p=>p.active);
   const impactHold=game.reviewFocusX!==null&&(game.phase==='review'||game.phase==='result');
