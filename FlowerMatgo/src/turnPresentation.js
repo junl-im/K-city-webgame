@@ -2,7 +2,7 @@
 // these sprites never affect deck order, captures, scoring or saved state.
 // Timing is intentionally explicit: first the played card collides, then the
 // pile is drawn, then the captured sprites move, and only then may UI commit.
-import { specialPresentation } from './specialPresentation.js';
+import { specialPresentation, eventAnnouncement } from './specialPresentation.js';
 import { getCard } from './engine/cards';
 import { capturedCardNotice } from './floorLayout.js';
 export const TURN_STAGES = Object.freeze({
@@ -358,6 +358,21 @@ function spawnCaptureSweep(root, ids, source, drawnTarget, cue, player, result, 
   setTimeout(() => sound('capture'), TURN_STAGES.collect + 280);
 }
 
+// Show rule events at screen center while the card animation is still playing.
+// The transient element never captures input and is removed at the turn boundary.
+function spawnCentralEvent(root, text, delay) {
+  if (!text) return;
+  setTimeout(() => {
+    if (!root.isConnected || !root.querySelector('.scene--game.is-resolving')) return;
+    const message = document.createElement('div');
+    message.className = 'central-event central-event--during';
+    message.setAttribute('aria-hidden', 'true');
+    message.textContent = text;
+    root.appendChild(message);
+    setTimeout(() => message.remove(), 720);
+  }, delay);
+}
+
 function spawnImpact(root, target, text, delay, kind = 'land') {
   if (!target) return;
   setTimeout(() => {
@@ -501,6 +516,7 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
   }
   spawnImpact(root, target, hasPlayedMatch ? '착!' : '탁!', TURN_STAGES.land);
   recoilTable(root,'land',TURN_STAGES.land+20);
+  spawnCentralEvent(root, eventAnnouncement(result, player), TURN_STAGES.collect - 35);
   if (cue.captures || cue.impact === 'special' || result.ppeok) {
     spawnImpact(root, target, cue.text, TURN_STAGES.collect + 10, cue.visualKind);
   }

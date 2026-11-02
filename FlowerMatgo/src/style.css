@@ -3674,3 +3674,8 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--game .event-plaque {width:auto;min-width:110px;max-width:min(62%,260px);min-height:32px;padding:5px 17px;color:#fffbe8;font-size:clamp(13px,3.8vw,18px);line-height:1.15;text-align:center;white-space:normal;overflow-wrap:anywhere;filter:drop-shadow(0 2px 3px #2d160b80);}
 .turn-impact__text {max-width:min(78vw,320px);white-space:normal;line-height:1.15;font-size:clamp(14px,4vw,20px);}
 .scene--game .event-plaque {font-size:clamp(14px,4.1vw,19px);}
+/* Restore a large central call without blocking cards or covering decision dialogs. */
+.central-event {position:fixed;left:50%;top:43%;z-index:11;display:grid;place-items:center;box-sizing:border-box;width:min(78vw,310px);min-height:92px;padding:14px 36px;transform:translate(-50%,-50%);background:transparent url('/assets/flower-event-plaque-v1.png') center/100% 100% no-repeat;color:#fff8dc;font-size:clamp(24px,7vw,38px);font-weight:950;line-height:1.12;text-align:center;text-shadow:0 2px 0 #5b1a08,0 3px 8px #310d08;filter:drop-shadow(0 5px 7px #24130d99);pointer-events:none;animation:central-event-call 1.35s ease-out forwards;}
+.central-event--during {z-index:70;animation-duration:.72s;}
+@keyframes central-event-call {0%{opacity:0;transform:translate(-50%,-50%) scale(.75);}14%{opacity:1;transform:translate(-50%,-50%) scale(1.06);}28%,72%{opacity:1;transform:translate(-50%,-50%) scale(1);}100%{opacity:0;transform:translate(-50%,-53%) scale(.96);}}
+@media(prefers-reduced-motion:reduce){.central-event {animation:none;}}

@@ -446,6 +446,7 @@ function gameScreen() {
       </div>
     </div>
 
+    ${flash && ['event-list','go','shake'].includes(flashKind) ? `<div class="central-event" aria-hidden="true">${safe(specialMoment(flashKind,flash).title)}</div>` : ''}
     <div class="turn-countdown" aria-hidden="true" hidden><strong></strong></div>
     ${gameOverlay(g)}
   </main>`;
