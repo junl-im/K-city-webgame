@@ -3452,6 +3452,19 @@ button:disabled { cursor: not-allowed; opacity:.48; }
 .flower-exit-portrait .mascot{width:88px;filter:drop-shadow(0 5px 6px #61432c3d);}
 .flower-exit-actions{display:grid;gap:9px;}.flower-exit-actions .btn{min-height:44px;}
 
+/* Clear score categories on the warm paper without competing with the cards. */
+.scene--game .collection-rack{border:1px solid #efdab9;box-shadow:0 5px 16px #093a3055,inset 0 1px #fff9;}
+.scene--game .collection-head b{color:#63462f;letter-spacing:-.025em;}
+.scene--game .collection-head small{color:#9a5b38;font-weight:850;}
+.scene--game .collection-group{background:#fffaf0b8;border:1px solid #ead7b8;box-shadow:inset 0 1px #fff9;}
+.scene--game .collection-group[data-empty="true"]{background:#f9efde88;border-color:#eadfc9;}
+.scene--game .collection-name{color:#624d39;font-weight:900;white-space:nowrap;}
+.scene--game .collection-name strong{display:inline-block;min-width:1.35em;padding:0 3px;border-radius:6px;background:#f2d7b1;color:#874125;text-align:center;line-height:1.25;}
+.scene--game .collection-group[data-empty="true"] .collection-name strong{background:#eee4d4;color:#7b6b59;}
+.scene--game .collection-group:focus-visible{outline:3px solid #e5a64a;outline-offset:-3px;}
+.hand-scroll-hint{margin-left:auto;color:#f9e6b8;font-size:10px;font-weight:800;white-space:nowrap;}
+.hand-scroll-hint[hidden]{display:none;}
+
 /* The large home characters are painted illustrations; keeping them still
    avoids constant subpixel shimmer on desktop and saves mobile GPU work. */
 .scene--home .hero-animals .mascot {animation:none;translate:none;}
