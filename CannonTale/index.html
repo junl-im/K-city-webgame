@@ -317,6 +317,47 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
 }
 @media(max-height:420px){.shot-review{top:3px}.review-kicker{display:none}}
 @media(prefers-reduced-motion:reduce){.shot-review{animation:none}}
+
+/* v1.2.2: unframed illustrated controls. The original bitmap atlas stays SVG-free. */
+.controls{border:0;background:linear-gradient(180deg,#172c30ee,#19272cf7);box-shadow:0 -7px 23px #17262d69;column-gap:clamp(6px,1.2vw,18px)}
+.weapon,.weapon.selected,.fire,.ability-btn,.view-btn{border:0;background:transparent;box-shadow:none;outline:0;text-shadow:0 2px 2px #14272b,0 2px 7px #091d25b8;filter:none;transition:transform .12s,filter .12s,color .12s}
+.weapon{display:flex;flex-direction:column;gap:0;min-height:67px;padding:1px 2px;color:#d6e2d8}
+.weapon.selected{background:transparent;box-shadow:none;color:#ffe1a1;filter:drop-shadow(0 0 5px #e4a45d7a)}
+.weapon::before,.weapon[data-weapon="bomb"]::before,.weapon[data-weapon="split"]::before{width:55px;height:48px;max-width:100%;filter:drop-shadow(0 3px 3px #0007)}
+.fire,.view-btn,.ability-btn{display:flex;flex-direction:column;align-items:center;justify-content:end;text-align:center;position:relative;min-width:88px;height:73px;min-height:73px;padding:48px 3px 2px;font-weight:900;line-height:1.12}
+.fire{font-size:17px;color:#ffe6a2}
+.view-btn,.ability-btn{font-size:11px;color:#ebecd7}
+.fire::before,.view-btn::before,.ability-btn::before{top:0;left:50%;transform:translateX(-50%);width:61px;height:51px;filter:drop-shadow(0 3px 5px #0008);opacity:1}
+.fire:active,.ability-btn:active,.view-btn:active,.weapon:active{transform:translateY(2px) scale(.96)}
+.fire:disabled,.ability-btn:disabled,.weapon:disabled{opacity:.47;filter:grayscale(.35)}
+.fire:focus-visible,.weapon:focus-visible,.view-btn:focus-visible,.ability-btn:focus-visible{outline:2px solid #f5d792;outline-offset:-2px;border-radius:10px}
+.weapon-label,.aim-label{color:#d1cbaf}
+.shot-review{width:min(530px,calc(100% - 12px));background:linear-gradient(156deg,#f4ddb0ef,#d7b47fee);color:#4d382e;box-shadow:0 9px 20px #0e242975}
+.review-kicker{color:#795c45}.review-copy small{color:#654f41}
+.review-continue{background:linear-gradient(150deg,#a86340,#84442f);color:#fff2ce;box-shadow:inset 0 1px #f1c58d,0 3px 8px #352a2166}
+@media(max-width:600px) and (orientation:portrait){
+ .controls{grid-template-columns:minmax(0,1fr) 86px;gap:2px 7px;padding:4px max(6px,env(safe-area-inset-right)) calc(5px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));min-height:142px}
+ .weapon{min-height:49px;font-size:10px}.weapon::before,.weapon[data-weapon="bomb"]::before,.weapon[data-weapon="split"]::before{width:38px;height:35px}
+ .action-col{gap:1px;min-width:0}
+ .action-col .fire,.action-col .view-btn,.action-col .ability-btn{min-width:0;width:86px;height:52px;min-height:52px;padding:29px 0 1px;font-size:10px}
+ .action-col .fire{height:61px;min-height:61px;padding-top:37px;font-size:15px}
+ .action-col .fire::before,.action-col .view-btn::before,.action-col .ability-btn::before{width:43px;height:37px;top:0}
+ .action-col .view-btn::before,.action-col .ability-btn::before{width:35px;height:29px}
+ .shot-review{top:4px;padding:7px 7px 7px 11px;gap:6px}
+ .review-continue{min-width:81px;min-height:41px;padding:4px 6px;font-size:10px}
+ .review-copy strong{font-size:13px}.review-copy small{font-size:10px}
+ .status-row{bottom:4px}
+}
+@media(orientation:landscape) and (max-height:550px){
+ .top{min-height:38px;padding-top:3px;padding-bottom:3px}
+ .controls{min-height:62px;padding:2px max(7px,env(safe-area-inset-right)) calc(3px + env(safe-area-inset-bottom)) max(7px,env(safe-area-inset-left));gap:5px}
+ .weapon{height:44px;min-height:44px;flex-direction:row;font-size:10px}
+ .weapon::before,.weapon[data-weapon="bomb"]::before,.weapon[data-weapon="split"]::before{width:32px;height:32px}
+ .action-col{gap:2px}
+ .action-col .fire,.action-col .view-btn,.action-col .ability-btn{height:49px;min-height:49px;min-width:48px;padding:30px 1px 1px;font-size:10px}
+ .action-col .fire{font-size:13px}.action-col .fire::before,.action-col .view-btn::before,.action-col .ability-btn::before{width:39px;height:32px;top:0;left:50%;transform:translateX(-50%)}
+ .shot-review{top:2px;max-width:410px;padding:4px 7px}.review-kicker{display:none}
+}
 </style>
 </head>
 <body>
@@ -431,7 +472,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  function origin(owner='player'){if(game.mode==='duel') {const x=owner==='player'?190:1018;return{x,y:terrainY(x)-32};}return{x:145,y:terrainY(145)-69};}
  function launch(owner,ang,power,weapon,initial) {
   const o=origin(owner),dir=owner==='ai'?-1:1,v=initial||powerVelocity(ang,power,dir);
-  game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,b)=>a+Math.max(0,b.hp),0),playerHp:game.playerHp,aiHp:game.aiHp};
+  game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,b)=>a+Math.max(0,b.hp),0),blockCounts:['wood','stone','iron'].map(t=>game.blocks.filter(b=>b.type===t).length),playerHp:game.playerHp,aiHp:game.aiHp};
   game.lastImpact=null;game.reviewFocusX=null;game.reviewInfo=null;game.panX=null;game.overview=false;$('overview').textContent='전장 보기';$('shotReview').hidden=true;
   const muzzleX=o.x+dir*(game.mode==='duel'?Math.cos(ang*Math.PI/180)*55:17),muzzleY=o.y-(game.mode==='duel'?Math.sin(ang*Math.PI/180)*55:0)-4;
    const p={x:muzzleX,y:muzzleY,vx:v.vx,vy:v.vy,r:weapon==='bomb'?13:10,weapon,owner,age:0,split:false,trail:[],active:true,pierce:owner==='player'&&game.abilityArmed?2:0,hitBlocks:[],hitFoes:[]};game.projectiles.push(p);
@@ -634,10 +675,12 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   const structure=Math.max(0,Math.round(base.blockHp-game.blocks.reduce((a,b)=>a+Math.max(0,b.hp),0)));
   const enemyDamage=Math.max(0,Math.round(base.aiHp-game.aiHp));
   const allyDamage=Math.max(0,Math.round(base.playerHp-game.playerHp));
+  const shattered=base.blockCounts?['wood','stone','iron'].map((t,i)=>Math.max(0,base.blockCounts[i]-game.blocks.filter(b=>b.type===t).length)):[];
+  const shatteredDescription=shattered.map((n,i)=>n?`${['목재','석재','철재'][i]} ${n}`:'').filter(Boolean).join(' · ');
   let title,detail;
   if(game.mode==='adventure'){
    title=knocked?`몬스터 ${knocked}기 격파!`:structure>0?'요새에 포격 명중!':'착탄 지점 확인';
-   detail=knocked?`구조물 피해 ${structure} · 남은 목표 ${game.foes.filter(f=>f.alive).length}`:structure>0?`구조물 피해 ${structure} · 균열과 잔해를 확인하세요`:'화면을 움직여 착탄 지점과 남은 목표를 확인하세요';
+   detail=knocked?`구조물 피해 ${structure} · 남은 목표 ${game.foes.filter(f=>f.alive).length}`:structure>0?`구조물 피해 ${structure}${shatteredDescription?' · 붕괴 '+shatteredDescription:''}`:'화면을 움직여 착탄 지점과 남은 목표를 확인하세요';
    game.reviewNext=game.foes.every(f=>!f.alive)?'win':game.shots>=game.maxShots?'lose':'aim';
   }else{
    const damaged=enemyDamage||allyDamage;
@@ -1012,7 +1055,10 @@ const materialCells={
   const defaultCam=waitingForAi?clamp(1018-visible*.76,0,edge):game.mode==='duel'?clamp(190-visible*.24,0,edge):clamp(145-visible*.25,0,edge);
   const active=game.projectiles.find(p=>p.active);
   const impactHold=game.reviewFocusX!==null&&(game.phase==='review'||game.phase==='result');
-  const focus=active?active.x-visible*.43:game.panX!==null?game.panX:impactHold?game.reviewFocusX-visible*.51:defaultCam;game.camera+=(clamp(focus,0,edge)-game.camera)*.12;}
+  const nearby=impactHold?game.debris.filter(d=>d.life>0&&Math.abs(d.x-game.reviewFocusX)<145):[];
+  const movingCenter=nearby.length?nearby.reduce((a,d)=>a+d.x,0)/nearby.length:game.reviewFocusX;
+  const impactCenter=game.reviewFocusX*.78+movingCenter*.22;
+  const focus=active?active.x-visible*.43:game.panX!==null?game.panX:impactHold?impactCenter-visible*.51:defaultCam;game.camera+=(clamp(focus,0,edge)-game.camera)*.12;}
  function draw(){resize();const dpr=Math.min(2,devicePixelRatio||1),s=game.scale;if(!s)return;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#8bbeb8';ctx.fillRect(0,0,cv.width,cv.height);ctx.setTransform(dpr*s,0,0,dpr*s,-game.camera*dpr*s,game.topPad*dpr);ctx.save();if(game.shake>1){ctx.translate(rnd(-game.shake,game.shake),rnd(-game.shake*.6,game.shake*.6));}backdrop();if(game.mode!=='menu'){ground();drawTrajectory();if(game.mode==='adventure'){drawBlocks();drawFoes();slingshot();}else{cannon(190,terrainY(190)-26,1,true);cannon(1018,terrainY(1018)-26,-1,false);}drawDebris();drawProjectiles();drawParticles();drawSkillEffects();drawImpact();drawMessage();}else{ctx.save();fox(170,450,2);bear(1008,452,2);ctx.restore();}if(game.flash>0){ctx.fillStyle=`rgba(255,245,210,${game.flash*1.4})`;ctx.fillRect(game.camera,0,cv.clientWidth/s,H);}ctx.restore();}
  let prev=0,acc=0;function frame(t){if(!prev)prev=t;acc+=Math.min(.075,(t-prev)/1000);prev=t;let runs=0;while(acc>=STEP&&runs++<6){step(STEP);acc-=STEP;}draw();requestAnimationFrame(frame);}
  function pointerToWorld(e){const r=cv.getBoundingClientRect();return{x:game.camera+(e.clientX-r.left)/game.scale,y:(e.clientY-r.top-game.topPad)/game.scale};}
