@@ -357,3 +357,17 @@
 - 전투 영웅 5명의 후면을 각기 분리하고 비율 유지. V.build Canvas 5상태 × 6프레임 소스를 후면 텍스처로 바꾸되, 기존 전투 로직과 사거리/중간보스/저장키는 건드리지 않음. 로딩 실패 시 정면 원화 후퇴.
 - 새 `illustrated-v31.css`를 마지막에 불러 UI 우선순위를 보장. SVG/이모지 이미지 신규 도입 없음. 모바일 320px 및 낮은 높이에 대한 별도 미디어 규칙 추가.
 - `smoke.mjs`에 자산 무결성/연결 검사 추가. 수작업 애니메이션, 실기기 전체 QA, 12 스테이지 밸런스, 5번째 독립 캐릭터는 미완.
+
+
+## 2026-11-02 v3.6 — 연속 숲길 등반과 모바일 선택 화면 실구현
+- 디자인/기능: 1-1 마을 시작점을 지도 아래, 1-4 중간보스를 지도 위에 배치. 제2/3장도 각각 4개 스테이지의 카드/경로가 대응하며 동일한 단일 배경 원화 사용. 기존 버튼/아이콘 PNG·WebP 재활용, SVG/타 게임 자산 없음.
+- 버그: 다른 장의 탭을 눌렀을 때 이전 장의 출전 설명과 활성 버튼이 남는 오류 해결. 잠긴 장은 해당 장 첫 스테이지 정보, 비활성 '잠김' 버튼을 표시하며 열린 장으로 돌아가면 출전 복원.
+- 홈: 현재 숲길 안내를 기존 목재 지도판 원화에 올려 글자 대비 향상. 5인 영웅 슬롯/스킬/진화 버튼 한 줄 크기, 영입 초상화·선택 카드 레이아웃 조정.
+- 수정 파일: game.js, index.html, 신규 chapter-ascent-v36.css, tests/browser-qa.mjs, tests/smoke.mjs. 12스테이지 전투·저장·보스 패턴/사거리 기존 수치 그대로.
+- GitHub 코드: https://github.com/junl-im/K-city-webgame/commit/ca73108fdc9b68b63e4c0d7f72f7e71f6895c200
+- smoke 통과: https://github.com/junl-im/K-city-webgame/actions/runs/41395047370
+- 브라우저 모바일 320/360/390/430·PC 자동 QA 통과: https://github.com/junl-im/K-city-webgame/actions/runs/41395047303
+- GitHub Pages 배포 성공: https://github.com/junl-im/K-city-webgame/actions/runs/41395047296
+- 실제 공개 브라우저 확인: 홈 원화, 1장 상향 지도, 잠긴 2장 정보/출전 차단, 1-1 전장 및 후면 여우/5 슬롯. https://junl-im.github.io/K-city-webgame/ForestGuard/#forest-guard
+- 다음 필수 목표: 후면 체형/관절 분리 6–8프레임 원화, 공격 동작/투사체 타격감, 중간보스·몬스터 개별 등장/피격 연출, 성장/영입 카드 아이콘과 HUD·결과창 전체 원화 완성도. 실기기 Samsung Internet / iOS Safari, 12스테이지 실전 승률 및 FPS/발열 QA는 미검증.
+- 진행 중 재개 규칙: 최신 GitHub main 소스와 이 문서의 맨 아래 기록을 우선 읽고, 프리뷰보다 부족한 화면을 직접 캡처해 비교하면서 다음 패치를 진행. 다른 게임 폴더는 수정하지 않는다.
