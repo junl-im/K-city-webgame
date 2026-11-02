@@ -594,7 +594,10 @@ function updateClockFace() {
   const left = clockPaused ? clockRemaining : Math.max(0, clockDeadline - performance.now());
   for (const time of times) time.textContent = String(secondsLeft(left));
   if (countdown) { const n=secondsLeft(left), number=countdown.querySelector('strong'), value=String(n);countdown.hidden=clockPaused || n<1 || n>5;if(number.textContent!==value){number.textContent=value;if(!countdown.hidden && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) number.animate?.([{transform:'scale(.82)',opacity:.72},{transform:'scale(1.08)',opacity:1,offset:.55},{transform:'scale(1)',opacity:1}],{duration:240,easing:'ease-out'});} }
-  if (fill) { fill.parentElement?.classList.toggle('is-urgent', left <= 5000);fill.style.width = `${Math.max(0, Math.min(100, left / HUMAN_TURN_MS * 100))}%`; }
+  const urgent = !clockPaused && left > 0 && left <= 5000;
+  ROOT.querySelectorAll('.turn-clock').forEach(clock => clock.classList.toggle('is-urgent',urgent));
+  if (countdown) countdown.classList.toggle('is-final', urgent && left <= 3000);
+  if (fill) { fill.parentElement?.classList.toggle('is-urgent', urgent);fill.style.width = `${Math.max(0, Math.min(100, left / HUMAN_TURN_MS * 100))}%`; }
 }
 function syncTurnClock() {
   const key = humanChoiceSignature(app.screen,app.game,{gookjin:app.pendingGookjinChoice || overlay==='gookjin-choice',draw:app.pendingDrawChoice,triple:selectedTriple,match:selectedMatch});

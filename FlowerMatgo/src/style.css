@@ -227,23 +227,15 @@ button:disabled { cursor: not-allowed; opacity:.48; }
   content:'';position:absolute;inset:auto 4% 2%;height:20%;
   background:#ed2219;border-top:2px solid #1c1010;
 }
-.hwatu--month-12.hwatu--ordinal-04 .hwatu__face::after {
-  content:'';position:absolute;left:4%;right:4%;bottom:3%;height:24%;
-  border:2px solid #100b0b;
-  background:
-    radial-gradient(circle at 25% 50%,#fff 0 11%,transparent 12%),
-    radial-gradient(circle at 75% 50%,#fff 0 11%,transparent 12%),
-    linear-gradient(90deg,#080707 0 50%,#df241b 50% 100%);
-}
+
 .hwatu__bright-mark,.hwatu__ribbon-mark,.hwatu__double-mark {position:absolute;z-index:1;pointer-events:none;font-weight:950;line-height:1;text-align:center;text-shadow:0 1px 2px #380e06a1;}
 .hwatu__bright-mark {right:4%;bottom:3%;width:32%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:#b11715;color:#fff9d6;border:1px solid #fff7e9;font-family:serif;font-size:clamp(11px,1.6vw,17px);box-shadow:0 1px 2px #20100a77;}
 .hwatu--month-01 .hwatu__bright-mark,.hwatu--month-08 .hwatu__bright-mark,.hwatu--month-12 .hwatu__bright-mark {left:4%;right:auto;}
 /* Exactly six printed words are already baked into the v3 raster art. */
 .hwatu__double-mark {right:3%;bottom:3%;background:#fff5dcef;color:#862520;padding:2px 3px;border:1px solid #902317;border-radius:3px;font-size:clamp(8px,.85vw,10px);text-shadow:none;box-shadow:0 1px 3px #14060677;}
-/* Traditional red/black double-pi artwork is its own label. Keep the white
-   dots and red band uncovered; the accessible card name still says 쌍피. */
-.hwatu--month-11.hwatu--ordinal-02 .hwatu__double-mark,
-.hwatu--month-12.hwatu--ordinal-04 .hwatu__double-mark {display:none;}
+/* The November tile retains its traditional red band; the December tile
+   uses the original illustration with a small readable double-junk label. */
+.hwatu--month-11.hwatu--ordinal-02 .hwatu__double-mark {display:none;}
 .hwatu--converted .hwatu__double-mark {background:#e2fff1;color:#155b46;border-color:#155b46;}
 .hwatu--small .hwatu__double-mark {font-size:7px;padding:1px;}
 .hwatu--tiny .hwatu__double-mark {font-size:6px;padding:1px;}
@@ -3671,3 +3663,10 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 }
 @media(max-width:650px) and (min-height:561px) and (max-height:700px){.scene--game {--rack-height:59px;--status-height:21px;grid-template-rows:max(36px,calc(30px + env(safe-area-inset-top))) 43px minmax(0,1fr) calc(var(--status-height) + var(--rack-height) + var(--hand-area-height) + max(env(safe-area-inset-bottom),4px));}}
 @media(max-width:650px) and (max-height:560px){.scene--game {--rack-height:51px;--status-height:19px;grid-template-rows:35px 38px minmax(0,1fr) calc(var(--status-height) + var(--rack-height) + var(--hand-area-height) + max(env(safe-area-inset-bottom),4px));}}
+/* The last five seconds grow warmer and pulse without blocking card taps. */
+.scene--game .hand-workspace .turn-clock.is-urgent {border-color:#e78356;background:#fff0d5;box-shadow:0 0 0 2px #f59f5c88,0 0 14px #f2784d99;animation:matgo-urgent-clock .85s ease-in-out infinite;}
+.scene--game .hand-workspace .turn-clock.is-urgent .turn-clock__time strong {color:#c42e1b;text-shadow:0 1px #fff;}
+.turn-countdown.is-final {filter:drop-shadow(0 0 13px #ffa640c9) drop-shadow(0 5px 6px #301a1470);}
+.turn-countdown.is-final strong {color:#b62819;text-shadow:0 2px #fff4d4,0 0 10px #ffb663;}
+@keyframes matgo-urgent-clock {0%,100%{box-shadow:0 0 0 1px #f59f5c88,0 0 4px #f2784d55;}50%{box-shadow:0 0 0 3px #ffb66e88,0 0 14px #f2784dbb;}}
+@media(prefers-reduced-motion:reduce){.scene--game .hand-workspace .turn-clock.is-urgent {animation:none;}}

@@ -25,6 +25,6 @@ describe('v19 원판+우리 캐릭터 48장 아틀라스', () => {
     expect(markup).not.toContain('visual.brightText ?');
     expect(markup).toContain('visual.doubleJunkText ?');
     expect(css).toContain('.hwatu--month-11.hwatu--ordinal-02 .hwatu__face::after');
-    expect(css).toContain('.hwatu--month-12.hwatu--ordinal-04 .hwatu__face::after');
+    expect(css).not.toContain('.hwatu--month-12.hwatu--ordinal-04 .hwatu__face::after');
   });
 });

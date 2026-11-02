@@ -47,10 +47,10 @@ describe('전통 화투패 인쇄·특수패 인지성', () => {
     expect(markup).not.toContain('hwatu__ribbon-mark');
   });
 
-  it('똥쌍피와 비쌍피의 전통 색 구획은 이전 화투패 위에서 유지한다', () => {
+  it('비쌍피는 그림을 가리지 않고 작은 쌍피 표시로 구분한다', () => {
     const css = readFileSync('src/style.css', 'utf8');
     expect(css).toContain('.hwatu--month-11.hwatu--ordinal-02 .hwatu__face::after');
-    expect(css).toContain('.hwatu--month-12.hwatu--ordinal-04 .hwatu__face::after');
-    expect(css).toContain('.hwatu--month-12.hwatu--ordinal-04 .hwatu__double-mark {display:none;}');
+    expect(css).not.toContain('.hwatu--month-12.hwatu--ordinal-04 .hwatu__face::after');
+    expect(css).not.toContain('.hwatu--month-12.hwatu--ordinal-04 .hwatu__double-mark {display:none;}');
   });
 });
