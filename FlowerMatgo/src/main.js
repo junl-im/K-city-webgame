@@ -351,9 +351,9 @@ function capturedRack(g, who='human') {
   return `<div class="collection-rack ${human?'collection-rack--human':'collection-rack--opponent'}" aria-label="${human?'내가':'상대가'} 먹은 실제 화투패">
     <div class="collection-groups">${groupedCaptures(g,who).map(group => `
       <button class="collection-group" type="button" data-capture-type="${group.id}" data-empty="${group.cards.length===0}" data-action="captures" data-value="${who}:${group.id}" aria-label="${human?'내':'상대'}가 먹은 ${group.name} 카드 ${group.cards.length}장${group.id==='junk'?` · 점수 계산 ${captureDisplayCount(group,score)}장`:''} 전체 보기">
-        <span class="collection-preview">${group.cards.length ? group.cards.map((id,index)=>`<span class="capture-stack-card">${card(id,{tiny:true,gookjinAsDoubleJunk:asDoubleJunk})}${group.id==='junk' && index===group.cards.length-1 ? `<span class="capture-pi-count" aria-label="피 ${score.junkCount}장">${score.junkCount}</span>` : ''}</span>`).join('') : ''}
+        ${warnings.includes(group.id==='junk'?'피박 주의':group.id==='bright'?'광박 주의':'') ? `<span class="rack-warning" role="status">${group.id==='junk'?'피박 주의':'광박 주의'}</span>` : ''}<span class="collection-preview">${group.cards.length ? group.cards.map((id,index)=>`<span class="capture-stack-card">${card(id,{tiny:true,gookjinAsDoubleJunk:asDoubleJunk})}${group.id==='junk' && index===group.cards.length-1 ? `<span class="capture-pi-count" aria-label="피 ${score.junkCount}장">${score.junkCount}</span>` : ''}</span>`).join('') : ''}
           </span>
-      </button>`).join('')}</div>${warnings.length ? `<span class="bak-warnings" role="status">${warnings.map(w=>`<span>${w}</span>`).join('')}</span>` : ''}
+      </button>`).join('')}</div>
   </div>`;
 }
 function capturedGallery(g, who, selectedType) {
@@ -437,7 +437,7 @@ function gameScreen() {
       <div class="game-message" aria-live="polite" title="${safe(spokenActionText(g.lastAction))}">${safe(spokenActionText(g.lastAction))}</div>
     </div>
     <div class="player-area bottom-safe">
-      <div class="player-status"><div><span class="mascot mascot--bear player-mini-avatar" aria-hidden="true"></span><span class="me-badge">나</span><strong>${me.total}점</strong><span class="go-count">${g.humanGoCount ? g.humanGoCount+'고' : '고 없음'}</span></div></div>
+      <div class="player-status"><div><span class="mascot mascot--bear player-mini-avatar" aria-hidden="true"></span><span class="me-badge">나</span><strong>${me.total}점</strong><span class="go-count">${g.humanGoCount ? g.humanGoCount+'고' : '고 없음'}</span></div>${flash ? `<span class="event-plaque" role="status" aria-live="polite">${safe(specialMoment(flashKind,flash).title)}</span>` : ''}</div>
       ${capturedRack(g)}
       <div class="hand-heading"><strong>내 패 ${hand.length}장</strong> <span>${yourTurn?'패를 눌러 내기':'상대 차례'}</span></div>
       <div class="hand-workspace">
@@ -445,7 +445,7 @@ function gameScreen() {
         <span class="player-controls">${humanTurnSignature(app.screen,g) ? `<span class="turn-clock" role="timer" aria-label="내 차례 남은 시간"><span class="turn-clock__time"><strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</span><span class="turn-clock__rail"><span class="turn-clock__fill" data-turn-fill></span></span></span>` : '<span class="turn-clock turn-clock--waiting">상대 차례</span>'}${specialActionButtons ? `<span class="special-controls" role="group" aria-label="가능한 특수 행동">${specialActionButtons}</span>` : ''}<button type="button" class="action-chip action-chip--auto ${app.autoMode?'is-on':''}" data-action="automode" aria-pressed="${app.autoMode}">자동 ${app.autoMode?'ON':'OFF'}</button></span>
       </div>
     </div>
-    ${flash ? (()=>{const moment=specialMoment(flashKind,flash);return `<div class="effect-burst effect-burst--${safe(moment.kind)} ${moment.major?'effect-burst--major':'effect-burst--minor'}" role="status" aria-live="assertive"><span class="effect-burst__illustration" aria-hidden="true"></span><strong class="effect-burst__headline">${safe(moment.title)}</strong>${moment.detail?`<small class="effect-burst__detail">${safe(moment.detail)}</small>`:''}</div>`;})() : ''}
+
     <div class="turn-countdown" aria-hidden="true" hidden><strong></strong></div>
     ${gameOverlay(g)}
   </main>`;
