@@ -163,13 +163,27 @@ export function emptyLandingRect(bounds, occupied, width) {
   }
   return null;
 }
+// Prefer an empty part of the table. Never fake a match with a card that
+// was already captured by the player's previous play.
+export function findFreeDrawLanding(regions, occupied, preferredWidth) {
+  for (const scale of [1, .85, .7, .55]) {
+    const width = Math.max(26, preferredWidth * scale);
+    for (const region of regions) {
+      const candidate = emptyLandingRect(region, occupied, width);
+      if (candidate) return candidate;
+    }
+  }
+  return null;
+}
 function freeFloorTarget(root, extra = []) {
   const floor = root.querySelector('.floor-area');
-  const bounds=measure(floor);if(!bounds)return null;
-  const elements=[...floor.querySelectorAll('[data-card]')];
-  const occupied=elements.map(measure).filter(Boolean).concat(extra);
-  const width=elements.length ? measure(elements[0])?.width : Math.min(65,Math.max(38,bounds.width/6));
-  return emptyLandingRect(bounds,occupied,width);
+  const bounds = measure(floor); if (!bounds) return null;
+  const elements = [...floor.querySelectorAll('[data-card]')];
+  const occupied = elements.map(measure).filter(Boolean).concat(extra);
+  const width = elements.length ? measure(elements[0])?.width : Math.min(65, Math.max(38, bounds.width / 6));
+  const regions = [bounds, measure(root.querySelector('.field-row')), measure(root.querySelector('.table-play'))].filter(Boolean);
+  const protectedUI = [...root.querySelectorAll('.deck-pile, .captured-grid, .center-status, .field-heading, .game-message')].map(measure).filter(Boolean);
+  return findFreeDrawLanding(regions, occupied.concat(protectedUI), width);
 }
 
 function sceneTarget(root, cue, preferredMatchId) {
@@ -305,6 +319,7 @@ function spawnCaptureSweep(root, ids, source, drawnTarget, cue, player, result, 
     setTimeout(() => {
       if (!root.isConnected) return;
       const from = fromFloor.get(id) || (id === cue.drawn ? drawnTarget : source);
+      if (!from) return;
       const type = captureVisualType(id,asDoubleJunk);
       const group = type
         ? destination.querySelector(`[data-capture-type="${type}"]`) : null;
@@ -474,12 +489,16 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
     drawnTarget = drawnFloorCard
       ? stackedLandingRect(measure(drawnFloorCard),true)
       : pairings.drawnOnPlayed ? stackedLandingRect(playedTarget,true)
-      : freeFloorTarget(root,hasPlayedMatch ? [] : [playedTarget]) || { ...target, left: target.left + 16, top: target.top + 6 };
+      : freeFloorTarget(root,[playedTarget]);
+    // If the table is completely packed, skip the visual flip rather than
+    // suggesting an incorrect pair. The rules result still commits normally.
+    if (drawnTarget) {
     pulseDeck(root,TURN_STAGES.draw-45);
     spawnFlight(root, cue.drawn, deck, drawnTarget, TURN_STAGES.draw, cardHTML, false, true);
     spawnFlip(root, cue.drawn, drawnTarget, TURN_STAGES.flip, cardHTML);
     spawnImpact(root, drawnTarget, '탁!', TURN_STAGES.flip + 15);
     if (drawnFloorCard) spawnPairContact(root,drawnFloorCard,measure(drawnFloorCard),TURN_STAGES.flip+25,true);
+    }
   }
   spawnImpact(root, target, hasPlayedMatch ? '착!' : '탁!', TURN_STAGES.land);
   recoilTable(root,'land',TURN_STAGES.land+20);

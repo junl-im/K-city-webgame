@@ -588,7 +588,7 @@ function updateClockFace() {
   if (!clockKey) { if(countdown) countdown.hidden=true; return; }
   const left = clockPaused ? clockRemaining : Math.max(0, clockDeadline - performance.now());
   for (const time of times) time.textContent = String(secondsLeft(left));
-  if (countdown) { const n=secondsLeft(left);countdown.hidden=clockPaused || n<1 || n>5;countdown.querySelector('strong').textContent=String(n); }
+  if (countdown) { const n=secondsLeft(left), number=countdown.querySelector('strong'), value=String(n);countdown.hidden=clockPaused || n<1 || n>5;if(number.textContent!==value){number.textContent=value;if(!countdown.hidden && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) number.animate?.([{transform:'scale(.82)',opacity:.72},{transform:'scale(1.08)',opacity:1,offset:.55},{transform:'scale(1)',opacity:1}],{duration:240,easing:'ease-out'});} }
   if (fill) { fill.parentElement?.classList.toggle('is-urgent', left <= 5000);fill.style.width = `${Math.max(0, Math.min(100, left / HUMAN_TURN_MS * 100))}%`; }
 }
 function syncTurnClock() {
