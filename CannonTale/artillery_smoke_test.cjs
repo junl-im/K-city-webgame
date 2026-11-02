@@ -244,5 +244,14 @@ assert.deepEqual(state().canvas,[844,390],'Landscape 844x390 canvas must match i
 assert(html.includes('spawnCollapseFragments(b)'),'Broken blocks should create large independent falling chunks');
 assert(html.includes('drawFoeElementalAttack(f,attackSurge)'),'The four monsters should emit state-specific attack FX');
 assert(html.includes('shatteredDescription'),'The impact report should list material-specific destruction');
+// Runtime compact fallback: an unusually short Android web viewport must use compact density.
+el('homeBtn').click();
+const menuPanelClasses=new Set();
+const menuProbe={clientHeight:300,get scrollHeight(){return menuPanelClasses.has('menu-ultra')?280:menuPanelClasses.has('menu-tight')?350:460;},classList:{add:x=>menuPanelClasses.add(x),remove:(...xs)=>xs.forEach(x=>menuPanelClasses.delete(x))}};
+document.querySelector=q=>q==='#menu .menu-panel'?menuProbe:null;
+el('menu').clientWidth=360;el('menu').clientHeight=500;frames(2);
+assert(menuPanelClasses.has('menu-tight')&&menuPanelClasses.has('menu-ultra'),'Very short mobile viewport must engage both compact fallbacks');
+menuProbe.clientHeight=500;el('menu').clientHeight=720;frames(2);
+assert(!menuPanelClasses.has('menu-tight')&&!menuPanelClasses.has('menu-ultra'),'Larger viewports must restore illustrated layout');
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');
