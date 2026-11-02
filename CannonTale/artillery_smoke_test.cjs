@@ -12,6 +12,8 @@ if(/v0_[67]/.test(versionedPath)){
  script=script.replace(marker,' window.__finishForTest=showResult; requestAnimationFrame(frame);\n})();');
 }
 new Function(script);
+assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
+assert(html.includes('Artillery_Illustrated_UI_v1_1.png'),'The painted v1.1 UI atlas should be referenced');
 const handlers={};
 const elements=new Map();
 const noOp=()=>{};
@@ -21,7 +23,7 @@ function el(id){if(!elements.has(id)){const listeners={},item={id,hidden:false,d
 const weapons=['normal','bomb','split'].map(type=>{const b=el('weapon-'+type);b.dataset.weapon=type;return b;});
 const heroes=['fox','bear','rabbit','cat'].map(type=>{const b=el('hero-'+type);b.dataset.hero=type;return b;});
 const stages=[0,1,2,3].map(type=>{const b=el('stage-'+type);b.dataset.stage=String(type);return b;});
-for(const id of ['stageMap','result','help','exitConfirm','enemyEntrance'])el(id).hidden=true;
+for(const id of ['stageMap','result','help','exitConfirm','enemyEntrance','shotReview'])el(id).hidden=true;
 for(const id of ['materialArtwork']){const art=el(id);art.complete=true;art.naturalWidth=1536;art.naturalHeight=1024;}
 const document={referrer:'',getElementById:el,querySelectorAll:selector=>selector==='[data-weapon]'?weapons:selector==='[data-hero]'?heroes:selector==='[data-stage]'?stages:[]};
 if(/v0_[34]/.test(versionedPath)){const art=el('menuArtwork');art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}
@@ -87,7 +89,15 @@ let peakRotated=0,peakBlasts=0;
 for(let i=0;i<650;i++){frames(1);peakRotated=Math.max(peakRotated,state().rotatingBlocks||0);peakBlasts=Math.max(peakBlasts,state().blastCores||0);}
 assert.equal(state().shots,1);
 assert(peakBlasts>0,'v0.9 projectile impact must create animated blast cores');
-assert(['aim','result'].includes(state().phase),'Adventure shot must finish');
+assert.equal(state().phase,'review','Adventure should hold the impact instead of returning to the launcher');
+assert.equal(state().reviewVisible,true,'The impact review ribbon must remain visible');
+assert(Number.isFinite(state().reviewFocusX),'The camera should retain a real impact focus');
+assert(el('reviewTitle').textContent.length>0,'Shot outcome must be summarized');
+frames(125);
+assert.equal(state().phase,'review','Adventure impact should remain visible until player confirmation');
+el('reviewContinue').click();
+assert(['aim','result'].includes(state().phase),'Confirming review returns to aim or mission result');
+assert.equal(state().reviewVisible,false,'Review ribbon should close after confirmation');
 if(/v0_[234567]/.test(versionedPath))assert(peakRotated>0,'Explosion should rotate at least one structure piece');
 el('homeBtn').click();
 if(/v0_[4567]/.test(versionedPath)){
@@ -153,7 +163,7 @@ if(/v0_[4567]/.test(versionedPath))assert.equal(state().difficulty,'hard');
 el('fire').click();
 assert.equal(state().shots,1);
 frames(850);
-assert(['aim','result','aiWait','flying'].includes(state().phase));
+assert(['aim','result','aiWait','flying','review'].includes(state().phase));
 if(state().aiShots>0)assert(['normal','bomb','split'].includes(state().aiWeapon)&&state().aiTactic,'AI should select a tactical projectile');
 assert(state().turn==='player'||state().turn==='ai');
 const desktop=state();
