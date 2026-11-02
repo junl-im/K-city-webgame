@@ -38,7 +38,7 @@ const safe = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 const defaultSave = () => ({
   screen: 'home', difficulty: 'normal', stake: 100, wallet: BASE_WALLET,
   stats: {wins:0, losses:0, draws:0, high:0, rounds:0},
-  game: null, settledUuid: null, nextMultiplier: 1, sound: true, autoMode: false, pendingGookjinChoice: false, pendingDrawChoice: null
+  game: null, settledUuid: null, nextMultiplier: 1, doubleStake: null, sound: true, autoMode: false, pendingGookjinChoice: false, pendingDrawChoice: null
 });
 
 function loadSave() {
@@ -56,6 +56,12 @@ function loadSave() {
     if (!Number.isFinite(save.wallet)) save.wallet = BASE_WALLET;
     save.wallet = Math.max(0, Math.round(save.wallet));
     if (save.game && !isValidGameState(save.game)) save.game = null;
+    const held=save.doubleStake;
+    if (!held || !Number.isSafeInteger(held.amount) || held.amount<=0 || !save.game) save.doubleStake=null;
+    else if (!held.gameUuid && save.game.gameUuid===held.originUuid) {
+      // The opening animation itself is not persisted. Refund if interrupted.
+      save.wallet += held.amount; save.doubleStake=null;
+    }
     save.pendingGookjinChoice = save.pendingGookjinChoice === true && !!save.game?.humanCaptured?.includes('m09-01') && save.settledUuid !== save.game.gameUuid;
     const pending=save.pendingDrawChoice, g=save.game;
     const validTurn=g?.phase==='playing' && g.currentPlayer==='human';
@@ -74,6 +80,7 @@ let galleryOwner = 'human';
 let galleryType = null;
 let selectedMatch = null;
 let selectedTriple = app.game?.phase==='playing' && app.game?.currentPlayer==='human' && app.game?.humanPendingShakeMonth ? {month:app.game.humanPendingShakeMonth,mode:'shake'} : null;
+let decisionReview = false;
 let aiTimer = null;
 let fxTimer = null;
 let flash = '';
@@ -421,7 +428,7 @@ function gameScreen() {
       <span class="table-play__flower table-play__flower--left" aria-hidden="true">✿</span>
       <span class="table-play__flower table-play__flower--right" aria-hidden="true">✿</span>
       <div class="captured-grid">${capturedRack(g,'computer')}</div>
-      <div class="center-status"><span class="status-orb"></span>${active}<span class="round-counter">${g.turnNumber+1}턴</span>${(g.roundMultiplier || 1)>1?`<strong class="round-multiplier" aria-label="이번 판 정산 ${g.roundMultiplier}배">${g.roundMultiplier}배 판</strong>`:''}</div>
+      <div class="center-status"><span class="status-orb"></span>${active}<span class="round-counter">${g.turnNumber+1}턴</span>${(g.roundMultiplier || 1)>1?`<strong class="round-multiplier" aria-label="이번 판 정산 ${g.roundMultiplier}배">${g.roundMultiplier}배 판</strong>`:''}${app.doubleStake?.gameUuid===g.gameUuid?`<strong class="round-multiplier">승리금 ${kr(app.doubleStake.amount)}냥 걸기</strong>`:''}</div>
       <div class="field-heading"><strong>바닥패 ${floor.length}장</strong><span>같은 무늬를 맞춰 획득!</span></div>
       <div class="field-row">
         <div class="deck-pile">${cardBack()}<small>남은 패 <b>${g.drawPile.length}</b></small></div>
@@ -465,10 +472,12 @@ function gameOverlay(g) {
       <div class="decision-cancel">${btn('돌아가기','cancelmatch','btn--ghost')}</div></section></div>`;
   }
   if (g.phase === 'awaiting-go-stop' && g.pendingDecision === 'human') {
+    if (decisionReview) return `<div class="decision-review" role="region" aria-label="고 스톱 결정 전 판 확인"><span>판 확인 중 · 시간 일시정지</span><button type="button" data-action="decision-return">고·스톱 선택으로</button></div>`;
     return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--choice" role="dialog" aria-modal="true" aria-labelledby="go-stop-title" aria-describedby="go-stop-help">
       <div class="decision-kicker">이번 판 선택</div><h2 id="go-stop-title">고? 아니면 스톱?</h2>
       <div class="decision-score"><span>현재 내 점수</span><strong>${scoreOf(g,'human').total}<small>점</small></strong></div>
       <p id="go-stop-help" class="decision-hint">계속 도전할까, 지금 점수로 이길까?</p>
+      <button type="button" class="decision-review-button" data-action="decision-review">내 패와 상대 패 확인하기</button>
       <div class="choice-actions" role="group" aria-label="고 또는 스톱">
         <button type="button" class="btn decision-option decision-option--go" data-action="go"><strong>고!</strong><small>더 치기</small></button>
         <button type="button" class="btn decision-option decision-option--stop" data-action="stop"><strong>스톱!</strong><small>지금 끝내기</small></button>
@@ -499,11 +508,14 @@ function gameOverlay(g) {
         <div class="result-duel__player ${!nagari&&!win?'is-winner':''}"><span>${safe(opponent().nick)}</span><strong>${rivalScore}<small>점</small></strong>${!nagari&&!win?'<em>승리</em>':''}</div>
       </div>
       ${winningCards.length ? `<div class="result-card-peek" aria-label="승자의 획득 화투패 일부"><span>승자의 패</span><div class="result-card-peek__cards">${winningCards.map(id=>card(id,{small:true,gookjinAsDoubleJunk:win?g.humanGookjinAsDoubleJunk:g.computerGookjinAsDoubleJunk})).join('')}</div></div>` : ''}
+      ${win ? `<div class="result-prize"><span>이번 판 획득${g.doublePayout ? '<br>더블 승리금 포함' : ''}</span><strong>+${kr(amount+(g.doublePayout || 0))} <small>냥</small></strong></div>` : ''}
       <div class="result-stats"><div><span>${nagari?'이번 판 결과':'정산 점수'}</span><strong>${nagari?'무승부':finalPoints==null?'—':finalPoints+'점'}</strong></div>
         <div><span>${nagari?'다음 판 배수':win?'획득 놀이머니':'사용 놀이머니'}</span><strong class="${win?'positive':''}">${nagari?'×'+app.nextMultiplier:(win?'+':'−')+kr(amount)+' 냥'}</strong></div></div>
       <div class="result-wallet">보유 놀이머니 <b>✦ ${kr(app.wallet)}냥</b></div>
+      ${nagari && app.doubleStake ? `<p class="double-explanation">걸어 둔 승리금 ${kr(app.doubleStake.amount)}냥은 다음 판으로 이어집니다.</p>` : ''}
+      ${!win && !nagari && g.doubleForfeit ? `<p class="double-explanation">이전 판에서 걸어 둔 승리금 ${kr(g.doubleForfeit)}냥을 잃었습니다.</p>` : ''}
       <div class="result-actions">${btn('다음 판 치기','next','btn--primary btn--wide')}
-        ${win && hasEnoughForTable(app.wallet, g.pointValue * 2) ? `${btn('묻고 더블! 다음 판 점수 2배','next-double','btn--warm btn--wide')}<small class="double-explanation">다음 판은 승리와 패배 모두 정산 점수가 2배예요.</small>` : ''}
+        ${win && amount>0 && !app.doubleStake && hasEnoughForTable(app.wallet-amount, g.pointValue) ? `${btn('승리금 걸고 묻고 더블!','next-double','btn--warm btn--wide')}<small class="double-explanation">이번 승리금 ${kr(amount)}냥을 보류합니다. 다음 판 승리 시 두 배로 받고, 패배 시 잃어요. 다음 판 정산은 별도예요.</small>` : ''}
         ${canEmergencyRecharge(app.wallet)?btn('긴급 무료 충전 +30만 냥','recharge','btn--ghost btn--wide'):''}
         ${btn('메인으로','home','btn--quiet')}</div>
     </section></div>`;
@@ -569,7 +581,7 @@ function syncTurnClock() {
   }
   // A backgrounded mobile browser can suspend timers while wall time keeps
   // passing. Preserve the player's remaining time until they return.
-  const blocked = turnTransition || !!overlay || !!selectedTriple || app.pendingGookjinChoice || !!app.pendingDrawChoice || document.hidden;
+  const blocked = turnTransition || !!overlay || !!selectedTriple || app.pendingGookjinChoice || !!app.pendingDrawChoice || decisionReview || document.hidden;
   if (blocked) {
     if (!clockPaused) {
       clockRemaining = Math.max(0, clockDeadline - performance.now());
@@ -644,10 +656,12 @@ function finishRound() {
     const money = Math.max(0, g.settlement?.displayAmount || 0);
     if (g.winner === 'human') {
       app.stats.wins++; app.wallet += money;
+      if (app.doubleStake?.gameUuid === g.gameUuid) { g.doublePayout=app.doubleStake.amount * 2; app.wallet += g.doublePayout; app.doubleStake=null; }
       app.stats.high = Math.max(app.stats.high, g.settlement?.finalScore || 0);
       effects('참 잘했어! 승리!', 'win');
     } else {
       app.stats.losses++; app.wallet = Math.max(0, app.wallet-money);
+      if (app.doubleStake?.gameUuid === g.gameUuid) { g.doubleForfeit=app.doubleStake.amount; app.doubleStake=null; }
       effects('다음 판은 꼭 이기자!', 'special');
     }
     app.nextMultiplier=1;
@@ -798,6 +812,7 @@ function finishOpening() {
   const {seed, winner, rematch, roundMultiplier} = opening;
   clearOpening();
   app.game = createInitialGame(seed,app.difficulty,app.stake,winner,roundMultiplier);
+  if (app.doubleStake) app.doubleStake.gameUuid = app.game.gameUuid;
   if (!rematch && app.game.phase !== 'round-ended') {
     app.game.lastAction = `${winner === 'human' ? '내가' : '상대가'} 선 뽑기에서 이겨 먼저 칩니다.`;
   }
@@ -835,6 +850,8 @@ function pickOpeningDealer(index) {
 }
 
 function startNew(rematch = false, roundMultiplier = app.nextMultiplier) {
+  decisionReview = false;
+  if (!rematch && app.doubleStake?.gameUuid && app.game?.phase!=='round-ended') { effects('보류한 승리금이 있어 진행 중인 판을 이어가 주세요.'); render(); return; }
   app.stake = normalizeStake(app.difficulty,app.stake);
   if (!hasEnoughForTable(app.wallet, app.stake)) {
     overlay=null; effects(canEmergencyRecharge(app.wallet)?'오링! 긴급 충전을 이용해줘!':'더 낮은 판을 선택해줘!');
@@ -881,8 +898,10 @@ function humanPlay(id, matchId, skipTriple=false, drawnMatchId=undefined, automa
 function mutate(action, value, cardId) {
   if (turnTransition) return;
   switch (action) {
-    case 'home': clearOpening();clearTimeout(aiTimer); overlay=null; selectedMatch=null;selectedTriple=null;app.screen='home';save();render();return;
-    case 'opening-home': clearOpening();overlay=null;app.screen='home';save();render();return;
+    case 'decision-review': if (app.game?.phase==='awaiting-go-stop' && app.game.pendingDecision==='human') { decisionReview=true; render(); } return;
+    case 'decision-return': decisionReview=false; render(); return;
+    case 'home': clearOpening();clearTimeout(aiTimer); overlay=null; selectedMatch=null;selectedTriple=null;decisionReview=false;app.screen='home';save();render();return;
+    case 'opening-home': if (app.doubleStake && !app.doubleStake.gameUuid) { app.wallet+=app.doubleStake.amount;app.doubleStake=null; } clearOpening();overlay=null;app.screen='home';save();render();return;
     case 'opening-skip': advanceOpening();return;
     case 'pick-dealer': pickOpeningDealer(Number(value));return;
     case 'select': clearOpening();clearTimeout(aiTimer);overlay=null;app.screen='select';save();render();return;
@@ -892,8 +911,11 @@ function mutate(action, value, cardId) {
     case 'start': startNew(false);return;
     case 'next': startNew(true);return;
     case 'next-double':
-      if (!app.game || app.game.phase!=='round-ended' || app.game.winner!=='human' || app.game.roundResult==='nagari' || !hasEnoughForTable(app.wallet,app.game.pointValue*2)) return;
-      startNew(true,2);return;
+      if (!app.game || app.doubleStake || app.game.phase!=='round-ended' || app.game.winner!=='human' || app.game.roundResult==='nagari' || app.settledUuid!==app.game.gameUuid) return;
+      { const amount=Math.max(0,Math.round(app.game.settlement?.displayAmount || 0));
+        if (!amount || !hasEnoughForTable(app.wallet-amount,app.game.pointValue)) return;
+        app.wallet-=amount; app.doubleStake={amount,originUuid:app.game.gameUuid,gameUuid:null};
+        startNew(true,1);return; }
     case 'recharge':
       if (!canEmergencyRecharge(app.wallet)) { effects('오링일 때만 긴급 충전할 수 있어');render();return; }
       app.wallet+=EMERGENCY_RECHARGE;
@@ -1028,4 +1050,4 @@ document.addEventListener('keydown',e=>{
     else if(app.screen==='game') mutate('home');
   }
 });
-finishRound();render();queueAI();
+finishRound();save();render();queueAI();
