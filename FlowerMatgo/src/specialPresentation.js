@@ -29,3 +29,15 @@ export function specialPresentation(result) {
   if (captured.some(id => getCard(id)?.type === 'doubleJunk')) return {kind:'double',sound:'double',text:'쌍피 획득!'};
   return null;
 }
+
+// Preserve every rule event in the visible status line, even when a stronger
+// simultaneous event is chosen as the animation/sound priority.
+export function eventAnnouncement(result, actor = 'human') {
+  if (!result) return null;
+  const events = Array.isArray(result.specialEvents) ? result.specialEvents : [];
+  const labels = [...new Set(events.map(event => String(event.label || '').trim()).filter(Boolean))];
+  if (!labels.length && result.ppeok) labels.push('뻑');
+  if (!labels.length) return null;
+  const text = labels.map(label => /[!?]$/.test(label) ? label : label + '!').join(' · ');
+  return actor === 'computer' ? '상대 ' + text : text;
+}

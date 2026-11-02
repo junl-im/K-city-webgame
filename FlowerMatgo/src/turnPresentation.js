@@ -3,7 +3,6 @@
 // Timing is intentionally explicit: first the played card collides, then the
 // pile is drawn, then the captured sprites move, and only then may UI commit.
 import { specialPresentation } from './specialPresentation.js';
-import { specialMoment } from './specialMoment.js';
 import { getCard } from './engine/cards';
 import { capturedCardNotice } from './floorLayout.js';
 export const TURN_STAGES = Object.freeze({
@@ -503,7 +502,7 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
   spawnImpact(root, target, hasPlayedMatch ? '착!' : '탁!', TURN_STAGES.land);
   recoilTable(root,'land',TURN_STAGES.land+20);
   if (cue.captures || cue.impact === 'special' || result.ppeok) {
-    spawnImpact(root, target, specialMoment(cue.visualKind,cue.text).title, TURN_STAGES.collect + 10, cue.visualKind);
+    spawnImpact(root, target, cue.text, TURN_STAGES.collect + 10, cue.visualKind);
   }
   if (['bomb','sweep'].includes(cue.visualKind)) recoilTable(root,cue.visualKind,TURN_STAGES.collect+16);
   cheerOnSpecial(root,player,cue.visualKind,TURN_STAGES.collect+20);
