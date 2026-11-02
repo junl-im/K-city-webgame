@@ -549,10 +549,14 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  }
  function goHome(){game.mode='menu';game.phase='menu';game.projectiles=[];game.particles=[];game.skillEffects=[];game.debris=[];game.rubble=[];game.blastCores=[];game.drag=null;game.pan=null;game.panX=null;game.reviewFocusX=null;game.reviewInfo=null;game.reviewTimer=0;$('shotReview').hidden=true;$('menu').hidden=false;$('stageMap').hidden=true;$('result').hidden=true;$('exitConfirm').hidden=true;$('controls').hidden=true;$('hint').hidden=true;$('leftStatus').hidden=true;$('rightStatus').hidden=true;$('bossBanner').hidden=true;$('enemyEntrance').hidden=true;game.introLife=0;$('windChip').textContent='바람 —';$('modeChip').textContent='모드 선택';$('stageChip').textContent='첫 플레이를 시작해요';refreshMenu();resize();}
  function chooseWeapon(type){game.weapon=type;document.querySelectorAll('[data-weapon]').forEach(b=>b.classList.toggle('selected',b.dataset.weapon===type));updateHud();}
+ // A shot-review should not lock the next round's controls if more ammo remains.
+ function canResumeAimFromReview(){
+  return game.mode==='adventure'&&game.phase==='review'&&game.reviewNext==='aim'&&game.turn==='player'&&game.projectiles.length===0;
+ }
  function updateHud(){
   $('windChip').textContent=game.mode==='menu'?'바람 —':`바람 ${game.wind>=0?'→':'←'} ${Math.abs(game.wind).toFixed(1)}`;
   $('angleValue').textContent=Math.round(game.angle)+'°';$('powerValue').textContent=Math.round(game.power)+'%';
-  const allow=game.phase==='aim'&&game.turn==='player';$('fire').disabled=!allow;
+  const allow=(game.phase==='aim'&&game.turn==='player')||canResumeAimFromReview();$('fire').disabled=!allow;
   document.querySelectorAll('[data-weapon]').forEach(b=>b.disabled=!allow);
   angleEl.disabled=!allow;powerEl.disabled=!allow;
   $('leftStatus').hidden=game.mode==='menu';$('rightStatus').hidden=game.mode==='menu';
@@ -561,7 +565,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   $('rightStatus').textContent=game.mode==='duel'?`상대 내구도 ${Math.max(0,Math.ceil(game.aiHp))} / 100 · ${game.turn==='player'?'내 차례':'상대 차례'}`:`남은 목표 ${game.foes.filter(f=>f.alive).length}마리${boss?' · 대장 '+Math.max(0,Math.ceil(boss.hp))+' HP':''}`;
   $('bossBanner').hidden=game.mode!=='adventure'||!boss;
   $('aimHelp').textContent=game.mode==='duel'?'각도 · 파워 · 바람으로 포물선을 계산하세요':'새총을 직접 당겨 발사할 수도 있어요';
-  const h=heroSet[game.hero],ready=!game.abilityUsed&&game.turn==='player'&&game.phase===h.timing&&(h.timing!=='flying'||game.projectiles.some(p=>p.active&&p.owner==='player'&&(!p.split||game.hero==='fox')));
+  const h=heroSet[game.hero],abilityPhase=game.phase===h.timing||(h.timing==='aim'&&canResumeAimFromReview()),ready=!game.abilityUsed&&game.turn==='player'&&abilityPhase&&(h.timing!=='flying'||game.projectiles.some(p=>p.active&&p.owner==='player'&&(!p.split||game.hero==='fox')));
   $('abilityBtn').disabled=!ready;$('abilityBtn').textContent=`${game.abilityUsed?'사용 완료':'특수기'} · ${h.ability}`;
  }
  function showResult(won){$('shotReview').hidden=true;$('enemyEntrance').hidden=true;game.introLife=0;game.phase='result';game.phaseTime=0;game.drag=null;const star=game.shots<=2?3:game.shots<game.maxShots?2:1;if(won&&game.mode==='adventure'){progress.best[game.stage]=Math.max(progress.best[game.stage],star);progress.wins++;progress.lastStage=Math.min(game.stage+1,stageSet.length-1);$('adventureStage').value=String(progress.lastStage);saveProgress();refreshMenu();}actorMotion(won?'player':'ai',won?'victory':'hit',1.3);$('result').hidden=false;$('resultTag').textContent=won?'MISSION CLEAR':'TRY AGAIN';$('resultTag').style.background=won?'#568c73':'#9d6970';$('resultTitle').textContent=won?'승리! 멋진 포격이었어요.':'아쉽지만 다시 도전!';const grade=star===3?'완벽한 공략':star===2?'우수한 공략':'임무 완수';$('resultText').textContent=game.mode==='adventure'?(won?`${grade}! ${game.shots}발로 ${stageSet[game.stage].name}을 공략했어요. 이번 등급 ${star}/3 · 최고 등급 ${progress.best[game.stage]}/3.${game.stage===stageSet.length-1?' 준비된 모험 지역을 모두 마쳤습니다.':' 다음 지역도 도전해 보세요.'}`:'포탄이 모두 떨어졌어요. 폭탄탄으로 지지대를 노리거나 각도를 조절해 보세요.'):(won?'상대 내구도를 모두 소진시켰습니다. 바람과 각도를 잘 읽었어요.':'우리 팀 내구도가 소진됐습니다. 난이도와 바람을 확인해 다시 도전해 보세요.');$('nextBtn').hidden=game.mode!=='adventure'||!won||game.stage===stageSet.length-1;playSound(won?'win':'lose');updateHud();}
@@ -586,7 +590,12 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   }
   game.abilityUsed=true;game.abilityCount++;game.messageTime=1.4;playSound('ui');updateHud();
  }
- function firePlayer(){if(game.phase!=='aim'||game.turn!=='player')return;launch('player',game.angle,game.power,game.weapon);}
+ function firePlayer(){
+  // One tap should resume and fire; the result ribbon remains visible until the player acts.
+  if(canResumeAimFromReview())completeReview();
+  if(game.phase!=='aim'||game.turn!=='player')return;
+  launch('player',game.angle,game.power,game.weapon);
+ }
  function spawnSparks(x,y,n,color,force=1){for(let i=0;i<n;i++){const a=rnd(0,Math.PI*2),s=rnd(60,235)*force;game.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-rnd(10,70),life:rnd(.3,.85),max:.85,r:rnd(2,7),color});}game.particles=game.particles.slice(-280);}
  function spawnDebris(x,y,type,n=12){
   for(let i=0;i<n;i++){
@@ -1028,11 +1037,23 @@ const materialCells={
   let a=game.angle,p=game.power;
   if(game.drag){const o=origin(),dx=clamp(o.x-game.drag.x,7,105),dy=clamp(o.y-game.drag.y,-35,95);a=clamp(Math.atan2(dy,dx)*180/Math.PI,15,82);p=clamp(Math.hypot(dx,dy)/125*100,20,100);}
   const dots=predict(a,p,game.wind,'player');
-  for(let i=8;i<dots.length;i+=13){const pt=dots[i],fade=1-i/Math.max(1,dots.length),rad=2.6+fade*1.6;ellipse(pt.x,pt.y,rad,rad,'#fff4dccc');}
+  // Two high-contrast dashed strokes keep the trajectory readable over grass, stone, sky and explosions.
+  if(dots.length>2){
+   ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.setLineDash?.([2.5,11]);
+   ctx.beginPath();ctx.moveTo(dots[0].x,dots[0].y);
+   for(let i=3;i<dots.length;i+=3)ctx.lineTo(dots[i].x,dots[i].y);
+   const last=dots[dots.length-1];ctx.lineTo(last.x,last.y);
+   ctx.strokeStyle='#203044ec';ctx.lineWidth=10;ctx.stroke();
+   ctx.strokeStyle='#fff5ba';ctx.lineWidth=5.7;ctx.stroke();
+   ctx.setLineDash?.([]);ctx.restore();
+   for(let i=16;i<dots.length;i+=24){const pt=dots[i];ellipse(pt.x,pt.y,3.5,3.5,'#ffffff');}
+  }
   const hit=dots.impact;
   if(!hit||hit.y<20||hit.y>H-14)return;
   const target=hit.kind==='foe',color=target?'#93f1c7':hit.kind==='block'?'#ffe1a6':'#e6f2f1';
-  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=3;ctx.setLineDash?.([6,5]);ctx.beginPath();ctx.arc(hit.x,hit.y,16+Math.sin(game.clock*4)*2,0,Math.PI*2);ctx.stroke();ctx.setLineDash?.([]);
+  ctx.save();ctx.beginPath();ctx.arc(hit.x,hit.y,18+Math.sin(game.clock*4)*2,0,Math.PI*2);
+  ctx.strokeStyle='#203044e8';ctx.lineWidth=8;ctx.stroke();ctx.strokeStyle=color;ctx.lineWidth=4.5;ctx.stroke();
+  ctx.beginPath();ctx.arc(hit.x,hit.y,4.5,0,Math.PI*2);ctx.fillStyle='#fffbe2';ctx.fill();
   const label=target?'적중 예상':hit.kind==='block'?'구조물 충돌':'착탄 지점';
   const lx=clamp(hit.x,58,W-58),ly=clamp(hit.y-30,36,H-38);
   roundRect(lx-46,ly-17,92,26,13,'#1c3f4abb');ctx.fillStyle=color;ctx.font='800 13px system-ui, sans-serif';ctx.textAlign='center';ctx.fillText(label,lx,ly+1);ctx.restore();
@@ -1086,12 +1107,12 @@ const materialCells={
  cv.addEventListener('pointermove',e=>{if(game.drag){const p=pointerToWorld(e),o=origin();game.drag={x:clamp(p.x,o.x-120,o.x-7),y:clamp(p.y,o.y-95,o.y+35)};}else if(game.pan){const visible=cv.clientWidth/game.scale;game.panX=clamp(game.pan.startCamera-(e.clientX-game.pan.startX)/game.scale,0,Math.max(0,W-visible));}});
  cv.addEventListener('pointerup',()=>{game.pan=null;if(!game.drag)return;const o=origin();const dx=clamp(o.x-game.drag.x,7,120),dy=clamp(o.y-game.drag.y,-35,95);game.drag=null;const a=clamp(Math.atan2(dy,dx)*180/Math.PI,15,82),pow=clamp(Math.hypot(dx,dy)/125*100,20,100);game.angle=a;game.power=pow;angleEl.value=a;powerEl.value=pow;launch('player',a,pow,game.weapon);});
  cv.addEventListener('pointercancel',()=>{game.drag=null;game.pan=null;});
- angleEl.addEventListener('input',()=>{game.angle=Number(angleEl.value);updateHud();});powerEl.addEventListener('input',()=>{game.power=Number(powerEl.value);updateHud();});
- document.querySelectorAll('[data-weapon]').forEach(b=>b.addEventListener('click',()=>{if(game.phase==='aim')chooseWeapon(b.dataset.weapon);}));
+ angleEl.addEventListener('input',()=>{if(canResumeAimFromReview())completeReview();if(game.phase!=='aim')return;game.angle=Number(angleEl.value);updateHud();});powerEl.addEventListener('input',()=>{if(canResumeAimFromReview())completeReview();if(game.phase!=='aim')return;game.power=Number(powerEl.value);updateHud();});
+ document.querySelectorAll('[data-weapon]').forEach(b=>b.addEventListener('click',()=>{if(canResumeAimFromReview())completeReview();if(game.phase==='aim')chooseWeapon(b.dataset.weapon);}));
  $('fire').addEventListener('click',firePlayer);
  $('reviewContinue').addEventListener('click',completeReview);
  $('inspectResultBtn').addEventListener('click',()=>{if(game.phase!=='result')return;$('result').hidden=true;$('reviewTitle').textContent=game.reviewInfo?.title||'전투 종료';$('reviewDetail').textContent='전장의 최종 파괴 상태를 직접 살펴보세요';$('reviewContinue').textContent='결과 다시 보기';$('shotReview').hidden=false;});
- $('abilityBtn').addEventListener('click',useAbility);
+ $('abilityBtn').addEventListener('click',()=>{if(canResumeAimFromReview()&&heroSet[game.hero].timing==='aim')completeReview();useAbility();});
  document.querySelectorAll('[data-hero]').forEach(b=>b.addEventListener('click',()=>{selectedHero=b.dataset.hero;progress.hero=selectedHero;saveProgress();document.querySelectorAll('[data-hero]').forEach(item=>{const chosen=item.dataset.hero===selectedHero;item.classList.toggle('selected',chosen);item.setAttribute?.('aria-pressed',String(chosen));});playSound('ui');}));
  $('adventureStage').addEventListener('change',()=>{progress.lastStage=clamp(Number($('adventureStage').value)||0,0,3);saveProgress();refreshStageMap();});
  $('stageMapBtn').addEventListener('click',()=>{refreshStageMap();$('stageMap').hidden=false;});
