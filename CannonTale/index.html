@@ -358,6 +358,110 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  .action-col .fire{font-size:13px}.action-col .fire::before,.action-col .view-btn::before,.action-col .ability-btn::before{width:39px;height:32px;top:0;left:50%;transform:translateX(-50%)}
  .shot-review{top:2px;max-width:410px;padding:4px 7px}.review-kicker{display:none}
 }
+
+/* v1.2.4: first-screen viewport-fit redesign. Never scroll the entry screen on a phone.
+   Only the entry menu is affected; battle control dock and other overlays keep their behavior. */
+@media (max-width:740px), (max-height:650px) {
+ #menu.overlay{padding:4px max(5px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(5px,env(safe-area-inset-left));}
+ #menu .menu-panel{width:min(100%,660px);height:100%;max-height:100%;min-height:0;overflow:hidden;touch-action:manipulation;padding:clamp(6px,1.2dvh,13px);display:flex;flex-direction:column;justify-content:space-between;gap:clamp(2px,.55dvh,7px);border:0;border-radius:19px;background:linear-gradient(156deg,#f7e8c4,#e9c58f 66%,#cba67d);box-shadow:inset 0 1px #fff8e3aa,0 8px 22px #10233277;}
+ #menu .eyebrow{margin:0;flex:none;font-size:9px;line-height:1.05;letter-spacing:.11em;}
+ #menu #welcomeTitle{flex:none;margin:0;font-size:clamp(19px,3.35dvh,27px);line-height:1.09;letter-spacing:-.045em;text-wrap:balance;}
+ #menu .hero-art{flex:1 1 75px;min-height:49px;max-height:clamp(70px,16dvh,142px);height:auto;margin:0;border-radius:13px;background:radial-gradient(ellipse at 50% 93%,#fcd99ac7,transparent 70%),linear-gradient(160deg,#c1dad1,#f0dfb2);}
+ #menu .hero-art img{max-height:132%;max-width:100%;object-fit:contain;filter:drop-shadow(0 4px 4px #64513c55);}
+ #menu .menu-subline{flex:none;margin:0!important;font-size:clamp(10px,1.35dvh,12px)!important;line-height:1.2!important;}
+ #menu .mode-grid{flex:none;min-width:0;gap:clamp(5px,1vw,9px);}
+ #menu .mode-card{overflow:hidden;position:relative;min-height:clamp(78px,11.5dvh,110px);padding:7px 59px 7px 9px;border:0;border-radius:15px;box-shadow:inset 0 2px #fff4c599,0 3px 9px #6c554633;background:linear-gradient(148deg,#ffebbd,#ddaf6f);touch-action:manipulation;}
+ #menu .mode-card:nth-child(2){background:linear-gradient(148deg,#d6e7d6,#8ab7ae);}
+ #menu .mode-number{padding:2px 5px;font-size:8px;line-height:1;}
+ #menu .mode-card strong{font-size:clamp(14px,2.15dvh,19px);line-height:1.12;margin:5px 0 2px;white-space:nowrap;}
+ #menu .mode-card span:last-child{font-size:clamp(9px,1.13dvh,11px);line-height:1.25;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
+ #menu .mode-card::after{width:clamp(50px,12vw,82px);height:clamp(51px,11dvh,82px);right:0;top:50%;transform:translateY(-50%);filter:drop-shadow(0 2px 3px #4b3a3355);}
+ #menu .mode-card:active{transform:scale(.975);filter:saturate(1.13);}
+ #menu .setup-options{flex:none;min-width:0;gap:5px;margin:0;}
+ #menu .option-box{min-width:0;min-height:31px;padding:3px 5px;gap:3px;font-size:10px;line-height:1.1;border-radius:10px;background:#fff7df85;}
+ #menu .option-box select{max-width:61%;min-width:0;font-size:10px;min-height:27px;padding:4px 3px;border-radius:9px;text-overflow:ellipsis;}
+ #menu .stage-map-control{flex:none;margin:0;min-height:29px;gap:6px;}
+ #menu .map-open{min-height:29px;padding:3px 9px;border-radius:10px;font-size:10px;box-shadow:0 2px 6px #4a66483b;}
+ #menu .map-open::before{width:27px;height:26px;}
+ #menu .map-note{min-width:0;font-size:9px;line-height:1.15;}
+ #menu .menu-progress{flex:none;margin:0;min-height:24px;padding:3px 7px;border-radius:9px;font-size:10px;background:#fff4da9c;}
+ #menu .menu-progress strong{font-size:10px;white-space:nowrap;}
+ #menu .hero-picker{flex:none;min-width:0;margin:0;}
+ #menu .hero-picker-title{margin:0 0 3px;font-size:10px;line-height:1.15;}
+ #menu .hero-picker-title small{font-size:9px;}
+ #menu .hero-grid{gap:4px;}
+ #menu .hero-choice{flex-direction:column;justify-content:center;align-items:center;min-width:0;min-height:59px;gap:0;padding:2px 2px 3px;border:0;border-radius:12px;background:#fffbeb7a;box-shadow:none;}
+ #menu .hero-choice.selected{background:radial-gradient(ellipse at 50% 35%,#fff7d7,#e9a86c);box-shadow:0 2px 7px #a9693970;transform:translateY(-1px);}
+ #menu .hero-portrait{width:31px;height:32px;max-width:100%;}
+ #menu .hero-text{align-items:center;gap:0;}
+ #menu .hero-text strong{font-size:11px;line-height:1.15;}
+ #menu .hero-text small{font-size:9px;line-height:1.1;white-space:nowrap;}
+ .app:has(#menu:not([hidden])) #homeBtn,.app:has(#menu:not([hidden])) #stageChip,.app:has(#menu:not([hidden])) #windChip{display:none;}
+ .app:has(#menu:not([hidden])) .top{min-height:43px;padding-top:3px;padding-bottom:3px;}
+ .app:has(#menu:not([hidden])) .top .tiny{padding:6px 7px;font-size:10px;}
+}
+@media (orientation:portrait) and (max-width:740px) and (max-height:690px){
+ #menu .eyebrow,#menu .menu-subline{display:none;}
+ #menu #welcomeTitle{font-size:clamp(18px,3.2dvh,23px);}
+ #menu .hero-art{max-height:88px;min-height:43px;flex-basis:55px;}
+ #menu .mode-card{min-height:clamp(67px,10.5dvh,80px);}
+ #menu .hero-choice{min-height:52px;}
+ #menu .hero-portrait{height:28px;width:29px;}
+ #menu .hero-picker-title small{display:none;}
+ #menu .map-note{display:none;}
+}
+@media (orientation:portrait) and (max-width:740px) and (max-height:540px){
+ #menu .menu-panel{padding:5px 7px;gap:2px;}
+ #menu #welcomeTitle{font-size:18px;line-height:1.05;}
+ #menu .hero-art{max-height:57px;min-height:31px;flex-basis:38px;}
+ #menu .mode-card{min-height:58px;padding:4px 46px 3px 7px;border-radius:11px;}
+ #menu .mode-card::after{width:49px;height:49px;}
+ #menu .mode-card strong{font-size:13px;margin:2px 0;}
+ #menu .mode-card span:last-child{display:none;}
+ #menu .option-box{min-height:26px;font-size:9px;padding:2px 4px;}
+ #menu .option-box select{min-height:23px;font-size:9px;padding:2px;}
+ #menu .stage-map-control{min-height:25px;}
+ #menu .map-open{min-height:25px;padding:1px 7px;}
+ #menu .menu-progress{min-height:19px;padding:2px 6px;}
+ #menu .hero-picker-title{margin-bottom:2px;}
+ #menu .hero-choice{min-height:42px;padding:1px;}
+ #menu .hero-portrait{width:24px;height:23px;}
+ #menu .hero-text small{display:none;}
+}
+@media (orientation:landscape) and (max-height:650px){
+ #menu .menu-panel{display:grid;grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr);grid-template-rows:12px 40px minmax(25px,1fr) 31px 24px 60px;grid-template-areas:"eyebrow modes" "title modes" "art options" "art map" "art progress" "art heroes";gap:3px 10px;align-content:stretch;justify-content:stretch;padding:6px 10px;}
+ #menu .eyebrow{grid-area:eyebrow;display:block;}
+ #menu #welcomeTitle{grid-area:title;font-size:clamp(15px,2.75vw,21px);line-height:1.12;white-space:normal;}
+ #menu .hero-art{grid-area:art;min-height:0;max-height:none;height:100%;align-self:stretch;flex:auto;}
+ #menu .menu-subline{display:none;}
+ #menu .mode-grid{grid-area:modes;align-self:stretch;gap:5px;}
+ #menu .mode-card{min-height:0;height:100%;padding:5px 44px 4px 7px;}
+ #menu .mode-card::after{width:49px;height:53px;}
+ #menu .mode-card strong{font-size:clamp(12px,1.7vw,18px);}
+ #menu .mode-card span:last-child{font-size:9px;-webkit-line-clamp:1;}
+ #menu .setup-options{grid-area:options;align-self:stretch;gap:5px;}
+ #menu .option-box{min-height:0;padding:2px 5px;}
+ #menu .option-box select{min-height:23px;padding:2px;}
+ #menu .stage-map-control{grid-area:map;min-height:0;align-self:center;}
+ #menu .map-open{min-height:25px;padding:1px 7px;}
+ #menu .map-note{display:none;}
+ #menu .menu-progress{grid-area:progress;align-self:center;min-height:20px;padding:2px 6px;}
+ #menu .hero-picker{grid-area:heroes;align-self:stretch;min-height:0;}
+ #menu .hero-picker-title{margin-bottom:2px;}
+ #menu .hero-picker-title small{display:none;}
+ #menu .hero-choice{min-height:41px;padding:1px;flex-direction:row;gap:2px;}
+ #menu .hero-portrait{width:25px;height:32px;}
+ #menu .hero-text strong{font-size:10px;}
+ #menu .hero-text small{font-size:8px;}
+}
+@media (orientation:landscape) and (max-height:365px){
+ #menu .menu-panel{grid-template-rows:0 33px minmax(12px,1fr) 28px 22px 48px;gap:2px 8px;padding:4px 7px;}
+ #menu .eyebrow{display:none;}
+ #menu .hero-picker-title{display:none;}
+ #menu .hero-choice{min-height:40px;}
+ #menu .hero-text small{display:none;}
+}
+
 </style>
 </head>
 <body>
@@ -391,8 +495,8 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
     <div class="hero-art"><img id="menuArtwork" src="Artillery_Fox_Bear_Atlas_v0_3.webp" alt="우리 게임의 여우 새총 사수와 곰 포병 원화"></div>
     <p class="menu-subline">하나의 물리 세계, 두 가지 포격의 재미. 원하는 모험을 골라보세요.</p>
     <div class="mode-grid">
-     <button class="mode-card" id="adventureBtn" type="button"><span class="mode-number">MODE 01</span><strong>모험 포격</strong><span>4개 지역의 요새를 무너뜨려요. 마지막에는 요새 대장이 기다립니다.</span></button>
-     <button class="mode-card" id="duelBtn" type="button"><span class="mode-number">MODE 02</span><strong>포격 결투</strong><span>각도·파워·바람을 조절해 AI 상대와 번갈아 대결하세요.</span></button>
+     <button class="mode-card" id="adventureBtn" type="button" aria-label="모험 포격 시작, 4개 지역의 요새 파괴"><span class="mode-number">MODE 01</span><strong>모험 포격</strong><span>4개 지역의 요새를 무너뜨려요. 마지막에는 요새 대장이 기다립니다.</span></button>
+     <button class="mode-card" id="duelBtn" type="button" aria-label="포격 결투 시작, 각도 파워 바람을 활용한 AI 대결"><span class="mode-number">MODE 02</span><strong>포격 결투</strong><span>각도·파워·바람을 조절해 AI 상대와 번갈아 대결하세요.</span></button>
     </div>
     <div class="setup-options">
       <label class="option-box">모험 지역 <select id="adventureStage"><option value="0">1. 잔디 초소</option><option value="1">2. 돌담 숲</option><option value="2">3. 바람숲 다리</option><option value="3">4. 고철 요새</option></select></label>
