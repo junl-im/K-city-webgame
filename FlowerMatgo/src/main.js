@@ -542,13 +542,22 @@ function cardbookOverlay() {
     ${btn('도감 닫기','close','btn--primary btn--wide')}
   </section></div>`;
 }
+function exitOverlay() {
+  return `<div class="modal-shade flower-exit-shade"><section class="modal-box flower-exit-box" role="dialog" aria-modal="true" aria-labelledby="flower-exit-title" aria-describedby="flower-exit-help">
+    <div class="flower-exit-portrait" aria-hidden="true">${portrait('fox')}</div>
+    <h2 id="flower-exit-title">꽃맞고에서 나갈까요?</h2><p id="flower-exit-help">진행 중인 판은 이 기기에 남아 있어요.</p>
+    <div class="flower-exit-actions">${btn('계속 놀기','exit-stay','btn--primary btn--wide')}${btn('나가기','exit-leave','btn--quiet btn--wide')}</div>
+  </section></div>`;
+}
 function render() {
   let html = app.screen==='opening' && opening ? openingScreen() : app.screen==='select' ? selectScreen() : app.screen==='game' && app.game ? gameScreen() : home();
   if (overlay==='help') html += helpOverlay();
   if (overlay==='cardbook' && app.screen!=='game') html += cardbookOverlay();
+  if (overlay==='exit') html += exitOverlay();
   ROOT.removeAttribute('data-card-art');
   ROOT.innerHTML = html;
   syncTurnClock();
+  if (overlay==='exit') ROOT.querySelector('[data-action="exit-stay"]')?.focus({preventScroll:true});
 }
 function clearAutoTimer() {
   clearTimeout(autoTimer);
@@ -902,6 +911,8 @@ function humanPlay(id, matchId, skipTriple=false, drawnMatchId=undefined, automa
 function mutate(action, value, cardId) {
   if (turnTransition) return;
   switch (action) {
+    case 'exit-stay': overlay=null;render();ROOT.querySelector('.home-actions button')?.focus({preventScroll:true});return;
+    case 'exit-leave': overlay=null;save();if (flowerHadPrevious && history.length>2) history.go(-2);else location.assign('https://meta-deee1.web.app/ai-cleaner/');return;
     case 'decision-review': if (app.game?.phase==='awaiting-go-stop' && app.game.pendingDecision==='human') { decisionReview=true; render(); } return;
     case 'decision-return': decisionReview=false; render(); return;
     case 'home': clearOpening();clearTimeout(aiTimer); overlay=null; selectedMatch=null;selectedTriple=null;decisionReview=false;app.screen='home';save();render();return;
@@ -909,7 +920,7 @@ function mutate(action, value, cardId) {
     case 'opening-skip': advanceOpening();return;
     case 'pick-dealer': pickOpeningDealer(Number(value));return;
     case 'select': clearOpening();clearTimeout(aiTimer);overlay=null;app.screen='select';save();render();return;
-    case 'resume': if (app.game){app.screen='game';render();queueAI()} else {app.screen='select';render()}return;
+    case 'resume': if (app.game){app.screen='game';selectedTriple=app.game.phase==='playing' && app.game.currentPlayer==='human' && app.game.humanPendingShakeMonth ? {month:app.game.humanPendingShakeMonth,mode:'shake'} : null;render();queueAI()} else {app.screen='select';render()}return;
     case 'difficulty': if(!ALLOWED_STAKES[value])return;app.difficulty=value;app.stake=normalizeStake(value,app.stake);save();render();return;
     case 'stake': if(!canUseStake(app.difficulty,Number(value)))return;app.stake=Number(value);save();render();return;
     case 'start': startNew(false);return;
@@ -1050,5 +1061,23 @@ document.addEventListener('keydown',e=>{
     else if(app.screen==='opening') mutate('opening-home');
     else if(app.screen==='game') mutate('home');
   }
+});
+// One same-document history guard lets Back unwind game UI before leaving.
+// Keep the caller's existing history state and never clear saved gameplay.
+const flowerHadPrevious=history.state?.flowerHadPrevious ?? (history.length>1 && !!document.referrer);
+if (!history.state?.flowerGuard) {
+  history.replaceState({...history.state,flowerBase:true,flowerHadPrevious},'',location.href);
+  history.pushState({...history.state,flowerBase:false,flowerGuard:true,flowerHadPrevious},'',location.href);
+}
+window.addEventListener('popstate',()=>{
+  history.pushState({...history.state,flowerBase:false,flowerGuard:true,flowerHadPrevious},'',location.href);
+  if (turnTransition) return;
+  if (overlay) {overlay=null;render();queueAI();return;}
+  if (selectedMatch) {selectedMatch=null;render();return;}
+  if (selectedTriple?.mode==='choice') {selectedTriple=null;render();return;}
+  if (decisionReview) {decisionReview=false;render();return;}
+  if (app.screen==='opening') {mutate('opening-home');return;}
+  if (app.screen==='game' || app.screen==='select') {mutate('home');return;}
+  overlay='exit';render();
 });
 finishRound();save();render();queueAI();
