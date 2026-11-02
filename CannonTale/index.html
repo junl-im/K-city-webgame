@@ -842,7 +842,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
    const target=game.mode==='adventure'?game.foes.filter(f=>f.alive&&f.x>p.x+25).sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x))[0]:{x:1018,y:terrainY(1018)-29};
    if(!target)return;
    const t=clamp((target.x-p.x)/Math.max(220,p.vx),.25,1.6),vy=(target.y-p.y-G*t*t*.5)/t;
-   p.vy=clamp(p.vy*.18+vy*.82,-800,460);p.vx=Math.max(250,p.vx);
+   p.vy=clamp(p.vy*.18+vy*.82,-800,460);p.vx=Math.max(250,p.vx);p.guided=true;
    spawnSparks(p.x,p.y,19,'#a8f4e4',.6);skillEffect('fox',p.x,p.y,1);game.message='여우의 탄도 보정!';
   }else if(game.hero==='bear'){
    game.abilityArmed=true;skillEffect('bear',origin().x,origin().y,.9);game.message='관통 장약 장전 완료!';
@@ -912,7 +912,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  function defeatFoe(f){if(!f.alive)return;f.alive=false;f.deathTimer=3.8;f.deathAngle=rnd(-.38,.38);f.hitAnim=0;f.attackAnim=0;if(f.body)M.Composite.remove(game.engine.world,f.body);spawnSparks(f.x,f.y,f.boss?50:24,['#a9c75f','#cbdad1','#a9edff','#ffb375'][f.kind||0],f.boss?1.3:.85);spawnCombatPopup(f,f.boss?'대장 격파!':'격파!','ko',f.r+56);if(f.boss){game.shake=20;game.message='요새 대장 격파!';game.messageTime=2;}}
  function applyExplosion(p){
   game.lastImpact={x:clamp(p.x,0,W),y:clamp(p.y,0,H)};
-  const big=p.weapon==='bomb',radius=big?105:p.weapon==='split'?55:62,damage=big?105:p.weapon==='split'?46:72;
+  const big=p.weapon==='bomb',radius=big?105:p.weapon==='split'?55:62,damage=(big?105:p.weapon==='split'?46:72)*(p.guided?1.08:1);
   game.shake=Math.max(game.shake,big?19:11);game.hitStop=Math.max(game.hitStop,big?.051:.034);game.flash=big?.2:.12;game.rings.push({x:p.x,y:p.y,r:9,max:radius*1.14,life:.48,total:.48,color:big?'#ffdfab':'#fff7d7'});game.blastCores.push({x:p.x,y:p.y,life:big?.65:.46,total:big?.65:.46,radius:big?69:41,seed:rnd(0,6.3)});game.blastCores=game.blastCores.slice(-12);crater(p.x,p.y,big?49:27);spawnSparks(p.x,p.y,big?56:32,big?'#ffb966':'#fff0be',big?1.3:1);for(let i=0;i<(big?14:8);i++){const px=p.x+rnd(-26,26);game.particles.push({x:px,y:p.y+rnd(-8,8),vx:rnd(-85,85),vy:rnd(-125,-25),life:rnd(.45,.92),max:.92,r:rnd(6,15),color:i%2?'#b88f7388':'#eee0c288'});}
   playSound('blast');
   for(const b of game.blocks){
@@ -1392,6 +1392,7 @@ const materialCells={
    ctx.save();ctx.translate(p.x,p.y);
    ctx.rotate(Math.atan2(p.vy,p.vx));
    if(p.pierce>0){ellipse(0,0,p.r+6,p.r+6,'#83ebc681');}
+   if(p.guided){ellipse(0,0,p.r+7,p.r+7,'#9cffe676');}
    if(hero==='fox'){
     ellipse(0,0,p.r*.9,p.r*.83,tones[2]);
     ellipse(-1,-2,p.r*.72,p.r*.6,tones[1]);
