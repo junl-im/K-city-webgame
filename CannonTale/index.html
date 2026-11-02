@@ -431,7 +431,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  function launch(owner,ang,power,weapon,initial) {
   const o=origin(owner),dir=owner==='ai'?-1:1,v=initial||powerVelocity(ang,power,dir);
   game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,b)=>a+Math.max(0,b.hp),0),playerHp:game.playerHp,aiHp:game.aiHp};
-  game.lastImpact=null;game.reviewFocusX=null;game.reviewInfo=null;game.panX=null;$('shotReview').hidden=true;
+  game.lastImpact=null;game.reviewFocusX=null;game.reviewInfo=null;game.panX=null;game.overview=false;$('overview').textContent='전장 보기';$('shotReview').hidden=true;
   const muzzleX=o.x+dir*(game.mode==='duel'?Math.cos(ang*Math.PI/180)*55:17),muzzleY=o.y-(game.mode==='duel'?Math.sin(ang*Math.PI/180)*55:0)-4;
    const p={x:muzzleX,y:muzzleY,vx:v.vx,vy:v.vy,r:weapon==='bomb'?13:10,weapon,owner,age:0,split:false,trail:[],active:true,pierce:owner==='player'&&game.abilityArmed?2:0,hitBlocks:[],hitFoes:[]};game.projectiles.push(p);
   if(owner==='player')game.abilityArmed=false;else game.aiAngle=ang;

@@ -25,6 +25,9 @@ jobs:
           test -s CannonTale/index.html
           test -s CannonTale/matter.min.js
           test -s CannonTale/Artillery_Enemy_Atlas_v0_8.png
+          test -s CannonTale/Artillery_Material_Damage_Atlas_v1_0.webp
+          test -s CannonTale/Artillery_Forest_Enemy_Atlas_v1_0.webp
+          test -s CannonTale/Artillery_Illustrated_UI_v1_1.png
           if grep -Eqi '<svg([[:space:]>])' CannonTale/index.html; then
             echo "CannonTale must not contain SVG markup" >&2
             exit 1
