@@ -973,7 +973,8 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   for(let i=Math.floor(lo/37)*37;i<hi;i+=37){const y=terrainY(i);if(y<H-30){ellipse(i,y+19,5,2,'#876e5f');ellipse(i+13,y+46,7,3,'#93765f');}}
  }
  function spriteReady(which='fox'){const img=which==='rabbit'||which==='cat'?rosterAtlas:atlas;return !!(img&&img.complete&&img.naturalWidth>0&&img.naturalHeight>0);}
- function illustratedCharacter(which,x,y,scale=1,dir=1,side='player'){if(!spriteReady(which))return false;const img=which==='rabbit'||which==='cat'?rosterAtlas:atlas,half=img.naturalWidth/2,w=162*scale,h=w*img.naturalHeight/half;const recoil=game.recoil[side]||0,a=game.actorAnim[side]||{kind:'idle',life:0,total:1},phase=1-a.life/a.total,pulse=Math.sin(Math.PI*phase),motion=a.life>0?pulse:0;const sx=a.kind==='attack'?1+.065*motion:a.kind==='hit'?1-.09*motion:a.kind==='victory'?1+.05*motion:1,sy=a.kind==='attack'?1-.075*motion:a.kind==='hit'?1+.085*motion:a.kind==='victory'?1+.07*motion:1;ctx.save();ctx.translate(x+(side==='player'?-recoil:recoil)+(a.kind==='hit'?rnd(-3,3)*motion:0),y+Math.sin(game.clock*2.7+(side==='player'?0:1.2))*1.1+(a.kind==='victory'?-19*motion:0));ctx.rotate(a.kind==='attack'?-.12*motion:a.kind==='hit'?.15*motion:0);ctx.scale(dir*sx,sy);ctx.globalAlpha=a.kind==='hit'&&a.life>0?.75:1;ctx.drawImage(img,which==='fox'||which==='rabbit'?0:half,0,half,img.naturalHeight,-w*.52,24*scale-h,w,h);ctx.restore();return true;}
+ function illustratedCharacter(which,x,y,scale=1,dir=1,side='player'){if(!spriteReady(which))return false;const img=which==='rabbit'||which==='cat'?rosterAtlas:atlas,half=img.naturalWidth/2,w=162*scale,h=w*img.naturalHeight/half;const recoil=game.recoil[side]||0,a=game.actorAnim[side]||{kind:'idle',life:0,total:1},phase=1-a.life/a.total,pulse=Math.sin(Math.PI*phase),motion=a.life>0?pulse:0;const sx=a.kind==='attack'?1+.065*motion:a.kind==='hit'?1-.09*motion:a.kind==='victory'?1+.05*motion:1,sy=a.kind==='attack'?1-.075*motion:a.kind==='hit'?1+.085*motion:a.kind==='victory'?1+.07*motion:1;ctx.save();ctx.translate(x+(side==='player'?-recoil:recoil)+(a.kind==='hit'?rnd(-3,3)*motion:0),y+Math.sin(game.clock*2.7+(side==='player'?0:1.2))*1.1+(a.kind==='victory'?-19*motion:0));ctx.rotate(a.kind==='attack'?-.12*motion:a.kind==='hit'?.15*motion:0);// The right-hand cells (bear and cat) face left in their unflipped source art.
+ ctx.scale(dir*({fox:1,bear:-1,rabbit:1,cat:-1}[which]||1)*sx,sy);ctx.globalAlpha=a.kind==='hit'&&a.life>0?.75:1;ctx.drawImage(img,which==='fox'||which==='rabbit'?0:half,0,half,img.naturalHeight,-w*.52,24*scale-h,w,h);ctx.restore();return true;}
  function fox(x,y,scale=1,dir=1){if(illustratedCharacter('fox',x,y,scale,dir))return;ctx.save();ctx.translate(x,y);ctx.scale(scale*dir,scale);ellipse(0,23,25,10,'#334b5580');ellipse(0,0,24,28,'#d77e51');ctx.beginPath();ctx.moveTo(-23,-16);ctx.lineTo(-19,-42);ctx.lineTo(-4,-20);ctx.moveTo(10,-23);ctx.lineTo(24,-43);ctx.lineTo(23,-10);ctx.closePath();ctx.fillStyle='#d77e51';ctx.fill();ellipse(0,6,17,17,'#fff0d6');ellipse(-9,-5,3,5,'#2c3644');ellipse(10,-5,3,5,'#2c3644');ellipse(1,7,4,3,'#3d3b45');ellipse(26,19,12,7,'#cf714e');ctx.fillStyle='#fbe6d1';ctx.beginPath();ctx.moveTo(29,20);ctx.lineTo(41,14);ctx.lineTo(39,23);ctx.fill();ctx.restore();}
  function bear(x,y,scale=1){if(illustratedCharacter('bear',x,y,scale,1,'ai'))return;ctx.save();ctx.translate(x,y);ellipse(0,23,24,9,'#2b344d66');ellipse(-17,-20,10,10,'#6d708d');ellipse(17,-20,10,10,'#6d708d');ellipse(0,0,25*scale,27*scale,'#777a99');ellipse(0,11,17,15,'#d8cbb8');ellipse(-9,-5,3,4,'#293044');ellipse(10,-5,3,4,'#293044');ellipse(0,7,5,3,'#423c4d');ctx.restore();}
  function cannon(x,y,dir,own){
@@ -1002,15 +1003,12 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   }else{if(own)fox(x-53,y+2,.72);else bear(x+50,y+4,.75);}
  }
  function slingshot(){const o=origin();if(spriteReady(game.hero)){
+   // Every sprite already holds its character-specific weapon. Never draw a second slingshot on top.
    illustratedCharacter(game.hero,o.x-51,terrainY(o.x)-32,.95,1,'player');
-   // Weapon must remain visibly equipped when character bitmap art is available.
-   ctx.save();ctx.lineCap='round';ctx.strokeStyle='#603f2a';ctx.lineWidth=9;ctx.beginPath();
-   ctx.moveTo(o.x+1,o.y+39);ctx.lineTo(o.x-4,o.y-23);ctx.lineTo(o.x-21,o.y-41);
-   ctx.moveTo(o.x-4,o.y-23);ctx.lineTo(o.x+19,o.y-41);ctx.stroke();
-   ctx.strokeStyle='#e3ad64';ctx.lineWidth=3.5;ctx.stroke();
-   const d=game.drag||{x:o.x-2,y:o.y-25};
-   ctx.strokeStyle='#4a3431';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(o.x-21,o.y-41);ctx.lineTo(d.x,d.y);ctx.lineTo(o.x+19,o.y-41);ctx.stroke();
-   ctx.restore();return;}ctx.save();ctx.lineCap='round';ctx.strokeStyle='#6f5946';ctx.lineWidth=15;ctx.beginPath();ctx.moveTo(o.x,o.y+48);ctx.lineTo(o.x-4,o.y-32);ctx.moveTo(o.x-4,o.y-16);ctx.lineTo(o.x-25,o.y-41);ctx.moveTo(o.x-4,o.y-16);ctx.lineTo(o.x+17,o.y-42);ctx.stroke();ctx.strokeStyle='#b88a5b';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(o.x-4,o.y+37);ctx.lineTo(o.x-4,o.y-33);ctx.stroke();
+   if(game.hero==='fox'&&game.drag){ctx.save();ctx.lineCap='round';ctx.lineWidth=3;
+    ctx.strokeStyle='#64402d';ctx.beginPath();ctx.moveTo(o.x-18,o.y-34);
+    ctx.lineTo(game.drag.x,game.drag.y);ctx.lineTo(o.x+12,o.y-32);ctx.stroke();ctx.restore();}
+   return;} ctx.save();ctx.lineCap='round';ctx.strokeStyle='#6f5946';ctx.lineWidth=15;ctx.beginPath();ctx.moveTo(o.x,o.y+48);ctx.lineTo(o.x-4,o.y-32);ctx.moveTo(o.x-4,o.y-16);ctx.lineTo(o.x-25,o.y-41);ctx.moveTo(o.x-4,o.y-16);ctx.lineTo(o.x+17,o.y-42);ctx.stroke();ctx.strokeStyle='#b88a5b';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(o.x-4,o.y+37);ctx.lineTo(o.x-4,o.y-33);ctx.stroke();
   const d=game.drag;if(d){ctx.strokeStyle='#3c3445';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(o.x-25,o.y-41);ctx.lineTo(d.x,d.y);ctx.lineTo(o.x+17,o.y-42);ctx.stroke();ellipse(d.x,d.y,11,11,'#e5ad7c');}
   else{ctx.strokeStyle='#5f4651';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(o.x-25,o.y-41);ctx.lineTo(o.x-6,o.y-25);ctx.lineTo(o.x+17,o.y-42);ctx.stroke();}ctx.restore();fox(o.x-55,terrainY(o.x)-26,.77);}
 const materialCells={
