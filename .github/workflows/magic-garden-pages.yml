@@ -173,12 +173,13 @@ jobs:
           test -s CannonTale/Artillery_Rabbit_Cat_Atlas_v0_5.webp
           test -s CannonTale/Artillery_Action_UI_Atlas_v0_6.webp
           test -s CannonTale/Artillery_Stage_Atlas_v0_7.webp
+          test -s CannonTale/Artillery_Enemy_Atlas_v0_8.png
           if grep -Eqi '<svg([[:space:]>])' CannonTale/index.html; then
             echo "SVG markup is not permitted in CannonTale" >&2
             exit 1
           fi
           mkdir -p MagicGarden/dist/CannonTale
-          cp CannonTale/index.html CannonTale/matter.min.js CannonTale/Artillery_Fox_Bear_Atlas_v0_3.webp CannonTale/Artillery_Rabbit_Cat_Atlas_v0_5.webp CannonTale/Artillery_Action_UI_Atlas_v0_6.webp CannonTale/Artillery_Stage_Atlas_v0_7.webp MagicGarden/dist/CannonTale/
+          cp CannonTale/index.html CannonTale/matter.min.js CannonTale/Artillery_Fox_Bear_Atlas_v0_3.webp CannonTale/Artillery_Rabbit_Cat_Atlas_v0_5.webp CannonTale/Artillery_Action_UI_Atlas_v0_6.webp CannonTale/Artillery_Stage_Atlas_v0_7.webp CannonTale/Artillery_Enemy_Atlas_v0_8.png MagicGarden/dist/CannonTale/
           test -s MagicGarden/dist/CannonTale/index.html
           echo "Independent CannonTale staged at /CannonTale/"
 

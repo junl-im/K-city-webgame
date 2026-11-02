@@ -26,6 +26,7 @@ const document={referrer:'',getElementById:el,querySelectorAll:selector=>selecto
 if(/v0_[34]/.test(versionedPath)){const art=el('menuArtwork');art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}
 if(/v0_[567]/.test(versionedPath)){for(const type of ['menuArtwork','rosterArtwork']){const art=el(type);art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}}
 if((versionedPath).includes('v0_7')){const art=el('stageArtwork');art.complete=true;art.naturalWidth=1536;art.naturalHeight=1024;}
+if((versionedPath).includes('v0_7')){const art=el('enemyArtwork');art.complete=true;art.naturalWidth=1536;art.naturalHeight=1024;}
 const saved=new Map();
 if(/v0_[67]/.test(versionedPath))saved.set('wind-artillery-progress-v06',JSON.stringify({best:[3,2,0,0],wins:5,lastStage:0,hero:'fox',difficulty:'normal'}));
 const window={Matter:require('./matter.min.js'),addEventListener:(type,fn)=>handlers[type]=fn,history:{replaceState:noOp,pushState:noOp,go:noOp},location:{href:'https://junl-im.github.io/K-city-webgame/CannonTale/',assign:noOp},localStorage:{getItem:key=>saved.get(key)||null,setItem:(key,val)=>saved.set(key,val)}};
@@ -48,6 +49,7 @@ if(/v0_[67]/.test(versionedPath)){
 }
 if((versionedPath).includes('v0_7')){
  assert.equal(state().sceneReady,true,'Stage illustration atlas should render');
+ assert.equal(state().enemyReady,true,'Enemy illustration atlas should render');
  el('stageMapBtn').click();assert.equal(state().stageMapOpen,true,'Region map should open');
  handlers.popstate();assert.equal(state().stageMapOpen,false,'Back must dismiss stage map');
  el('stageMapBtn').click();

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#232a3e">
-<title>캐논테일 — 모험과 결투의 포물선 (가제)</title>
+<title>캐논테일 — 모험과 결투의 포물선</title>
 <style>
 :root { color-scheme:dark; --ink:#25283c; --cream:#fff5df; --muted:#c5d0de; --gold:#f9b957; --edge:#75614e; --action-icons:url("Artillery_Action_UI_Atlas_v0_6.webp"); --stage-art:url("Artillery_Stage_Atlas_v0_7.webp"); }
 * { box-sizing:border-box; }
@@ -183,6 +183,18 @@ input[type=range]::-moz-range-thumb {width:18px;height:18px;border:3px solid #ff
 .exit-panel p {font-size:13px;}
 .exit-panel .panel-actions {justify-content:center;}
 .exit-panel .paper-btn {min-width:110px;}
+/* v0.8: illustrated ammunition, touch-friendly aim controls, no SVG. */
+.weapon {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:62px;padding:5px 7px;background:linear-gradient(158deg,#607d79,#3c5a64);}
+.weapon::before {content:"";display:block;width:24px;height:24px;flex:none;border-radius:50%;box-shadow:inset -5px -5px 5px #19293999,inset 3px 3px 4px #fff9,0 3px 5px #122938aa;background:radial-gradient(circle at 35% 28%,#ffe5a7 0 12%,#cb9261 17%,#77564d 70%);}
+.weapon[data-weapon="bomb"]::before {background:radial-gradient(circle at 35% 23%,#ffe3ab 0 13%,#ff935c 22%,#9c4c45 62%,#4d3444 85%);}
+.weapon[data-weapon="split"]::before {border-radius:40%;background:radial-gradient(circle at 25% 30%,#fff2d4 0 10%,#b9a1d7 17%,#716893 65%);box-shadow:8px 5px 0 -2px #c3acd5,-8px 5px 0 -2px #9a88c4,0 3px 5px #122938aa;}
+.weapon.selected {background:linear-gradient(160deg,#e6af72,#af775b);}
+input[type=range] {height:13px;border:0;background:linear-gradient(90deg,#f8d391,#e99476);box-shadow:inset 0 2px 4px #142e3877;}
+input[type=range]::-webkit-slider-thumb {width:29px;height:29px;border:3px solid #fff5d7;background:#a95c59;box-shadow:0 2px 4px #0d263488;}
+input[type=range]::-moz-range-thumb {width:24px;height:24px;border:3px solid #fff5d7;background:#a95c59;}
+@media(max-width:780px){.weapon{min-height:55px;padding:4px 2px;font-size:10px;gap:2px}.weapon::before{width:20px;height:20px}.controls{min-height:156px;grid-template-columns:minmax(0,1fr) auto}.aim{min-width:0}.action-col{gap:5px}.fire{min-height:63px}}
+@media(max-height:540px){.weapon{min-height:38px;flex-direction:row;gap:4px}.weapon::before{width:18px;height:18px}.controls{min-height:105px}.aim-label{display:none}.fire{height:50px;min-height:50px}}
+@media(max-width:400px){.weapon::before{width:15px;height:15px}.weapon{font-size:9px}.fire{min-width:68px}.ability-btn{min-width:66px}}
 </style>
 </head>
 <body>
@@ -201,6 +213,7 @@ input[type=range]::-moz-range-thumb {width:18px;height:18px;border:3px solid #ff
   <canvas id="field" aria-label="2D 포격 게임 화면"></canvas>
   <img id="rosterArtwork" src="Artillery_Rabbit_Cat_Atlas_v0_5.webp" alt="" hidden aria-hidden="true">
   <img id="stageArtwork" src="Artillery_Stage_Atlas_v0_7.webp" alt="" hidden aria-hidden="true">
+  <img id="enemyArtwork" src="Artillery_Enemy_Atlas_v0_8.png" alt="" hidden aria-hidden="true">
   <div id="bossBanner" class="boss-banner" hidden>요새 대장 출현</div>
   <div id="hint" class="corner-hint" hidden></div>
   <div class="status-row"><div id="leftStatus" class="status" hidden></div><div id="rightStatus" class="status" hidden></div></div>
@@ -247,7 +260,7 @@ input[type=range]::-moz-range-thumb {width:18px;height:18px;border:3px solid #ff
   <div id="exitConfirm" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="exitTitle">
    <section class="panel exit-panel"><span class="eyebrow">ONE MORE ADVENTURE?</span><h2 id="exitTitle">모험을 마칠까요?</h2><p>여정은 이곳에 남아 있어요. 다음에 돌아오면 이어서 도전할 수 있어요.</p><div class="panel-actions"><button id="exitStayBtn" class="paper-btn" type="button">계속 놀기</button><button id="exitLeaveBtn" class="paper-btn light" type="button">나가기</button></div></section>
   </div>
-  <aside class="help" id="help" hidden><button id="closeHelp" class="tiny" type="button">닫기</button><h2>조작 안내</h2><p>각도와 파워를 움직인 뒤 <b>발사!</b>를 누르세요. 모험 포격에서는 새총을 뒤로 당겨 놓아도 됩니다.</p><p>여우·토끼의 특수기는 <b>포탄 비행 중</b>, 곰·고양이의 특수기는 <b>발사 전</b> 사용합니다. 특수기는 플레이어 발사 한 번당 1회 사용 가능해요. 단축키는 <b>Q</b>입니다.</p><p>일반탄은 충격, 폭탄탄은 넓은 폭발, 분열탄은 공중에서 3발로 나뉩니다. <b>전장 보기</b>로 전체 지형을 확인할 수 있어요.</p></aside>
+  <aside class="help" id="help" hidden><button id="closeHelp" class="tiny" type="button">닫기</button><h2>조작 안내</h2><p>각도와 파워를 움직인 뒤 <b>발사!</b>를 누르세요. 모험 포격에서는 새총을 뒤로 당겨 놓아도 됩니다.</p><p>여우·토끼의 특수기는 <b>포탄 비행 중</b>, 곰·고양이의 특수기는 <b>발사 전</b> 사용합니다. 특수기는 플레이어 발사 한 번당 1회 사용 가능해요. 단축키는 <b>Q</b>입니다.</p><p>일반탄은 충격, 폭탄탄은 넓은 폭발, 분열탄은 공중에서 3발로 나뉩니다. <b>점선 궤적과 원형 예상 타격점</b>을 보고 조준해 보세요. <b>전장 보기</b>로 전체 지형을 확인할 수 있어요.</p></aside>
  </main>
  <footer class="controls" id="controls" hidden>
   <div class="weapon-group"><span class="weapon-label">포탄 선택</span><div class="weapons"><button type="button" data-weapon="normal" class="weapon selected">일반탄</button><button type="button" data-weapon="bomb" class="weapon">폭탄탄</button><button type="button" data-weapon="split" class="weapon">분열탄</button></div></div>
@@ -264,7 +277,7 @@ input[type=range]::-moz-range-thumb {width:18px;height:18px;border:3px solid #ff
  const cv=$('field'),ctx=cv.getContext('2d',{alpha:false});
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  const rnd=(a,b)=>a+Math.random()*(b-a);
- const angleEl=$('angle'),powerEl=$('power'),atlas=$('menuArtwork'),rosterAtlas=$('rosterArtwork'),stageAtlas=$('stageArtwork'),M=window.Matter;
+ const angleEl=$('angle'),powerEl=$('power'),atlas=$('menuArtwork'),rosterAtlas=$('rosterArtwork'),stageAtlas=$('stageArtwork'),enemyAtlas=$('enemyArtwork'),M=window.Matter;
  if(!M){document.title='물리 엔진을 불러오지 못했습니다';throw Error('Matter.js is required for v0.2');}
  const heroSet={fox:{name:'여우',ability:'탄도 보정',timing:'flying'},bear:{name:'곰',ability:'관통 장약',timing:'aim'},rabbit:{name:'토끼',ability:'오중 분열',timing:'flying'},cat:{name:'고양이',ability:'바람 전환',timing:'aim'}};
  const saveKey='wind-artillery-progress-v06';
@@ -299,7 +312,27 @@ input[type=range]::-moz-range-thumb {width:18px;height:18px;border:3px solid #ff
   else {game.phase='flying';game.phaseTime=0;game.message='적의 포격!';game.messageTime=1;}
   updateHud();
  }
- function predict(ang,pow,wind,owner='player',count=90){const o=origin(owner),v=powerVelocity(ang,pow,owner==='player'?1:-1),out=[];let x=o.x,y=o.y,vx=v.vx,vy=v.vy;for(let i=0;i<count;i++){const dt=.085;vx+=wind*12*dt;vy+=G*dt;x+=vx*dt;y+=vy*dt;out.push({x,y});if(y>=terrainY(x)||x<0||x>W)break;}return out;}
+ function predict(ang,pow,wind,owner='player',count=640){
+  const o=origin(owner),dir=owner==='player'?1:-1,v=powerVelocity(ang,pow,dir);
+  const out=[],r=10,dt=1/90;
+  let x=o.x+dir*17,y=o.y-4,vx=v.vx,vy=v.vy;
+  for(let i=0;i<count;i++){
+   vx+=wind*12*dt;vy+=G*dt;x+=vx*dt;y+=vy*dt;
+   out.push({x,y});
+   if(x<0||x>W||y>H+40)break;
+   if(y+r>=terrainY(x)){out.impact={x,y:terrainY(x)-r,kind:'terrain'};break;}
+   if(game.mode==='adventure'){
+    const b=game.blocks.find(b=>{const dx=x-b.body.position.x,dy=y-b.body.position.y,a=-b.body.angle,c=Math.cos(a),si=Math.sin(a),px=dx*c-dy*si,py=dx*si+dy*c,qx=clamp(px,-b.w/2,b.w/2),qy=clamp(py,-b.h/2,b.h/2);return(px-qx)**2+(py-qy)**2<r*r;});
+    if(b){out.impact={x,y,kind:'block'};break;}
+    const foe=game.foes.find(f=>f.alive&&Math.hypot(x-f.x,y-f.y)<r+f.r);
+    if(foe){out.impact={x,y,kind:'foe'};break;}
+   }else{
+    const tx=owner==='player'?1018:190;
+    if(Math.hypot(x-tx,y-(terrainY(tx)-29))<r+22){out.impact={x,y,kind:'foe'};break;}
+   }
+  }
+  return out;
+ }
  function chooseAiShot(){const o=origin('ai'),target=origin('player');let best={score:Infinity,angle:45,power:74};for(let a=24;a<=82;a+=3){for(let p=35;p<=100;p+=3){let x=o.x,y=o.y,v=powerVelocity(a,p,-1),vx=v.vx,vy=v.vy;let score=1e6;for(let k=0;k<230;k++){const dt=.045;vx+=game.wind*12*dt;vy+=G*dt;x+=vx*dt;y+=vy*dt;const d=Math.hypot(x-target.x,y-target.y);if(d<score)score=d;if(y>=terrainY(x)||x<0||x>W)break;}if(score<best.score)best={score,angle:a,power:p};}}
   const error=game.difficulty==='easy'?{angle:6,power:10}:game.difficulty==='hard'?{angle:.6,power:1.5}:{angle:2,power:3.5};
   return{angle:clamp(best.angle+rnd(-error.angle,error.angle),15,82),power:clamp(best.power+rnd(-error.power,error.power),25,100)};
@@ -310,7 +343,7 @@ input[type=range]::-moz-range-thumb {width:18px;height:18px;border:3px solid #ff
   // Lay horizontal beams on uprights rather than intersecting them.
   for(const b of game.blocks){if(b.w>80){const supports=game.blocks.filter(s=>s!==b&&s.w<40&&Math.abs((s.x+s.w/2)-(b.x+b.w/2))<110);if(supports.length) b.y=Math.min(...supports.map(s=>s.y))-b.h+3;}}
   for(const b of game.blocks){const body=M.Bodies.rectangle(b.x+b.w/2,b.y+b.h/2,b.w,b.h,{density:b.type==='stone'?.0019:.0009,friction:.67,frictionStatic:.95,restitution:.03,chamfer:{radius:1.5},sleepThreshold:65,label:b.type});body.plugin.block=b;b.body=body;M.Composite.add(game.engine.world,body);}
-  game.foes=def.foes.map((f,i)=>{const x=f.x,r=f.r||21;return{x,y:terrainY(x)-r-3,r,hp:f.hp||55,maxHp:f.hp||55,boss:!!f.boss,alive:true,wobble:rnd(0,6),hitCooldown:0,hitFlash:0};});
+  game.foes=def.foes.map((f,i)=>{const x=f.x,r=f.r||21;return{x,y:terrainY(x)-r-3,r,hp:f.hp||55,maxHp:f.hp||55,boss:!!f.boss,kind:f.boss?3:stage===2?2:stage===1||stage===3?1:0,alive:true,wobble:rnd(0,6),hitCooldown:0,hitFlash:0};});
   for(const f of game.foes){const body=M.Bodies.circle(f.x,f.y,f.r,{friction:.82,frictionStatic:1,restitution:.07,density:.0011,sleepThreshold:55,label:'foe'});body.plugin.foe=f;f.body=body;M.Composite.add(game.engine.world,body);}
  }
  function newGame(mode,stage=0){
@@ -471,9 +504,44 @@ input[type=range]::-moz-range-thumb {width:18px;height:18px;border:3px solid #ff
   else{ctx.strokeStyle='#5f4651';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(o.x-25,o.y-41);ctx.lineTo(o.x-6,o.y-25);ctx.lineTo(o.x+17,o.y-42);ctx.stroke();}ctx.restore();fox(o.x-55,terrainY(o.x)-26,.77);}
  function drawBlocks(){for(const b of game.blocks){ctx.save();ctx.translate(b.body.position.x,b.body.position.y);ctx.rotate(b.angle);const x=-b.w/2,y=-b.h/2;if(b.w>80){roundRect(x,y,b.w,b.h,3,b.type==='wood'?'#a66e4d':'#8b8c9c','#594e54',3);for(let k=12;k<b.w;k+=25){ctx.strokeStyle=b.type==='wood'?'#d7a276':'#bbc0c6';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+k,y+3);ctx.lineTo(x+k-8,y+b.h-3);ctx.stroke();}}else{roundRect(x,y,b.w,b.h,4,b.type==='wood'?'#bd855a':'#92939f','#554b53',3);ctx.strokeStyle=b.type==='wood'?'#e5ab70':'#c4c4ce';ctx.lineWidth=2;for(let k=12;k<b.h;k+=25){ctx.beginPath();ctx.moveTo(x+5,y+k);ctx.lineTo(x+b.w-5,y+k-5);ctx.stroke();}}ctx.restore();}}
  function drawDebris(){ctx.save();for(const d of game.debris){ctx.globalAlpha=clamp(d.life/d.max,0,1);ctx.translate(d.x,d.y);ctx.rotate(d.angle);ctx.fillStyle=d.color;ctx.fillRect(-d.w/2,-d.h/2,d.w,d.h);ctx.rotate(-d.angle);ctx.translate(-d.x,-d.y);}ctx.restore();}
- function drawFoes(){for(const f of game.foes){if(!f.alive)continue;const wobble=Math.sin(game.clock*2+f.wobble)*1.2,scale=f.r/21;ctx.save();ctx.translate(f.x+(f.hitFlash>0?Math.sin(game.clock*53)*f.hitFlash*7:0),f.y+wobble);ctx.scale(scale,scale);ellipse(0,16,22,6,'#38436b55');ellipse(0,0,22,22,f.hitFlash>0?'#dfbad7':f.boss?'#855b85':'#8f79c6');ellipse(-11,-15,8,12,f.boss?'#aa698b':'#a38ed5');ellipse(11,-15,8,12,f.boss?'#aa698b':'#a38ed5');if(f.boss){ctx.beginPath();ctx.moveTo(-16,-20);ctx.lineTo(-26,-34);ctx.lineTo(-9,-25);ctx.moveTo(16,-20);ctx.lineTo(26,-34);ctx.lineTo(9,-25);ctx.fillStyle='#dbad6d';ctx.fill();roundRect(-17,-25,34,11,5,'#66425c','#e2aa6c',2);ellipse(-11,-19,4,4,'#f6c977');ellipse(11,-19,4,4,'#f6c977');}ellipse(-8,-3,4,6,'#fef5eb');ellipse(8,-3,4,6,'#fef5eb');ellipse(-7,-2,2,4,'#38364d');ellipse(9,-2,2,4,'#38364d');ellipse(0,10,5,3,'#6b548e');ctx.restore();if(f.boss){roundRect(f.x-42,f.y-f.r-35,84,11,6,'#4e3d53','#fff0d9',1.5);roundRect(f.x-40,f.y-f.r-33,80*clamp(f.hp/f.maxHp,0,1),7,4,'#eaa26e');}}}
- function drawTrajectory(){if(game.phase!=='aim')return;const owner='player';let a=game.angle,p=game.power;if(game.drag){const o=origin();const dx=clamp(o.x-game.drag.x,7,105),dy=clamp(o.y-game.drag.y,-35,95);a=clamp(Math.atan2(dy,dx)*180/Math.PI,15,82);p=clamp(Math.hypot(dx,dy)/125*100,20,100);}
-  const dots=predict(a,p,game.wind,owner,68);for(let i=1;i<dots.length;i+=3){const pt=dots[i],r=clamp(5-i*.04,2,5);ellipse(pt.x,pt.y,r,r,'#fffae8a6');}}
+ function enemyArtReady(){return !!(enemyAtlas&&enemyAtlas.complete&&enemyAtlas.naturalWidth>0&&enemyAtlas.naturalHeight>0);}
+ function drawFoes(){for(const f of game.foes){
+  if(!f.alive)continue;
+  const wobble=Math.sin(game.clock*3+f.wobble)*1.7;
+  if(enemyArtReady()){
+   const cw=enemyAtlas.naturalWidth/2,ch=enemyAtlas.naturalHeight/2,cell=f.kind||0;
+   const w=f.r*(f.boss?4.75:4.6),h=f.r*(f.boss?4.15:4.35);
+   ctx.save();ctx.translate(f.x+(f.hitFlash>0?Math.sin(game.clock*58)*f.hitFlash*8:0),f.y+wobble);
+   ctx.translate(0,f.r*.68);ctx.scale(1+Math.sin(game.clock*3.2+f.wobble)*.014,1+Math.cos(game.clock*3.2+f.wobble)*.018);
+   if(f.hitFlash>0)ctx.filter='brightness(1.65) saturate(1.3)';
+   ctx.drawImage(enemyAtlas,(cell%2)*cw,Math.floor(cell/2)*ch,cw,ch,-w/2,-h*.73,w,h);
+   ctx.restore();
+   ellipse(f.x,terrainY(f.x)-2,f.r*(f.boss?1.13:.83),f.boss?5:3,'#1c30435c');
+  }else{
+   ctx.save();ctx.translate(f.x,f.y+wobble);ctx.scale(f.r/21,f.r/21);
+   ellipse(0,16,22,6,'#38436b55');ellipse(0,0,22,22,f.hitFlash>0?'#dfbad7':f.boss?'#855b85':'#8f79c6');
+   ellipse(-11,-15,8,12,'#a38ed5');ellipse(11,-15,8,12,'#a38ed5');
+   ellipse(-8,-3,4,6,'#fef5eb');ellipse(8,-3,4,6,'#fef5eb');ellipse(-7,-2,2,4,'#38364d');ellipse(9,-2,2,4,'#38364d');ctx.restore();
+  }
+  if(f.boss){
+   roundRect(f.x-49,f.y-f.r-50,98,13,7,'#293848bf');
+   roundRect(f.x-46,f.y-f.r-47,92*clamp(f.hp/f.maxHp,0,1),7,4,'#f1af5b');
+  }
+ }}
+ function drawTrajectory(){
+  if(game.phase!=='aim'||game.turn!=='player')return;
+  let a=game.angle,p=game.power;
+  if(game.drag){const o=origin(),dx=clamp(o.x-game.drag.x,7,105),dy=clamp(o.y-game.drag.y,-35,95);a=clamp(Math.atan2(dy,dx)*180/Math.PI,15,82);p=clamp(Math.hypot(dx,dy)/125*100,20,100);}
+  const dots=predict(a,p,game.wind,'player');
+  for(let i=8;i<dots.length;i+=13){const pt=dots[i],fade=1-i/Math.max(1,dots.length),rad=2.6+fade*1.6;ellipse(pt.x,pt.y,rad,rad,'#fff4dccc');}
+  const hit=dots.impact;
+  if(!hit||hit.y<20||hit.y>H-14)return;
+  const target=hit.kind==='foe',color=target?'#93f1c7':hit.kind==='block'?'#ffe1a6':'#e6f2f1';
+  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=3;ctx.setLineDash?.([6,5]);ctx.beginPath();ctx.arc(hit.x,hit.y,16+Math.sin(game.clock*4)*2,0,Math.PI*2);ctx.stroke();ctx.setLineDash?.([]);
+  const label=target?'적중 예상':hit.kind==='block'?'구조물 충돌':'착탄 지점';
+  const lx=clamp(hit.x,58,W-58),ly=clamp(hit.y-30,36,H-38);
+  roundRect(lx-46,ly-17,92,26,13,'#1c3f4abb');ctx.fillStyle=color;ctx.font='800 13px system-ui, sans-serif';ctx.textAlign='center';ctx.fillText(label,lx,ly+1);ctx.restore();
+ }
  function drawProjectiles(){for(const p of game.projectiles){for(let i=0;i<p.trail.length;i++){const q=p.trail[i];ellipse(q.x,q.y,(i/p.trail.length)*p.r*.7,(i/p.trail.length)*p.r*.7,'#fff8d594');}if(p.pierce>0)ellipse(p.x,p.y,p.r+6,p.r+6,'#b9f7ddaa');ellipse(p.x,p.y,p.r+2,p.r+2,'#393b52');ellipse(p.x-2,p.y-2,p.r-2,p.r-2,p.weapon==='bomb'?'#343d50':p.weapon==='split'?'#998ac9':'#e5ad75');ellipse(p.x-3,p.y-4,Math.max(2,p.r*.23),Math.max(2,p.r*.23),'#fff6df');if(p.weapon==='bomb')ellipse(p.x+6,p.y-7,4,4,'#ffb365');}}
  function drawParticles(){for(const p of game.particles){ctx.globalAlpha=clamp(p.life/p.max,0,1);ellipse(p.x,p.y,p.r,p.r,p.color);}ctx.globalAlpha=1;}
  function drawSkillEffects(){ctx.save();for(const e of game.skillEffects){const fade=clamp(e.life/e.total,0,1),travel=1-fade;ctx.globalAlpha=fade*.85;ctx.lineWidth=4*(.5+fade);ctx.lineCap='round';if(e.kind==='fox'){ctx.strokeStyle='#aef8db';for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(e.x,e.y,14+travel*65+i*10,-1.8+i*.28,.7+i*.28);ctx.stroke();}}else if(e.kind==='bear'){ctx.strokeStyle='#f5d591';for(let i=0;i<7;i++){const a=i*Math.PI*2/7+e.seed,r=12+travel*42;ctx.beginPath();ctx.moveTo(e.x+Math.cos(a)*r*.6,e.y+Math.sin(a)*r*.6);ctx.lineTo(e.x+Math.cos(a)*(r+19),e.y+Math.sin(a)*(r+19));ctx.stroke();}}else if(e.kind==='rabbit'){for(let i=0;i<5;i++){const a=i*Math.PI*2/5+travel*.5,r=18+travel*72;ellipse(e.x+Math.cos(a)*r,e.y+Math.sin(a)*r,6+fade*8,3+fade*5,'#e6c2f6');}}else if(e.kind==='cat'){ctx.strokeStyle='#bce8d3';for(let i=0;i<3;i++){const a=game.clock*3+i*2.1;ctx.beginPath();ctx.arc(e.x,e.y,25+i*15+travel*18,a,a+Math.PI*1.1);ctx.stroke();}}else{ctx.strokeStyle='#ffe6cf';ctx.beginPath();ctx.arc(e.x,e.y,12+travel*33,0,Math.PI*2);ctx.stroke();}}ctx.restore();}
@@ -518,7 +586,7 @@ input[type=range]::-moz-range-thumb {width:18px;height:18px;border:3px solid #ff
  $('helpBtn').addEventListener('click',()=>{$('help').hidden=!$('help').hidden;});$('closeHelp').addEventListener('click',()=>{$('help').hidden=true;});
  window.addEventListener('resize',resize);window.addEventListener('keydown',e=>{if(e.key==='Escape'){handleBackIntent();return;}if(e.code==='Space'&&game.phase==='aim'&&e.target.tagName!=='BUTTON'){e.preventDefault();firePlayer();}if(e.code==='KeyQ'&&game.mode!=='menu'&&e.target.tagName!=='INPUT'){e.preventDefault();useAbility();}});
  // Small, read-only automation hook for smoke testing; not required to play.
- window.__artilleryDebug=()=>({mode:game.mode,stage:game.stage,difficulty:game.difficulty,hero:game.hero,abilityUsed:game.abilityUsed,abilityArmed:game.abilityArmed,abilityCount:game.abilityCount,wind:game.wind,phase:game.phase,shots:game.shots,maxShots:game.maxShots,turn:game.turn,projectiles:game.projectiles.length,projectilePierce:game.projectiles[0]?.pierce||0,foes:game.foes.filter(x=>x.alive).length,bossHp:game.foes.find(f=>f.boss&&f.alive)?.hp||0,playerHp:game.playerHp,aiHp:game.aiHp,sound:game.sound,canvas:[cv.width,cv.height],rotatingBlocks:game.blocks.filter(b=>Math.abs(b.angle)>.05).length,physics:!!game.engine,spriteReady:spriteReady(game.hero),sceneReady:sceneReady(),debrisCount:game.debris.length,stageMapOpen:!$('stageMap').hidden,exitOpen:!$('exitConfirm').hidden,savedBest:progress.best.slice(),savedWins:progress.wins,skillEffects:game.skillEffects.length,actorMotion:game.actorAnim.player.kind,actorMotionLife:game.actorAnim.player.life});
+ window.__artilleryDebug=()=>({mode:game.mode,stage:game.stage,difficulty:game.difficulty,hero:game.hero,abilityUsed:game.abilityUsed,abilityArmed:game.abilityArmed,abilityCount:game.abilityCount,wind:game.wind,phase:game.phase,shots:game.shots,maxShots:game.maxShots,turn:game.turn,projectiles:game.projectiles.length,projectilePierce:game.projectiles[0]?.pierce||0,foes:game.foes.filter(x=>x.alive).length,bossHp:game.foes.find(f=>f.boss&&f.alive)?.hp||0,playerHp:game.playerHp,aiHp:game.aiHp,sound:game.sound,canvas:[cv.width,cv.height],rotatingBlocks:game.blocks.filter(b=>Math.abs(b.angle)>.05).length,physics:!!game.engine,spriteReady:spriteReady(game.hero),sceneReady:sceneReady(),enemyReady:enemyArtReady(),aimImpact:game.phase==='aim'?predict(game.angle,game.power,game.wind).impact?.kind||'none':'inactive',debrisCount:game.debris.length,stageMapOpen:!$('stageMap').hidden,exitOpen:!$('exitConfirm').hidden,savedBest:progress.best.slice(),savedWins:progress.wins,skillEffects:game.skillEffects.length,actorMotion:game.actorAnim.player.kind,actorMotionLife:game.actorAnim.player.life});
  $('adventureStage').value=String(progress.lastStage);$('duelDifficulty').value=progress.difficulty;document.querySelectorAll('[data-hero]').forEach(b=>{const chosen=b.dataset.hero===selectedHero;b.classList.toggle('selected',chosen);b.setAttribute?.('aria-pressed',String(chosen));});refreshMenu();
  requestAnimationFrame(frame);
 })();
