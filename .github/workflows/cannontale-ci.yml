@@ -1,0 +1,33 @@
+name: CannonTale — physics and combat regression
+on:
+  pull_request:
+    paths:
+      - 'CannonTale/**'
+      - '.github/workflows/cannontale-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'CannonTale/**'
+      - '.github/workflows/cannontale-ci.yml'
+permissions:
+  contents: read
+jobs:
+  combat-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify core files and illustration assets
+        run: |
+          test -s CannonTale/index.html
+          test -s CannonTale/matter.min.js
+          test -s CannonTale/Artillery_Enemy_Atlas_v0_8.png
+          if grep -Eqi '<svg([[:space:]>])' CannonTale/index.html; then
+            echo "CannonTale must not contain SVG markup" >&2
+            exit 1
+          fi
+      - name: Physics, controls, combat and persistence smoke test
+        run: node CannonTale/artillery_smoke_test.cjs

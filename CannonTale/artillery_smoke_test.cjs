@@ -16,7 +16,7 @@ const handlers={};
 const elements=new Map();
 const noOp=()=>{};
 let imageDrawCalls=0;
-const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?()=>{imageDrawCalls++;}:key==='save'||key==='restore'||key==='translate'||key==='setTransform'||key==='beginPath'||key==='moveTo'||key==='lineTo'||key==='stroke'||key==='fill'||key==='ellipse'||key==='arc'||key==='roundRect'||key==='fillRect'||key==='fillText'||key==='strokeText'||key==='closePath'||key==='scale'||key==='rotate'?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
+const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?()=>{imageDrawCalls++;}:key==='save'||key==='restore'||key==='translate'||key==='setTransform'||key==='beginPath'||key==='moveTo'||key==='lineTo'||key==='stroke'||key==='fill'||key==='ellipse'||key==='arc'||key==='roundRect'||key==='fillRect'||key==='fillText'||key==='strokeText'||key==='closePath'||key==='scale'||key==='rotate'||key==='rect'||key==='clip'||key==='bezierCurveTo'?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
 function el(id){if(!elements.has(id)){const listeners={},item={id,hidden:false,disabled:false,style:{},value:'',textContent:'',dataset:{},clientWidth:id==='field'?1280:0,clientHeight:id==='field'?620:0,width:0,height:0,tagName:'DIV',classList:{toggle:noOp},addEventListener(type,fn){listeners[type]=fn;},dispatch(type,event={}){listeners[type]?.({target:item,...event});},click(){this.dispatch('click');},getContext:()=>ctx,getBoundingClientRect(){return{left:0,top:0,width:this.clientWidth,height:this.clientHeight};},setPointerCapture:noOp};elements.set(id,item);}return elements.get(id);}
 const weapons=['normal','bomb','split'].map(type=>{const b=el('weapon-'+type);b.dataset.weapon=type;return b;});
 const heroes=['fox','bear','rabbit','cat'].map(type=>{const b=el('hero-'+type);b.dataset.hero=type;return b;});
@@ -78,9 +78,10 @@ if(/v0_[67]/.test(versionedPath)){
  assert.equal(state().actorMotion,'attack','The firing hero must enter attack motion');
  assert(state().actorMotionLife>0);
 }
-let peakRotated=0;
-for(let i=0;i<650;i++){frames(1);peakRotated=Math.max(peakRotated,state().rotatingBlocks||0);}
+let peakRotated=0,peakBlasts=0;
+for(let i=0;i<650;i++){frames(1);peakRotated=Math.max(peakRotated,state().rotatingBlocks||0);peakBlasts=Math.max(peakBlasts,state().blastCores||0);}
 assert.equal(state().shots,1);
+assert(peakBlasts>0,'v0.9 projectile impact must create animated blast cores');
 assert(['aim','result'].includes(state().phase),'Adventure shot must finish');
 if(/v0_[234567]/.test(versionedPath))assert(peakRotated>0,'Explosion should rotate at least one structure piece');
 el('homeBtn').click();
@@ -91,7 +92,7 @@ if(/v0_[4567]/.test(versionedPath)){
   frames(600);
   assert.equal(state().stage,stage,'Selected adventure stage should launch');
   assert.equal(state().foes,foes,'Adventure foes should survive until a player shot: stage '+stage);
-  if(stage===3){assert.equal(state().bossHp,160);assert.equal(state().maxShots,5);}
+  if(stage===3){assert.equal(state().bossHp,160);assert.equal(state().maxShots,5);assert(state().materials.iron>=2,'Boss fortification needs iron pieces');}
   el('homeBtn').click();
  }
  el('duelDifficulty').value='hard';
@@ -148,6 +149,7 @@ el('fire').click();
 assert.equal(state().shots,1);
 frames(850);
 assert(['aim','result','aiWait','flying'].includes(state().phase));
+if(state().aiShots>0)assert(['normal','bomb','split'].includes(state().aiWeapon)&&state().aiTactic,'AI should select a tactical projectile');
 assert(state().turn==='player'||state().turn==='ai');
 const desktop=state();
 el('field').clientWidth=390;el('field').clientHeight=355;
