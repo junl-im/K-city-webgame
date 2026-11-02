@@ -408,7 +408,7 @@ function gameScreen() {
   const active = g.phase==='playing' ? (yourTurn?'내 차례':'상대가 생각 중…') : g.phase==='awaiting-go-stop' ? '고 / 스톱 선택' : g.phase==='awaiting-chongtong'?'총통!':'한 판 종료';
   const opponentMood = g.phase==='round-ended' ? (g.winner==='computer'?'victory':'surprised')
     : !yourTurn ? 'thinking' : ai.total > me.total ? 'confident' : ai.total < me.total ? 'surprised' : 'ready';
-  return `<main class="scene scene--game">
+  return `<main class="scene scene--game" data-game-uuid="${safe(g.gameUuid)}">
     <header class="game-top top-safe">
       <button class="nav-round" data-action="home" title="메인으로" aria-label="메인으로" type="button">${uiIcon('home')}</button>
       <div class="game-title">${brand()}<small>점당 ${kr(g.pointValue)}냥</small></div>
@@ -550,12 +550,23 @@ function exitOverlay() {
   </section></div>`;
 }
 function render() {
+  const previousHand=ROOT.querySelector('.my-hand');
+  const previousGame=ROOT.querySelector('.scene--game')?.dataset.gameUuid;
+  const previousScroll=previousHand?.scrollLeft ?? 0;
+  const focusedCard=previousHand?.contains(document.activeElement) ? document.activeElement.dataset.card : null;
   let html = app.screen==='opening' && opening ? openingScreen() : app.screen==='select' ? selectScreen() : app.screen==='game' && app.game ? gameScreen() : home();
   if (overlay==='help') html += helpOverlay();
   if (overlay==='cardbook' && app.screen!=='game') html += cardbookOverlay();
   if (overlay==='exit') html += exitOverlay();
   ROOT.removeAttribute('data-card-art');
   ROOT.innerHTML = html;
+  const hand=ROOT.querySelector('.my-hand');
+  if (hand && previousGame && previousGame===app.game?.gameUuid) {
+    hand.scrollLeft=previousScroll;
+    if (focusedCard && !ROOT.querySelector('.modal-shade')) {
+      [...hand.querySelectorAll('button[data-card]')].find(button=>button.dataset.card===focusedCard)?.focus({preventScroll:true});
+    }
+  }
   syncHandScrollHint();
   syncTurnClock();
   if (overlay==='exit') ROOT.querySelector('[data-action="exit-stay"]')?.focus({preventScroll:true});
