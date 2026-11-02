@@ -371,3 +371,17 @@
 - 실제 공개 브라우저 확인: 홈 원화, 1장 상향 지도, 잠긴 2장 정보/출전 차단, 1-1 전장 및 후면 여우/5 슬롯. https://junl-im.github.io/K-city-webgame/ForestGuard/#forest-guard
 - 다음 필수 목표: 후면 체형/관절 분리 6–8프레임 원화, 공격 동작/투사체 타격감, 중간보스·몬스터 개별 등장/피격 연출, 성장/영입 카드 아이콘과 HUD·결과창 전체 원화 완성도. 실기기 Samsung Internet / iOS Safari, 12스테이지 실전 승률 및 FPS/발열 QA는 미검증.
 - 진행 중 재개 규칙: 최신 GitHub main 소스와 이 문서의 맨 아래 기록을 우선 읽고, 프리뷰보다 부족한 화면을 직접 캡처해 비교하면서 다음 패치를 진행. 다른 게임 폴더는 수정하지 않는다.
+
+
+## 2026-11-02 v3.7 — 손그림 버튼 바깥 테두리 제거·상황별 한국어 서체
+- 사용자 피드백: 이미 완성된 그림 버튼에 일반 사각형 border/box-shadow/::after 테두리가 중복 적용되는 문제. 홈 시작/이어하기/스테이지 선택, 도움말/도감, 장 탭/출전, 전투 HUD·스킬·진화·수리, 모달 버튼에서 불필요한 네모 테두리 제거.
+- 원래 금빛 도토리/에메랄드/사파이어/돌/양피지 WebP와 홈·일시정지 아이콘 아틀라스 유지. 전투 전체화면/속도도 그림 WebP로 통일. 키보드 포커스는 직사각형 outline 대신 원화 윤곽 필터.
+- 버튼 Jua, 설명 Gowun Batang (OFL, Google Fonts display=swap + 시스템 대체 글꼴), 금색 버튼 진갈색·녹색/사파이어는 크림빛·도움말 잉크색.
+- 수정 파일: button-system-v33.css, index.html, tests/smoke.mjs, tests/browser-qa.mjs, OWNERSHIP.md. CSS 캐시 20261102d. SVG·게임 로직·저장 키 변경 없음.
+- 코드: https://github.com/junl-im/K-city-webgame/commit/cb49ad6dc7bfb8eb0a1ccaa5d3d5b840134a485d
+- smoke 성공: https://github.com/junl-im/K-city-webgame/actions/runs/41402402958
+- 모바일 Chromium 320/360/390/430·PC QA 성공: https://github.com/junl-im/K-city-webgame/actions/runs/41402402948
+- Pages 배포 성공: https://github.com/junl-im/K-city-webgame/actions/runs/41402402969
+- 공개 브라우저 확인: 홈/제1장 지도/1-1 전투 실제 화면, computed border 0px, box-shadow none, 원화 WebP 표시. https://junl-im.github.io/K-city-webgame/ForestGuard/#forest-guard
+- 다음 과제: 5인 후면 영웅 관절별 6–8프레임, 보스/몬스터 전용 액션, 투사체·피격·스킬 원화, 실제 Samsung Internet/iOS Safari와 12스테이지 완주·FPS/발열 검증. 최신 GitHub main과 이 문서 끝 항목 기준으로 계속 개선.
+
