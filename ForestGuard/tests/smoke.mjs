@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync,statSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 const root=new URL('../',import.meta.url);
 const read=name=>readFileSync(new URL(name,root),'utf8');
 const html=read('index.html'),css=read('style.css'),js=read('game.js'),visuals=read('visuals.js');
@@ -94,8 +95,8 @@ assert.match(js,/function funnelX\(entryX,y,wind=0\)/);
 assert.match(js,/this\.startBossWarning\(e\)/);
 assert.match(js,/this\.clearBossWarning\(enemy\)/);
 assert.match(visuals,/rani-ui-icons-v04\.webp/);
-execFileSync(process.execPath,['--check',new URL('game.js',root).pathname]);
-execFileSync(process.execPath,['--check',new URL('visuals.js',root).pathname]);
+execFileSync(process.execPath,['--check',fileURLToPath(new URL('game.js',root))]);
+execFileSync(process.execPath,['--check',fileURLToPath(new URL('visuals.js',root))]);
 assert.match(html,/lang="ko"/);
 assert.match(html,/viewport-fit=cover/);
 assert.match(html,/id="game-root"/);
@@ -280,13 +281,9 @@ for(const system of ['SYNERGY_RECIPES','completeEvolution','evolutionPath','acti
 assert.match(visuals,/roots:4,pierce:5,ward:13,hunter:14/);
 assert.doesNotMatch(html+css+js+visuals,/<svg\b|data:image\/svg\+xml|\.svg(?:["'(])/i);
 assert.doesNotMatch(js,/eval\s*\(/);
-console.log(execFileSync(process.execPath,[new URL('tests/balance-matrix.mjs',root).pathname],{encoding:'utf8'}).trim());
-console.log(execFileSync(process.execPath,[new URL('tests/terrain-matrix.mjs',root).pathname],{encoding:'utf8'}).trim());
-console.log(execFileSync(process.execPath,[new URL('tests/boss-volley.mjs',root).pathname],{encoding:'utf8'}).trim());
-console.log(execFileSync(process.execPath,[new URL('tests/growth-auto.mjs',root).pathname],{encoding:'utf8'}).trim());
-console.log(execFileSync(process.execPath,[new URL('tests/range-cinematic.mjs',root).pathname],{encoding:'utf8'}).trim());
-console.log(execFileSync(process.execPath,[new URL('tests/five-unit-roster.mjs',root).pathname],{encoding:'utf8'}).trim());
-console.log(execFileSync(process.execPath,[new URL('tests/hero-motion.mjs',root).pathname],{encoding:'utf8'}).trim());
+for (const file of ['balance-matrix','terrain-matrix','boss-volley','growth-auto','range-cinematic','five-unit-roster','hero-motion']) {
+  console.log(execFileSync(process.execPath,[fileURLToPath(new URL(`tests/${file}.mjs`,root))],{encoding:'utf8'}).trim());
+}
 assert.match(js,/function makeResultPresentation\(win,stage,hp,maxHP,coins,party,streak\)/);
 assert.match(js,/const atFinal=win&&this\.stage\.id===STAGES\.length-1/);
 assert.match(js,/classList\.toggle\('result-dialog'/);

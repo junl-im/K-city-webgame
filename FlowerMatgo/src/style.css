@@ -3445,6 +3445,23 @@ button:disabled { cursor: not-allowed; opacity:.48; }
 .scene--game .result-prize span {font-weight:800;font-size:12px;}
 .scene--game .result-prize strong {font-size:clamp(20px,5vw,30px);color:#ad4928;line-height:1.1;}
 .scene--game .result-prize small {font-size:.55em;}
+
+/* The large home characters are painted illustrations; keeping them still
+   avoids constant subpixel shimmer on desktop and saves mobile GPU work. */
+.scene--home .hero-animals .mascot {animation:none;translate:none;}
+
+/* Each hand card owns its visible horizontal space. A compact phone can
+   scroll the hand instead of overlapping neighbouring hit targets. */
+.scene--game .my-hand {width:100%;max-width:1260px;gap:4px;padding-inline:4px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#d4ac74 #416750;}
+.scene--game .my-hand::-webkit-scrollbar {height:4px;}
+.scene--game .my-hand::-webkit-scrollbar-thumb {background:#d4ac74;border-radius:8px;}
+.scene--game .my-hand .hwatu,.scene--game .my-hand .hwatu:first-child {flex:none;margin-left:0;}
+.scene--game .my-hand .hwatu--interactive:hover:not(.hwatu--finger-pressed),
+.scene--game .my-hand .hwatu--interactive:focus-visible {transform:translateY(-6px);}
+@media(max-width:650px){
+  .scene--game .my-hand {justify-content:safe center;gap:3px;padding-inline:3px;}
+  .scene--game .my-hand .hwatu,.scene--game .my-hand .hwatu:first-child {width:clamp(36px,11vw,52px);max-width:none;margin-left:0;}
+}
 .scene--game .round-multiplier {display:inline-block;padding:2px 6px;border:1px solid #eec27e;border-radius:99px;background:#fff0c7;color:#8c431d;font-size:11px;line-height:1.2;white-space:nowrap;}
 @media(max-width:650px) and (min-height:701px){
   .scene--game .collection-rack .collection-preview .hwatu {width:clamp(30px,8.7vw,36px);}
