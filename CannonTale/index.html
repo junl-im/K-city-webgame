@@ -626,7 +626,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   }
  }
  function hitCircleRect(p,b){const dx=p.x-b.body.position.x,dy=p.y-b.body.position.y,a=-b.body.angle,c=Math.cos(a),s=Math.sin(a),x=dx*c-dy*s,y=dx*s+dy*c;const qx=clamp(x,-b.w/2,b.w/2),qy=clamp(y,-b.h/2,b.h/2);return(x-qx)**2+(y-qy)**2<p.r*p.r;}
- function defeatFoe(f){if(!f.alive)return;f.alive=false;f.deathTimer=3.8;f.deathAngle=rnd(-.38,.38);f.hitAnim=0;f.attackAnim=0;if(f.body)M.Composite.remove(game.engine.world,f.body);spawnSparks(f.x,f.y,f.boss?50:24,f.boss?'#e4b1a2':'#b3a0ed',f.boss?1.3:.85);game.popups.push({x:f.x,y:f.y-28,value:f.boss?'대장 격파!':'격파!',life:1.05});if(f.boss){game.shake=20;game.message='요새 대장 격파!';game.messageTime=2;}}
+ function defeatFoe(f){if(!f.alive)return;f.alive=false;f.deathTimer=3.8;f.deathAngle=rnd(-.38,.38);f.hitAnim=0;f.attackAnim=0;if(f.body)M.Composite.remove(game.engine.world,f.body);spawnSparks(f.x,f.y,f.boss?50:24,['#a9c75f','#cbdad1','#a9edff','#ffb375'][f.kind||0],f.boss?1.3:.85);game.popups.push({x:f.x,y:f.y-28,value:f.boss?'대장 격파!':'격파!',life:1.05});if(f.boss){game.shake=20;game.message='요새 대장 격파!';game.messageTime=2;}}
  function applyExplosion(p){
   game.lastImpact={x:clamp(p.x,0,W),y:clamp(p.y,0,H)};
   const big=p.weapon==='bomb',radius=big?105:p.weapon==='split'?55:62,damage=big?105:p.weapon==='split'?46:72;
@@ -929,6 +929,25 @@ const materialCells={
  // Cell edges are measured from the transparent source sheet to keep weapons fully visible.
  const combatColumns=[0,260,636,925,1262],combatRows=[0,292,580,879,1246];
  function foePose(f){return !f.alive?'death':f.hitAnim>0?'hurt':f.attackAnim>0?'attack':'idle';}
+
+ function drawFoeElementalAttack(f,strength){
+  const kind=f.kind||0,dir=-1,t=game.clock*11,spread=f.boss?1.4:1;
+  ctx.save();ctx.globalAlpha=clamp(strength,0,1)*.9;ctx.lineCap='round';
+  const x=f.x-f.r*1.14,y=f.y-f.r*.42;
+  if(kind===0){ // Acorn guardian: leaf shards and a wooden shield slam.
+   for(let i=0;i<5;i++){const a=t*.35+i*Math.PI*2/5,r=(17+i*3)*spread;ctx.save();ctx.translate(x+Math.cos(a)*r,y+Math.sin(a)*r);ctx.rotate(a);ctx.fillStyle=i%2?'#7fab4a':'#d0da66';ctx.beginPath();ctx.ellipse(0,0,7*spread,3*spread,0,0,Math.PI*2);ctx.fill();ctx.restore();}
+  }else if(kind===1){ // Stone golem: staggered chunks and an earth pulse.
+   ctx.strokeStyle='#d2e5da';ctx.lineWidth=4*spread;ctx.beginPath();ctx.arc(x,y+11,24*spread,Math.PI*.88,Math.PI*1.89);ctx.stroke();
+   for(let i=0;i<5;i++){const a=i*Math.PI/4+.5;ctx.fillStyle=i%2?'#889fb0':'#bccbc7';const px=x+Math.cos(a)*24*spread,py=y+Math.sin(a)*18*spread;ctx.fillRect(px,py,7*spread,5*spread);}
+  }else if(kind===2){ // Wind spirit: three quick strokes with moving wisps.
+   ctx.strokeStyle='#b6ffff';ctx.lineWidth=3.8*spread;
+   for(let i=0;i<3;i++){const ry=y+(i-1)*13*spread;ctx.beginPath();ctx.moveTo(x+18,ry);ctx.bezierCurveTo(x-7,ry-20,x-34,ry+17,x-57,ry-7);ctx.stroke();}
+  }else{ // Iron fire boss: furnace burst with orange flying embers.
+   ctx.strokeStyle='#ffac54';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(x+6,y);ctx.lineTo(x-42*spread,y-8);ctx.stroke();
+   for(let i=0;i<9;i++){const a=(i-4)*.22;const rad=(28+(i%3)*8)*spread;ellipse(x-Math.cos(a)*rad,y+Math.sin(a)*rad,2.2+i%3,2+i%3,i%2?'#ffd998':'#f47734');}
+  }
+  ctx.restore();
+ }
  function drawFoes(){for(const f of game.foes){
   if(!f.alive&&f.deathTimer<=0)continue;
   const pose=foePose(f),dying=pose==='death',hurt=pose==='hurt',attacking=pose==='attack';
@@ -990,6 +1009,7 @@ const materialCells={
     ctx.beginPath();ctx.moveTo(xx,yy);ctx.lineTo(xx-11*s,yy-3*s);ctx.stroke();
    }
    ctx.restore();
+   drawFoeElementalAttack(f,attackSurge);
   }
   if(hurt){
    ctx.save();ctx.globalAlpha=stagger*.8;ctx.strokeStyle='#fff1bb';ctx.lineWidth=2.5;
