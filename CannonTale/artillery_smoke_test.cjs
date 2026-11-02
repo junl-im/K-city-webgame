@@ -42,6 +42,10 @@ function requestAnimationFrame(fn){callback=fn;}
 new Function('document','window','requestAnimationFrame','devicePixelRatio',script)(document,window,requestAnimationFrame,1);
 function frames(n){for(let i=0;i<n;i++){now+=1000/60;const run=callback;callback=null;assert(run,'Animation frame not scheduled');run(now);}}
 function state(){return window.__artilleryDebug();}
+function waitForReview(limit=820){
+ for(let i=0;i<limit;i++){frames(1);if(state().phase==='review')return;}
+ throw Error('Shot review never started');
+}
 frames(2);
 assert.equal(state().mode,'menu');
 assert.equal(state().exitOpen,false);
@@ -73,6 +77,13 @@ el('adventureBtn').click();frames(5);
 assert.equal(state().foes,2);
 assert.equal(state().phase,'aim');
 assert.equal(state().hitStreak,0,'Starting a new game must clear hit streak');
+assert(el('distanceValue').textContent.includes('예상'),'Angle-based predicted distance must be present');
+const oldAngle=Number(el('angle').value);
+el('field').dispatch('pointerdown',{pointerId:12,clientX:650,clientY:290});
+el('field').dispatch('pointermove',{pointerId:12,clientX:655,clientY:210});
+el('field').dispatch('pointerup',{pointerId:12,clientX:655,clientY:210});
+assert(Number(el('angle').value)>oldAngle,'Upward dragging on battlefield must increase angle');
+el('angle').value='43';el('angle').dispatch('input');
 assert(brightTrajectoryStrokes>0,'High-contrast aiming trajectory should actually render');
 assert.equal(state().materialReady,true,'The 3-stage material atlas must load');
 assert.equal(state().combatReady,true,'All four new enemies must have distinct bitmap battle poses');
@@ -95,11 +106,13 @@ if(/v0_[67]/.test(versionedPath)){
  assert(state().actorMotionLife>0);
 }
 let peakRotated=0,peakBlasts=0;
-for(let i=0;i<650;i++){frames(1);peakRotated=Math.max(peakRotated,state().rotatingBlocks||0);peakBlasts=Math.max(peakBlasts,state().blastCores||0);}
+for(let i=0;i<820;i++){frames(1);peakRotated=Math.max(peakRotated,state().rotatingBlocks||0);peakBlasts=Math.max(peakBlasts,state().blastCores||0);if(state().phase==='review')break;}
 assert.equal(state().shots,1);
 assert(peakBlasts>0,'v0.9 projectile impact must create animated blast cores');
 assert.equal(state().phase,'review','Adventure should hold the impact instead of returning to the launcher');
 assert.equal(state().reviewVisible,true,'The impact review ribbon must remain visible');
+assert.equal(el('reviewCountdown').hidden,false,'Count number must show before transition');
+assert(Number(el('reviewCountdown').textContent)>0,'Countdown must show positive integer');
 assert(Number.isFinite(state().reviewFocusX),'The camera should retain a real impact focus');
 assert(el('reviewTitle').textContent.length>0,'Shot outcome must be summarized');
 assert(state().rubbleCount>=0,'The review must preserve its rubble state safely');
@@ -117,12 +130,24 @@ assert(['aim','result'].includes(state().phase),'Confirming review returns to ai
 assert.equal(state().reviewVisible,false,'Review ribbon should close after confirmation');
 if(/v0_[234567]/.test(versionedPath))assert(peakRotated>0,'Explosion should rotate at least one structure piece');
 el('homeBtn').click();
+// Hold to charge power; release must fire exactly one projectile even when click follows.
+el('adventureBtn').click();frames(3);
+el('fire').dispatch('pointerdown',{pointerId:7,button:0});
+assert.equal(el('chargeGauge').hidden,false,'Hold should reveal illustrated charge meter');
+frames(60);
+assert(Number(el('fireLabel').textContent.replace(/[^0-9]/g,''))>20,'Charge should rise while holding');
+el('fire').dispatch('pointerup',{pointerId:7});
+assert.equal(state().shots,1,'Releasing a charged button must fire');
+el('fire').click();
+assert.equal(state().shots,1,'Synthetic click after pointerup must never double-fire');
+assert.equal(el('chargeGauge').hidden,true,'Power meter closes when launched');
+el('homeBtn').click();
 // Regression: first shot must not require another outcome-button tap to enable the next shot.
 el('adventureStage').value='0';
 el('adventureBtn').click();frames(4);
 el('angle').value='82';el('angle').dispatch('input');
 el('power').value='20';el('power').dispatch('input');
-el('fire').click();frames(650);
+el('fire').click();waitForReview();
 assert.equal(state().phase,'review','A short first shot should hold its results');
 assert.equal(state().foes,2,'Short vertical shot must not end the mission');
 assert.equal(el('fire').disabled,false,'Second fire must be enabled');
@@ -136,7 +161,7 @@ el('homeBtn').click();
 el('adventureBtn').click();frames(4);
 el('angle').value='82';el('angle').dispatch('input');
 el('power').value='20';el('power').dispatch('input');
-el('fire').click();frames(650);
+el('fire').click();waitForReview();
 assert.equal(state().phase,'review');
 el('angle').value='67';el('angle').dispatch('input');
 assert.equal(state().phase,'aim','Changing angle should return to aiming');
