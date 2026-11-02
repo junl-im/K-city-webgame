@@ -1,0 +1,236 @@
+/* 라니 수비대 v3.6 — continuous chapter ascent, readable portraits and compact controls.
+   Uses only existing original PNG/WebP illustrations. © 2026 곰같은여우. */
+
+/* Each chapter is one continuous illustrated environment, not separate boxes. */
+#stage-select-panel{
+  background-color:#071b16!important;
+  background-image:
+    linear-gradient(180deg,rgba(5,23,17,.68) 0%,rgba(5,23,17,.03) 19%,rgba(5,23,17,.02) 72%,rgba(5,23,17,.62) 100%),
+    linear-gradient(90deg,rgba(7,23,17,.39),transparent 69%),
+    url('./art/forest-worldmap-v05.webp')!important;
+  background-position:center,center,center 52%!important;
+  background-size:cover,cover,cover!important;
+  background-repeat:no-repeat!important;
+}
+#stage-select-panel[data-chapter="2"]{
+  background-image:
+    linear-gradient(180deg,rgba(6,26,25,.68),transparent 19%,transparent 73%,rgba(5,24,25,.67)),
+    linear-gradient(90deg,rgba(8,31,30,.39),transparent 70%),
+    url('./art/misty-canyon-v08.png')!important;
+  background-position:center,center,center 54%!important;
+}
+#stage-select-panel[data-chapter="3"]{
+  background-image:
+    linear-gradient(180deg,rgba(8,16,37,.68),transparent 20%,transparent 73%,rgba(9,17,38,.72)),
+    linear-gradient(90deg,rgba(14,19,44,.42),transparent 72%),
+    url('./art/moonlit-highland-v08.png')!important;
+  background-position:center,center,center 48%!important;
+}
+#stage-select-panel .stage-select-header{
+  background:linear-gradient(180deg,rgba(5,22,16,.54),rgba(5,22,16,0))!important;
+  border:0!important;box-shadow:none!important;
+}
+#stage-select-panel .stage-select-header strong{
+  color:#fff1c9!important;
+  text-shadow:0 2px 5px #08170e,0 1px 2px #08170e;
+}
+#stage-select-panel .stage-select-header span{
+  color:#fff0ce!important;
+  text-shadow:0 2px 4px #08170e;
+}
+#stage-select-panel .stage-chapter-tabs{gap:clamp(1px,1vw,6px)!important;margin-top:3px!important}
+#stage-select-panel .stage-chapter-tab{
+  height:clamp(37px,5.2dvh,48px)!important;
+  filter:drop-shadow(0 3px 4px rgba(3,20,12,.67));
+}
+#stage-select-panel .stage-chapter-tab:not(.active){filter:saturate(.84) drop-shadow(0 2px 3px rgba(4,17,11,.64))}
+#stage-select-panel .stage-picker-content{isolation:isolate;margin:0!important}
+#stage-select-panel .stage-route-canvas{opacity:1!important}
+#stage-select-panel .stage-grid{
+  justify-content:space-around!important;
+  gap:clamp(8px,1.9dvh,18px)!important;
+  padding:clamp(7px,2dvh,20px) 0!important;
+}
+#stage-select-panel .stage-tile{
+  min-height:clamp(72px,11.2dvh,105px)!important;
+  height:clamp(72px,11.2dvh,105px)!important;
+  max-height:105px!important;
+  padding:7px 8px 8px 5px!important;
+  gap:2px 5px!important;
+  filter:drop-shadow(0 5px 5px rgba(0,13,7,.65))!important;
+}
+#stage-select-panel .stage-tile.selected{
+  filter:drop-shadow(0 0 9px rgba(250,216,133,.53)) drop-shadow(0 5px 5px rgba(0,13,7,.65))!important;
+}
+#stage-select-panel .stage-tile.locked{filter:saturate(.78) drop-shadow(0 4px 4px rgba(0,13,7,.48))!important}
+#stage-select-panel .stage-tile .stage-tile-art{
+  align-self:stretch!important;
+  mask-image:linear-gradient(90deg,#000 77%,transparent)!important;
+  -webkit-mask-image:linear-gradient(90deg,#000 77%,transparent)!important;
+}
+#stage-select-panel .stage-tile .stage-list-name{
+  font-size:clamp(11px,3.25vw,15px)!important;
+  line-height:1.2!important;
+  text-shadow:0 1px 2px #0d2419,0 2px 4px #0d2419!important;
+}
+#stage-select-panel .stage-tile.selected .stage-list-name,
+#stage-select-panel .stage-tile.selected .stage-tile-summary,
+#stage-select-panel .stage-tile.selected .tiny{
+  color:#503117!important;
+  text-shadow:0 1px 1px rgba(255,244,212,.85)!important;
+}
+#stage-select-panel .stage-path-pin{
+  filter:drop-shadow(0 3px 5px rgba(3,14,9,.75))!important;
+}
+#stage-select-panel .stage-path-pin.active{
+  filter:drop-shadow(0 0 11px rgba(255,213,115,.8)) drop-shadow(0 3px 5px rgba(2,17,11,.72))!important;
+}
+#stage-select-panel .stage-map-signet{
+  top:clamp(9px,2dvh,17px)!important;
+  opacity:.92;
+}
+#stage-select-panel .stage-choice-footer{
+  min-height:clamp(73px,9.2dvh,89px)!important;
+  height:clamp(73px,9.2dvh,89px)!important;
+  flex-basis:clamp(73px,9.2dvh,89px)!important;
+  padding:8px 10px!important;
+}
+#stage-select-panel .stage-choice-description{min-width:0}
+#stage-select-panel .stage-choice-description strong{
+  color:#fff1ce!important;font-size:clamp(14px,4vw,18px)!important;
+  text-shadow:0 2px 4px #1d170d;
+}
+#stage-select-panel .stage-choice-description small{
+  font-size:clamp(10px,2.5vw,12px)!important;
+  color:#fff0ce!important;text-shadow:0 1px 3px #17160c;
+}
+#stage-select-panel #stage-enter-btn:disabled{
+  opacity:.82!important;
+  background-image:var(--fg-btn-stone)!important;
+  color:#e5dcc6!important;
+  text-shadow:0 1px 3px #17241d!important;
+  filter:saturate(.6)!important;
+  cursor:not-allowed;
+}
+
+/* The mission information sits on one painted board; full-size scenery remains visible. */
+.menu:not(.stage-choosing) .home-stage-spot{
+  background:var(--rani-ui-map) center/100% 100% no-repeat!important;
+  filter:drop-shadow(0 5px 7px rgba(4,17,10,.64))!important;
+  padding:clamp(15px,2.1dvh,23px) clamp(20px,4.2vw,28px)!important;
+}
+.menu:not(.stage-choosing) .home-stage-copy small{color:#ffe1a1!important;text-shadow:0 1px 3px #261b0f}
+.menu:not(.stage-choosing) .home-stage-copy strong{color:#fff2d3!important;text-shadow:0 2px 3px #241c10}
+.menu:not(.stage-choosing) .home-stage-copy span{color:#f4e8c9!important;text-shadow:0 1px 3px #211b10}
+.menu:not(.stage-choosing) #stage-list-btn{filter:drop-shadow(0 3px 4px rgba(5,17,12,.5))}
+
+/* Battle: all five painted stations and both command illustrations remain visible. */
+#game-screen .battle-toolbar{
+  display:flex!important;align-items:center!important;
+  gap:clamp(2px,.8vw,6px)!important;
+  padding:3px clamp(4px,1.5vw,9px)!important;
+  overflow:hidden!important;
+}
+#game-screen .hero-slots{
+  flex:1 1 0%!important;
+  min-width:0!important;max-width:none!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:clamp(1px,.5vw,4px)!important;
+}
+#game-screen .hero-slot{
+  min-width:0!important;max-width:none!important;
+  padding:3px 1px!important;
+  flex-basis:auto!important;
+  align-items:center!important;
+  overflow:hidden!important;
+}
+#game-screen .hero-slot .empty-station{
+  width:min(100%,40px)!important;
+  flex:0 0 clamp(24px,4.4dvh,40px)!important;
+  height:clamp(24px,4.4dvh,40px)!important;
+  background-size:contain!important;
+}
+#game-screen .hero-slot .portrait-icon,
+#game-screen .hero-slot strong.portrait-icon{
+  width:min(100%,46px)!important;
+  height:clamp(30px,4.8dvh,46px)!important;
+  flex:0 0 clamp(30px,4.8dvh,46px)!important;
+}
+#game-screen .hero-slot span{
+  max-width:100%;display:block;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;font-size:clamp(8px,1.8vw,10px)!important;line-height:1.22;
+}
+#game-screen .battle-toolbar .evo-button,
+#game-screen .battle-toolbar .skill-button{
+  flex:0 0 clamp(45px,12vw,60px)!important;
+  width:clamp(45px,12vw,60px)!important;
+  min-width:0!important;
+  padding:3px 1px!important;
+  overflow:hidden!important;
+}
+#game-screen .battle-toolbar .evo-button small,
+#game-screen .battle-toolbar .skill-button small{
+  display:block;max-width:100%;
+  line-height:1.15!important;
+  font-size:clamp(8px,2vw,10px)!important;
+  letter-spacing:-.03em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+#game-screen .battle-toolbar .evo-button>span.painted-icon,
+#game-screen .battle-toolbar .skill-button>span.painted-icon{
+  width:clamp(28px,4.6dvh,43px)!important;
+  height:clamp(28px,4.6dvh,43px)!important;
+}
+#game-screen .hero-slot.next-slot .empty-station{
+  filter:drop-shadow(0 0 5px rgba(245,207,130,.56))!important;
+}
+#game-screen .skill-button.ready{filter:drop-shadow(0 2px 5px rgba(64,190,225,.55))!important}
+
+/* Large original portraits are the focal point in growth and recruitment cards. */
+#modal-layer .card-grid{gap:clamp(5px,1.4vw,9px)!important}
+#modal-layer .spell-card{min-width:0!important;overflow:hidden!important}
+#modal-layer .recruit-dialog .recruit-card{
+  min-height:clamp(169px,28dvh,247px)!important;
+}
+#modal-layer .recruit-dialog .recruit-card .recruit-portrait{
+  width:100%!important;max-width:100%!important;
+  height:clamp(94px,16.3dvh,144px)!important;
+  flex:0 0 clamp(94px,16.3dvh,144px)!important;
+}
+#modal-layer .spell-card strong{overflow-wrap:anywhere;line-height:1.18!important}
+#modal-layer .spell-card small{overflow-wrap:anywhere}
+#modal-layer .recruit-dialog .recruit-tag{
+  background:var(--fg-btn-gold) center/100% 100% no-repeat!important;
+  border:0!important;border-radius:0!important;
+  padding:5px 9px!important;color:#59361a!important;
+  box-shadow:none!important;
+  text-shadow:0 1px #ffefc8;
+}
+
+/* Short and narrow phones retain accessible actions in a single viewport. */
+@media(max-width:360px){
+  #stage-select-panel .stage-tile{
+    height:clamp(61px,10.3dvh,82px)!important;
+    min-height:clamp(61px,10.3dvh,82px)!important;
+    padding:5px 4px!important;
+    grid-template-columns:clamp(39px,12.4vw,48px) minmax(0,1fr)!important;
+  }
+  #stage-select-panel .stage-grid{gap:clamp(4px,1dvh,9px)!important}
+  #stage-select-panel .stage-tile .stage-list-name{font-size:10px!important}
+  #stage-select-panel .stage-choice-footer{padding:5px 8px!important}
+  .menu:not(.stage-choosing) .home-stage-spot{padding:12px 14px!important}
+  #game-screen .hero-slot span{font-size:8px!important}
+  #game-screen .hero-slot .portrait-icon{flex-basis:31px!important;height:31px!important}
+  #game-screen .battle-toolbar .evo-button,
+  #game-screen .battle-toolbar .skill-button{flex-basis:43px!important;width:43px!important}
+}
+@media(max-height:680px){
+  #stage-select-panel .stage-grid{gap:5px!important;padding:3px 0!important}
+  #stage-select-panel .stage-tile{height:clamp(57px,10.2dvh,72px)!important;min-height:clamp(57px,10.2dvh,72px)!important}
+  #stage-select-panel .stage-choice-footer{flex-basis:68px!important;height:68px!important;min-height:68px!important}
+  #modal-layer .recruit-dialog .recruit-card{min-height:160px!important}
+  #modal-layer .recruit-dialog .recruit-card .recruit-portrait{height:86px!important;flex-basis:86px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #stage-select-panel .stage-path-pin,#game-screen .hero-slot{transition:none!important}
+}

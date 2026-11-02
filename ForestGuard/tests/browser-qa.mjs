@@ -120,10 +120,23 @@ try{
     assert.equal(await page.locator('#stage-grid .stage-tile:visible').count(),4,
       'Chapter view must show four illustrated stages, not twelve plain text rows');
     assert.equal(await page.locator('#stage-grid .stage-tile-art:visible').count(),4);
+    const ascent=await page.evaluate(()=>{
+      const pins=[...document.querySelectorAll('#stage-map-pins .stage-path-pin')];
+      const first=pins.find(pin=>pin.getAttribute('aria-label').startsWith('1-1 '));
+      const boss=pins.find(pin=>pin.getAttribute('aria-label').startsWith('1-4 '));
+      return {firstY:first.getBoundingClientRect().y,bossY:boss.getBoundingClientRect().y,
+        selectedY:document.querySelector('#stage-grid .stage-tile.selected').getBoundingClientRect().y,
+        lockedBossY:[...document.querySelectorAll('#stage-grid .stage-tile')].find(tile=>tile.classList.contains('boss')).getBoundingClientRect().y};
+    });
+    assert.ok(ascent.firstY>ascent.bossY&&ascent.selectedY>ascent.lockedBossY,
+      'Forest adventure must begin at the bottom and advance toward the boss');
     await page.locator('#stage-chapter-tabs [data-chapter="1"]').click();
     assert.equal(await page.locator('#stage-grid .stage-tile:visible').count(),4);
     assert.equal(await page.locator('#stage-chapter-tabs [data-chapter="1"]').getAttribute('aria-pressed'),'true');
     assert.equal(await page.locator('#stage-map-number').innerText(),'제2장');
+    assert.equal(await page.locator('#stage-picker-name').innerText(),'반딧불 골짜기');
+    assert.equal(await page.locator('#stage-enter-btn').isDisabled(),true,
+      'A locked chapter must not send the player to the previously selected stage');
     const chapterTwoArt=await page.locator('#stage-select-panel').evaluate(el=>getComputedStyle(el).backgroundImage);
     assert.ok(chapterTwoArt.includes('misty-canyon-v08.png'),'Chapter 2 must have independent canyon art');
     assert.equal(await page.locator('#stage-map-pins button:not([disabled])').count(),0,
@@ -134,6 +147,8 @@ try{
     assert.ok(chapterThreeArt.includes('moonlit-highland-v08.png'),'Chapter 3 must use moonlit art');
     await page.locator('#stage-chapter-tabs [data-chapter="0"]').click();
     assert.equal(await page.locator('#stage-map-number').innerText(),'제1장');
+    assert.equal(await page.locator('#stage-enter-btn').isEnabled(),true,
+      'Returning to an unlocked chapter restores a playable departure action');
     const picked=await page.evaluate(()=>{
       const p=document.querySelector('#stage-select-panel').getBoundingClientRect();
       const list=document.querySelector('#stage-grid').getBoundingClientRect();

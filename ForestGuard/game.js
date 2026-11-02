@@ -169,6 +169,11 @@
   let viewedChapter=Math.floor(state.selected/4);
   function showMapChapter(chapter){
     viewedChapter=Math.max(0,Math.min(2,chapter|0));
+    const chapterStart=viewedChapter*4;
+    if(chapterStart<state.unlocked&&Math.floor(state.selected/4)!==viewedChapter){
+      state.selected=chapterStart;
+      updateMenuStory();
+    }
     renderMap();
   }
   function renderMap() {
@@ -198,12 +203,13 @@
       summary.textContent=locked?'앞 스테이지 클리어 후 열림':stage.gimmick;
       b.append(art,n,name,summary,small); b.setAttribute('aria-label',stage.name+(locked?' 잠김':' 선택'));
       b.addEventListener('click',()=>{state.selected=index;renderMap();updateMenuStory();});
-      grid.appendChild(b);
+      grid.prepend(b);
     });
     // Chapter map: functional painted badges over continuous artwork, no blank nodes.
     const pins=$('stage-map-pins');pins.replaceChildren();
     const chapter=viewedChapter;
-    const positions=[[33,22],[68,40],[34,60],[66,79]];
+    // Trail begins at the village below and climbs to the chapter boss.
+    const positions=[[52,81],[32,60],[68,39],[53,18]];
     for(let chapterIndex=0;chapterIndex<4;chapterIndex++){
       const index=chapter*4+chapterIndex,stage=STAGES[index];
       const locked=index>=state.unlocked,cleared=state.clears.includes(index);
@@ -220,15 +226,18 @@
       num.textContent=stage.chapter+'-'+(chapterIndex+1);
       pin.append(art,num);
       pin.addEventListener('click',()=>{state.selected=index;renderMap();updateMenuStory();});
-      pins.appendChild(pin);
+      pins.prepend(pin);
     }
     $('progress-label').textContent=state.clears.length+' / 12 클리어';
-    const stage=STAGES[state.selected];
+    const selectedInChapter=Math.floor(state.selected/4)===viewedChapter;
+    const stage=STAGES[selectedInChapter?state.selected:viewedChapter*4];
+    const canEnter=selectedInChapter&&state.selected<state.unlocked;
     $('stage-map-number').textContent='제'+(viewedChapter+1)+'장';
     $('stage-picker-chapter').textContent='제'+stage.chapter+'장 · '+stage.gimmick;
     $('stage-picker-name').textContent=stage.name;
-    $('stage-picker-tip').textContent=stage.story;
-    $('stage-enter-btn').disabled=state.selected>=state.unlocked;
+    $('stage-picker-tip').textContent=canEnter?stage.story:'이전 숲길을 클리어하면 열립니다.';
+    $('stage-enter-btn').disabled=!canEnter;
+    $('stage-enter-btn').textContent=canEnter?'출전':'잠김';
   }
   function openStagePicker(){
     $('stage-select-panel').hidden=false;

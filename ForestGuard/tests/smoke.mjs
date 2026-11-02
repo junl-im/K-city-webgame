@@ -75,6 +75,15 @@ assert.match(visuals,/setProperty\('--rani-icon-image'/);
 assert.match(js,/hero-rear-'\+id/);
 assert.match(visuals,/textures\.exists\('hero-rear-'\+id\)/);
 assert.doesNotMatch(illustrated31,/<svg|data:image\/svg/i);
+const ascent36=read('chapter-ascent-v36.css');
+assert.match(html,/chapter-ascent-v36\.css\?v=/);
+assert.match(js,/const positions=\[\[52,81\],\[32,60\],\[68,39\],\[53,18\]\]/);
+assert.match(js,/grid\.prepend\(b\)/);
+assert.match(js,/pins\.prepend\(pin\)/);
+assert.match(js,/selectedInChapter/);
+assert.match(js,/canEnter\?'출전':'잠김'/);
+assert.match(ascent36,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
+assert.doesNotMatch(ascent36,/<svg|\.svg|data:image\/svg/i);
 const button33=read('button-system-v33.css');
 assert.ok(html.includes('button-system-v33.css?v=20261102b'));
 for(const name of ['gold','emerald','stone','sapphire','parchment','crimson']){
