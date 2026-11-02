@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { TURN_PRESENTATION_MS, TURN_STAGES, CARD_ASPECT, cardHeightForWidth, cardFlightFrames, captureSweepFrames, matchingFloorCardId, stackedLandingRect, resolveTurnLandings, emptyLandingRect, readableFlightOrigin, turnCue } from '../turnPresentation.js';
+import { TURN_PRESENTATION_MS, TURN_STAGES, CARD_ASPECT, cardHeightForWidth, cardFlightFrames, captureSweepFrames, matchingFloorCardId, stackedLandingRect, resolveTurnLandings, emptyLandingRect, findFreeDrawLanding, readableFlightOrigin, turnCue } from '../turnPresentation.js';
 
 describe('화투패 타격감 시각 연출', () => {
+  it('뒤집은 패는 다른 패를 피하고 공간이 부족하면 안전한 영역을 찾는다', () => {
+    const field={left:0,top:0,width:120,height:100};
+    const occupied=[{left:3,top:3,width:50,height:69},{left:57,top:3,width:50,height:69}];
+    const expanded={left:0,top:0,width:200,height:100};
+    const target=findFreeDrawLanding([field,expanded],occupied,50);
+    expect(target.left).toBeGreaterThanOrEqual(107);
+    expect(findFreeDrawLanding([{left:0,top:0,width:30,height:30}],[{left:0,top:0,width:30,height:30}],50)).toBeNull();
+  });
+
   it('상대의 작은 손패에서 나가는 카드도 중앙을 유지하며 읽을 크기로 출발한다', () => {
     const source={left:100,top:20,width:10,height:14}, target={left:200,top:200,width:60,height:82};
     const origin=readableFlightOrigin(source,target,true,false);
