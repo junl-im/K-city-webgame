@@ -10,6 +10,7 @@ import { findBombOptions, findShakeOptions } from './engine/rules/specialRules';
 import { getCard, HWATU_CARDS } from './engine/cards';
 import { ALLOWED_STAKES, STAKES, canUseStake, normalizeStake } from './stakeRules.js';
 import { captureDisplayCount, groupedCaptures } from './capturedCards.js';
+import { doubleOffer } from './doubleStake.js';
 import { floorDensity } from './floorLayout.js';
 import { artworkOrdinal, cardBookLabel, cardVisualDetails } from './cardDisplay.js';
 import { hwatuFamily, spokenActionText, spokenCardName } from './cardNames.js';
@@ -350,8 +351,8 @@ function capturedRack(g, who='human') {
     <div class="collection-groups">${groupedCaptures(g,who).map(group => `
       <button class="collection-group" type="button" data-capture-type="${group.id}" data-empty="${group.cards.length===0}" data-action="captures" data-value="${who}:${group.id}" aria-label="${human?'내':'상대'}가 먹은 ${group.name} 카드 ${group.cards.length}장${group.id==='junk'?` · 점수 계산 ${captureDisplayCount(group,score)}장`:''} 전체 보기">
         <span class="collection-name">${group.name} <strong>${captureDisplayCount(group,score)}</strong></span>
-        <span class="collection-preview">${group.cards.length ? (human ? group.cards : group.cards.slice(-3)).map(id=>human?`<span class="capture-stack-card">${card(id,{tiny:true,gookjinAsDoubleJunk:asDoubleJunk})}</span>`:card(id,{tiny:true,gookjinAsDoubleJunk:asDoubleJunk})).join('') : '<i>−</i>'}
-          ${!human && group.cards.length>3?`<em>+${group.cards.length-3}</em>`:''}</span>
+        <span class="collection-preview">${group.cards.length ? group.cards.map(id=>`<span class="capture-stack-card">${card(id,{tiny:true,gookjinAsDoubleJunk:asDoubleJunk})}</span>`).join('') : '<i>−</i>'}
+          </span>
       </button>`).join('')}</div>
   </div>`;
 }
@@ -428,7 +429,7 @@ function gameScreen() {
       <span class="table-play__flower table-play__flower--left" aria-hidden="true">✿</span>
       <span class="table-play__flower table-play__flower--right" aria-hidden="true">✿</span>
       <div class="captured-grid">${capturedRack(g,'computer')}</div>
-      <div class="center-status"><span class="status-orb"></span>${active}<span class="round-counter">${g.turnNumber+1}턴</span>${(g.roundMultiplier || 1)>1?`<strong class="round-multiplier" aria-label="이번 판 정산 ${g.roundMultiplier}배">${g.roundMultiplier}배 판</strong>`:''}${app.doubleStake?.gameUuid===g.gameUuid?`<strong class="round-multiplier">승리금 ${kr(app.doubleStake.amount)}냥 걸기</strong>`:''}</div>
+      <div class="center-status"><span class="status-orb"></span>${active}<span class="round-counter">${g.turnNumber+1}턴</span>${(g.roundMultiplier || 1)>1?`<strong class="round-multiplier" aria-label="이번 판 정산 ${g.roundMultiplier}배">${g.roundMultiplier}배 판</strong>`:''}${app.doubleStake?.gameUuid===g.gameUuid?`<strong class="round-multiplier">×${app.doubleStake.level || 2} 도전 · ${kr(app.doubleStake.amount)}냥</strong>`:''}</div>
       <div class="field-heading"><strong>바닥패 ${floor.length}장</strong><span>같은 무늬를 맞춰 획득!</span></div>
       <div class="field-row">
         <div class="deck-pile">${cardBack()}<small>남은 패 <b>${g.drawPile.length}</b></small></div>
@@ -498,6 +499,8 @@ function gameOverlay(g) {
     const rivalScore = scoreOf(g,'computer').total;
     const winningCards = nagari ? [] : (win ? g.humanCaptured : g.computerCaptured).slice(-3);
     const finalPoints = g.settlement?.finalScore;
+    const offer = doubleOffer(g);
+    const canDouble = !!offer && !app.doubleStake && hasEnoughForTable(app.wallet-offer.amount, g.pointValue);
     return `<div class="modal-shade modal-shade--result"><section class="modal-box result-box result-box--${outcome}" role="dialog" aria-modal="true" aria-labelledby="result-title">
       <div class="result-ribbon" aria-label="이번 판 결과">${nagari?'다시 승부!':win?'내가 이겼어!':'상대 승리'}</div>
       <div class="result-hero"><div class="result-mascot">${portrait(nagari?'fox':win?'bear':opponent().animal)}</div>
@@ -515,8 +518,9 @@ function gameOverlay(g) {
       <div class="result-wallet">보유 놀이머니 <b>✦ ${kr(app.wallet)}냥</b></div>
       ${nagari && app.doubleStake ? `<p class="double-explanation">걸어 둔 승리금 ${kr(app.doubleStake.amount)}냥은 다음 판으로 이어집니다.</p>` : ''}
       ${!win && !nagari && g.doubleForfeit ? `<p class="double-explanation">이전 판에서 걸어 둔 승리금 ${kr(g.doubleForfeit)}냥을 잃었습니다.</p>` : ''}
-      <div class="result-actions">${btn('다음 판 치기','next','btn--primary btn--wide')}
-        ${win && amount>0 && !app.doubleStake && hasEnoughForTable(app.wallet-amount, g.pointValue) ? `${btn('승리금 걸고 묻고 더블!','next-double','btn--warm btn--wide')}<small class="double-explanation">이번 승리금 ${kr(amount)}냥을 보류합니다. 다음 판 승리 시 두 배로 받고, 패배 시 잃어요. 다음 판 정산은 별도예요.</small>` : ''}
+      <div class="result-actions">
+        ${offer && canDouble ? `${btn(`묻고 더블로 ×${offer.level}`,'next-double','btn--warm btn--wide')}<small class="double-explanation">${kr(offer.amount)}냥을 걸어요. 다음 판 승리 시 ${kr(offer.amount*2)}냥을 받고, 패배 시 걸어 둔 금액을 잃어요. 다음 판 정산은 별도예요.</small>` : offer ? `<p class="double-explanation">묻고 더블로 ×${offer.level}: 승리금을 걸고 남은 놀이머니가 부족해 선택할 수 없어요.</p>` : ''}
+        ${btn('다음 판 치기','next','btn--primary btn--wide')}
         ${canEmergencyRecharge(app.wallet)?btn('긴급 무료 충전 +30만 냥','recharge','btn--ghost btn--wide'):''}
         ${btn('그만치기','home','btn--quiet')}</div>
     </section></div>`;
@@ -700,7 +704,7 @@ function finishRound() {
     const money = Math.max(0, g.settlement?.displayAmount || 0);
     if (g.winner === 'human') {
       app.stats.wins++; app.wallet += money;
-      if (app.doubleStake?.gameUuid === g.gameUuid) { g.doublePayout=app.doubleStake.amount * 2; app.wallet += g.doublePayout; app.doubleStake=null; }
+      if (app.doubleStake?.gameUuid === g.gameUuid) { g.doublePayout=app.doubleStake.amount * 2; g.doubleLevel=app.doubleStake.level || 2; app.wallet += g.doublePayout; app.doubleStake=null; }
       app.stats.high = Math.max(app.stats.high, g.settlement?.finalScore || 0);
       effects('참 잘했어! 승리!', 'win');
     } else {
@@ -978,9 +982,9 @@ function mutate(action, value, cardId) {
     case 'next': startNew(true);return;
     case 'next-double':
       if (!app.game || app.doubleStake || app.game.phase!=='round-ended' || app.game.winner!=='human' || app.game.roundResult==='nagari' || app.settledUuid!==app.game.gameUuid) return;
-      { const amount=Math.max(0,Math.round(app.game.settlement?.displayAmount || 0));
-        if (!amount || !hasEnoughForTable(app.wallet-amount,app.game.pointValue)) return;
-        app.wallet-=amount; app.doubleStake={amount,originUuid:app.game.gameUuid,gameUuid:null};
+      { const offer=doubleOffer(app.game);
+        if (!offer || !hasEnoughForTable(app.wallet-offer.amount,app.game.pointValue)) return;
+        app.wallet-=offer.amount; app.doubleStake={amount:offer.amount,level:offer.level,originUuid:app.game.gameUuid,gameUuid:null};
         startNew(true,1);return; }
     case 'recharge':
       if (!canEmergencyRecharge(app.wallet)) { effects('오링일 때만 긴급 충전할 수 있어');render();return; }
