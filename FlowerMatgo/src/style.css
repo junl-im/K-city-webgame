@@ -3573,3 +3573,15 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--game .collection-rack--human .capture-stack-card {flex:0 1 var(--capture-card-width);}
 .scene--game .collection-rack--human .capture-stack-card:last-child {flex:0 0 var(--capture-card-width);}
 .scene--game .my-hand .hwatu--match-idle:not(.hwatu--departing) {outline:2px solid #f8d878;outline-offset:1px;}
+/* Pi usually accumulates more, so both racks give it a wider compartment. */
+.scene--game .collection-groups {grid-template-columns:minmax(0,.8fr) minmax(0,.9fr) minmax(0,1fr) minmax(0,1.6fr);}
+.scene--game .collection-rack--opponent .collection-group {display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:1px;overflow:hidden;}
+.scene--game .collection-rack--opponent .collection-name {flex:none;line-height:12px;text-align:left;}
+.scene--game .collection-rack--opponent .collection-preview {--capture-card-width:clamp(24px,3vw,37px);display:flex;align-items:center;justify-content:flex-start;width:100%;min-width:0;overflow:hidden;}
+.scene--game .collection-rack--opponent .capture-stack-card {display:block;position:relative;flex:0 1 var(--capture-card-width);min-width:0;height:100%;overflow:visible;}
+.scene--game .collection-rack--opponent .capture-stack-card:last-child {flex:0 0 var(--capture-card-width);}
+.scene--game .collection-rack--opponent .capture-stack-card .hwatu,.scene--game .collection-rack--opponent .capture-stack-card .hwatu:first-child {display:block;width:var(--capture-card-width);max-width:none;margin:0;}
+.scene--game .result-actions [data-action="next-double"] {min-height:48px;color:#62402a;font-size:clamp(15px,4vw,19px);font-weight:950;}
+@media(max-width:650px){.scene--game .collection-rack--opponent .collection-preview {--capture-card-width:clamp(24px,8vw,35px);}.scene--game .collection-rack--opponent .collection-name {font-size:9px;}}
+.scene--game .result-actions [data-action="next-double"] {border:2px solid #aa663b;border-radius:13px;background:linear-gradient(145deg,#fff0ba,#e6ad65);color:#50301d;box-shadow:0 3px 0 #9e603b,0 5px 12px #5735204d;text-shadow:0 1px #fff8d7;}
+.scene--game .result-actions [data-action="next-double"]:focus-visible {outline:3px solid #fff1a5;outline-offset:2px;}
