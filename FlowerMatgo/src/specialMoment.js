@@ -12,7 +12,7 @@ const MOMENTS = Object.freeze({
   double: {title:'쌍피 획득!', detail:'피 두 장의 가치!', major:false}
 });
 
-export const SPECIAL_FLASH_MS = 1540;
+export const SPECIAL_FLASH_MS = 2400;
 
 export function specialMoment(kind, originalText='') {
   if (kind === 'go') {

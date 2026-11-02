@@ -16,7 +16,7 @@ import { floorDensity } from './floorLayout.js';
 import { artworkOrdinal, cardBookLabel, cardVisualDetails } from './cardDisplay.js';
 import { hwatuFamily, spokenActionText, spokenCardName } from './cardNames.js';
 import { animateResolvedTurn, motionOrigin } from './turnPresentation.js';
-import { specialPresentation } from './specialPresentation.js';
+import { eventAnnouncement } from './specialPresentation.js';
 import { SPECIAL_FLASH_MS, specialMoment } from './specialMoment.js';
 import { cardSoundProfile } from './cardSoundDesign.js';
 import { newlyCompletedCombos } from './scoreCombos.js';
@@ -803,8 +803,9 @@ function commitGame(next, result=null, motion=null) {
     clockKey=null;expiredKey=null;
   }
   if (gotGookjin) app.pendingGookjinChoice = true;
-  if (result?.specialEvents?.length) effects(result.specialEvents.map(e=>e.label).join(' · '), 'special', specialPresentation(result)?.kind || 'special');
+  const eventText = eventAnnouncement(result, previous?.currentPlayer);
   finishRound();
+  if (eventText) effects(eventText, 'special', 'event-list');
   save(); render();
   for (const [player, points] of scoreGains) showScoreGain(player, points);
   for (const {player,combo} of completedSets) showScoreSet(player,combo);

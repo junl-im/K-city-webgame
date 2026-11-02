@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { specialPresentation } from '../specialPresentation.js';
+import { specialPresentation, eventAnnouncement } from '../specialPresentation.js';
 
 describe('특수 화투 효과 분류', () => {
+  it('동시에 발생한 쪽과 싹쓸이를 빠짐없이 표시하고 상대를 구분한다', () => {
+    const result={specialEvents:[{kind:'jjok',label:'쪽'},{kind:'sweep',label:'싹쓸이'}]};
+    expect(eventAnnouncement(result)).toBe('쪽! · 싹쓸이!');
+    expect(eventAnnouncement(result,'computer')).toBe('상대 쪽! · 싹쓸이!');
+    expect(eventAnnouncement({ppeok:true})).toBe('뻑!');
+    expect(eventAnnouncement({captured:[]})).toBeNull();
+  });
   it('없는 결과·일반 피에는 별도의 효과가 없다', () => {
     expect(specialPresentation(null)).toBeNull();
     expect(specialPresentation({captured: []})).toBeNull();
