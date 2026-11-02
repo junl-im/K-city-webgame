@@ -21,7 +21,8 @@ function el(id){if(!elements.has(id)){const listeners={},item={id,hidden:false,d
 const weapons=['normal','bomb','split'].map(type=>{const b=el('weapon-'+type);b.dataset.weapon=type;return b;});
 const heroes=['fox','bear','rabbit','cat'].map(type=>{const b=el('hero-'+type);b.dataset.hero=type;return b;});
 const stages=[0,1,2,3].map(type=>{const b=el('stage-'+type);b.dataset.stage=String(type);return b;});
-for(const id of ['stageMap','result','help','exitConfirm'])el(id).hidden=true;
+for(const id of ['stageMap','result','help','exitConfirm','enemyEntrance'])el(id).hidden=true;
+for(const id of ['materialArtwork']){const art=el(id);art.complete=true;art.naturalWidth=1536;art.naturalHeight=1024;}
 const document={referrer:'',getElementById:el,querySelectorAll:selector=>selector==='[data-weapon]'?weapons:selector==='[data-hero]'?heroes:selector==='[data-stage]'?stages:[]};
 if(/v0_[34]/.test(versionedPath)){const art=el('menuArtwork');art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}
 if(/v0_[567]/.test(versionedPath)){for(const type of ['menuArtwork','rosterArtwork']){const art=el(type);art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}}
@@ -65,8 +66,12 @@ handlers.popstate();assert.equal(state().mode,'menu','Back from a running battle
 el('adventureBtn').click();frames(5);
 assert.equal(state().foes,2);
 assert.equal(state().phase,'aim');
+assert.equal(state().materialReady,true,'The 3-stage material atlas must load');
+assert.equal(state().materialTiers.length,4,'Each fortress piece must have a material tier');
+assert.equal(state().introVisible,true,'The painted enemy encounter must appear briefly');
 frames(600);
 assert.equal(state().foes,2,'Adventure structures must remain stable before the first shot');
+assert.equal(state().introVisible,false,'Enemy intro must auto-dismiss to free the combat viewport');
 if(/v0_[234567]/.test(versionedPath)){
  el('angle').value='28';el('angle').dispatch('input');
  el('power').value='78';el('power').dispatch('input');
