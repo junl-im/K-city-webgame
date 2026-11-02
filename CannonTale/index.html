@@ -606,14 +606,30 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  function initialTerrain(mode) {const a=new Float32Array(W+1);for(let i=0;i<=W;i++)a[i]=mode==='duel' ? 492+27*Math.sin(i/130)+14*Math.sin(i/57)+4*Math.cos(i/21) : 525+8*Math.sin(i/143)+3*Math.sin(i/47);return a;}
  function crater(x,y,r) {const from=Math.max(0,Math.floor(x-r)),to=Math.min(W,Math.ceil(x+r));let changed=false;for(let i=from;i<=to;i++){const dx=i-x;const depth=Math.sqrt(Math.max(0,r*r-dx*dx))*.61;const old=game.terrain[i];game.terrain[i]=Math.min(H-25,Math.max(game.terrain[i],y+depth));changed||=game.terrain[i]>old+.1;}if(changed)rebuildGround(from,to);}
  function rebuildGround(from=0,to=W){if(!game.engine)return;const stride=20,start=Math.max(0,Math.floor(from/stride)),end=Math.min(W/stride-1,Math.floor(to/stride));for(let i=start;i<=end;i++){const old=game.ground[i];if(old)M.Composite.remove(game.engine.world,old);const x=i*stride+stride/2,top=(terrainY(i*stride)+terrainY(i*stride+stride))/2;const bottom=H+110;const body=M.Bodies.rectangle(x,(top+bottom)/2,stride+2,bottom-top,{isStatic:true,friction:.95,render:{visible:false},label:'terrain'});game.ground[i]=body;M.Composite.add(game.engine.world,body);}}
- function initPhysics(){game.engine=M.Engine.create({enableSleeping:true,positionIterations:9,velocityIterations:8});game.engine.gravity.y=.48;game.ground=[];rebuildGround();M.Events.on(game.engine,'collisionStart',e=>{for(const pair of e.pairs){const a=pair.bodyA.plugin,b=pair.bodyB.plugin;const foe=a.foe||b.foe,block=a.block||b.block;if(!foe||!block||!foe.alive||foe.hitCooldown>0)continue;const relative=Math.hypot(foe.body.velocity.x-block.body.velocity.x,foe.body.velocity.y-block.body.velocity.y);if(relative>2.8){foe.hp-=Math.max(10,Math.min(70,relative*7));foe.hitCooldown=.45;foe.hitFlash=.35;foe.hitAnim=.64;foe.attackAnim=0;game.popups.push({x:foe.x,y:foe.y-35,value:'충돌!',life:.7});spawnSparks(foe.x,foe.y,10,'#d7b7f4',.7);if(foe.hp<=0)defeatFoe(foe);}}});}
+ function initPhysics(){game.engine=M.Engine.create({enableSleeping:true,positionIterations:9,velocityIterations:8});game.engine.gravity.y=.48;game.ground=[];rebuildGround();M.Events.on(game.engine,'collisionStart',e=>{for(const pair of e.pairs){const a=pair.bodyA.plugin,b=pair.bodyB.plugin;const foe=a.foe||b.foe,block=a.block||b.block;if(!foe||!block||!foe.alive||foe.hitCooldown>0)continue;const relative=Math.hypot(foe.body.velocity.x-block.body.velocity.x,foe.body.velocity.y-block.body.velocity.y);if(relative>2.8){foe.hp-=Math.max(10,Math.min(70,relative*7));foe.hitCooldown=.45;foe.hitFlash=.35;foe.hitAnim=.64;foe.attackAnim=0;spawnCombatPopup(foe,'충돌!','impact',foe.r+35);spawnSparks(foe.x,foe.y,10,'#d7b7f4',.7);if(foe.hp<=0)defeatFoe(foe);}}});}
  function powerVelocity(ang,power,dir=1) {const speed=190+power*5.45,rad=ang*Math.PI/180;return {vx:Math.cos(rad)*speed*dir,vy:-Math.sin(rad)*speed};}
  function origin(owner='player'){if(game.mode==='duel') {const x=owner==='player'?190:1018;return{x,y:terrainY(x)-32};}return{x:145,y:terrainY(145)-69};}
+ // Independent character weapon sockets, defined in world units relative to the firing origin.
+ const heroMuzzles={
+  fox:{x:20,y:-7,weapon:'slingshot',facing:1},
+  bear:{x:21,y:-16,weapon:'cannon',facing:1},
+  rabbit:{x:25,y:-15,weapon:'crossbow',facing:1},
+  cat:{x:15,y:-37,weapon:'staff',facing:1}
+ };
+ function muzzleFor(owner='player',angle=game.angle){
+  const o=origin(owner),dir=owner==='ai'?-1:1;
+  if(game.mode==='duel'){
+   const r=angle*Math.PI/180;
+   return {x:o.x+dir*Math.cos(r)*55,y:o.y-Math.sin(r)*55-4,dir,weapon:'cannon'};
+  }
+  const socket=heroMuzzles[game.hero]||heroMuzzles.fox;
+  return {x:o.x+dir*socket.x,y:o.y+socket.y,dir,weapon:socket.weapon};
+ }
  function launch(owner,ang,power,weapon,initial) {
   const o=origin(owner),dir=owner==='ai'?-1:1,v=initial||powerVelocity(ang,power,dir);
   game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,b)=>a+Math.max(0,b.hp),0),blockCounts:['wood','stone','iron'].map(t=>game.blocks.filter(b=>b.type===t).length),playerHp:game.playerHp,aiHp:game.aiHp};
   game.lastImpact=null;game.reviewFocusX=null;game.reviewInfo=null;$('reviewCountdown').hidden=true;game.panX=null;game.overview=false;$('overview').textContent='전장 보기';$('shotReview').hidden=true;
-  const muzzleX=o.x+dir*(game.mode==='duel'?Math.cos(ang*Math.PI/180)*55:17),muzzleY=o.y-(game.mode==='duel'?Math.sin(ang*Math.PI/180)*55:0)-4;
+  const socket=muzzleFor(owner,ang),muzzleX=socket.x,muzzleY=socket.y;
    const p={x:muzzleX,y:muzzleY,vx:v.vx,vy:v.vy,r:weapon==='bomb'?13:10,weapon,owner,age:0,split:false,trail:[],active:true,pierce:owner==='player'&&game.abilityArmed?2:0,hitBlocks:[],hitFoes:[]};game.projectiles.push(p);
   if(owner==='player')game.abilityArmed=false;else game.aiAngle=ang;
   game.recoil[owner]=23;actorMotion(owner,'attack',.48);game.muzzle={x:muzzleX,y:muzzleY,dir,life:.3,total:.3};spawnSparks(game.muzzle.x,game.muzzle.y,13,'#ffe8aa',.42);game.shake=Math.max(game.shake,weapon==='bomb'?4.5:2.7);playSound('fire');
@@ -624,7 +640,8 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  function predict(ang,pow,wind,owner='player',count=640){
   const o=origin(owner),dir=owner==='player'?1:-1,v=powerVelocity(ang,pow,dir);
   const out=[],r=10,dt=1/90;
-  let x=o.x+dir*(game.mode==='duel'?Math.cos(ang*Math.PI/180)*55:17),y=o.y-(game.mode==='duel'?Math.sin(ang*Math.PI/180)*55:0)-4,vx=v.vx,vy=v.vy;
+  const socket=muzzleFor(owner,ang);
+  let x=socket.x,y=socket.y,vx=v.vx,vy=v.vy;
   for(let i=0;i<count;i++){
    vx+=wind*12*dt;vy+=G*dt;x+=vx*dt;y+=vy*dt;
    out.push({x,y});
@@ -801,7 +818,17 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   }
  }
  function hitCircleRect(p,b){const dx=p.x-b.body.position.x,dy=p.y-b.body.position.y,a=-b.body.angle,c=Math.cos(a),s=Math.sin(a),x=dx*c-dy*s,y=dx*s+dy*c;const qx=clamp(x,-b.w/2,b.w/2),qy=clamp(y,-b.h/2,b.h/2);return(x-qx)**2+(y-qy)**2<p.r*p.r;}
- function defeatFoe(f){if(!f.alive)return;f.alive=false;f.deathTimer=3.8;f.deathAngle=rnd(-.38,.38);f.hitAnim=0;f.attackAnim=0;if(f.body)M.Composite.remove(game.engine.world,f.body);spawnSparks(f.x,f.y,f.boss?50:24,['#a9c75f','#cbdad1','#a9edff','#ffb375'][f.kind||0],f.boss?1.3:.85);game.popups.push({x:f.x,y:f.y-f.r-56,value:f.boss?'대장 격파!':'격파!',life:1.05});if(f.boss){game.shake=20;game.message='요새 대장 격파!';game.messageTime=2;}}
+ function spawnCombatPopup(target,value,kind='normal',yOffset){
+  const isFoe=!!(target&&typeof target.r==='number');
+  const isDuel=target==='player'||target==='ai';
+  const x=isDuel?(target==='player'?190:1018):target.x;
+  const anchorY=isDuel?terrainY(x)-29:target.y;
+  const height=yOffset??(isFoe?target.r+20:51);
+  game.popups.push({x,y:anchorY-height,value,kind,life:1.02,maxLife:1.02,rise:0,
+   anchor:isFoe?target:null,duelOwner:isDuel?target:null,anchorOffset:height,drift:rnd(-13,13)});
+  game.popups=game.popups.slice(-36);
+ }
+ function defeatFoe(f){if(!f.alive)return;f.alive=false;f.deathTimer=3.8;f.deathAngle=rnd(-.38,.38);f.hitAnim=0;f.attackAnim=0;if(f.body)M.Composite.remove(game.engine.world,f.body);spawnSparks(f.x,f.y,f.boss?50:24,['#a9c75f','#cbdad1','#a9edff','#ffb375'][f.kind||0],f.boss?1.3:.85);spawnCombatPopup(f,f.boss?'대장 격파!':'격파!','ko',f.r+56);if(f.boss){game.shake=20;game.message='요새 대장 격파!';game.messageTime=2;}}
  function applyExplosion(p){
   game.lastImpact={x:clamp(p.x,0,W),y:clamp(p.y,0,H)};
   const big=p.weapon==='bomb',radius=big?105:p.weapon==='split'?55:62,damage=big?105:p.weapon==='split'?46:72;
@@ -820,12 +847,12 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   if(b.hp<=0){b.dead=true;M.Composite.remove(game.engine.world,b.body);}
  }
  game.blocks=game.blocks.filter(b=>!b.dead);
-  for(const f of game.foes){if(!f.alive)continue;const dist=Math.hypot(p.x-f.x,p.y-f.y);if(dist<radius+f.r){const dealt=Math.max(12,(1-dist/(radius+f.r))*damage*1.45);f.hp-=dealt;f.hitFlash=.38;f.hitAnim=.64;f.attackAnim=0;game.popups.push({x:f.x,y:f.y-f.r-20,value:'-'+Math.round(dealt),life:.88});M.Sleeping.set(f.body,false);M.Body.setVelocity(f.body,{x:f.body.velocity.x+(f.x-p.x)/(dist||1)*4,y:-6});if(f.hp<=0)defeatFoe(f);}}
+  for(const f of game.foes){if(!f.alive)continue;const dist=Math.hypot(p.x-f.x,p.y-f.y);if(dist<radius+f.r){const dealt=Math.max(12,(1-dist/(radius+f.r))*damage*1.45);f.hp-=dealt;f.hitFlash=.38;f.hitAnim=.64;f.attackAnim=0;spawnCombatPopup(f,'-'+Math.round(dealt),big?'blast':'normal');M.Sleeping.set(f.body,false);M.Body.setVelocity(f.body,{x:f.body.velocity.x+(f.x-p.x)/(dist||1)*4,y:-6});if(f.hp<=0)defeatFoe(f);}}
   if(game.mode==='duel'){
    for(const c of [{owner:'player',x:190},{owner:'ai',x:1018}]){
     const cy=terrainY(c.x)-29,dist=Math.hypot(p.x-c.x,p.y-cy);
     if(dist<radius+30){const val=Math.max(12,Math.round((1-dist/(radius+30))*(big?69:55)));if(c.owner==='player')game.playerHp-=val;else game.aiHp-=val;
-     game.popups.push({x:c.x,y:cy-51,value:'-'+val,life:.98});
+     spawnCombatPopup(c.owner,'-'+val,big?'blast':'normal');
      actorMotion(c.owner,'hit',.52);skillEffect('hit',c.x,cy,.45);spawnSparks(c.x,cy,12,'#fdd2a8',.8);}
    }
   }
@@ -840,7 +867,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
    M.Body.setAngularVelocity(target.body,target.body.angularVelocity+.14);
    if(target.hp<=0){target.dead=true;M.Composite.remove(game.engine.world,target.body);game.blocks=game.blocks.filter(b=>!b.dead);}
   }else{
-   p.hitFoes.push(target);target.hp-=95;target.hitFlash=.4;target.hitAnim=.64;target.attackAnim=0;game.popups.push({x:target.x,y:target.y-target.r-26,value:'관통 -95',life:.9});
+   p.hitFoes.push(target);target.hp-=95;target.hitFlash=.4;target.hitAnim=.64;target.attackAnim=0;spawnCombatPopup(target,'관통 -95','pierce',target.r+26);
    if(target.hp<=0)defeatFoe(target);
   }
   spawnSparks(p.x,p.y,15,'#a8f4e4',.8);skillEffect('bear',p.x,p.y,.45);game.message='관통 성공!';game.messageTime=.8;
@@ -949,7 +976,14 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  game.debris=game.debris.filter(d=>d.life>0);
  game.rubble=game.rubble.slice(-95);
  for(const ring of game.rings){ring.life-=dt;ring.r+=(ring.max-ring.r)*.25;}game.rings=game.rings.filter(r=>r.life>0);
-  for(const popup of game.popups){popup.life-=dt;popup.y-=dt*43;}game.popups=game.popups.filter(p=>p.life>0);
+  for(const popup of game.popups){
+   popup.life-=dt;
+   popup.rise=(popup.rise||0)+dt*43;
+   if(popup.anchor){popup.x=popup.anchor.x;popup.y=popup.anchor.y-popup.anchorOffset-popup.rise;}
+   else if(popup.duelOwner){popup.x=popup.duelOwner==='player'?190:1018;popup.y=terrainY(popup.x)-29-popup.anchorOffset-popup.rise;}
+   else popup.y-=dt*43;
+  }
+  game.popups=game.popups.filter(p=>p.life>0);
   if(game.phase==='flying'&&game.projectiles.length===0&&game.phaseTime>1.35)finishFlight();
   if(game.mode==='adventure'&&game.phase==='aim'&&game.foes.every(f=>!f.alive))showResult(true);
  }
@@ -1283,9 +1317,15 @@ const materialCells={
   for(const r of game.rings){ctx.globalAlpha=clamp(r.life/r.total,0,1);ctx.strokeStyle=r.color;
    ctx.lineWidth=7*(r.life/r.total)+1;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,Math.PI*2);ctx.stroke();}
   ctx.globalAlpha=1;ctx.textAlign='center';ctx.font='900 21px system-ui';
-  for(const p of game.popups){ctx.globalAlpha=clamp(p.life/.6,0,1);ctx.lineWidth=4;
-   ctx.strokeStyle='#3a3b53';ctx.strokeText(p.value,p.x,p.y);
-   ctx.fillStyle='#fff4cf';ctx.fillText(p.value,p.x,p.y);}
+  for(const p of game.popups){
+   const strength=clamp(p.life/(p.maxLife||1),0,1),rise=1-strength,kind=p.kind||'normal';
+   ctx.globalAlpha=Math.min(1,strength*2.4);
+   ctx.font=(kind==='ko'?'1000 25px':'900 21px')+' system-ui, sans-serif';
+   const dx=(p.drift||0)*rise,dy=p.y-Math.sin(rise*Math.PI)*9;
+   ctx.lineWidth=5;ctx.strokeStyle='#1c293c';ctx.strokeText(p.value,p.x+dx,dy);
+   ctx.fillStyle=kind==='ko'?'#fff0a5':kind==='pierce'?'#99ffe9':kind==='blast'?'#ffcb88':kind==='impact'?'#e1d6ff':'#fff7e7';
+   ctx.fillText(p.value,p.x+dx,dy);
+  }
   ctx.restore();
  }
  function drawMessage(){if(game.messageTime<=0)return;ctx.save();ctx.font='900 20px system-ui, sans-serif';ctx.textAlign='center';const text=game.message,w=ctx.measureText(text).width;roundRect(game.camera+(cv.clientWidth/game.scale)/2-w/2-21,96,w+42,40,18,'#273c59d6','#fff1d2',2);ctx.fillStyle='#fff0d0';ctx.fillText(text,game.camera+(cv.clientWidth/game.scale)/2,123);ctx.restore();}
