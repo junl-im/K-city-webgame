@@ -9,12 +9,15 @@ let script=inlineScripts.at(-1)[1];
 if(/v0_[67]/.test(versionedPath)){
  const marker=' requestAnimationFrame(frame);\n})();';
  assert(script.includes(marker),'Expected a stable v0.6 boot marker');
- script=script.replace(marker,' window.__finishForTest=showResult; window.__hitFoeForTest=(damage)=>{const f=game.foes.find(x=>x.alive);if(!f)return;f.hp-=damage;f.hitAnim=.64;f.hitFlash=.3;f.attackAnim=0;if(f.hp<=0)defeatFoe(f);}; window.__damageBlockForTest=(damage)=>{const b=game.blocks.find(x=>x.type===\'wood\');if(!b)return -1;const prev=damageTier(b);b.hp-=damage;markBlockImpact(b,prev,damage);return damageTier(b);}; requestAnimationFrame(frame);\n})();');
+ script=script.replace(marker,' window.__simulateAdventureImpactForTest=(hit)=>{const b=game.blocks.find(v=>v.hp>20);game.phase="flying";game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,v)=>a+Math.max(0,v.hp),0),blockCounts:["wood","stone","iron"].map(t=>game.blocks.filter(v=>v.type===t).length),playerHp:game.playerHp,aiHp:game.aiHp};if(hit&&b)b.hp-=12;game.lastImpact={x:840,y:410};game.projectiles=[];finishFlight();return game.hitStreak;}; window.__finishForTest=showResult; window.__hitFoeForTest=(damage)=>{const f=game.foes.find(x=>x.alive);if(!f)return;f.hp-=damage;f.hitAnim=.64;f.hitFlash=.3;f.attackAnim=0;if(f.hp<=0)defeatFoe(f);}; window.__damageBlockForTest=(damage)=>{const b=game.blocks.find(x=>x.type===\'wood\');if(!b)return -1;const prev=damageTier(b);b.hp-=damage;markBlockImpact(b,prev,damage);return damageTier(b);}; requestAnimationFrame(frame);\n})();');
 }
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(html.includes('Artillery_Illustrated_UI_v1_1.png'),'The painted v1.1 UI atlas should be referenced');
 assert(html.includes('Artillery_Combat_Poses_v1_2.png'),'The transparent combat pose atlas should be referenced');
+assert(html.includes('first-screen viewport-fit redesign'),'Entry menu must have viewport fit rules');
+assert(/#menu \.menu-panel\{[^}]*overflow:hidden/.test(html),'Menu must not scroll off screen');
+assert(html.includes('grid-template-areas:"eyebrow modes"'),'Landscape layout must use 2-column design');
 const handlers={};
 const elements=new Map();
 const noOp=()=>{};
@@ -69,6 +72,7 @@ handlers.popstate();assert.equal(state().mode,'menu','Back from a running battle
 el('adventureBtn').click();frames(5);
 assert.equal(state().foes,2);
 assert.equal(state().phase,'aim');
+assert.equal(state().hitStreak,0,'Starting a new game must clear hit streak');
 assert(brightTrajectoryStrokes>0,'High-contrast aiming trajectory should actually render');
 assert.equal(state().materialReady,true,'The 3-stage material atlas must load');
 assert.equal(state().combatReady,true,'All four new enemies must have distinct bitmap battle poses');
@@ -140,6 +144,14 @@ assert.equal(el('fire').disabled,false);
 el('fire').click();assert.equal(state().shots,2);
 el('homeBtn').click();
 if(/v0_[67]/.test(versionedPath)){
+ el('adventureBtn').click();frames(3);
+ assert.equal(window.__simulateAdventureImpactForTest(true),1,'First hit starts the streak');
+ el('reviewContinue').click();assert.equal(state().phase,'aim');
+ assert.equal(window.__simulateAdventureImpactForTest(true),2,'Second hit builds the streak');
+ assert(el('reviewTitle').textContent.includes('2연속 명중'),'Result should reward the streak');
+ el('reviewContinue').click();assert.equal(state().phase,'aim');
+ assert.equal(window.__simulateAdventureImpactForTest(false),0,'Miss resets the streak');
+ el('homeBtn').click();
  el('adventureBtn').click();frames(3);
  assert.equal(window.__damageBlockForTest(26),1,'Timber must reach painted cracked tier');
  assert.equal(window.__damageBlockForTest(27),2,'Timber must reach painted fractured tier');
