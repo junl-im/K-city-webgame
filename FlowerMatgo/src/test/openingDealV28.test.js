@@ -63,7 +63,7 @@ describe('꽃맞고 v28 첫 판 선 뽑기와 패섞기', () => {
 
   it('선공 발표와 배분을 충분히 보여주되 실게임 타이머와 구분한다', () => {
     expect(OPENING_SHUFFLE_MS).toBeGreaterThanOrEqual(1100);
-    expect(OPENING_REVEAL_MS).toBeGreaterThanOrEqual(1400);
+    expect(OPENING_REVEAL_MS).toBeGreaterThanOrEqual(3000);
     expect(OPENING_DEAL_MS).toBeGreaterThanOrEqual(1700);
     expect(ui).toContain("app.screen='opening'");
     expect(ui).toContain("app.screen = 'game'");
@@ -83,3 +83,4 @@ describe('꽃맞고 v28 첫 판 선 뽑기와 패섞기', () => {
     expect(ui).not.toContain('<svg');
   });
 });
+
