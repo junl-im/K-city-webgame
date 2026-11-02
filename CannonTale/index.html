@@ -883,12 +883,14 @@ const materialCells={
   const entry=clamp(f.spawnTime/.5,0,1),squash=dying?1-deathProgress*.05:1+stagger*.13+attackSurge*.11;
   const stretch=dying?1-deathProgress*.07:1-stagger*.11+attackSurge*.04+breathe*.016;
   const shake=hurt?stagger*Math.sin(game.clock*68)*5:0;
-  const rise=dying?deathProgress*10:-(1-entry)*29+breathe*(f.boss?1.6:2);
+  const landing=1-entry,landBounce=Math.sin((1-landing)*Math.PI*2.25)*landing*8;
+  const rise=dying?deathProgress*14:-(landing*29)+landBounce+breathe*(f.boss?1.6:2);
   const opacity=dying?clamp(f.deathTimer/.75,0,1):1;
+  const settle=dying?Math.sin(deathProgress*Math.PI*.5):0;
   const x=f.x+shake-attackSurge*(f.boss?13:10),y=f.y+rise;
   ctx.save();ctx.globalAlpha=opacity;ctx.translate(x,y);
-  ctx.rotate(dying?f.deathAngle*deathProgress*.55:hurt?stagger*.07*Math.sin(game.clock*30):0);
-  ctx.scale(squash,stretch);
+  ctx.rotate(dying?f.deathAngle*settle*.8:hurt?stagger*.07*Math.sin(game.clock*30):attacking?-.07*attackSurge:.014*breathe);
+  ctx.scale(squash*(1+settle*.13),stretch*(1-settle*.25));
   if(combatArtReady()){
    const kind=clamp(f.kind||0,0,3),column=pose==='idle'?0:pose==='attack'?1:pose==='hurt'?2:3;
    const sx=combatColumns[column]*combatAtlas.naturalWidth/1262;
