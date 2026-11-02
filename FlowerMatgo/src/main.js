@@ -18,7 +18,7 @@ import { specialPresentation } from './specialPresentation.js';
 import { SPECIAL_FLASH_MS, specialMoment } from './specialMoment.js';
 import { cardSoundProfile } from './cardSoundDesign.js';
 import { newlyCompletedCombos } from './scoreCombos.js';
-import { HUMAN_TURN_MS, HUMAN_TURN_SECONDS, humanTurnSignature, secondsLeft } from './turnTiming.js';
+import { HUMAN_TURN_MS, HUMAN_TURN_SECONDS, humanTurnSignature, humanChoiceSignature, secondsLeft } from './turnTiming.js';
 import { canEmergencyRecharge, EMERGENCY_RECHARGE, hasEnoughForTable } from './rechargePolicy.js';
 import {
   createOpeningFlow, revealDealerCards,
@@ -444,6 +444,7 @@ function gameScreen() {
       <div class="action-row">${specialActionCount ? `<span class="action-row__desktop-special">${specialActionButtons}</span><details class="action-special-menu"><summary class="action-chip action-chip--special" aria-label="특수 동작 ${specialActionCount}개 펼치기">✿ 특수 ${specialActionCount}</summary><div class="action-special-menu__list" role="group" aria-label="특수 동작 선택">${specialActionButtons}</div></details>` : ''}<span class="hand-scroll-hint" hidden>손패 좌우로 밀기 ↔</span><button type="button" class="action-chip action-chip--muted sound-control" data-action="sound" aria-label="${app.sound?'소리 켜짐':'소리 꺼짐'}" title="${app.sound?'소리 켜짐':'소리 꺼짐'}">${uiIcon('bell')} ${app.sound?'소리 켜짐':'소리 꺼짐'}</button></div>
     </div>
     ${flash ? (()=>{const moment=specialMoment(flashKind,flash);return `<div class="effect-burst effect-burst--${safe(moment.kind)} ${moment.major?'effect-burst--major':'effect-burst--minor'}" role="status" aria-live="assertive"><span class="effect-burst__illustration" aria-hidden="true"></span><strong class="effect-burst__headline">${safe(moment.title)}</strong>${moment.detail?`<small class="effect-burst__detail">${safe(moment.detail)}</small>`:''}</div>`;})() : ''}
+    <div class="turn-countdown" aria-hidden="true" hidden><strong></strong></div>
     ${gameOverlay(g)}
   </main>`;
 }
@@ -451,17 +452,17 @@ function gameScreen() {
 function gameOverlay(g) {
   if (app.pendingGookjinChoice || overlay==='gookjin-choice') return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--choice" role="dialog" aria-modal="true" aria-labelledby="gookjin-choice-title">
     <div class="decision-kicker">국진 · 9월 열끗</div><h2 id="gookjin-choice-title">국진을 어떻게 쓸까요?</h2><p class="decision-hint">열끗 또는 피 두 장으로 계산해요. 나중에 다시 바꿀 수 있어요.</p>
-    <div class="gookjin-card">${card('m09-01')}</div><div class="choice-actions"><button type="button" class="btn decision-option" data-action="gookjin-set" data-value="animal"><strong>열끗으로</strong><small>그림 패</small></button><button type="button" class="btn decision-option decision-option--go" data-action="gookjin-set" data-value="junk"><strong>쌍피로</strong><small>피 2장</small></button></div></section></div>`;
+    <div class="gookjin-card">${card('m09-01')}</div><div class="choice-actions"><button type="button" class="btn decision-option" data-action="gookjin-set" data-value="animal"><strong>열끗으로</strong><small>그림 패</small></button><button type="button" class="btn decision-option decision-option--go" data-action="gookjin-set" data-value="junk"><strong>쌍피로</strong><small>피 2장</small></button></div>${choiceTimer()}</section></div>`;
   if (overlay==='captures') return capturedGallery(g, galleryOwner, galleryType);
   if (overlay==='cardbook') return cardbookOverlay();
   if (app.pendingDrawChoice) {
     const choice=app.pendingDrawChoice;
-    return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--match" role="dialog" aria-modal="true" aria-labelledby="draw-choice-title"><div class="decision-kicker">뒤집은 패</div><div class="drawn-choice-card">${card(choice.drawnCardId)}</div><h2 id="draw-choice-title">같은 무늬 중 한 장을 골라요</h2><p class="decision-hint">뒤집은 패와 함께 가져갈 바닥패를 선택하세요.</p><div class="match-choices" role="group" aria-label="뒤집은 패와 맞는 바닥패">${choice.candidateIds.map(id=>card(id,{action:'draw-choice'})).join('')}</div></section></div>`;
+    return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--match" role="dialog" aria-modal="true" aria-labelledby="draw-choice-title"><div class="decision-kicker">뒤집은 패</div><div class="drawn-choice-card">${card(choice.drawnCardId)}</div><h2 id="draw-choice-title">같은 무늬 중 한 장을 골라요</h2><p class="decision-hint">뒤집은 패와 함께 가져갈 바닥패를 선택하세요.</p><div class="match-choices" role="group" aria-label="뒤집은 패와 맞는 바닥패">${choice.candidateIds.map(id=>card(id,{action:'draw-choice'})).join('')}</div>${choiceTimer()}</section></div>`;
   }
   if (selectedTriple) {
     const triple=selectedTriple, ids=g.humanHand.filter(id=>getCard(id)?.month===triple.month);
     const bomb=findBombOptions(g.humanHand,g.floorCards,true).some(b=>b.month===triple.month && b.kind==='three-card-bomb');
-    return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--match triple-choice" role="dialog" aria-modal="true" aria-labelledby="triple-title"><div class="decision-kicker">${hwatuFamily(triple.month)} 세 장</div><h2 id="triple-title">${triple.mode==='shake'?'낼 패 한 장을 골라주세요':'어떻게 낼까요?'}</h2><p class="decision-hint">${triple.mode==='shake'?'흔들기를 선언했어요. 세 장 중 한 장을 내세요.':'흔들거나 폭탄으로 한 번에 낼 수 있어요.'}</p><div class="match-choices">${ids.map(id=>card(id,{action:triple.mode==='shake'?'triple-shake-card':null})).join('')}</div>${triple.mode==='choice'?`<div class="choice-actions"><button class="btn decision-option" type="button" data-action="triple-shake"><strong>흔들기</strong><small>한 장 골라 내기</small></button>${bomb?'<button class="btn decision-option decision-option--go" type="button" data-action="triple-bomb"><strong>폭탄</strong><small>세 장 내고 빈 차례 2회</small></button>':''}</div><div class="triple-secondary"><button type="button" class="btn btn--ghost" data-action="triple-ordinary">그냥 한 장 내기</button><button type="button" class="btn btn--quiet" data-action="triple-cancel">돌아가기</button></div>`:''}</section></div>`;
+    return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--match triple-choice" role="dialog" aria-modal="true" aria-labelledby="triple-title"><div class="decision-kicker">${hwatuFamily(triple.month)} 세 장</div><h2 id="triple-title">${triple.mode==='shake'?'낼 패 한 장을 골라주세요':'어떻게 낼까요?'}</h2><p class="decision-hint">${triple.mode==='shake'?'흔들기를 선언했어요. 세 장 중 한 장을 내세요.':'흔들거나 폭탄으로 한 번에 낼 수 있어요.'}</p><div class="match-choices">${ids.map(id=>card(id,{action:triple.mode==='shake'?'triple-shake-card':null})).join('')}</div>${triple.mode==='choice'?`<div class="choice-actions"><button class="btn decision-option" type="button" data-action="triple-shake"><strong>흔들기</strong><small>한 장 골라 내기</small></button>${bomb?'<button class="btn decision-option decision-option--go" type="button" data-action="triple-bomb"><strong>폭탄</strong><small>세 장 내고 빈 차례 2회</small></button>':''}</div><div class="triple-secondary"><button type="button" class="btn btn--ghost" data-action="triple-ordinary">그냥 한 장 내기</button><button type="button" class="btn btn--quiet" data-action="triple-cancel">돌아가기</button></div>`:''}${choiceTimer()}</section></div>`;
   }
   if (selectedMatch) {
     return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--match" role="dialog" aria-modal="true" aria-labelledby="match-choice-title" aria-describedby="match-choice-help">
@@ -517,11 +518,12 @@ function gameOverlay(g) {
       <div class="result-actions">${btn('다음 판 치기','next','btn--primary btn--wide')}
         ${win && amount>0 && !app.doubleStake && hasEnoughForTable(app.wallet-amount, g.pointValue) ? `${btn('승리금 걸고 묻고 더블!','next-double','btn--warm btn--wide')}<small class="double-explanation">이번 승리금 ${kr(amount)}냥을 보류합니다. 다음 판 승리 시 두 배로 받고, 패배 시 잃어요. 다음 판 정산은 별도예요.</small>` : ''}
         ${canEmergencyRecharge(app.wallet)?btn('긴급 무료 충전 +30만 냥','recharge','btn--ghost btn--wide'):''}
-        ${btn('메인으로','home','btn--quiet')}</div>
+        ${btn('그만치기','home','btn--quiet')}</div>
     </section></div>`;
   }
   return '';
 }
+function choiceTimer() { return `<p class="decision-timer" role="timer" aria-label="선택 남은 시간">남은 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초 · 시간 종료 시 자동 선택</p>`; }
 function helpOverlay() {
   return `<div class="modal-shade"><div class="modal-box help-box"><h2>🎴 꽃맞고, 이렇게 즐겨!</h2>
     <ol><li>첫 판에는 패를 섞고 한 장씩 뽑아 선을 정해. 다음 판은 전 판 승자가 먼저 쳐.</li><li>내 손패를 눌러 바닥에 같은 무늬가 있으면 먹어.</li><li>패가 바닥에 착지하면 더미 한 장을 뒤집고 먹은 패를 가져와.</li><li>내 차례와 고/스톱 선택은 20초! 시간이 끝나면 자동으로 진행돼.</li><li><b>자동 ON</b>이면 내 패도 자동으로 내고, OFF면 직접 골라.</li><li><b>내가 먹은 패</b>는 손패 바로 위에 실제 화투 그림으로 쌓여. 종류를 누르면 모두 크게 펼쳐 보여!</li><li>광·열끗·띠·피를 모아 7점부터 고 또는 스톱!</li><li>고는 더 높은 점수를 노리고, 스톱은 지금 점수로 승리해.</li></ol>
@@ -582,15 +584,15 @@ function clearAutoTimer() {
 function updateClockFace() {
   const times = ROOT.querySelectorAll('[data-turn-seconds]');
   const fill = ROOT.querySelector('[data-turn-fill]');
-  if (!times.length || !fill || !clockKey) return;
+  const countdown = ROOT.querySelector('.turn-countdown');
+  if (!clockKey) { if(countdown) countdown.hidden=true; return; }
   const left = clockPaused ? clockRemaining : Math.max(0, clockDeadline - performance.now());
   for (const time of times) time.textContent = String(secondsLeft(left));
-  const rail = fill.parentElement;
-  rail?.classList.toggle('is-urgent', left <= 5000);
-  fill.style.width = `${Math.max(0, Math.min(100, left / HUMAN_TURN_MS * 100))}%`;
+  if (countdown) { const n=secondsLeft(left);countdown.hidden=clockPaused || n<1 || n>5;countdown.querySelector('strong').textContent=String(n); }
+  if (fill) { fill.parentElement?.classList.toggle('is-urgent', left <= 5000);fill.style.width = `${Math.max(0, Math.min(100, left / HUMAN_TURN_MS * 100))}%`; }
 }
 function syncTurnClock() {
-  const key = humanTurnSignature(app.screen, app.game);
+  const key = humanChoiceSignature(app.screen,app.game,{gookjin:app.pendingGookjinChoice || overlay==='gookjin-choice',draw:app.pendingDrawChoice,triple:selectedTriple,match:selectedMatch});
   if (key !== clockKey) {
     clockKey = key;
     clockRemaining = HUMAN_TURN_MS;
@@ -606,7 +608,7 @@ function syncTurnClock() {
   }
   // A backgrounded mobile browser can suspend timers while wall time keeps
   // passing. Preserve the player's remaining time until they return.
-  const blocked = turnTransition || !!overlay || !!selectedTriple || app.pendingGookjinChoice || !!app.pendingDrawChoice || decisionReview || document.hidden;
+  const blocked = turnTransition || (!!overlay && overlay!=='gookjin-choice') || decisionReview || document.hidden;
   if (blocked) {
     if (!clockPaused) {
       clockRemaining = Math.max(0, clockDeadline - performance.now());
@@ -638,12 +640,29 @@ function syncTurnClock() {
 }
 function autoTakeTurn(forced = false) {
   const g = app.game;
-  if ((!forced && !app.autoMode) || !humanTurnSignature(app.screen,g) || turnTransition || overlay || document.hidden) return;
-  if (selectedMatch) { humanPlay(selectedMatch.cardId,selectedMatch.matches[0],true,undefined,true); return; }
+  if ((!forced && !app.autoMode) || !clockKey || turnTransition || (overlay && overlay!=='gookjin-choice') || decisionReview || document.hidden) return;
+  const randomItem = list => list[Math.floor(Math.random()*list.length)];
+  if (forced && !app.autoMode) {app.autoMode=true;save();}
+  if (app.pendingGookjinChoice || overlay==='gookjin-choice') {mutate('gookjin-set',randomItem(['animal','junk']));return;}
+  if (app.pendingDrawChoice) {mutate('draw-choice',undefined,randomItem(app.pendingDrawChoice.candidateIds));return;}
+  if (selectedMatch) { humanPlay(selectedMatch.cardId,randomItem(selectedMatch.matches),true,undefined,true); return; }
+  if (selectedTriple) {
+    const ids=g.humanHand.filter(id=>getCard(id)?.month===selectedTriple.month);
+    const id=randomItem(ids);selectedTriple=null;
+    if (id) {const matches=getMatchingFloorCards(g.floorCards,id);humanPlay(id,matches.length===2?randomItem(matches):undefined,true,undefined,true);}
+    return;
+  }
   if (g.phase === 'awaiting-go-stop') { mutate('stop'); return; }
   if (g.phase === 'awaiting-chongtong') { mutate('chongtong-stop'); return; }
   if (g.phase !== 'playing' || g.currentPlayer !== 'human') return;
   try {
+    if (forced) {
+      const available=g.humanHand.filter(id=>!g.humanPendingShakeMonth || getCard(id)?.month===g.humanPendingShakeMonth);
+      const id=randomItem(available);
+      if (id) {const matches=getMatchingFloorCards(g.floorCards,id);humanPlay(id,matches.length===2?randomItem(matches):undefined,true,undefined,true);}
+      else if (g.humanBombSkips>0) mutate('flip','auto');
+      return;
+    }
     // The selector may advance its private random seed: never mutate the live
     // game state while merely choosing a timed/automatic move.
     const move = chooseAiMove(structuredClone(g), 'human', 'normal').move;
