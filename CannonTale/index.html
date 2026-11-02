@@ -552,7 +552,17 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
    const life=rnd(2.2,4.9),heavy=type==='iron',rock=type==='stone';
    game.debris.push({x:x+rnd(-15,15),y:y+rnd(-12,12),vx:rnd(-175,175)*(heavy?.73:1),vy:rnd(-255,-55),angle:rnd(-3,3),spin:rnd(-7,7),w:rnd(rock?5:4,rock?16:18),h:rnd(3,rock?14:10),life,max:life,type,settled:false,color:heavy?(i%2?'#647d85':'#c6b391'):rock?(i%2?'#788b98':'#bec5c4'):(i%2?'#885841':'#d8a36c')});
   }
-  game.debris=game.debris.slice(-120);
+  game.debris=game.debris.slice(-160);
+ }
+ function spawnCollapseFragments(b){
+  // Heavier secondary fragments preserve the silhouette for a moment after the body breaks.
+  const x=b.body.position.x,y=b.body.position.y,weight=b.type==='iron'?.42:b.type==='stone'?.7:1;
+  const count=Math.min(15,Math.max(5,Math.round(Math.max(b.w,b.h)/17)));
+  for(let i=0;i<count;i++){
+   const spread=(i-(count-1)/2)/Math.max(1,count-1),life=rnd(3.2,6.6);
+   game.debris.push({x:x+spread*b.w*.55,y:y+rnd(-b.h*.25,b.h*.25),vx:(spread*235+rnd(-45,45))*weight,vy:rnd(-230,-85)*weight,angle:b.body.angle+rnd(-.8,.8),spin:rnd(-5,5)*weight,w:clamp(b.w/(count>8?4:3)*rnd(.65,1.45),7,b.type==='iron'?54:45),h:clamp(b.h*.39*rnd(.5,1.1),5,b.type==='wood'?18:37),life,max:life,type:b.type,settled:false,color:b.type==='iron'?(i%2?'#416676':'#8daba6'):b.type==='stone'?(i%2?'#768895':'#b7bdc4'):(i%2?'#9e582e':'#efb778')});
+  }
+  game.debris=game.debris.slice(-160);
  }
  // A short fracture flash ties hand-painted damage tiers to the physics collision.
  function markBlockImpact(b,previousTier,power){
@@ -560,10 +570,13 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   const tier=damageTier(b),x=b.body.position.x,y=b.body.position.y;
   if(tier!==previousTier&&b.hp>0){
    spawnDebris(x,y,b.type,7+tier*4);
+   if(tier===2){M.Sleeping.set(b.body,false);M.Body.setAngularVelocity(b.body,b.body.angularVelocity+rnd(-.045,.045));}
    spawnSparks(x,y,7+tier*3,b.type==='iron'?'#ffbb72':b.type==='stone'?'#d7e6e9':'#f7c18a',.42+tier*.12);
    game.rings.push({x,y,r:3,max:20+tier*9,life:.24,total:.24,color:b.type==='iron'?'#f5ac63':b.type==='stone'?'#d9e8e9':'#ffd49c'});
   }
   if(b.hp<=0){
+   spawnCollapseFragments(b);
+   game.shake=Math.max(game.shake,b.type==='iron'?15:b.type==='stone'?11:8);
    spawnDebris(x,y,b.type,b.w>75?25:16);
    spawnSparks(x,y,b.type==='iron'?23:16,b.type==='stone'?'#d1d8df':'#db9b64',.85);
    game.rings.push({x,y,r:8,max:36,life:.34,total:.34,color:'#ffedd0'});
@@ -698,7 +711,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  game.rubble=game.rubble.slice(-95);
  for(const ring of game.rings){ring.life-=dt;ring.r+=(ring.max-ring.r)*.25;}game.rings=game.rings.filter(r=>r.life>0);
   for(const popup of game.popups){popup.life-=dt;popup.y-=dt*43;}game.popups=game.popups.filter(p=>p.life>0);
-  if(game.phase==='flying'&&game.projectiles.length===0&&game.phaseTime>.85)finishFlight();
+  if(game.phase==='flying'&&game.projectiles.length===0&&game.phaseTime>1.35)finishFlight();
   if(game.mode==='adventure'&&game.phase==='aim'&&game.foes.every(f=>!f.alive))showResult(true);
  }
  const col={sky:'#83c9d9',hill:'#629ca5',hill2:'#84b6ac',grass:'#5c9d72',dirt:'#ad8062',wood:'#b37a50',stone:'#9394a5'};
