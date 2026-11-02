@@ -18,7 +18,7 @@ import { specialPresentation } from './specialPresentation.js';
 import { SPECIAL_FLASH_MS, specialMoment } from './specialMoment.js';
 import { cardSoundProfile } from './cardSoundDesign.js';
 import { newlyCompletedCombos } from './scoreCombos.js';
-import { HUMAN_TURN_MS, HUMAN_TURN_SECONDS, humanTurnSignature, humanChoiceSignature, secondsLeft } from './turnTiming.js';
+import { HUMAN_TURN_MS, HUMAN_TURN_SECONDS, humanTurnSignature, humanChoiceSignature, secondsLeft, shouldRestartClockAfterTurn } from './turnTiming.js';
 import { canEmergencyRecharge, EMERGENCY_RECHARGE, hasEnoughForTable } from './rechargePolicy.js';
 import {
   createOpeningFlow, revealDealerCards,
@@ -469,7 +469,7 @@ function gameOverlay(g) {
       <div class="decision-kicker">같은 무늬 2장</div><h2 id="match-choice-title">먹을 패를 골라줘!</h2>
       <p id="match-choice-help" class="decision-hint">패나 이름을 누르면 바로 획득해.</p>
       <div class="match-choices" role="group" aria-label="먹을 화투패 선택">${selectedMatch.matches.map((id,index)=>`<div class="match-choice" data-action="pickmatch" data-card="${safe(id)}"><span class="match-choice__number">${index+1}번 패</span>${card(id,{action:'pickmatch'})}<small class="match-choice__name">${safe(spokenCardName(getCard(id)))}</small></div>`).join('')}</div>
-      <p class="decision-timer" role="timer" aria-label="선택 남은 시간">남은 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</p>
+      ${choiceTimer()}
       <div class="decision-cancel">${btn('돌아가기','cancelmatch','btn--ghost')}</div></section></div>`;
   }
   if (g.phase === 'awaiting-go-stop' && g.pendingDecision === 'human') {
@@ -483,11 +483,11 @@ function gameOverlay(g) {
         <button type="button" class="btn decision-option decision-option--go" data-action="go"><strong>고!</strong><small>더 치기</small></button>
         <button type="button" class="btn decision-option decision-option--stop" data-action="stop"><strong>스톱!</strong><small>지금 끝내기</small></button>
       </div>
-      <p class="decision-timer" role="timer" aria-label="결정 남은 시간">남은 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초 · 시간 종료 시 스톱</p>
+      <p class="decision-timer" role="timer" aria-label="결정 남은 시간">남은 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초 · 시간 종료 시 스톱, 자동 ON</p>
     </section></div>`;
   }
   if (g.phase === 'awaiting-chongtong' && g.pendingDecision === 'human') {
-    return `<div class="modal-shade"><div class="modal-box"><div class="modal-flower">✦</div><h2>총통! 네 장이 모였어!</h2><p>바로 승리하거나 계속 칠 수 있어.</p><p class="decision-timer">남은 선택 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초 · 만료 시 스톱</p><div class="choice-actions">${btn('바로 스톱','chongtong-stop','btn--primary')}${btn('계속 치기','chongtong-go','btn--warm')}</div></div></div>`;
+    return `<div class="modal-shade"><div class="modal-box"><div class="modal-flower">✦</div><h2>총통! 네 장이 모였어!</h2><p>바로 승리하거나 계속 칠 수 있어.</p><p class="decision-timer">남은 선택 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초 · 만료 시 스톱, 자동 ON</p><div class="choice-actions">${btn('바로 스톱','chongtong-stop','btn--primary')}${btn('계속 치기','chongtong-go','btn--warm')}</div></div></div>`;
   }
   if (g.phase === 'round-ended') {
     const nagari = g.roundResult === 'nagari';
@@ -523,7 +523,7 @@ function gameOverlay(g) {
   }
   return '';
 }
-function choiceTimer() { return `<p class="decision-timer" role="timer" aria-label="선택 남은 시간">남은 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초 · 시간 종료 시 자동 선택</p>`; }
+function choiceTimer() { return `<p class="decision-timer" role="timer" aria-label="선택 남은 시간">남은 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초 · 시간 종료 시 자동 선택, 자동 ON</p>`; }
 function helpOverlay() {
   return `<div class="modal-shade"><div class="modal-box help-box"><h2>🎴 꽃맞고, 이렇게 즐겨!</h2>
     <ol><li>첫 판에는 패를 섞고 한 장씩 뽑아 선을 정해. 다음 판은 전 판 승자가 먼저 쳐.</li><li>내 손패를 눌러 바닥에 같은 무늬가 있으면 먹어.</li><li>패가 바닥에 착지하면 더미 한 장을 뒤집고 먹은 패를 가져와.</li><li>내 차례와 고/스톱 선택은 20초! 시간이 끝나면 자동으로 진행돼.</li><li><b>자동 ON</b>이면 내 패도 자동으로 내고, OFF면 직접 골라.</li><li><b>내가 먹은 패</b>는 손패 바로 위에 실제 화투 그림으로 쌓여. 종류를 누르면 모두 크게 펼쳐 보여!</li><li>광·열끗·띠·피를 모아 7점부터 고 또는 스톱!</li><li>고는 더 높은 점수를 노리고, 스톱은 지금 점수로 승리해.</li></ol>
@@ -789,6 +789,11 @@ function commitGame(next, result=null, motion=null) {
     newlyCompletedCombos(scoreOf(previous,player),scoreOf(next,player))
       .map(combo => ({player,combo}))) : [];
   app.game = next;
+  // A bonus card keeps the same turn number. Give the replacement move a
+  // fresh clock so a timeout cannot leave automatic play stuck on that turn.
+  if (shouldRestartClockAfterTurn(result,next)) {
+    clockKey=null;expiredKey=null;
+  }
   if (gotGookjin) app.pendingGookjinChoice = true;
   if (result?.specialEvents?.length) effects(result.specialEvents.map(e=>e.label).join(' · '), 'special', specialPresentation(result)?.kind || 'special');
   finishRound();

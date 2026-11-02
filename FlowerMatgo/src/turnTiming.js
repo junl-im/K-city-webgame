@@ -25,3 +25,9 @@ export function humanChoiceSignature(screen, game, choice = {}) {
   if (choice.match) return `${prefix}:match:${choice.match.cardId}`;
   return humanTurnSignature(screen,game);
 }
+
+// A bonus draw replaces a card without increasing turnNumber; it still needs
+// a new decision window and must not retain the previous timeout marker.
+export function shouldRestartClockAfterTurn(result, game) {
+  return !!result?.continuesTurn && game?.phase==='playing' && game.currentPlayer==='human';
+}

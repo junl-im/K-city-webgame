@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HUMAN_TURN_MS, HUMAN_TURN_SECONDS, humanTurnSignature, humanChoiceSignature, secondsLeft } from '../turnTiming.js';
+import { HUMAN_TURN_MS, HUMAN_TURN_SECONDS, humanTurnSignature, humanChoiceSignature, secondsLeft, shouldRestartClockAfterTurn } from '../turnTiming.js';
 
 const state = (overrides = {}) => ({
   gameUuid: 'round-one', turnNumber: 3, currentPlayer: 'human',
@@ -30,6 +30,13 @@ describe('20초 턴 제한 및 자동 플레이 시계', () => {
     expect(humanChoiceSignature('game',state(),{match:{cardId:'m01-01'}})).toBe('round-one:3:match:m01-01');
     expect(humanChoiceSignature('home',state(),{gookjin:true})).toBeNull();
     expect(humanChoiceSignature('game',state())).toBe(humanTurnSignature('game',state()));
+  });
+
+  it('보너스패로 같은 내 차례가 계속되면 새 시간으로 자동 진행을 이어간다', () => {
+    expect(shouldRestartClockAfterTurn({continuesTurn:true},state())).toBe(true);
+    expect(shouldRestartClockAfterTurn({continuesTurn:true},state({currentPlayer:'computer'}))).toBe(false);
+    expect(shouldRestartClockAfterTurn({continuesTurn:true},state({phase:'round-ended'}))).toBe(false);
+    expect(shouldRestartClockAfterTurn(null,state())).toBe(false);
   });
 
   it('시간을 0~20초 범위에서 올림 표시한다', () => {
