@@ -55,6 +55,17 @@ for(const name of painted31){
   assert.equal(bytes.readUInt32LE(4),bytes.length-8);
 }
 const illustrated31=read('illustrated-v31.css');
+const scene35=read('scene-v35.css'), route35=read('scene-v35.js');
+const rearguard=readFileSync(new URL('art/rani-rearguard-v35.png',root));
+assert.equal(rearguard.subarray(1,4).toString(),'PNG');
+assert.ok(rearguard.length>100_000,'New original rear-facing party painting missing');
+assert.match(html,/scene-v35\.css\?v=/);
+assert.match(html,/scene-v35\.js\?v=/);
+assert.match(html,/home-party-v35/);
+assert.match(scene35,/rani-rearguard-v35\.png/);
+assert.match(route35,/stage-route-canvas/);
+assert.doesNotMatch(scene35+route35,/<svg|\.svg|data:image\/svg/i);
+
 assert.match(html,/illustrated-v31\.css\?v=/);
 assert.match(html,/rani-title-v31\.webp/);
 assert.match(illustrated31,/rani-button-atlas-v31\.webp/);
