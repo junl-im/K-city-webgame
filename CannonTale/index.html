@@ -475,6 +475,12 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
 #menu .menu-panel.menu-ultra .mode-card{min-height:47px;}
 #menu .menu-panel.menu-ultra .hero-choice{min-height:36px;}
 #menu .menu-panel.menu-ultra .hero-portrait{height:22px;width:22px;}
+/* Centered numerical count shows time until the next turn while preserving the battlefield. */
+.review-countdown{position:absolute;z-index:4;top:48%;left:50%;transform:translate(-50%,-50%);pointer-events:none;min-width:62px;text-align:center;font-size:clamp(35px,9vh,82px);line-height:1;font-weight:1000;letter-spacing:-.07em;color:#fff4bb;text-shadow:0 3px 1px #543a2e,0 0 13px #2a3b4ed9,0 0 25px #0a233f88;animation:countPop .2s ease-out;}
+.review-countdown[hidden]{display:none}
+@keyframes countPop{from{opacity:.55;transform:translate(-50%,-50%) scale(1.2)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@media(orientation:portrait) and (max-width:600px){.review-countdown{font-size:clamp(42px,12vw,64px);top:50%;}}
+@media(prefers-reduced-motion:reduce){.review-countdown{animation:none}}
 </style>
 </head>
 <body>
@@ -500,6 +506,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   <div id="enemyEntrance" class="enemy-entrance" hidden aria-hidden="true"><span class="enemy-entrance-figure"></span><span class="enemy-entrance-copy"><small>FOREST ENCOUNTER</small><strong id="enemyEntranceName"></strong></span></div>
   <div id="hint" class="corner-hint" hidden></div>
   <div class="status-row"><div id="leftStatus" class="status" hidden></div><div id="rightStatus" class="status" hidden></div></div>
+<div id="reviewCountdown" class="review-countdown" hidden aria-hidden="true">5</div>
 <div id="shotReview" class="shot-review" hidden role="status" aria-live="polite"><div class="review-copy"><span class="review-kicker">방금 포격의 결과</span><strong id="reviewTitle">착탄 확인</strong><small id="reviewDetail">전장에 남은 결과를 확인해 보세요</small></div><button id="reviewContinue" class="review-continue" type="button">다음 발사</button></div>
   <div id="menu" class="overlay">
    <section class="panel menu-panel" aria-labelledby="welcomeTitle">
@@ -590,7 +597,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  function launch(owner,ang,power,weapon,initial) {
   const o=origin(owner),dir=owner==='ai'?-1:1,v=initial||powerVelocity(ang,power,dir);
   game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,b)=>a+Math.max(0,b.hp),0),blockCounts:['wood','stone','iron'].map(t=>game.blocks.filter(b=>b.type===t).length),playerHp:game.playerHp,aiHp:game.aiHp};
-  game.lastImpact=null;game.reviewFocusX=null;game.reviewInfo=null;game.panX=null;game.overview=false;$('overview').textContent='전장 보기';$('shotReview').hidden=true;
+  game.lastImpact=null;game.reviewFocusX=null;game.reviewInfo=null;$('reviewCountdown').hidden=true;game.panX=null;game.overview=false;$('overview').textContent='전장 보기';$('shotReview').hidden=true;
   const muzzleX=o.x+dir*(game.mode==='duel'?Math.cos(ang*Math.PI/180)*55:17),muzzleY=o.y-(game.mode==='duel'?Math.sin(ang*Math.PI/180)*55:0)-4;
    const p={x:muzzleX,y:muzzleY,vx:v.vx,vy:v.vy,r:weapon==='bomb'?13:10,weapon,owner,age:0,split:false,trail:[],active:true,pierce:owner==='player'&&game.abilityArmed?2:0,hitBlocks:[],hitFoes:[]};game.projectiles.push(p);
   if(owner==='player')game.abilityArmed=false;else game.aiAngle=ang;
@@ -652,7 +659,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   for(const f of game.foes){const body=M.Bodies.circle(f.x,f.y,f.r,{friction:.82,frictionStatic:1,restitution:.07,density:.0011,sleepThreshold:55,label:'foe'});body.plugin.foe=f;f.body=body;M.Composite.add(game.engine.world,body);}
  }
  function newGame(mode,stage=0){
-  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.rings=[];game.popups=[];game.skillEffects=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:3;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
+  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.rings=[];game.popups=[];game.skillEffects=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:3;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
   progress.hero=selectedHero;progress.difficulty=game.difficulty;if(mode==='adventure')progress.lastStage=game.stage;saveProgress();
   initPhysics();
   if(mode==='adventure')buildAdventure(game.stage);
@@ -685,7 +692,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   const h=heroSet[game.hero],abilityPhase=game.phase===h.timing||(h.timing==='aim'&&canResumeAimFromReview()),ready=!game.abilityUsed&&game.turn==='player'&&abilityPhase&&(h.timing!=='flying'||game.projectiles.some(p=>p.active&&p.owner==='player'&&(!p.split||game.hero==='fox')));
   $('abilityBtn').disabled=!ready;$('abilityBtn').textContent=`${game.abilityUsed?'사용 완료':'특수기'} · ${h.ability}`;
  }
- function showResult(won){$('shotReview').hidden=true;$('enemyEntrance').hidden=true;game.introLife=0;game.phase='result';game.phaseTime=0;game.drag=null;const star=game.shots<=2?3:game.shots<game.maxShots?2:1;if(won&&game.mode==='adventure'){progress.best[game.stage]=Math.max(progress.best[game.stage],star);progress.wins++;progress.lastStage=Math.min(game.stage+1,stageSet.length-1);$('adventureStage').value=String(progress.lastStage);saveProgress();refreshMenu();}actorMotion(won?'player':'ai',won?'victory':'hit',1.3);$('result').hidden=false;$('resultTag').textContent=won?'MISSION CLEAR':'TRY AGAIN';$('resultTag').style.background=won?'#568c73':'#9d6970';$('resultTitle').textContent=won?'승리! 멋진 포격이었어요.':'아쉽지만 다시 도전!';const grade=star===3?'완벽한 공략':star===2?'우수한 공략':'임무 완수';$('resultText').textContent=game.mode==='adventure'?(won?`${grade}! ${game.shots}발로 ${stageSet[game.stage].name}을 공략했어요. 이번 등급 ${star}/3 · 최고 등급 ${progress.best[game.stage]}/3.${game.stage===stageSet.length-1?' 준비된 모험 지역을 모두 마쳤습니다.':' 다음 지역도 도전해 보세요.'}`:'포탄이 모두 떨어졌어요. 폭탄탄으로 지지대를 노리거나 각도를 조절해 보세요.'):(won?'상대 내구도를 모두 소진시켰습니다. 바람과 각도를 잘 읽었어요.':'우리 팀 내구도가 소진됐습니다. 난이도와 바람을 확인해 다시 도전해 보세요.');$('nextBtn').hidden=game.mode!=='adventure'||!won||game.stage===stageSet.length-1;playSound(won?'win':'lose');updateHud();}
+ function showResult(won){$('reviewCountdown').hidden=true;$('shotReview').hidden=true;$('enemyEntrance').hidden=true;game.introLife=0;game.phase='result';game.phaseTime=0;game.drag=null;const star=game.shots<=2?3:game.shots<game.maxShots?2:1;if(won&&game.mode==='adventure'){progress.best[game.stage]=Math.max(progress.best[game.stage],star);progress.wins++;progress.lastStage=Math.min(game.stage+1,stageSet.length-1);$('adventureStage').value=String(progress.lastStage);saveProgress();refreshMenu();}actorMotion(won?'player':'ai',won?'victory':'hit',1.3);$('result').hidden=false;$('resultTag').textContent=won?'MISSION CLEAR':'TRY AGAIN';$('resultTag').style.background=won?'#568c73':'#9d6970';$('resultTitle').textContent=won?'승리! 멋진 포격이었어요.':'아쉽지만 다시 도전!';const grade=star===3?'완벽한 공략':star===2?'우수한 공략':'임무 완수';$('resultText').textContent=game.mode==='adventure'?(won?`${grade}! ${game.shots}발로 ${stageSet[game.stage].name}을 공략했어요. 이번 등급 ${star}/3 · 최고 등급 ${progress.best[game.stage]}/3.${game.stage===stageSet.length-1?' 준비된 모험 지역을 모두 마쳤습니다.':' 다음 지역도 도전해 보세요.'}`:'포탄이 모두 떨어졌어요. 폭탄탄으로 지지대를 노리거나 각도를 조절해 보세요.'):(won?'상대 내구도를 모두 소진시켰습니다. 바람과 각도를 잘 읽었어요.':'우리 팀 내구도가 소진됐습니다. 난이도와 바람을 확인해 다시 도전해 보세요.');$('nextBtn').hidden=game.mode!=='adventure'||!won||game.stage===stageSet.length-1;playSound(won?'win':'lose');updateHud();}
  function playSound(kind){if(!game.sound)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ac=game.audio||(game.audio=new AC());if(ac.state==='suspended')ac.resume();const now=ac.currentTime,osc=ac.createOscillator(),gain=ac.createGain();const shapes={fire:{freq:290,end:95,duration:.18,volume:.10,type:'triangle'},blast:{freq:125,end:40,duration:.28,volume:.14,type:'sawtooth'},win:{freq:560,end:880,duration:.32,volume:.10,type:'sine'},lose:{freq:270,end:130,duration:.38,volume:.09,type:'triangle'},ui:{freq:470,end:600,duration:.09,volume:.06,type:'sine'}};const s=shapes[kind]||shapes.ui;osc.type=s.type;osc.frequency.setValueAtTime(s.freq,now);osc.frequency.exponentialRampToValueAtTime(s.end,now+s.duration);gain.gain.setValueAtTime(.001,now);gain.gain.exponentialRampToValueAtTime(s.volume,now+.018);gain.gain.exponentialRampToValueAtTime(.001,now+s.duration);osc.connect(gain);gain.connect(ac.destination);osc.start(now);osc.stop(now+s.duration+.02);}catch(_){/* Audio is optional; the game always remains playable. */}}
  function useAbility(){
   const h=heroSet[game.hero];if(game.abilityUsed||game.turn!=='player'||game.phase!==h.timing)return;
@@ -752,7 +759,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   }
  }
  function hitCircleRect(p,b){const dx=p.x-b.body.position.x,dy=p.y-b.body.position.y,a=-b.body.angle,c=Math.cos(a),s=Math.sin(a),x=dx*c-dy*s,y=dx*s+dy*c;const qx=clamp(x,-b.w/2,b.w/2),qy=clamp(y,-b.h/2,b.h/2);return(x-qx)**2+(y-qy)**2<p.r*p.r;}
- function defeatFoe(f){if(!f.alive)return;f.alive=false;f.deathTimer=3.8;f.deathAngle=rnd(-.38,.38);f.hitAnim=0;f.attackAnim=0;if(f.body)M.Composite.remove(game.engine.world,f.body);spawnSparks(f.x,f.y,f.boss?50:24,['#a9c75f','#cbdad1','#a9edff','#ffb375'][f.kind||0],f.boss?1.3:.85);game.popups.push({x:f.x,y:f.y-28,value:f.boss?'대장 격파!':'격파!',life:1.05});if(f.boss){game.shake=20;game.message='요새 대장 격파!';game.messageTime=2;}}
+ function defeatFoe(f){if(!f.alive)return;f.alive=false;f.deathTimer=3.8;f.deathAngle=rnd(-.38,.38);f.hitAnim=0;f.attackAnim=0;if(f.body)M.Composite.remove(game.engine.world,f.body);spawnSparks(f.x,f.y,f.boss?50:24,['#a9c75f','#cbdad1','#a9edff','#ffb375'][f.kind||0],f.boss?1.3:.85);game.popups.push({x:f.x,y:f.y-f.r-56,value:f.boss?'대장 격파!':'격파!',life:1.05});if(f.boss){game.shake=20;game.message='요새 대장 격파!';game.messageTime=2;}}
  function applyExplosion(p){
   game.lastImpact={x:clamp(p.x,0,W),y:clamp(p.y,0,H)};
   const big=p.weapon==='bomb',radius=big?105:p.weapon==='split'?55:62,damage=big?105:p.weapon==='split'?46:72;
@@ -771,11 +778,13 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   if(b.hp<=0){b.dead=true;M.Composite.remove(game.engine.world,b.body);}
  }
  game.blocks=game.blocks.filter(b=>!b.dead);
-  for(const f of game.foes){if(!f.alive)continue;const dist=Math.hypot(p.x-f.x,p.y-f.y);if(dist<radius+f.r){const dealt=Math.max(12,(1-dist/(radius+f.r))*damage*1.45);f.hp-=dealt;f.hitFlash=.38;f.hitAnim=.64;f.attackAnim=0;game.popups.push({x:f.x,y:f.y-27,value:'-'+Math.round(dealt),life:.78});M.Sleeping.set(f.body,false);M.Body.setVelocity(f.body,{x:f.body.velocity.x+(f.x-p.x)/(dist||1)*4,y:-6});if(f.hp<=0)defeatFoe(f);}}
+  for(const f of game.foes){if(!f.alive)continue;const dist=Math.hypot(p.x-f.x,p.y-f.y);if(dist<radius+f.r){const dealt=Math.max(12,(1-dist/(radius+f.r))*damage*1.45);f.hp-=dealt;f.hitFlash=.38;f.hitAnim=.64;f.attackAnim=0;game.popups.push({x:f.x,y:f.y-f.r-20,value:'-'+Math.round(dealt),life:.88});M.Sleeping.set(f.body,false);M.Body.setVelocity(f.body,{x:f.body.velocity.x+(f.x-p.x)/(dist||1)*4,y:-6});if(f.hp<=0)defeatFoe(f);}}
   if(game.mode==='duel'){
    for(const c of [{owner:'player',x:190},{owner:'ai',x:1018}]){
     const cy=terrainY(c.x)-29,dist=Math.hypot(p.x-c.x,p.y-cy);
-    if(dist<radius+30){const val=Math.max(12,Math.round((1-dist/(radius+30))*(big?69:55)));if(c.owner==='player')game.playerHp-=val;else game.aiHp-=val;actorMotion(c.owner,'hit',.52);skillEffect('hit',c.x,cy,.45);spawnSparks(c.x,cy,12,'#fdd2a8',.8);}
+    if(dist<radius+30){const val=Math.max(12,Math.round((1-dist/(radius+30))*(big?69:55)));if(c.owner==='player')game.playerHp-=val;else game.aiHp-=val;
+     game.popups.push({x:c.x,y:cy-51,value:'-'+val,life:.98});
+     actorMotion(c.owner,'hit',.52);skillEffect('hit',c.x,cy,.45);spawnSparks(c.x,cy,12,'#fdd2a8',.8);}
    }
   }
   updateHud();
@@ -789,7 +798,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
    M.Body.setAngularVelocity(target.body,target.body.angularVelocity+.14);
    if(target.hp<=0){target.dead=true;M.Composite.remove(game.engine.world,target.body);game.blocks=game.blocks.filter(b=>!b.dead);}
   }else{
-   p.hitFoes.push(target);target.hp-=95;target.hitFlash=.4;target.hitAnim=.64;target.attackAnim=0;game.popups.push({x:target.x,y:target.y-35,value:'관통 -95',life:.9});
+   p.hitFoes.push(target);target.hp-=95;target.hitFlash=.4;target.hitAnim=.64;target.attackAnim=0;game.popups.push({x:target.x,y:target.y-target.r-26,value:'관통 -95',life:.9});
    if(target.hp<=0)defeatFoe(target);
   }
   spawnSparks(p.x,p.y,15,'#a8f4e4',.8);skillEffect('bear',p.x,p.y,.45);game.message='관통 성공!';game.messageTime=.8;
@@ -821,17 +830,17 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   }
   game.reviewFocusX=game.lastImpact?.x??(game.mode==='adventure'?850:game.turn==='player'?1018:190);
   game.reviewInfo={title,detail};
-  game.reviewTimer=game.mode==='duel'?3.5:Infinity;
+  game.reviewTimer=game.mode==='duel'?4:7;
   game.phase='review';game.phaseTime=0;game.panX=null;
   $('reviewTitle').textContent=title;$('reviewDetail').textContent=detail;
   $('reviewContinue').textContent=game.reviewNext==='win'?'승리 결과 보기':game.reviewNext==='lose'?'도전 결과 보기':game.reviewNext==='aiWait'?'상대 차례로':game.mode==='duel'?'내 차례로':'다음 발사';
-  $('shotReview').hidden=false;updateHud();
+  $('shotReview').hidden=false;$('reviewCountdown').hidden=false;$('reviewCountdown').textContent=String(Math.ceil(game.reviewTimer));updateHud();
  }
  function completeReview(){
-  if(game.phase==='result'){$('shotReview').hidden=true;$('result').hidden=false;return;}
+  if(game.phase==='result'){$('reviewCountdown').hidden=true;$('shotReview').hidden=true;$('result').hidden=false;return;}
   if(game.phase!=='review')return;
   const next=game.reviewNext;
-  $('shotReview').hidden=true;game.reviewTimer=0;game.panX=null;
+  $('shotReview').hidden=true;$('reviewCountdown').hidden=true;game.reviewTimer=0;game.panX=null;
   if(next==='win'||next==='lose'){showResult(next==='win');return;}
   game.reviewFocusX=null;game.overview=false;$('overview').textContent='전장 보기';
   game.phaseTime=0;
@@ -848,7 +857,12 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  function step(dt){
   game.clock+=dt;game.phaseTime+=dt;if(game.introLife>0){game.introLife=Math.max(0,game.introLife-dt);if(game.introLife===0)$('enemyEntrance').hidden=true;}game.shake*=.82;game.flash=Math.max(0,game.flash-dt);game.messageTime=Math.max(0,game.messageTime-dt);game.recoil.player*=.84;game.recoil.ai*=.84;for(const f of game.foes){if(f.deathTimer>0)f.deathTimer=Math.max(0,f.deathTimer-dt);}for(const e of game.blastCores)e.life-=dt;game.blastCores=game.blastCores.filter(e=>e.life>0);for(const a of Object.values(game.actorAnim))a.life=Math.max(0,a.life-dt);for(const e of game.skillEffects)e.life-=dt;game.skillEffects=game.skillEffects.filter(e=>e.life>0);if(game.muzzle){game.muzzle.life-=dt;if(game.muzzle.life<=0)game.muzzle=null;}
   if(game.mode==='menu'||game.phase==='result')return;
-  if(game.phase==='review'&&Number.isFinite(game.reviewTimer)){game.reviewTimer=Math.max(0,game.reviewTimer-dt);if(game.reviewTimer===0)completeReview();}
+  if(game.phase==='review'&&Number.isFinite(game.reviewTimer)){
+   const previous=Math.ceil(game.reviewTimer);game.reviewTimer=Math.max(0,game.reviewTimer-dt);
+   const remaining=Math.ceil(game.reviewTimer);
+   if(remaining!==previous&&remaining>0)$('reviewCountdown').textContent=String(remaining);
+   if(game.reviewTimer===0)completeReview();
+  }
   if(game.phase==='aiWait'){game.aiTimer-=dt;if(game.aiTimer<=0){const shot=chooseAiShot();launch('ai',shot.angle,shot.power,shot.weapon);game.message='상대 전술 · '+shot.tactic;game.messageTime=1.4;}}
   M.Engine.update(game.engine,dt*1000);
   for(const b of game.blocks){b.x=b.body.position.x-b.w/2;b.y=b.body.position.y-b.h/2;b.angle=b.body.angle;b.damageFlash=Math.max(0,(b.damageFlash||0)-dt);}
@@ -938,7 +952,16 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
    else illustratedCharacter('bear',x+45,y+2,.8,-1,'ai');
   }else{if(own)fox(x-53,y+2,.72);else bear(x+50,y+4,.75);}
  }
- function slingshot(){const o=origin();if(spriteReady(game.hero)){illustratedCharacter(game.hero,o.x-51,terrainY(o.x)-32,.95);if(game.drag){ctx.save();ctx.lineCap='round';ctx.lineWidth=5;ctx.strokeStyle='#5a3d39';ctx.beginPath();ctx.moveTo(o.x+3,o.y-29);ctx.lineTo(game.drag.x,game.drag.y);ctx.lineTo(o.x+23,o.y-32);ctx.stroke();ctx.restore();}return;}ctx.save();ctx.lineCap='round';ctx.strokeStyle='#6f5946';ctx.lineWidth=15;ctx.beginPath();ctx.moveTo(o.x,o.y+48);ctx.lineTo(o.x-4,o.y-32);ctx.moveTo(o.x-4,o.y-16);ctx.lineTo(o.x-25,o.y-41);ctx.moveTo(o.x-4,o.y-16);ctx.lineTo(o.x+17,o.y-42);ctx.stroke();ctx.strokeStyle='#b88a5b';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(o.x-4,o.y+37);ctx.lineTo(o.x-4,o.y-33);ctx.stroke();
+ function slingshot(){const o=origin();if(spriteReady(game.hero)){
+   illustratedCharacter(game.hero,o.x-51,terrainY(o.x)-32,.95,1,'player');
+   // Weapon must remain visibly equipped when character bitmap art is available.
+   ctx.save();ctx.lineCap='round';ctx.strokeStyle='#603f2a';ctx.lineWidth=9;ctx.beginPath();
+   ctx.moveTo(o.x+1,o.y+39);ctx.lineTo(o.x-4,o.y-23);ctx.lineTo(o.x-21,o.y-41);
+   ctx.moveTo(o.x-4,o.y-23);ctx.lineTo(o.x+19,o.y-41);ctx.stroke();
+   ctx.strokeStyle='#e3ad64';ctx.lineWidth=3.5;ctx.stroke();
+   const d=game.drag||{x:o.x-2,y:o.y-25};
+   ctx.strokeStyle='#4a3431';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(o.x-21,o.y-41);ctx.lineTo(d.x,d.y);ctx.lineTo(o.x+19,o.y-41);ctx.stroke();
+   ctx.restore();return;}ctx.save();ctx.lineCap='round';ctx.strokeStyle='#6f5946';ctx.lineWidth=15;ctx.beginPath();ctx.moveTo(o.x,o.y+48);ctx.lineTo(o.x-4,o.y-32);ctx.moveTo(o.x-4,o.y-16);ctx.lineTo(o.x-25,o.y-41);ctx.moveTo(o.x-4,o.y-16);ctx.lineTo(o.x+17,o.y-42);ctx.stroke();ctx.strokeStyle='#b88a5b';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(o.x-4,o.y+37);ctx.lineTo(o.x-4,o.y-33);ctx.stroke();
   const d=game.drag;if(d){ctx.strokeStyle='#3c3445';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(o.x-25,o.y-41);ctx.lineTo(d.x,d.y);ctx.lineTo(o.x+17,o.y-42);ctx.stroke();ellipse(d.x,d.y,11,11,'#e5ad7c');}
   else{ctx.strokeStyle='#5f4651';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(o.x-25,o.y-41);ctx.lineTo(o.x-6,o.y-25);ctx.lineTo(o.x+17,o.y-42);ctx.stroke();}ctx.restore();fox(o.x-55,terrainY(o.x)-26,.77);}
 const materialCells={
