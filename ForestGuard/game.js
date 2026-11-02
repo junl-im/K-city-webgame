@@ -837,7 +837,8 @@
       this.heroSprites.forEach((sprite,i)=>{
         if(!sprite||!sprite.active)return;
         const size=this.heroIds[i]==='megafox'?Math.round(base*1.1):base;
-        sprite.setPosition(HERO_POSITIONS[i],568).setDisplaySize(size,size).setDepth(6);
+        // Keep the rear-view heroes nimble and tall while preserving their ground position.
+        sprite.setPosition(HERO_POSITIONS[i],566).setDisplaySize(Math.round(size*.90),Math.round(size*1.12)).setDepth(6);
       });
     }
     resizeBattleCamera(){
