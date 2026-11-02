@@ -10,6 +10,7 @@ import { findBombOptions, findShakeOptions } from './engine/rules/specialRules';
 import { getCard, HWATU_CARDS } from './engine/cards';
 import { ALLOWED_STAKES, STAKES, canUseStake, normalizeStake } from './stakeRules.js';
 import { captureDisplayCount, groupedCaptures } from './capturedCards.js';
+import { currentBakWarnings } from './bakWarnings.js';
 import { doubleOffer } from './doubleStake.js';
 import { floorDensity } from './floorLayout.js';
 import { artworkOrdinal, cardBookLabel, cardVisualDetails } from './cardDisplay.js';
@@ -346,12 +347,13 @@ function capturedRack(g, who='human') {
   const human=who==='human', cards=human?g.humanCaptured:g.computerCaptured;
   const asDoubleJunk=human?g.humanGookjinAsDoubleJunk:g.computerGookjinAsDoubleJunk;
   const score=scoreOf(g,who);
+  const warnings=currentBakWarnings(score,scoreOf(g,human?'computer':'human'),cards.length,g.pointValue);
   return `<div class="collection-rack ${human?'collection-rack--human':'collection-rack--opponent'}" aria-label="${human?'내가':'상대가'} 먹은 실제 화투패">
     <div class="collection-groups">${groupedCaptures(g,who).map(group => `
       <button class="collection-group" type="button" data-capture-type="${group.id}" data-empty="${group.cards.length===0}" data-action="captures" data-value="${who}:${group.id}" aria-label="${human?'내':'상대'}가 먹은 ${group.name} 카드 ${group.cards.length}장${group.id==='junk'?` · 점수 계산 ${captureDisplayCount(group,score)}장`:''} 전체 보기">
-        <span class="collection-preview">${group.cards.length ? group.cards.map(id=>`<span class="capture-stack-card">${card(id,{tiny:true,gookjinAsDoubleJunk:asDoubleJunk})}</span>`).join('') : ''}
+        <span class="collection-preview">${group.cards.length ? group.cards.map((id,index)=>`<span class="capture-stack-card">${card(id,{tiny:true,gookjinAsDoubleJunk:asDoubleJunk})}${group.id==='junk' && index===group.cards.length-1 ? `<span class="capture-pi-count" aria-label="피 ${score.junkCount}장">${score.junkCount}</span>` : ''}</span>`).join('') : ''}
           </span>
-      </button>`).join('')}</div>
+      </button>`).join('')}</div>${warnings.length ? `<span class="bak-warnings" role="status">${warnings.map(w=>`<span>${w}</span>`).join('')}</span>` : ''}
   </div>`;
 }
 function capturedGallery(g, who, selectedType) {
@@ -435,10 +437,13 @@ function gameScreen() {
       <div class="game-message" aria-live="polite" title="${safe(spokenActionText(g.lastAction))}">${safe(spokenActionText(g.lastAction))}</div>
     </div>
     <div class="player-area bottom-safe">
-      <div class="player-status"><div><span class="mascot mascot--bear player-mini-avatar" aria-hidden="true"></span><span class="me-badge">나</span><strong>${me.total}점</strong><span class="go-count">${g.humanGoCount ? g.humanGoCount+'고' : '고 없음'}</span></div><span class="player-controls">${humanTurnSignature(app.screen,g) ? `<span class="turn-clock" role="timer" aria-label="내 차례 남은 시간"><span class="turn-clock__time"><strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</span><span class="turn-clock__rail"><span class="turn-clock__fill" data-turn-fill></span></span></span>` : '<span class="turn-clock turn-clock--waiting">상대 차례</span>'}${specialActionButtons ? `<span class="special-controls" role="group" aria-label="가능한 특수 행동">${specialActionButtons}</span>` : ''}<button type="button" class="action-chip action-chip--auto ${app.autoMode?'is-on':''}" data-action="automode" aria-pressed="${app.autoMode}">자동 ${app.autoMode?'ON':'OFF'}</button></span></div>
+      <div class="player-status"><div><span class="mascot mascot--bear player-mini-avatar" aria-hidden="true"></span><span class="me-badge">나</span><strong>${me.total}점</strong><span class="go-count">${g.humanGoCount ? g.humanGoCount+'고' : '고 없음'}</span></div></div>
       ${capturedRack(g)}
       <div class="hand-heading"><strong>내 패 ${hand.length}장</strong> <span>${yourTurn?'패를 눌러 내기':'상대 차례'}</span></div>
-      <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{action:yourTurn?'play':null,matchHint:g.phase==='playing' && (!yourTurn || !pending || getCard(id)?.month===pending) && getMatchingFloorCards(g.floorCards,id).length>0})).join('') : ((g.humanBombSkips || 0)?'':'<span class="no-cards">손패를 모두 냈어!</span>')}${Array.from({length:g.humanBombSkips || 0},(_,index)=>`<button type="button" class="bomb-empty-card" data-action="flip" aria-label="폭탄 빈 패 ${index+1}, 사용하면 더미만 뒤집기" ${yourTurn && !pending?'':'disabled'}><span>빈 패</span><small>뒤집기</small></button>`).join('')}</div>
+      <div class="hand-workspace">
+      <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{action:yourTurn?'play':null,matchHint:g.phase==='playing' && (!yourTurn || !pending || getCard(id)?.month===pending) && getMatchingFloorCards(g.floorCards,id).length>0})).join('') : ((g.humanBombSkips || 0)?'':'<span class="no-cards">손패를 모두 냈어!</span>')}${Array.from({length:g.humanBombSkips || 0},(_,index)=>`<button type="button" class="bomb-empty-card" data-action="flip" aria-label="폭탄 빈 패 ${index+1}, 사용하면 더미만 뒤집기" ${yourTurn && !pending?'':'disabled'}><span class="bomb-empty-label">폭탄패</span></button>`).join('')}</div>
+        <span class="player-controls">${humanTurnSignature(app.screen,g) ? `<span class="turn-clock" role="timer" aria-label="내 차례 남은 시간"><span class="turn-clock__time"><strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</span><span class="turn-clock__rail"><span class="turn-clock__fill" data-turn-fill></span></span></span>` : '<span class="turn-clock turn-clock--waiting">상대 차례</span>'}${specialActionButtons ? `<span class="special-controls" role="group" aria-label="가능한 특수 행동">${specialActionButtons}</span>` : ''}<button type="button" class="action-chip action-chip--auto ${app.autoMode?'is-on':''}" data-action="automode" aria-pressed="${app.autoMode}">자동 ${app.autoMode?'ON':'OFF'}</button></span>
+      </div>
     </div>
     ${flash ? (()=>{const moment=specialMoment(flashKind,flash);return `<div class="effect-burst effect-burst--${safe(moment.kind)} ${moment.major?'effect-burst--major':'effect-burst--minor'}" role="status" aria-live="assertive"><span class="effect-burst__illustration" aria-hidden="true"></span><strong class="effect-burst__headline">${safe(moment.title)}</strong>${moment.detail?`<small class="effect-burst__detail">${safe(moment.detail)}</small>`:''}</div>`;})() : ''}
     <div class="turn-countdown" aria-hidden="true" hidden><strong></strong></div>
@@ -454,7 +459,7 @@ function gameOverlay(g) {
   if (overlay==='cardbook') return cardbookOverlay();
   if (app.pendingDrawChoice) {
     const choice=app.pendingDrawChoice;
-    return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--match" role="dialog" aria-modal="true" aria-labelledby="draw-choice-title"><div class="decision-kicker">뒤집은 패</div><div class="drawn-choice-card">${card(choice.drawnCardId)}</div><h2 id="draw-choice-title">같은 무늬 중 한 장을 골라요</h2><p class="decision-hint">뒤집은 패와 함께 가져갈 바닥패를 선택하세요.</p><div class="match-choices" role="group" aria-label="뒤집은 패와 맞는 바닥패">${choice.candidateIds.map(id=>card(id,{action:'draw-choice'})).join('')}</div>${choiceTimer()}</section></div>`;
+    return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--match" role="dialog" aria-modal="true" aria-labelledby="draw-choice-title"><div class="decision-kicker">더미에서 나올 패 미리보기</div><div class="draw-choice-context">${choice.kind==='play'?`<div><small>선택한 내 손패</small>${card(choice.cardId)}</div><span aria-hidden="true">→</span>`:''}<div><small>더미에서 나올 패</small>${card(choice.drawnCardId)}</div></div><h2 id="draw-choice-title">이 패와 맞는 바닥패를 골라요</h2><p class="decision-hint">아래는 바닥에 놓인 패입니다. 함께 가져갈 한 장을 선택하세요.</p><div class="match-choices" role="group" aria-label="뒤집은 패와 맞는 바닥패">${choice.candidateIds.map(id=>card(id,{action:'draw-choice'})).join('')}</div>${choiceTimer()}</section></div>`;
   }
   if (selectedTriple) {
     const triple=selectedTriple, ids=g.humanHand.filter(id=>getCard(id)?.month===triple.month);
