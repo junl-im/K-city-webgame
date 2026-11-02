@@ -9,11 +9,12 @@ let script=inlineScripts.at(-1)[1];
 if(/v0_[67]/.test(versionedPath)){
  const marker=' requestAnimationFrame(frame);\n})();';
  assert(script.includes(marker),'Expected a stable v0.6 boot marker');
- script=script.replace(marker,' window.__finishForTest=showResult; requestAnimationFrame(frame);\n})();');
+ script=script.replace(marker,' window.__finishForTest=showResult; window.__hitFoeForTest=(damage)=>{const f=game.foes.find(x=>x.alive);if(!f)return;f.hp-=damage;f.hitAnim=.64;f.hitFlash=.3;f.attackAnim=0;if(f.hp<=0)defeatFoe(f);}; window.__damageBlockForTest=(damage)=>{const b=game.blocks.find(x=>x.type===\'wood\');if(!b)return -1;const prev=damageTier(b);b.hp-=damage;markBlockImpact(b,prev,damage);return damageTier(b);}; requestAnimationFrame(frame);\n})();');
 }
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(html.includes('Artillery_Illustrated_UI_v1_1.png'),'The painted v1.1 UI atlas should be referenced');
+assert(html.includes('Artillery_Combat_Poses_v1_2.png'),'The transparent combat pose atlas should be referenced');
 const handlers={};
 const elements=new Map();
 const noOp=()=>{};
@@ -24,7 +25,7 @@ const weapons=['normal','bomb','split'].map(type=>{const b=el('weapon-'+type);b.
 const heroes=['fox','bear','rabbit','cat'].map(type=>{const b=el('hero-'+type);b.dataset.hero=type;return b;});
 const stages=[0,1,2,3].map(type=>{const b=el('stage-'+type);b.dataset.stage=String(type);return b;});
 for(const id of ['stageMap','result','help','exitConfirm','enemyEntrance','shotReview'])el(id).hidden=true;
-for(const id of ['materialArtwork']){const art=el(id);art.complete=true;art.naturalWidth=1536;art.naturalHeight=1024;}
+for(const id of ['materialArtwork','combatArtwork']){const art=el(id);art.complete=true;art.naturalWidth=id==='combatArtwork'?1262:1536;art.naturalHeight=id==='combatArtwork'?1246:1024;}
 const document={referrer:'',getElementById:el,querySelectorAll:selector=>selector==='[data-weapon]'?weapons:selector==='[data-hero]'?heroes:selector==='[data-stage]'?stages:[]};
 if(/v0_[34]/.test(versionedPath)){const art=el('menuArtwork');art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}
 if(/v0_[567]/.test(versionedPath)){for(const type of ['menuArtwork','rosterArtwork']){const art=el(type);art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}}
@@ -69,11 +70,14 @@ el('adventureBtn').click();frames(5);
 assert.equal(state().foes,2);
 assert.equal(state().phase,'aim');
 assert.equal(state().materialReady,true,'The 3-stage material atlas must load');
+assert.equal(state().combatReady,true,'All four new enemies must have distinct bitmap battle poses');
+assert(state().foePoses.every(p=>p==='idle'),'Enemies should begin in their idle pose');
 assert.equal(state().materialTiers.length,4,'Each fortress piece must have a material tier');
 assert.equal(state().introVisible,true,'The painted enemy encounter must appear briefly');
 frames(600);
 assert.equal(state().foes,2,'Adventure structures must remain stable before the first shot');
 assert.equal(state().introVisible,false,'Enemy intro must auto-dismiss to free the combat viewport');
+assert(state().foeAttacks>=1,'Idle enemies must show their threatening attack animation');
 if(/v0_[234567]/.test(versionedPath)){
  el('angle').value='28';el('angle').dispatch('input');
  el('power').value='78';el('power').dispatch('input');
@@ -93,6 +97,8 @@ assert.equal(state().phase,'review','Adventure should hold the impact instead of
 assert.equal(state().reviewVisible,true,'The impact review ribbon must remain visible');
 assert(Number.isFinite(state().reviewFocusX),'The camera should retain a real impact focus');
 assert(el('reviewTitle').textContent.length>0,'Shot outcome must be summarized');
+assert(state().rubbleCount>=0,'The review must preserve its rubble state safely');
+assert(state().foePoses.every(p=>['idle','attack','hurt','death'].includes(p)),'Every enemy animation state must be defined');
 frames(125);
 assert.equal(state().phase,'review','Adventure impact should remain visible until player confirmation');
 el('reviewContinue').click();
@@ -100,6 +106,20 @@ assert(['aim','result'].includes(state().phase),'Confirming review returns to ai
 assert.equal(state().reviewVisible,false,'Review ribbon should close after confirmation');
 if(/v0_[234567]/.test(versionedPath))assert(peakRotated>0,'Explosion should rotate at least one structure piece');
 el('homeBtn').click();
+if(/v0_[67]/.test(versionedPath)){
+ el('adventureBtn').click();frames(3);
+ assert.equal(window.__damageBlockForTest(26),1,'Timber must reach painted cracked tier');
+ assert.equal(window.__damageBlockForTest(27),2,'Timber must reach painted fractured tier');
+ window.__hitFoeForTest(10);
+ assert.equal(state().foePoses[0],'hurt','Impact must interrupt attack and show hurt artwork');
+ window.__hitFoeForTest(500);
+ assert.equal(state().foePoses[0],'death','Defeat must show its own collapse artwork');
+ frames(65);
+ assert.equal(state().foePoses[0],'death','Defeated pose should persist during the review window');
+ frames(320);
+ assert(state().rubbleCount>0,'Fallen material shards must remain on the battlefield');
+ el('homeBtn').click();
+}
 if(/v0_[4567]/.test(versionedPath)){
  for(const [stage,foes] of [[1,3],[2,3],[3,2]]){
   el('adventureStage').value=String(stage);
