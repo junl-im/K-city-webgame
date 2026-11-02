@@ -3598,3 +3598,27 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
  .scene--game .floor-area[data-density="busy"] .hwatu,
  .scene--game .floor-area[data-density="packed"] .hwatu {width:clamp(32px,11.5vw,42px);}
 }
+/* Captured art is the only visible content; each group still opens its gallery. */
+.scene--game .collection-rack .collection-groups,.scene--game .collection-rack--human .collection-groups {height:100%;}
+.scene--game .collection-rack--opponent .collection-groups {height:55px;}
+.scene--game .collection-group {justify-content:center;}
+.scene--game .collection-preview {height:100%;}
+.scene--game .special-controls {display:flex;align-items:center;gap:3px;min-width:0;max-width:min(22vw,190px);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#d4ac74 transparent;}
+.scene--game .special-controls .action-chip {flex:none;min-height:30px;padding:3px 7px;white-space:nowrap;font-size:11px;}
+@media(max-width:650px){
+ .scene--game .player-area {grid-template-rows:24px 72px minmax(0,1fr);}
+ .scene--game .special-controls {max-width:24vw;}
+ .scene--game .special-controls .action-chip {min-height:27px;font-size:10px;}
+ .scene--game .collection-rack--opponent .collection-groups {height:55px;}
+}
+@media(max-width:650px) and (min-height:561px) and (max-height:700px){.scene--game .player-area {grid-template-rows:21px 59px minmax(0,1fr);}.scene--game .collection-rack--opponent .collection-groups {height:47px;}}
+@media(max-width:650px) and (max-height:560px){.scene--game .player-area {grid-template-rows:19px 51px minmax(0,1fr);}.scene--game .collection-rack--opponent .collection-groups {height:41px;}}
+@media(max-width:650px) and (max-height:700px){.scene--game .floor-area[data-density="normal"] .hwatu,.scene--game .floor-area[data-density="busy"] .hwatu,.scene--game .floor-area[data-density="packed"] .hwatu {width:clamp(37px,13vw,50px);}}
+@media(max-width:650px){
+ .scene--game .player-status>div {flex:none;white-space:nowrap;gap:3px;padding-left:30px;padding-right:4px;}
+ .scene--game .player-status strong,.scene--game .go-count {white-space:nowrap;}
+ .scene--game .player-controls {flex:1;}
+ .scene--game .special-controls {flex:0 1 auto;max-width:38vw;}
+ .scene--game .special-controls .action-chip {padding-inline:5px;font-size:10px;}
+ .scene--game .player-controls:has(.special-controls) .turn-clock__rail {display:none;}
+}
