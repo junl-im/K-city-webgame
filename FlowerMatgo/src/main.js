@@ -276,7 +276,7 @@ function openingScreen() {
 }
 
 function home() {
-  const resume = app.game && app.game.phase !== 'round-ended';
+  const resume = app.game && (app.game.phase !== 'round-ended' || (app.game.roundResult === 'nagari' && !!app.doubleStake));
   return `<main class="scene scene--home">
     <header class="nav top-safe">${brand()}<span class="top-pill">✿ 동물 친구들의 꽃놀이마당</span></header>
     <section class="home-content">
@@ -818,7 +818,9 @@ function finishOpening() {
   }
   app.screen = 'game';
   app.settledUuid = null;
-  save();render();queueAI();
+  // The opening deal can itself end in nagari. Settle it before showing the
+  // result, just as for a round that ends during play.
+  finishRound();save();render();queueAI();
 }
 
 function advanceOpening() {
@@ -865,7 +867,9 @@ function startNew(rematch = false, roundMultiplier = app.nextMultiplier) {
     daytime: new Date().getHours() >= 6 && new Date().getHours() < 18
   });
   opening.roundMultiplier = roundMultiplier;
-  if (!rematch) app.game=null;
+  // Keep the previous round until a carried stake is attached to the next
+  // deal; otherwise an interrupted opening loses the only recoverable state.
+  if (!rematch && !app.doubleStake) app.game=null;
   app.screen='opening';selectedMatch=null;selectedTriple=null;app.pendingGookjinChoice=false;app.pendingDrawChoice=null;overlay=null;
   save();render();
   openingTimer=setTimeout(advanceOpening,OPENING_SHUFFLE_MS);
