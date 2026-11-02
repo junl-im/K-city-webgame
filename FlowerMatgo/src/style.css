@@ -3516,9 +3516,9 @@ button:disabled { cursor: not-allowed; opacity:.48; }
 @media(max-width:650px){.scene--game .my-hand .hwatu {height:min(calc(100% - 9px),70px);width:auto;max-width:none;}}
 
 /* Readable, quiet countdown that never intercepts a card or modal tap. */
-.turn-countdown {position:fixed;z-index:90;left:50%;top:44%;transform:translate(-50%,-50%);display:grid;place-items:center;width:clamp(74px,18vw,112px);aspect-ratio:1;border:3px solid #ffe6ad;border-radius:50%;background:radial-gradient(circle at 35% 25%,#fff8d9,#f3c37b 65%,#c87845);box-shadow:0 5px 22px #2b241b9c,inset 0 0 0 5px #fff7d980;color:#7c3c25;pointer-events:none;}
+.turn-countdown {position:fixed;z-index:90;left:50%;top:44%;transform:translate(-50%,-50%);display:grid;place-items:center;width:clamp(94px,24vw,128px);aspect-ratio:1;background:url('/assets/flower-countdown-frame-v1.png') center/contain no-repeat,radial-gradient(circle,#fff2d6 0 30%,transparent 31%);color:#81381f;filter:drop-shadow(0 5px 6px #301a1470);pointer-events:none;}
 .turn-countdown[hidden]{display:none;}
-.turn-countdown strong{font:900 clamp(46px,11vw,72px)/1 Georgia,serif;text-shadow:0 2px #fff7d9;}
+.turn-countdown strong{font:900 clamp(43px,11vw,64px)/1 Georgia,serif;text-shadow:0 2px #fff7d9;}
 .scene--game .result-actions .btn--primary {font-weight:900;letter-spacing:.01em;color:#3f5a3e;text-shadow:0 1px #fff8df;filter:drop-shadow(0 3px 3px #6950353b);}
 html {scrollbar-width:thin;scrollbar-color:#cba77a #254d3f;}
 html::-webkit-scrollbar,.scene *::-webkit-scrollbar {width:8px;height:6px;}
