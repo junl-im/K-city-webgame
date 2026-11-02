@@ -18,8 +18,8 @@ assert(html.includes('Artillery_Combat_Poses_v1_2.png'),'The transparent combat 
 const handlers={};
 const elements=new Map();
 const noOp=()=>{};
-let imageDrawCalls=0;
-const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?()=>{imageDrawCalls++;}:key==='save'||key==='restore'||key==='translate'||key==='setTransform'||key==='beginPath'||key==='moveTo'||key==='lineTo'||key==='stroke'||key==='fill'||key==='ellipse'||key==='arc'||key==='roundRect'||key==='fillRect'||key==='fillText'||key==='strokeText'||key==='closePath'||key==='scale'||key==='rotate'||key==='rect'||key==='clip'||key==='bezierCurveTo'?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
+let imageDrawCalls=0,brightTrajectoryStrokes=0;
+const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?()=>{imageDrawCalls++;}:key==='stroke'?()=>{if(obj.strokeStyle==='#fff5ba'&&obj.lineWidth>=5)brightTrajectoryStrokes++;}:key==='save'||key==='restore'||key==='translate'||key==='setTransform'||key==='beginPath'||key==='moveTo'||key==='lineTo'||key==='stroke'||key==='fill'||key==='ellipse'||key==='arc'||key==='roundRect'||key==='fillRect'||key==='fillText'||key==='strokeText'||key==='closePath'||key==='scale'||key==='rotate'||key==='rect'||key==='clip'||key==='bezierCurveTo'?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
 function el(id){if(!elements.has(id)){const listeners={},item={id,hidden:false,disabled:false,style:{},value:'',textContent:'',dataset:{},clientWidth:id==='field'?1280:0,clientHeight:id==='field'?620:0,width:0,height:0,tagName:'DIV',classList:{toggle:noOp},addEventListener(type,fn){listeners[type]=fn;},dispatch(type,event={}){listeners[type]?.({target:item,...event});},click(){this.dispatch('click');},getContext:()=>ctx,getBoundingClientRect(){return{left:0,top:0,width:this.clientWidth,height:this.clientHeight};},setPointerCapture:noOp};elements.set(id,item);}return elements.get(id);}
 const weapons=['normal','bomb','split'].map(type=>{const b=el('weapon-'+type);b.dataset.weapon=type;return b;});
 const heroes=['fox','bear','rabbit','cat'].map(type=>{const b=el('hero-'+type);b.dataset.hero=type;return b;});
@@ -69,6 +69,7 @@ handlers.popstate();assert.equal(state().mode,'menu','Back from a running battle
 el('adventureBtn').click();frames(5);
 assert.equal(state().foes,2);
 assert.equal(state().phase,'aim');
+assert(brightTrajectoryStrokes>0,'High-contrast aiming trajectory should actually render');
 assert.equal(state().materialReady,true,'The 3-stage material atlas must load');
 assert.equal(state().combatReady,true,'All four new enemies must have distinct bitmap battle poses');
 assert(state().foePoses.every(p=>p==='idle'),'Enemies should begin in their idle pose');
@@ -101,10 +102,42 @@ assert(state().rubbleCount>=0,'The review must preserve its rubble state safely'
 assert(state().foePoses.every(p=>['idle','attack','hurt','death'].includes(p)),'Every enemy animation state must be defined');
 frames(125);
 assert.equal(state().phase,'review','Adventure impact should remain visible until player confirmation');
+if(state().foes>0 && state().shots<state().maxShots){
+ assert.equal(el('angle').disabled,false,'Angle slider must be operable after first shot');
+ assert.equal(el('power').disabled,false,'Power slider must be operable after first shot');
+ assert.equal(el('fire').disabled,false,'Fire button must be operable after first shot');
+ assert.equal(el('weapon-normal').disabled,false,'Ammo selectors must be operable after first shot');
+}
 el('reviewContinue').click();
 assert(['aim','result'].includes(state().phase),'Confirming review returns to aim or mission result');
 assert.equal(state().reviewVisible,false,'Review ribbon should close after confirmation');
 if(/v0_[234567]/.test(versionedPath))assert(peakRotated>0,'Explosion should rotate at least one structure piece');
+el('homeBtn').click();
+// Regression: first shot must not require another outcome-button tap to enable the next shot.
+el('adventureStage').value='0';
+el('adventureBtn').click();frames(4);
+el('angle').value='82';el('angle').dispatch('input');
+el('power').value='20';el('power').dispatch('input');
+el('fire').click();frames(650);
+assert.equal(state().phase,'review','A short first shot should hold its results');
+assert.equal(state().foes,2,'Short vertical shot must not end the mission');
+assert.equal(el('fire').disabled,false,'Second fire must be enabled');
+assert.equal(el('angle').disabled,false,'Angle slider must not stay locked');
+assert.equal(el('power').disabled,false,'Power slider must not stay locked');
+el('fire').click();
+assert.equal(state().shots,2,'Firing should immediately launch the next shot');
+assert.equal(state().phase,'flying','Second shot must really fly');
+el('homeBtn').click();
+// Regression: editing a slider resumes aiming without requiring the result ribbon.
+el('adventureBtn').click();frames(4);
+el('angle').value='82';el('angle').dispatch('input');
+el('power').value='20';el('power').dispatch('input');
+el('fire').click();frames(650);
+assert.equal(state().phase,'review');
+el('angle').value='67';el('angle').dispatch('input');
+assert.equal(state().phase,'aim','Changing angle should return to aiming');
+assert.equal(el('fire').disabled,false);
+el('fire').click();assert.equal(state().shots,2);
 el('homeBtn').click();
 if(/v0_[67]/.test(versionedPath)){
  el('adventureBtn').click();frames(3);
