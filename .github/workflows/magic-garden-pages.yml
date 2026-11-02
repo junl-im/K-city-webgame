@@ -12,6 +12,7 @@ on:
       - 'FlowerMatgo/**'
       - 'LieRoom/**'
       - 'ForestGuard/**'
+      - 'CannonTale/**'
       - '.github/workflows/magic-garden-pages.yml'
   workflow_dispatch:
 
@@ -160,6 +161,26 @@ jobs:
           test -s MagicGarden/dist/ForestGuard/art/rani-rearguard-v35.png
           test -s MagicGarden/dist/ForestGuard/art/btn-gold-v33.webp
           echo "Independent Forest Guard staged at /ForestGuard/"
+
+      - name: Test and stage CannonTale as an independent web game
+        shell: bash
+        run: |
+          set -euo pipefail
+          node CannonTale/artillery_smoke_test.cjs
+          test -s CannonTale/index.html
+          test -s CannonTale/matter.min.js
+          test -s CannonTale/Artillery_Fox_Bear_Atlas_v0_3.webp
+          test -s CannonTale/Artillery_Rabbit_Cat_Atlas_v0_5.webp
+          test -s CannonTale/Artillery_Action_UI_Atlas_v0_6.webp
+          test -s CannonTale/Artillery_Stage_Atlas_v0_7.webp
+          if grep -Eqi '<svg([[:space:]>])' CannonTale/index.html; then
+            echo "SVG markup is not permitted in CannonTale" >&2
+            exit 1
+          fi
+          mkdir -p MagicGarden/dist/CannonTale
+          cp CannonTale/index.html CannonTale/matter.min.js CannonTale/Artillery_Fox_Bear_Atlas_v0_3.webp CannonTale/Artillery_Rabbit_Cat_Atlas_v0_5.webp CannonTale/Artillery_Action_UI_Atlas_v0_6.webp CannonTale/Artillery_Stage_Atlas_v0_7.webp MagicGarden/dist/CannonTale/
+          test -s MagicGarden/dist/CannonTale/index.html
+          echo "Independent CannonTale staged at /CannonTale/"
 
       - name: Upload short-lived Pages deployment artifact
         uses: actions/upload-pages-artifact@v4

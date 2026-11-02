@@ -54,3 +54,8 @@
 - [물리도감 GitHub Pages](https://junl-im.github.io/K-city-webgame/PhysicsPopbook/) — 마법정원·60초 놀이터와 경로 분리
 - [물리도감 지식 자산 및 저작권 고지](./PhysicsPopbook/OWNERSHIP.md)
 - **© 2026 곰같은여우. All rights reserved.** 본 프로젝트의 자체 창작 소스·캐릭터·삽화·디자인·콘텐츠 등 지식 자산의 권리는 곰같은여우에게 귀속되며 공개 저장소라는 이유로 무단 이용이 허용되지 않습니다. 외부 오픈소스는 별도 라이선스를 따릅니다.
+
+## 포물선 모험과 결투 — 캐논테일 (가제)
+
+- [캐논테일 웹게임](https://junl-im.github.io/K-city-webgame/CannonTale/) — 물리 구조물 공략 4지역과 턴제 AI 포격 결투의 독립 하위 경로.
+- [게임 소스 및 저작권](./CannonTale/) — 기존 게임 소스·배포 주소와 분리하여 관리.
