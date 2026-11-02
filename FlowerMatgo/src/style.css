@@ -3438,6 +3438,13 @@ button:disabled { cursor: not-allowed; opacity:.48; }
 /* Earned cards remain legible for both players without enlarging the board. */
 .scene--game .collection-rack .collection-preview .hwatu {width:clamp(30px,3.5vw,42px);margin-left:-10px;}
 .scene--game .double-explanation {display:block;max-width:100%;padding:2px 6px;text-align:center;color:#6a5140;font-size:11px;font-weight:700;line-height:1.35;}
+.decision-review-button {min-height:40px;padding:8px 16px;border:1px solid #c6a475;border-radius:12px;background:#fff7e6;color:#69472e;font-weight:800;cursor:pointer;}
+.decision-review {position:fixed;z-index:55;top:max(6px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;max-width:calc(100vw - 16px);padding:6px 8px 6px 12px;border:1px solid #e7c58c;border-radius:14px;background:#fff7e9;box-shadow:0 5px 18px #38271670;color:#65442c;font-size:12px;font-weight:800;white-space:nowrap;}
+.decision-review button {min-height:38px;border:0;border-radius:10px;padding:7px 12px;background:#a94c2f;color:#fff8ea;font-weight:800;cursor:pointer;}
+.scene--game .result-prize {display:flex;align-items:center;justify-content:space-between;gap:8px;margin:7px 0;padding:9px 13px;border:1px solid #e4bf79;border-radius:15px;background:linear-gradient(120deg,#fff2cb,#fffae9);color:#785126;}
+.scene--game .result-prize span {font-weight:800;font-size:12px;}
+.scene--game .result-prize strong {font-size:clamp(20px,5vw,30px);color:#ad4928;line-height:1.1;}
+.scene--game .result-prize small {font-size:.55em;}
 .scene--game .round-multiplier {display:inline-block;padding:2px 6px;border:1px solid #eec27e;border-radius:99px;background:#fff0c7;color:#8c431d;font-size:11px;line-height:1.2;white-space:nowrap;}
 @media(max-width:650px) and (min-height:701px){
   .scene--game .collection-rack .collection-preview .hwatu {width:clamp(30px,8.7vw,36px);}

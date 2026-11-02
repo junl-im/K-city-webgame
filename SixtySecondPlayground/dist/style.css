@@ -929,3 +929,13 @@ body[data-view="games"] #games{animation:gamePageFade .24s ease-out both}
   .modal.is-playing .hud-box strong{font-size:16px;}
 }
 .sort-monster.sort-painted{width:144px;height:144px;margin-inline:auto;background-image:url('./assets/sort-storybook-atlas-v1.png');background-size:400% 500%;background-repeat:no-repeat}
+
+/* Let the catalog breathe vertically; a short screen may scroll naturally. */
+@media(max-width:700px){
+  body[data-view="games"] .game-grid[data-filter="all"] {flex:0 0 auto;grid-template-rows:none;grid-auto-rows:auto;align-content:start;}
+  body[data-view="games"] .game-grid[data-filter]>.game-card:not(:last-child) {height:auto;min-height:154px;}
+  body[data-view="games"] .game-grid[data-filter]>.game-card:not(:last-child) .game-art {height:82px;min-height:82px;}
+  body[data-view="games"] .game-grid[data-filter]>.game-card:not(:last-child) .game-art .art-image {height:80px;}
+  body[data-view="games"] .game-grid[data-filter]>.game-card .game-body {padding:8px;}
+  body[data-view="games"] .game-grid[data-filter="all"]>.game-card:last-child {height:auto;min-height:90px;}
+}
