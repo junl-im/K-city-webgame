@@ -6,8 +6,7 @@ const css = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
 const tail = css.split('/* v33 — on small screens, a real hand-painted')[1];
 
 describe('꽃맞고 v33: 좁은 화면의 겹친 손패 정확도와 접촉 연출', () => {
-  it('모바일 손가락과 펜 입력을 누르기 시작한 패에 고정한다', () => {
-    expect(ui).toContain("e.pointerType === 'touch' || e.pointerType === 'pen'");
+  it('마우스와 터치 입력을 누르기 시작한 패에 고정한다', () => {
     expect(ui).toContain('hand.setPointerCapture?.(e.pointerId)');
     expect(ui).toContain("hand.classList.add('hwatu--finger-pressed')");
     expect(ui).toContain('getMatchingFloorCards(app.game.floorCards,hand.dataset.card)');
