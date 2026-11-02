@@ -348,7 +348,7 @@ function capturedRack(g, who='human') {
   return `<div class="collection-rack ${human?'collection-rack--human':'collection-rack--opponent'}" aria-label="${human?'내가':'상대가'} 먹은 실제 화투패">
     <div class="collection-head"><span>✿ <b>${human?'내':'상대'} 먹은 패</b> <small>${cards.length}장</small></span><button type="button" data-action="captures" data-value="${who}" aria-label="${human?'내':'상대'} 획득한 패 전체 펼쳐보기">전체 보기</button></div>
     <div class="collection-groups">${groupedCaptures(g,who).map(group => `
-      <button class="collection-group" type="button" data-capture-type="${group.id}" data-action="captures" data-value="${who}:${group.id}" aria-label="${human?'내':'상대'}가 먹은 ${group.name} 카드 ${group.cards.length}장${group.id==='junk'?` · 점수 계산 ${captureDisplayCount(group,score)}장`:''} 전체 보기">
+      <button class="collection-group" type="button" data-capture-type="${group.id}" data-empty="${group.cards.length===0}" data-action="captures" data-value="${who}:${group.id}" aria-label="${human?'내':'상대'}가 먹은 ${group.name} 카드 ${group.cards.length}장${group.id==='junk'?` · 점수 계산 ${captureDisplayCount(group,score)}장`:''} 전체 보기">
         <span class="collection-name">${group.name} <strong>${captureDisplayCount(group,score)}</strong></span>
         <span class="collection-preview">${group.cards.length ? group.cards.slice(-3).map(id=>card(id,{tiny:true,gookjinAsDoubleJunk:asDoubleJunk})).join('') : '<i>−</i>'}
           ${group.cards.length>3?`<em>+${group.cards.length-3}</em>`:''}</span>
@@ -441,7 +441,7 @@ function gameScreen() {
       ${capturedRack(g)}
       <div class="hand-heading"><strong>내 패 ${hand.length}장</strong> <span>${yourTurn?'패를 눌러 내기':'상대 차례'}</span></div>
       <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{action:yourTurn?'play':null,matchHint:g.phase==='playing' && (!yourTurn || !pending || getCard(id)?.month===pending) && getMatchingFloorCards(g.floorCards,id).length>0})).join('') : ((g.humanBombSkips || 0)?'':'<span class="no-cards">손패를 모두 냈어!</span>')}${Array.from({length:g.humanBombSkips || 0},(_,index)=>`<button type="button" class="bomb-empty-card" data-action="flip" aria-label="폭탄 빈 패 ${index+1}, 사용하면 더미만 뒤집기" ${yourTurn && !pending?'':'disabled'}><span>빈 패</span><small>뒤집기</small></button>`).join('')}</div>
-      <div class="action-row">${specialActionCount ? `<span class="action-row__desktop-special">${specialActionButtons}</span><details class="action-special-menu"><summary class="action-chip action-chip--special" aria-label="특수 동작 ${specialActionCount}개 펼치기">✿ 특수 ${specialActionCount}</summary><div class="action-special-menu__list" role="group" aria-label="특수 동작 선택">${specialActionButtons}</div></details>` : ''}<button type="button" class="action-chip action-chip--muted sound-control" data-action="sound" aria-label="${app.sound?'소리 켜짐':'소리 꺼짐'}" title="${app.sound?'소리 켜짐':'소리 꺼짐'}">${uiIcon('bell')} ${app.sound?'소리 켜짐':'소리 꺼짐'}</button></div>
+      <div class="action-row">${specialActionCount ? `<span class="action-row__desktop-special">${specialActionButtons}</span><details class="action-special-menu"><summary class="action-chip action-chip--special" aria-label="특수 동작 ${specialActionCount}개 펼치기">✿ 특수 ${specialActionCount}</summary><div class="action-special-menu__list" role="group" aria-label="특수 동작 선택">${specialActionButtons}</div></details>` : ''}<span class="hand-scroll-hint" hidden>손패 좌우로 밀기 ↔</span><button type="button" class="action-chip action-chip--muted sound-control" data-action="sound" aria-label="${app.sound?'소리 켜짐':'소리 꺼짐'}" title="${app.sound?'소리 켜짐':'소리 꺼짐'}">${uiIcon('bell')} ${app.sound?'소리 켜짐':'소리 꺼짐'}</button></div>
     </div>
     ${flash ? (()=>{const moment=specialMoment(flashKind,flash);return `<div class="effect-burst effect-burst--${safe(moment.kind)} ${moment.major?'effect-burst--major':'effect-burst--minor'}" role="status" aria-live="assertive"><span class="effect-burst__illustration" aria-hidden="true"></span><strong class="effect-burst__headline">${safe(moment.title)}</strong>${moment.detail?`<small class="effect-burst__detail">${safe(moment.detail)}</small>`:''}</div>`;})() : ''}
     ${gameOverlay(g)}
@@ -556,8 +556,13 @@ function render() {
   if (overlay==='exit') html += exitOverlay();
   ROOT.removeAttribute('data-card-art');
   ROOT.innerHTML = html;
+  syncHandScrollHint();
   syncTurnClock();
   if (overlay==='exit') ROOT.querySelector('[data-action="exit-stay"]')?.focus({preventScroll:true});
+}
+function syncHandScrollHint() {
+  const hand=ROOT.querySelector('.my-hand'), hint=ROOT.querySelector('.hand-scroll-hint');
+  if (hand && hint) hint.hidden=hand.scrollWidth<=hand.clientWidth+1;
 }
 function clearAutoTimer() {
   clearTimeout(autoTimer);
@@ -1006,6 +1011,7 @@ function mutate(action, value, cardId) {
 import { setGookjinChoice } from './engine/gameState';
 
 document.addEventListener('visibilitychange', syncTurnClock);
+window.addEventListener('resize',syncHandScrollHint);
 document.addEventListener('click',e=>{
   const target=e.target.closest('[data-action]');
   if (!target || !ROOT.contains(target)) return;
