@@ -19,3 +19,8 @@ v0.1의 시스템 이모지는 임시 UI이며 향후 독자 제작 PNG/WebP 아
 - art/forest-characters.png: 여우, 곰, 토끼, 고양이 및 몬스터 4종의 오리지널 PNG 캐릭터 원화 시트.
 - art/rani-evolution.png: '곰같은여우' 진화형 8포즈 원화 시트.
 두 파일 모두 기존 상용게임의 캐릭터 이미지를 복제하지 않은 독자 제작 자산입니다.
+
+## v3.7 한글 UI 웹폰트
+- 버튼 액션 글꼴 Jua: https://github.com/google/fonts/tree/main/ofl/jua — SIL Open Font License 1.1, 원저작자 표기/배포 조건 준수.
+- 이야기·보상 글꼴 Gowun Batang: https://github.com/google/fonts/tree/main/ofl/gowunbatang — SIL Open Font License 1.1, 원저작자 표기/배포 조건 준수.
+- 두 글꼴은 Google Fonts CSS API를 통해 불러오며 로드 실패 시 시스템 한글 서체로 대체합니다. 글꼴은 외부 오픈 라이선스이고 라니 수비대의 독자 원화 소유권 주장 범위에 포함하지 않습니다.

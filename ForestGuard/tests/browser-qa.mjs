@@ -98,10 +98,27 @@ try{
     assert.ok(homeFlow.footerBottom<=size.height+2&&
       homeFlow.mask==='none'&&homeFlow.artSrc.includes('rani-title-v31.webp'),
       'Transparent hand-painted title and footer must fit without clipping');
+    const homeButtons=await page.evaluate(()=>
+      ['#start-btn','#resume-btn','#stage-list-btn','#help-btn','#intel-btn'].map(sel=>{
+        const el=document.querySelector(sel),s=getComputedStyle(el);
+        return {sel,border:parseFloat(s.borderTopWidth),shadow:s.boxShadow,font:s.fontFamily};
+      }));
+    assert.ok(homeButtons.every(x=>x.border===0&&x.shadow==='none'),
+      'Illustrated home buttons must not have extra CSS rectangle borders/shadows: '+JSON.stringify(homeButtons));
+    assert.ok(homeButtons.find(x=>x.sel==='#start-btn').font.includes('Jua'),
+      'Primary start label must use the action display font');
+    const startAfter=await page.locator('#start-btn').evaluate(el=>getComputedStyle(el,'::after').content);
+    assert.equal(startAfter,'none','Legacy button pseudo-outline must be removed');
     await page.screenshot({path:new URL('../test-output/home-'+size.width+'x'+size.height+'.png',import.meta.url).pathname});
     // Explicitly navigate the dedicated stage picker, no more scattered empty waypoint boxes.
     await page.locator('#stage-list-btn').click({timeout:20000});
     assert.equal(await page.locator('#stage-select-panel').isVisible(),true,'Stage selection opens as a real screen');
+    const stageBorders=await page.evaluate(()=>
+      ['#stage-back-btn','.stage-chapter-tab','#stage-grid .stage-tile.selected','#stage-enter-btn'].map(sel=>{
+        const s=getComputedStyle(document.querySelector(sel));return {sel,border:parseFloat(s.borderTopWidth),font:s.fontFamily};
+      }));
+    assert.ok(stageBorders.every(x=>x.border===0),'Stage button overlays returned: '+JSON.stringify(stageBorders));
+    assert.ok(stageBorders.every(x=>x.font.includes('Jua')),'Stage buttons should use fantasy UI action font');
     const stageCardArt=await page.evaluate(()=>{
       const selected=getComputedStyle(document.querySelector('#stage-grid .stage-tile.selected')).backgroundImage;
       const locked=getComputedStyle(document.querySelector('#stage-grid .stage-tile.locked')).backgroundImage;
@@ -201,6 +218,15 @@ try{
       ['home-btn','pause-btn'].map(id=>getComputedStyle(document.getElementById(id)).backgroundImage));
     assert.ok(paintedControls.every(bg=>bg.includes('rani-ui-icons-v04.webp')),
       'Home and pause must show actual hand-painted decals, not blank gradients');
+    const battleButtonArt=await page.evaluate(()=>
+      ['#home-btn','#view-btn','#speed-btn','#pause-btn','#repair-btn','#evo-btn','#skill-btn']
+        .map(sel=>{const s=getComputedStyle(document.querySelector(sel));
+          return {sel,border:parseFloat(s.borderTopWidth),shadow:s.boxShadow,image:s.backgroundImage};
+        }));
+    assert.ok(battleButtonArt.every(x=>x.border===0&&x.shadow==='none'),
+      'HUD button frames must come only from painted art: '+JSON.stringify(battleButtonArt));
+    assert.ok(battleButtonArt.find(x=>x.sel==='#view-btn').image.includes('btn-sapphire-v33.webp'));
+    assert.ok(battleButtonArt.find(x=>x.sel==='#speed-btn').image.includes('btn-emerald-v33.webp'));
     assert.equal(battle.svgCount,0,'No SVG in live battle');
     assert.equal(battle.backdrop,'none','Phaser battlefield must not have duplicate wallpaper');
     assert.ok(battle.scrollX<=2&&battle.scrollY<=2,'Battle page must fit a viewport: '+JSON.stringify(battle));

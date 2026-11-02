@@ -187,3 +187,260 @@
 #stage-select-panel .stage-tile.selected .tiny{
   color:#fff2d1!important;text-shadow:0 1px 3px #1c1007!important;
 }
+
+/* v3.7 — hand-painted buttons only; remove legacy CSS rectangles.
+   Typography: Jua for actions, Gowun Batang for story/reward ink.
+   Existing independent PNG/WebP surfaces stay intact; keyboard focus remains visible. */
+:root{
+  --fg-action-font:'Jua','Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+  --fg-story-font:'Gowun Batang','Nanum Myeongjo','Batang',serif;
+}
+.menu:not(.stage-choosing) .menu-actions-top #start-btn,
+.menu:not(.stage-choosing) .menu-actions-top #resume-btn,
+.menu:not(.stage-choosing) .home-stage-spot #stage-list-btn{
+  border:0!important;border-radius:0!important;
+  outline:0!important;box-shadow:none!important;
+  background-color:transparent!important;
+  background-repeat:no-repeat!important;
+  background-size:100% 100%!important;
+  background-position:center!important;
+  font-family:var(--fg-action-font)!important;
+  font-weight:400!important;
+  line-height:1.1!important;
+  -webkit-tap-highlight-color:transparent;
+}
+.menu:not(.stage-choosing) .menu-actions-top #start-btn{
+  background-image:var(--fg-btn-gold)!important;
+  font-size:clamp(19px,5.5vw,23px)!important;
+  color:#593513!important;
+  letter-spacing:.03em!important;
+  text-shadow:0 1px 1px rgba(255,241,195,.95)!important;
+  filter:drop-shadow(0 3px 3px rgba(13,31,16,.57))!important;
+}
+.menu:not(.stage-choosing) .menu-actions-top #resume-btn:not([hidden]){
+  background-image:var(--fg-btn-emerald)!important;
+  font-size:clamp(16px,4.5vw,20px)!important;
+  color:#fff2cb!important;
+  text-shadow:0 2px 2px #163a27,0 1px #0c2119!important;
+  filter:drop-shadow(0 3px 3px rgba(6,25,15,.55))!important;
+}
+.menu:not(.stage-choosing) .home-stage-spot #stage-list-btn{
+  background-image:var(--fg-btn-sapphire)!important;
+  font-size:clamp(12px,3.3vw,14px)!important;
+  color:#fff5d5!important;
+  text-shadow:0 1px 2px #0c3450!important;
+  letter-spacing:-.025em!important;
+  filter:drop-shadow(0 2px 3px rgba(6,19,14,.58))!important;
+}
+.menu:not(.stage-choosing) .menu-actions-top #start-btn::after,
+.menu:not(.stage-choosing) .menu-actions-top #resume-btn::after{
+  content:none!important;border:0!important;box-shadow:none!important;
+}
+.menu:not(.stage-choosing) .home-utility-btn{
+  font-family:var(--fg-story-font)!important;
+  font-weight:700!important;
+  font-size:clamp(11px,3vw,13px)!important;
+  line-height:1.2!important;
+  letter-spacing:0!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+}
+.menu:not(.stage-choosing) #help-btn{
+  color:#513517!important;
+  text-shadow:0 1px 0 #fff2c8!important;
+}
+.menu:not(.stage-choosing) #intel-btn{
+  color:#fff0cf!important;
+  text-shadow:0 1px 2px #152820!important;
+}
+.menu:not(.stage-choosing) .home-stage-copy small{
+  font-family:var(--fg-story-font)!important;
+  font-size:clamp(10px,2.9vw,12px)!important;
+  font-weight:700!important;
+}
+.menu:not(.stage-choosing) .home-stage-copy strong{
+  font-family:var(--fg-action-font)!important;
+  font-weight:400!important;
+  font-size:clamp(15px,4.1vw,18px)!important;
+  letter-spacing:0!important;
+}
+.menu:not(.stage-choosing) .home-stage-copy span{
+  font-family:var(--fg-story-font)!important;
+  font-weight:700!important;
+  font-size:clamp(10px,2.8vw,12px)!important;
+}
+
+/* Stage and dialogue: text follows wood, jade, stone or lapis materials. */
+#stage-select-panel .stage-nav-btn,
+#stage-select-panel .stage-chapter-tab,
+#stage-select-panel .stage-tile,
+#stage-select-panel .stage-path-pin,
+#stage-select-panel #stage-enter-btn,
+#modal-layer #modal-actions .modal-action{
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  font-family:var(--fg-action-font)!important;
+  font-weight:400!important;
+  line-height:1.13!important;
+  -webkit-tap-highlight-color:transparent;
+}
+#stage-select-panel #stage-back-btn{
+  color:#fff4d4!important;text-shadow:0 1px 2px #102e45!important;
+  font-size:clamp(12px,3.3vw,15px)!important;
+}
+#stage-select-panel .stage-chapter-tab{
+  font-size:clamp(13px,3.7vw,16px)!important;
+  letter-spacing:.03em!important;
+}
+#stage-select-panel .stage-chapter-tab.active{
+  color:#553317!important;text-shadow:0 1px #fff0bc!important;
+}
+#stage-select-panel .stage-chapter-tab:not(.active){
+  color:#fff2d4!important;text-shadow:0 1px 2px #123724!important;
+}
+#stage-select-panel .stage-tile .stage-list-name{
+  font-family:var(--fg-action-font)!important;
+  font-weight:400!important;
+  letter-spacing:0!important;
+}
+#stage-select-panel .stage-tile .stage-tile-summary,
+#stage-select-panel .stage-tile .tiny{
+  font-family:var(--fg-story-font)!important;
+  font-weight:700!important;
+  letter-spacing:-.02em!important;
+}
+#stage-select-panel .stage-path-pin .stage-pin-number{
+  font-family:var(--fg-action-font)!important;
+  font-weight:400!important;
+  font-size:clamp(10px,2.8vw,12px)!important;
+}
+#stage-select-panel .stage-choice-description>span{
+  font-family:var(--fg-story-font)!important;
+  font-weight:700!important;
+}
+#stage-select-panel .stage-choice-description strong{
+  font-family:var(--fg-action-font)!important;
+  font-weight:400!important;
+}
+#stage-select-panel .stage-choice-description small{
+  font-family:var(--fg-story-font)!important;
+  font-weight:700!important;
+}
+#stage-select-panel #stage-enter-btn{
+  font-size:clamp(17px,4.6vw,21px)!important;
+  color:#583516!important;
+  text-shadow:0 1px 1px #fff0bb!important;
+  letter-spacing:0!important;
+}
+#stage-select-panel #stage-enter-btn:disabled{
+  color:#fff0d5!important;
+  text-shadow:0 1px 2px #29382f!important;
+}
+
+/* HUD decals already contain engraved outlines. Remove the duplicate boxes. */
+#game-screen .battle-hud #home-btn,
+#game-screen .battle-hud #view-btn,
+#game-screen .battle-hud #speed-btn,
+#game-screen .battle-hud #pause-btn{
+  -webkit-appearance:none;appearance:none;
+  border:0!important;border-radius:0!important;
+  box-shadow:none!important;outline:0!important;
+  background-color:transparent!important;
+  font-family:var(--fg-action-font)!important;
+  font-weight:400!important;
+  color:#fff0cc!important;
+  text-shadow:0 1px 2px #182e24!important;
+  -webkit-tap-highlight-color:transparent;
+}
+#game-screen .battle-hud #home-btn,
+#game-screen .battle-hud #pause-btn{
+  background-image:url('./art/rani-ui-icons-v04.webp?v=20261031g')!important;
+  background-size:400% 400%!important;
+  background-repeat:no-repeat!important;
+  filter:drop-shadow(0 2px 2px rgba(3,17,12,.46))!important;
+}
+#game-screen .battle-hud #home-btn{background-position:66.6667% 0%!important}
+#game-screen .battle-hud #pause-btn{background-position:33.3333% 66.6667%!important}
+#game-screen .battle-hud #view-btn{
+  background:var(--fg-btn-sapphire) center/100% 100% no-repeat!important;
+  font-size:clamp(10px,2.6vw,12px)!important;
+}
+#game-screen .battle-hud #speed-btn{
+  background:var(--fg-btn-emerald) center/100% 100% no-repeat!important;
+  font-size:clamp(11px,3vw,14px)!important;
+}
+#game-screen .battle-hud .hud-stage{
+  font-family:var(--fg-action-font)!important;
+  color:#fff0cf!important;
+  text-shadow:0 1px 2px #11281d;
+}
+#game-screen .battle-hud #repair-btn,
+#game-screen .battle-toolbar .evo-button,
+#game-screen .battle-toolbar .skill-button,
+#game-screen .battle-toolbar .hero-slot{
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  font-family:var(--fg-action-font)!important;
+}
+#game-screen .battle-toolbar .hero-slot span,
+#game-screen .battle-toolbar .evo-button small,
+#game-screen .battle-toolbar .skill-button small{
+  font-family:var(--fg-action-font)!important;
+  font-weight:400!important;
+  letter-spacing:-.025em!important;
+}
+#game-screen .battle-toolbar .hero-slot.empty span{color:#ead8ab!important}
+#game-screen .battle-toolbar .hero-slot:not(.empty) span{color:#fff2d2!important}
+
+/* Card titles have playful weight, descriptions read like quest parchment. */
+#modal-layer #modal-title,
+#modal-layer .spell-card strong,
+#modal-layer .recruit-card strong,
+#modal-layer .result-hero-banner,
+#modal-layer .result-stat strong,
+#modal-layer #modal-actions .modal-action{
+  font-family:var(--fg-action-font)!important;
+  font-weight:400!important;
+  letter-spacing:0!important;
+}
+#modal-layer #modal-description,
+#modal-layer .spell-card small,
+#modal-layer .recruit-card small,
+#modal-layer .result-stat small,
+#modal-layer #modal-kicker{
+  font-family:var(--fg-story-font)!important;
+  font-weight:700!important;
+}
+#modal-layer .spell-card.recommended strong,
+#modal-layer .spell-card.recommended small{
+  color:#563618!important;
+  text-shadow:0 1px 1px rgba(255,242,206,.8)!important;
+}
+#modal-layer .spell-card:not(.recommended) strong,
+#modal-layer .spell-card:not(.recommended) small{
+  color:#fff0d4!important;
+  text-shadow:0 1px 2px #153626!important;
+}
+#modal-layer #modal-close{
+  font-family:var(--fg-action-font)!important;
+  font-weight:400!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+}
+
+/* Focus is indicated by the silhouette, never by a rectangular permanent ring. */
+.menu:not(.stage-choosing) button:focus-visible,
+#stage-select-panel button:focus-visible,
+#game-screen button:focus-visible,
+#modal-layer button:focus-visible{
+  outline:0!important;
+  filter:drop-shadow(0 0 4px rgba(255,236,179,.88)) drop-shadow(0 3px 3px rgba(7,24,14,.55))!important;
+}
+@media(max-width:360px){
+  .menu:not(.stage-choosing) .menu-actions-top #start-btn{font-size:19px!important}
+  .menu:not(.stage-choosing) .menu-actions-top #resume-btn:not([hidden]){font-size:16px!important}
+  #stage-select-panel .stage-tile .stage-list-name{font-size:11px!important}
+  #game-screen .battle-hud #speed-btn,
+  #game-screen .battle-hud #view-btn{font-size:10px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .menu button,#stage-select-panel button,#game-screen button,#modal-layer button{
+    transition:none!important;
+  }
+}

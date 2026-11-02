@@ -85,7 +85,12 @@ assert.match(js,/canEnter\?'출전':'잠김'/);
 assert.match(ascent36,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
 assert.doesNotMatch(ascent36,/<svg|\.svg|data:image\/svg/i);
 const button33=read('button-system-v33.css');
-assert.ok(html.includes('button-system-v33.css?v=20261102b'));
+assert.ok(html.includes('button-system-v33.css?v=20261102d'));
+assert.match(html,/fonts\.googleapis\.com\/css2/);
+assert.match(button33,/#start-btn::after/);
+assert.match(button33,/#game-screen \.battle-hud #speed-btn/);
+assert.match(button33,/font-family:var\(--fg-action-font\)/);
+assert.match(button33,/--fg-story-font/);
 for(const name of ['gold','emerald','stone','sapphire','parchment','crimson']){
   const assetName='btn-'+name+'-v33.webp';
   const bytes=readFileSync(new URL('art/'+assetName,root));
