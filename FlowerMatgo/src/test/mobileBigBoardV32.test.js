@@ -59,8 +59,9 @@ describe('꽃맞고 v32: 작은 스마트폰에도 큰 손패/바닥패', () => 
     expect(v32).toContain('.scene--game .hand-heading {display:none;}');
     expect(ui).toContain('data-action="captures"');
     expect(ui).toContain('data-action="automode"');
-    expect(ui).toContain('data-action="sound" aria-label=');
+    expect(ui).toContain('data-action="sound"');
     expect(ui).toContain('data-turn-seconds');
     expect(ui).toContain('gameButtons(g)');
   });
 });
+

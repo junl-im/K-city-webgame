@@ -3550,3 +3550,26 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 @media (hover:hover){.scene--game .player-controls .sound-control--top:hover {transform:rotate(-7deg) translateY(-2px);box-shadow:0 5px 12px #173a2b70;}}
 .scene--game .player-controls .sound-control--top:active {transform:scale(.94);}
 @media (prefers-reduced-motion:reduce){.scene--game .player-controls .sound-control--top {transition:none;}.scene--game .player-controls .sound-control--top:hover,.scene--game .player-controls .sound-control--top:active {transform:none;}}
+/* Captured cards keep their own recognizable artwork while overlapping as the rack fills. */
+.scene--game .collection-rack--human .collection-group {display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:1px;overflow:hidden;}
+.scene--game .collection-rack--human .collection-name {flex:none;line-height:14px;text-align:left;}
+.scene--game .collection-rack--human .collection-preview {display:flex;align-items:center;justify-content:flex-start;width:100%;min-width:0;overflow:hidden;}
+.scene--game .collection-rack--human .capture-stack-card {display:block;position:relative;flex:1 1 0;min-width:0;height:100%;overflow:visible;}
+.scene--game .collection-rack--human .capture-stack-card:last-child {flex:0 0 var(--capture-card-width);}
+.scene--game .collection-rack--human .collection-preview {--capture-card-width:clamp(28px,3vw,42px);}
+.scene--game .collection-rack--human .capture-stack-card .hwatu,.scene--game .collection-rack--human .capture-stack-card .hwatu:first-child {display:block;width:var(--capture-card-width);max-width:none;margin:0;}
+.scene--game .my-hand .hwatu--match-hint:not(.hwatu--departing) {filter:drop-shadow(0 0 5px #fff9b2) drop-shadow(0 0 8px #ffcb47);outline:2px solid #ffe394;outline-offset:1px;}
+@media(max-width:650px){
+ .scene--game .collection-rack--human .collection-preview {--capture-card-width:clamp(29px,9.2vw,39px);}
+ .scene--game .collection-rack--human .collection-group {flex-direction:column;align-items:stretch;}
+ .scene--game .collection-rack--human .collection-name {font-size:10px;line-height:13px;}
+ .scene--game .collection-rack--human .collection-groups {height:calc(100% - 16px);}
+ .scene--game .action-row {overflow-x:auto;overflow-y:hidden;justify-content:safe center;scrollbar-width:thin;}
+ .scene--game .action-row > .action-chip {flex:0 0 auto;min-height:30px;padding:3px 10px;white-space:nowrap;font-size:12px;}
+}
+@media(max-width:650px) and (min-height:701px){.scene--game .player-area {grid-template-rows:24px 92px minmax(0,1fr) 34px;}.scene--game .player-area:has(.action-row--empty) {grid-template-rows:24px 92px minmax(0,1fr) 0;}}
+@media(max-width:650px) and (min-height:561px) and (max-height:700px){.scene--game .player-area {grid-template-rows:21px 75px minmax(0,1fr) 34px;}.scene--game .player-area:has(.action-row--empty) {grid-template-rows:21px 75px minmax(0,1fr) 0;}}
+@media(max-width:650px) and (max-height:560px){.scene--game .player-area {grid-template-rows:19px 66px minmax(0,1fr) 31px;}.scene--game .player-area:has(.action-row--empty) {grid-template-rows:19px 66px minmax(0,1fr) 0;}}
+.scene--game .collection-rack--human .capture-stack-card {flex:0 1 var(--capture-card-width);}
+.scene--game .collection-rack--human .capture-stack-card:last-child {flex:0 0 var(--capture-card-width);}
+.scene--game .my-hand .hwatu--match-idle:not(.hwatu--departing) {outline:2px solid #f8d878;outline-offset:1px;}
