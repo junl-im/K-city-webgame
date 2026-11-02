@@ -112,7 +112,7 @@ try{
       'Stage title must remain legible over its gold painted surface');
     assert.ok(stageCardArt.locked.includes('btn-stone-v33.webp'),
       'Locked stages must use the weathered stone painting');
-    await page.locator('#stage-grid button').first().waitFor({state:'visible'});
+    await page.locator('#stage-grid .stage-tile:visible').first().waitFor({state:'visible'});
     assert.equal(await page.locator('#stage-map-pins .stage-path-pin').count(),4,
       'Each chapter must show exactly four illustrated route markers');
     assert.equal(await page.locator('#stage-map-pins button:not([disabled])').count(),1,
@@ -126,7 +126,7 @@ try{
       const boss=pins.find(pin=>pin.getAttribute('aria-label').startsWith('1-4 '));
       return {firstY:first.getBoundingClientRect().y,bossY:boss.getBoundingClientRect().y,
         selectedY:document.querySelector('#stage-grid .stage-tile.selected').getBoundingClientRect().y,
-        lockedBossY:[...document.querySelectorAll('#stage-grid .stage-tile')].find(tile=>tile.classList.contains('boss')).getBoundingClientRect().y};
+        lockedBossY:[...document.querySelectorAll('#stage-grid .stage-tile')].find(tile=>tile.classList.contains('boss')&&!tile.hidden).getBoundingClientRect().y};
     });
     assert.ok(ascent.firstY>ascent.bossY&&ascent.selectedY>ascent.lockedBossY,
       'Forest adventure must begin at the bottom and advance toward the boss');
