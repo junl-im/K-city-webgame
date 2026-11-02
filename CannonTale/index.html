@@ -1169,6 +1169,9 @@ const materialCells={
   ctx.save();ctx.globalAlpha=opacity;ctx.translate(x,y);
   ctx.rotate(dying?f.deathAngle*settle*.8:hurt?stagger*.07*Math.sin(game.clock*30):attacking?-.07*attackSurge:.014*breathe);
   ctx.scale(squash*(1+settle*.13),stretch*(1-settle*.25));
+  // Acorn guardian's source pose faces right: mirror it toward the player on the left.
+  // Golem and wind sprite sheets already face left; iron boss faces front.
+  if((f.kind||0)===0)ctx.scale(-1,1);
   if(combatArtReady()){
    const kind=clamp(f.kind||0,0,3),column=pose==='idle'?0:pose==='attack'?1:pose==='hurt'?2:3;
    const sx=combatColumns[column]*combatAtlas.naturalWidth/1262;
