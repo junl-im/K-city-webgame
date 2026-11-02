@@ -39,9 +39,9 @@
           z.x-(i%2?21:-12),z.y-dy*.42,z.x,z.y);
       }
     };
-    drawSpine();c.strokeStyle='rgba(7,29,18,.73)';c.lineWidth=10;c.stroke();
-    drawSpine();c.strokeStyle='rgba(226,187,103,.54)';c.lineWidth=4.4;c.stroke();
-    c.setLineDash([3,10]);drawSpine();c.strokeStyle='rgba(255,238,177,.62)';c.lineWidth=1.7;c.stroke();
+    drawSpine();c.strokeStyle='rgba(7,29,18,.43)';c.lineWidth=6;c.stroke();
+    drawSpine();c.strokeStyle='rgba(226,187,103,.42)';c.lineWidth=2.6;c.stroke();
+    c.setLineDash([3,10]);drawSpine();c.strokeStyle='rgba(255,238,177,.37)';c.lineWidth=1.7;c.stroke();
     c.setLineDash([]);
     // Branches visibly tie every stage name to its point on the same forest path.
     cards.forEach((card,i)=>{
@@ -49,9 +49,9 @@
         endX=p.x-19,endY=p.y,dx=endX-startX,selected=tiles[i].classList.contains('selected');
       c.beginPath();c.moveTo(startX,startY);
       c.bezierCurveTo(startX+dx*.44,startY,endX-dx*.2,endY,endX,endY);
-      c.strokeStyle='rgba(12,30,20,.72)';c.lineWidth=selected?7:5;c.stroke();
-      c.strokeStyle=selected?'rgba(255,228,152,.96)':'rgba(186,153,92,.6)';
-      c.lineWidth=selected?2.8:1.7;c.stroke();
+      c.strokeStyle='rgba(12,30,20,.42)';c.lineWidth=selected?5:3;c.stroke();
+      c.strokeStyle=selected?'rgba(255,228,152,.86)':'rgba(186,153,92,.38)';
+      c.lineWidth=selected?2.2:1.15;c.stroke();
       if(selected){
         c.beginPath();c.arc(endX,endY,3,0,Math.PI*2);
         c.fillStyle='#ffe6a2';c.fill();
