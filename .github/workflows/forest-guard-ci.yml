@@ -5,6 +5,10 @@ on:
     paths:
       - 'ForestGuard/**'
       - '.github/workflows/forest-guard-ci.yml'
+  pull_request:
+    paths:
+      - 'ForestGuard/**'
+      - '.github/workflows/forest-guard-*.yml'
   workflow_dispatch:
 
 permissions:

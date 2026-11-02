@@ -196,7 +196,47 @@
         c.restore();
       }
     }
-    if(state==='attack'&&HERO_IDS.has(id))drawHeroWeapon(c,id,frame);
+    if(state==='attack'&&HERO_IDS.has(id)){
+      drawHeroWeapon(c,id,frame);
+      // Six distinct weapon-action silhouettes baked once into each 128px
+      // Phaser texture. No heavy particles or per-frame browser canvas draws.
+      c.save();
+      const release=frame>=3,progress=release?(frame-2)/3:frame/3;
+      c.globalAlpha=frame===5?.32:frame===0?.34:.88;
+      c.lineCap='round';c.lineJoin='round';
+      if(id==='fox'||id==='megafox'){
+        const x=93+progress*18,y=58-progress*15;
+        c.strokeStyle=id==='fox'?'#ffecaf':'#ffe38a';c.lineWidth=release?4:2;
+        c.beginPath();c.moveTo(x-30,y+13);c.quadraticCurveTo(x-5,y-2,x+15,y-9);c.stroke();
+        c.strokeStyle='#fff7dc';c.lineWidth=2;
+        c.beginPath();c.moveTo(x-14,y+2);c.lineTo(x+20,y-13);c.stroke();
+        if(release)for(let k=0;k<3;k++){
+          c.fillStyle=k===0?'#fff7cd':'#e7b75f';
+          c.beginPath();c.arc(100+k*9,43-k*9,2.6-k*.3,0,Math.PI*2);c.fill();
+        }
+      }else if(id==='bear'){
+        c.strokeStyle='#ffdda0';c.lineWidth=3+progress*3;
+        c.beginPath();c.arc(77,76,19+progress*18,-1.7,-.2);c.stroke();
+        c.fillStyle='#d4b179';
+        for(let k=0;k<4;k++){
+          c.beginPath();c.ellipse(40+k*17,107-(release?k*3:0),4+progress*2,2.2,0,0,Math.PI*2);c.fill();
+        }
+      }else if(id==='rabbit'){
+        c.strokeStyle='#c5f4ff';c.lineWidth=2.5;
+        for(let k=0;k<4;k++){
+          const a=k*Math.PI/2+progress,x=96+Math.cos(a)*(18+progress*18),y=44+Math.sin(a)*(18+progress*18);
+          c.beginPath();c.moveTo(x-4,y);c.lineTo(x,y-9);c.lineTo(x+4,y);c.lineTo(x,y+9);c.closePath();c.stroke();
+        }
+      }else if(id==='cat'){
+        c.strokeStyle='#ffd49a';c.lineWidth=2.3;
+        for(let k=0;k<4;k++){
+          const a=k*Math.PI/2+progress*2;
+          c.beginPath();c.moveTo(98+Math.cos(a)*13,55+Math.sin(a)*13);
+          c.lineTo(98+Math.cos(a)*(25+progress*14),55+Math.sin(a)*(25+progress*14));c.stroke();
+        }
+      }
+      c.restore();
+    }
     if(state==='hurt'){c.fillStyle='rgba(255,106,86,.19)';c.fillRect(0,0,128,128);}
     if(state==='victory'){c.fillStyle='#ffe0a1';for(let i=0;i<3;i++){const x=22+i*40,y=17+(i%2)*17;c.beginPath();c.arc(x,y,2+frame%2,0,Math.PI*2);c.fill();}}
   }

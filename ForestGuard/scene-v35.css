@@ -1,0 +1,310 @@
+/* ForestGuard v3.5 · illustrated scene composition © 2026 곰같은여우.
+   One-screen portrait layout, original PNG artwork, accessible controls. NO SVG. */
+:root{--fg-party-v35:url('./art/rani-rearguard-v35.png')}
+
+/* HOME: fill the long portrait with a painted rearguard, not a blank lower field. */
+.menu:not(.stage-choosing){position:relative;isolation:isolate;overflow:hidden!important;min-height:0}
+.menu:not(.stage-choosing) .home-party-v35{
+  display:block;position:absolute;z-index:1;left:50%;
+  bottom:clamp(30px,7.2dvh,82px);transform:translateX(-50%);
+  width:min(133%,680px);height:auto;max-height:34dvh;object-fit:contain;
+  filter:drop-shadow(0 12px 12px rgba(3,15,8,.70));
+  pointer-events:none;user-select:none;-webkit-user-drag:none;
+}
+.menu:not(.stage-choosing) .home-party-v35::selection{background:transparent}
+.menu:not(.stage-choosing) .home-utility-actions{position:relative;z-index:4;flex-basis:clamp(33px,4.5dvh,43px);height:auto}
+.menu:not(.stage-choosing) .brand{
+  position:relative;z-index:3;
+  flex:0 0 clamp(177px,31dvh,314px)!important;
+  height:clamp(177px,31dvh,314px)!important;
+  margin:clamp(0px,1.4dvh,12px) auto clamp(3px,.7dvh,9px)!important
+}
+.menu:not(.stage-choosing) .title-hero-art{filter:drop-shadow(0 5px 6px rgba(5,18,12,.7))!important}
+.menu:not(.stage-choosing) .menu-actions-top{
+  position:relative;z-index:4;gap:7px!important;max-width:320px!important
+}
+.menu:not(.stage-choosing) .menu-actions-top #start-btn{
+  flex:0 1 175px!important;width:min(48vw,175px)!important;max-width:175px!important;min-width:140px!important;
+  height:clamp(53px,6.5dvh,64px)!important;min-height:53px!important;
+  font-size:clamp(19px,5vw,23px)!important;
+  filter:drop-shadow(0 4px 4px rgba(4,18,11,.58))
+}
+.menu:not(.stage-choosing) .home-stage-spot{
+  position:relative;z-index:4;margin:clamp(6px,1.6dvh,18px) auto 0!important;
+  width:min(100%,400px)!important;
+  min-height:clamp(86px,11.3dvh,116px)!important;
+  padding:clamp(12px,2dvh,20px) clamp(15px,4vw,27px)!important;
+  gap:4px!important;
+  filter:drop-shadow(0 5px 4px rgba(4,17,10,.49))
+}
+.menu:not(.stage-choosing) .home-stage-copy{gap:3px!important}
+.menu:not(.stage-choosing) .home-stage-spot #stage-list-btn{width:clamp(101px,28vw,123px)!important}
+.menu:not(.stage-choosing) .menu-bottom{
+  position:relative;z-index:4;margin:auto 0 0!important;
+  text-shadow:0 1px 4px #05180a,0 1px 2px #05180a;
+}
+
+/* CHAPTER MAP: compact story placards, in-world trails drawn on Canvas behind. */
+#stage-select-panel .stage-picker-content{
+  position:relative;isolation:isolate;
+  grid-template-columns:minmax(0,49%) minmax(0,51%)!important;
+  overflow:hidden
+}
+#stage-select-panel .stage-route-canvas{
+  position:absolute;inset:0;z-index:1;width:100%;height:100%;
+  pointer-events:none;opacity:.91
+}
+#stage-select-panel .stage-grid,
+#stage-select-panel .stage-map-preview{position:relative;z-index:2;min-width:0}
+#stage-select-panel .stage-grid{
+  display:flex!important;flex-direction:column!important;
+  justify-content:center!important;
+  gap:clamp(8px,1.6dvh,16px)!important;
+  padding:clamp(5px,1.8dvh,17px) 2px!important;
+}
+#stage-select-panel .stage-tile,
+#stage-select-panel .stage-tile.selected,
+#stage-select-panel .stage-tile.locked{
+  height:clamp(68px,10.7dvh,102px)!important;
+  min-height:clamp(68px,10.7dvh,102px)!important;
+  max-height:102px!important;
+  flex:0 0 auto!important;
+  grid-template-columns:clamp(52px,15vw,77px) minmax(0,1fr)!important;
+  gap:2px 4px!important;
+  padding:clamp(5px,.9dvh,9px) 6px!important;
+  background-size:100% 100%!important
+}
+#stage-select-panel .stage-tile .stage-tile-art{
+  min-height:0!important;height:100%;background-size:auto 180%!important;
+  mask-image:linear-gradient(90deg,#000 73%,transparent 100%);
+}
+#stage-select-panel .stage-tile .stage-list-name{
+  font-size:clamp(11px,3.3vw,15px)!important;
+  line-height:1.16!important
+}
+#stage-select-panel .stage-tile .stage-tile-summary{font-size:clamp(8px,2.25vw,10px)!important}
+#stage-select-panel .stage-tile .tiny{font-size:9px!important}
+#stage-select-panel .stage-map-signet{
+  min-width:0;padding:3px 5px!important;
+  background:var(--rani-ui-map) center/100% 100% no-repeat!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  filter:drop-shadow(0 2px 4px rgba(2,15,10,.7))
+}
+#stage-select-panel .stage-path-pin{
+  width:clamp(40px,11vw,57px)!important;
+  height:clamp(47px,12vw,63px)!important;
+  transform:translate(-50%,-50%)!important;
+  transition:filter .16s ease,scale .16s ease!important
+}
+#stage-select-panel .stage-path-pin.active{
+  scale:1.09;
+  filter:drop-shadow(0 0 10px rgba(255,205,112,.80)) drop-shadow(0 4px 3px rgba(5,18,11,.7))!important
+}
+#stage-select-panel .stage-choice-footer{z-index:3;position:relative}
+#stage-select-panel .stage-choice-description strong{font-size:clamp(13px,3.9vw,17px)}
+#stage-select-panel .stage-choice-description small{font-size:clamp(9px,2.3vw,11px)}
+
+/* BATTLE: painted command rail and separate icon plaques retain real touch buttons. */
+#game-screen .battle-hud{height:clamp(49px,6.2dvh,62px);flex-basis:clamp(49px,6.2dvh,62px)}
+#game-screen .battle-toolbar{
+  flex:0 0 clamp(74px,10.5dvh,99px)!important;
+  height:clamp(74px,10.5dvh,99px)!important;
+  position:relative;align-items:center;padding-block:4px!important;
+}
+#game-screen .hero-slots{align-items:center!important}
+#game-screen .hero-slot{
+  height:clamp(57px,8.6dvh,79px)!important;
+  min-height:57px!important
+}
+#game-screen .hero-slot .portrait-icon{
+  flex:0 0 clamp(33px,4.7dvh,48px)!important;
+  height:clamp(33px,4.7dvh,48px)!important
+}
+#game-screen .battle-toolbar .evo-button,
+#game-screen .battle-toolbar .skill-button{
+  height:clamp(63px,9.5dvh,86px)!important;
+  min-height:63px!important;
+}
+#game-screen .evo-button>span.painted-icon,
+#game-screen .skill-button>span.painted-icon{
+  height:clamp(32px,4.5dvh,43px)!important;
+  width:clamp(32px,4.5dvh,43px)!important
+}
+#game-screen .skill-button.ready{
+  filter:drop-shadow(0 0 7px rgba(132,218,245,.55)) drop-shadow(0 3px 4px #0d1c19)!important
+}
+#game-screen .fort-status-row{flex-basis:clamp(30px,4dvh,39px)!important;height:clamp(30px,4dvh,39px)!important}
+#game-screen .fort-status-row .hp-track{height:clamp(11px,1.7dvh,16px)}
+#game-screen .boss-hud{
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:var(--rani-ui-wood) center/100% 100% no-repeat!important;
+  width:min(94%,376px)!important;height:clamp(59px,8dvh,74px)!important;
+  padding:8px 13px!important;
+  filter:drop-shadow(0 3px 7px rgba(2,11,9,.7));
+}
+#game-screen .arena-wrap.boss-warning .boss-hud{
+  filter:drop-shadow(0 0 9px rgba(246,105,68,.82)) drop-shadow(0 4px 7px rgba(2,11,9,.7))
+}
+#game-screen .boss-portrait{
+  width:clamp(41px,6dvh,55px)!important;
+  height:clamp(41px,6dvh,55px)!important;
+  flex-basis:clamp(41px,6dvh,55px)!important
+}
+#game-screen .wave-banner.show{
+  max-width:92%;text-shadow:0 2px 3px #071a12,0 0 7px #f0bd67;
+  animation:rani-wave-v35 .25s ease-out both
+}
+@keyframes rani-wave-v35{from{opacity:0;scale:.9;translate:0 10px}to{opacity:1;scale:1;translate:0 0}}
+
+/* ELITE / BOSS: non-interactive illustration cut-in, held long enough to read. */
+.rani-boss-cutin-v35{
+  position:absolute;z-index:8;inset:17% 0 auto;
+  display:flex;flex-direction:column;align-items:center;
+  pointer-events:none;min-height:clamp(180px,31dvh,290px);
+  padding:clamp(8px,1.8dvh,18px) 10px;
+  color:#ffefc9;text-shadow:0 3px 5px #170e09,0 0 12px #2a100c;
+  background:linear-gradient(180deg,transparent,rgba(34,14,11,.69) 25%,rgba(33,14,12,.74) 68%,transparent);
+  animation:rani-boss-v35 2.72s both
+}
+.rani-boss-cutin-v35 .cutin-kicker{font-weight:950;letter-spacing:.2em;font-size:clamp(11px,3vw,15px);color:#f6bb79}
+.rani-boss-cutin-v35 .cutin-monster{
+  width:clamp(94px,17dvh,149px);height:clamp(94px,17dvh,149px);
+  background:url('./art/forest-monsters-v14-clean.webp') center/300% 200% no-repeat;
+  filter:drop-shadow(0 0 16px rgba(245,164,93,.8))
+}
+.rani-boss-cutin-v35 .cutin-monster.guardian{background-position:100% 100%}
+.rani-boss-cutin-v35 .cutin-monster.shroom{background-position:50% 100%}
+.rani-boss-cutin-v35 .cutin-monster.boss{
+  background:url('./art/forest-characters.png') 100% 100%/400% 200% no-repeat
+}
+.rani-boss-cutin-v35 .cutin-title{
+  font-size:clamp(20px,6vw,30px);font-weight:1000;letter-spacing:-.02em;
+}
+@keyframes rani-boss-v35{
+  0%{opacity:0;transform:translateY(24px) scale(.90)}
+  16%{opacity:1;transform:translateY(0) scale(1.04)}
+  26%,75%{opacity:1;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(-14px) scale(1.02)}
+}
+
+/* RECRUIT / GROWTH: larger complete portraits on bespoke material plaques. */
+#modal-layer .modal-scrim{backdrop-filter:blur(6px);background:rgba(4,17,14,.79)!important}
+#modal-layer #modal-box{
+  max-width:460px;padding:10px 11px 15px!important;
+  background:var(--rani-ui-wood) center/100% 100% no-repeat,#21372b!important;
+  border:0!important;border-radius:0!important;
+  box-shadow:none!important;filter:drop-shadow(0 12px 19px rgba(2,10,9,.79));
+  color:#ffecc4!important
+}
+#modal-layer #modal-box .modal-top{
+  padding:11px 19px!important;margin:0 -2px 6px;
+  border:0!important;min-height:49px
+}
+#modal-layer #modal-box #modal-kicker{color:#ffdb97!important;text-shadow:0 2px 3px #0a1c14}
+#modal-layer #modal-title{color:#ffe5a5!important;text-shadow:0 2px 3px #0a1912!important;font-size:clamp(19px,5.6vw,28px)}
+#modal-layer #modal-description{color:#ede4c7!important;font-size:clamp(10px,2.9vw,12px)}
+#modal-layer .close-button{
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:var(--fg-btn-crimson) center/100% 100% no-repeat!important;
+  width:39px;height:39px;min-height:39px;line-height:39px;
+  color:#ffe9ca;text-shadow:0 1px 2px #391c0e
+}
+#modal-layer .card-grid{gap:clamp(4px,1.4vw,9px)!important}
+#modal-layer .spell-card{
+  position:relative;min-width:0;
+  background:var(--fg-btn-emerald) center/100% 100% no-repeat!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  color:#fff0ce!important;padding:clamp(6px,1.5vw,10px)!important;
+  filter:drop-shadow(0 3px 5px rgba(3,15,10,.46));
+  transition:transform .13s ease,filter .13s ease
+}
+#modal-layer .spell-card:active{transform:scale(.97)}
+#modal-layer .spell-card:focus-visible{outline:2px solid #fff2bb;outline-offset:2px}
+#modal-layer .spell-card.recommended,
+#modal-layer .spell-card.combo{background-image:var(--fg-btn-gold)!important;color:#4a2c16!important}
+#modal-layer .spell-card .spell-emoji{
+  display:block!important;width:clamp(39px,12vw,58px)!important;
+  height:clamp(39px,12vw,58px)!important;flex:0 0 auto;
+  margin:0 auto!important;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));
+}
+#modal-layer .spell-card strong{font-size:clamp(11px,3.3vw,15px)!important;line-height:1.25}
+#modal-layer .spell-card small{font-size:clamp(9px,2.4vw,11px)!important;line-height:1.3;color:inherit!important}
+#modal-layer .recruit-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+#modal-layer .recruit-dialog .recruit-card{
+  min-height:clamp(174px,29dvh,255px)!important;
+  padding:clamp(6px,1.2dvh,11px) 6px!important;gap:6px!important;
+}
+#modal-layer .recruit-dialog .recruit-card .recruit-portrait{
+  width:100%!important;height:clamp(100px,17dvh,151px)!important;
+  flex:0 0 clamp(100px,17dvh,151px)!important;
+  background-size:contain!important;background-position:center bottom!important;
+  border:0!important;border-radius:0!important;filter:drop-shadow(0 3px 4px #12261e)
+}
+#modal-layer .recruit-card.recommended strong,
+#modal-layer .recruit-card.recommended small{color:#4c2d17!important}
+#modal-layer .draft-card{min-height:clamp(152px,21dvh,193px)!important}
+#modal-layer .evo-choice-grid .spell-card{min-height:clamp(155px,24dvh,210px)!important}
+
+/* RESULTS: one painted victory setting, three earned stars and readable rewards. */
+#modal-layer .result-dialog .result-hero-scene{
+  height:clamp(138px,25dvh,215px)!important;min-height:138px!important;
+  background:
+    linear-gradient(180deg,rgba(8,31,21,.03),rgba(6,24,15,.35)),
+    var(--fg-party-v35) center 91%/min(94%,440px) auto no-repeat,
+    url('./art/forest-entrance-v08.png') center 59%/cover no-repeat!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  mask-image:linear-gradient(180deg,transparent,#000 12%,#000 90%,transparent)
+}
+#modal-layer .result-dialog .result-hero{display:none!important}
+#modal-layer .result-dialog .result-hero-banner{
+  background:var(--rani-ui-map) center/100% 100% no-repeat!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  color:#ffe2aa!important;text-shadow:0 2px 3px #161609!important;
+  padding:10px 20px!important;
+}
+#modal-layer .result-dialog .result-stat{
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:var(--fg-btn-emerald) center/100% 100% no-repeat!important;
+  padding:8px 5px!important
+}
+#modal-layer .result-dialog .result-stars{min-height:48px}
+#modal-layer .result-dialog .result-star.earned{
+  filter:drop-shadow(0 0 5px #ffcc78) drop-shadow(0 3px 4px #24160a)!important
+}
+#modal-layer .result-dialog #modal-actions{margin-top:7px}
+#modal-layer .result-dialog .modal-action{min-height:43px!important}
+
+/* 320px & short screens: keep every action reachable without page scrolling. */
+@media(max-width:360px){
+ .menu:not(.stage-choosing) .home-party-v35{width:144%;bottom:5.6dvh;max-height:31dvh}
+ .menu:not(.stage-choosing) .brand{flex-basis:clamp(150px,28dvh,230px)!important;height:clamp(150px,28dvh,230px)!important}
+ .menu:not(.stage-choosing) .home-stage-spot{padding:11px 15px!important;gap:2px!important}
+ #stage-select-panel .stage-picker-content{grid-template-columns:minmax(0,52%) minmax(0,48%)!important}
+ #stage-select-panel .stage-tile,#stage-select-panel .stage-tile.selected,#stage-select-panel .stage-tile.locked{
+   grid-template-columns:clamp(38px,12vw,50px) minmax(0,1fr)!important;padding:4px!important;
+   height:clamp(63px,10.6dvh,85px)!important;min-height:clamp(63px,10.6dvh,85px)!important
+ }
+ #stage-select-panel .stage-tile .stage-list-name{font-size:10px!important}
+ #stage-select-panel .stage-tile .stage-tile-summary{font-size:8px!important}
+ #stage-select-panel .stage-path-pin{width:40px!important;height:47px!important}
+ #game-screen .battle-toolbar{gap:2px!important;padding-inline:3px!important}
+ #game-screen .hero-slots{gap:1px!important}
+ #modal-layer #modal-box{padding:8px 7px 12px!important}
+ #modal-layer .recruit-dialog .recruit-card{padding-inline:3px!important}
+}
+@media(max-height:680px){
+ .menu:not(.stage-choosing) .brand{flex-basis:clamp(142px,27dvh,195px)!important;height:clamp(142px,27dvh,195px)!important;margin:0 auto 3px!important}
+ .menu:not(.stage-choosing) .home-stage-spot{min-height:77px!important;padding-block:10px!important}
+ .menu:not(.stage-choosing) .home-party-v35{max-height:29dvh;bottom:4.8dvh}
+ #stage-select-panel .stage-tile,#stage-select-panel .stage-tile.selected,#stage-select-panel .stage-tile.locked{
+   height:clamp(58px,10.5dvh,74px)!important;min-height:clamp(58px,10.5dvh,74px)!important
+ }
+ #stage-select-panel .stage-grid{gap:clamp(5px,1dvh,10px)!important}
+ #modal-layer .recruit-dialog .recruit-card .recruit-portrait{height:90px!important;flex-basis:90px!important}
+ #modal-layer .recruit-dialog .recruit-card{min-height:167px!important}
+ #modal-layer .result-dialog .result-hero-scene{height:125px!important;min-height:125px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .rani-boss-cutin-v35{animation:none!important}
+ .menu .home-party-v35,.stage-path-pin{transition:none!important}
+}
