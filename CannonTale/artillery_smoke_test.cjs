@@ -9,7 +9,7 @@ let script=inlineScripts.at(-1)[1];
 if(/v0_[67]/.test(versionedPath)){
  const marker=' requestAnimationFrame(frame);\n})();';
  assert(script.includes(marker),'Expected a stable v0.6 boot marker');
- script=script.replace(marker,' window.__simulateAdventureImpactForTest=(hit)=>{const b=game.blocks.find(v=>v.hp>20);game.phase="flying";game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,v)=>a+Math.max(0,v.hp),0),blockCounts:["wood","stone","iron"].map(t=>game.blocks.filter(v=>v.type===t).length),playerHp:game.playerHp,aiHp:game.aiHp};if(hit&&b)b.hp-=12;game.lastImpact={x:840,y:410};game.projectiles=[];finishFlight();return game.hitStreak;}; window.__damageDuelForTest=(owner)=>{const x=owner==="ai"?1018:190;applyExplosion({x,y:terrainY(x)-29,weapon:"normal"});return game.popups.at(-1);}; window.__finishForTest=showResult; window.__hitFoeForTest=(damage)=>{const f=game.foes.find(x=>x.alive);if(!f)return;f.hp-=damage;f.hitAnim=.64;f.hitFlash=.3;f.attackAnim=0;if(f.hp<=0)defeatFoe(f);}; window.__damageBlockForTest=(damage)=>{const b=game.blocks.find(x=>x.type===\'wood\');if(!b)return -1;const prev=damageTier(b);b.hp-=damage;markBlockImpact(b,prev,damage);return damageTier(b);}; requestAnimationFrame(frame);\n})();');
+ script=script.replace(marker,' window.__simulateAdventureImpactForTest=(hit)=>{const b=game.blocks.find(v=>v.hp>20);game.phase="flying";game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,v)=>a+Math.max(0,v.hp),0),blockCounts:["wood","stone","iron"].map(t=>game.blocks.filter(v=>v.type===t).length),playerHp:game.playerHp,aiHp:game.aiHp};if(hit&&b)b.hp-=12;game.lastImpact={x:840,y:410};game.projectiles=[];finishFlight();return game.hitStreak;}; window.__damageDuelForTest=(owner)=>{const x=owner==="ai"?1018:190;applyExplosion({x,y:terrainY(x)-29,weapon:"normal"});return game.popups.at(-1);}; window.__weaponSocketForTest=(hero,owner="player")=>{const before=game.hero;game.hero=hero;const p=muzzleFor(owner,game.angle);game.hero=before;return p;}; window.__spawnFollowPopupForTest=()=>{const f=game.foes.find(x=>x.alive);spawnCombatPopup(f,"-17","blast");return {x:f.x,y:f.y};}; window.__moveFollowTargetForTest=(dx)=>{const f=game.foes.find(x=>x.alive);M.Body.setPosition(f.body,{x:f.body.position.x+dx,y:f.body.position.y});}; window.__finishForTest=showResult; window.__hitFoeForTest=(damage)=>{const f=game.foes.find(x=>x.alive);if(!f)return;f.hp-=damage;f.hitAnim=.64;f.hitFlash=.3;f.attackAnim=0;if(f.hp<=0)defeatFoe(f);}; window.__damageBlockForTest=(damage)=>{const b=game.blocks.find(x=>x.type===\'wood\');if(!b)return -1;const prev=damageTier(b);b.hp-=damage;markBlockImpact(b,prev,damage);return damageTier(b);}; requestAnimationFrame(frame);\n})();');
 }
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
@@ -18,6 +18,8 @@ assert(html.includes('Artillery_Combat_Poses_v1_2.png'),'The transparent combat 
 assert(html.includes('first-screen viewport-fit redesign'),'Entry menu must have viewport fit rules');
 assert(html.includes('bear:-1,rabbit:1,cat:-1'),'Hero art must map intrinsic left/right facing');
 assert(html.includes('if((f.kind||0)===0)ctx.scale(-1,1)'),'Acorn guardian should face attacking player');
+assert(html.includes('Illustrated Canvas 2D projectile silhouettes'),'Projectile renderer should contain hero-specific artwork');
+assert(html.includes('scenery-integrated title'),'First screen should use transparent scenery-integrated game UI');
 assert(html.includes("'player',900"),'Predicted range must sample full high-angle trajectory');
 assert(/#menu \.menu-panel\{[^}]*overflow:hidden/.test(html),'Menu must not scroll off screen');
 assert(html.includes('grid-template-areas:"eyebrow modes"'),'Landscape layout must use 2-column design');
@@ -80,6 +82,18 @@ el('adventureBtn').click();frames(5);
 assert.equal(state().foes,2);
 assert.equal(state().phase,'aim');
 assert.equal(state().hitStreak,0,'Starting a new game must clear hit streak');
+const socketFox=window.__weaponSocketForTest('fox');
+const socketCat=window.__weaponSocketForTest('cat');
+const socketBear=window.__weaponSocketForTest('bear');
+const socketRabbit=window.__weaponSocketForTest('rabbit');
+assert(socketFox.x!==socketRabbit.x&&socketCat.y<socketFox.y&&socketBear.weapon==='cannon',
+ 'Every hero muzzle must follow its own hand or weapon socket');
+window.__spawnFollowPopupForTest();
+const popupBefore=state().popupPositions.at(-1);
+window.__moveFollowTargetForTest(32);frames(3);
+const popupAfter=state().popupPositions.at(-1);
+assert(popupAfter.x>popupBefore.x+12,'Floating damage must follow a knocked-back enemy');
+assert(popupAfter.y<popupBefore.y+32,'Damage must stay near the moving enemy');
 assert(el('distanceValue').textContent.includes('예상'),'Angle-based predicted distance must be present');
 const oldAngle=Number(el('angle').value);
 el('field').dispatch('pointerdown',{pointerId:12,clientX:650,clientY:290});
