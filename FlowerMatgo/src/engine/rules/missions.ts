@@ -35,8 +35,8 @@ export function evaluateCardMission(
   return {
     humanCardIds,
     computerCardIds,
-    humanMultiplier: mission.effect ? (mission.effect.kind === 'multiplier' && mission.resolvedBy === 'human' ? mission.effect.value : 1) : 2 ** humanCardIds.length,
-    computerMultiplier: mission.effect ? (mission.effect.kind === 'multiplier' && mission.resolvedBy === 'computer' ? mission.effect.value : 1) : 2 ** computerCardIds.length
+    humanMultiplier: mission.effect ? (mission.enabled !== false && mission.effect.kind === 'multiplier' && mission.resolvedBy === 'human' ? mission.effect.value : 1) : 2 ** humanCardIds.length,
+    computerMultiplier: mission.effect ? (mission.enabled !== false && mission.effect.kind === 'multiplier' && mission.resolvedBy === 'computer' ? mission.effect.value : 1) : 2 ** computerCardIds.length
   };
 }
 

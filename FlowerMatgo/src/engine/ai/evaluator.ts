@@ -1,6 +1,6 @@
 import { BONUS_PEE_CARDS, getCard, HWATU_CARDS } from '../cards';
 import { isBonusPee } from '../rules/bonusPee';
-import { calculateCapturedScore } from '../rules/scoring';
+import { calculateCapturedScore, calculatePlayerScore } from '../rules/scoring';
 import { findBombOptions, findShakeOptions } from '../rules/specialRules';
 import type { GameState, PlayerId } from '../types';
 import type { AiMove, MoveEvaluation } from './types';
@@ -151,7 +151,7 @@ function evaluateShake(state: GameState, player: PlayerId, month: number): MoveE
   const view = playerCards(state, player);
   const option = findShakeOptions(view.hand, state.floorCards, view.shakenMonths).find(candidate => candidate.month === month);
   if (!option) return null;
-  const currentScore = calculateCapturedScore(view.captured, { gookjinAsDoubleJunk: view.gookjin }).total;
+  const currentScore = calculatePlayerScore(state, player).total;
   const combinationValue = combinationProgress(view.captured, option.handCardIds);
   return {
     move: { kind: 'shake', month }, immediateValue: 0, opponentRisk: 1.5, combinationValue,
@@ -183,7 +183,7 @@ export function evaluateMoves(state: GameState, player: PlayerId): MoveEvaluatio
 
 export function estimatePlayerThreat(state: GameState, player: PlayerId): number {
   const view = playerCards(state, player);
-  const score = calculateCapturedScore(view.captured, { gookjinAsDoubleJunk: view.gookjin });
+  const score = calculatePlayerScore(state, player);
   let threat = score.total * 1.7;
   if (score.junkCount >= 8) threat += (score.junkCount - 7) * 1.4;
   if (score.brightCount >= 2) threat += 2.2;

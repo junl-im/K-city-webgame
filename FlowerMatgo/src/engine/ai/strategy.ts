@@ -1,5 +1,5 @@
 import { randomInteger } from '../random';
-import { calculateCapturedScore } from '../rules/scoring';
+import { calculateCapturedScore, calculatePlayerScore } from '../rules/scoring';
 import type { GameState, PlayerId } from '../types';
 import { evaluateMoves, estimatePlayerThreat } from './evaluator';
 import { AI_DIFFICULTIES } from './settings';
@@ -52,13 +52,12 @@ export function chooseAiCard(state: GameState, player: PlayerId, difficulty: AiD
 export function chooseAiGoStop(state: GameState, player: PlayerId, difficulty: AiDifficulty): 'go' | 'stop' {
   const config = AI_DIFFICULTIES[difficulty];
   const current = playerState(state, player);
-  const opponent = playerState(state, player === 'human' ? 'computer' : 'human');
   const actionsRemaining = current.hand.length + current.bombSkips;
   if (actionsRemaining <= 0) return 'stop';
   if (difficulty === 'easy') return takeRandom(state, 10_000) / 10_000 < config.easyStopProbability ? 'stop' : 'go';
 
-  const currentScore = calculateCapturedScore(current.captured, { gookjinAsDoubleJunk: current.gookjin }).total;
-  const opponentScore = calculateCapturedScore(opponent.captured, { gookjinAsDoubleJunk: opponent.gookjin }).total;
+  const currentScore = calculatePlayerScore(state, player).total;
+  const opponentScore = calculatePlayerScore(state, player === 'human' ? 'computer' : 'human').total;
   const bestFutureMove = evaluateMoves(state, player)[0]?.total ?? 0;
   const opponentThreat = estimatePlayerThreat(state, player === 'human' ? 'computer' : 'human');
   const reward = Math.min(8, bestFutureMove / 6) + actionsRemaining * 0.7 + (currentScore <= 9 ? 2.2 : 0);
