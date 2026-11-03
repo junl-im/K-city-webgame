@@ -227,15 +227,30 @@ function ppeokCaptureEvent(state: GameState, player: PlayerId, pile: PpeokPile |
 
 function missionOutcome(state: GameState, player: PlayerId, capturedCardIds: string[]) {
   const missionCards = capturedMissionCards(state.mission, capturedCardIds);
-  return {
-    missionCards,
-    missionMultiplier: missionMultiplierFor(state.mission, state.humanCaptured, state.computerCaptured, player)
-  };
+  const mission = state.mission;
+  // A target captured while disabled is finished without an effect.
+  if (mission?.effect && mission.enabled === false && !mission.resolvedBy && mission.cardIds.some(id => capturedCardIds.includes(id))) mission.resolvedBy = player;
+  let missionEffect = '';
+  if (missionCards.length && mission?.effect && !mission.resolvedBy) {
+    mission.resolvedBy = player;
+    const effect = mission.effect;
+    if (effect.kind === 'points') {
+      const key = player === 'human' ? 'humanMissionPoints' : 'computerMissionPoints';
+      state[key] = (state[key] ?? 0) + effect.value;
+      missionEffect = `점수 ${effect.value > 0 ? '+' : ''}${effect.value}점`;
+    } else if (effect.kind === 'multiplier') missionEffect = `승리 정산 ×${effect.value}`;
+    else {
+      const receiver = effect.kind === 'steal' ? player : otherPlayer(player);
+      const moved = stealPee(state, receiver, effect.value);
+      missionEffect = moved.length ? (effect.kind === 'steal' ? `상대 피 ${moved.length}장 뺏기` : `상대에게 피 ${moved.length}장 주기`) : '이동할 피가 없어 효과 없음';
+    }
+  }
+  return {missionEffect, missionCards, missionMultiplier:missionMultiplierFor(state.mission,state.humanCaptured,state.computerCaptured,player)};
 }
 
 function missionMessage(outcome: ReturnType<typeof missionOutcome>): string {
   return outcome.missionCards.length
-    ? ` 미션패 ${outcome.missionCards.length}장을 획득해 미션 배수가 ×${outcome.missionMultiplier}가 되었습니다.`
+    ? outcome.missionEffect ? ` 미션 완료! ${outcome.missionEffect}.` : ` 미션패 ${outcome.missionCards.length}장을 획득해 미션 배수가 ×${outcome.missionMultiplier}가 되었습니다.`
     : '';
 }
 
@@ -272,9 +287,25 @@ function advanceAfterAction(next: GameState, player: PlayerId, actionMessage: st
   }
 }
 
-function scoreFor(state: GameState, player: PlayerId) {
+export function scoreFor(state: GameState, player: PlayerId) {
   const keys = keysFor(player);
-  return calculateCapturedScore(state[keys.captured], { gookjinAsDoubleJunk: state[keys.gookjin] });
+  const score = calculateCapturedScore(state[keys.captured], { gookjinAsDoubleJunk: state[keys.gookjin] });
+  const points = (player === 'human' ? state.humanMissionPoints : state.computerMissionPoints) ?? 0;
+  if (!points) return score;
+  const total = Math.max(0, score.total + points);
+  return {...score,total,lines:[...score.lines,{code:'mission' as const,label:'미션 점수',points:total-score.total,description:`미션 ${points > 0 ? '+' : ''}${points}점`}]};
+}
+
+export function setMissionEnabled(state: GameState, enabled: boolean): GameState {
+  if (!state.mission?.effect || state.mission.resolvedBy || state.phase === 'round-ended') throw new Error('이 판의 미션을 변경할 수 없습니다.');
+  const next = structuredClone(state);
+  next.mission!.enabled = enabled;
+  if (enabled) {
+    const id = next.mission!.cardIds[0];
+    const owner = next.humanCaptured.includes(id) ? 'human' : next.computerCaptured.includes(id) ? 'computer' : null;
+    if (owner) { const outcome = missionOutcome(next, owner, [id]); next.lastAction = `미션 완료! ${outcome.missionEffect}.`; }
+  }
+  return next;
 }
 
 function finishThreePpeok(state: GameState, player: PlayerId) {

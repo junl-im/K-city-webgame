@@ -10,6 +10,9 @@ export function missionView(game) {
   const computer = Array.isArray(game.computerCaptured) ? game.computerCaptured : [];
   const progress = evaluateCardMission(mission, human, computer);
   return {
+    effect: mission.effect || null,
+    enabled: mission.enabled !== false,
+    resolvedBy: mission.resolvedBy || null,
     targets: mission.cardIds.map(id => ({
       id,
       owner: human.includes(id) ? 'human' : computer.includes(id) ? 'computer' : null

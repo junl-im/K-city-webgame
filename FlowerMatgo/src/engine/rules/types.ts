@@ -1,4 +1,4 @@
-export type ScoreCode = 'bright' | 'animal' | 'godori' | 'ribbon' | 'hongdan' | 'cheongdan' | 'chodan' | 'junk';
+export type ScoreCode = 'bright' | 'animal' | 'godori' | 'ribbon' | 'hongdan' | 'cheongdan' | 'chodan' | 'junk' | 'mission';
 export type BakCode = 'pi-bak' | 'gwang-bak' | 'meong-bak' | 'go-bak';
 
 export interface ScoreLine {

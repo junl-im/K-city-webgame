@@ -23,6 +23,9 @@ export interface TurnSpecialEvent {
 export interface CardMission {
   kind: 'gakpae';
   cardIds: string[];
+  effect?: { kind: 'points' | 'multiplier' | 'steal' | 'give'; value: number };
+  enabled?: boolean;
+  resolvedBy?: PlayerId;
 }
 
 export interface HwatuCard {
@@ -68,7 +71,9 @@ export interface GameState {
   humanSweepCount?: number;
   computerSweepCount?: number;
   ppeokPiles?: PpeokPile[];
-  mission?: CardMission;
+  mission?: CardMission | null;
+  humanMissionPoints?: number;
+  computerMissionPoints?: number;
   humanBombSkips: number;
   computerBombSkips: number;
   humanShakeCount?: number;
