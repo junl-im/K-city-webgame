@@ -3890,3 +3890,22 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 /* Keep the invitation legible over the illustrated balloon. */
 .scene--game .double-offer__button::after {background:#a74224;color:#fff9e9;border-color:#ffdca2;font-size:11px;padding:4px 8px;}
 @media(max-width:650px){.scene--game .double-offer__button::after {font-size:10px;padding:4px 7px;}}
+/* Refined table hierarchy: readable controls over the original painted art. */
+.scene--game .game-wallet {font-variant-numeric:tabular-nums;}
+.scene--game .center-status {background-color:#fff7e9;color:#405c49;border-color:#e3cda9;box-shadow:0 2px 6px #17392e38;}
+.scene--game .game-message {max-width:min(92%,460px);color:#f5ebd0;background:#174b3ee8;border:1px solid #e7d7a966;border-radius:10px;font-weight:750;line-height:1.25;}
+.scene--game .collection-rack {background:linear-gradient(120deg,#f6e8c842,#ecddba32);border-color:#f7e8c366;}
+.scene--game .collection-group,.scene--game .collection-group[data-empty="true"] {background:#f7edda26;border:1px solid #f6e6c746;border-radius:9px;}
+.scene--game .collection-group:focus-visible {outline:3px solid #ffdf90;outline-offset:-3px;}
+@media(hover:hover){.scene--game .collection-group:hover {background:#fff5de45;border-color:#ffe8b59e;}}
+.scene--game .player-status .special-controls .action-chip {color:#4c5946;background:#f7eddb;border:1px solid #d6c09c;font-weight:850;}
+.scene--game .player-status .special-controls .action-chip:active {background:#e8d6b9;}
+.scene--game .turn-clock {font-variant-numeric:tabular-nums;}
+.scene--game .result-box {color:#5d4838;}
+.scene--game .result-hero h2 {color:#513829;letter-spacing:-.035em;}
+.scene--game .result-hero p,.scene--game .double-offer p {color:#6b5544;}
+.scene--game .result-duel {background:#fff9edd9;border-color:#e4cfaa;}
+.scene--game .result-prize {border-color:#e5c58e;background:linear-gradient(110deg,#fff1cf,#fff9e8);}
+.scene--game .settlement-details summary:focus-visible {outline:3px solid #c58945;outline-offset:-3px;border-radius:9px;}
+@media(max-width:650px){.scene--game .game-message {font-size:10px;padding:3px 8px;}.scene--game .player-status .special-controls .action-chip {font-size:10px;}}
+@media(prefers-reduced-motion:reduce){.scene--game .collection-group {transition:none;}}
