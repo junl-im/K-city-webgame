@@ -35,9 +35,11 @@ for(const id of defenders)for(const state of states){
   assert.equal(textures.exists('motion-'+id+'-'+state+'-'+count),false);
 }
 for(const state of states){
-  assert.ok(textures.exists('motion-sprout-'+state+'-3'));
-  assert.equal(textures.exists('motion-sprout-'+state+'-4'),false,
-    'Ordinary enemies should keep four frames for mobile memory');
+  const frames=state==='hurt'?5:4;
+  for(let f=0;f<frames;f++)assert.ok(textures.exists('motion-sprout-'+state+'-'+f),
+    'Ordinary enemy '+state+' frame missing: '+f);
+  assert.equal(textures.exists('motion-sprout-'+state+'-'+frames),false,
+    'Ordinary enemies must use bounded frames for mobile memory');
 }
 for(const id of ['shroom','guardian','boss'])for(const state of ['attack','hurt','death']){
   assert.ok(textures.exists('motion-'+id+'-'+state+'-5'));
@@ -51,6 +53,10 @@ for(const id of ['sprout','runner','brute','thorn','crystal','spore','imp']){
 }
 assert.equal(visuals.duration('sprout','death'),425);
 assert.equal(visuals.duration('shroom','death'),510);
+assert.equal(visuals.frameTotal('sprout','hurt'),5);
+assert.equal(visuals.frameTotal('shroom','hurt'),6);
+assert.equal(visuals.duration('sprout','hurt'),400);
+assert.equal(visuals.duration('shroom','hurt'),480);
 assert.equal(visuals.frameTotal('fox','death'),0);
 assert.equal(textures.exists('motion-fox-death-0'),false);
 assert.match(source,/globalCompositeOperation='destination-out'/,
@@ -71,4 +77,4 @@ for(let f=0;f<8;f++){
 visuals.animate(sprite,'fox','idle',1525);
 assert.match(sprite.texture.key,/^motion-fox-idle-/);
 assert.ok(!source.includes('<svg')&&!source.includes('data:image/svg+xml'));
-console.log('ForestGuard hero attacks, 10 species 5/6-frame deaths, elite hits and mobile fallback: PASS');
+console.log('ForestGuard v4.4 hero attacks, 10 species eased hits and 5/6-frame deaths: PASS');

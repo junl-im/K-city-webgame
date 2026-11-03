@@ -123,6 +123,7 @@ jobs:
           test -s ForestGuard/scene-v35.js
           test -s ForestGuard/art/rani-element-spells-v38.png
           test -s ForestGuard/art/rani-fox-rear-attack-v41.png
+          for asset in bear rabbit cat megafox; do test -s "ForestGuard/art/rani-$asset-attack-v44.webp"; done
           test -s ForestGuard/art/rani-rearguard-v35.png
           test -s ForestGuard/illustration-continuity-v34.css
           test -s ForestGuard/game.js
@@ -161,9 +162,11 @@ jobs:
           cp ForestGuard/art/rani-title-v31.webp ForestGuard/art/rani-rear-party-v31.webp ForestGuard/art/rani-board-acorn-v31.webp ForestGuard/art/rani-board-map-v31.webp ForestGuard/art/rani-button-atlas-v31.webp ForestGuard/art/rani-board-fox-v31.webp MagicGarden/dist/ForestGuard/art/
           cp ForestGuard/art/btn-{gold,emerald,stone,sapphire,parchment,crimson}-v33.webp MagicGarden/dist/ForestGuard/art/
           cp ForestGuard/art/rani-rearguard-v35.png ForestGuard/art/rani-element-spells-v38.png ForestGuard/art/rani-fox-rear-attack-v41.png MagicGarden/dist/ForestGuard/art/
+          cp ForestGuard/art/rani-{bear,rabbit,cat,megafox}-attack-v44.webp MagicGarden/dist/ForestGuard/art/
           test -s MagicGarden/dist/ForestGuard/element-spells-v38.css
           test -s MagicGarden/dist/ForestGuard/art/rani-element-spells-v38.png
           test -s MagicGarden/dist/ForestGuard/art/rani-fox-rear-attack-v41.png
+          for asset in bear rabbit cat megafox; do test -s "MagicGarden/dist/ForestGuard/art/rani-$asset-attack-v44.webp"; done
           test -s MagicGarden/dist/ForestGuard/art/rani-rearguard-v35.png
           test -s MagicGarden/dist/ForestGuard/art/btn-gold-v33.webp
           echo "Independent Forest Guard staged at /ForestGuard/"

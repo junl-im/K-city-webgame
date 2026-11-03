@@ -138,6 +138,7 @@
   const biomeFiles = ['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'];
   let monsterBitmap = null, fortBitmap = null, mushroomAttackBitmap = null, rampartBitmap = null, rearBitmap = null;
   let elementSpellBitmap = null, foxAttackBitmap = null; // Original raster illustrations, never SVG.
+  const heroAttackBitmaps = {bear:null,rabbit:null,cat:null,megafox:null}; // v4.4 illustrated rear-view sheets
   const ART_VERSION = '20261031r';
   // Mobile connections may exceed the old eight-second cutoff during decoding.
   async function loadIllustration(url,assign,required=false){
@@ -181,6 +182,11 @@
       loadIllustration('./art/mushroom-colossus-attack-v19.webp?v=20261101d',art=>{mushroomAttackBitmap=art;}),
       loadIllustration('./art/rani-element-spells-v38.png?v=20261103a',art=>{elementSpellBitmap=art;}),
       loadIllustration('./art/rani-fox-rear-attack-v41.png?v=20261103v41',art=>{foxAttackBitmap=art;}),
+      // Optional 4×2 WebP sheets: a failed request keeps the existing Canvas motion.
+      loadIllustration('./art/rani-bear-attack-v44.webp?v=20261103v44',art=>{heroAttackBitmaps.bear=art;}),
+      loadIllustration('./art/rani-rabbit-attack-v44.webp?v=20261103v44',art=>{heroAttackBitmaps.rabbit=art;}),
+      loadIllustration('./art/rani-cat-attack-v44.webp?v=20261103v44',art=>{heroAttackBitmaps.cat=art;}),
+      loadIllustration('./art/rani-megafox-attack-v44.webp?v=20261103v44',art=>{heroAttackBitmaps.megafox=art;}),
       loadIllustration('./art/painted-rampart-front-v24.webp?v=20261101j',art=>{rampartBitmap=art;},true)
     ]);
     const biome=Math.floor(stageIndex/4);
@@ -734,16 +740,21 @@
       });
     }
     V.build(scene);
-    // v4.1: eight independently illustrated rear attack poses replace Canvas approximations.
-    if(foxAttackBitmap){
-      const frameW=foxAttackBitmap.naturalWidth/4,frameH=foxAttackBitmap.naturalHeight/2;
+    // v4.4: swap in genuine species-specific, rear-facing 8-frame paintings.
+    // Incomplete/missing optional art never breaks a battle or its Canvas fallback.
+    const illustratedAttacks={fox:foxAttackBitmap,...heroAttackBitmaps};
+    for(const [id,sheet] of Object.entries(illustratedAttacks)){
+      if(!sheet||sheet.naturalWidth<4||sheet.naturalHeight<2)continue;
+      const frameW=sheet.naturalWidth/4,frameH=sheet.naturalHeight/2;
       for(let frame=0;frame<8;frame++){
-        const key='motion-fox-attack-'+frame;
+        const key='motion-'+id+'-attack-'+frame;
         if(scene.textures.exists(key))scene.textures.remove(key);
         createCanvasTexture(scene,key,128,128,c=>{
           c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
-          c.drawImage(foxAttackBitmap,(frame%4)*frameW,Math.floor(frame/4)*frameH,
-            frameW,frameH,0,0,128,128);
+          // Every source cell is square; preserve the 4×2 artwork's aspect ratio.
+          const fit=Math.min(128/frameW,128/frameH),dw=frameW*fit,dh=frameH*fit;
+          c.drawImage(sheet,(frame%4)*frameW,Math.floor(frame/4)*frameH,
+            frameW,frameH,(128-dw)/2,(128-dh)/2,dw,dh);
         });
       }
     }
@@ -1243,7 +1254,9 @@
       e.life.width=e.lifeWidth*Math.max(0,e.hp/e.maxHP);
       this.showDamageNumber(e,actual,crit,kind);
       V.trigger(e.spr,'hurt',this.gameClock+V.duration(e.type,'hurt'),this.gameClock);
-      e.spr.setTintFill(0xffffff);this.time.delayedCall(75,()=>{if(e.spr.active)e.spr.clearTint();});
+      // Show the painted first impact pose immediately; later frames unfold in update().
+      const hurtFrame='motion-'+e.type+'-hurt-0';
+      if(this.textures.exists(hurtFrame))e.spr.setTexture(hurtFrame);
       if(kind==='megafox'&&this.evolutionPath==='sun'){
         for(const other of [...this.enemies]){
           if(other===e||other.untargetable||Math.hypot(other.x-e.x,other.y-e.y)>78)continue;
@@ -1873,7 +1886,15 @@
         const weave=e.type==='thorn'?Math.sin(this.gameClock/310+e.windPhase)*Math.min(13,Math.max(0,e.y/18)):
           e.type==='imp'?Math.sin(this.gameClock/215+e.windPhase)*Math.min(15,Math.max(0,e.y/22)):0;
         e.x=funnelX(e.baseX,e.y,wind)+weave;
-        e.spr.setPosition(e.x,e.y);e.lifeBg.setPosition(e.x,e.y-e.lifeYOffset);e.life.setPosition(e.x,e.y-e.lifeYOffset);
+        // Visual-only recoil: the enemy's movement, target coordinates, HP and
+        // collision timing remain unchanged so game balance and saves are stable.
+        const hurtUntil=e.spr.getData('motionUntil');
+        const hurting=e.spr.getData('motionState')==='hurt'&&Number.isFinite(hurtUntil)&&this.gameClock<hurtUntil;
+        const hurtStart=e.spr.getData('motionStart');
+        const hurtProgress=hurting?Math.min(1,Math.max(0,(this.gameClock-hurtStart)/V.duration(e.type,'hurt'))):0;
+        const recoil=hurting?Math.sin(Math.PI*hurtProgress)*(['boss','guardian','shroom'].includes(e.type)?10:6):0;
+        e.spr.setPosition(e.x,e.y-recoil);
+        e.lifeBg.setPosition(e.x,e.y-e.lifeYOffset);e.life.setPosition(e.x,e.y-e.lifeYOffset);
         if(e.nameLabel)e.nameLabel.setPosition(e.x,e.y-e.lifeYOffset-19);
         V.animate(e.spr,e.type,'run',this.gameClock);
         if(e.y>=538){
@@ -2067,6 +2088,10 @@
          if(!battle||battle.ended)return null;
          return {heroAttack8:battle.textures.exists('motion-fox-attack-7'),
            foxRasterReady:!!foxAttackBitmap,
+           paintedHeroAttacks:Object.fromEntries(Object.entries(heroAttackBitmaps).map(([id,img])=>
+             [id,!!img&&battle.textures.exists('motion-'+id+'-attack-7')])),
+           ordinaryHurt5:battle.textures.exists('motion-sprout-hurt-4'),
+           hurtDuration:V.duration('sprout','hurt'),
            eliteAttack6:battle.textures.exists('motion-shroom-attack-5'),
            eliteHurt6:battle.textures.exists('motion-guardian-hurt-5'),
            ordinaryDeath5:battle.textures.exists('motion-sprout-death-4'),
