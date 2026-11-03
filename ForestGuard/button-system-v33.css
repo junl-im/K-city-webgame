@@ -189,11 +189,11 @@
 }
 
 /* v3.7 — hand-painted buttons only; remove legacy CSS rectangles.
-   Typography: Jua for actions, Gowun Batang for story/reward ink.
+   Typography: legible OS-native Korean sans family for actions, story, and rewards.
    Existing independent PNG/WebP surfaces stay intact; keyboard focus remains visible. */
 :root{
-  --fg-action-font:'Jua','Malgun Gothic','Apple SD Gothic Neo',sans-serif;
-  --fg-story-font:'Gowun Batang','Nanum Myeongjo','Batang',serif;
+  --fg-action-font:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',system-ui,sans-serif;
+  --fg-story-font:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',system-ui,sans-serif;
 }
 .menu:not(.stage-choosing) .menu-actions-top #start-btn,
 .menu:not(.stage-choosing) .menu-actions-top #resume-btn,

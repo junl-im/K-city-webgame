@@ -63,6 +63,15 @@ try{
         'Original independent painted surface missing on '+button+': '+paintedButtons[button]);
     }
     assert.ok(menu.scrollX<=2&&menu.scrollY<=2,'Menu unexpectedly scrolls: '+JSON.stringify(menu));
+    const rearLayout=await page.locator('.home-party-v35').evaluate(img=>{
+      const p=img.getBoundingClientRect(),s=getComputedStyle(img);
+      return {left:p.left,right:p.right,bottom:p.bottom,height:p.height,
+        loaded:img.complete&&img.naturalWidth>0,fit:s.objectFit};
+    });
+    assert.ok(rearLayout.loaded&&rearLayout.fit==='contain'&&rearLayout.height>=120,
+      'Rear-facing illustrated heroes must load at their original proportions');
+    assert.ok(rearLayout.left>=-1&&rearLayout.right<=size.width+1&&rearLayout.bottom<=size.height+1,
+      'Rear hero painting clipped by over-wide layout: '+JSON.stringify(rearLayout));
     assert.ok(menu.start.top>=0&&menu.start.bottom<=size.height+2,'Start button clipped');
     const homeArt=await page.evaluate(()=>{
       const art=document.querySelector('.title-hero-art');
@@ -105,8 +114,8 @@ try{
       }));
     assert.ok(homeButtons.every(x=>x.border===0&&x.shadow==='none'),
       'Illustrated home buttons must not have extra CSS rectangle borders/shadows: '+JSON.stringify(homeButtons));
-    assert.ok(homeButtons.find(x=>x.sel==='#start-btn').font.includes('Jua'),
-      'Primary start label must use the action display font');
+    assert.ok(homeButtons.find(x=>x.sel==='#start-btn').font.includes('Apple SD Gothic Neo'),
+      'Primary start label must use the consistent Korean UI family');
     const startAfter=await page.locator('#start-btn').evaluate(el=>getComputedStyle(el,'::after').content);
     assert.equal(startAfter,'none','Legacy button pseudo-outline must be removed');
     await page.screenshot({path:new URL('../test-output/home-'+size.width+'x'+size.height+'.png',import.meta.url).pathname});
@@ -118,7 +127,7 @@ try{
         const s=getComputedStyle(document.querySelector(sel));return {sel,border:parseFloat(s.borderTopWidth),font:s.fontFamily};
       }));
     assert.ok(stageBorders.every(x=>x.border===0),'Stage button overlays returned: '+JSON.stringify(stageBorders));
-    assert.ok(stageBorders.every(x=>x.font.includes('Jua')),'Stage buttons should use fantasy UI action font');
+    assert.ok(stageBorders.every(x=>x.font.includes('Apple SD Gothic Neo')),'Stage buttons should use the same Korean UI family');
     const stageCardArt=await page.evaluate(()=>{
       const selected=getComputedStyle(document.querySelector('#stage-grid .stage-tile.selected')).backgroundImage;
       const locked=getComputedStyle(document.querySelector('#stage-grid .stage-tile.locked')).backgroundImage;
@@ -271,7 +280,7 @@ try{
       await page.waitForTimeout(130);
       await page.screenshot({path:new URL('../test-output/element-combat-v39-390.png',import.meta.url).pathname});
       const motion=await page.evaluate(()=>window.__ForestGuardQA.motionInfo());
-      assert.deepEqual(motion,{heroAttack8:true,eliteAttack6:true,eliteHurt6:true,heroDuration:520},
+      assert.deepEqual(motion,{heroAttack8:true,foxRasterReady:true,eliteAttack6:true,eliteHurt6:true,heroDuration:520},
         'Eight-beat rear attacks and elite hit frames must be baked into the actual battle');
       const tracked=await page.evaluate(()=>window.__ForestGuardQA.damageNumberTrack());
       assert.ok(tracked?.alive&&tracked.shift>22,'Damage number must follow moving enemy position');
@@ -313,6 +322,21 @@ try{
         return !modal.hidden && modal.querySelectorAll('.recruit-card').length===3;
       },null,{timeout:50000});
       assert.equal(await page.locator('.recruit-card').count(),3,'Three distinct first companions');
+      const recruitLayout=await page.locator('.recruit-card').evaluateAll(cards=>cards.map(card=>{
+        const outer=card.getBoundingClientRect();
+        const portrait=card.querySelector('.recruit-portrait').getBoundingClientRect();
+        const name=card.querySelector('strong').getBoundingClientRect();
+        const detail=card.querySelector('small').getBoundingClientRect();
+        const paint=getComputedStyle(card),art=getComputedStyle(card.querySelector('.recruit-portrait'));
+        return {outer:{left:outer.left,right:outer.right,bottom:outer.bottom},
+          portrait:{top:portrait.top,bottom:portrait.bottom},name:{top:name.top,bottom:name.bottom},
+          detail:{top:detail.top,bottom:detail.bottom},
+          border:parseFloat(paint.borderTopWidth),fit:art.backgroundSize};
+      }));
+      assert.ok(recruitLayout.every(x=>x.border===0&&x.fit==='contain'&&
+        x.portrait.bottom<=x.name.top+2&&x.name.bottom<=x.detail.top+2&&
+        x.detail.bottom<=x.outer.bottom+2&&x.outer.left>=-2&&x.outer.right<=size.width+2),
+        'Original companion paintings, titles and details may not overlap or clip: '+JSON.stringify(recruitLayout));
       await page.locator('#modal-close').click();
       assert.equal(await page.locator('#modal-layer').isHidden(),true,'Recruit can be deferred');
       await page.locator('.hero-slot.empty').first().click();
@@ -398,7 +422,21 @@ try{
     assert.deepEqual(errors,[],'Results browser exceptions');
     await context.close();
   }
-  // If the stage painting fails, the game must never expose the old Canvas fallback.
+  // A transient stage-painting request must recover on the second attempt.
+  const retryCtx=await browser.newContext({viewport:{width:360,height:740},deviceScaleFactor:1,isMobile:true,hasTouch:true});
+  const retryPage=await retryCtx.newPage();
+  let biomeRequests=0;
+  await retryPage.route('**/forest-entrance-v08.png?v=20261031i**',route=>{
+    biomeRequests++;
+    return biomeRequests===1?route.abort('failed'):route.continue();
+  });
+  await retryPage.goto(origin+'?fgqa=1',{waitUntil:'domcontentloaded'});
+  await retryPage.locator('#start-btn').click();
+  await retryPage.locator('#game-root canvas').waitFor({state:'attached',timeout:30000});
+  assert.ok(biomeRequests>=2,'Transient biome download must retry without a failure modal');
+  assert.equal(await retryPage.locator('#modal-layer').isHidden(),true,'Successful retry must enter combat');
+  await retryCtx.close();
+  // If the stage painting permanently fails, never expose a primitive Canvas fallback.
   const failedCtx=await browser.newContext({viewport:{width:360,height:740},deviceScaleFactor:1,isMobile:true,hasTouch:true});
   const failedPage=await failedCtx.newPage();
   await failedPage.route('**/forest-entrance-v08.png**',route=>route.abort('failed'));

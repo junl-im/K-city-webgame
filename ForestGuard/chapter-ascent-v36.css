@@ -234,3 +234,127 @@
 @media(prefers-reduced-motion:reduce){
   #stage-select-panel .stage-path-pin,#game-screen .hero-slot{transition:none!important}
 }
+
+/* v4.1 — painting-proportional home party and readable, integrated recruit art.
+   Only original raster buttons; no SVG or decorative box borders. */
+.menu:not(.stage-choosing) .home-party-v35{
+  left:50%!important;right:auto!important;
+  bottom:clamp(32px,6dvh,66px)!important;
+  width:96%!important;max-width:520px!important;
+  height:clamp(148px,27dvh,265px)!important;max-height:none!important;
+  object-fit:contain!important;object-position:center bottom!important;
+  transform:translateX(-50%)!important;
+}
+.menu:not(.stage-choosing) .home-utility-btn,
+.menu:not(.stage-choosing) .home-stage-copy small,
+.menu:not(.stage-choosing) .home-stage-copy strong,
+.menu:not(.stage-choosing) .home-stage-copy span,
+.menu:not(.stage-choosing) #start-btn,
+.menu:not(.stage-choosing) #stage-list-btn{
+  font-family:var(--fg-action-font)!important;
+  font-weight:800!important;letter-spacing:-.035em!important;
+}
+.menu:not(.stage-choosing) .home-utility-btn{font-size:clamp(11px,2.9vw,13px)!important}
+#modal-layer #modal-box.recruit-dialog{
+  background:var(--rani-ui-wood) center/100% 100% no-repeat!important;
+  background-color:transparent!important;
+  filter:drop-shadow(0 12px 17px rgba(0,10,6,.74))!important;
+  padding:clamp(11px,1.6dvh,16px) clamp(10px,2.4vw,16px) clamp(18px,2.6dvh,25px)!important;
+}
+#modal-layer .recruit-dialog #modal-title{
+  font-family:var(--fg-action-font)!important;
+  font-size:clamp(20px,5.3vw,26px)!important;line-height:1.2!important;
+  letter-spacing:-.05em!important;font-weight:800!important;
+}
+#modal-layer .recruit-dialog #modal-description,
+#modal-layer .recruit-dialog .recruit-countdown{
+  font-family:var(--fg-story-font)!important;font-weight:700!important;
+  letter-spacing:-.025em!important;
+  font-size:clamp(11px,2.7vw,12px)!important;line-height:1.44!important;
+  text-shadow:0 1px 3px rgba(8,23,16,.9)!important;
+}
+#modal-layer .recruit-dialog #modal-description{
+  max-width:95%!important;margin:0 auto 5px!important;
+}
+#modal-layer .recruit-dialog .recruit-countdown{
+  margin:5px auto 4px!important;padding:1px 3px!important;color:#ffe0a9!important;
+}
+#modal-layer .recruit-dialog .recruit-progress{
+  height:6px!important;margin:5px 10px 13px!important;
+  border:0!important;border-radius:9px!important;
+  background:#091912c9!important;box-shadow:0 1px 3px #09130b90!important;
+}
+#modal-layer .recruit-dialog .recruit-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:clamp(5px,1.5vw,9px)!important;
+}
+#modal-layer .recruit-dialog .recruit-card{
+  min-width:0!important;min-height:clamp(191px,30dvh,249px)!important;
+  display:flex!important;flex-direction:column!important;
+  justify-content:flex-start!important;align-items:center!important;
+  overflow:hidden!important;gap:4px!important;
+  padding:clamp(6px,1.1dvh,10px) 4px 9px!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background-color:transparent!important;background-image:var(--fg-btn-emerald)!important;
+  filter:drop-shadow(0 4px 6px rgba(2,19,11,.58))!important;
+}
+#modal-layer .recruit-dialog .recruit-card.recommended{
+  background-image:var(--fg-btn-gold)!important;
+  filter:drop-shadow(0 4px 8px rgba(36,24,9,.68))!important;
+}
+#modal-layer .recruit-dialog .recruit-card .recruit-portrait{
+  display:block!important;flex:0 0 clamp(88px,15.8dvh,148px)!important;
+  height:clamp(88px,15.8dvh,148px)!important;width:100%!important;
+  background-size:contain!important;background-position:center center!important;
+  border:0!important;border-radius:0!important;margin:0!important;
+  filter:drop-shadow(0 2px 2px rgba(8,22,15,.36))!important;
+}
+#modal-layer .recruit-dialog .recruit-card strong{
+  font-family:var(--fg-action-font)!important;
+  font-size:clamp(12px,3.2vw,15px)!important;font-weight:800!important;
+  line-height:1.22!important;letter-spacing:-.04em!important;
+  white-space:normal!important;color:#fff1c4!important;
+  text-shadow:0 2px 3px #102318!important;
+}
+#modal-layer .recruit-dialog .recruit-card small{
+  font-family:var(--fg-story-font)!important;
+  font-size:clamp(10px,2.5vw,11px)!important;line-height:1.29!important;
+  letter-spacing:-.035em!important;font-weight:700!important;
+  display:-webkit-box!important;-webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;line-clamp:2!important;
+  overflow:hidden!important;max-width:100%!important;
+  margin:auto 0 2px!important;padding:0 2px!important;min-height:25px!important;
+  color:#fff2d4!important;text-shadow:0 1px 3px #082017!important;
+}
+#modal-layer .recruit-dialog .recruit-card.recommended strong,
+#modal-layer .recruit-dialog .recruit-card.recommended small{
+  color:#4e321f!important;text-shadow:0 1px 1px #fff0c3!important;
+}
+#modal-layer .recruit-dialog .recruit-tag{
+  top:5px!important;right:5px!important;left:auto!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  padding:4px 6px!important;font-family:var(--fg-action-font)!important;
+  font-size:10px!important;line-height:1.05!important;font-weight:800!important;
+  background:var(--fg-btn-gold) center/100% 100% no-repeat!important;
+}
+@media(max-width:360px){
+  .menu:not(.stage-choosing) .home-party-v35{
+    width:98%!important;height:clamp(135px,25dvh,215px)!important;
+    bottom:clamp(29px,5.1dvh,50px)!important;
+  }
+  #modal-layer .recruit-dialog .recruit-card{padding-inline:2px!important}
+  #modal-layer .recruit-dialog .recruit-card strong{font-size:clamp(11px,3.2vw,13px)!important}
+  #modal-layer .recruit-dialog .recruit-card small{font-size:clamp(9.5px,2.6vw,10.5px)!important}
+}
+@media(max-height:680px){
+  .menu:not(.stage-choosing) .home-party-v35{
+    height:clamp(135px,25dvh,185px)!important;bottom:4.8dvh!important;
+  }
+  #modal-layer .recruit-dialog .recruit-card{
+    min-height:clamp(166px,30dvh,194px)!important;
+  }
+  #modal-layer .recruit-dialog .recruit-card .recruit-portrait{
+    flex-basis:clamp(76px,15dvh,100px)!important;
+    height:clamp(76px,15dvh,100px)!important;
+  }
+}

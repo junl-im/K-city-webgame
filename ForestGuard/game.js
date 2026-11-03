@@ -137,39 +137,53 @@
   const biomeLoading = [null,null,null];
   const biomeFiles = ['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'];
   let monsterBitmap = null, fortBitmap = null, mushroomAttackBitmap = null, rampartBitmap = null, rearBitmap = null;
-  let elementSpellBitmap = null; // v3.9: existing original paintings, reused during combat.
+  let elementSpellBitmap = null, foxAttackBitmap = null; // Original raster illustrations, never SVG.
   const ART_VERSION = '20261031r';
+  // Mobile connections may exceed the old eight-second cutoff during decoding.
+  async function loadIllustration(url,assign,required=false){
+    if(!url)return true;
+    const attempts=required?2:1;
+    for(let attempt=1;attempt<=attempts;attempt++){
+      const ready=await new Promise(resolve=>{
+        const art=new Image();
+        let settled=false;
+        const complete=ok=>{
+          if(settled)return;
+          settled=true;clearTimeout(timer);art.onload=null;art.onerror=null;
+          if(ok&&art.naturalWidth>0&&art.naturalHeight>0){assign(art);resolve(true);}
+          else resolve(false);
+        };
+        const timer=setTimeout(()=>complete(false),required?16000:12000);
+        art.decoding='async';
+        art.onload=()=>complete(true);
+        art.onerror=()=>complete(false);
+        art.src=url+(attempt>1?(url.includes('?')?'&':'?')+'retry='+attempt:'');
+      });
+      if(ready)return true;
+      if(attempt<attempts){
+        console.info('원화 로딩 재시도:',url);
+        await new Promise(resolve=>setTimeout(resolve,320));
+      }
+    }
+    console.warn('원화 로딩 실패:',url);
+    return false;
+  }
   async function prepareAtlas(stageIndex){
-    const load=(url,assign)=>new Promise(resolve=>{
-      if(!url){resolve();return;}
-      const art=new Image();
-      let settled=false, timer=0;
-      const finish=ok=>{
-        if(settled)return;
-        settled=true;clearTimeout(timer);art.onload=null;art.onerror=null;
-        if(ok)assign(art);
-        else console.warn('원화 불러오기 지연/실패, 기본 화면 사용:',url);
-        resolve();
-      };
-      art.onload=()=>finish(true);
-      art.onerror=()=>finish(false);
-      timer=setTimeout(()=>{finish(false);art.src='';},8000);
-      art.src=url;
-    });
     if(!atlasPromise)atlasPromise=Promise.all([
-      load('./art/forest-characters.png?v=20261031c',art=>{atlasBitmap=art;}),
-      load('./art/rani-evolution.png?v=20261031c',art=>{evolutionBitmap=art;}),
-       // Five slim, rear-facing defenders: optional, with original art fallback.
-       load('./art/rani-rear-party-v31.webp?v=20261101a',art=>{rearBitmap=art;}),
-      load('./art/forest-battleground-v04.webp?v=20261031d',art=>{fieldBitmap=art;}),
-      load('./art/forest-monsters-v14-clean.webp?v='+ART_VERSION,art=>{monsterBitmap=art;}),
-      load('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;}),
-      load('./art/mushroom-colossus-attack-v19.webp?v=20261101d',art=>{mushroomAttackBitmap=art;}),
-       load('./art/rani-element-spells-v38.png?v=20261103a',art=>{elementSpellBitmap=art;}),
-      load('./art/painted-rampart-front-v24.webp?v=20261101j',art=>{rampartBitmap=art;})
+      loadIllustration('./art/forest-characters.png?v=20261031c',art=>{atlasBitmap=art;},true),
+      loadIllustration('./art/rani-evolution.png?v=20261031c',art=>{evolutionBitmap=art;},true),
+      // Optional enhancements never prevent an otherwise fully painted battle.
+      loadIllustration('./art/rani-rear-party-v31.webp?v=20261101a',art=>{rearBitmap=art;}),
+      loadIllustration('./art/forest-battleground-v04.webp?v=20261031d',art=>{fieldBitmap=art;}),
+      loadIllustration('./art/forest-monsters-v14-clean.webp?v='+ART_VERSION,art=>{monsterBitmap=art;},true),
+      loadIllustration('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;},true),
+      loadIllustration('./art/mushroom-colossus-attack-v19.webp?v=20261101d',art=>{mushroomAttackBitmap=art;}),
+      loadIllustration('./art/rani-element-spells-v38.png?v=20261103a',art=>{elementSpellBitmap=art;}),
+      loadIllustration('./art/rani-fox-rear-attack-v41.png?v=20261103v41',art=>{foxAttackBitmap=art;}),
+      loadIllustration('./art/painted-rampart-front-v24.webp?v=20261101j',art=>{rampartBitmap=art;},true)
     ]);
     const biome=Math.floor(stageIndex/4);
-    if(!biomeLoading[biome])biomeLoading[biome]=load('./art/'+biomeFiles[biome]+'?v=20261031i',art=>{biomeBitmaps[biome]=art;});
+    if(!biomeLoading[biome])biomeLoading[biome]=loadIllustration('./art/'+biomeFiles[biome]+'?v=20261031i',art=>{biomeBitmaps[biome]=art;},true);
     await Promise.all([atlasPromise,biomeLoading[biome]]);
     if(!biomeBitmaps[biome]||!atlasBitmap||!monsterBitmap||!evolutionBitmap||!fortBitmap||!rampartBitmap){
       atlasPromise=null;biomeLoading[biome]=null;return false;
@@ -717,6 +731,19 @@
       });
     }
     V.build(scene);
+    // v4.1: eight independently illustrated rear attack poses replace Canvas approximations.
+    if(foxAttackBitmap){
+      const frameW=foxAttackBitmap.naturalWidth/4,frameH=foxAttackBitmap.naturalHeight/2;
+      for(let frame=0;frame<8;frame++){
+        const key='motion-fox-attack-'+frame;
+        if(scene.textures.exists(key))scene.textures.remove(key);
+        createCanvasTexture(scene,key,128,128,c=>{
+          c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
+          c.drawImage(foxAttackBitmap,(frame%4)*frameW,Math.floor(frame/4)*frameH,
+            frameW,frameH,0,0,128,128);
+        });
+      }
+    }
     if(mushroomAttackBitmap)for(let frame=0;frame<4;frame++){
       const key='motion-shroom-attack-'+frame;
       if(scene.textures.exists(key))scene.textures.remove(key);
@@ -2014,6 +2041,7 @@
        motionInfo(){
          if(!battle||battle.ended)return null;
          return {heroAttack8:battle.textures.exists('motion-fox-attack-7'),
+           foxRasterReady:!!foxAttackBitmap,
            eliteAttack6:battle.textures.exists('motion-shroom-attack-5'),
            eliteHurt6:battle.textures.exists('motion-guardian-hurt-5'),
            heroDuration:V.duration('fox','attack')};
