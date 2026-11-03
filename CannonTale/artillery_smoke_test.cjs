@@ -31,9 +31,10 @@ assert(html.includes('grid-template-areas:"eyebrow modes"'),'Landscape layout mu
 const handlers={};
 const elements=new Map();
 const noOp=()=>{};
-let imageDrawCalls=0,brightTrajectoryStrokes=0,duelPilotDrawCalls=0;
-const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?(...args)=>{imageDrawCalls++;if(args.length===9&&args[7]===52&&args[8]===56)duelPilotDrawCalls++;}:key==='stroke'?()=>{if(obj.strokeStyle==='#fff5ba'&&obj.lineWidth>=5)brightTrajectoryStrokes++;}:key==='save'||key==='restore'||key==='translate'||key==='setTransform'||key==='beginPath'||key==='moveTo'||key==='lineTo'||key==='stroke'||key==='fill'||key==='ellipse'||key==='arc'||key==='roundRect'||key==='fillRect'||key==='fillText'||key==='strokeText'||key==='closePath'||key==='scale'||key==='rotate'||key==='rect'||key==='clip'||key==='bezierCurveTo'?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
-function el(id){if(!elements.has(id)){const listeners={},item={id,hidden:false,disabled:false,style:{},value:'',textContent:'',dataset:{},clientWidth:id==='field'?1280:0,clientHeight:id==='field'?620:0,width:0,height:0,tagName:'DIV',classList:{toggle:noOp},addEventListener(type,fn){listeners[type]=fn;},dispatch(type,event={}){listeners[type]?.({target:item,...event});},click(){this.dispatch('click');},getContext:()=>ctx,getBoundingClientRect(){return{left:0,top:0,width:this.clientWidth,height:this.clientHeight};},setPointerCapture:noOp};elements.set(id,item);}return elements.get(id);}
+let imageDrawCalls=0,mediumTrajectoryStrokes=0,duelPilotDrawCalls=0,previewDraws=[];
+const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?(...args)=>{imageDrawCalls++;if(args.length===9&&args[7]===52&&args[8]===56)duelPilotDrawCalls++;}:key==='stroke'?()=>{if(obj.strokeStyle==='#f4e6b9b0'&&obj.lineWidth>=3&&obj.lineWidth<=5)mediumTrajectoryStrokes++;}:key==='save'||key==='restore'||key==='translate'||key==='setTransform'||key==='beginPath'||key==='moveTo'||key==='lineTo'||key==='stroke'||key==='fill'||key==='ellipse'||key==='arc'||key==='roundRect'||key==='fillRect'||key==='fillText'||key==='strokeText'||key==='closePath'||key==='scale'||key==='rotate'||key==='rect'||key==='clip'||key==='bezierCurveTo'?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
+const previewCtx=new Proxy(ctx,{get:(obj,key)=>key==='drawImage'?(...args)=>previewDraws.push(args):key==='clearRect'?noOp:obj[key]});
+function el(id){if(!elements.has(id)){const listeners={},item={id,hidden:false,disabled:false,style:{},value:'',textContent:'',dataset:{},clientWidth:id==='field'?1280:id==='heroPreviewCanvas'?210:0,clientHeight:id==='field'?620:id==='heroPreviewCanvas'?120:0,width:0,height:0,tagName:'DIV',classList:{toggle:noOp},addEventListener(type,fn){listeners[type]=fn;},dispatch(type,event={}){listeners[type]?.({target:item,...event});},click(){this.dispatch('click');},getContext:()=>id==='heroPreviewCanvas'?previewCtx:ctx,getBoundingClientRect(){return{left:0,top:0,width:this.clientWidth,height:this.clientHeight};},setPointerCapture:noOp};elements.set(id,item);}return elements.get(id);}
 const weapons=['normal','bomb','split'].map(type=>{const b=el('weapon-'+type);b.dataset.weapon=type;return b;});
 const heroes=['fox','bear','rabbit','cat'].map(type=>{const b=el('hero-'+type);b.dataset.hero=type;return b;});
 const stages=[0,1,2,3].map(type=>{const b=el('stage-'+type);b.dataset.stage=String(type);return b;});
@@ -58,14 +59,35 @@ function waitForReview(limit=820){
 }
 frames(2);
 assert.equal(state().mode,'menu');
+function assertContainedPreview(hero){
+ const args=previewDraws.at(-1);
+ assert(args&&args.length===9,'Selected hero must draw a single cropped bitmap cell');
+ const [source,sx,sy,sw,sh,dx,dy,dw,dh]=args,preview=el('heroPreviewCanvas');
+ assert.equal(sx,hero==='bear'||hero==='cat'?source.naturalWidth/2:0,'Atlas must use only the selected hero half');
+ assert.equal(sy,0);
+ assert(dx>=0&&dy>=0&&dx+dw<=preview.clientWidth+.01&&dy+dh<=preview.clientHeight+.01,
+  'Full character and equipped weapon must fit inside the preview without clipping');
+ assert(Math.abs(dw/dh-sw/sh)<.0001,'Hero preview must preserve original body proportions');
+}
+assertContainedPreview('fox');
+assert.equal(el('stageShotPreview').textContent.includes('3발'),true,'First stage is 3 rounds, not global ammo cap');
 assert.equal(el('heroPreview').dataset.hero,'fox','Restored selected hero must appear in opening artwork');
 el('hero-cat').click();
 assert.equal(el('heroPreview').dataset.hero,'cat','Selecting cat must change main illustration');
-assert(el('heroPreviewWeapon').textContent.includes('지팡이'),'Hero preview must match actual cat weapon');
+assert(el('heroPreviewWeapon').textContent.includes('지팡이'),'Hero preview must match actual cat weapon');assertContainedPreview('cat');
 el('hero-rabbit').click();
-assert(el('heroPreviewWeapon').textContent.includes('분열 발사기'),'Rabbit preview weapon should match projectiles');
+assert(el('heroPreviewWeapon').textContent.includes('분열 발사기'),'Rabbit preview weapon should match projectiles');assertContainedPreview('rabbit');
 el('hero-fox').click();
-assert.equal(el('heroPreview').dataset.hero,'fox','Hero can be switched back without reload');
+assert.equal(el('heroPreview').dataset.hero,'fox','Hero can be switched back without reload');assertContainedPreview('fox');
+el('hero-bear').click();assertContainedPreview('bear');
+el('hero-fox').click();
+el('heroPreviewCanvas').clientWidth=120;el('heroPreviewCanvas').clientHeight=52;frames(3);
+assertContainedPreview('fox');
+el('heroPreviewCanvas').clientWidth=210;el('heroPreviewCanvas').clientHeight=120;frames(3);
+assertContainedPreview('fox');
+el('adventureStage').value='3';el('adventureStage').dispatch('change');
+assert(el('stageShotPreview').textContent.includes('5발'),'Boss stage must preview five shots');
+el('adventureStage').value='0';el('adventureStage').dispatch('change');
 assert.equal(state().exitOpen,false);
 handlers.popstate();assert.equal(state().exitOpen,true,'Browser Back at the menu must request exit');
 el('exitStayBtn').click();assert.equal(state().exitOpen,false,'Cancel preserves the menu');
@@ -120,7 +142,7 @@ el('field').dispatch('pointermove',{pointerId:12,clientX:655,clientY:210});
 el('field').dispatch('pointerup',{pointerId:12,clientX:655,clientY:210});
 assert(Number(el('angle').value)>oldAngle,'Upward dragging on battlefield must increase angle');
 el('angle').value='43';el('angle').dispatch('input');
-assert(brightTrajectoryStrokes>0,'High-contrast aiming trajectory should actually render');
+assert(mediumTrajectoryStrokes>0,'Medium-contrast aiming trajectory should actually render');
 assert.equal(state().materialReady,true,'The 3-stage material atlas must load');
 assert.equal(state().combatReady,true,'All four new enemies must have distinct bitmap battle poses');
 assert(state().foePoses.every(p=>p==='idle'),'Enemies should begin in their idle pose');
@@ -179,10 +201,13 @@ assert.equal(state().shots,1,'Synthetic click after quick tap must not fire twic
 el('homeBtn').click();
 // Hold to charge power; release must fire exactly one projectile even when click follows.
 el('adventureBtn').click();frames(3);
+el('field').clientWidth=390;el('field').clientHeight=355;frames(3);
 el('fire').dispatch('pointerdown',{pointerId:7,button:0});
 assert.equal(el('chargeGauge').hidden,false,'Hold should reveal illustrated charge meter');
 assert.equal(state().heroMotionFrame,-1,'Holding FIRE must put hero into charge pose');
 frames(60);
+assert(Number.isFinite(state().chargeAimX),'Charging must track the predicted landing x');
+assert(state().camera>25,'Narrow-screen camera must pan toward predicted impact while FIRE is held');
 assert(Number(el('fireLabel').textContent.replace(/[^0-9]/g,''))>20,'Charge should rise while holding');
 el('fire').dispatch('pointerup',{pointerId:7});
 assert.equal(state().shots,1,'Releasing a charged button must fire');
@@ -192,6 +217,7 @@ assert(state().heroMotionFrame>=1&&state().heroMotionFrame<=5,'Attack frames mus
 el('fire').click();
 assert.equal(state().shots,1,'Synthetic click after pointerup must never double-fire');
 assert.equal(el('chargeGauge').hidden,true,'Power meter closes when launched');
+el('field').clientWidth=1280;el('field').clientHeight=620;frames(3);
 el('homeBtn').click();
 // Mobile interruptions must cancel charging without dispatching a phantom shot.
 el('adventureBtn').click();frames(3);
