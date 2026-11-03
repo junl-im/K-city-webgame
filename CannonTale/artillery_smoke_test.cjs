@@ -21,6 +21,7 @@ assert(html.includes('if((f.kind||0)===0)ctx.scale(-1,1)'),'Acorn guardian shoul
 assert(html.includes('Illustrated Canvas 2D projectile silhouettes'),'Projectile renderer should contain hero-specific artwork');
 assert(html.includes('scenery-integrated title'),'First screen should use transparent scenery-integrated game UI');
 assert(html.includes("duelPilot(pilot,x-dir*42"),'Duel must use independent crew portraits rather than full handheld weapon figures');
+assert(html.includes('const transition=attacking?'),'Authored foe attack/idle poses must blend through phase transitions');
 assert(html.includes("'player',900"),'Predicted range must sample full high-angle trajectory');
 assert(/#menu \.menu-panel\{[^}]*overflow:hidden/.test(html),'Menu must not scroll off screen');
 assert(html.includes('grid-template-areas:"eyebrow modes"'),'Landscape layout must use 2-column design');
@@ -165,6 +166,24 @@ assert.equal(state().shots,1,'Releasing a charged button must fire');
 el('fire').click();
 assert.equal(state().shots,1,'Synthetic click after pointerup must never double-fire');
 assert.equal(el('chargeGauge').hidden,true,'Power meter closes when launched');
+el('homeBtn').click();
+// Mobile interruptions must cancel charging without dispatching a phantom shot.
+el('adventureBtn').click();frames(3);
+el('fire').dispatch('pointerdown',{pointerId:29,button:0});
+frames(16);
+assert.equal(state().chargeActive,true);
+handlers.blur();
+assert.equal(state().chargeActive,false,'Blur must disarm an interrupted charge');
+el('fire').dispatch('pointerup',{pointerId:29});
+el('fire').click();
+assert.equal(state().shots,0,'Blur must suppress follow-up synthetic click');
+el('fire').dispatch('pointerdown',{pointerId:30,button:0});
+frames(9);
+handlers.resize();
+assert.equal(state().chargeActive,false,'Screen rotation must disarm an interrupted charge');
+el('fire').dispatch('pointerup',{pointerId:30});
+el('fire').click();
+assert.equal(state().shots,0,'Resizing must not accidentally fire');
 el('homeBtn').click();
 // Regression: first shot must not require another outcome-button tap to enable the next shot.
 el('adventureStage').value='0';
