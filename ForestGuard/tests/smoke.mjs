@@ -17,6 +17,17 @@ assert.ok(foxFrames.length>100_000,'Eight isolated rear fox action paintings mus
 assert.equal(foxFrames.subarray(1,4).toString(),'PNG');
 assert.ok(read('chapter-ascent-v36.css').includes('object-fit:contain!important'));
 assert.match(js,/foxAttackBitmap/);
+const v44Sheets=['rani-bear-attack-v44.webp','rani-rabbit-attack-v44.webp','rani-cat-attack-v44.webp','rani-megafox-attack-v44.webp'];
+for(const name of v44Sheets){
+  const bytes=readFileSync(new URL('art/'+name,root));
+  assert.ok(bytes.length>20_000,'v4.4 illustrated attack sheet missing: '+name);
+  assert.equal(bytes.toString('ascii',0,4),'RIFF');
+  assert.equal(bytes.toString('ascii',8,12),'WEBP');
+  assert.equal(bytes.readUInt32LE(4),bytes.length-8,'Truncated v4.4 attack sheet: '+name);
+  assert.ok(js.includes(name),'Attack art loader missing: '+name);
+}
+assert.match(js,/const illustratedAttacks=\{fox:foxAttackBitmap/);
+assert.match(js,/const recoil=hurting\?/);
 assert.equal(bossBytes.toString('ascii',8,12),'WEBP');
 const rampartBytes=readFileSync(new URL('art/painted-rampart-front-v24.webp',root));
 assert.ok(rampartBytes.length>4000,'Independent rampart art missing');
@@ -210,8 +221,8 @@ assert.match(js,/hasDashed/);
 assert.match(js,/hasRallied/);
 assert.match(js,/guarding\?Math\.min\(\.55/);
 assert.match(css,/\.hero-slot\.empty\{border:0!important/);
-assert.match(html,/game\.js\?v=20261103v44/);
-assert.match(html,/visuals\.js\?v=20261103v44/);
+assert.match(html,/game\.js\?v=20261103v45/);
+assert.match(html,/visuals\.js\?v=20261103v45/);
 assert.match(visuals,/frameTotal\(id,state\)/);
 assert.match(visuals,/drawHeroWeapon\(c,id,frame\)/);
 assert.match(css,/One continuous forest illustration/);

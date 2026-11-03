@@ -1,6 +1,6 @@
-/* 라니 수비대 v4.3 — 몬스터 전용 사망 프레임 및 독자 Canvas 모션 | © 2026 곰같은여우
- * Source character paintings remain the original ForestGuard PNG assets.
- * Every animation frame below is newly assembled from that character's painting.
+/* 라니 수비대 v4.4 — 영웅 8프레임 원화 연동·몬스터 피격 반동 | © 2026 곰같은여우
+ * Base motion frames are assembled from original ForestGuard paintings.
+ * The battle scene replaces hero attacks with four user-supplied 4×2 WebP sheets when available.
  * No SVG, emoji glyphs or third-party character art.
  */
 (function(global){
@@ -12,7 +12,8 @@
   const ELITE_IDS=new Set(['boss','guardian','shroom']);
   function frameTotal(id,state){
     if(state==='death')return HERO_IDS.has(id)?0:ELITE_IDS.has(id)?6:5;
-    return HERO_IDS.has(id)?(state==='attack'?8:6):ELITE_IDS.has(id)&&['attack','hurt'].includes(state)?6:4;
+    if(state==='hurt'&&!HERO_IDS.has(id))return ELITE_IDS.has(id)?6:5;
+    return HERO_IDS.has(id)?(state==='attack'?8:6):ELITE_IDS.has(id)&&state==='attack'?6:4;
   }
   function frameStep(state){return state==='death'?85:state==='run'?105:state==='attack'?65:state==='hurt'?80:state==='victory'?125:180;}
   function duration(id,state){return frameTotal(id,state)*frameStep(state);}
@@ -190,7 +191,15 @@
         sy=frame<=2?.94+frame*.02:1.04-(frame-3)*.02;
       }
     }
-    if(state==='hurt'){dx=frame%2?-7:5;rot=frame%2?-.13:.10;sy=ELITE_IDS.has(id)?.90+frame*.015:.94;}
+    if(state==='hurt'){
+      // Eased anticipation → recoil → settle, with a silhouette-safe uniform scale.
+      const progress=frame/(frameTotal(id,state)-1),recoil=Math.sin(Math.PI*progress);
+      const direction=(id.length%2?-1:1),elite=ELITE_IDS.has(id);
+      dx=direction*recoil*(elite?10:6);
+      dy=-recoil*(elite?9:6);
+      rot=direction*recoil*(elite?.10:.13);
+      sx=sy=1-recoil*.035;
+    }
     if(state==='death'){
       const fade=(frame+1)/frameTotal(id,state);
       dx=Math.sin(frame*1.9)*(ELITE_IDS.has(id)?3:5)*fade;
@@ -303,13 +312,21 @@
       c.restore();
     }
     if(state==='hurt'){
-      // Tint only the painted silhouette, never a rectangular overlay around the monster.
+      // Color only the silhouette, with species-colored impact streaks that decay.
+      const intensity=Math.sin(Math.PI*frame/(frameTotal(id,state)-1));
       c.save();c.globalCompositeOperation='source-atop';
-      c.fillStyle=ELITE_IDS.has(id)?'rgba(255,198,122,.20)':'rgba(255,106,86,.18)';
+      c.fillStyle=ELITE_IDS.has(id)?'rgba(255,198,122,'+(.26*intensity)+')':
+        'rgba(255,122,96,'+(.20*intensity)+')';
       c.fillRect(0,0,128,128);c.restore();
-      if(ELITE_IDS.has(id)&&frame<4){
-        c.save();c.lineCap='round';c.lineWidth=2.5;c.strokeStyle='rgba(255,237,178,.7)';
-        c.beginPath();c.moveTo(32+frame*5,28);c.quadraticCurveTo(58,11,81,30+frame*4);c.stroke();
+      if(!HERO_IDS.has(id)&&intensity>0){
+        c.save();c.globalAlpha=intensity*.85;c.lineCap='round';c.lineWidth=ELITE_IDS.has(id)?3.4:2.4;
+        c.strokeStyle=id==='crystal'?'#c8f2ff':id==='shroom'||id==='spore'?'#ffd1ab':'#f8e5b1';
+        const reach=ELITE_IDS.has(id)?24:16;
+        for(let shard=0;shard<3;shard++){
+          const x=35+shard*23+(id.length%2?5:-3),y=24+shard*8;
+          c.beginPath();c.moveTo(x-reach*.6,y+reach*.3);
+          c.quadraticCurveTo(x+4,y-10-intensity*6,x+reach,y-reach*.6);c.stroke();
+        }
         c.restore();
       }
     }
