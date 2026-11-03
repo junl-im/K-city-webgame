@@ -188,7 +188,10 @@
     }
     if(state==='hurt'){dx=frame%2?-7:5;rot=frame%2?-.13:.10;sy=ELITE_IDS.has(id)?.90+frame*.015:.94;}
     if(state==='victory'){dy=frame%2?-12:-4;rot=Math.sin(phase)*.08;sx=1.04;}
-    c.save();c.translate(64+dx,64+dy);c.rotate(rot);c.scale(sx,sy);c.drawImage(img,-62,-62,124,124);c.restore();
+    // Rebuilt artwork must never be warped differently across X and Y.
+    // Motion stays readable through translation, rotation and uniform size changes.
+    const uniformScale=Math.sqrt(Math.max(.7,sx*sy));
+    c.save();c.translate(64+dx,64+dy);c.rotate(rot);c.scale(uniformScale,uniformScale);c.drawImage(img,-62,-62,124,124);c.restore();
     if(state==='run'){stroke(c,'rgba(255,240,190,.55)',3);line(c,[30,104,19-frame*3,103]);line(c,[95,107,103+frame*2,105]);}
     if(state==='attack'){
       c.save();c.translate(64,52);c.rotate(((frame>=6?7-frame:frame)-1)*.18);if(frame>=6)c.globalAlpha=.22;

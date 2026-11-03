@@ -153,8 +153,9 @@
           if(ok&&art.naturalWidth>0&&art.naturalHeight>0){assign(art);resolve(true);}
           else resolve(false);
         };
-        const timer=setTimeout(()=>complete(false),required?16000:12000);
+        const timer=setTimeout(()=>complete(false),required?26000:16000);
         art.decoding='async';
+        art.fetchPriority=required?'high':'auto';
         art.onload=()=>complete(true);
         art.onerror=()=>complete(false);
         art.src=url+(attempt>1?(url.includes('?')?'&':'?')+'retry='+attempt:'');
@@ -171,24 +172,25 @@
   async function prepareAtlas(stageIndex){
     if(!atlasPromise)atlasPromise=Promise.all([
       loadIllustration('./art/forest-characters.png?v=20261031c',art=>{atlasBitmap=art;},true),
-      loadIllustration('./art/rani-evolution.png?v=20261031c',art=>{evolutionBitmap=art;},true),
+      loadIllustration('./art/rani-evolution.png?v=20261031c',art=>{evolutionBitmap=art;}),
       // Optional enhancements never prevent an otherwise fully painted battle.
-      loadIllustration('./art/rani-rear-party-v31.webp?v=20261101a',art=>{rearBitmap=art;}),
+      loadIllustration('./art/rani-rear-party-v31.webp?v=20261101a',art=>{rearBitmap=art;},true),
       loadIllustration('./art/forest-battleground-v04.webp?v=20261031d',art=>{fieldBitmap=art;}),
       loadIllustration('./art/forest-monsters-v14-clean.webp?v='+ART_VERSION,art=>{monsterBitmap=art;},true),
-      loadIllustration('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;},true),
+      loadIllustration('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;}),
       loadIllustration('./art/mushroom-colossus-attack-v19.webp?v=20261101d',art=>{mushroomAttackBitmap=art;}),
       loadIllustration('./art/rani-element-spells-v38.png?v=20261103a',art=>{elementSpellBitmap=art;}),
       loadIllustration('./art/rani-fox-rear-attack-v41.png?v=20261103v41',art=>{foxAttackBitmap=art;}),
       loadIllustration('./art/painted-rampart-front-v24.webp?v=20261101j',art=>{rampartBitmap=art;},true)
     ]);
     const biome=Math.floor(stageIndex/4);
-    if(!biomeLoading[biome])biomeLoading[biome]=loadIllustration('./art/'+biomeFiles[biome]+'?v=20261031i',art=>{biomeBitmaps[biome]=art;},true);
+    if(!biomeLoading[biome])biomeLoading[biome]=loadIllustration('./art/'+biomeFiles[biome]+'?v=20261031i',art=>{biomeBitmaps[biome]=art;});
     await Promise.all([atlasPromise,biomeLoading[biome]]);
-    if(!biomeBitmaps[biome]||!atlasBitmap||!monsterBitmap||!evolutionBitmap||!fortBitmap||!rampartBitmap){
-      atlasPromise=null;biomeLoading[biome]=null;return false;
-    }
-    return true;
+    // Keep an illustrated battle playable when a high-resolution regional PNG times out.
+    // Never substitute a CSS rectangle or sacrifice the rear-view hero silhouette.
+    const ready=!!(atlasBitmap&&rearBitmap&&monsterBitmap&&rampartBitmap&&(biomeBitmaps[biome]||fieldBitmap));
+    if(!ready){atlasPromise=null;biomeLoading[biome]=null;}
+    return ready;
   }
   let closeBannerTimer = 0, chosenSlot = -1, historyInitialized = false;
   function save() {
@@ -317,6 +319,7 @@
     $('start-btn').firstChild.textContent='준비 중 ';
     let backgroundReady=false;
     try{backgroundReady=await prepareAtlas(index);}
+    catch(error){console.error('전장 원화 준비 오류:',error);backgroundReady=false;}
     finally{
       starting=false;
       $('start-btn').disabled=false;
@@ -334,7 +337,7 @@
     $('stage-name').textContent=STAGES[index].name; $('wave-label').textContent='전투 준비';
     const root=$('game-root');root.replaceChildren();
     const boot=$('battle-loading');boot.hidden=false;
-    const image=biomeBitmaps[Math.floor(index/4)];
+    const image=biomeBitmaps[Math.floor(index/4)]||fieldBitmap;
     // No duplicate background outside Phaser: avoid the side-by-side panorama seam.
     $('arena-wrap').style.backgroundImage='none';
     boot.style.backgroundImage="linear-gradient(#071b16a8,#183e3085),url('"+image.src+"')";
@@ -904,7 +907,7 @@
         if(!sprite||!sprite.active)return;
         const size=this.heroIds[i]==='megafox'?Math.round(base*1.1):base;
         // Keep the rear-view heroes nimble and tall while preserving their ground position.
-        sprite.setPosition(HERO_POSITIONS[i],566).setDisplaySize(Math.round(size*.90),Math.round(size*1.12)).setDepth(6);
+        sprite.setPosition(HERO_POSITIONS[i],566).setDisplaySize(size,size).setDepth(6);
       });
     }
     resizeBattleCamera(){
@@ -1001,7 +1004,8 @@
       const elite=['shroom','guardian','boss'].includes(type);
       const [sw,sh]=sizes[type],lifeWidth=type==='guardian'||type==='boss'?88:type==='shroom'?60:40;
       const lifeYOffset=Math.round(sh*.53)+8;
-      const spr=this.add.image(lane,-38,'motion-'+type+'-run-0').setDisplaySize(sw,sh).setDepth(4);
+      const renderedSize=Math.round(Math.sqrt(sw*sh)); // Equal pixel scale: no width/height stretching.
+      const spr=this.add.image(lane,-38,'motion-'+type+'-run-0').setDisplaySize(renderedSize,renderedSize).setDepth(4);
       const lifeBg=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth+2,6,0x302a20).setDepth(5).setVisible(elite);
       if(['shroom','guardian','boss'].includes(type)){
         const ring=this.add.ellipse(lane,-25,type==='shroom'?142:155,34,
@@ -1081,7 +1085,7 @@
       }
     }
     animateEvolutionAttack(sprite){
-      V.trigger(sprite,'attack',this.gameClock+V.duration(id,'attack'),this.gameClock);
+      V.trigger(sprite,'attack',this.gameClock+V.duration('megafox','attack'),this.gameClock);
       this.cameras.main.shake(80,.0017);
     }
     previewRange(index){
@@ -1181,7 +1185,7 @@
       const xOffset=[-13,0,13,-7,7][ordinal%5];
       const elite=['boss','guardian','shroom'].includes(e.type);
       const size=critical?24:elite?18:16;
-      const style={font:'900 '+size+'px system-ui',
+      const style={font:'800 '+size+'px "Malgun Gothic", "Noto Sans KR", sans-serif',
         color:critical?'#ffe072':kind==='rabbit'?'#b8efff':kind==='cat'?'#ffd0a5':'#fff4d7',
         stroke:critical?'#633616':'#35271d',strokeThickness:critical?5:4};
       const baseY=elite?55:29;

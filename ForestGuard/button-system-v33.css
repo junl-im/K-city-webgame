@@ -192,8 +192,8 @@
    Typography: legible OS-native Korean sans family for actions, story, and rewards.
    Existing independent PNG/WebP surfaces stay intact; keyboard focus remains visible. */
 :root{
-  --fg-action-font:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',system-ui,sans-serif;
-  --fg-story-font:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',system-ui,sans-serif;
+  --fg-action-font:'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
+  --fg-story-font:'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
 }
 .menu:not(.stage-choosing) .menu-actions-top #start-btn,
 .menu:not(.stage-choosing) .menu-actions-top #resume-btn,
@@ -205,7 +205,7 @@
   background-size:100% 100%!important;
   background-position:center!important;
   font-family:var(--fg-action-font)!important;
-  font-weight:400!important;
+  font-weight:800!important;
   line-height:1.1!important;
   -webkit-tap-highlight-color:transparent;
 }
@@ -259,7 +259,7 @@
 }
 .menu:not(.stage-choosing) .home-stage-copy strong{
   font-family:var(--fg-action-font)!important;
-  font-weight:400!important;
+  font-weight:800!important;
   font-size:clamp(15px,4.1vw,18px)!important;
   letter-spacing:0!important;
 }
@@ -278,7 +278,7 @@
 #modal-layer #modal-actions .modal-action{
   border:0!important;border-radius:0!important;box-shadow:none!important;
   font-family:var(--fg-action-font)!important;
-  font-weight:400!important;
+  font-weight:800!important;
   line-height:1.13!important;
   -webkit-tap-highlight-color:transparent;
 }
@@ -298,7 +298,7 @@
 }
 #stage-select-panel .stage-tile .stage-list-name{
   font-family:var(--fg-action-font)!important;
-  font-weight:400!important;
+  font-weight:800!important;
   letter-spacing:0!important;
 }
 #stage-select-panel .stage-tile .stage-tile-summary,
@@ -309,7 +309,7 @@
 }
 #stage-select-panel .stage-path-pin .stage-pin-number{
   font-family:var(--fg-action-font)!important;
-  font-weight:400!important;
+  font-weight:800!important;
   font-size:clamp(10px,2.8vw,12px)!important;
 }
 #stage-select-panel .stage-choice-description>span{
@@ -318,7 +318,7 @@
 }
 #stage-select-panel .stage-choice-description strong{
   font-family:var(--fg-action-font)!important;
-  font-weight:400!important;
+  font-weight:800!important;
 }
 #stage-select-panel .stage-choice-description small{
   font-family:var(--fg-story-font)!important;
@@ -345,7 +345,7 @@
   box-shadow:none!important;outline:0!important;
   background-color:transparent!important;
   font-family:var(--fg-action-font)!important;
-  font-weight:400!important;
+  font-weight:800!important;
   color:#fff0cc!important;
   text-shadow:0 1px 2px #182e24!important;
   -webkit-tap-highlight-color:transparent;
@@ -383,7 +383,7 @@
 #game-screen .battle-toolbar .evo-button small,
 #game-screen .battle-toolbar .skill-button small{
   font-family:var(--fg-action-font)!important;
-  font-weight:400!important;
+  font-weight:800!important;
   letter-spacing:-.025em!important;
 }
 #game-screen .battle-toolbar .hero-slot.empty span{color:#ead8ab!important}
@@ -397,7 +397,7 @@
 #modal-layer .result-stat strong,
 #modal-layer #modal-actions .modal-action{
   font-family:var(--fg-action-font)!important;
-  font-weight:400!important;
+  font-weight:800!important;
   letter-spacing:0!important;
 }
 #modal-layer #modal-description,
@@ -420,7 +420,7 @@
 }
 #modal-layer #modal-close{
   font-family:var(--fg-action-font)!important;
-  font-weight:400!important;
+  font-weight:800!important;
   border:0!important;border-radius:0!important;box-shadow:none!important;
 }
 
@@ -444,3 +444,10 @@
     transition:none!important;
   }
 }
+
+/* v4.2: consistent legible painted-game typography; never an extra button outline. */
+.menu:not(.stage-choosing) .home-stage-copy strong{font-family:var(--fg-action-font)!important;font-size:clamp(15px,3.9vw,18px)!important;font-weight:800!important;letter-spacing:-.035em!important;line-height:1.23!important}
+.menu:not(.stage-choosing) .home-stage-copy span{font-family:var(--fg-story-font)!important;font-size:clamp(10px,2.7vw,12px)!important;font-weight:700!important;line-height:1.35!important}
+#game-screen .hud-stage span,#game-screen .hud-stage strong{font-family:var(--fg-action-font)!important;font-weight:800!important;letter-spacing:-.025em!important}
+#game-screen .hero-slot span:last-child,#game-screen .battle-toolbar .skill-button small,#game-screen .battle-toolbar .evo-button small{font-family:var(--fg-action-font)!important;font-weight:800!important;letter-spacing:-.035em!important;text-shadow:0 1px 3px #15281d!important}
+#modal-layer #modal-title,#modal-layer .spell-card strong,#modal-layer .recruit-card strong{font-family:var(--fg-action-font)!important;font-weight:800!important;letter-spacing:-.025em!important}
