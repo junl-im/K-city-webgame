@@ -577,6 +577,45 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
 }
 @media(prefers-reduced-motion:reduce){#menu .mode-card{transition:none}}
 
+
+/* v1.6: large selected-hero artwork from the existing licensed-in-project bitmap atlases */
+#menu .hero-art{position:relative}
+#menu #menuArtwork{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
+#menu .hero-stage{display:flex;align-items:center;justify-content:center;gap:clamp(6px,1.3vw,17px);
+ width:100%;height:100%;min-height:0;overflow:hidden;pointer-events:none}
+#menu .hero-stage-portrait{display:block;flex:0 0 clamp(60px,28%,160px);height:100%;min-height:28px;
+ background-size:auto 107%;background-repeat:no-repeat;background-position:0% 46%;
+ filter:drop-shadow(0 7px 5px #0d253eaa)}
+#menu .hero-stage[data-hero="fox"] .hero-stage-portrait{background-image:url("Artillery_Fox_Bear_Atlas_v0_3.webp");background-position:0% 46%}
+#menu .hero-stage[data-hero="bear"] .hero-stage-portrait{background-image:url("Artillery_Fox_Bear_Atlas_v0_3.webp");background-position:100% 46%}
+#menu .hero-stage[data-hero="rabbit"] .hero-stage-portrait{background-image:url("Artillery_Rabbit_Cat_Atlas_v0_5.webp");background-position:0% 46%}
+#menu .hero-stage[data-hero="cat"] .hero-stage-portrait{background-image:url("Artillery_Rabbit_Cat_Atlas_v0_5.webp");background-position:100% 46%}
+#menu .hero-stage-info{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;min-width:0;gap:3px;
+ text-shadow:0 2px 7px #102934db}
+#menu .hero-stage-info strong{font-size:clamp(13px,2.5dvh,24px);line-height:1.1;color:#ffe5ad}
+#menu .hero-stage-info small{font-size:clamp(9px,1.45dvh,13px);line-height:1.15;color:#e7eee5}
+#menu .hero-stage[data-hero="cat"]{background:radial-gradient(ellipse at 40% 76%,#7bd0d72a,transparent 68%)}
+#menu .hero-stage[data-hero="rabbit"]{background:radial-gradient(ellipse at 40% 76%,#d4c2ff28,transparent 68%)}
+@media(max-width:740px) and (orientation:portrait){
+ #menu .hero-stage{gap:7px}
+ #menu .hero-stage-portrait{flex-basis:min(35%,100px);background-size:auto 103%}
+ #menu .hero-stage-info strong{font-size:clamp(12px,2.3dvh,18px)}
+ #menu .hero-stage-info small{font-size:clamp(9px,1.55dvh,11px)}
+}
+@media(orientation:portrait) and (max-height:540px){
+ #menu .hero-stage-portrait{flex-basis:min(28%,62px)}
+ #menu .hero-stage-info small{display:none}
+}
+@media(orientation:landscape) and (max-height:650px){
+ #menu .hero-stage{flex-direction:column;justify-content:space-around;gap:2px}
+ #menu .hero-stage-portrait{height:76%;min-height:0;flex:1 1 65%;width:min(100%,145px)}
+ #menu .hero-stage-info{flex:0 0 auto;align-items:center;text-align:center}
+ #menu .hero-stage-info strong{font-size:clamp(11px,2.5vh,16px)}
+ #menu .hero-stage-info small{font-size:9px}
+}
+@media(orientation:landscape) and (max-height:365px){
+ #menu .hero-stage-info small{display:none}
+}
 </style>
 </head>
 <body>
@@ -608,7 +647,13 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
    <section class="panel menu-panel" aria-labelledby="welcomeTitle">
     <div class="eyebrow">TWO WAYS TO FIRE · ONE WORLD</div>
     <h1 id="welcomeTitle">무너뜨리는 손맛,<br>맞혀 이기는 짜릿함.</h1>
-    <div class="hero-art"><img id="menuArtwork" src="Artillery_Fox_Bear_Atlas_v0_3.webp" alt="우리 게임의 여우 새총 사수와 곰 포병 원화"></div>
+    <div class="hero-art">
+     <img id="menuArtwork" src="Artillery_Fox_Bear_Atlas_v0_3.webp" alt="" aria-hidden="true">
+     <div id="heroPreview" class="hero-stage" data-hero="fox" aria-live="polite">
+      <span class="hero-stage-portrait" aria-hidden="true"></span>
+      <span class="hero-stage-info"><strong id="heroPreviewName">여우 궁수</strong><small id="heroPreviewWeapon">새총 · 정확한 조준</small></span>
+     </div>
+    </div>
     <p class="menu-subline">하나의 물리 세계, 두 가지 포격의 재미. 원하는 모험을 골라보세요.</p>
     <div class="mode-grid">
      <button class="mode-card" id="adventureBtn" type="button" aria-label="모험 포격 시작, 4개 지역의 요새 파괴"><span class="mode-number">MODE 01</span><strong>모험 포격</strong><span>4개 지역의 요새를 무너뜨려요. 마지막에는 요새 대장이 기다립니다.</span></button>
@@ -672,8 +717,20 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  const progress=loadProgress();
  function saveProgress(){try{window.localStorage?.setItem(saveKey,JSON.stringify(progress));}catch(_){/* Private browsing or blocked storage: gameplay continues normally. */}}
  let selectedHero=progress.hero;
+ const heroPresentation={
+  fox:{name:'여우 궁수',weapon:'새총 · 정확한 조준'},
+  bear:{name:'곰 포병',weapon:'대포 · 무거운 관통'},
+  rabbit:{name:'토끼 기술자',weapon:'분열 발사기 · 연쇄 타격'},
+  cat:{name:'고양이 마법사',weapon:'지팡이 · 바람 제어'}
+ };
+ function refreshHeroPreview(){
+  const chosen=heroPresentation[selectedHero]||heroPresentation.fox;
+  $('heroPreview').dataset.hero=selectedHero;
+  $('heroPreviewName').textContent=chosen.name;
+  $('heroPreviewWeapon').textContent=chosen.weapon;
+ }
  function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;}
- function refreshMenu(){const cleared=progress.best.filter(Boolean).length;$('progressSummary').textContent=cleared?`최고 등급 합계 ${progress.best.reduce((a,b)=>a+b,0)} / 12 · 승리 ${progress.wins}회`:'모험 기록 · 아직 첫 승리 전';$('progressTier').textContent=`완료 ${cleared} / 4`;refreshStageMap();}
+ function refreshMenu(){refreshHeroPreview();const cleared=progress.best.filter(Boolean).length;$('progressSummary').textContent=cleared?`최고 등급 합계 ${progress.best.reduce((a,b)=>a+b,0)} / 12 · 승리 ${progress.wins}회`:'모험 기록 · 아직 첫 승리 전';$('progressTier').textContent=`완료 ${cleared} / 4`;refreshStageMap();}
  const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],rings:[],popups:[],skillEffects:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:100,aiHp:100,turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,chargeActive:false,chargeElapsed:0,chargedPower:72};
  // Six authored motion phases per hero (procedural transforms of the existing PNG/WebP art).
  // They are NOT six separately painted sprite frames.
@@ -1595,7 +1652,7 @@ const materialCells={
  $('reviewContinue').addEventListener('click',completeReview);
  $('inspectResultBtn').addEventListener('click',()=>{if(game.phase!=='result')return;$('result').hidden=true;$('reviewTitle').textContent=game.reviewInfo?.title||'전투 종료';$('reviewDetail').textContent='전장의 최종 파괴 상태를 직접 살펴보세요';$('reviewContinue').textContent='결과 다시 보기';$('shotReview').hidden=false;});
  $('abilityBtn').addEventListener('click',()=>{if(canResumeAimFromReview()&&heroSet[game.hero].timing==='aim')completeReview();useAbility();});
- document.querySelectorAll('[data-hero]').forEach(b=>b.addEventListener('click',()=>{selectedHero=b.dataset.hero;progress.hero=selectedHero;saveProgress();document.querySelectorAll('[data-hero]').forEach(item=>{const chosen=item.dataset.hero===selectedHero;item.classList.toggle('selected',chosen);item.setAttribute?.('aria-pressed',String(chosen));});playSound('ui');}));
+ document.querySelectorAll('[data-hero]').forEach(b=>b.addEventListener('click',()=>{selectedHero=b.dataset.hero;progress.hero=selectedHero;saveProgress();refreshHeroPreview();document.querySelectorAll('[data-hero]').forEach(item=>{const chosen=item.dataset.hero===selectedHero;item.classList.toggle('selected',chosen);item.setAttribute?.('aria-pressed',String(chosen));});playSound('ui');}));
  $('adventureStage').addEventListener('change',()=>{progress.lastStage=clamp(Number($('adventureStage').value)||0,0,3);saveProgress();refreshStageMap();});
  $('stageMapBtn').addEventListener('click',()=>{refreshStageMap();$('stageMap').hidden=false;});
  $('closeStageMap').addEventListener('click',()=>{$('stageMap').hidden=true;});
