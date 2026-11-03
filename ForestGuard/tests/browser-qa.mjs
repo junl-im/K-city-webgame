@@ -372,6 +372,7 @@ try{
       assert.equal(await page.locator('.recruit-card').count(),3,'Empty pedestal reopens recruitment');
       await page.locator('.recruit-rabbit').click();
       assert.equal(await page.locator('.hero-slot:not(.empty)').count(),2,'Recruit joins the defense');
+      assert.equal(await page.locator('.hero-slot.empty').count(),3,'Three future reinforcement slots remain');
       assert.equal(await page.evaluate(()=>window.__ForestGuardQA.previewGrowth()),true);
       assert.equal(await page.locator('.draft-card').count(),3,'Growth modal preserves three active choices');
       const growthBox=await page.locator('#modal-box').evaluate(box=>{
@@ -389,7 +390,6 @@ try{
       await page.screenshot({path:new URL('../test-output/growth-v45-390.png',import.meta.url).pathname});
       await page.locator('.draft-card').first().click();
       assert.equal(await page.locator('#modal-layer').isHidden(),true,'Growth choice applies and closes');
-      assert.equal(await page.locator('.hero-slot.empty').count(),3,'Three future reinforcement slots remain');
       await page.screenshot({path:new URL('../test-output/forest-recruited-rabbit.png',import.meta.url).pathname});
       // Restart once and verify real-time expiry without touching any companion card.
       await page.locator('#home-btn').click();
