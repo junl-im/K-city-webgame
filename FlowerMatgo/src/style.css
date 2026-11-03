@@ -4028,3 +4028,21 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--game .mission-status-row .mission-panel {min-height:98px;}
 @media(max-height:600px){.scene--game .mission-status-row .mission-panel {min-height:85px;}}
 .scene--game .modal-box--choice .gookjin-card .hwatu {width:clamp(64px,18vw,90px);max-width:100%;}
+/* Dead cards use the same lift as a matching card, without its glow. */
+.scene--game .my-hand .hwatu--quiet-hint:not(.hwatu--departing) {transform:translateY(-6px);outline:2px solid #ffe394;outline-offset:1px;filter:none;box-shadow:none;}
+@media(max-width:650px){.scene--game .my-hand .hwatu--quiet-hint:not(.hwatu--departing) {transform:translateY(-3px);}}
+/* A compact mission plaque gives the cards the room previously used by the switch. */
+.scene--game .mission-status-row .mission-panel {min-height:0;padding:5px 6px 6px;gap:2px;}
+.scene--game .mission-status-row .mission-panel__title {padding:0;}
+.scene--game .mission-status-row .mission-panel__content {padding:0;gap:2px;}
+.scene--game .mission-status-row .mission-panel__cards {gap:3px;}
+/* Keep illustrated decision buttons proportional instead of stretching them. */
+.scene--game .modal-box--choice .choice-actions {display:flex;justify-content:center;gap:8px;}
+.scene--game .modal-box--choice .decision-option {flex:0 1 150px;width:min(150px,48%);padding-inline:14px;}
+/* Give the difficulty choices room to breathe while retaining large touch targets. */
+.scene--select .setup-wrap {width:min(920px,calc(100% - 32px));padding:clamp(16px,3vw,30px);margin:clamp(16px,3vh,28px) auto;}
+.scene--select .opponents {gap:clamp(9px,1.8vw,18px);}
+.scene--select .setup-heading {margin-bottom:clamp(10px,2vh,18px);}
+.scene--select .stakes {margin-top:clamp(12px,2vh,20px);}
+.scene--select .setup-bottom {gap:12px;}
+@media(max-width:650px){.scene--select .setup-wrap {width:calc(100% - 24px);padding:15px 12px;margin:16px auto 20px;}.scene--select .opponents {gap:8px;}.scene--select .setup-heading {margin-bottom:10px;}.scene--game .modal-box--choice .decision-option {flex-basis:135px;}}
