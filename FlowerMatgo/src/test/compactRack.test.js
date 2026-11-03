@@ -8,8 +8,9 @@ describe('간결한 패 영역',()=>{
   expect(rack).not.toContain('collection-head');expect(rack).not.toContain('collection-name');
   expect(rack).toContain('data-action="captures"');expect(rack).toContain('aria-label=');
  });
- it('특수 동작은 카운터와 같은 조작 영역에 표시한다',()=>{
+ it('특수 동작은 점수 상태줄에 표시하고 시간과 자동 버튼을 가리지 않는다',()=>{
   expect(screen).toContain('class="special-controls"');expect(screen).not.toContain('class="action-row ');
-  expect(screen.indexOf('class="special-controls"')).toBeGreaterThan(screen.indexOf('class="player-controls"'));
+  expect(screen.indexOf('class="special-controls"')).toBeGreaterThan(screen.indexOf('class="player-status"'));
+  expect(screen.indexOf('class="special-controls"')).toBeLessThan(screen.indexOf('class="player-controls"'));
  });
 });
