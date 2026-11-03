@@ -4046,3 +4046,10 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--select .stakes {margin-top:clamp(12px,2vh,20px);}
 .scene--select .setup-bottom {gap:12px;}
 @media(max-width:650px){.scene--select .setup-wrap {width:calc(100% - 24px);padding:15px 12px;margin:16px auto 20px;}.scene--select .opponents {gap:8px;}.scene--select .setup-heading {margin-bottom:10px;}.scene--game .modal-box--choice .decision-option {flex-basis:135px;}}
+@font-face {font-family:'Rani Jua';src:url('/fonts/Jua-Regular.ttf') format('truetype');font-display:swap;}
+.scene .btn,.scene .action-chip,.scene .stake,.scene .opponent-card__text strong,.scene .mission-panel__title,.scene .mission-panel__reward strong,.scene .turn-clock__time,.scene .score-badge strong,.scene .player-status strong,.scene .result-duel strong,.scene .result-prize strong,.scene .central-event,.scene .turn-impact__text,.scene .modal-box h2,.scene .setup-heading h2,.scene .decision-option strong {font-family:'Rani Jua','Malgun Gothic',sans-serif;font-weight:400;letter-spacing:.01em;}
+.scene--game .central-event {text-shadow:0 2px 0 #793011,2px 3px 0 #4b210c,-2px -1px 0 #4b210c,0 5px 10px #0009;}
+.scene--game .turn-notice {font-size:clamp(27px,8vw,56px);color:#ffec9b;z-index:25;}
+.scene--game .mission-status-row .center-status:empty {display:none;}
+.scene--game .score-badge strong,.scene--game .player-status strong {text-shadow:0 1px 0 #fff4d0,0 2px 3px #412a1c55;}
+.scene--game .decision-option strong {text-shadow:0 2px 2px #1c160bd9;}

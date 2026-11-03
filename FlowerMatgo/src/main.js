@@ -92,6 +92,7 @@ let fxTimer = null;
 let flash = '';
 let flashKind = 'special';
 let audioCtx = null;
+let turnNoticeTimer = null;
 let turnTransition = false;
 let turnTransitionTimer = null;
 let clockInterval = null;
@@ -181,11 +182,30 @@ function cardSound(kind = 'land') {
   } catch { /* A browser without WebAudio can still play every turn. */ }
 }
 function effects(label, kind = 'special', visualKind = kind, silent = false) {
+  ROOT.querySelector('.turn-notice')?.remove();
   flash = spokenActionText(label);
   flashKind = visualKind;
   clearTimeout(fxTimer);
   if (!silent) tone(kind);
   fxTimer = setTimeout(() => { flash = '';flashKind = 'special'; if (app.screen === 'game' && app.game?.phase !== 'round-ended' && !turnTransition) render(); }, SPECIAL_FLASH_MS);
+}
+function announceTurn(game, delay = 120) {
+  clearTimeout(turnNoticeTimer);
+  if (!game || game.phase !== 'playing') return;
+  const expectedUuid = game.gameUuid, player = game.currentPlayer;
+  turnNoticeTimer = setTimeout(() => {
+    if (app.screen !== 'game' || app.game?.gameUuid !== expectedUuid || app.game?.phase !== 'playing' || app.game?.currentPlayer !== player || overlay || selectedMatch || selectedTriple || app.pendingGookjinChoice || app.pendingDrawChoice || turnTransition || document.hidden) return;
+    if (flash && ['event-list','go','shake'].includes(flashKind)) { announceTurn(game, 300); return; }
+    const scene = ROOT.querySelector('.scene--game');
+    if (!scene) return;
+    scene.querySelector('.turn-notice')?.remove();
+    const notice = document.createElement('div');
+    notice.className = 'central-event turn-notice';
+    notice.setAttribute('role','status');
+    notice.textContent = player === 'human' ? '내 차례!' : '상대 차례!';
+    scene.appendChild(notice);
+    setTimeout(() => notice.remove(), 1350);
+  }, delay);
 }
 const RIVALS = [
   {nick:'느긋한 밤톨이',animal:'bear'}, {nick:'장난꾸러기 여울',animal:'fox'},
@@ -471,7 +491,7 @@ function gameScreen() {
       <span class="table-play__flower table-play__flower--left" aria-hidden="true">✿</span>
       <span class="table-play__flower table-play__flower--right" aria-hidden="true">✿</span>
       <div class="captured-grid">${capturedRack(g,'computer')}</div>
-      <div class="mission-status-row">${missionPanel(mission)}<div class="center-status"><span class="status-orb"></span>${active}<span class="round-counter">${g.turnNumber+1}턴</span>${(g.roundMultiplier || 1)>1?`<strong class="round-multiplier" aria-label="이번 판 정산 ${g.roundMultiplier}배">${g.roundMultiplier}배 판</strong>`:''}${app.doubleStake?.gameUuid===g.gameUuid?`<strong class="round-multiplier">×${app.doubleStake.level || 2} 도전 · ${kr(app.doubleStake.amount)}냥</strong>`:''}</div></div>
+      <div class="mission-status-row">${missionPanel(mission)}<div class="center-status">${(g.roundMultiplier || 1)>1?`<strong class="round-multiplier" aria-label="이번 판 정산 ${g.roundMultiplier}배">${g.roundMultiplier}배 판</strong>`:''}${app.doubleStake?.gameUuid===g.gameUuid?`<strong class="round-multiplier">×${app.doubleStake.level || 2} 도전 · ${kr(app.doubleStake.amount)}냥</strong>`:''}</div></div>
       <div class="field-heading"><strong>바닥패 ${floor.length}장</strong><span>같은 무늬를 맞춰 획득!</span></div>
       <div class="field-row">
         <div class="deck-pile">${cardBack()}<small>남은 패 <b>${g.drawPile.length}</b></small></div>
@@ -938,7 +958,7 @@ function finishOpening() {
   app.settledUuid = null;
   // The opening deal can itself end in nagari. Settle it before showing the
   // result, just as for a round that ends during play.
-  finishRound();save();render();queueAI();
+  finishRound();save();render();announceTurn(app.game);queueAI();
 }
 
 function advanceOpening() {
