@@ -11,6 +11,7 @@ import { getCard, HWATU_CARDS } from './engine/cards';
 import { ALLOWED_STAKES, STAKES, canUseStake, normalizeStake } from './stakeRules.js';
 import { captureDisplayCount, groupedCaptures } from './capturedCards.js';
 import { currentBakWarnings } from './bakWarnings.js';
+import { missionView } from './missionView.js';
 import { doubleOffer } from './doubleStake.js';
 import { floorDensity } from './floorLayout.js';
 import { artworkOrdinal, cardBookLabel, cardVisualDetails } from './cardDisplay.js';
@@ -212,10 +213,10 @@ function card(id, options = {}) {
   const y = month ? ((month - 1) / 11 * 100).toFixed(5) : 0;
   const bonusSlot = ['bonus-pee-1','bonus-pee-2','bonus-double-pee-1'].indexOf(id);
   const style = bonus ? `style="--bonus-x:${(Math.max(0,bonusSlot)/2*100).toFixed(5)}%"` : `style="--card-x:${x}%;--card-y:${y}%"`;
-  const aria = `${spokenCardName(item,{gookjinAsDoubleJunk:options.gookjinAsDoubleJunk})} · ${visual.gookjinConverted ? '쌍피' : item.typeLabel}`;
+  const aria = `${spokenCardName(item,{gookjinAsDoubleJunk:options.gookjinAsDoubleJunk})} · ${visual.gookjinConverted ? '쌍피' : item.typeLabel}${options.mission ? ' · 미션패' : ''}`;
   // Every 광 face has its 光 seal printed inside the v19 raster already.
   // No extra bright mark: otherwise the glyph appears twice on small phones.
-  const mark = `${visual.doubleJunkText ? `<span class="hwatu__double-mark" aria-hidden="true">${visual.doubleJunkText}</span>` : ''}`;
+  const mark = `${visual.doubleJunkText ? `<span class="hwatu__double-mark" aria-hidden="true">${visual.doubleJunkText}</span>` : ''}${options.mission ? '<span class="mission-card-mark" aria-hidden="true">미션</span>' : ''}`;
   const classes = `hwatu hwatu--month-${String(month).padStart(2,'0')} hwatu--ordinal-${String(ordinal).padStart(2,'0')} ${small?'hwatu--small':''} ${options.tiny?'hwatu--tiny':''} ${bonus?'hwatu--bonus':''} ${options.pileIndex?'hwatu--pile-'+options.pileIndex:''} ${interactive?'hwatu--interactive':''} ${options.matchHint?(interactive?'hwatu--match-hint':'hwatu--match-idle'):''} ${visual.gookjinConverted?'hwatu--converted':''}`;
   return `<${interactive ? 'button' : 'div'} class="${classes}" ${style} data-card="${safe(id)}" ${interactive ? `type="button" data-action="${options.action}" aria-label="${safe(aria)} ${['pickmatch','draw-choice'].includes(options.action)?'먹기':'내기'}"` : `role="img" aria-label="${safe(aria)}" title="${safe(aria)}"`}>
     ${bonus ? `<span class="hwatu__face"></span><span class="hwatu__bonus-banner" aria-hidden="true">보너스</span><span class="hwatu__bonus-mark" aria-hidden="true">${safe(item.typeLabel)}</span>` : `<span class="hwatu__face"></span>${mark}`}
@@ -402,6 +403,8 @@ function gameScreen() {
   const ai = scoreOf(g,'computer');
   const yourTurn = g.phase==='playing' && g.currentPlayer==='human';
   const pending = g.humanPendingShakeMonth;
+  const mission = missionView(g);
+  const isMission = id => !!mission?.targets.some(target => target.id === id);
   const specialActionButtons = gameButtons(g);
   const hand = [...g.humanHand].sort((a,b)=>((getCard(a)?.month||0)-(getCard(b)?.month||0)));
   const floor = [...g.floorCards].sort((a,b)=>(getCard(a)?.month||0)-(getCard(b)?.month||0));
@@ -428,11 +431,11 @@ function gameScreen() {
       <span class="table-play__flower table-play__flower--left" aria-hidden="true">✿</span>
       <span class="table-play__flower table-play__flower--right" aria-hidden="true">✿</span>
       <div class="captured-grid">${capturedRack(g,'computer')}</div>
-      <div class="center-status"><span class="status-orb"></span>${active}<span class="round-counter">${g.turnNumber+1}턴</span>${(g.roundMultiplier || 1)>1?`<strong class="round-multiplier" aria-label="이번 판 정산 ${g.roundMultiplier}배">${g.roundMultiplier}배 판</strong>`:''}${app.doubleStake?.gameUuid===g.gameUuid?`<strong class="round-multiplier">×${app.doubleStake.level || 2} 도전 · ${kr(app.doubleStake.amount)}냥</strong>`:''}</div>
+      <div class="center-status"><span class="status-orb"></span>${active}<span class="round-counter">${g.turnNumber+1}턴</span>${mission ? `<button type="button" class="mission-chip" data-action="mission" aria-label="꽃 미션: 내가 ${mission.humanCount}장 획득, 미션 배수 ${mission.humanMultiplier}배. 자세히 보기">꽃 미션 ×${mission.humanMultiplier}</button>` : ''}${(g.roundMultiplier || 1)>1?`<strong class="round-multiplier" aria-label="이번 판 정산 ${g.roundMultiplier}배">${g.roundMultiplier}배 판</strong>`:''}${app.doubleStake?.gameUuid===g.gameUuid?`<strong class="round-multiplier">×${app.doubleStake.level || 2} 도전 · ${kr(app.doubleStake.amount)}냥</strong>`:''}</div>
       <div class="field-heading"><strong>바닥패 ${floor.length}장</strong><span>같은 무늬를 맞춰 획득!</span></div>
       <div class="field-row">
         <div class="deck-pile">${cardBack()}<small>남은 패 <b>${g.drawPile.length}</b></small></div>
-        <div class="floor-area" data-density="${floorDensity(floor.length)}" aria-label="바닥에 놓인 화투패">${floor.length ? floor.map(id=>{const pile=(g.ppeokPiles||[]).find(p=>p.cardIds.includes(id)); if(!pile) return card(id); const ids=floor.filter(cardId=>pile.cardIds.includes(cardId)); return id===ids[0] ? `<span class="floor-pile" aria-label="싼 패 ${ids.length}장">${ids.map((cardId,index)=>card(cardId,{pileIndex:index+1})).join('')}</span>` : '';}).join('') : '<div class="empty-floor">바닥패가 없어요 ✿</div>'}</div>
+        <div class="floor-area" data-density="${floorDensity(floor.length)}" aria-label="바닥에 놓인 화투패">${floor.length ? floor.map(id=>{const pile=(g.ppeokPiles||[]).find(p=>p.cardIds.includes(id)); if(!pile) return card(id,{mission:isMission(id)}); const ids=floor.filter(cardId=>pile.cardIds.includes(cardId)); return id===ids[0] ? `<span class="floor-pile" aria-label="싼 패 ${ids.length}장">${ids.map((cardId,index)=>card(cardId,{pileIndex:index+1,mission:isMission(cardId)})).join('')}</span>` : '';}).join('') : '<div class="empty-floor">바닥패가 없어요 ✿</div>'}</div>
       </div>
       <div class="game-message" aria-live="polite" title="${safe(spokenActionText(g.lastAction))}">${safe(spokenActionText(g.lastAction))}</div>
     </div>
@@ -441,7 +444,7 @@ function gameScreen() {
       ${capturedRack(g)}
       <div class="hand-heading"><strong>내 패 ${hand.length}장</strong> <span>${yourTurn?'패를 눌러 내기':'상대 차례'}</span></div>
       <div class="hand-workspace">
-      <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{action:yourTurn?'play':null,matchHint:g.phase==='playing' && (!yourTurn || !pending || getCard(id)?.month===pending) && getMatchingFloorCards(g.floorCards,id).length>0})).join('') : ((g.humanBombSkips || 0)?'':'<span class="no-cards">손패를 모두 냈어!</span>')}${Array.from({length:g.humanBombSkips || 0},(_,index)=>`<button type="button" class="bomb-empty-card" data-action="flip" aria-label="폭탄 빈 패 ${index+1}, 사용하면 더미만 뒤집기" ${yourTurn && !pending?'':'disabled'}><span class="bomb-empty-label">폭탄패</span></button>`).join('')}</div>
+      <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{mission:isMission(id),action:yourTurn?'play':null,matchHint:g.phase==='playing' && (!yourTurn || !pending || getCard(id)?.month===pending) && getMatchingFloorCards(g.floorCards,id).length>0})).join('') : ((g.humanBombSkips || 0)?'':'<span class="no-cards">손패를 모두 냈어!</span>')}${Array.from({length:g.humanBombSkips || 0},(_,index)=>`<button type="button" class="bomb-empty-card" data-action="flip" aria-label="폭탄 빈 패 ${index+1}, 사용하면 더미만 뒤집기" ${yourTurn && !pending?'':'disabled'}><span class="bomb-empty-label">폭탄패</span></button>`).join('')}</div>
         <span class="player-controls">${humanTurnSignature(app.screen,g) ? `<span class="turn-clock" role="timer" aria-label="내 차례 남은 시간"><span class="turn-clock__time"><strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</span><span class="turn-clock__rail"><span class="turn-clock__fill" data-turn-fill></span></span></span>` : '<span class="turn-clock turn-clock--waiting">상대 차례</span>'}${specialActionButtons ? `<span class="special-controls" role="group" aria-label="가능한 특수 행동">${specialActionButtons}</span>` : ''}<button type="button" class="action-chip action-chip--auto ${app.autoMode?'is-on':''}" data-action="automode" aria-pressed="${app.autoMode}">자동 ${app.autoMode?'ON':'OFF'}</button></span>
       </div>
     </div>
@@ -452,10 +455,23 @@ function gameScreen() {
   </main>`;
 }
 
+function missionOverlay(g) {
+  const mission=missionView(g);
+  if (!mission) return '';
+  return `<div class="modal-shade modal-shade--decision"><section class="modal-box mission-dialog" role="dialog" aria-modal="true" aria-labelledby="mission-title">
+    <h2 id="mission-title">꽃 미션</h2><p>미션패를 한 장씩 먹을 때마다 그 사람의 미션 배수가 두 배가 돼요.</p>
+    <div class="mission-targets">${mission.targets.map(target=>`<div class="mission-target">${card(target.id,{small:true})}<small>${target.owner==='human'?'내가 획득':target.owner==='computer'?'상대 획득':'미획득'}</small></div>`).join('')}</div>
+    <p class="mission-progress">나 ${mission.humanCount}장 · ×${mission.humanMultiplier} <span>상대 ${mission.computerCount}장 · ×${mission.computerMultiplier}</span></p>
+    <p class="mission-note">아직 먹지 않은 패의 위치는 공개되지 않아요. 각자의 승리 정산에 미션 배수가 적용됩니다.</p>
+    ${btn('돌아가기','close','btn--primary btn--wide')}
+  </section></div>`;
+}
+
 function gameOverlay(g) {
   if (app.pendingGookjinChoice || overlay==='gookjin-choice') return `<div class="modal-shade modal-shade--decision"><section class="modal-box modal-box--choice" role="dialog" aria-modal="true" aria-labelledby="gookjin-choice-title">
     <div class="decision-kicker">국진 · 9월 열끗</div><h2 id="gookjin-choice-title">국진을 어떻게 쓸까요?</h2><p class="decision-hint">열끗 또는 피 두 장으로 계산해요. 나중에 다시 바꿀 수 있어요.</p>
     <div class="gookjin-card">${card('m09-01')}</div><div class="choice-actions"><button type="button" class="btn decision-option" data-action="gookjin-set" data-value="animal"><strong>열끗으로</strong><small>그림 패</small></button><button type="button" class="btn decision-option decision-option--go" data-action="gookjin-set" data-value="junk"><strong>쌍피로</strong><small>피 2장</small></button></div>${choiceTimer()}</section></div>`;
+  if (overlay==='mission') return missionOverlay(g);
   if (overlay==='captures') return capturedGallery(g, galleryOwner, galleryType);
   if (overlay==='cardbook') return cardbookOverlay();
   if (app.pendingDrawChoice) {
@@ -517,6 +533,7 @@ function gameOverlay(g) {
       ${win ? `<div class="result-prize"><span>이번 판 획득${g.doublePayout ? '<br>더블 승리금 포함' : ''}</span><strong>+${kr(amount+(g.doublePayout || 0))} <small>냥</small></strong></div>` : ''}
       <div class="result-stats"><div><span>${nagari?'이번 판 결과':'정산 점수'}</span><strong>${nagari?'무승부':finalPoints==null?'—':finalPoints+'점'}</strong></div>
         <div><span>${nagari?'다음 판 배수':win?'획득 놀이머니':'사용 놀이머니'}</span><strong class="${win?'positive':''}">${nagari?'×'+app.nextMultiplier:(win?'+':'−')+kr(amount)+' 냥'}</strong></div></div>
+      ${!nagari && g.settlement?.steps?.length ? `<details class="settlement-details"><summary>정산 과정 보기 · 미션 ×${g.settlement.missionMultiplier || 1}</summary><ol>${g.settlement.steps.map(step=>`<li><span>${safe(step.label)}</span><strong>${safe(step.formula)} = ${kr(step.value)}점</strong></li>`).join('')}</ol>${g.settlement.paymentExemptReason ? `<p>${safe(g.settlement.paymentExemptReason)}</p>` : ''}</details>` : ''}
       <div class="result-wallet">보유 놀이머니 <b>✦ ${kr(app.wallet)}냥</b></div>
       ${nagari && app.doubleStake ? `<p class="double-explanation">걸어 둔 승리금 ${kr(app.doubleStake.amount)}냥은 다음 판으로 이어집니다.</p>` : ''}
       ${!win && !nagari && g.doubleForfeit ? `<p class="double-explanation">이전 판에서 걸어 둔 승리금 ${kr(g.doubleForfeit)}냥을 잃었습니다.</p>` : ''}
@@ -804,7 +821,9 @@ function commitGame(next, result=null, motion=null) {
     clockKey=null;expiredKey=null;
   }
   if (gotGookjin) app.pendingGookjinChoice = true;
-  const eventText = eventAnnouncement(result, previous?.currentPlayer);
+  const specialText = eventAnnouncement(result, previous?.currentPlayer);
+  const missionText = result?.missionCards?.length ? `${previous?.currentPlayer==='computer'?'상대 ':''}미션패 ×${result.missionMultiplier || 1}` : null;
+  const eventText = [specialText, missionText].filter(Boolean).join(' · ');
   finishRound();
   if (eventText) effects(eventText, 'special', 'event-list');
   save(); render();
@@ -998,6 +1017,7 @@ function mutate(action, value, cardId) {
       save();effects('긴급 '+kr(EMERGENCY_RECHARGE)+'냥 충전!','win');render();return;
     case 'help': overlay='help';render();return;
     case 'cardbook': overlay='cardbook';render();return;
+    case 'mission': if (missionView(app.game)) {overlay='mission';render();} return;
     case 'captures': {
       if(!app.game)return;
       const [owner, type] = (value || '').split(':');
