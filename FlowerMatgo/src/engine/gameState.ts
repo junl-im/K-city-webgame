@@ -292,10 +292,10 @@ export function scoreFor(state: GameState, player: PlayerId) {
 }
 
 export function setMissionEnabled(state: GameState, enabled: boolean): GameState {
-  if (!state.mission?.effect || state.mission.resolvedBy || state.phase === 'round-ended') throw new Error('이 판의 미션을 변경할 수 없습니다.');
+  if (!state.mission || state.mission.resolvedBy || state.phase === 'round-ended' || (!state.mission.effect && state.mission.cardIds.some(id => state.humanCaptured.includes(id) || state.computerCaptured.includes(id)))) throw new Error('이 판의 미션을 변경할 수 없습니다.');
   const next = structuredClone(state);
   next.mission!.enabled = enabled;
-  if (enabled) {
+  if (enabled && next.mission!.effect) {
     const id = next.mission!.cardIds[0];
     const owner = next.humanCaptured.includes(id) ? 'human' : next.computerCaptured.includes(id) ? 'computer' : null;
     if (owner) { const outcome = missionOutcome(next, owner, [id]); next.lastAction = `미션 완료! ${outcome.missionEffect}.`; }

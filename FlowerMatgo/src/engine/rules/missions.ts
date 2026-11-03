@@ -27,7 +27,7 @@ export function evaluateCardMission(
   humanCaptured: string[],
   computerCaptured: string[]
 ): MissionProgress {
-  if (!mission) return { humanCardIds: [], computerCardIds: [], humanMultiplier: 1, computerMultiplier: 1 };
+  if (!mission || mission.enabled === false) return { humanCardIds: [], computerCardIds: [], humanMultiplier: 1, computerMultiplier: 1 };
   const humanSet = new Set(humanCaptured);
   const computerSet = new Set(computerCaptured);
   const humanCardIds = mission.cardIds.filter(cardId => humanSet.has(cardId));
@@ -35,8 +35,8 @@ export function evaluateCardMission(
   return {
     humanCardIds,
     computerCardIds,
-    humanMultiplier: mission.effect ? (mission.enabled !== false && mission.effect.kind === 'multiplier' && mission.resolvedBy === 'human' ? mission.effect.value : 1) : 2 ** humanCardIds.length,
-    computerMultiplier: mission.effect ? (mission.enabled !== false && mission.effect.kind === 'multiplier' && mission.resolvedBy === 'computer' ? mission.effect.value : 1) : 2 ** computerCardIds.length
+    humanMultiplier: mission.effect ? (mission.effect.kind === 'multiplier' && mission.resolvedBy === 'human' ? mission.effect.value : 1) : 2 ** humanCardIds.length,
+    computerMultiplier: mission.effect ? (mission.effect.kind === 'multiplier' && mission.resolvedBy === 'computer' ? mission.effect.value : 1) : 2 ** computerCardIds.length
   };
 }
 
@@ -51,7 +51,7 @@ export function missionMultiplierFor(
 }
 
 export function capturedMissionCards(mission: CardMission | null | undefined, capturedCardIds: string[]): string[] {
-  if (!mission || (mission.effect && (!mission.enabled || mission.resolvedBy))) return [];
+  if (!mission || mission.enabled === false || (mission.effect && mission.resolvedBy)) return [];
   const targets = new Set(mission.cardIds);
   return [...new Set(capturedCardIds.filter(cardId => targets.has(cardId)))];
 }

@@ -13,6 +13,7 @@ export function missionView(game) {
     effect: mission.effect || null,
     enabled: mission.enabled !== false,
     resolvedBy: mission.resolvedBy || null,
+    locked: !!mission.resolvedBy || (!mission.effect && mission.cardIds.some(id => human.includes(id) || computer.includes(id))),
     targets: mission.cardIds.map(id => ({
       id,
       owner: human.includes(id) ? 'human' : computer.includes(id) ? 'computer' : null
