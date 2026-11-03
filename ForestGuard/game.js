@@ -184,7 +184,7 @@
       loadIllustration('./art/painted-rampart-front-v24.webp?v=20261101j',art=>{rampartBitmap=art;},true)
     ]);
     const biome=Math.floor(stageIndex/4);
-    if(!biomeLoading[biome])biomeLoading[biome]=loadIllustration('./art/'+biomeFiles[biome]+'?v=20261031i',art=>{biomeBitmaps[biome]=art;});
+    if(!biomeLoading[biome])biomeLoading[biome]=loadIllustration('./art/'+biomeFiles[biome]+'?v=20261031i',art=>{biomeBitmaps[biome]=art;},true);
     await Promise.all([atlasPromise,biomeLoading[biome]]);
     // Keep an illustrated battle playable when a high-resolution regional PNG times out.
     // Never substitute a CSS rectangle or sacrifice the rear-view hero silhouette.

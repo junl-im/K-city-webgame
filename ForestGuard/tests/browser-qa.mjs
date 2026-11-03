@@ -436,18 +436,17 @@ try{
   assert.ok(biomeRequests>=2,'Transient biome download must retry without a failure modal');
   assert.equal(await retryPage.locator('#modal-layer').isHidden(),true,'Successful retry must enter combat');
   await retryCtx.close();
-  // If the stage painting permanently fails, never expose a primitive Canvas fallback.
+  // If both regional PNG attempts fail, keep the illustrated WebP battlefield.
   const failedCtx=await browser.newContext({viewport:{width:360,height:740},deviceScaleFactor:1,isMobile:true,hasTouch:true});
   const failedPage=await failedCtx.newPage();
-  await failedPage.route('**/forest-entrance-v08.png**',route=>route.abort('failed'));
+  let fallbackAttempts=0;
+  await failedPage.route('**/forest-entrance-v08.png**',route=>{fallbackAttempts++;return route.abort('failed');});
   await failedPage.goto(origin,{waitUntil:'domcontentloaded'});
   await failedPage.locator('#start-btn').click();
-  await failedPage.waitForFunction(()=>{
-    const layer=document.getElementById('modal-layer');
-    return !layer.hidden&&document.getElementById('modal-kicker').textContent==='원화 로딩 문제';
-  },null,{timeout:25000});
-  assert.equal(await failedPage.locator('#game-root canvas').count(),0,'No primitive canvas fallback on asset failure');
-  assert.equal(await failedPage.locator('#menu').isVisible(),true,'Menu must remain available');
+  await failedPage.locator('#game-root canvas').waitFor({state:'attached',timeout:30000});
+  assert.ok(fallbackAttempts>=2,'Regional PNG must retry before illustrated fallback');
+  assert.equal(await failedPage.locator('#modal-layer').isHidden(),true,'WebP fallback must allow combat without a failure modal');
+  assert.equal(await failedPage.locator('#menu').isHidden(),true,'Illustrated fallback must enter the battlefield');
   await failedCtx.close();
 }finally{await browser.close();}
 console.log('ForestGuard Chromium mobile viewport QA PASS');

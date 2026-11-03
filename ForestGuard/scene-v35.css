@@ -308,3 +308,14 @@
  .rani-boss-cutin-v35{animation:none!important}
  .menu .home-party-v35,.stage-path-pin{transition:none!important}
 }
+
+/* v4.2.1: lightweight painted WebP is visible while the large regional PNG downloads.
+   The opaque regional PNG replaces it without a visible second layer or hard seam. */
+.menu:not(.stage-choosing){
+ background-image:linear-gradient(180deg,rgba(5,22,16,.22),rgba(5,18,13,.02) 35%,rgba(4,18,13,.18) 66%,rgba(4,16,13,.81)),
+   url('./art/forest-entrance-v08.png'),url('./art/forest-battleground-v04.webp')!important;
+ background-position:center,center,center!important;
+ background-size:cover,cover,cover!important;
+ background-repeat:no-repeat!important;
+ background-blend-mode:normal!important;
+}
