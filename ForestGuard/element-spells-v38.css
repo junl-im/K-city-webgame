@@ -1,0 +1,48 @@
+/* v3.8 · original four-element spell art, no added frames or SVG. */
+#modal-layer .spell-card.rani-element-card{
+  position:relative;isolation:isolate;min-height:clamp(144px,24dvh,209px)!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:transparent!important;filter:none!important;color:#fff0ce!important;
+  padding:clamp(6px,1.5dvh,12px) clamp(3px,1vw,8px)!important;
+  transition:transform .16s ease
+}
+#modal-layer .spell-card.rani-element-card::before{
+  content:"";position:absolute;z-index:-1;inset:7% 0 6%;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 43%,rgba(18,43,32,.40),rgba(18,43,32,.14) 55%,transparent 76%)
+}
+#modal-layer .spell-card.rani-element-card:active:not(:disabled){transform:scale(.96)}
+#modal-layer .spell-card.rani-element-card:focus-visible{outline:2px solid #ffeaad!important;outline-offset:1px}
+#modal-layer .spell-card.rani-element-card .spell-emoji.rani-element-art{
+  width:clamp(56px,21vw,83px)!important;height:clamp(56px,21vw,83px)!important;
+  flex:0 0 clamp(56px,21vw,83px)!important;margin:0 auto 2px!important;
+  padding:0!important;background-repeat:no-repeat!important;
+  filter:drop-shadow(0 3px 4px rgba(2,13,11,.52))!important
+}
+#modal-layer .spell-card.rani-element-card strong{
+  font-family:var(--fg-action-font,"Jua",sans-serif)!important;
+  font-size:clamp(12px,3.6vw,16px)!important;letter-spacing:-.04em;
+  line-height:1.23!important;color:#ffedc8!important;
+  text-shadow:0 2px 3px #10271c!important
+}
+#modal-layer .spell-card.rani-element-card small{
+  font-family:var(--fg-story-font,"Gowun Batang",serif)!important;
+  color:#ede6d5!important;line-height:1.32!important;
+  font-size:clamp(9px,2.6vw,11px)!important;text-shadow:0 1px 2px #14221a
+}
+#modal-layer .spell-card.rani-element-card[data-element="frost"] strong{color:#d7f7ff!important}
+#modal-layer .spell-card.rani-element-card[data-element="stone"] strong{color:#ffe1a4!important}
+#modal-layer .spell-card.rani-element-card[data-element="flame"] strong{color:#ffceaa!important}
+#modal-layer .spell-card.rani-element-card[data-element="forest"] strong{color:#d9f4b9!important}
+#modal-layer .spell-card.rani-element-card.combo::before,
+#modal-layer .spell-card.rani-element-card.recommended::before{
+  background:radial-gradient(ellipse at 50% 44%,rgba(112,86,37,.45),rgba(39,52,34,.20) 59%,transparent 78%)
+}
+#modal-layer .spell-card.rani-element-card.combo strong{color:#ffe8aa!important}
+@media(max-width:360px),(max-height:690px){
+  #modal-layer .spell-card.rani-element-card{min-height:130px!important;padding:5px 2px!important}
+  #modal-layer .spell-card.rani-element-card .spell-emoji.rani-element-art{
+    width:clamp(50px,19vw,65px)!important;height:clamp(50px,19vw,65px)!important;
+    flex-basis:clamp(50px,19vw,65px)!important
+  }
+}
+@media(prefers-reduced-motion:reduce){#modal-layer .spell-card.rani-element-card{transition:none!important}}

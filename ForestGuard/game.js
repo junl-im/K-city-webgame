@@ -89,6 +89,24 @@
     {id:'ward',icon:'▤',title:'숲의 수호',desc:'공세마다 성벽 피해 1회 감소',rare:false},
     {id:'hunter',icon:'◎',title:'추적의 눈',desc:'안개 시야 회복·사정거리 증가',rare:false}
   ];
+  // v3.8 original four-element PNG; no SVG or duplicate button frame.
+  const ELEMENT_SPELL_ART=Object.freeze({
+    roots:['forest','0%','0%'],ward:['forest','0%','0%'],
+    ice:['frost','100%','0%'],wall:['stone','0%','100%'],
+    flame:['flame','100%','100%']
+  });
+  function paintElementSpell(icon,id,card){
+    const tile=ELEMENT_SPELL_ART[id];if(!tile)return;
+    icon.style.backgroundImage='url("./art/rani-element-spells-v38.png")';
+    icon.style.backgroundSize='200% 200%';
+    icon.style.backgroundPosition=tile[1]+' '+tile[2];
+    icon.style.backgroundRepeat='no-repeat';
+    icon.style.setProperty('--rani-icon-image',icon.style.backgroundImage);
+    icon.style.setProperty('--rani-icon-size',icon.style.backgroundSize);
+    icon.style.setProperty('--rani-icon-position',icon.style.backgroundPosition);
+    icon.dataset.element=tile[0];icon.classList.add('rani-element-art');
+    if(card){card.dataset.element=tile[0];card.classList.add('rani-element-card');}
+  }
   const SYNERGY_RECIPES = [
     ['flame','haste','wildfire','화염폭풍'],
     ['ice','spark','thunderfrost','빙뢰연쇄'],
@@ -1044,7 +1062,7 @@
       const wrap=document.createElement('div');wrap.className='card-grid evo-choice-grid';
       choices.forEach(choice=>{
         const b=document.createElement('button');b.type='button';b.className='spell-card evo-path '+choice.id;
-        const icon=document.createElement('span');icon.className='spell-emoji';V.setIcon(icon,choice.icon);
+        const icon=document.createElement('span');icon.className='spell-emoji';V.setIcon(icon,choice.icon);paintElementSpell(icon,choice.id==='sun'?'flame':'ice',b);
         const title=document.createElement('strong');title.textContent=choice.title;
         const desc=document.createElement('small');desc.textContent=choice.desc;
         b.append(icon,title,desc);
@@ -1589,7 +1607,7 @@
       this.draftChoices.forEach((card,i)=>{
         const b=document.createElement('button');b.type='button';b.className='spell-card draft-card'+
           (card.rare?' rare':'')+(this.comboFor(card.id)?' combo recommended':'');
-        const icon=document.createElement('span');icon.className='spell-emoji';V.setIcon(icon,card.id==='bear'?'shield':card.id);
+        const icon=document.createElement('span');icon.className='spell-emoji';V.setIcon(icon,card.id==='bear'?'shield':card.id);paintElementSpell(icon,card.id,b);
         const title=document.createElement('strong');title.textContent=card.title;
         const desc=document.createElement('small');
         const combo=this.comboFor(card.id);

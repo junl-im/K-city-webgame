@@ -54,6 +54,18 @@ for(const name of painted31){
   assert.equal(bytes.toString('ascii',8,12),'WEBP');
   assert.equal(bytes.readUInt32LE(4),bytes.length-8);
 }
+const element38=read('element-spells-v38.css');
+const elementSprite=readFileSync(new URL('art/rani-element-spells-v38.png',root));
+assert.ok(elementSprite.length>100000,'Four illustrated elements must be saved');
+assert.equal(elementSprite.subarray(1,4).toString(),'PNG');
+assert.equal(elementSprite.readUInt32BE(16),1254);
+assert.equal(elementSprite.readUInt32BE(20),1254);
+assert.match(html,/element-spells-v38\.css\?v=/);
+assert.match(html,/rani-element-spells-v38\.png/);
+assert.match(js,/paintElementSpell\(icon,card\.id,b\)/);
+assert.match(js,/paintElementSpell\(icon,choice\.id===/);
+assert.match(element38,/rani-element-card/);
+assert.doesNotMatch(element38,/<svg|\.svg|data:image\/svg/i);
 const illustrated31=read('illustrated-v31.css');
 const scene35=read('scene-v35.css'), route35=read('scene-v35.js');
 const rearguard=readFileSync(new URL('art/rani-rearguard-v35.png',root));
