@@ -3699,3 +3699,17 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--game .settlement-details strong {text-align:right;}
 .scene--game .settlement-details p {padding:0 10px 8px;font-size:11px;}
 @media(max-width:650px){.scene--game .mission-chip {min-height:26px;padding:3px 6px;font-size:10px;}.scene--game .center-status {max-width:98%;}}
+/* Dedicated illustrated mission preview sits directly above the draw pile. */
+.scene--game .deck-pile:has(.mission-panel) {width:clamp(80px,11vw,125px);flex:none;gap:2px;}
+.scene--game .mission-panel {box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:0;width:100%;min-height:60px;padding:5px 7px;border:0;border-radius:0;background:transparent url('/assets/flower-mission-panel-v1.png') center/100% 100% no-repeat;color:#633d25;cursor:pointer;touch-action:manipulation;}
+.scene--game .mission-panel:focus-visible {outline:3px solid #ffdf91;outline-offset:2px;}
+.scene--game .mission-panel__title {font-size:10px;font-weight:950;line-height:1.1;white-space:nowrap;text-shadow:0 1px #fff5d8;}
+.scene--game .mission-panel__content,.scene--game .mission-panel__cards {display:flex;align-items:center;justify-content:center;gap:2px;min-width:0;}
+.scene--game .mission-panel__content strong {margin-left:2px;color:#a43b25;font-size:clamp(12px,2.2vw,17px);font-weight:950;line-height:1;text-shadow:0 1px #fff6dc;}
+.scene--game .mission-mini {position:relative;display:block;flex:none;width:clamp(16px,2.2vw,23px);aspect-ratio:248 / 340;overflow:hidden;border:1px solid #5c1513;border-radius:2px;background:#b21d17;box-shadow:0 1px 2px #2a1a1490;}
+.scene--game .mission-mini__face {position:absolute;inset:0;background-image:url('/assets/hwatu-character-original-v19.webp');background-size:400% 1200%;background-position:var(--mission-x) var(--mission-y);background-repeat:no-repeat;}
+.scene--game .mission-mini--computer .mission-mini__face {filter:grayscale(.45) brightness(.75);}
+.scene--game .mission-mini__owner {position:absolute;bottom:0;left:0;right:0;background:#326a49e8;color:#fff;font-size:7px;font-weight:950;line-height:1.1;text-align:center;}
+.scene--game .mission-mini--computer .mission-mini__owner {background:#864537e8;}
+@media(max-width:650px){.scene--game .deck-pile:has(.mission-panel) {width:clamp(77px,23vw,95px);}.scene--game .mission-panel {min-height:56px;padding:4px 5px;}.scene--game .mission-mini {width:clamp(15px,4.3vw,18px);}.scene--game .mission-panel__title {font-size:9px;}.scene--game .mission-panel__content strong {font-size:12px;}}
+@media(max-width:650px) and (max-height:700px){.scene--game .mission-panel {min-height:48px;}.scene--game .mission-mini {width:15px;}.scene--game .deck-pile:has(.mission-panel) .hwatu--back {width:clamp(30px,9vw,40px);}}
