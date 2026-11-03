@@ -284,11 +284,11 @@ function openingScreen() {
 function home() {
   const resume = app.game && (app.game.phase !== 'round-ended' || (app.game.roundResult === 'nagari' && !!app.doubleStake));
   return `<main class="scene scene--home">
-    <header class="nav top-safe">${brand()}<span class="top-pill">✿ 동물 친구들의 꽃놀이마당</span></header>
+    <header class="nav top-safe"><a class="home-playground-link" href="https://meta-deee1.web.app/ai-cleaner/">${uiIcon('home')}<span>곰같은여우의 AI놀이터 가기</span></a><span class="top-pill">✿ 동물 친구들의 꽃놀이마당</span></header>
     <section class="home-content">
       <div class="hero-copy">
         <p class="eyebrow"><span class="eyebrow-dot">✿</span> 오늘도 꽃놀이마당 OPEN <span class="eyebrow-dot">✿</span></p>
-        <h1 class="home-logo"><small>곰같은여우의</small><img class="rani-title-art" src="${import.meta.env.BASE_URL}assets/rani-title-v1.png" alt="라니맞고" width="900" height="300"></h1>
+        <h1 class="home-logo"><small>곰같은여우의</small><span class="rani-title-wrap"><img class="rani-title-art" src="${import.meta.env.BASE_URL}assets/rani-title-v1.png" alt="라니맞고" width="900" height="300"><img class="rani-title-cards" src="${import.meta.env.BASE_URL}assets/rani-title-card-fan-v1.png" alt="" aria-hidden="true" width="600" height="400"></span></h1>
         <p class="hero-hook">라니와 함께, 한판 할까?</p>
         <p class="lead">밤톨이, 여울, 설이가 기다리는<br><strong>웃음꽃 피는 맞고 한판!</strong></p>
         <p class="home-invite">♧ 익숙한 화투, 우리 친구들만의 반짝이는 승부 ♧</p>
