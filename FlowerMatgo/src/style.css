@@ -3988,3 +3988,9 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--home .rani-title-cards {position:absolute;z-index:2;right:-2%;top:-30%;width:clamp(48px,21%,78px);height:auto;pointer-events:none;filter:drop-shadow(0 3px 3px #30211280);}
 @media(max-width:650px){.scene--home .home-playground-link {min-height:37px;padding:5px 9px;font-size:10px;}.scene--home .home-playground-link .ui-icon {width:20px;height:20px;}.scene--home .hero-copy {margin:10px auto 0;}.scene--home .home-logo .rani-title-wrap {width:min(100%,280px);}.scene--home .rani-title-cards {width:22%;top:-27%;right:-1%;}}
 @media(prefers-reduced-transparency:reduce){.scene--home .hero-copy {background:#fbf5e8;}}
+/* Move the entire title panel down and let the garden show through. */
+.scene--home .hero-copy {margin-top:clamp(24px,5vh,48px);background:linear-gradient(145deg,rgba(255,250,234,.62),rgba(247,238,216,.51));}
+@media(max-width:650px){.scene--home .hero-copy {margin:clamp(24px,5vh,38px) auto 0;}}
+@media(max-height:650px){.scene--home .hero-copy {margin-top:20px;}}
+@media(prefers-reduced-transparency:reduce){.scene--home .hero-copy {background:#fbf5e8;}}
+@media(prefers-reduced-transparency:reduce){.scene--home .hero-copy {background:linear-gradient(145deg,rgba(255,250,234,.74),rgba(247,238,216,.68));}}
