@@ -221,7 +221,7 @@ assert.match(js,/hasDashed/);
 assert.match(js,/hasRallied/);
 assert.match(js,/guarding\?Math\.min\(\.55/);
 assert.match(css,/\.hero-slot\.empty\{border:0!important/);
-assert.match(html,/game\.js\?v=20261103v45/);
+assert.match(html,/game\.js\?v=20261103v46/);
 assert.match(html,/visuals\.js\?v=20261103v45/);
 assert.match(visuals,/frameTotal\(id,state\)/);
 assert.match(visuals,/drawHeroWeapon\(c,id,frame\)/);

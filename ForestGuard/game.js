@@ -183,10 +183,10 @@
       loadIllustration('./art/rani-element-spells-v38.png?v=20261103a',art=>{elementSpellBitmap=art;}),
       loadIllustration('./art/rani-fox-rear-attack-v41.png?v=20261103v41',art=>{foxAttackBitmap=art;}),
       // Optional 4×2 WebP sheets: a failed request keeps the existing Canvas motion.
-      loadIllustration('./art/rani-bear-attack-v44.webp?v=20261103v44',art=>{heroAttackBitmaps.bear=art;}),
-      loadIllustration('./art/rani-rabbit-attack-v44.webp?v=20261103v44',art=>{heroAttackBitmaps.rabbit=art;}),
-      loadIllustration('./art/rani-cat-attack-v44.webp?v=20261103v44',art=>{heroAttackBitmaps.cat=art;}),
-      loadIllustration('./art/rani-megafox-attack-v44.webp?v=20261103v44',art=>{heroAttackBitmaps.megafox=art;}),
+      loadIllustration('./art/rani-bear-attack-v44.webp?v=20261103v44a',art=>{heroAttackBitmaps.bear=art;}),
+      loadIllustration('./art/rani-rabbit-attack-v44.webp?v=20261103v44a',art=>{heroAttackBitmaps.rabbit=art;}),
+      loadIllustration('./art/rani-cat-attack-v44.webp?v=20261103v44a',art=>{heroAttackBitmaps.cat=art;}),
+      loadIllustration('./art/rani-megafox-attack-v44.webp?v=20261103v44a',art=>{heroAttackBitmaps.megafox=art;}),
       loadIllustration('./art/painted-rampart-front-v24.webp?v=20261101j',art=>{rampartBitmap=art;},true)
     ]);
     const biome=Math.floor(stageIndex/4);
