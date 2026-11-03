@@ -166,6 +166,17 @@ assert(['aim','result'].includes(state().phase),'Confirming review returns to ai
 assert.equal(state().reviewVisible,false,'Review ribbon should close after confirmation');
 if(/v0_[234567]/.test(versionedPath))assert(peakRotated>0,'Explosion should rotate at least one structure piece');
 el('homeBtn').click();
+// A quick touch must reuse the previous power; it must not default to 20%.
+el('adventureBtn').click();frames(3);
+const savedTapPower=Number(el('power').value);
+el('fire').dispatch('pointerdown',{pointerId:66,button:0});
+frames(3);
+el('fire').dispatch('pointerup',{pointerId:66});
+assert.equal(state().shots,1,'Quick tap must fire exactly one projectile');
+assert.equal(Number(el('power').value),savedTapPower,'Quick tap must preserve previous power');
+el('fire').click();
+assert.equal(state().shots,1,'Synthetic click after quick tap must not fire twice');
+el('homeBtn').click();
 // Hold to charge power; release must fire exactly one projectile even when click follows.
 el('adventureBtn').click();frames(3);
 el('fire').dispatch('pointerdown',{pointerId:7,button:0});
