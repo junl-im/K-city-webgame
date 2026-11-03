@@ -150,17 +150,22 @@ export function emptyLandingRect(bounds, occupied, width) {
   const inset=3, left=bounds.left+inset, top=bounds.top+inset;
   const right=bounds.left+bounds.width-inset-width, bottom=bounds.top+bounds.height-inset-height;
   if(right<left || bottom<top)return null;
-  // Check the exact edges of existing cards as well as the field edges. A
-  // regular grid alone can skip a narrow but perfectly usable empty space.
-  const xs=[left,right], ys=[top,bottom];
-  for(const r of occupied) if(r) { xs.push(r.left-width,r.left+r.width);ys.push(r.top-height,r.top+r.height); }
-  const valid=(values,min,max)=>[...new Set(values.map(v=>Math.max(min,Math.min(max,v))))].sort((a,b)=>a-b);
+  // Try card-edge gaps first, then choose the closest visible neighbour.
+  const anchors=occupied.filter(r => r && r.left < bounds.left+bounds.width && r.left+r.width > bounds.left && r.top < bounds.top+bounds.height && r.top+r.height > bounds.top);
+  const xs=[left,right,(left+right)/2], ys=[top,bottom,(top+bottom)/2];
+  for(const r of anchors) { xs.push(r.left-width,r.left+r.width);ys.push(r.top,r.top-height,r.top+r.height); }
+  const valid=(values,min,max)=>[...new Set(values.map(v=>Math.max(min,Math.min(max,v))))];
+  const candidates=[];
   for(const y of valid(ys,top,bottom)) for(const x of valid(xs,left,right)) {
-    const candidate={left:x,top:y,width,height};
     const overlaps=occupied.some(r=>r && x<r.left+r.width-2 && x+width>r.left+2 && y<r.top+r.height-2 && y+height>r.top+2);
-    if(!overlaps)return candidate;
+    if(!overlaps) {
+      const distance=anchors.length ? Math.min(...anchors.map(r=>Math.max(0,Math.max(r.left-x-width,x-r.left-r.width)) + 2*Math.abs(y-r.top))) : Math.abs(x-(left+right)/2)+Math.abs(y-(top+bottom)/2);
+      candidates.push({left:x,top:y,width,height,distance});
+    }
   }
-  return null;
+  candidates.sort((a,b)=>a.distance-b.distance);
+  if (!candidates.length) return null;
+  const {distance,...best}=candidates[0];return best;
 }
 // Prefer an empty part of the table. Never fake a match with a card that
 // was already captured by the player's previous play.
@@ -358,21 +363,6 @@ function spawnCaptureSweep(root, ids, source, drawnTarget, cue, player, result, 
   setTimeout(() => sound('capture'), TURN_STAGES.collect + 280);
 }
 
-// Show rule events at screen center while the card animation is still playing.
-// The transient element never captures input and is removed at the turn boundary.
-function spawnCentralEvent(root, text, delay) {
-  if (!text) return;
-  setTimeout(() => {
-    if (!root.isConnected || !root.querySelector('.scene--game.is-resolving')) return;
-    const message = document.createElement('div');
-    message.className = 'central-event central-event--during';
-    message.setAttribute('aria-hidden', 'true');
-    message.textContent = text;
-    root.appendChild(message);
-    setTimeout(() => message.remove(), 720);
-  }, delay);
-}
-
 function spawnImpact(root, target, text, delay, kind = 'land') {
   if (!target) return;
   setTimeout(() => {
@@ -382,8 +372,8 @@ function spawnImpact(root, target, text, delay, kind = 'land') {
     halo.setAttribute('aria-hidden', 'true');
     halo.style.left = `${target.left + target.width / 2}px`;
     halo.style.top = `${target.top + target.height / 2}px`;
-    halo.innerHTML = `<span class="turn-impact__ring"></span><span class="turn-impact__text"></span>`;
-    halo.querySelector('.turn-impact__text').textContent = text;
+    halo.innerHTML = `<span class="turn-impact__ring"></span>${text ? '<span class="turn-impact__text"></span>' : ''}`;
+    if (text) halo.querySelector('.turn-impact__text').textContent = text;
     if (['bomb','sweep','ppeok','ttadak','jjok','bright','double'].includes(kind)) {
       const illustration = document.createElement('span');
       illustration.className='turn-impact__illustration';
@@ -516,9 +506,8 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
   }
   spawnImpact(root, target, hasPlayedMatch ? '착!' : '탁!', TURN_STAGES.land);
   recoilTable(root,'land',TURN_STAGES.land+20);
-  spawnCentralEvent(root, eventAnnouncement(result, player), TURN_STAGES.collect - 35);
   if (cue.captures || cue.impact === 'special' || result.ppeok) {
-    spawnImpact(root, target, cue.text, TURN_STAGES.collect + 10, cue.visualKind);
+    spawnImpact(root, target, eventAnnouncement(result, player) ? null : cue.text, TURN_STAGES.collect + 10, cue.visualKind);
   }
   if (['bomb','sweep'].includes(cue.visualKind)) recoilTable(root,cue.visualKind,TURN_STAGES.collect+16);
   cheerOnSpecial(root,player,cue.visualKind,TURN_STAGES.collect+20);

@@ -176,11 +176,11 @@ function cardSound(kind = 'land') {
     }
   } catch { /* A browser without WebAudio can still play every turn. */ }
 }
-function effects(label, kind = 'special', visualKind = kind) {
+function effects(label, kind = 'special', visualKind = kind, silent = false) {
   flash = spokenActionText(label);
   flashKind = visualKind;
   clearTimeout(fxTimer);
-  tone(kind);
+  if (!silent) tone(kind);
   fxTimer = setTimeout(() => { flash = '';flashKind = 'special'; if (app.screen === 'game' && !turnTransition) render(); }, SPECIAL_FLASH_MS);
 }
 function opponent() { return DIFFICULTIES.find(d => d.id === app.difficulty) || DIFFICULTIES[1]; }
@@ -286,7 +286,7 @@ function home() {
         <p class="lead">밤톨이, 여울, 설이가 기다리는<br><strong>웃음꽃 피는 맞고 한판!</strong></p>
         <p class="home-invite">♧ 익숙한 화투, 우리 친구들만의 반짝이는 승부 ♧</p>
         <div class="home-actions">
-          ${btn(`${uiIcon('bloom')} ${resume ? '이어서 한판!' : '게임 시작!'}`, resume ? 'resume' : 'select', 'btn--primary btn--huge btn--jewel')}
+          ${btn(`${resume ? '이어서 한판!' : '게임 시작!'}`, resume ? 'resume' : 'select', 'btn--primary btn--huge btn--jewel')}
           <div class="home-quick-links">
             ${resume ? btn('새 게임', 'select', 'btn--ghost') : btn(`${uiIcon('help')} 게임 방법`, 'help', 'btn--ghost')}
             ${btn(`${uiIcon('album')} 화투패 도감`, 'cardbook', 'btn--ghost')}
@@ -324,7 +324,7 @@ function selectScreen() {
       </div>
       <div class="setup-bottom">
         <div class="wallet"><span>보유 놀이머니</span><strong>✦ ${kr(app.wallet)} 냥</strong>${emergency?`<button type="button" class="emergency-charge" data-action="recharge">${uiIcon('coins')} 긴급 무료 충전 +30만 냥</button>`:''}</div>
-        ${btn(canEnter?'꽃맞고 시작하기 →':'놀이머니가 부족해요','start','btn--primary btn--huge')}
+        ${btn(canEnter?'꽃맞고 시작하기':'놀이머니가 부족해요','start','btn--primary btn--huge')}
       </div>
     </section>
     <footer class="setup-footer bottom-safe">${emergency?'✿ 오링! 가장 작은 판도 시작할 수 없을 때만 긴급 무료 충전이 열려.':canEnter?'✿ 가상 놀이머니로만 즐기는 무료 싱글 맞고야.':'✿ 지금 판이 부담되면 초보 난이도의 낮은 점당 금액을 골라줘.'}</footer>
@@ -470,7 +470,7 @@ function gameScreen() {
       <div class="game-message" aria-live="polite" title="${safe(spokenActionText(g.lastAction))}">${safe(spokenActionText(g.lastAction))}</div>
     </div>
     <div class="player-area bottom-safe">
-      <div class="player-status"><div><span class="mascot mascot--bear player-mini-avatar" aria-hidden="true"></span><span class="me-badge">나</span><strong>${me.total}점</strong><span class="go-count">${g.humanGoCount ? g.humanGoCount+'고' : '고 없음'}</span></div>${flash ? `<span class="event-plaque" role="status" aria-live="polite">${safe(specialMoment(flashKind,flash).title)}</span>` : ''}</div>
+      <div class="player-status"><div><span class="mascot mascot--bear player-mini-avatar" aria-hidden="true"></span><span class="me-badge">나</span><strong>${me.total}점</strong><span class="go-count">${g.humanGoCount ? g.humanGoCount+'고' : '고 없음'}</span></div>${flash && flashKind !== 'event-list' ? `<span class="event-plaque" role="status" aria-live="polite">${safe(specialMoment(flashKind,flash).title)}</span>` : ''}</div>
       ${capturedRack(g)}
       <div class="hand-heading"><strong>내 패 ${hand.length}장</strong> <span>${yourTurn?'패를 눌러 내기':'상대 차례'}</span></div>
       <div class="hand-workspace">
@@ -854,7 +854,7 @@ function commitGame(next, result=null, motion=null) {
   const missionText = result?.missionCards?.length ? `${previous?.currentPlayer==='computer'?'상대 ':''}${result.missionEffect ? '미션 완료 · '+result.missionEffect : '미션패 ×'+(result.missionMultiplier || 1)}` : null;
   const eventText = [specialText, missionText].filter(Boolean).join(' · ');
   finishRound();
-  if (eventText) effects(eventText, 'special', 'event-list');
+  if (eventText) effects(eventText, 'special', 'event-list', !!motion);
   save(); render();
   for (const [player, points] of scoreGains) showScoreGain(player, points);
   for (const {player,combo} of completedSets) showScoreSet(player,combo);

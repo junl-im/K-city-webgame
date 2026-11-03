@@ -3862,3 +3862,17 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 @media(hover:hover){.scene--game .double-offer__button:hover {transform:translateY(-2px) rotate(-1deg);filter:drop-shadow(0 6px 5px #5a332856);}}
 @media(prefers-reduced-motion:reduce){.scene--game .double-offer__button:hover,.scene--game .double-offer__button:active {transform:none;}}
 @media(max-width:650px) and (max-height:700px){.scene--game .double-offer__button {min-height:0;width:min(100%,260px);}}
+/* Make the deck count readable and keep it clear of the tilted card art. */
+.scene--game .deck-pile {gap:8px;}
+.scene--game .deck-pile small {display:inline-flex;align-items:center;gap:3px;margin-top:4px;padding:3px 6px;border:1px solid #f1d6a380;border-radius:8px;background:#174c3de8;color:#fff7dd;font-size:11px;font-weight:850;line-height:1.15;white-space:nowrap;text-shadow:0 1px #143c31;}
+.scene--game .deck-pile small b {color:#ffe5a1;font-size:12px;}
+/* Existing timer fill is driven by the same paused 20-second clock. */
+.scene--game .hand-workspace .turn-clock {flex-direction:column;gap:3px;padding:3px 2px;}
+.scene--game .hand-workspace .turn-clock__rail,.scene--game .player-controls:has(.special-controls) .turn-clock__rail {display:block;flex:none;width:72%;height:6px;border:1px solid #c1ad82;background:#dcd3b8;}
+.scene--game .hand-workspace .turn-clock__fill {background:linear-gradient(90deg,#5caa76,#a2d49c);}
+.scene--game .hand-workspace .turn-clock__rail.is-urgent .turn-clock__fill {background:linear-gradient(90deg,#d75a39,#eea05a);}
+/* Preserve painted button artwork; centre the shorter label inside its frame. */
+.scene--home .home-actions .btn--jewel,.scene--select .setup-bottom > .btn--primary {display:flex;align-items:center;justify-content:center;letter-spacing:-.02em;line-height:1.15;text-align:center;word-break:keep-all;font-weight:950;text-shadow:0 1px #fff4d8,0 2px 3px #fff4d880;}
+.scene--home .home-actions .btn--jewel {font-size:clamp(18px,2vw,23px);padding-inline:17%;}
+.scene--select .setup-bottom > .btn--primary {font-size:clamp(16px,4.5vw,21px);padding-inline:15%;}
+@media(max-width:650px){.scene--game .deck-pile {gap:5px;}.scene--game .deck-pile small {font-size:9px;padding:2px 4px;margin-top:3px;}.scene--game .deck-pile small b {font-size:10px;}.scene--home .home-actions .btn--jewel {font-size:clamp(17px,5vw,21px);}}

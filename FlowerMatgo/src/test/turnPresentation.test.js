@@ -81,6 +81,14 @@ describe('화투패 타격감 시각 연출', () => {
     expect(resolveTurnLandings('m02-01','m03-01',['m02-02'],['m02-01','m02-02'])).toEqual({playedFloorId:'m02-02',drawnFloorId:null,drawnOnPlayed:false});
   });
 
+  it('짝 없는 패는 바닥 가장자리보다 기존 패 옆의 빈 곳을 우선한다', () => {
+    const bounds={left:0,top:0,width:800,height:180};
+    const occupied=[{left:340,top:48,width:60,height:82},{left:410,top:48,width:60,height:82}];
+    const target=emptyLandingRect(bounds,occupied,60);
+    expect(target.top).toBe(48);
+    expect([280,470]).toContain(target.left);
+  });
+
   it('짝이 없는 패는 다른 바닥패와 겹치지 않는 빈 곳을 찾는다', () => {
     const bounds={left:0,top:0,width:200,height:160};
     const occupied=[{left:3,top:3,width:50,height:69}];
