@@ -4053,3 +4053,10 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--game .mission-status-row .center-status:empty {display:none;}
 .scene--game .score-badge strong,.scene--game .player-status strong {text-shadow:0 1px 0 #fff4d0,0 2px 3px #412a1c55;}
 .scene--game .decision-option strong {text-shadow:0 2px 2px #1c160bd9;}
+/* Quiet cards stay distinguishable without the golden matching-card glow. */
+.scene--game .my-hand .hwatu--quiet-hint:not(.hwatu--departing) {outline:2px solid #a6b1b2;outline-offset:1px;filter:none;box-shadow:none;}
+/* A single shake choice belongs in the center of its shared choice area. */
+.scene--game .triple-choice .choice-actions {display:flex;justify-content:center;gap:10px;}
+.scene--game .triple-choice .choice-actions .decision-option {flex:0 1 150px;max-width:150px;}
+/* Re-rendering a pending decision must not replay the entrance animation. */
+.scene--game .modal-box--choice:has(#go-stop-title) {animation:none;}
