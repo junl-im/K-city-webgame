@@ -22,12 +22,21 @@ export function createCardMission(seed: number): CardMission | null {
   return effect ? {kind:'gakpae', cardIds:shuffled.cards.slice(0,1), effect, enabled:true} : null;
 }
 
+/** A legacy three-card mission completes when all targets have been taken. */
+export function isMissionComplete(mission: CardMission | null | undefined, humanCaptured: string[], computerCaptured: string[]): boolean {
+  if (!mission) return false;
+  if (mission.effect) return Boolean(mission.resolvedBy);
+  if (!mission.cardIds.length) return false;
+  const captured = new Set([...humanCaptured, ...computerCaptured]);
+  return mission.cardIds.every(id => captured.has(id));
+}
+
 export function evaluateCardMission(
   mission: CardMission | null | undefined,
   humanCaptured: string[],
   computerCaptured: string[]
 ): MissionProgress {
-  if (!mission || mission.enabled === false) return { humanCardIds: [], computerCardIds: [], humanMultiplier: 1, computerMultiplier: 1 };
+  if (!mission) return { humanCardIds: [], computerCardIds: [], humanMultiplier: 1, computerMultiplier: 1 };
   const humanSet = new Set(humanCaptured);
   const computerSet = new Set(computerCaptured);
   const humanCardIds = mission.cardIds.filter(cardId => humanSet.has(cardId));
@@ -35,8 +44,8 @@ export function evaluateCardMission(
   return {
     humanCardIds,
     computerCardIds,
-    humanMultiplier: mission.effect ? (mission.effect.kind === 'multiplier' && mission.resolvedBy === 'human' ? mission.effect.value : 1) : 2 ** humanCardIds.length,
-    computerMultiplier: mission.effect ? (mission.effect.kind === 'multiplier' && mission.resolvedBy === 'computer' ? mission.effect.value : 1) : 2 ** computerCardIds.length
+    humanMultiplier: mission.enabled === false ? 1 : mission.effect ? (mission.effect.kind === 'multiplier' && mission.resolvedBy === 'human' ? mission.effect.value : 1) : 2 ** humanCardIds.length,
+    computerMultiplier: mission.enabled === false ? 1 : mission.effect ? (mission.effect.kind === 'multiplier' && mission.resolvedBy === 'computer' ? mission.effect.value : 1) : 2 ** computerCardIds.length
   };
 }
 

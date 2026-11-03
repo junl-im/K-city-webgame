@@ -1,5 +1,5 @@
 import { getCard } from './engine/cards';
-import { evaluateCardMission } from './engine/rules/missions';
+import { evaluateCardMission, isMissionComplete } from './engine/rules/missions';
 
 // Presentation only: old saves without a mission remain unchanged.
 export function missionView(game) {
@@ -13,7 +13,7 @@ export function missionView(game) {
     effect: mission.effect || null,
     enabled: mission.enabled !== false,
     resolvedBy: mission.resolvedBy || null,
-    locked: !!mission.resolvedBy || (!mission.effect && mission.cardIds.some(id => human.includes(id) || computer.includes(id))),
+    locked: isMissionComplete(mission, human, computer) || game.phase === 'round-ended',
     targets: mission.cardIds.map(id => ({
       id,
       owner: human.includes(id) ? 'human' : computer.includes(id) ? 'computer' : null
