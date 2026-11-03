@@ -187,7 +187,7 @@ function effects(label, kind = 'special', visualKind = kind, silent = false) {
   flashKind = visualKind;
   clearTimeout(fxTimer);
   if (!silent) tone(kind);
-  fxTimer = setTimeout(() => { flash = '';flashKind = 'special'; if (app.screen === 'game' && app.game?.phase !== 'round-ended' && !turnTransition) render(); }, SPECIAL_FLASH_MS);
+  fxTimer = setTimeout(() => { flash = '';flashKind = 'special'; if (app.screen === 'game' && app.game?.phase !== 'round-ended' && !turnTransition) { if (ROOT.querySelector('#go-stop-title')) { ROOT.querySelectorAll('.central-event:not(.turn-notice), .event-plaque').forEach(node => node.remove()); } else render(); } }, SPECIAL_FLASH_MS);
 }
 function announceTurn(game, delay = 120) {
   clearTimeout(turnNoticeTimer);
