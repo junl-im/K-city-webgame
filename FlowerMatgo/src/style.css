@@ -3876,3 +3876,17 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--home .home-actions .btn--jewel {font-size:clamp(18px,2vw,23px);padding-inline:17%;}
 .scene--select .setup-bottom > .btn--primary {font-size:clamp(16px,4.5vw,21px);padding-inline:15%;}
 @media(max-width:650px){.scene--game .deck-pile {gap:5px;}.scene--game .deck-pile small {font-size:9px;padding:2px 4px;margin-top:3px;}.scene--game .deck-pile small b {font-size:10px;}.scene--home .home-actions .btn--jewel {font-size:clamp(17px,5vw,21px);}}
+/* Clear call to action on the speech balloon without obscuring its text. */
+.scene--game .double-offer__button {position:relative;}
+.scene--game .double-offer__button::after {content:'눌러 도전!';position:absolute;right:2%;top:3%;padding:4px 8px;border:1px solid #eec584;border-radius:999px;background:#fdf0cb;color:#8f3e22;font-size:10px;font-weight:950;line-height:1;text-shadow:none;box-shadow:0 2px 4px #512c1f55;pointer-events:none;}
+/* Move actionable card choices alongside the score, away from the timer. */
+.scene--game .player-status .special-controls {display:flex;flex-direction:row;align-items:center;flex:0 1 auto;gap:3px;min-width:0;max-width:min(44%,270px);max-height:30px;margin-left:auto;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;}
+.scene--game .player-status .special-controls .action-chip {flex:none;min-height:24px;padding:2px 7px;line-height:1.1;font-size:10px;white-space:nowrap;}
+.scene--game .player-status .special-controls .action-chip:focus-visible {outline:2px solid #ffe596;outline-offset:1px;}
+/* Leave the lettering inside the painted centre of the status plaques. */
+.scene--game .event-plaque {background-size:100% 165%;min-width:112px;min-height:29px;padding:5px 26px;font-size:clamp(11px,3vw,15px);line-height:1.05;overflow-wrap:normal;word-break:keep-all;}
+.scene--game .rack-warning {background-size:100% 165%;padding:4px 12px;font-size:8px;line-height:1;}
+@media(max-width:650px){.scene--game .player-status .special-controls {max-width:42%;max-height:25px;}.scene--game .player-status .special-controls .action-chip {min-height:23px;padding:2px 5px;font-size:9px;}.scene--game .event-plaque {min-width:85px;min-height:24px;padding:4px 19px;font-size:clamp(10px,2.9vw,13px);}.scene--game .double-offer__button::after {font-size:9px;padding:3px 6px;}}
+/* Keep the invitation legible over the illustrated balloon. */
+.scene--game .double-offer__button::after {background:#a74224;color:#fff9e9;border-color:#ffdca2;font-size:11px;padding:4px 8px;}
+@media(max-width:650px){.scene--game .double-offer__button::after {font-size:10px;padding:4px 7px;}}
