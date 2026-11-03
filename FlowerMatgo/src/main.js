@@ -412,6 +412,10 @@ function missionPanel(mission) {
   return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. 자세히 보기"><span class="mission-panel__title">미션</span><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><strong>${safe(mission.effect?effect:'×'+mission.humanMultiplier)}</strong></span></button>${mission.effect ? `<button type="button" class="mission-toggle" data-action="mission-toggle" aria-label="미션 사용 ${mission.enabled?'끄기':'켜기'}" aria-pressed="${mission.enabled}" ${mission.resolvedBy?'disabled':''}>${mission.enabled?'켜짐':'꺼짐'}</button>` : ''}</div>`;
 }
 
+function autoButtonContent(enabled) {
+  return `<span class="auto-control__title">자동</span><span class="auto-control__state">${enabled ? '켜짐' : '꺼짐'}</span>`;
+}
+
 function gameScreen() {
   const g = app.game;
   if (!g) return home();
@@ -461,7 +465,7 @@ function gameScreen() {
       <div class="hand-heading"><strong>내 패 ${hand.length}장</strong> <span>${yourTurn?'패를 눌러 내기':'상대 차례'}</span></div>
       <div class="hand-workspace">
       <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{mission:isMission(id),action:yourTurn?'play':null,matchHint:g.phase==='playing' && (!yourTurn || !pending || getCard(id)?.month===pending) && getMatchingFloorCards(g.floorCards,id).length>0})).join('') : ((g.humanBombSkips || 0)?'':'<span class="no-cards">손패를 모두 냈어!</span>')}${Array.from({length:g.humanBombSkips || 0},(_,index)=>`<button type="button" class="bomb-empty-card" data-action="flip" aria-label="폭탄 빈 패 ${index+1}, 사용하면 더미만 뒤집기" ${yourTurn && !pending?'':'disabled'}><span class="bomb-empty-label">폭탄패</span></button>`).join('')}</div>
-        <span class="player-controls">${humanTurnSignature(app.screen,g) ? `<span class="turn-clock" role="timer" aria-label="내 차례 남은 시간"><span class="turn-clock__time"><strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</span><span class="turn-clock__rail"><span class="turn-clock__fill" data-turn-fill></span></span></span>` : '<span class="turn-clock turn-clock--waiting">상대 차례</span>'}${specialActionButtons ? `<span class="special-controls" role="group" aria-label="가능한 특수 행동">${specialActionButtons}</span>` : ''}<button type="button" class="action-chip action-chip--auto ${app.autoMode?'is-on':''}" data-action="automode" aria-pressed="${app.autoMode}">자동 ${app.autoMode?'ON':'OFF'}</button></span>
+        <span class="player-controls">${humanTurnSignature(app.screen,g) ? `<span class="turn-clock" role="timer" aria-label="내 차례 남은 시간"><span class="turn-clock__time"><strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</span><span class="turn-clock__rail"><span class="turn-clock__fill" data-turn-fill></span></span></span>` : '<span class="turn-clock turn-clock--waiting">상대 차례</span>'}${specialActionButtons ? `<span class="special-controls" role="group" aria-label="가능한 특수 행동">${specialActionButtons}</span>` : ''}<button type="button" class="action-chip action-chip--auto ${app.autoMode?'is-on':''}" data-action="automode" aria-label="자동 치기 ${app.autoMode?'끄기':'켜기'}" aria-pressed="${app.autoMode}">${autoButtonContent(app.autoMode)}</button></span>
       </div>
     </div>
 
@@ -1002,7 +1006,7 @@ function mutate(action, value, cardId) {
     if (turnTransition) {
       try { const checkpoint=JSON.parse(localStorage.getItem(SAVE_KEY)); if(checkpoint){checkpoint.autoMode=app.autoMode;localStorage.setItem(SAVE_KEY,JSON.stringify(checkpoint));} } catch { /* In-memory mode remains available. */ }
       const button=ROOT.querySelector('[data-action="automode"]');
-      if(button){button.textContent='자동 '+(app.autoMode?'ON':'OFF');button.classList.toggle('is-on',app.autoMode);button.setAttribute('aria-pressed',String(app.autoMode));}
+      if(button){button.innerHTML=autoButtonContent(app.autoMode);button.classList.toggle('is-on',app.autoMode);button.setAttribute('aria-pressed',String(app.autoMode));button.setAttribute('aria-label','자동 치기 '+(app.autoMode?'끄기':'켜기'));}
     } else {save();render();}
     return;
   }
