@@ -18,21 +18,21 @@ Object.assign(s,{heroIds:[null,null,'fox',null,null],heroSprites:[null,null,spri
   tweens:{add(){}}
 });
 s.layoutHeroSprites();
-assert.equal(s.heroSprites[2].displayWidth,85,'Starting fox uses a slim rear-view portrait');
-assert.ok(s.heroSprites[2].displayHeight>s.heroSprites[2].displayWidth,'Rear-view sprite is taller than wide');
+assert.equal(s.heroSprites[2].displayWidth,94,'Starting fox keeps the full proportionate painting');
+assert.equal(s.heroSprites[2].displayHeight,s.heroSprites[2].displayWidth,'Never stretch painted sprites independently by axis');
 assert.equal(s.recruitHero('bear'),true);
 assert.deepEqual(s.heroIds,[null,'bear','fox',null,null]);
 assert.equal(s.recruitHero('bear'),false,'Must diversify before duplicate species');
 assert.equal(s.recruitHero('rabbit'),true);
 assert.deepEqual(s.heroIds,[null,'bear','fox','rabbit',null]);
-assert.equal(s.heroSprites[2].displayWidth,77,'Three characters resize');
+assert.equal(s.heroSprites[2].displayWidth,86,'Three characters resize');
 assert.equal(s.recruitHero('cat'),true);
 assert.deepEqual(s.heroIds,['cat','bear','fox','rabbit',null]);
-assert.equal(s.heroSprites[2].displayWidth,71,'Four characters resize');
+assert.equal(s.heroSprites[2].displayWidth,79,'Four characters resize');
 assert.equal(s.recruitHero('rabbit'),true);
 assert.deepEqual(s.heroIds,['cat','bear','fox','rabbit','rabbit']);
 assert.ok(s.heroSprites.every(Boolean),'Every one of five seats has a rendered defender');
-assert.equal(s.heroSprites[2].displayWidth,65,'Five characters fit smaller artwork');
+assert.equal(s.heroSprites[2].displayWidth,72,'Five characters fit smaller artwork');
 assert.equal(s.recruitHero('bear'),false,'A full formation cannot take another unit');
 assert.equal(new Set(s.heroIds).size,4,'Five seats still preserve four different species');
 console.log('ForestGuard 1-to-5 roster, centered fox and duplicate cap: PASS');
