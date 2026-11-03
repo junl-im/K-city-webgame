@@ -407,6 +407,9 @@ function missionCompactLabel(mission) {
   if (effect.kind === 'multiplier') return `×${effect.value}배`;
   return effect.kind === 'steal' ? '피 뺏기' : '피 주기';
 }
+function switchContents(enabled) {
+  return `<span class="game-switch__track" aria-hidden="true"><span class="game-switch__thumb"></span></span><span class="game-switch__label">${enabled ? '켬' : '끔'}</span>`;
+}
 function missionPanel(mission) {
   if (!mission) return '<div class="mission-empty">이번 판 미션 없음</div>';
   const effect=missionEffectLabel(mission.effect);
@@ -416,11 +419,11 @@ function missionPanel(mission) {
     const x=((artworkOrdinal(target.id,ordinal)-1)/3*100).toFixed(5), y=((item.month-1)/11*100).toFixed(5);
     return `<span class="mission-mini mission-mini--${target.owner || 'open'}" style="--mission-x:${x}%;--mission-y:${y}%"><span class="mission-mini__face"></span>${target.owner ? `<span class="mission-mini__owner">${target.owner==='human'?'나':'상대'}</span>` : ''}</span>`;
   }).join('');
-  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. 자세히 보기"><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><strong>${safe(missionCompactLabel(mission))}</strong></span></button>${mission.effect ? `<button type="button" class="mission-toggle" data-action="mission-toggle" aria-label="미션 사용 ${mission.enabled?'끄기':'켜기'}" aria-pressed="${mission.enabled}" ${mission.resolvedBy?'disabled':''}>${mission.enabled?'켜짐':'꺼짐'}</button>` : ''}</div>`;
+  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. 자세히 보기"><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><strong>${safe(missionCompactLabel(mission))}</strong></span></button>${mission.effect ? `<button type="button" class="mission-toggle" data-action="mission-toggle" aria-label="미션 사용 ${mission.enabled?'끄기':'켜기'}" aria-pressed="${mission.enabled}" ${mission.resolvedBy?'disabled':''}>${switchContents(mission.enabled)}</button>` : ''}</div>`;
 }
 
 function autoButtonContent(enabled) {
-  return `<span class="auto-control__title">자동</span><span class="auto-control__state">${enabled ? '켜짐' : '꺼짐'}</span>`;
+  return `<span class="auto-control__title">자동</span>${switchContents(enabled)}`;
 }
 
 function gameScreen() {

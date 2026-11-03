@@ -3795,3 +3795,21 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
  .scene--game .mission-status-row .mission-panel__content strong {font-size:clamp(20px,1.8vw,24px);}
  .scene--game .mission-status-row .mission-toggle {right:8px;top:5px;min-width:46px;min-height:28px;font-size:11px;}
 }
+
+/* Shared, text-labelled switches reuse the game's painted controls. */
+.scene--game .game-switch__track {position:relative;display:inline-block;flex:none;box-sizing:border-box;width:25px;height:14px;border:1px solid #a99e82;border-radius:999px;background:#bfc5ad;box-shadow:inset 0 1px 2px #48514155;vertical-align:middle;}
+.scene--game .game-switch__thumb {position:absolute;top:1px;left:1px;width:10px;height:10px;border-radius:50%;background:#fff8e5;box-shadow:0 1px 2px #52422d80;transition:transform .16s ease;}
+.scene--game [aria-pressed=true] .game-switch__track {border-color:#a55c2f;background:#ce8442;}
+.scene--game [aria-pressed=true] .game-switch__thumb {transform:translateX(11px);}
+.scene--game .game-switch__label {font-size:10px;font-weight:950;line-height:1;color:#55604e;white-space:nowrap;}
+.scene--game [aria-pressed=true] .game-switch__label {color:#803d21;}
+.scene--game .mission-status-row .mission-toggle {gap:3px;min-width:49px;padding:3px 5px;}
+.scene--game .mission-status-row .mission-toggle::before,.scene--game .hand-workspace .action-chip--auto::before {content:none;}
+.scene--game .hand-workspace .action-chip--auto {gap:2px;}
+.scene--game .hand-workspace .game-switch__track {width:25px;height:14px;}
+.scene--game .hand-workspace .game-switch__label {font-size:9px;}
+@media(max-width:650px){.scene--game .mission-status-row .mission-toggle {min-width:46px;min-height:24px;padding:3px 4px;}.scene--game .mission-status-row .game-switch__track {width:22px;height:13px;}.scene--game .mission-status-row .game-switch__thumb {width:9px;height:9px;}.scene--game .mission-status-row [aria-pressed=true] .game-switch__thumb {transform:translateX(9px);}.scene--game .mission-status-row .game-switch__label {font-size:9px;}}
+@media(prefers-reduced-motion:reduce){.scene--game .game-switch__thumb {transition:none;}}
+/* Keep the control outside the illustration's readable centre. */
+.scene--game .mission-status-row .mission-toggle {top:auto;bottom:-14px;}
+
