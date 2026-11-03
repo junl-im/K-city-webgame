@@ -3812,4 +3812,3 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 @media(prefers-reduced-motion:reduce){.scene--game .game-switch__thumb {transition:none;}}
 /* Keep the control outside the illustration's readable centre. */
 .scene--game .mission-status-row .mission-toggle {top:auto;bottom:-14px;}
-
