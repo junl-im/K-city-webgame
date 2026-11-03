@@ -4,7 +4,7 @@ import type { AiDifficulty } from './ai/types';
 import { createMatgoDeck, dealMatgo, shuffleDeck } from './deck';
 import { drawThroughBonusPee, isBonusPee, playBonusPeeFromHand } from './rules/bonusPee';
 import { canChooseGoStop } from './rules/decisions';
-import { calculateCapturedScore } from './rules/scoring';
+import { calculatePlayerScore } from './rules/scoring';
 import { calculateSettlement } from './rules/settlement';
 import { capturedMissionCards, createCardMission, missionMultiplierFor } from './rules/missions';
 import type { RoundMultiplier } from './rules/nagari';
@@ -288,12 +288,7 @@ function advanceAfterAction(next: GameState, player: PlayerId, actionMessage: st
 }
 
 export function scoreFor(state: GameState, player: PlayerId) {
-  const keys = keysFor(player);
-  const score = calculateCapturedScore(state[keys.captured], { gookjinAsDoubleJunk: state[keys.gookjin] });
-  const points = (player === 'human' ? state.humanMissionPoints : state.computerMissionPoints) ?? 0;
-  if (!points) return score;
-  const total = Math.max(0, score.total + points);
-  return {...score,total,lines:[...score.lines,{code:'mission' as const,label:'미션 점수',points:total-score.total,description:`미션 ${points > 0 ? '+' : ''}${points}점`}]};
+  return calculatePlayerScore(state, player);
 }
 
 export function setMissionEnabled(state: GameState, enabled: boolean): GameState {

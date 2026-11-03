@@ -1,6 +1,7 @@
 import { getCard } from '../cards';
 import { DEFAULT_MATGO_RULES, type GameRuleSettings } from './settings';
 import type { CapturedScore, ScoreLine } from './types';
+import type { GameState, PlayerId } from '../types';
 
 export interface ScoreOptions {
   gookjinAsDoubleJunk?: boolean;
@@ -65,4 +66,16 @@ export function calculateCapturedScore(cardIds: string[], options: ScoreOptions 
     gookjinAsDoubleJunk,
     lines
   };
+}
+
+/** One score calculation for game decisions, presentation and AI. */
+export function calculatePlayerScore(state: GameState, player: PlayerId): CapturedScore {
+  const human = player === 'human';
+  const score = calculateCapturedScore(human ? state.humanCaptured : state.computerCaptured, {
+    gookjinAsDoubleJunk: human ? state.humanGookjinAsDoubleJunk : state.computerGookjinAsDoubleJunk
+  });
+  const points = (human ? state.humanMissionPoints : state.computerMissionPoints) ?? 0;
+  if (!points) return score;
+  const total = Math.max(0, score.total + points);
+  return {...score, total, lines:[...score.lines, {code:'mission', label:'미션 점수', points:total-score.total, description:`미션 ${points > 0 ? '+' : ''}${points}점`}]};
 }

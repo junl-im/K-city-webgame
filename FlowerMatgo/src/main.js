@@ -477,7 +477,7 @@ function missionOverlay(g) {
   return `<div class="modal-shade modal-shade--decision"><section class="modal-box mission-dialog" role="dialog" aria-modal="true" aria-labelledby="mission-title">
     <h2 id="mission-title">미션</h2><p>${mission.effect ? `미션패를 먼저 획득한 사람에게 ${safe(missionEffectLabel(mission.effect))} 효과가 적용돼요. 배수는 승리 정산에 반영돼요.` : '미션패를 한 장씩 먹을 때마다 그 사람의 미션 배수가 두 배가 돼요.'}</p>
     <div class="mission-targets">${mission.targets.map(target=>`<div class="mission-target">${card(target.id,{small:true})}<small>${target.owner==='human'?'내가 획득':target.owner==='computer'?'상대 획득':'미획득'}</small></div>`).join('')}</div>
-    <p class="mission-progress">${mission.effect ? (mission.resolvedBy ? (mission.resolvedBy==='human'?'내가 완료':'상대가 완료') : (mission.enabled?'진행 중':'미션 꺼짐')) : `나 ${mission.humanCount}장 · ×${mission.humanMultiplier} <span>상대 ${mission.computerCount}장 · ×${mission.computerMultiplier}</span>`}</p>
+    <p class="mission-progress">${mission.effect ? (mission.resolvedBy ? (!mission.enabled?'미션 꺼짐 · 효과 없음':mission.resolvedBy==='human'?'내가 완료':'상대가 완료') : (mission.enabled?'진행 중':'미션 꺼짐')) : `나 ${mission.humanCount}장 · ×${mission.humanMultiplier} <span>상대 ${mission.computerCount}장 · ×${mission.computerMultiplier}</span>`}</p>
     <p class="mission-note">미션패의 위치는 공개되지 않아요. 꺼진 동안 미션패가 획득되면 효과 없이 종료돼요. 이동할 피가 없으면 피 이동 효과가 없어요.</p>
     ${btn('돌아가기','close','btn--primary btn--wide')}
   </section></div>`;
