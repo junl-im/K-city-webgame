@@ -1,0 +1,272 @@
+/* ForestGuard v4.5 — 하나의 숲 풍경 위에 읽기 쉬운 선택 화면.
+   기존 재화/자동선택/저장/전투 값은 건드리지 않는다. SVG 미사용. */
+#modal-layer:has(#modal-box:is(.recruit-dialog,.growth-dialog)) {
+  padding: max(8px,env(safe-area-inset-top)) 10px max(8px,env(safe-area-inset-bottom));
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) {
+  position:relative;
+  box-sizing:border-box;
+  width:min(440px,100%)!important;
+  max-width:440px!important;
+  max-height:min(680px,calc(100dvh - 18px))!important;
+  padding:clamp(14px,3.5vw,19px)!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  border:0!important;
+  border-radius:18px!important;
+  color:#f9eccd!important;
+  background:
+    linear-gradient(180deg,rgba(11,35,28,.90),rgba(10,35,28,.95) 48%,rgba(11,24,21,.97)),
+    url('./art/forest-entrance-v08.png') center/cover no-repeat!important;
+  box-shadow:0 16px 38px rgba(0,10,7,.72),inset 0 1px rgba(244,221,161,.21)!important;
+  filter:none!important;
+  scrollbar-color:rgba(204,166,99,.65) transparent;
+  scrollbar-width:thin;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog)::before,
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog)::after {
+  content:none!important;
+  display:none!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .modal-top {
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  min-height:24px!important;
+  padding:0!important;
+  margin:0 0 5px!important;
+  background:none!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) #modal-kicker {
+  display:block!important;
+  font:700 clamp(10px,2.7vw,12px)/1.3 var(--fg-story-font),sans-serif!important;
+  letter-spacing:.04em!important;
+  color:#c9b487!important;
+  text-shadow:0 1px 3px #07180f!important;
+  white-space:normal!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .close-button {
+  display:grid!important;place-items:center!important;
+  flex:0 0 29px!important;
+  width:29px!important;height:29px!important;min-height:29px!important;
+  padding:0!important;
+  background:rgba(26,46,37,.74)!important;
+  border:1px solid rgba(224,199,148,.36)!important;
+  border-radius:50%!important;
+  box-shadow:none!important;
+  color:#f8e7bd!important;
+  font:700 24px/1 sans-serif!important;
+  text-shadow:none!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) #modal-title {
+  margin:1px 0 6px!important;
+  padding:0!important;
+  font-family:var(--fg-action-font),sans-serif!important;
+  font-weight:800!important;
+  font-size:clamp(21px,5.2vw,26px)!important;
+  letter-spacing:-.045em!important;
+  line-height:1.24!important;
+  text-align:center!important;
+  color:#ffe5a4!important;
+  text-shadow:0 2px 4px #08180f!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) #modal-description {
+  max-width:100%!important;
+  margin:0 0 11px!important;
+  padding:0 4px!important;
+  font-family:var(--fg-story-font),sans-serif!important;
+  font-size:clamp(11px,2.75vw,12px)!important;
+  line-height:1.45!important;
+  font-weight:600!important;
+  letter-spacing:-.03em!important;
+  text-align:center!important;
+  color:#e1dac2!important;
+  text-shadow:0 1px 3px #051b14!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) #modal-body {
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  gap:0!important;
+  background:transparent!important;
+  border:0!important;
+  margin:0!important;
+  padding:0!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .recruit-countdown,
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .draft-countdown {
+  margin:0 0 5px!important;
+  padding:0!important;
+  color:#f0d9a4!important;
+  font:700 clamp(10px,2.65vw,12px)/1.4 var(--fg-story-font),sans-serif!important;
+  text-shadow:0 1px 2px #07190d!important;
+  text-align:center!important;
+  background:none!important;border:0!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .recruit-progress,
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .draft-progress {
+  width:100%!important;
+  height:5px!important;
+  margin:0 0 13px!important;
+  border:0!important;border-radius:8px!important;
+  background:rgba(0,11,9,.76)!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) #recruit-progress-fill,
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) #draft-progress-fill {
+  display:block!important;height:100%!important;border-radius:inherit!important;
+  background:linear-gradient(90deg,#bd945b,#e9d38d)!important;
+  box-shadow:none!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .card-grid {
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:clamp(5px,1.6vw,9px)!important;
+  width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  background:none!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card {
+  box-sizing:border-box!important;
+  display:flex!important;flex-direction:column!important;
+  align-items:center!important;justify-content:flex-start!important;
+  min-width:0!important;max-width:100%!important;
+  gap:5px!important;
+  padding:8px 5px 10px!important;
+  overflow:hidden!important;
+  border:0!important;border-radius:11px!important;
+  background:linear-gradient(180deg,rgba(76,109,75,.33),rgba(18,45,36,.83))!important;
+  box-shadow:inset 0 1px rgba(239,221,171,.21),0 3px 8px rgba(0,9,8,.22)!important;
+  filter:none!important;
+  color:#f9ebc9!important;
+  text-shadow:none!important;
+  transition:background .14s,transform .14s!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card:is(.recommended,.combo) {
+  background:linear-gradient(180deg,rgba(161,134,73,.40),rgba(71,59,29,.79))!important;
+  box-shadow:inset 0 1px rgba(255,231,178,.48),0 3px 8px rgba(0,9,8,.3)!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card:focus-visible {
+  outline:2px solid #ffe5aa!important;outline-offset:2px!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card:active {transform:scale(.97)!important}
+#modal-layer #modal-box.recruit-dialog .recruit-card {
+  min-height:clamp(188px,26dvh,231px)!important;
+}
+#modal-layer #modal-box.recruit-dialog .recruit-card .recruit-portrait {
+  box-sizing:border-box!important;
+  display:block!important;
+  width:100%!important;
+  height:clamp(101px,15dvh,145px)!important;
+  flex:0 0 clamp(101px,15dvh,145px)!important;
+  margin:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;
+  background-size:contain!important;
+  background-position:center center!important;
+  background-repeat:no-repeat!important;
+  filter:drop-shadow(0 3px 3px rgba(4,16,9,.4))!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card strong {
+  display:block!important;
+  width:100%!important;
+  font:800 clamp(11px,2.9vw,13px)/1.24 var(--fg-action-font),sans-serif!important;
+  letter-spacing:-.055em!important;
+  text-align:center!important;
+  white-space:normal!important;
+  color:#ffe9b8!important;
+  text-shadow:0 1px 2px #08180e!important;
+  margin:0!important;
+  overflow-wrap:break-word!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card small {
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:3!important;
+  line-clamp:3!important;
+  flex:none!important;
+  width:100%!important;
+  max-width:100%!important;min-height:0!important;
+  margin:auto 0 0!important;padding:0!important;
+  overflow:hidden!important;
+  font:600 clamp(9px,2.45vw,11px)/1.32 var(--fg-story-font),sans-serif!important;
+  letter-spacing:-.04em!important;
+  text-align:center!important;
+  color:#e0dec9!important;
+  text-shadow:0 1px 2px #08180f!important;
+}
+#modal-layer #modal-box.recruit-dialog .recruit-tag {
+  top:4px!important;right:4px!important;left:auto!important;
+  padding:2px 6px!important;
+  border:0!important;border-radius:10px!important;
+  background:#ecd29a!important;color:#42331c!important;
+  font:800 9px/1.3 var(--fg-action-font),sans-serif!important;
+  box-shadow:none!important;
+}
+#modal-layer #modal-box.growth-dialog .draft-card {
+  min-height:clamp(174px,24dvh,205px)!important;
+  padding-top:12px!important;
+}
+#modal-layer #modal-box.growth-dialog .draft-card .spell-emoji {
+  display:block!important;
+  width:clamp(57px,17vw,82px)!important;
+  height:clamp(57px,17vw,82px)!important;
+  flex:0 0 clamp(57px,17vw,82px)!important;
+  margin:5px auto 4px!important;
+  border:0!important;border-radius:0!important;
+  filter:drop-shadow(0 3px 3px rgba(4,15,13,.4))!important;
+}
+#modal-layer #modal-box.growth-dialog .draft-index {
+  top:6px!important;left:7px!important;
+  font:700 10px/1 var(--fg-story-font),sans-serif!important;
+  color:#bdb58c!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) #modal-actions {
+  margin:13px 0 0!important;padding:0!important;
+  gap:6px!important;background:none!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) #modal-actions .modal-action {
+  width:auto!important;min-width:0!important;
+  min-height:38px!important;height:38px!important;
+  max-width:calc(100% - 16px)!important;
+  padding:7px 20px!important;
+  border:0!important;border-radius:14px!important;
+  background:linear-gradient(180deg,rgba(157,123,69,.88),rgba(86,68,43,.94))!important;
+  box-shadow:inset 0 1px rgba(255,227,169,.45),0 3px 7px #09170ca8!important;
+  font:800 clamp(12px,3vw,14px)/1.2 var(--fg-action-font),sans-serif!important;
+  letter-spacing:-.025em!important;color:#fff2d0!important;
+  text-shadow:0 1px 3px #251b0d!important;
+}
+@media(max-width:360px) {
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog){padding:12px 9px!important}
+  #modal-layer #modal-box.recruit-dialog .recruit-card{min-height:181px!important;padding:6px 3px 8px!important}
+  #modal-layer #modal-box.recruit-dialog .recruit-card .recruit-portrait{
+    height:clamp(92px,14dvh,115px)!important;flex-basis:clamp(92px,14dvh,115px)!important;
+  }
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card strong{font-size:11px!important}
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card small{font-size:9px!important}
+  #modal-layer #modal-box.growth-dialog .draft-card .spell-emoji{
+    width:56px!important;height:56px!important;flex-basis:56px!important;
+  }
+}
+@media(max-height:590px) {
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) {padding:8px 10px!important}
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) #modal-description {margin-bottom:5px!important}
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .recruit-progress,
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .draft-progress {margin-bottom:7px!important}
+  #modal-layer #modal-box.recruit-dialog .recruit-card {min-height:165px!important}
+  #modal-layer #modal-box.recruit-dialog .recruit-card .recruit-portrait {
+    height:85px!important;flex-basis:85px!important;
+  }
+  #modal-layer #modal-box.growth-dialog .draft-card {min-height:145px!important}
+  #modal-layer #modal-box.growth-dialog .draft-card .spell-emoji {
+    width:48px!important;height:48px!important;flex-basis:48px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card {transition:none!important}
+}

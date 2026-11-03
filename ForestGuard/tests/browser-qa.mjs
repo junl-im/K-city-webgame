@@ -204,6 +204,12 @@ try{
     await page.locator('#start-btn').click({timeout:20000});
     await page.locator('#game-root canvas').waitFor({timeout:25000});
     await page.waitForTimeout(420);
+    if(size.width===390){
+      const alphas=await page.evaluate(()=>window.__ForestGuardQA.monsterCutoutAlpha());
+      assert.ok(alphas&&Object.keys(alphas).length===10,'All ten monster textures must exist');
+      assert.ok(Object.entries(alphas).every(([,corners])=>corners.every(value=>value===0)),
+        'Original opaque monster atlas corners must be cut out: '+JSON.stringify(alphas));
+    }
     const battle=await page.evaluate(()=>{
       const arena=document.querySelector('.arena-wrap').getBoundingClientRect();
       const canvas=document.querySelector('#game-root canvas').getBoundingClientRect();
@@ -347,12 +353,42 @@ try{
         x.portrait.bottom<=x.name.top+2&&x.name.bottom<=x.detail.top+2&&
         x.detail.bottom<=x.outer.bottom+2&&x.outer.left>=-2&&x.outer.right<=size.width+2),
         'Original companion paintings, titles and details may not overlap or clip: '+JSON.stringify(recruitLayout));
+      const recruitBox=await page.locator('#modal-box').evaluate(box=>{
+        const r=box.getBoundingClientRect(),title=box.querySelector('#modal-title').getBoundingClientRect(),
+          description=box.querySelector('#modal-description').getBoundingClientRect(),
+          cards=box.querySelector('.card-grid').getBoundingClientRect();
+        return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,scrollHeight:box.scrollHeight,
+          clientHeight:box.clientHeight,titleBottom:title.bottom,descriptionTop:description.top,
+          descriptionBottom:description.bottom,cardsTop:cards.top};
+      });
+      assert.ok(recruitBox.titleBottom<=recruitBox.descriptionTop+2&&
+        recruitBox.descriptionBottom<=recruitBox.cardsTop+55&&
+        recruitBox.left>=-2&&recruitBox.right<=size.width+2,
+        'Recruit dialog text, painting and cards must stay aligned: '+JSON.stringify(recruitBox));
+      await page.screenshot({path:new URL('../test-output/recruit-v45-390.png',import.meta.url).pathname});
       await page.locator('#modal-close').click();
       assert.equal(await page.locator('#modal-layer').isHidden(),true,'Recruit can be deferred');
       await page.locator('.hero-slot.empty').first().click();
       assert.equal(await page.locator('.recruit-card').count(),3,'Empty pedestal reopens recruitment');
       await page.locator('.recruit-rabbit').click();
       assert.equal(await page.locator('.hero-slot:not(.empty)').count(),2,'Recruit joins the defense');
+      assert.equal(await page.evaluate(()=>window.__ForestGuardQA.previewGrowth()),true);
+      assert.equal(await page.locator('.draft-card').count(),3,'Growth modal preserves three active choices');
+      const growthBox=await page.locator('#modal-box').evaluate(box=>{
+        const r=box.getBoundingClientRect(),cards=[...box.querySelectorAll('.draft-card')].map(node=>{
+          const bounds=node.getBoundingClientRect(),heading=node.querySelector('strong').getBoundingClientRect(),
+            detail=node.querySelector('small').getBoundingClientRect();
+          return {left:bounds.left,right:bounds.right,top:bounds.top,bottom:bounds.bottom,
+            headingBottom:heading.bottom,detailTop:detail.top,detailBottom:detail.bottom};
+        });
+        return {left:r.left,right:r.right,bottom:r.bottom,background:getComputedStyle(box).backgroundImage,cards};
+      });
+      assert.ok(growthBox.left>=-2&&growthBox.right<=size.width+2&&
+        growthBox.cards.every(card=>card.headingBottom<=card.detailTop+2&&card.detailBottom<=card.bottom+2),
+        'Growth cards must have distinct non-overlapping descriptions: '+JSON.stringify(growthBox));
+      await page.screenshot({path:new URL('../test-output/growth-v45-390.png',import.meta.url).pathname});
+      await page.locator('.draft-card').first().click();
+      assert.equal(await page.locator('#modal-layer').isHidden(),true,'Growth choice applies and closes');
       assert.equal(await page.locator('.hero-slot.empty').count(),3,'Three future reinforcement slots remain');
       await page.screenshot({path:new URL('../test-output/forest-recruited-rabbit.png',import.meta.url).pathname});
       // Restart once and verify real-time expiry without touching any companion card.
@@ -389,6 +425,11 @@ try{
     assert.ok(bossLayout.left>=-2&&bossLayout.right<=size.width+2,'Boss HUD must fit mobile viewport');
     assert.ok(bossLayout.top>=-2&&bossLayout.bottom<=size.height+2,'Boss HUD vertical clipping');
     await page.screenshot({path:new URL('../test-output/forest-'+size.width+'x'+size.height+'.png',import.meta.url).pathname});
+    if(size.width===390){
+      const boss=await page.evaluate(()=>window.__ForestGuardQA.bossSingleIndicator());
+      assert.deepEqual(boss,{upper:true,overhead:false,warningBar:false},
+        'Elite health and name must appear only in the fixed upper HUD');
+    }
     assert.deepEqual(errors,[],'Uncaught browser error');
     reports.push({viewport:size,menu:'PASS',battle:'PASS',hud: battle.hud.length,buttons:battle.buttons.length});
     await context.close();

@@ -628,6 +628,42 @@
       glow.addColorStop(1,'rgba(240,110,48,0)');
       ctx.fillStyle=glow;ctx.fillRect(0,0,72,72);
     });
+    // Strip only opaque gray backing connected to atlas cell edges. This
+    // leaves enclosed armor/stone details intact, with a feathered outline.
+    const isolateEnemyBackdrop=(c,w,h)=>{
+      const image=c.getImageData(0,0,w,h),pixels=image.data;
+      const corner=[0,w-1,(h-1)*w,h*w-1];
+      const colors=corner.map(i=>Array.from(pixels.slice(i*4,i*4+3)));
+      const bg=colors[0].map((_,k)=>Math.round(colors.reduce((s,r)=>s+r[k],0)/4));
+      if(colors.some(v=>v.some((value,k)=>Math.abs(value-bg[k])>42)))return;
+      const similar=at=>{
+        const d=Math.abs(pixels[at]-bg[0])+Math.abs(pixels[at+1]-bg[1])+Math.abs(pixels[at+2]-bg[2]);
+        return pixels[at+3]>0&&d<78&&
+          Math.max(Math.abs(pixels[at]-bg[0]),Math.abs(pixels[at+1]-bg[1]),Math.abs(pixels[at+2]-bg[2]))<36;
+      };
+      const total=w*h,visited=new Uint8Array(total),queue=new Int32Array(total);
+      let head=0,tail=0;
+      const offer=i=>{if(!visited[i]&&similar(i*4)){visited[i]=1;queue[tail++]=i;}};
+      for(let x=0;x<w;x++){offer(x);offer((h-1)*w+x);}
+      for(let y=0;y<h;y++){offer(y*w);offer(y*w+w-1);}
+      if(tail<Math.round((w+h)*.6))return;
+      while(head<tail){
+        const i=queue[head++],x=i%w,y=(i/w)|0;
+        if(x>0)offer(i-1);if(x<w-1)offer(i+1);
+        if(y>0)offer(i-w);if(y<h-1)offer(i+w);
+      }
+      for(let i=0;i<total;i++){
+        const off=i*4;
+        if(visited[i]){pixels[off+3]=0;continue;}
+        const x=i%w,y=(i/w)|0;
+        const adjacent=(x>0&&visited[i-1])||(x<w-1&&visited[i+1])||
+          (y>0&&visited[i-w])||(y<h-1&&visited[i+w]);
+        if(!adjacent)continue;
+        const deviation=Math.abs(pixels[off]-bg[0])+Math.abs(pixels[off+1]-bg[1])+Math.abs(pixels[off+2]-bg[2]);
+        if(deviation<126)pixels[off+3]=Math.min(pixels[off+3],Math.max(40,Math.round((deviation-48)/78*255)));
+      }
+      c.putImageData(image,0,0);
+    };
     const atlasCell=(c,w,h,idx)=>{
       const cw=atlasBitmap.naturalWidth/4,ch=atlasBitmap.naturalHeight/2;
       c.drawImage(atlasBitmap,(idx%4)*cw,Math.floor(idx/4)*ch,cw,ch,0,0,w,h);
@@ -655,12 +691,14 @@
       }
     }
     ['sprout','runner','brute','boss'].forEach(type=>createCanvasTexture(scene,'enemy-'+type,128,128,(c,w,h)=>{
-      if(atlasBitmap)atlasCell(c,w,h,{sprout:4,runner:5,brute:6,boss:7}[type]);else paintEnemy(c,w,h,type);
+      if(atlasBitmap){atlasCell(c,w,h,{sprout:4,runner:5,brute:6,boss:7}[type]);isolateEnemyBackdrop(c,w,h);}
+      else paintEnemy(c,w,h,type);
     }));
     Object.entries({thorn:0,spore:1,imp:2,crystal:3,shroom:4,guardian:5}).forEach(([type,i])=>createCanvasTexture(scene,'enemy-'+type,128,128,(c,w,h)=>{
       if(monsterBitmap){
         const tw=monsterBitmap.naturalWidth/3,th=monsterBitmap.naturalHeight/2;
         c.drawImage(monsterBitmap,(i%3)*tw,Math.floor(i/3)*th,tw,th,0,0,w,h);
+        isolateEnemyBackdrop(c,w,h);
       }else paintEnemy(c,w,h,['thorn','spore','imp'].includes(type)?'sprout':type==='crystal'?'brute':'boss');
     }));
     for(let i=0;i<8;i++)createCanvasTexture(scene,'evo-'+i,128,128,(c,w,h)=>{
@@ -1017,14 +1055,15 @@
       const lifeYOffset=Math.round(sh*.53)+8;
       const renderedSize=Math.round(Math.sqrt(sw*sh)); // Equal pixel scale: no width/height stretching.
       const spr=this.add.image(lane,-38,'motion-'+type+'-run-0').setDisplaySize(renderedSize,renderedSize).setDepth(4);
-      const lifeBg=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth+2,6,0x302a20).setDepth(5).setVisible(elite);
+      const lifeBg=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth+2,6,0x302a20).setDepth(5).setVisible(false);
       if(['shroom','guardian','boss'].includes(type)){
         const ring=this.add.ellipse(lane,-25,type==='shroom'?142:155,34,
           type==='shroom'?0xd69c57:0xe0c574,.14).setStrokeStyle(2,0xe3c17c,.46).setDepth(3);
         this.tweens.add({targets:ring,alpha:0,scaleX:1.28,scaleY:1.45,duration:840,onComplete:()=>ring.destroy()});
       }
-      const life=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth,4,type==='guardian'?0xffcb73:type==='shroom'?0xf4a86e:0xe18754).setDepth(5).setVisible(elite);
-      const nameLabel=['guardian','boss','shroom'].includes(type)?this.add.text(lane,-38-lifeYOffset-15,ENEMY_INTEL[type].name,{font:'bold 12px system-ui',color:'#fff1c7',stroke:'#423622',strokeThickness:4}).setOrigin(.5).setDepth(7):null;
+      // Fixed upper HUD is the only elite HP/name indicator.
+      const life=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth,4,type==='guardian'?0xffcb73:type==='shroom'?0xf4a86e:0xe18754).setDepth(5).setVisible(false);
+      const nameLabel=null;
       const enemy={nameLabel,type,x:lane,baseX:lane,windPhase:Math.random()*Math.PI*2,y:-38,spr,lifeBg,life,lifeWidth,lifeYOffset,hp,maxHP:hp,spd,slow:0,rooted:0,
         armor:type==='crystal'?.34:type==='shroom'?.12:this.stage.id===9?(type==='runner'?0:.3):(type==='brute'?.18:0),
         abilityCooldown:type==='guardian'?4100:type==='shroom'?7700:5400,warning:0,hidden:0,untargetable:false,surge:0,
@@ -1066,7 +1105,9 @@
       const num=id==='fox'?1+this.multi:id==='megafox'?2+this.multi:1;
       for(let p=0;p<num;p++){
         const offset=(p-(num-1)/2)*12;
-        const bolt=this.add.image(x+offset,542,'shot-'+id).setDisplaySize(id==='cat'?31:id==='rabbit'?27:32,32).setDepth(6);
+        // Back-view muzzle sockets, without changes to combat math.
+        const muzzle={fox:[-17,-24],megafox:[-20,-27],bear:[18,-29],rabbit:[20,-34],cat:[21,-23]}[id]||[0,-24];
+        const bolt=this.add.image(x+muzzle[0]+offset,566+muzzle[1],'shot-'+id).setDisplaySize(id==='cat'?31:id==='rabbit'?27:32,32).setDepth(6);
         const trailColor=id==='rabbit'?0x8fe5ff:id==='cat'?0xffb56c:id==='megafox'?0xffe77f:id==='bear'?0xe8cf9e:0xb9e18a;
         const trail=this.add.image(bolt.x-23,bolt.y,'trail-'+id).setDisplaySize(id==='megafox'?78:65,22).setAlpha(.72).setDepth(5);
         const evolvePower=id==='megafox'&&this.evolutionPath==='sun'?1.25:1;
@@ -1075,8 +1116,14 @@
       const sprite=this.heroSprites[i];if(sprite){
         V.trigger(sprite,'attack',this.gameClock+V.duration(id,'attack'),this.gameClock);
         if(id==='megafox')this.animateEvolutionAttack(sprite);
-        else this.tweens.add({targets:sprite,x:x-5,y:sprite.y-4,duration:85,yoyo:true,repeat:0});
-        this.playHeroAttackCue(x,id);
+        // Return smoothly to the same back-view stance after every shot.
+        // New attacks interrupt only the previous visual lunge.
+        this.tweens.killTweensOf(sprite);
+        sprite.setPosition(x,566);
+        const reach=id==='bear'?6:id==='rabbit'?2:4;
+        this.tweens.add({targets:sprite,x:x-reach,y:559,duration:95,ease:'Sine.easeOut',
+          onComplete:()=>{if(sprite.active)this.tweens.add({targets:sprite,x,y:566,duration:170,ease:'Sine.easeInOut'});}});
+        this.playHeroAttackCue(x+({fox:-17,megafox:-20,bear:18,rabbit:20,cat:21}[id]||0),id);
       }
     }
     playHeroAttackCue(x,id){
@@ -1339,8 +1386,8 @@
       this.clearBossWarning(e);
       const color=e.type==='shroom'?0xf5a658:e.type==='guardian'?0xffdd83:this.stage.id===11?0xce77ff:this.stage.id===7?0xffc46b:0xff8068;
       e.tellRing=this.add.ellipse(e.x,e.y+23,e.type==='shroom'?165:e.type==='guardian'?145:112,35,color,.21).setStrokeStyle(3,color,.9).setDepth(5);
-      e.tellBack=this.add.rectangle(e.x,e.y-56,100,10,0x382a30,.95).setDepth(7);
-      e.tellFill=this.add.rectangle(e.x,e.y-56,94,6,color,1).setDepth(8);
+      // Ground zone warns of boss attack; no duplicate bar above the head.
+      e.tellBack=null;e.tellFill=null;
       e.tellZone=this.add.ellipse(e.x,(e.y+540)/2,e.type==='shroom'?180:e.type==='guardian'?155:110,Math.max(40,540-e.y),color,.075)
         .setStrokeStyle(2,color,.45).setDepth(3);
     }
@@ -1475,10 +1522,10 @@
           e.warning-=dt;
           if(e.tellRing){
             e.tellRing.setPosition(e.x,e.y+23).setAlpha(.55+Math.sin(this.gameClock/120)*.25);
-            e.tellBack.setPosition(e.x,e.y-56);
+            if(e.tellBack)e.tellBack.setPosition(e.x,e.y-56);
             if(e.tellZone)e.tellZone.setPosition(e.x,(e.y+540)/2).setDisplaySize(e.type==='shroom'?180:e.type==='guardian'?155:110,Math.max(40,540-e.y));
             const remaining=Math.max(0,e.warning/1250);
-            e.tellFill.setPosition(e.x-47+47*remaining,e.y-56).setDisplaySize(94*remaining,6);
+            if(e.tellFill)e.tellFill.setPosition(e.x-47+47*remaining,e.y-56).setDisplaySize(94*remaining,6);
           }
           if(e.warning<=0){
             e.warning=0;e.spr.clearTint();this.clearBossWarning(e);
@@ -2063,6 +2110,28 @@
           elapsed:Math.round(battle.time.now-cut.startTime)}:null;
       },
       heroRanges(){return Object.fromEntries(Object.entries(HEROES).map(([id,role])=>[id,role.range]));},
+      monsterCutoutAlpha(){
+        if(!battle||battle.ended)return null;
+        return Object.fromEntries(['sprout','runner','brute','boss','thorn','spore','imp','crystal','shroom','guardian'].map(type=>{
+          const canvas=battle.textures.get('enemy-'+type).getSourceImage();
+          const ctx=canvas.getContext('2d',{willReadFrequently:true}),w=canvas.width,h=canvas.height;
+          return [type,[[0,0],[w-1,0],[0,h-1],[w-1,h-1]].map(([x,y])=>ctx.getImageData(x,y,1,1).data[3])];
+        }));
+      },
+      bossSingleIndicator(){
+        if(!battle||battle.ended)return null;
+        battle.spawnEnemy('guardian');
+        const enemy=[...battle.enemies].reverse().find(e=>e.type==='guardian');
+        const result={upper:!document.getElementById('boss-hud').hidden,
+          overhead:enemy.life.visible||enemy.lifeBg.visible||!!enemy.nameLabel,
+          warningBar:!!enemy.tellBack||!!enemy.tellFill};
+        battle.removeEnemy(enemy);
+        return result;
+      },
+      previewGrowth(){
+        if(!battle||battle.ended||battle.pendingRecruit)return false;
+        battle.showDraft(true);return true;
+      },
       rosterInfo(){return battle?{capacity:HERO_CAPACITY,ids:[...battle.heroIds],positions:[...HERO_POSITIONS]}:null;},
       damageFeedback(){
         if(!battle||battle.ended)return null;

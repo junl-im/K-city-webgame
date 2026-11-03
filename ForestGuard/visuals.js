@@ -1,4 +1,4 @@
-/* 라니 수비대 v4.4 — 영웅 8프레임 원화 연동·몬스터 피격 반동 | © 2026 곰같은여우
+/* 라니 수비대 v4.5 — 몬스터 10종 피격 프레임·종별 타격 연출 | © 2026 곰같은여우
  * Base motion frames are assembled from original ForestGuard paintings.
  * The battle scene replaces hero attacks with four user-supplied 4×2 WebP sheets when available.
  * No SVG, emoji glyphs or third-party character art.
@@ -173,6 +173,60 @@
     }
     c.restore();
   }
+  // Ten independently timed monster hit silhouettes and species accents.
+  const HURT_PERSONALITY={
+    sprout:[-1,5,4,.18,'#bfe887',43,71],
+    runner:[1,11,3,.23,'#f5bd85',66,83],
+    brute:[-1,4,4,.075,'#f1d8aa',78,60],
+    boss:[1,12,10,.11,'#f7d49a',71,58],
+    thorn:[-1,8,7,.20,'#b8e790',45,61],
+    spore:[1,6,5,.13,'#f2c887',54,49],
+    imp:[-1,11,6,.19,'#e6d17d',56,55],
+    crystal:[1,3,3,.055,'#b4effc',74,66],
+    shroom:[-1,9,8,.10,'#ffd6a2',63,57],
+    guardian:[1,5,7,.07,'#d5e9a7',83,66]
+  };
+  function inkHurtAccent(c,id,frame){
+    const p=HURT_PERSONALITY[id];if(!p)return;
+    const strength=Math.sin(Math.PI*(frame+.3)/frameTotal(id,'hurt'));
+    if(strength<.13)return;
+    const [direction,,,,color,x,y]=p;
+    c.save();c.globalAlpha=Math.min(.86,strength*.83);
+    c.strokeStyle=color;c.fillStyle=color;c.lineWidth=ELITE_IDS.has(id)?3.2:2.4;
+    c.lineCap='round';c.lineJoin='round';
+    const slash=(bx,by,len)=>{
+      c.beginPath();c.moveTo(bx,by);
+      c.quadraticCurveTo(bx+direction*len*.3,by-len*.8,bx+direction*len,by-len*.5);c.stroke();
+    };
+    if(id==='sprout'||id==='thorn'){
+      for(let k=0;k<3;k++)slash(x-26+k*17,y+9,12+k*4);
+      c.beginPath();c.ellipse(x-16,y-19,5*strength,2.2*strength,-.5,0,Math.PI*2);c.fill();
+    }else if(id==='runner'||id==='imp'){
+      for(let k=0;k<4;k++){
+        const bx=x-32+k*15,by=y+21+(k%2)*4;
+        c.beginPath();c.moveTo(bx,by);c.lineTo(bx-9*direction,by+5+strength*5);c.stroke();
+      }
+    }else if(id==='crystal'){
+      for(let k=0;k<3;k++){
+        const bx=x-30+k*23,by=y-27+(k%2)*11;
+        c.beginPath();c.moveTo(bx,by-8*strength);c.lineTo(bx+5,by);
+        c.lineTo(bx,by+9*strength);c.lineTo(bx-5,by);c.closePath();c.stroke();
+      }
+    }else if(id==='spore'||id==='shroom'){
+      for(let k=0;k<5;k++){
+        const a=k*2.4+frame*.3,r=12+strength*(id==='shroom'?34:26);
+        c.beginPath();c.arc(x+Math.cos(a)*r,y+Math.sin(a)*r,1.4+(k%3),0,Math.PI*2);c.fill();
+      }
+    }else{
+      const scale=id==='boss'?1.35:id==='guardian'?1.15:1;
+      c.beginPath();c.arc(x,y,17*scale+strength*6,-.9,1.1);c.stroke();
+      slash(x-23,y+8,17*scale);slash(x+20,y-5,17*scale);
+      if(id==='guardian'){c.beginPath();c.moveTo(x-13,y+16);c.lineTo(x+3,y+3);c.lineTo(x-3,y-13);c.stroke();}
+      if(id==='brute'){c.beginPath();c.moveTo(x+8,y+10);c.lineTo(x+20,y+2);c.lineTo(x+12,y-11);c.stroke();}
+      if(id==='boss')for(let k=0;k<3;k++){c.beginPath();c.arc(x-24+k*25,y-20-k*5,2.5+strength*2,0,Math.PI*2);c.fill();}
+    }
+    c.restore();
+  }
   function motionPaint(c,img,id,state,frame){
     const phase=frame/frameTotal(id,state)*Math.PI*2;
     c.clearRect(0,0,128,128);
@@ -194,11 +248,12 @@
     if(state==='hurt'){
       // Eased anticipation → recoil → settle, with a silhouette-safe uniform scale.
       const progress=frame/(frameTotal(id,state)-1),recoil=Math.sin(Math.PI*progress);
-      const direction=(id.length%2?-1:1),elite=ELITE_IDS.has(id);
-      dx=direction*recoil*(elite?10:6);
-      dy=-recoil*(elite?9:6);
-      rot=direction*recoil*(elite?.10:.13);
-      sx=sy=1-recoil*.035;
+      const reaction=HURT_PERSONALITY[id];
+      const direction=reaction?reaction[0]:(id.length%2?-1:1);
+      dx=direction*recoil*(reaction?reaction[1]:6);
+      dy=-recoil*(reaction?reaction[2]:6);
+      rot=direction*recoil*(reaction?reaction[3]:.13);
+      sx=sy=1-recoil*(id==='crystal'?.012:.035);
     }
     if(state==='death'){
       const fade=(frame+1)/frameTotal(id,state);
@@ -318,17 +373,7 @@
       c.fillStyle=ELITE_IDS.has(id)?'rgba(255,198,122,'+(.26*intensity)+')':
         'rgba(255,122,96,'+(.20*intensity)+')';
       c.fillRect(0,0,128,128);c.restore();
-      if(!HERO_IDS.has(id)&&intensity>0){
-        c.save();c.globalAlpha=intensity*.85;c.lineCap='round';c.lineWidth=ELITE_IDS.has(id)?3.4:2.4;
-        c.strokeStyle=id==='crystal'?'#c8f2ff':id==='shroom'||id==='spore'?'#ffd1ab':'#f8e5b1';
-        const reach=ELITE_IDS.has(id)?24:16;
-        for(let shard=0;shard<3;shard++){
-          const x=35+shard*23+(id.length%2?5:-3),y=24+shard*8;
-          c.beginPath();c.moveTo(x-reach*.6,y+reach*.3);
-          c.quadraticCurveTo(x+4,y-10-intensity*6,x+reach,y-reach*.6);c.stroke();
-        }
-        c.restore();
-      }
+      if(!HERO_IDS.has(id))inkHurtAccent(c,id,frame);
     }
     if(state==='victory'){c.fillStyle='#ffe0a1';for(let i=0;i<3;i++){const x=22+i*40,y=17+(i%2)*17;c.beginPath();c.arc(x,y,2+frame%2,0,Math.PI*2);c.fill();}}
   }
