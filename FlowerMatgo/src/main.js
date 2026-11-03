@@ -1,3 +1,4 @@
+import { handHint } from './handHint.js';
 import './style.css';
 import {
   createInitialGame, chooseGo, chooseStop, chooseChongtong,
@@ -182,7 +183,7 @@ function effects(label, kind = 'special', visualKind = kind, silent = false) {
   flashKind = visualKind;
   clearTimeout(fxTimer);
   if (!silent) tone(kind);
-  fxTimer = setTimeout(() => { flash = '';flashKind = 'special'; if (app.screen === 'game' && !turnTransition) render(); }, SPECIAL_FLASH_MS);
+  fxTimer = setTimeout(() => { flash = '';flashKind = 'special'; if (app.screen === 'game' && app.game?.phase !== 'round-ended' && !turnTransition) render(); }, SPECIAL_FLASH_MS);
 }
 const RIVALS = [
   {nick:'느긋한 밤톨이',animal:'bear'}, {nick:'장난꾸러기 여울',animal:'fox'},
@@ -219,7 +220,7 @@ function card(id, options = {}) {
   // Every 광 face has its 光 seal printed inside the v19 raster already.
   // No extra bright mark: otherwise the glyph appears twice on small phones.
   const mark = `${visual.doubleJunkText ? `<span class="hwatu__double-mark" aria-hidden="true">${visual.doubleJunkText}</span>` : ''}${options.mission ? '<span class="mission-card-mark" aria-hidden="true">미션</span>' : ''}`;
-  const classes = `hwatu hwatu--month-${String(month).padStart(2,'0')} hwatu--ordinal-${String(ordinal).padStart(2,'0')} ${small?'hwatu--small':''} ${options.tiny?'hwatu--tiny':''} ${bonus?'hwatu--bonus':''} ${options.pileIndex?'hwatu--pile-'+options.pileIndex:''} ${interactive?'hwatu--interactive':''} ${options.matchHint?(interactive?'hwatu--match-hint':'hwatu--match-idle'):''} ${visual.gookjinConverted?'hwatu--converted':''}`;
+  const classes = `hwatu hwatu--month-${String(month).padStart(2,'0')} hwatu--ordinal-${String(ordinal).padStart(2,'0')} ${small?'hwatu--small':''} ${options.tiny?'hwatu--tiny':''} ${bonus?'hwatu--bonus':''} ${options.pileIndex?'hwatu--pile-'+options.pileIndex:''} ${interactive?'hwatu--interactive':''} ${options.matchHint?(interactive?'hwatu--match-hint':'hwatu--match-idle'):''} ${options.quietHint?'hwatu--quiet-hint':''} ${options.bonusHint?'hwatu--bonus-hint':''} ${visual.gookjinConverted?'hwatu--converted':''}`;
   return `<${interactive ? 'button' : 'div'} class="${classes}" ${style} data-card="${safe(id)}" ${interactive ? `type="button" data-action="${options.action}" aria-label="${safe(aria)} ${['pickmatch','draw-choice'].includes(options.action)?'먹기':'내기'}"` : `role="img" aria-label="${safe(aria)}" title="${safe(aria)}"`}>
     ${bonus ? `<span class="hwatu__face"></span><span class="hwatu__bonus-banner" aria-hidden="true">보너스</span><span class="hwatu__bonus-mark" aria-hidden="true">${safe(item.typeLabel)}</span>` : `<span class="hwatu__face"></span>${mark}${options.shakeHint ? '<span class="hwatu__shake-hint" aria-hidden="true"></span>' : ''}`}
   </${interactive ? 'button' : 'div'}>`;
@@ -287,7 +288,7 @@ function home() {
     <section class="home-content">
       <div class="hero-copy">
         <p class="eyebrow"><span class="eyebrow-dot">✿</span> 오늘도 꽃놀이마당 OPEN <span class="eyebrow-dot">✿</span></p>
-        <h1 class="home-logo"><small>곰같은여우의</small><span><i>라니</i><em>맞고</em></span></h1>
+        <h1 class="home-logo"><small>곰같은여우의</small><img class="rani-title-art" src="${import.meta.env.BASE_URL}assets/rani-title-v1.png" alt="라니맞고" width="900" height="300"></h1>
         <p class="hero-hook">라니와 함께, 한판 할까?</p>
         <p class="lead">밤톨이, 여울, 설이가 기다리는<br><strong>웃음꽃 피는 맞고 한판!</strong></p>
         <p class="home-invite">♧ 익숙한 화투, 우리 친구들만의 반짝이는 승부 ♧</p>
@@ -427,7 +428,7 @@ function missionPanel(mission) {
     const x=((artworkOrdinal(target.id,ordinal)-1)/3*100).toFixed(5), y=((item.month-1)/11*100).toFixed(5);
     return `<span class="mission-mini mission-mini--${target.owner || 'open'}" style="--mission-x:${x}%;--mission-y:${y}%"><span class="mission-mini__face"></span>${target.owner ? `<span class="mission-mini__owner">${target.owner==='human'?'나':'상대'}</span>` : ''}</span>`;
   }).join('');
-  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. ${mission.requiredCount ? `목표 ${mission.requiredCount}장, 나 ${mission.humanCount}장, 상대 ${mission.computerCount}장.` : ''} 자세히 보기"><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><span class="mission-panel__reward">${mission.unconditional ? `<span class="mission-unconditional-art" aria-hidden="true"></span><strong>×${mission.effect.value}배</strong>` : `<strong>${safe(missionCompactLabel(mission))}</strong>`}${mission.requiredCount ? `<small>${mission.humanCount}/${mission.requiredCount}</small>` : ''}</span></span></button><button type="button" class="mission-toggle" data-action="mission-toggle" aria-label="${mission.locked?'종료된 미션은 변경할 수 없어요':`미션 사용 ${mission.enabled?'끄기':'켜기'}`}" aria-pressed="${mission.enabled}" ${mission.locked?'disabled title="종료된 미션은 변경할 수 없어요"':''}>${switchContents(mission.enabled, mission.failed ? '종료' : mission.locked ? '완료' : '')}</button></div>`;
+  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. ${mission.requiredCount ? `목표 ${mission.requiredCount}장, 나 ${mission.humanCount}장, 상대 ${mission.computerCount}장.` : ''} 자세히 보기"><span class="mission-panel__title" aria-hidden="true">미션</span><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><span class="mission-panel__reward">${mission.unconditional ? `<span class="mission-unconditional-art" aria-hidden="true"></span><strong>×${mission.effect.value}배</strong>` : `<strong>${safe(missionCompactLabel(mission))}</strong>`}${mission.requiredCount ? `<small>${mission.humanCount}/${mission.requiredCount}</small>` : ''}</span></span></button><button type="button" class="mission-toggle" data-action="mission-toggle" aria-label="${mission.locked?'종료된 미션은 변경할 수 없어요':`미션 사용 ${mission.enabled?'끄기':'켜기'}`}" aria-pressed="${mission.enabled}" ${mission.locked?'disabled title="종료된 미션은 변경할 수 없어요"':''}>${switchContents(mission.enabled, mission.failed ? '종료' : mission.locked ? '완료' : '')}</button></div>`;
 }
 
 function autoButtonContent(enabled) {
@@ -483,7 +484,7 @@ function gameScreen() {
       ${capturedRack(g)}
       <div class="hand-heading"><strong>내 패 ${hand.length}장</strong> <span>${yourTurn?'패를 눌러 내기':'상대 차례'}</span></div>
       <div class="hand-workspace">
-      <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{mission:isMission(id),shakeHint:shakeMonths.has(getCard(id)?.month),action:yourTurn?'play':null,matchHint:g.phase==='playing' && (!yourTurn || !pending || getCard(id)?.month===pending) && getMatchingFloorCards(g.floorCards,id).length>0})).join('') : ((g.humanBombSkips || 0)?'':'<span class="no-cards">손패를 모두 냈어!</span>')}${Array.from({length:g.humanBombSkips || 0},(_,index)=>`<button type="button" class="bomb-empty-card" data-action="flip" aria-label="폭탄 빈 패 ${index+1}, 사용하면 더미만 뒤집기" ${yourTurn && !pending?'':'disabled'}><span class="bomb-empty-label">폭탄패</span></button>`).join('')}</div>
+      <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{mission:isMission(id),shakeHint:shakeMonths.has(getCard(id)?.month),action:yourTurn?'play':null,matchHint:(!yourTurn || !pending || getCard(id)?.month===pending) && handHint(g,id)==='match',quietHint:handHint(g,id)==='dead',bonusHint:handHint(g,id)==='bonus'})).join('') : ((g.humanBombSkips || 0)?'':'<span class="no-cards">손패를 모두 냈어!</span>')}${Array.from({length:g.humanBombSkips || 0},(_,index)=>`<button type="button" class="bomb-empty-card" data-action="flip" aria-label="폭탄 빈 패 ${index+1}, 사용하면 더미만 뒤집기" ${yourTurn && !pending?'':'disabled'}><span class="bomb-empty-label">폭탄패</span></button>`).join('')}</div>
         <span class="player-controls">${humanTurnSignature(app.screen,g) ? `<span class="turn-clock" role="timer" aria-label="내 차례 남은 시간"><span class="turn-clock__time"><strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</span><span class="turn-clock__rail"><span class="turn-clock__fill" data-turn-fill></span></span></span>` : '<span class="turn-clock turn-clock--waiting">상대 차례</span>'}<button type="button" class="action-chip action-chip--auto ${app.autoMode?'is-on':''}" data-action="automode" aria-label="자동 치기 ${app.autoMode?'끄기':'켜기'}" aria-pressed="${app.autoMode}">${autoButtonContent(app.autoMode)}</button></span>
       </div>
     </div>
