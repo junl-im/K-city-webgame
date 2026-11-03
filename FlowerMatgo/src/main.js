@@ -184,12 +184,17 @@ function effects(label, kind = 'special', visualKind = kind, silent = false) {
   if (!silent) tone(kind);
   fxTimer = setTimeout(() => { flash = '';flashKind = 'special'; if (app.screen === 'game' && !turnTransition) render(); }, SPECIAL_FLASH_MS);
 }
-function opponent() { return DIFFICULTIES.find(d => d.id === app.difficulty) || DIFFICULTIES[1]; }
+const RIVALS = [
+  {nick:'느긋한 밤톨이',animal:'bear'}, {nick:'장난꾸러기 여울',animal:'fox'},
+  {nick:'꽃패의 달인 설이',animal:'cat'}, {nick:'재빠른 단풍이',animal:'redpanda'},
+  {nick:'행운의 보리',animal:'bear'}, {nick:'반짝이는 호두',animal:'fox'}, {nick:'달빛 마루',animal:'cat'}, {nick:'승부사 루루',animal:'redpanda'}
+];
+function opponent() { const level = DIFFICULTIES.find(d => d.id === app.difficulty) || DIFFICULTIES[1]; return ['opening','game'].includes(app.screen) && RIVALS[app.rivalIndex] ? {...level,...RIVALS[app.rivalIndex]} : level; }
 function opponentReaction(g, humanScore, computerScore) {
   if (g.phase === 'round-ended') return g.winner === 'computer' ? '헤헤, 이번 판은 내 승리!' : '다음 판은 꼭 이길 거야!';
   if (g.currentPlayer === 'computer') return {
     bear: '으음, 어떤 패를 낼까~?', fox: '헤헷, 이건 내 차례!', cat: '잠깐, 수를 읽는 중이야.'
-  }[opponent().animal];
+  }[opponent().animal] || '이번 판도 재미있게!';
   if (humanScore >= 3 && humanScore > computerScore) return '오, 오늘 감이 좋은데?!';
   if (computerScore >= 3 && computerScore > humanScore) return '후후, 나를 따라잡아 봐!';
   return opponent().quote;
@@ -404,6 +409,7 @@ function missionEffectLabel(effect) {
 }
 function missionCompactLabel(mission) {
   const effect = mission.effect;
+  if (mission.unconditional) return `무조건 ×${effect.value}배`;
   if (!effect) return `×${mission.humanMultiplier}배`;
   if (effect.kind === 'points') return `${effect.value > 0 ? '+' : ''}${effect.value}점`;
   if (effect.kind === 'multiplier') return `×${effect.value}배`;
@@ -414,18 +420,18 @@ function switchContents(enabled, completed = false) {
 }
 function missionPanel(mission) {
   if (!mission) return '<div class="mission-empty">이번 판 미션 없음</div>';
-  const effect=missionEffectLabel(mission.effect);
+  const effect=mission.unconditional ? `무조건 ${missionEffectLabel(mission.effect)}` : missionEffectLabel(mission.effect);
   const accessible=mission.targets.map(target => spokenCardName(getCard(target.id))+': '+(target.owner==='human'?'내가 획득':target.owner==='computer'?'상대 획득':'미획득')).join(', ');
   const thumbs=mission.targets.map(target => {
     const item=getCard(target.id), ordinal=Number(target.id.slice(-2));
     const x=((artworkOrdinal(target.id,ordinal)-1)/3*100).toFixed(5), y=((item.month-1)/11*100).toFixed(5);
     return `<span class="mission-mini mission-mini--${target.owner || 'open'}" style="--mission-x:${x}%;--mission-y:${y}%"><span class="mission-mini__face"></span>${target.owner ? `<span class="mission-mini__owner">${target.owner==='human'?'나':'상대'}</span>` : ''}</span>`;
   }).join('');
-  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. ${mission.requiredCount ? `목표 ${mission.requiredCount}장, 나 ${mission.humanCount}장, 상대 ${mission.computerCount}장.` : ''} 자세히 보기"><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><span class="mission-panel__reward"><strong>${safe(missionCompactLabel(mission))}</strong>${mission.requiredCount ? `<small>${mission.humanCount}/${mission.requiredCount}</small>` : ''}</span></span></button><button type="button" class="mission-toggle" data-action="mission-toggle" aria-label="${mission.locked?'종료된 미션은 변경할 수 없어요':`미션 사용 ${mission.enabled?'끄기':'켜기'}`}" aria-pressed="${mission.enabled}" ${mission.locked?'disabled title="종료된 미션은 변경할 수 없어요"':''}>${switchContents(mission.enabled, mission.failed ? '종료' : mission.locked ? '완료' : '')}</button></div>`;
+  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. ${mission.requiredCount ? `목표 ${mission.requiredCount}장, 나 ${mission.humanCount}장, 상대 ${mission.computerCount}장.` : ''} 자세히 보기"><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><span class="mission-panel__reward">${mission.unconditional ? `<span class="mission-unconditional-art" aria-hidden="true"></span><strong>×${mission.effect.value}배</strong>` : `<strong>${safe(missionCompactLabel(mission))}</strong>`}${mission.requiredCount ? `<small>${mission.humanCount}/${mission.requiredCount}</small>` : ''}</span></span></button><button type="button" class="mission-toggle" data-action="mission-toggle" aria-label="${mission.locked?'종료된 미션은 변경할 수 없어요':`미션 사용 ${mission.enabled?'끄기':'켜기'}`}" aria-pressed="${mission.enabled}" ${mission.locked?'disabled title="종료된 미션은 변경할 수 없어요"':''}>${switchContents(mission.enabled, mission.failed ? '종료' : mission.locked ? '완료' : '')}</button></div>`;
 }
 
 function autoButtonContent(enabled) {
-  return `<span class="auto-control__title">자동</span>${switchContents(enabled)}`;
+  return `<span class="auto-control__icon" aria-hidden="true"></span><span class="auto-control__title">자동치기</span><span class="auto-control__state">${enabled?'켜짐':'꺼짐'}</span>`;
 }
 
 function gameScreen() {
@@ -492,7 +498,7 @@ function missionOverlay(g) {
   const mission=missionView(g);
   if (!mission) return '';
   return `<div class="modal-shade modal-shade--decision"><section class="modal-box mission-dialog" role="dialog" aria-modal="true" aria-labelledby="mission-title">
-    <h2 id="mission-title">미션</h2><p>${mission.effect ? `미션패 ${mission.requiredCount || 1}장을 먼저 획득한 사람에게 ${safe(missionEffectLabel(mission.effect))} 효과가 적용돼요. 배수는 승리 정산에 반영돼요.` : '미션패를 한 장씩 먹을 때마다 그 사람의 미션 배수가 두 배가 돼요.'}</p>
+    <h2 id="mission-title">미션</h2><p>${mission.unconditional ? `조건 없이 승자의 정산에 ×${mission.effect.value}배가 적용돼요. 판이 끝나기 전 켜고 끌 수 있어요.` : mission.effect ? `미션패 ${mission.requiredCount || 1}장을 먼저 획득한 사람에게 ${safe(missionEffectLabel(mission.effect))} 효과가 적용돼요. 배수는 승리 정산에 반영돼요.` : '미션패를 한 장씩 먹을 때마다 그 사람의 미션 배수가 두 배가 돼요.'}</p>
     <div class="mission-targets">${mission.targets.map(target=>`<div class="mission-target">${card(target.id,{small:true})}<small>${target.owner==='human'?'내가 획득':target.owner==='computer'?'상대 획득':'미획득'}</small></div>`).join('')}</div>
     <p class="mission-progress">${mission.effect ? (mission.resolvedBy ? (!mission.enabled?'미션 꺼짐 · 효과 없음':mission.resolvedBy==='human'?'내가 완료':'상대가 완료') : mission.failed ? '달성 가능한 패가 남지 않았어요' : (mission.enabled?'나 '+mission.humanCount+'/'+(mission.requiredCount||1)+' · 상대 '+mission.computerCount+'/'+(mission.requiredCount||1):'미션 꺼짐')) : `나 ${mission.humanCount}장 · ×${mission.humanMultiplier} <span>상대 ${mission.computerCount}장 · ×${mission.computerMultiplier}</span>`}</p>
     <p class="mission-note">${mission.effect ? '미션패의 위치는 공개되지 않아요. 꺼진 동안 목표 장수를 채우면 효과 없이 종료돼요. 이동할 피가 없으면 피 이동 효과가 없어요.' : '미션패 3장이 모두 획득되기 전까지 켜고 끌 수 있어요. 꺼져 있으면 미션 배수는 적용되지 않아요.'}</p>
@@ -554,7 +560,7 @@ function gameOverlay(g) {
     const canDouble = !!offer && !app.doubleStake && hasEnoughForTable(app.wallet-offer.amount, g.pointValue);
     return `<div class="modal-shade modal-shade--result"><section class="modal-box result-box result-box--${outcome}" role="dialog" aria-modal="true" aria-labelledby="result-title">
       <div class="result-ribbon" aria-label="이번 판 결과">${nagari?'다시 승부!':win?'내가 이겼어!':'상대 승리'}</div>
-      <div class="result-hero"><div class="result-mascot">${portrait(nagari?'fox':win?'bear':opponent().animal)}</div>
+      <div class="result-hero">${!nagari ? `<span class="result-medal result-medal--${win?'win':'lose'}" aria-label="${win?'승리':'패배'}">${win?'승':'패'}</span>` : ''}<div class="result-mascot">${portrait(nagari?'fox':win?'bear':opponent().animal)}</div>
         <div class="result-hero__words"><h2 id="result-title">${nagari?'나가리! 다음 판으로':win?'와! 한판 이겼어!':'아쉽다, 다음 판엔 이기자!'}</h2>
           <p>${nagari?'이번 판은 승패 없이 끝났어. 다음 판에서 다시 겨뤄!':safe(spokenActionText(g.lastAction))}</p></div></div>
       <div class="result-duel" role="group" aria-label="이번 판 점수 비교">
@@ -971,6 +977,8 @@ function startNew(rematch = false, roundMultiplier = app.nextMultiplier) {
     app.screen='select'; render(); return;
   }
   const seed=crypto.getRandomValues(new Uint32Array(1))[0] || Date.now();
+  const previousRival = Number.isInteger(app.rivalIndex) ? app.rivalIndex : -1;
+  app.rivalIndex = (seed % (RIVALS.length - 1) + (previousRival < 0 ? 0 : previousRival + 1)) % RIVALS.length;
   clearOpening();clearTimeout(aiTimer);clearAutoTimer();
   opening=createOpeningFlow(seed,{
     previousGame: app.game,

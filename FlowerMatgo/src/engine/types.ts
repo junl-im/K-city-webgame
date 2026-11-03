@@ -24,6 +24,7 @@ export interface CardMission {
   kind: 'gakpae';
   cardIds: string[];
   requiredCount?: number;
+  unconditional?: boolean;
   effect?: { kind: 'points' | 'multiplier' | 'steal' | 'give'; value: number };
   enabled?: boolean;
   resolvedBy?: PlayerId;
