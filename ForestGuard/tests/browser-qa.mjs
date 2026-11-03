@@ -270,6 +270,12 @@ try{
       assert.deepEqual(cues,[true,true,true,true],'All four original elemental combat cues must render');
       await page.waitForTimeout(130);
       await page.screenshot({path:new URL('../test-output/element-combat-v39-390.png',import.meta.url).pathname});
+      const motion=await page.evaluate(()=>window.__ForestGuardQA.motionInfo());
+      assert.deepEqual(motion,{heroAttack8:true,eliteAttack6:true,eliteHurt6:true,heroDuration:520},
+        'Eight-beat rear attacks and elite hit frames must be baked into the actual battle');
+      const tracked=await page.evaluate(()=>window.__ForestGuardQA.damageNumberTrack());
+      assert.ok(tracked?.alive&&tracked.shift>22,'Damage number must follow moving enemy position');
+      await page.screenshot({path:new URL('../test-output/motion-impact-v40-390.png',import.meta.url).pathname});
       await page.waitForFunction(()=>window.__ForestGuardQA.damageFeedback()!==null,null,{timeout:12000});
       const damageNow=await page.evaluate(()=>window.__ForestGuardQA.damageFeedback());
       assert.ok(damageNow.ordinaryBarHidden,'Ordinary mobs must not show an HP bar');

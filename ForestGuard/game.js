@@ -1031,7 +1031,7 @@
         this.projectiles.push({spr:bolt,trail,target,x:bolt.x,y:bolt.y,damage:hero.damage*this.damageBonus*evolvePower,kind:id});
       }
       const sprite=this.heroSprites[i];if(sprite){
-        V.trigger(sprite,'attack',this.gameClock+465,this.gameClock);
+        V.trigger(sprite,'attack',this.gameClock+V.duration(id,'attack'),this.gameClock);
         if(id==='megafox')this.animateEvolutionAttack(sprite);
         else this.tweens.add({targets:sprite,x:x-5,y:sprite.y-4,duration:85,yoyo:true,repeat:0});
         this.playHeroAttackCue(x,id);
@@ -1054,7 +1054,7 @@
       }
     }
     animateEvolutionAttack(sprite){
-      V.trigger(sprite,'attack',this.gameClock+465,this.gameClock);
+      V.trigger(sprite,'attack',this.gameClock+V.duration(id,'attack'),this.gameClock);
       this.cameras.main.shake(80,.0017);
     }
     previewRange(index){
@@ -1148,7 +1148,7 @@
       }
     }
     showDamageNumber(e,damage,critical,kind){
-      if(this.damageFloatCount>=22||this.ended)return;
+      if(this.damageFloatCount>=22||this.ended)return null;
       this.damageFloatCount++;
       const ordinal=this.damageFloatSerial++;
       const xOffset=[-13,0,13,-7,7][ordinal%5];
@@ -1157,14 +1157,24 @@
       const style={font:'900 '+size+'px system-ui',
         color:critical?'#ffe072':kind==='rabbit'?'#b8efff':kind==='cat'?'#ffd0a5':'#fff4d7',
         stroke:critical?'#633616':'#35271d',strokeThickness:critical?5:4};
-      const number=this.add.text(e.x+xOffset,e.y-(elite?55:29),String(damage)+(critical?'!':''),
+      const baseY=elite?55:29;
+      const number=this.add.text(e.x+xOffset,e.y-baseY,String(damage)+(critical?'!':''),
         style).setOrigin(.5).setDepth(9).setScale(critical?1.2:1);
-      this.tweens.add({targets:number,y:number.y-(critical?43:29),
-        x:number.x+(ordinal%2?6:-6),scale:critical?1.42:1.06,alpha:0,
-        duration:critical?780:650,ease:'Cubic.easeOut',onComplete:()=>{
+      let anchorX=e.x,anchorY=e.y;
+      const flight={rise:0,drift:0,alpha:1,scale:critical?1.2:1};
+      const follow=()=>{
+        // Lock to the moving target while alive; freeze at its last position after death.
+        if(e.spr?.active){anchorX=e.x;anchorY=e.y;}
+        if(number.active)number.setPosition(anchorX+xOffset+flight.drift,
+          anchorY-baseY-flight.rise).setAlpha(flight.alpha).setScale(flight.scale);
+      };
+      this.tweens.add({targets:flight,rise:critical?43:29,drift:ordinal%2?6:-6,
+        scale:critical?1.42:1.06,alpha:0,duration:critical?780:650,
+        ease:'Cubic.easeOut',onUpdate:follow,onComplete:()=>{
           if(number.active)number.destroy();
           this.damageFloatCount=Math.max(0,this.damageFloatCount-1);
         }});
+      return number;
     }
     hitEnemy(e,damage,kind){
       if(!this.enemies.includes(e)||e.untargetable)return;
@@ -1192,7 +1202,7 @@
       if(kind==='megafox')e.hp-=Math.floor(actual*.2);
       e.life.width=e.lifeWidth*Math.max(0,e.hp/e.maxHP);
       this.showDamageNumber(e,actual,crit,kind);
-      V.trigger(e.spr,'hurt',this.gameClock+250);
+      V.trigger(e.spr,'hurt',this.gameClock+V.duration(e.type,'hurt'),this.gameClock);
       e.spr.setTintFill(0xffffff);this.time.delayedCall(75,()=>{if(e.spr.active)e.spr.clearTint();});
       if(kind==='megafox'&&this.evolutionPath==='sun'){
         for(const other of [...this.enemies]){
@@ -1310,9 +1320,9 @@
         const x=hero.x,y=hero.y;
         const flash=this.add.ellipse(x,y+13,40,14,color,.16).setStrokeStyle(2,color,.8).setDepth(5);
         this.tweens.add({targets:flash,alpha:0,scale:1.6,duration:370,onComplete:()=>flash.destroy()});
-        if(kind==='crystal')V.trigger(hero,'victory',this.gameClock+400);
-        else if(kind==='spore')V.trigger(hero,'attack',this.gameClock+330);
-        else V.trigger(hero,'idle',this.gameClock+250);
+        if(kind==='crystal')V.trigger(hero,'victory',this.gameClock+400,this.gameClock);
+        else if(kind==='spore')V.trigger(hero,'attack',this.gameClock+330,this.gameClock);
+        else V.trigger(hero,'idle',this.gameClock+250,this.gameClock);
       }
     }
     terrainVisual(kind,x=210,y=294){
@@ -1407,7 +1417,7 @@
           }
           if(e.warning<=0){
             e.warning=0;e.spr.clearTint();this.clearBossWarning(e);
-            V.trigger(e.spr,'attack',this.gameClock+490);
+            V.trigger(e.spr,'attack',this.gameClock+V.duration(e.type,'attack'),this.gameClock);
             if(e.type==='shroom'){this.sporeVolley(e);e.abilityCooldown=7800;}
             if(e.type==='guardian'){
               e.surge=1250;this.hp=Math.max(0,this.hp-45);renderHUD();
@@ -1431,7 +1441,7 @@
         }else if(!e.untargetable&&e.y>105){
           e.abilityCooldown-=dt;
           if(e.abilityCooldown<=0){
-            V.trigger(e.spr,'attack',this.gameClock+700);
+            V.trigger(e.spr,'attack',this.gameClock+700,this.gameClock);
             e.warning=1250;e.abilityCooldown=6900;
             e.spr.setTint(0xff9b60);this.startBossWarning(e);
             const title=e.type==='shroom'?'버섯 거한 · 포자탄 경고':e.type==='guardian'?'숲의 수호자 · 충격파 예고':this.stage.id===3?'뿌리 돌진 예고':this.stage.id===7?'잠복 이동 예고':'검은 종 진동 예고';
@@ -1773,7 +1783,7 @@
         // Illustrated creature behavior: thorn beetles weave and lunge, crystals pulse armor,
         // and the mushroom elite rallies nearby scouts once. No per-frame new textures.
         if((e.type==='thorn'||e.type==='imp') && e.y>(e.type==='imp'?260:185) && !e.hasDashed){
-          e.hasDashed=true;e.surge=e.type==='imp'?380:720;V.trigger(e.spr,'attack',this.gameClock+400);
+          e.hasDashed=true;e.surge=e.type==='imp'?380:720;V.trigger(e.spr,'attack',this.gameClock+400,this.gameClock);
           const dash=this.add.ellipse(e.x,e.y+15,56,18,0xc9df76,.18).setDepth(3);
           this.tweens.add({targets:dash,scale:1.7,alpha:0,duration:380,onComplete:()=>dash.destroy()});
         }
@@ -1781,14 +1791,14 @@
           const guarding=(this.gameClock+e.windPhase*300)%5200<1550;
           const cracked=e.crystalShatterUntil>this.gameClock;
           e.armor=Math.max(0,(guarding?Math.min(.55,e.baseArmor+.16):e.baseArmor)-(cracked?.15:0));
-          if(guarding&&!e.guarding){V.trigger(e.spr,'attack',this.gameClock+400);
+          if(guarding&&!e.guarding){V.trigger(e.spr,'attack',this.gameClock+400,this.gameClock);
             const shield=this.add.ellipse(e.x,e.y+12,65,32,0x81e2f8,.16).setStrokeStyle(2,0x93efff,.75).setDepth(3);
             this.tweens.add({targets:shield,scale:1.38,alpha:0,duration:490,onComplete:()=>shield.destroy()});
           }
           e.guarding=guarding;
         }
         if(e.type==='shroom'&&!e.hasRallied&&e.y>=245){
-          e.hasRallied=true;V.trigger(e.spr,'attack',this.gameClock+600);
+          e.hasRallied=true;V.trigger(e.spr,'attack',this.gameClock+600,this.gameClock);
           let allies=0;
           for(const ally of this.enemies){
             if(ally===e||!['sprout','runner','thorn','imp'].includes(ally.type)||Math.hypot(ally.x-e.x,ally.y-e.y)>145)continue;
@@ -1799,7 +1809,7 @@
           if(allies)showBanner('버섯 거한의 포자 함성 · 주변 적 돌진!');
         }
         if(e.type==='spore'&&!e.hasSpores&&e.hp<e.maxHP*.5){
-          e.hasSpores=true;V.trigger(e.spr,'attack',this.gameClock+450);let buffed=0;
+          e.hasSpores=true;V.trigger(e.spr,'attack',this.gameClock+450,this.gameClock);let buffed=0;
           for(const ally of this.enemies){
             if(ally===e||ally.untargetable||Math.hypot(ally.x-e.x,ally.y-e.y)>105)continue;
             ally.surge=Math.max(ally.surge,520);buffed++;
@@ -2000,6 +2010,23 @@
          if(!battle||battle.ended)return null;
          return ['forest','frost','stone','flame'].map((kind,i)=>
            battle.showElementCue(kind,72+i*92,310,true));
+       },
+       motionInfo(){
+         if(!battle||battle.ended)return null;
+         return {heroAttack8:battle.textures.exists('motion-fox-attack-7'),
+           eliteAttack6:battle.textures.exists('motion-shroom-attack-5'),
+           eliteHurt6:battle.textures.exists('motion-guardian-hurt-5'),
+           heroDuration:V.duration('fox','attack')};
+       },
+       damageNumberTrack(){
+         if(!battle||battle.ended)return null;
+         const dummy={type:'sprout',x:160,y:275,spr:{active:true}};
+         const float=battle.showDamageNumber(dummy,26,false,'fox');
+         if(!float)return null;
+         const origin=float.x;
+         dummy.x+=36;
+         return new Promise(resolve=>setTimeout(()=>
+           resolve({shift:float.active?float.x-origin:0,alive:float.active}),130));
        },
        renderInfo(){
         if(!battle||!battle.rampartFront)return null;
