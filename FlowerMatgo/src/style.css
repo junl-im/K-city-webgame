@@ -3680,8 +3680,6 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 @keyframes central-event-call {0%{opacity:0;transform:translate(-50%,-50%) scale(.75);}14%{opacity:1;transform:translate(-50%,-50%) scale(1.06);}28%,72%{opacity:1;transform:translate(-50%,-50%) scale(1);}100%{opacity:0;transform:translate(-50%,-53%) scale(.96);}}
 @media(prefers-reduced-motion:reduce){.central-event {animation:none;}}
 /* Existing mission targets are public; concealed card locations remain private. */
-.scene--game .mission-chip {display:inline-flex;align-items:center;justify-content:center;min-height:28px;margin-left:5px;padding:3px 8px;border:1px solid #e0ba77;border-radius:10px;background:#fff1d0;color:#7c4325;font-size:11px;font-weight:950;line-height:1;white-space:nowrap;cursor:pointer;touch-action:manipulation;}
-.scene--game .mission-chip:focus-visible {outline:3px solid #ffe697;outline-offset:2px;}
 .hwatu .mission-card-mark {position:absolute;z-index:3;top:2%;left:3%;padding:1px 3px;border:1px solid #ffe7a4;border-radius:4px;background:#9d381de8;color:#fff9dd;font-size:clamp(7px,2.2vw,10px);font-weight:950;line-height:1.2;pointer-events:none;text-shadow:0 1px #4d170d;}
 .scene--game .mission-dialog {width:min(390px,100%);max-height:calc(100svh - 24px);overflow:auto;padding:18px;color:#604332;}
 .scene--game .mission-dialog h2 {margin:0 0 6px;font-size:24px;}
@@ -3698,9 +3696,7 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--game .settlement-details li {display:flex;justify-content:space-between;gap:8px;font-size:11px;}
 .scene--game .settlement-details strong {text-align:right;}
 .scene--game .settlement-details p {padding:0 10px 8px;font-size:11px;}
-@media(max-width:650px){.scene--game .mission-chip {min-height:26px;padding:3px 6px;font-size:10px;}.scene--game .center-status {max-width:98%;}}
 /* Dedicated illustrated mission preview sits directly above the draw pile. */
-.scene--game .deck-pile:has(.mission-panel) {width:clamp(80px,11vw,125px);flex:none;gap:2px;}
 .scene--game .mission-panel {box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:0;width:100%;min-height:60px;padding:5px 7px;border:0;border-radius:0;background:transparent url('/assets/flower-mission-panel-v1.png') center/100% 100% no-repeat;color:#633d25;cursor:pointer;touch-action:manipulation;}
 .scene--game .mission-panel:focus-visible {outline:3px solid #ffdf91;outline-offset:2px;}
 .scene--game .mission-panel__title {font-size:10px;font-weight:950;line-height:1.1;white-space:nowrap;text-shadow:0 1px #fff5d8;}
@@ -3711,8 +3707,8 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--game .mission-mini--computer .mission-mini__face {filter:grayscale(.45) brightness(.75);}
 .scene--game .mission-mini__owner {position:absolute;bottom:0;left:0;right:0;background:#326a49e8;color:#fff;font-size:7px;font-weight:950;line-height:1.1;text-align:center;}
 .scene--game .mission-mini--computer .mission-mini__owner {background:#864537e8;}
-@media(max-width:650px){.scene--game .deck-pile:has(.mission-panel) {width:clamp(77px,23vw,95px);}.scene--game .mission-panel {min-height:56px;padding:4px 5px;}.scene--game .mission-mini {width:clamp(15px,4.3vw,18px);}.scene--game .mission-panel__title {font-size:9px;}.scene--game .mission-panel__content strong {font-size:12px;}}
-@media(max-width:650px) and (max-height:700px){.scene--game .mission-panel {min-height:48px;}.scene--game .mission-mini {width:15px;}.scene--game .deck-pile:has(.mission-panel) .hwatu--back {width:clamp(30px,9vw,40px);}}
+@media(max-width:650px){.scene--game .mission-panel {min-height:56px;padding:4px 5px;}.scene--game .mission-mini {width:clamp(15px,4.3vw,18px);}.scene--game .mission-panel__title {font-size:9px;}.scene--game .mission-panel__content strong {font-size:12px;}}
+@media(max-width:650px) and (max-height:700px){.scene--game .mission-panel {min-height:48px;}.scene--game .mission-mini {width:15px;}}
 
 /* Mission controls and clear playing surface. */
 .scene--game .floor-area {background:none;box-shadow:none;}
@@ -3722,3 +3718,33 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--game .mission-toggle[aria-pressed=false] {background:#d8d1bb;color:#5e6056;}
 .scene--game .mission-toggle:disabled {opacity:.65;cursor:default;}
 .scene--game .mission-empty {padding:5px;color:#f9e8c2;background:#28523acf;border-radius:8px;font-size:10px;white-space:nowrap;}
+
+/* Mission and turn status share an upper row; the deck and cards keep their own area. */
+.scene--game .mission-status-row {display:grid;grid-template-columns:clamp(125px,13vw,160px) minmax(0,1fr);align-items:center;gap:8px;width:100%;flex:none;min-width:0;}
+.scene--game .mission-status-row .center-status {justify-self:center;min-width:0;max-width:100%;}
+.scene--game .mission-status-row .mission-widget {width:100%;}
+.scene--game .mission-status-row .mission-panel {min-height:72px;}
+.scene--game .mission-status-row .mission-mini {width:clamp(22px,2.2vw,27px);}
+.scene--game .mission-status-row .mission-panel__title {font-size:12px;}
+.scene--game .mission-status-row .mission-panel__content strong {font-size:clamp(11px,1.4vw,14px);}
+.scene--game .mission-status-row .mission-toggle {right:0;top:0;min-width:40px;min-height:26px;font-size:10px;}
+.scene--game .mission-status-row .mission-empty {justify-self:center;}
+@media(max-width:650px){
+ .scene--game .mission-status-row {grid-template-columns:clamp(105px,29vw,125px) minmax(0,1fr);gap:5px;}
+ .scene--game .mission-status-row .mission-panel {min-height:57px;}
+ .scene--game .mission-status-row .mission-mini {width:clamp(19px,5.4vw,23px);}
+ .scene--game .mission-status-row .mission-panel__title {font-size:10px;}
+ .scene--game .mission-status-row .mission-panel__content strong {font-size:10px;}
+ .scene--game .mission-status-row .mission-toggle {min-width:38px;min-height:25px;}
+}
+@media(max-width:650px) and (max-height:700px){
+ .scene--game .mission-status-row .mission-panel {min-height:48px;}
+ .scene--game .mission-status-row .mission-mini {width:18px;}
+}
+
+.scene--game .mission-toggle:focus-visible {outline:3px solid #ffdf91;outline-offset:2px;}
+/* Short landscape screens scroll rather than collapsing the playable floor. */
+@media (max-width:650px) and (orientation:landscape) and (max-height:500px) {
+  html, body {height:auto;overflow-y:auto;}
+  .scene--game {height:auto;min-height:620px;overflow:visible;grid-template-rows:39px 45px minmax(300px,1fr) 236px;}
+}

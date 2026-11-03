@@ -409,7 +409,7 @@ function missionPanel(mission) {
     const x=((artworkOrdinal(target.id,ordinal)-1)/3*100).toFixed(5), y=((item.month-1)/11*100).toFixed(5);
     return `<span class="mission-mini mission-mini--${target.owner || 'open'}" style="--mission-x:${x}%;--mission-y:${y}%"><span class="mission-mini__face"></span>${target.owner ? `<span class="mission-mini__owner">${target.owner==='human'?'나':'상대'}</span>` : ''}</span>`;
   }).join('');
-  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. 자세히 보기"><span class="mission-panel__title">미션</span><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><strong>${safe(mission.effect?effect:'×'+mission.humanMultiplier)}</strong></span></button>${mission.effect ? `<button type="button" class="mission-toggle" data-action="mission-toggle" aria-pressed="${mission.enabled}" ${mission.resolvedBy?'disabled':''}>${mission.enabled?'켜짐':'꺼짐'}</button>` : ''}</div>`;
+  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. 자세히 보기"><span class="mission-panel__title">미션</span><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><strong>${safe(mission.effect?effect:'×'+mission.humanMultiplier)}</strong></span></button>${mission.effect ? `<button type="button" class="mission-toggle" data-action="mission-toggle" aria-label="미션 사용 ${mission.enabled?'끄기':'켜기'}" aria-pressed="${mission.enabled}" ${mission.resolvedBy?'disabled':''}>${mission.enabled?'켜짐':'꺼짐'}</button>` : ''}</div>`;
 }
 
 function gameScreen() {
@@ -420,7 +420,7 @@ function gameScreen() {
   const yourTurn = g.phase==='playing' && g.currentPlayer==='human';
   const pending = g.humanPendingShakeMonth;
   const mission = missionView(g);
-  const isMission = id => !!mission?.targets.some(target => target.id === id);
+  const isMission = id => !!mission && (!mission.effect || (mission.enabled && !mission.resolvedBy)) && mission.targets.some(target => target.id === id);
   const specialActionButtons = gameButtons(g);
   const hand = [...g.humanHand].sort((a,b)=>((getCard(a)?.month||0)-(getCard(b)?.month||0)));
   const floor = [...g.floorCards].sort((a,b)=>(getCard(a)?.month||0)-(getCard(b)?.month||0));
@@ -447,10 +447,10 @@ function gameScreen() {
       <span class="table-play__flower table-play__flower--left" aria-hidden="true">✿</span>
       <span class="table-play__flower table-play__flower--right" aria-hidden="true">✿</span>
       <div class="captured-grid">${capturedRack(g,'computer')}</div>
-      <div class="center-status"><span class="status-orb"></span>${active}<span class="round-counter">${g.turnNumber+1}턴</span>${(g.roundMultiplier || 1)>1?`<strong class="round-multiplier" aria-label="이번 판 정산 ${g.roundMultiplier}배">${g.roundMultiplier}배 판</strong>`:''}${app.doubleStake?.gameUuid===g.gameUuid?`<strong class="round-multiplier">×${app.doubleStake.level || 2} 도전 · ${kr(app.doubleStake.amount)}냥</strong>`:''}</div>
+      <div class="mission-status-row">${missionPanel(mission)}<div class="center-status"><span class="status-orb"></span>${active}<span class="round-counter">${g.turnNumber+1}턴</span>${(g.roundMultiplier || 1)>1?`<strong class="round-multiplier" aria-label="이번 판 정산 ${g.roundMultiplier}배">${g.roundMultiplier}배 판</strong>`:''}${app.doubleStake?.gameUuid===g.gameUuid?`<strong class="round-multiplier">×${app.doubleStake.level || 2} 도전 · ${kr(app.doubleStake.amount)}냥</strong>`:''}</div></div>
       <div class="field-heading"><strong>바닥패 ${floor.length}장</strong><span>같은 무늬를 맞춰 획득!</span></div>
       <div class="field-row">
-        <div class="deck-pile">${missionPanel(mission)}${cardBack()}<small>남은 패 <b>${g.drawPile.length}</b></small></div>
+        <div class="deck-pile">${cardBack()}<small>남은 패 <b>${g.drawPile.length}</b></small></div>
         <div class="floor-area" data-density="${floorDensity(floor.length)}" aria-label="바닥에 놓인 화투패">${floor.length ? floor.map(id=>{const pile=(g.ppeokPiles||[]).find(p=>p.cardIds.includes(id)); if(!pile) return card(id,{mission:isMission(id)}); const ids=floor.filter(cardId=>pile.cardIds.includes(cardId)); return id===ids[0] ? `<span class="floor-pile" aria-label="싼 패 ${ids.length}장">${ids.map((cardId,index)=>card(cardId,{pileIndex:index+1,mission:isMission(cardId)})).join('')}</span>` : '';}).join('') : '<div class="empty-floor">바닥패가 없어요 ✿</div>'}</div>
       </div>
       <div class="game-message" aria-live="polite" title="${safe(spokenActionText(g.lastAction))}">${safe(spokenActionText(g.lastAction))}</div>
@@ -838,7 +838,7 @@ function commitGame(next, result=null, motion=null) {
   }
   if (gotGookjin) app.pendingGookjinChoice = true;
   const specialText = eventAnnouncement(result, previous?.currentPlayer);
-  const missionText = result?.missionCards?.length ? `${previous?.currentPlayer==='computer'?'상대 ':''}미션 완료${result.missionEffect ? ' · '+result.missionEffect : ' ×'+(result.missionMultiplier || 1)}` : null;
+  const missionText = result?.missionCards?.length ? `${previous?.currentPlayer==='computer'?'상대 ':''}${result.missionEffect ? '미션 완료 · '+result.missionEffect : '미션패 ×'+(result.missionMultiplier || 1)}` : null;
   const eventText = [specialText, missionText].filter(Boolean).join(' · ');
   finishRound();
   if (eventText) effects(eventText, 'special', 'event-list');
