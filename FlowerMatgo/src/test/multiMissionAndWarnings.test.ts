@@ -18,8 +18,10 @@ describe('다장 미션',()=>{
  it('새 미션은 목표 3장 중 2장 또는 3장이 필요하고 미션 없음도 있다',()=>{
   const missions=Array.from({length:3000},(_,i)=>createCardMission(i+1));
   expect(missions.some(m=>!m)).toBe(true);
-  expect(new Set(missions.filter(Boolean).map(m=>m.requiredCount))).toEqual(new Set([2,3]));
-  for(const m of missions.filter(Boolean)) expect(m.cardIds).toHaveLength(3);
+  expect(missions.some(m=>m?.unconditional)).toBe(true);
+  const cardMissions=missions.filter(m=>m && !m.unconditional);
+  expect(new Set(cardMissions.map(m=>m.requiredCount))).toEqual(new Set([2,3]));
+  for(const m of cardMissions) expect(m.cardIds).toHaveLength(3);
  });
  it('목표 하나만 먹으면 진행 상태이며 보상 없이 스위치를 조작할 수 있다',()=>{
   const g=playTurn(arranged(['m01-01','m03-01','m08-01'],2),'human','m01-01').state;

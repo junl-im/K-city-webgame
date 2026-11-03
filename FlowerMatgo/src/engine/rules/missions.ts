@@ -11,21 +11,22 @@ export interface MissionProgress {
 
 export function createCardMission(seed: number): CardMission | null {
   const shuffled = shuffleDeck(createDeck(), seed ^ 0x5f3759df);
-  const effects: Array<CardMission['effect'] | null> = [
-    null, {kind:'points',value:1}, {kind:'points',value:2}, {kind:'points',value:3},
+  const effects: Array<CardMission['effect'] | {kind:'unconditional';value:number} | null> = [
+    null, {kind:'unconditional' as const,value:2}, {kind:'unconditional' as const,value:3}, {kind:'points',value:1}, {kind:'points',value:2}, {kind:'points',value:3},
     {kind:'points',value:-1}, {kind:'points',value:-2}, {kind:'points',value:-3},
     ...[2,3,4,5,6,7,8].map(value => ({kind:'multiplier' as const,value})),
     {kind:'steal',value:1}, {kind:'give',value:1}
   ];
   const choice = randomInteger(shuffled.seed ^ 0x7a8b91cd, effects.length);
   const effect = effects[choice.value];
+  if (effect?.kind === 'unconditional') return {kind:'gakpae', cardIds:[], unconditional:true, effect:{kind:'multiplier',value:effect.value}, enabled:true};
   const requiredCount = 2 + randomInteger(choice.seed ^ 0x65d28a31, 2).value;
   return effect ? {kind:'gakpae', cardIds:shuffled.cards.slice(0,3), requiredCount, effect, enabled:true} : null;
 }
 
 /** A legacy three-card mission completes when all targets have been taken. */
 export function isMissionComplete(mission: CardMission | null | undefined, humanCaptured: string[], computerCaptured: string[]): boolean {
-  if (!mission) return false;
+  if (!mission || mission.unconditional) return false;
   if (mission.effect && !mission.requiredCount) return Boolean(mission.resolvedBy);
   if (mission.resolvedBy) return true;
   if (!mission.cardIds.length) return false;
@@ -39,6 +40,7 @@ export function evaluateCardMission(
   computerCaptured: string[]
 ): MissionProgress {
   if (!mission) return { humanCardIds: [], computerCardIds: [], humanMultiplier: 1, computerMultiplier: 1 };
+  if (mission.unconditional) { const value = mission.enabled === false ? 1 : mission.effect?.value ?? 1; return {humanCardIds:[],computerCardIds:[],humanMultiplier:value,computerMultiplier:value}; }
   const humanSet = new Set(humanCaptured);
   const computerSet = new Set(computerCaptured);
   const humanCardIds = mission.cardIds.filter(cardId => humanSet.has(cardId));

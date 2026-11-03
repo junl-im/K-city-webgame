@@ -5,12 +5,13 @@ import { evaluateCardMission, isMissionComplete } from './engine/rules/missions'
 export function missionView(game) {
   const mission = game?.mission;
   if (mission?.kind !== 'gakpae' || !Array.isArray(mission.cardIds) ||
-      !mission.cardIds.length || mission.cardIds.some(id => !getCard(id))) return null;
+      (!mission.unconditional && !mission.cardIds.length) || mission.cardIds.some(id => !getCard(id))) return null;
   const human = Array.isArray(game.humanCaptured) ? game.humanCaptured : [];
   const computer = Array.isArray(game.computerCaptured) ? game.computerCaptured : [];
   const progress = evaluateCardMission(mission, human, computer);
   return {
     effect: mission.effect || null,
+    unconditional: !!mission.unconditional,
     requiredCount: mission.requiredCount || null,
     failed: !!mission.requiredCount && !mission.resolvedBy && isMissionComplete(mission, human, computer),
     enabled: mission.enabled !== false,
