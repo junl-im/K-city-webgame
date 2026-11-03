@@ -210,20 +210,20 @@ function card(id, options = {}) {
   const y = month ? ((month - 1) / 11 * 100).toFixed(5) : 0;
   const bonusSlot = ['bonus-pee-1','bonus-pee-2','bonus-double-pee-1'].indexOf(id);
   const style = bonus ? `style="--bonus-x:${(Math.max(0,bonusSlot)/2*100).toFixed(5)}%"` : `style="--card-x:${x}%;--card-y:${y}%"`;
-  const aria = `${spokenCardName(item,{gookjinAsDoubleJunk:options.gookjinAsDoubleJunk})} · ${visual.gookjinConverted ? '쌍피' : item.typeLabel}${options.mission ? ' · 미션패' : ''}`;
+  const aria = `${options.shakeHint ? '흔들기 가능 · ' : ''}${spokenCardName(item,{gookjinAsDoubleJunk:options.gookjinAsDoubleJunk})} · ${visual.gookjinConverted ? '쌍피' : item.typeLabel}${options.mission ? ' · 미션패' : ''}`;
   // Every 광 face has its 光 seal printed inside the v19 raster already.
   // No extra bright mark: otherwise the glyph appears twice on small phones.
   const mark = `${visual.doubleJunkText ? `<span class="hwatu__double-mark" aria-hidden="true">${visual.doubleJunkText}</span>` : ''}${options.mission ? '<span class="mission-card-mark" aria-hidden="true">미션</span>' : ''}`;
   const classes = `hwatu hwatu--month-${String(month).padStart(2,'0')} hwatu--ordinal-${String(ordinal).padStart(2,'0')} ${small?'hwatu--small':''} ${options.tiny?'hwatu--tiny':''} ${bonus?'hwatu--bonus':''} ${options.pileIndex?'hwatu--pile-'+options.pileIndex:''} ${interactive?'hwatu--interactive':''} ${options.matchHint?(interactive?'hwatu--match-hint':'hwatu--match-idle'):''} ${visual.gookjinConverted?'hwatu--converted':''}`;
   return `<${interactive ? 'button' : 'div'} class="${classes}" ${style} data-card="${safe(id)}" ${interactive ? `type="button" data-action="${options.action}" aria-label="${safe(aria)} ${['pickmatch','draw-choice'].includes(options.action)?'먹기':'내기'}"` : `role="img" aria-label="${safe(aria)}" title="${safe(aria)}"`}>
-    ${bonus ? `<span class="hwatu__face"></span><span class="hwatu__bonus-banner" aria-hidden="true">보너스</span><span class="hwatu__bonus-mark" aria-hidden="true">${safe(item.typeLabel)}</span>` : `<span class="hwatu__face"></span>${mark}`}
+    ${bonus ? `<span class="hwatu__face"></span><span class="hwatu__bonus-banner" aria-hidden="true">보너스</span><span class="hwatu__bonus-mark" aria-hidden="true">${safe(item.typeLabel)}</span>` : `<span class="hwatu__face"></span>${mark}${options.shakeHint ? '<span class="hwatu__shake-hint" aria-hidden="true"></span>' : ''}`}
   </${interactive ? 'button' : 'div'}>`;
 }
 function cardBack(small = false) {
   return `<span aria-label="뒷면 화투패" class="hwatu hwatu--back ${small?'hwatu--small':''}"><span class="hwatu__face"></span></span>`;
 }
 function uiIcon(name) { return `<span class="ui-icon ui-icon--${name}" aria-hidden="true"></span>`; }
-function brand() { return `<div class="brand"><span class="brand__bloom">${uiIcon('bloom')}</span><span>곰같은여우의 <b>꽃맞고</b></span></div>`; }
+function brand() { return `<div class="brand"><span class="brand__bloom">${uiIcon('bloom')}</span><span>곰같은여우의 <b>라니맞고</b></span></div>`; }
 function btn(label, action, extras = '') { return `<button type="button" class="btn ${extras}" data-action="${action}">${label}</button>`; }
 
 function openingScreen() {
@@ -268,7 +268,7 @@ function openingScreen() {
   }
   return `<main class="scene scene--opening">
     <header class="opening-top top-safe"><button type="button" class="nav-round" data-action="opening-home" aria-label="메인으로">${uiIcon('home')}</button>${brand()}<span class="opening-top__step">${phase==='pick'||phase==='reveal'?'선 정하기':'패 준비'}</span></header>
-    <div class="opening-stage"><p class="opening-kicker">✿ 꽃맞고 한판 준비 ✿</p><h1>${titles[phase]}</h1><p class="opening-description">${descriptions[phase]}</p>
+    <div class="opening-stage"><p class="opening-kicker">✿ 라니맞고 한판 준비 ✿</p><h1>${titles[phase]}</h1><p class="opening-description">${descriptions[phase]}</p>
       ${illustration}
       ${phase==='pick'?'':`<button type="button" class="opening-skip" data-action="opening-skip">${phase==='shuffle'?'선 정하기로':'바로 진행'} ›</button>`}
     </div><div class="opening-friends" aria-hidden="true">${portrait('bear')}${portrait('fox')}${portrait('cat')}</div>
@@ -282,8 +282,8 @@ function home() {
     <section class="home-content">
       <div class="hero-copy">
         <p class="eyebrow"><span class="eyebrow-dot">✿</span> 오늘도 꽃놀이마당 OPEN <span class="eyebrow-dot">✿</span></p>
-        <h1 class="home-logo"><small>곰같은여우의</small><span><i>꽃</i><em>맞고</em></span></h1>
-        <p class="hero-hook">꽃이 피면, 한판 할까?</p>
+        <h1 class="home-logo"><small>곰같은여우의</small><span><i>라니</i><em>맞고</em></span></h1>
+        <p class="hero-hook">라니와 함께, 한판 할까?</p>
         <p class="lead">밤톨이, 여울, 설이가 기다리는<br><strong>웃음꽃 피는 맞고 한판!</strong></p>
         <p class="home-invite">♧ 익숙한 화투, 우리 친구들만의 반짝이는 승부 ♧</p>
         <div class="home-actions">
@@ -325,7 +325,7 @@ function selectScreen() {
       </div>
       <div class="setup-bottom">
         <div class="wallet"><span>보유 놀이머니</span><strong>✦ ${kr(app.wallet)} 냥</strong>${emergency?`<button type="button" class="emergency-charge" data-action="recharge">${uiIcon('coins')} 긴급 무료 충전 +30만 냥</button>`:''}</div>
-        ${btn(canEnter?'꽃맞고 시작하기':'놀이머니가 부족해요','start','btn--primary btn--huge')}
+        ${btn(canEnter?'라니맞고 시작하기':'놀이머니가 부족해요','start','btn--primary btn--huge')}
       </div>
     </section>
     <footer class="setup-footer bottom-safe">${emergency?'✿ 오링! 가장 작은 판도 시작할 수 없을 때만 긴급 무료 충전이 열려.':canEnter?'✿ 가상 놀이머니로만 즐기는 무료 싱글 맞고야.':'✿ 지금 판이 부담되면 초보 난이도의 낮은 점당 금액을 골라줘.'}</footer>
@@ -438,6 +438,7 @@ function gameScreen() {
   const mission = missionView(g);
   const isMission = id => !!mission && mission.enabled && (!mission.effect || !mission.resolvedBy) && mission.targets.some(target => target.id === id);
   const specialActionButtons = gameButtons(g);
+  const shakeMonths = new Set(g.phase === 'playing' && !pending ? findShakeOptions(g.humanHand, g.floorCards, g.humanShakenMonths || []).map(option => option.month) : []);
   const hand = [...g.humanHand].sort((a,b)=>((getCard(a)?.month||0)-(getCard(b)?.month||0)));
   const floor = [...g.floorCards].sort((a,b)=>(getCard(a)?.month||0)-(getCard(b)?.month||0));
   const active = g.phase==='playing' ? (yourTurn?'내 차례':'상대 차례') : g.phase==='awaiting-go-stop' ? '고 / 스톱 선택' : g.phase==='awaiting-chongtong'?'총통!':'한 판 종료';
@@ -476,7 +477,7 @@ function gameScreen() {
       ${capturedRack(g)}
       <div class="hand-heading"><strong>내 패 ${hand.length}장</strong> <span>${yourTurn?'패를 눌러 내기':'상대 차례'}</span></div>
       <div class="hand-workspace">
-      <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{mission:isMission(id),action:yourTurn?'play':null,matchHint:g.phase==='playing' && (!yourTurn || !pending || getCard(id)?.month===pending) && getMatchingFloorCards(g.floorCards,id).length>0})).join('') : ((g.humanBombSkips || 0)?'':'<span class="no-cards">손패를 모두 냈어!</span>')}${Array.from({length:g.humanBombSkips || 0},(_,index)=>`<button type="button" class="bomb-empty-card" data-action="flip" aria-label="폭탄 빈 패 ${index+1}, 사용하면 더미만 뒤집기" ${yourTurn && !pending?'':'disabled'}><span class="bomb-empty-label">폭탄패</span></button>`).join('')}</div>
+      <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{mission:isMission(id),shakeHint:shakeMonths.has(getCard(id)?.month),action:yourTurn?'play':null,matchHint:g.phase==='playing' && (!yourTurn || !pending || getCard(id)?.month===pending) && getMatchingFloorCards(g.floorCards,id).length>0})).join('') : ((g.humanBombSkips || 0)?'':'<span class="no-cards">손패를 모두 냈어!</span>')}${Array.from({length:g.humanBombSkips || 0},(_,index)=>`<button type="button" class="bomb-empty-card" data-action="flip" aria-label="폭탄 빈 패 ${index+1}, 사용하면 더미만 뒤집기" ${yourTurn && !pending?'':'disabled'}><span class="bomb-empty-label">폭탄패</span></button>`).join('')}</div>
         <span class="player-controls">${humanTurnSignature(app.screen,g) ? `<span class="turn-clock" role="timer" aria-label="내 차례 남은 시간"><span class="turn-clock__time"><strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</span><span class="turn-clock__rail"><span class="turn-clock__fill" data-turn-fill></span></span></span>` : '<span class="turn-clock turn-clock--waiting">상대 차례</span>'}<button type="button" class="action-chip action-chip--auto ${app.autoMode?'is-on':''}" data-action="automode" aria-label="자동 치기 ${app.autoMode?'끄기':'켜기'}" aria-pressed="${app.autoMode}">${autoButtonContent(app.autoMode)}</button></span>
       </div>
     </div>
@@ -579,7 +580,7 @@ function gameOverlay(g) {
 }
 function choiceTimer() { return `<p class="decision-timer" role="timer" aria-label="선택 남은 시간">남은 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초 · 시간 종료 시 자동 선택, 자동 ON</p>`; }
 function helpOverlay() {
-  return `<div class="modal-shade"><div class="modal-box help-box"><h2>🎴 꽃맞고, 이렇게 즐겨!</h2>
+  return `<div class="modal-shade"><div class="modal-box help-box"><h2>🎴 라니맞고, 이렇게 즐겨!</h2>
     <ol><li>첫 판에는 패를 섞고 한 장씩 뽑아 선을 정해. 다음 판은 전 판 승자가 먼저 쳐.</li><li>내 손패를 눌러 바닥에 같은 무늬가 있으면 먹어.</li><li>패가 바닥에 착지하면 더미 한 장을 뒤집고 먹은 패를 가져와.</li><li>내 차례와 고/스톱 선택은 20초! 시간이 끝나면 자동으로 진행돼.</li><li><b>자동 ON</b>이면 내 패도 자동으로 내고, OFF면 직접 골라.</li><li><b>내가 먹은 패</b>는 손패 바로 위에 실제 화투 그림으로 쌓여. 종류를 누르면 모두 크게 펼쳐 보여!</li><li>광·열끗·띠·피를 모아 7점부터 고 또는 스톱!</li><li>고는 더 높은 점수를 노리고, 스톱은 지금 점수로 승리해.</li></ol>
     <p>쌍피·광박·피박·고박·흔들기·폭탄·뻑도 적용돼. 난이도는 AI가 선택하는 수의 수준을 바꾸며 패 분배는 동일한 규칙으로 섞어.</p>
     <div class="help-mini">놀이머니는 전부 무료이고, 현금으로 교환할 수 없어. 현재 기기에만 저장돼.</div>
@@ -601,7 +602,7 @@ function cardbookOverlay() {
 function exitOverlay() {
   return `<div class="modal-shade flower-exit-shade"><section class="modal-box flower-exit-box" role="dialog" aria-modal="true" aria-labelledby="flower-exit-title" aria-describedby="flower-exit-help">
     <div class="flower-exit-portrait" aria-hidden="true">${portrait('fox')}</div>
-    <h2 id="flower-exit-title">꽃맞고에서 나갈까요?</h2><p id="flower-exit-help">진행 중인 판은 이 기기에 남아 있어요.</p>
+    <h2 id="flower-exit-title">라니맞고에서 나갈까요?</h2><p id="flower-exit-help">진행 중인 판은 이 기기에 남아 있어요.</p>
     <div class="flower-exit-actions">${btn('계속 놀기','exit-stay','btn--primary btn--wide')}${btn('나가기','exit-leave','btn--quiet btn--wide')}</div>
   </section></div>`;
 }

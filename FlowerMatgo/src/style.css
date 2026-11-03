@@ -412,7 +412,7 @@ button:disabled { cursor: not-allowed; opacity:.48; }
   .nav-round .ui-icon {width:25px;height:25px;}
   .game-title {min-width:0;}
   .game-title .brand {display:none;}
-  .game-title::before {content:'꽃맞고';font-size:13px;font-weight:950;color:#ffdf9f;white-space:nowrap;}
+  .game-title::before {content:'라니맞고';font-size:13px;font-weight:950;color:#ffdf9f;white-space:nowrap;}
   .game-title .brand__bloom {display:none;}
   .game-wallet {min-width:76px;}
   .game-wallet b {font-size:13px;}
@@ -3929,3 +3929,16 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--game .modal-box--choice,.scene--game .mission-dialog,.scene--game .result-box,.scene--game .gallery-box {border:2px solid #d9b06f;box-shadow:inset 0 0 0 2px #fff2caa8,0 12px 32px #17362e85;}
 .scene--game .decision-option,.scene--game .decision-review-button,.scene--game .player-status .special-controls .action-chip {border-color:#c8a36e;box-shadow:inset 0 1px #fff7e4a6,0 2px 3px #1a382d3b;}
 .scene--game .capture-pi-count {border-color:#dbbb79;background:#fff3d6;color:#773c25;}
+/* Rani Matgo: clear action lettering and compact decisions. */
+.scene--game .hwatu__shake-hint {position:absolute;z-index:8;right:-4%;top:-8%;width:48%;aspect-ratio:1;background:url('/assets/rani-shake-bell-v1.png') center/contain no-repeat;filter:drop-shadow(0 2px 2px #261400bb);pointer-events:none;}
+.scene--game .central-event {width:min(90vw,480px);min-height:0;padding:12px 16px;background:radial-gradient(ellipse,#172d22e8 0%,#172d22bd 40%,transparent 73%);color:#ffdb69;font-size:clamp(23px,6vw,40px);font-weight:950;line-height:1.22;text-shadow:0 2px 0 #662c16,2px 3px 0 #472315,-2px -1px 0 #472315,0 4px 12px #000;filter:none;overflow-wrap:anywhere;word-break:keep-all;}
+.scene--game .event-plaque {background:transparent;filter:none;color:#fff0af;text-shadow:0 1px 2px #20160c,0 2px 5px #130900;font-weight:950;}
+.scene--game .modal-shade--decision {background:rgba(9,29,23,.44);}
+.scene--game .modal-box--choice,.scene--game .modal-box--match {border:1px solid #e2c58c;border-radius:18px;background:#183c30f2;color:#fff7df;box-shadow:0 12px 32px #061b14aa;}
+.scene--game .modal-box--choice h2,.scene--game .modal-box--match h2 {color:#fff5d7;text-shadow:none;}
+.scene--game .modal-box--choice .decision-hint,.scene--game .modal-box--match .decision-hint,.scene--game .modal-box--choice .decision-kicker,.scene--game .modal-box--match .decision-kicker {color:#e9d4ab;}
+.scene--game .modal-box--choice .decision-option {border:1px solid #f4cf8b;border-radius:12px;background:#f1cb83;color:#352619;box-shadow:0 3px 0 #96703d;}
+.scene--game .modal-box--choice .decision-option--go {background:#efb73f;color:#30200a;}
+.scene--game .modal-box--choice .decision-option--stop {background:#be4f36;color:#fff8e9;}
+.scene--game .modal-box--choice .decision-option strong,.scene--game .modal-box--choice .decision-option small {color:inherit;text-shadow:none;}
+@media(max-width:650px){.scene--game .central-event {padding:12px;font-size:clamp(21px,6vw,30px);}.scene--game .hwatu__shake-hint {width:46%;}}
