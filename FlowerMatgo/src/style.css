@@ -3679,3 +3679,23 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .central-event--during {z-index:70;animation-duration:.72s;}
 @keyframes central-event-call {0%{opacity:0;transform:translate(-50%,-50%) scale(.75);}14%{opacity:1;transform:translate(-50%,-50%) scale(1.06);}28%,72%{opacity:1;transform:translate(-50%,-50%) scale(1);}100%{opacity:0;transform:translate(-50%,-53%) scale(.96);}}
 @media(prefers-reduced-motion:reduce){.central-event {animation:none;}}
+/* Existing mission targets are public; concealed card locations remain private. */
+.scene--game .mission-chip {display:inline-flex;align-items:center;justify-content:center;min-height:28px;margin-left:5px;padding:3px 8px;border:1px solid #e0ba77;border-radius:10px;background:#fff1d0;color:#7c4325;font-size:11px;font-weight:950;line-height:1;white-space:nowrap;cursor:pointer;touch-action:manipulation;}
+.scene--game .mission-chip:focus-visible {outline:3px solid #ffe697;outline-offset:2px;}
+.hwatu .mission-card-mark {position:absolute;z-index:3;top:2%;left:3%;padding:1px 3px;border:1px solid #ffe7a4;border-radius:4px;background:#9d381de8;color:#fff9dd;font-size:clamp(7px,2.2vw,10px);font-weight:950;line-height:1.2;pointer-events:none;text-shadow:0 1px #4d170d;}
+.scene--game .mission-dialog {width:min(390px,100%);max-height:calc(100svh - 24px);overflow:auto;padding:18px;color:#604332;}
+.scene--game .mission-dialog h2 {margin:0 0 6px;font-size:24px;}
+.scene--game .mission-dialog p {font-size:12px;line-height:1.45;margin:5px 0;}
+.scene--game .mission-targets {display:flex;justify-content:center;gap:12px;margin:12px 0;}
+.scene--game .mission-target {display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;}
+.scene--game .mission-target .hwatu {width:clamp(46px,14vw,65px);}
+.scene--game .mission-target small {font-size:10px;font-weight:900;color:#75513b;white-space:nowrap;}
+.scene--game .mission-progress {display:flex;justify-content:center;flex-wrap:wrap;gap:12px;padding:7px;background:#f8e8ca;border-radius:10px;font-weight:950;}
+.scene--game .mission-note {color:#806854;}
+.scene--game .settlement-details {margin:5px 0 8px;border:1px solid #d6b98c;border-radius:11px;background:#fff8e9b8;color:#694e38;text-align:left;}
+.scene--game .settlement-details summary {padding:8px 10px;font-weight:900;font-size:12px;cursor:pointer;}
+.scene--game .settlement-details ol {display:grid;gap:4px;margin:0;padding:0 10px 8px;list-style:none;}
+.scene--game .settlement-details li {display:flex;justify-content:space-between;gap:8px;font-size:11px;}
+.scene--game .settlement-details strong {text-align:right;}
+.scene--game .settlement-details p {padding:0 10px 8px;font-size:11px;}
+@media(max-width:650px){.scene--game .mission-chip {min-height:26px;padding:3px 6px;font-size:10px;}.scene--game .center-status {max-width:98%;}}
