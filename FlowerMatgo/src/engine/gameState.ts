@@ -6,7 +6,7 @@ import { drawThroughBonusPee, isBonusPee, playBonusPeeFromHand } from './rules/b
 import { canChooseGoStop } from './rules/decisions';
 import { calculatePlayerScore } from './rules/scoring';
 import { calculateSettlement } from './rules/settlement';
-import { capturedMissionCards, createCardMission, missionMultiplierFor } from './rules/missions';
+import { capturedMissionCards, createCardMission, isMissionComplete, missionMultiplierFor } from './rules/missions';
 import type { RoundMultiplier } from './rules/nagari';
 import { DEFAULT_MATGO_RULES, isMatgoPointValue, matgoRulesForPointValue, type MatgoPointValue } from './rules/settings';
 import { evaluateChongtong, findBombOptions, findShakeOptions, isThreePpeok, stealPeeByValue, stealPeeCards } from './rules/specialRules';
@@ -292,7 +292,7 @@ export function scoreFor(state: GameState, player: PlayerId) {
 }
 
 export function setMissionEnabled(state: GameState, enabled: boolean): GameState {
-  if (!state.mission || state.mission.resolvedBy || state.phase === 'round-ended' || (!state.mission.effect && state.mission.cardIds.some(id => state.humanCaptured.includes(id) || state.computerCaptured.includes(id)))) throw new Error('이 판의 미션을 변경할 수 없습니다.');
+  if (!state.mission || state.phase === 'round-ended' || isMissionComplete(state.mission, state.humanCaptured, state.computerCaptured)) throw new Error('이 판의 미션을 변경할 수 없습니다.');
   const next = structuredClone(state);
   next.mission!.enabled = enabled;
   if (enabled && next.mission!.effect) {

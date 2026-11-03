@@ -3851,3 +3851,6 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
  .scene--game .floor-area[data-density="dense"] .hwatu {width:clamp(36px,calc((100svh - 530px) * .40),48px);}
  .scene--game .floor-area[data-density="full"] .hwatu {width:clamp(32px,calc((100svh - 530px) * .40),40px);}
 }
+
+/* Completed mission remains visible and clearly labelled. */
+.scene--game .mission-toggle:disabled {opacity:.82;cursor:not-allowed;}
