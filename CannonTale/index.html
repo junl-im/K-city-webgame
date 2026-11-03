@@ -882,6 +882,8 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  function markBlockImpact(b,previousTier,power){
   b.damageFlash=.32;
   const tier=damageTier(b),x=b.body.position.x,y=b.body.position.y;
+  // Material damage follows the tumbling body rather than floating over the impact crater.
+  if(power>=16)spawnCombatPopup(b,'-'+Math.round(power),b.type,Math.min(44,Math.max(19,b.h*.43)));
   if(tier!==previousTier&&b.hp>0){
    spawnDebris(x,y,b.type,7+tier*4);
    if(tier===2){M.Sleeping.set(b.body,false);M.Body.setAngularVelocity(b.body,b.body.angularVelocity+rnd(-.045,.045));}
@@ -901,12 +903,13 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  function hitCircleRect(p,b){const dx=p.x-b.body.position.x,dy=p.y-b.body.position.y,a=-b.body.angle,c=Math.cos(a),s=Math.sin(a),x=dx*c-dy*s,y=dx*s+dy*c;const qx=clamp(x,-b.w/2,b.w/2),qy=clamp(y,-b.h/2,b.h/2);return(x-qx)**2+(y-qy)**2<p.r*p.r;}
  function spawnCombatPopup(target,value,kind='normal',yOffset){
   const isFoe=!!(target&&typeof target.r==='number');
+  const isBlock=!!(target&&target.body&&typeof target.maxHp==='number');
   const isDuel=target==='player'||target==='ai';
-  const x=isDuel?(target==='player'?190:1018):target.x;
-  const anchorY=isDuel?terrainY(x)-29:target.y;
+  const x=isDuel?(target==='player'?190:1018):isBlock?target.body.position.x:target.x;
+  const anchorY=isDuel?terrainY(x)-29:isBlock?target.body.position.y:target.y;
   const height=yOffset??(isFoe?target.r+20:51);
   game.popups.push({x,y:anchorY-height,value,kind,life:1.02,maxLife:1.02,rise:0,
-   anchor:isFoe?target:null,duelOwner:isDuel?target:null,anchorOffset:height,drift:rnd(-13,13)});
+   anchor:isFoe?target:null,blockBody:isBlock?target.body:null,duelOwner:isDuel?target:null,anchorOffset:height,drift:rnd(-13,13)});
   game.popups=game.popups.slice(-36);
  }
  function defeatFoe(f){if(!f.alive)return;f.alive=false;f.deathTimer=3.8;f.deathAngle=rnd(-.38,.38);f.hitAnim=0;f.attackAnim=0;if(f.body)M.Composite.remove(game.engine.world,f.body);spawnSparks(f.x,f.y,f.boss?50:24,['#a9c75f','#cbdad1','#a9edff','#ffb375'][f.kind||0],f.boss?1.3:.85);spawnCombatPopup(f,f.boss?'대장 격파!':'격파!','ko',f.r+56);if(f.boss){game.shake=20;game.message='요새 대장 격파!';game.messageTime=2;}}
@@ -1062,6 +1065,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
    popup.life-=dt;
    popup.rise=(popup.rise||0)+dt*43;
    if(popup.anchor){popup.x=popup.anchor.x;popup.y=popup.anchor.y-popup.anchorOffset-popup.rise;}
+   else if(popup.blockBody){popup.x=popup.blockBody.position.x;popup.y=popup.blockBody.position.y-popup.anchorOffset-popup.rise;}
    else if(popup.duelOwner){popup.x=popup.duelOwner==='player'?190:1018;popup.y=terrainY(popup.x)-29-popup.anchorOffset-popup.rise;}
    else popup.y-=dt*43;
   }
@@ -1478,7 +1482,7 @@ const materialCells={
    ctx.font=(kind==='ko'?'1000 25px':'900 21px')+' system-ui, sans-serif';
    const dx=(p.drift||0)*rise,dy=p.y-Math.sin(rise*Math.PI)*9;
    ctx.lineWidth=5;ctx.strokeStyle='#1c293c';ctx.strokeText(p.value,p.x+dx,dy);
-   ctx.fillStyle=kind==='ko'?'#fff0a5':kind==='pierce'?'#99ffe9':kind==='blast'?'#ffcb88':kind==='impact'?'#e1d6ff':'#fff7e7';
+   ctx.fillStyle=kind==='ko'?'#fff0a5':kind==='pierce'?'#99ffe9':kind==='blast'?'#ffcb88':kind==='impact'?'#e1d6ff':kind==='wood'?'#ffdfa7':kind==='stone'?'#d6e6f5':kind==='iron'?'#a8dbdf':'#fff7e7';
    ctx.fillText(p.value,p.x+dx,dy);
   }
   ctx.restore();
