@@ -400,6 +400,13 @@ function missionEffectLabel(effect) {
   if (effect.kind==='multiplier') return `정산 ×${effect.value}`;
   return effect.kind==='steal' ? '피 뺏기' : '피 주기';
 }
+function missionCompactLabel(mission) {
+  const effect = mission.effect;
+  if (!effect) return `×${mission.humanMultiplier}배`;
+  if (effect.kind === 'points') return `${effect.value > 0 ? '+' : ''}${effect.value}점`;
+  if (effect.kind === 'multiplier') return `×${effect.value}배`;
+  return effect.kind === 'steal' ? '피 뺏기' : '피 주기';
+}
 function missionPanel(mission) {
   if (!mission) return '<div class="mission-empty">이번 판 미션 없음</div>';
   const effect=missionEffectLabel(mission.effect);
@@ -409,7 +416,7 @@ function missionPanel(mission) {
     const x=((artworkOrdinal(target.id,ordinal)-1)/3*100).toFixed(5), y=((item.month-1)/11*100).toFixed(5);
     return `<span class="mission-mini mission-mini--${target.owner || 'open'}" style="--mission-x:${x}%;--mission-y:${y}%"><span class="mission-mini__face"></span>${target.owner ? `<span class="mission-mini__owner">${target.owner==='human'?'나':'상대'}</span>` : ''}</span>`;
   }).join('');
-  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. 자세히 보기"><span class="mission-panel__title">미션</span><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><strong>${safe(mission.effect?effect:'×'+mission.humanMultiplier)}</strong></span></button>${mission.effect ? `<button type="button" class="mission-toggle" data-action="mission-toggle" aria-label="미션 사용 ${mission.enabled?'끄기':'켜기'}" aria-pressed="${mission.enabled}" ${mission.resolvedBy?'disabled':''}>${mission.enabled?'켜짐':'꺼짐'}</button>` : ''}</div>`;
+  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. 자세히 보기"><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><strong>${safe(missionCompactLabel(mission))}</strong></span></button>${mission.effect ? `<button type="button" class="mission-toggle" data-action="mission-toggle" aria-label="미션 사용 ${mission.enabled?'끄기':'켜기'}" aria-pressed="${mission.enabled}" ${mission.resolvedBy?'disabled':''}>${mission.enabled?'켜짐':'꺼짐'}</button>` : ''}</div>`;
 }
 
 function autoButtonContent(enabled) {
@@ -428,7 +435,7 @@ function gameScreen() {
   const specialActionButtons = gameButtons(g);
   const hand = [...g.humanHand].sort((a,b)=>((getCard(a)?.month||0)-(getCard(b)?.month||0)));
   const floor = [...g.floorCards].sort((a,b)=>(getCard(a)?.month||0)-(getCard(b)?.month||0));
-  const active = g.phase==='playing' ? (yourTurn?'내 차례':'상대가 생각 중…') : g.phase==='awaiting-go-stop' ? '고 / 스톱 선택' : g.phase==='awaiting-chongtong'?'총통!':'한 판 종료';
+  const active = g.phase==='playing' ? (yourTurn?'내 차례':'상대 차례') : g.phase==='awaiting-go-stop' ? '고 / 스톱 선택' : g.phase==='awaiting-chongtong'?'총통!':'한 판 종료';
   const opponentMood = g.phase==='round-ended' ? (g.winner==='computer'?'victory':'surprised')
     : !yourTurn ? 'thinking' : ai.total > me.total ? 'confident' : ai.total < me.total ? 'surprised' : 'ready';
   return `<main class="scene scene--game" data-game-uuid="${safe(g.gameUuid)}">
