@@ -5,8 +5,8 @@ import {
 } from './engine/dealerSelection';
 
 export const OPENING_SHUFFLE_MS = 1350;
-export const OPENING_REVEAL_MS = 3200;
-export const OPENING_DEAL_MS = 1850;
+export const OPENING_REVEAL_MS = 1450;
+export const OPENING_DEAL_MS = 1200;
 
 // The first game lets the player draw for the lead. A completed game's
 // winner leads the rematch, while a drawn round keeps its previous lead.

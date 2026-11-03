@@ -228,10 +228,14 @@ function ppeokCaptureEvent(state: GameState, player: PlayerId, pile: PpeokPile |
 function missionOutcome(state: GameState, player: PlayerId, capturedCardIds: string[]) {
   const missionCards = capturedMissionCards(state.mission, capturedCardIds);
   const mission = state.mission;
-  // A target captured while disabled is finished without an effect.
-  if (mission?.effect && mission.enabled === false && !mission.resolvedBy && mission.cardIds.some(id => capturedCardIds.includes(id))) mission.resolvedBy = player;
+  const required = mission?.requiredCount ?? 1;
+  const owned = player === 'human' ? state.humanCaptured : state.computerCaptured;
+  const progress = mission ? mission.cardIds.filter(id => owned.includes(id)).length : 0;
+  const completedNow = !!mission?.cardIds.some(id => capturedCardIds.includes(id)) && progress >= required;
+  // A disabled mission may finish but must never grant its effect.
+  if (mission?.effect && mission.enabled === false && !mission.resolvedBy && completedNow) mission.resolvedBy = player;
   let missionEffect = '';
-  if (missionCards.length && mission?.effect && !mission.resolvedBy) {
+  if (missionCards.length && mission?.effect && !mission.resolvedBy && completedNow) {
     mission.resolvedBy = player;
     const effect = mission.effect;
     if (effect.kind === 'points') {
@@ -245,12 +249,12 @@ function missionOutcome(state: GameState, player: PlayerId, capturedCardIds: str
       missionEffect = moved.length ? (effect.kind === 'steal' ? `상대 피 ${moved.length}장 뺏기` : `상대에게 피 ${moved.length}장 주기`) : '이동할 피가 없어 효과 없음';
     }
   }
-  return {missionEffect, missionCards, missionMultiplier:missionMultiplierFor(state.mission,state.humanCaptured,state.computerCaptured,player)};
+  return {missionEffect, missionCards, missionCompleted: !!missionEffect, missionProgress: progress, missionRequired: required, missionMultiplier:missionMultiplierFor(state.mission,state.humanCaptured,state.computerCaptured,player)};
 }
 
 function missionMessage(outcome: ReturnType<typeof missionOutcome>): string {
   return outcome.missionCards.length
-    ? outcome.missionEffect ? ` 미션 완료! ${outcome.missionEffect}.` : ` 미션패 ${outcome.missionCards.length}장을 획득해 미션 배수가 ×${outcome.missionMultiplier}가 되었습니다.`
+    ? outcome.missionEffect ? ` 미션 완료! ${outcome.missionEffect}.` : outcome.missionRequired > 1 ? ` 미션패 ${outcome.missionProgress}/${outcome.missionRequired}장 확보!` : ` 미션패 ${outcome.missionCards.length}장을 획득해 미션 배수가 ×${outcome.missionMultiplier}가 되었습니다.`
     : '';
 }
 

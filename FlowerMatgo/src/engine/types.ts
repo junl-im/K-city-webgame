@@ -23,6 +23,7 @@ export interface TurnSpecialEvent {
 export interface CardMission {
   kind: 'gakpae';
   cardIds: string[];
+  requiredCount?: number;
   effect?: { kind: 'points' | 'multiplier' | 'steal' | 'give'; value: number };
   enabled?: boolean;
   resolvedBy?: PlayerId;
@@ -112,6 +113,9 @@ export interface TurnResult {
   specialEvents?: TurnSpecialEvent[];
   missionCards?: string[];
   missionMultiplier?: number;
+  missionCompleted?: boolean;
+  missionProgress?: number;
+  missionRequired?: number;
   replacementCardId?: string | null;
   continuesTurn?: boolean;
 }
