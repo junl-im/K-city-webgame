@@ -3977,3 +3977,14 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 @media(max-width:650px){.scene--game .central-event {font-size:clamp(30px,9vw,55px);}.scene--home .rani-title-art {width:min(100%,280px);}}
 @media(prefers-reduced-transparency:reduce){.scene--game .modal-box--choice {background:#183c30;backdrop-filter:none;}}
 .flower-exit-actions .btn {background:rgba(246,236,210,.78);border:1px solid #c7a675;border-radius:12px;color:#473527;box-shadow:0 2px 5px #37241540;}
+/* Home: a clear route back and a lighter, see-through title panel. */
+.scene--home .home-playground-link {display:inline-flex;align-items:center;gap:7px;min-height:40px;max-width:100%;padding:6px 12px;border:1px solid #ead1a7;border-radius:999px;background:rgba(255,248,229,.87);box-shadow:0 3px 10px #153b2b45;color:#624126;font-size:clamp(10px,2.7vw,13px);font-weight:900;line-height:1.2;text-decoration:none;}
+.scene--home .home-playground-link:hover {background:#fff9e9;color:#ae5023;text-decoration:none;}
+.scene--home .home-playground-link:focus-visible {outline:3px solid #f5cf6e;outline-offset:3px;}
+.scene--home .home-playground-link .ui-icon {width:23px;height:23px;flex:none;}
+.scene--home .hero-copy {margin-top:clamp(9px,2vh,18px);background:linear-gradient(145deg,rgba(255,250,234,.84),rgba(247,238,216,.75));border-color:rgba(255,250,233,.8);}
+.scene--home .home-logo .rani-title-wrap {display:block;position:relative;width:min(100%,350px);font-size:inherit;line-height:normal;letter-spacing:normal;text-shadow:none;-webkit-text-stroke:0;}
+.scene--home .rani-title-wrap .rani-title-art {width:100%;}
+.scene--home .rani-title-cards {position:absolute;z-index:2;right:-2%;top:-30%;width:clamp(48px,21%,78px);height:auto;pointer-events:none;filter:drop-shadow(0 3px 3px #30211280);}
+@media(max-width:650px){.scene--home .home-playground-link {min-height:37px;padding:5px 9px;font-size:10px;}.scene--home .home-playground-link .ui-icon {width:20px;height:20px;}.scene--home .hero-copy {margin:10px auto 0;}.scene--home .home-logo .rani-title-wrap {width:min(100%,280px);}.scene--home .rani-title-cards {width:22%;top:-27%;right:-1%;}}
+@media(prefers-reduced-transparency:reduce){.scene--home .hero-copy {background:#fbf5e8;}}
