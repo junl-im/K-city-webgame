@@ -561,14 +561,13 @@ function gameOverlay(g) {
       </div>
       ${winningCards.length ? `<div class="result-card-peek" aria-label="승자의 획득 화투패 일부"><span>승자의 패</span><div class="result-card-peek__cards">${winningCards.map(id=>card(id,{small:true,gookjinAsDoubleJunk:win?g.humanGookjinAsDoubleJunk:g.computerGookjinAsDoubleJunk})).join('')}</div></div>` : ''}
       ${win ? `<div class="result-prize"><span>이번 판 획득${g.doublePayout ? '<br>더블 승리금 포함' : ''}</span><strong>+${kr(amount+(g.doublePayout || 0))} <small>냥</small></strong></div>` : ''}
-      <div class="result-stats"><div><span>${nagari?'이번 판 결과':'정산 점수'}</span><strong>${nagari?'무승부':finalPoints==null?'—':finalPoints+'점'}</strong></div>
-        <div><span>${nagari?'다음 판 배수':win?'획득 놀이머니':'사용 놀이머니'}</span><strong class="${win?'positive':''}">${nagari?'×'+app.nextMultiplier:(win?'+':'−')+kr(amount)+' 냥'}</strong></div></div>
+      ${offer && canDouble ? `<div class="double-offer"><button type="button" class="double-offer__button" data-action="next-double" aria-describedby="double-offer-help"><span>묻고 더블로</span><strong>×${offer.level}</strong></button><p id="double-offer-help">${kr(offer.amount)}냥 걸기 · 승리 시 ${kr(offer.amount*2)}냥 받기<br>패배 시 건 금액을 잃어요. 다음 판 정산은 별도예요.</p></div>` : offer ? `<p class="double-explanation">묻고 더블로 ×${offer.level}: 승리금을 걸고 남은 놀이머니가 부족해 선택할 수 없어요.</p>` : ''}
+      ${!win ? `<div class="result-stats"><div><span>${nagari?'이번 판 결과':'정산 점수'}</span><strong>${nagari?'무승부':finalPoints==null?'—':finalPoints+'점'}</strong></div><div><span>${nagari?'다음 판 배수':'사용 놀이머니'}</span><strong>${nagari?'×'+app.nextMultiplier:'−'+kr(amount)+' 냥'}</strong></div></div>` : ''}
       ${!nagari && g.settlement?.steps?.length ? `<details class="settlement-details"><summary>정산 과정 보기 · 미션 ×${g.settlement.missionMultiplier || 1}</summary><ol>${g.settlement.steps.map(step=>`<li><span>${safe(step.label)}</span><strong>${safe(step.formula)} = ${kr(step.value)}점</strong></li>`).join('')}</ol>${g.settlement.paymentExemptReason ? `<p>${safe(g.settlement.paymentExemptReason)}</p>` : ''}</details>` : ''}
       <div class="result-wallet">보유 놀이머니 <b>✦ ${kr(app.wallet)}냥</b></div>
       ${nagari && app.doubleStake ? `<p class="double-explanation">걸어 둔 승리금 ${kr(app.doubleStake.amount)}냥은 다음 판으로 이어집니다.</p>` : ''}
       ${!win && !nagari && g.doubleForfeit ? `<p class="double-explanation">이전 판에서 걸어 둔 승리금 ${kr(g.doubleForfeit)}냥을 잃었습니다.</p>` : ''}
       <div class="result-actions">
-        ${offer && canDouble ? `${btn(`묻고 더블로 ×${offer.level}`,'next-double','btn--warm btn--wide')}<small class="double-explanation">${kr(offer.amount)}냥을 걸어요. 다음 판 승리 시 ${kr(offer.amount*2)}냥을 받고, 패배 시 걸어 둔 금액을 잃어요. 다음 판 정산은 별도예요.</small>` : offer ? `<p class="double-explanation">묻고 더블로 ×${offer.level}: 승리금을 걸고 남은 놀이머니가 부족해 선택할 수 없어요.</p>` : ''}
         ${btn('다음 판 치기','next','btn--primary btn--wide')}
         ${canEmergencyRecharge(app.wallet)?btn('긴급 무료 충전 +30만 냥','recharge','btn--ghost btn--wide'):''}
         ${btn('그만치기','home','btn--quiet')}</div>
