@@ -10,6 +10,7 @@ import { getCard, HWATU_CARDS } from './engine/cards';
 import { ALLOWED_STAKES, STAKES, canUseStake, normalizeStake } from './stakeRules.js';
 import { captureDisplayCount, groupedCaptures } from './capturedCards.js';
 import { currentBakWarnings } from './bakWarnings.js';
+import { opponentSetWarnings } from './opponentSetWarnings.js';
 import { missionView } from './missionView.js';
 import { doubleOffer } from './doubleStake.js';
 import { floorDensity } from './floorLayout.js';
@@ -345,10 +346,11 @@ function capturedRack(g, who='human') {
   const asDoubleJunk=human?g.humanGookjinAsDoubleJunk:g.computerGookjinAsDoubleJunk;
   const score=scoreOf(g,who);
   const warnings=currentBakWarnings(score,scoreOf(g,human?'computer':'human'),cards.length,g.pointValue);
+  const setWarnings=human ? [] : opponentSetWarnings(g);
   return `<div class="collection-rack ${human?'collection-rack--human':'collection-rack--opponent'}" aria-label="${human?'내가':'상대가'} 먹은 실제 화투패">
     <div class="collection-groups">${groupedCaptures(g,who).map(group => `
       <button class="collection-group" type="button" data-capture-type="${group.id}" data-empty="${group.cards.length===0}" data-action="captures" data-value="${who}:${group.id}" aria-label="${human?'내':'상대'}가 먹은 ${group.name} 카드 ${group.cards.length}장${group.id==='junk'?` · 점수 계산 ${captureDisplayCount(group,score)}장`:''} 전체 보기">
-        ${warnings.includes(group.id==='junk'?'피박 주의':group.id==='bright'?'광박 주의':'') ? `<span class="rack-warning" role="status">${group.id==='junk'?'피박 주의':'광박 주의'}</span>` : ''}<span class="collection-preview">${group.cards.length ? group.cards.map((id,index)=>`<span class="capture-stack-card">${card(id,{tiny:true,gookjinAsDoubleJunk:asDoubleJunk})}${group.id==='junk' && index===group.cards.length-1 ? `<span class="capture-pi-count" aria-label="피 ${score.junkCount}장">${score.junkCount}</span>` : ''}</span>`).join('') : ''}
+        ${warnings.includes(group.id==='junk'?'피박 주의':group.id==='bright'?'광박 주의':'') ? `<span class="rack-warning" role="status">${group.id==='junk'?'피박 주의':'광박 주의'}</span>` : ''}${setWarnings.some(w=>w.group===group.id) ? `<span class="opponent-set-warning" role="status">${setWarnings.filter(w=>w.group===group.id).map(w=>w.label.replace(' 비상','')).join('·')} 비상</span>` : ''}<span class="collection-preview">${group.cards.length ? group.cards.map((id,index)=>`<span class="capture-stack-card">${card(id,{tiny:true,gookjinAsDoubleJunk:asDoubleJunk})}${group.id==='junk' && index===group.cards.length-1 ? `<span class="capture-pi-count" aria-label="피 ${score.junkCount}장">${score.junkCount}</span>` : ''}</span>`).join('') : ''}
           </span>
       </button>`).join('')}</div>
   </div>`;
@@ -408,7 +410,7 @@ function missionCompactLabel(mission) {
   return effect.kind === 'steal' ? '피 뺏기' : '피 주기';
 }
 function switchContents(enabled, completed = false) {
-  return `<span class="game-switch__track" aria-hidden="true"><span class="game-switch__thumb"></span></span><span class="game-switch__label">${completed ? '완료' : enabled ? '켬' : '끔'}</span>`;
+  return `<span class="game-switch__track" aria-hidden="true"><span class="game-switch__thumb"></span></span><span class="game-switch__label">${completed || (enabled ? '켬' : '끔')}</span>`;
 }
 function missionPanel(mission) {
   if (!mission) return '<div class="mission-empty">이번 판 미션 없음</div>';
@@ -419,7 +421,7 @@ function missionPanel(mission) {
     const x=((artworkOrdinal(target.id,ordinal)-1)/3*100).toFixed(5), y=((item.month-1)/11*100).toFixed(5);
     return `<span class="mission-mini mission-mini--${target.owner || 'open'}" style="--mission-x:${x}%;--mission-y:${y}%"><span class="mission-mini__face"></span>${target.owner ? `<span class="mission-mini__owner">${target.owner==='human'?'나':'상대'}</span>` : ''}</span>`;
   }).join('');
-  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. 자세히 보기"><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><strong>${safe(missionCompactLabel(mission))}</strong></span></button><button type="button" class="mission-toggle" data-action="mission-toggle" aria-label="${mission.locked?'완료된 미션은 변경할 수 없어요':`미션 사용 ${mission.enabled?'끄기':'켜기'}`}" aria-pressed="${mission.enabled}" ${mission.locked?'disabled title="완료된 미션은 변경할 수 없어요"':''}>${switchContents(mission.enabled, mission.locked)}</button></div>`;
+  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. ${mission.requiredCount ? `목표 ${mission.requiredCount}장, 나 ${mission.humanCount}장, 상대 ${mission.computerCount}장.` : ''} 자세히 보기"><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><span class="mission-panel__reward"><strong>${safe(missionCompactLabel(mission))}</strong>${mission.requiredCount ? `<small>${mission.humanCount}/${mission.requiredCount}</small>` : ''}</span></span></button><button type="button" class="mission-toggle" data-action="mission-toggle" aria-label="${mission.locked?'종료된 미션은 변경할 수 없어요':`미션 사용 ${mission.enabled?'끄기':'켜기'}`}" aria-pressed="${mission.enabled}" ${mission.locked?'disabled title="종료된 미션은 변경할 수 없어요"':''}>${switchContents(mission.enabled, mission.failed ? '종료' : mission.locked ? '완료' : '')}</button></div>`;
 }
 
 function autoButtonContent(enabled) {
@@ -489,10 +491,10 @@ function missionOverlay(g) {
   const mission=missionView(g);
   if (!mission) return '';
   return `<div class="modal-shade modal-shade--decision"><section class="modal-box mission-dialog" role="dialog" aria-modal="true" aria-labelledby="mission-title">
-    <h2 id="mission-title">미션</h2><p>${mission.effect ? `미션패를 먼저 획득한 사람에게 ${safe(missionEffectLabel(mission.effect))} 효과가 적용돼요. 배수는 승리 정산에 반영돼요.` : '미션패를 한 장씩 먹을 때마다 그 사람의 미션 배수가 두 배가 돼요.'}</p>
+    <h2 id="mission-title">미션</h2><p>${mission.effect ? `미션패 ${mission.requiredCount || 1}장을 먼저 획득한 사람에게 ${safe(missionEffectLabel(mission.effect))} 효과가 적용돼요. 배수는 승리 정산에 반영돼요.` : '미션패를 한 장씩 먹을 때마다 그 사람의 미션 배수가 두 배가 돼요.'}</p>
     <div class="mission-targets">${mission.targets.map(target=>`<div class="mission-target">${card(target.id,{small:true})}<small>${target.owner==='human'?'내가 획득':target.owner==='computer'?'상대 획득':'미획득'}</small></div>`).join('')}</div>
-    <p class="mission-progress">${mission.effect ? (mission.resolvedBy ? (!mission.enabled?'미션 꺼짐 · 효과 없음':mission.resolvedBy==='human'?'내가 완료':'상대가 완료') : (mission.enabled?'진행 중':'미션 꺼짐')) : `나 ${mission.humanCount}장 · ×${mission.humanMultiplier} <span>상대 ${mission.computerCount}장 · ×${mission.computerMultiplier}</span>`}</p>
-    <p class="mission-note">${mission.effect ? '미션패의 위치는 공개되지 않아요. 꺼진 동안 미션패가 획득되면 효과 없이 종료돼요. 이동할 피가 없으면 피 이동 효과가 없어요.' : '미션패 3장이 모두 획득되기 전까지 켜고 끌 수 있어요. 꺼져 있으면 미션 배수는 적용되지 않아요.'}</p>
+    <p class="mission-progress">${mission.effect ? (mission.resolvedBy ? (!mission.enabled?'미션 꺼짐 · 효과 없음':mission.resolvedBy==='human'?'내가 완료':'상대가 완료') : mission.failed ? '달성 가능한 패가 남지 않았어요' : (mission.enabled?'나 '+mission.humanCount+'/'+(mission.requiredCount||1)+' · 상대 '+mission.computerCount+'/'+(mission.requiredCount||1):'미션 꺼짐')) : `나 ${mission.humanCount}장 · ×${mission.humanMultiplier} <span>상대 ${mission.computerCount}장 · ×${mission.computerMultiplier}</span>`}</p>
+    <p class="mission-note">${mission.effect ? '미션패의 위치는 공개되지 않아요. 꺼진 동안 목표 장수를 채우면 효과 없이 종료돼요. 이동할 피가 없으면 피 이동 효과가 없어요.' : '미션패 3장이 모두 획득되기 전까지 켜고 끌 수 있어요. 꺼져 있으면 미션 배수는 적용되지 않아요.'}</p>
     ${btn('돌아가기','close','btn--primary btn--wide')}
   </section></div>`;
 }
@@ -851,7 +853,7 @@ function commitGame(next, result=null, motion=null) {
   }
   if (gotGookjin) app.pendingGookjinChoice = true;
   const specialText = eventAnnouncement(result, previous?.currentPlayer);
-  const missionText = result?.missionCards?.length ? `${previous?.currentPlayer==='computer'?'상대 ':''}${result.missionEffect ? '미션 완료 · '+result.missionEffect : '미션패 ×'+(result.missionMultiplier || 1)}` : null;
+  const missionText = result?.missionCards?.length ? `${previous?.currentPlayer==='computer'?'상대 ':''}${result.missionEffect ? '미션 완료 · '+result.missionEffect : result.missionRequired > 1 ? '미션패 '+result.missionProgress+'/'+result.missionRequired : '미션패 ×'+(result.missionMultiplier || 1)}` : null;
   const eventText = [specialText, missionText].filter(Boolean).join(' · ');
   finishRound();
   if (eventText) effects(eventText, 'special', 'event-list', !!motion);

@@ -11,6 +11,8 @@ export function missionView(game) {
   const progress = evaluateCardMission(mission, human, computer);
   return {
     effect: mission.effect || null,
+    requiredCount: mission.requiredCount || null,
+    failed: !!mission.requiredCount && !mission.resolvedBy && isMissionComplete(mission, human, computer),
     enabled: mission.enabled !== false,
     resolvedBy: mission.resolvedBy || null,
     locked: isMissionComplete(mission, human, computer) || game.phase === 'round-ended',

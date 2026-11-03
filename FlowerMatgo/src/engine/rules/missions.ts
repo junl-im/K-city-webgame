@@ -19,13 +19,15 @@ export function createCardMission(seed: number): CardMission | null {
   ];
   const choice = randomInteger(shuffled.seed ^ 0x7a8b91cd, effects.length);
   const effect = effects[choice.value];
-  return effect ? {kind:'gakpae', cardIds:shuffled.cards.slice(0,1), effect, enabled:true} : null;
+  const requiredCount = 2 + randomInteger(choice.seed ^ 0x65d28a31, 2).value;
+  return effect ? {kind:'gakpae', cardIds:shuffled.cards.slice(0,3), requiredCount, effect, enabled:true} : null;
 }
 
 /** A legacy three-card mission completes when all targets have been taken. */
 export function isMissionComplete(mission: CardMission | null | undefined, humanCaptured: string[], computerCaptured: string[]): boolean {
   if (!mission) return false;
-  if (mission.effect) return Boolean(mission.resolvedBy);
+  if (mission.effect && !mission.requiredCount) return Boolean(mission.resolvedBy);
+  if (mission.resolvedBy) return true;
   if (!mission.cardIds.length) return false;
   const captured = new Set([...humanCaptured, ...computerCaptured]);
   return mission.cardIds.every(id => captured.has(id));

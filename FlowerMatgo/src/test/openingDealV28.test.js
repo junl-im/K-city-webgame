@@ -63,8 +63,10 @@ describe('꽃맞고 v28 첫 판 선 뽑기와 패섞기', () => {
 
   it('선공 발표와 배분을 충분히 보여주되 실게임 타이머와 구분한다', () => {
     expect(OPENING_SHUFFLE_MS).toBeGreaterThanOrEqual(1100);
-    expect(OPENING_REVEAL_MS).toBeGreaterThanOrEqual(3000);
-    expect(OPENING_DEAL_MS).toBeGreaterThanOrEqual(1700);
+    expect(OPENING_REVEAL_MS).toBeGreaterThanOrEqual(1200);
+    expect(OPENING_REVEAL_MS).toBeLessThanOrEqual(1600);
+    expect(OPENING_DEAL_MS).toBeGreaterThanOrEqual(1050);
+    expect(OPENING_DEAL_MS).toBeLessThanOrEqual(1300);
     expect(ui).toContain("app.screen='opening'");
     expect(ui).toContain("app.screen = 'game'");
     expect(ui).toContain("case 'pick-dealer': pickOpeningDealer(Number(value));return;");
