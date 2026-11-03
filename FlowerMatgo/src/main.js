@@ -60,6 +60,8 @@ function loadSave() {
     if (!Number.isFinite(save.wallet)) save.wallet = BASE_WALLET;
     save.wallet = Math.max(0, Math.round(save.wallet));
     if (save.game && !isValidGameState(save.game)) save.game = null;
+    if (save.game?.mission?.enabled === false && !missionView(save.game)?.locked) save.game = setMissionEnabled(save.game, true);
+    save.missionsEnabled = true;
     const held=save.doubleStake;
     if (!held || !Number.isSafeInteger(held.amount) || held.amount<=0 || !save.game) save.doubleStake=null;
     else if (!held.gameUuid && save.game.gameUuid===held.originUuid) {
@@ -416,9 +418,7 @@ function missionCompactLabel(mission) {
   if (effect.kind === 'multiplier') return `×${effect.value}배`;
   return effect.kind === 'steal' ? '피 뺏기' : '피 주기';
 }
-function switchContents(enabled, completed = false) {
-  return `<span class="game-switch__track" aria-hidden="true"><span class="game-switch__thumb"></span></span><span class="game-switch__label">${completed || (enabled ? '켬' : '끔')}</span>`;
-}
+
 function missionPanel(mission) {
   if (!mission) return '<div class="mission-empty">이번 판 미션 없음</div>';
   const effect=mission.unconditional ? `무조건 ${missionEffectLabel(mission.effect)}` : missionEffectLabel(mission.effect);
@@ -428,7 +428,7 @@ function missionPanel(mission) {
     const x=((artworkOrdinal(target.id,ordinal)-1)/3*100).toFixed(5), y=((item.month-1)/11*100).toFixed(5);
     return `<span class="mission-mini mission-mini--${target.owner || 'open'}" style="--mission-x:${x}%;--mission-y:${y}%"><span class="mission-mini__face"></span>${target.owner ? `<span class="mission-mini__owner">${target.owner==='human'?'나':'상대'}</span>` : ''}</span>`;
   }).join('');
-  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. ${mission.requiredCount ? `목표 ${mission.requiredCount}장, 나 ${mission.humanCount}장, 상대 ${mission.computerCount}장.` : ''} 자세히 보기"><span class="mission-panel__title" aria-hidden="true">미션</span><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><span class="mission-panel__reward">${mission.unconditional ? `<span class="mission-unconditional-art" aria-hidden="true"></span><strong>×${mission.effect.value}배</strong>` : `<strong>${safe(missionCompactLabel(mission))}</strong>`}${mission.requiredCount ? `<small>${mission.humanCount}/${mission.requiredCount}</small>` : ''}</span></span></button><button type="button" class="mission-toggle" data-action="mission-toggle" aria-label="${mission.locked?'종료된 미션은 변경할 수 없어요':`미션 사용 ${mission.enabled?'끄기':'켜기'}`}" aria-pressed="${mission.enabled}" ${mission.locked?'disabled title="종료된 미션은 변경할 수 없어요"':''}><span aria-hidden="true">${mission.failed ? '종료' : mission.locked ? '완료' : mission.enabled ? '켬' : '끔'}</span></button></div>`;
+  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. ${mission.requiredCount ? `목표 ${mission.requiredCount}장, 나 ${mission.humanCount}장, 상대 ${mission.computerCount}장.` : ''} 자세히 보기"><span class="mission-panel__title" aria-hidden="true">미션</span><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><span class="mission-panel__reward">${mission.unconditional ? `<span class="mission-unconditional-art" aria-hidden="true"></span><strong>×${mission.effect.value}배</strong>` : `<strong>${safe(missionCompactLabel(mission))}</strong>`}${mission.requiredCount ? `<small>${mission.humanCount}/${mission.requiredCount}</small>` : ''}</span></span></button></div>`;
 }
 
 function autoButtonContent(enabled) {
@@ -499,10 +499,10 @@ function missionOverlay(g) {
   const mission=missionView(g);
   if (!mission) return '';
   return `<div class="modal-shade modal-shade--decision"><section class="modal-box mission-dialog" role="dialog" aria-modal="true" aria-labelledby="mission-title">
-    <h2 id="mission-title">미션</h2><p>${mission.unconditional ? `조건 없이 승자의 정산에 ×${mission.effect.value}배가 적용돼요. 판이 끝나기 전 켜고 끌 수 있어요.` : mission.effect ? `미션패 ${mission.requiredCount || 1}장을 먼저 획득한 사람에게 ${safe(missionEffectLabel(mission.effect))} 효과가 적용돼요. 배수는 승리 정산에 반영돼요.` : '미션패를 한 장씩 먹을 때마다 그 사람의 미션 배수가 두 배가 돼요.'}</p>
+    <h2 id="mission-title">미션</h2><p>${mission.unconditional ? `조건 없이 승자의 정산에 ×${mission.effect.value}배가 적용돼요. 판이 끝나면 정산에 반영돼요.` : mission.effect ? `미션패 ${mission.requiredCount || 1}장을 먼저 획득한 사람에게 ${safe(missionEffectLabel(mission.effect))} 효과가 적용돼요. 배수는 승리 정산에 반영돼요.` : '미션패를 한 장씩 먹을 때마다 그 사람의 미션 배수가 두 배가 돼요.'}</p>
     <div class="mission-targets">${mission.targets.map(target=>`<div class="mission-target">${card(target.id,{small:true})}<small>${target.owner==='human'?'내가 획득':target.owner==='computer'?'상대 획득':'미획득'}</small></div>`).join('')}</div>
     <p class="mission-progress">${mission.effect ? (mission.resolvedBy ? (!mission.enabled?'미션 꺼짐 · 효과 없음':mission.resolvedBy==='human'?'내가 완료':'상대가 완료') : mission.failed ? '달성 가능한 패가 남지 않았어요' : (mission.enabled?'나 '+mission.humanCount+'/'+(mission.requiredCount||1)+' · 상대 '+mission.computerCount+'/'+(mission.requiredCount||1):'미션 꺼짐')) : `나 ${mission.humanCount}장 · ×${mission.humanMultiplier} <span>상대 ${mission.computerCount}장 · ×${mission.computerMultiplier}</span>`}</p>
-    <p class="mission-note">${mission.effect ? '미션패의 위치는 공개되지 않아요. 꺼진 동안 목표 장수를 채우면 효과 없이 종료돼요. 이동할 피가 없으면 피 이동 효과가 없어요.' : '미션패 3장이 모두 획득되기 전까지 켜고 끌 수 있어요. 꺼져 있으면 미션 배수는 적용되지 않아요.'}</p>
+    <p class="mission-note">${mission.effect ? '미션패의 위치는 공개되지 않아요. 이동할 피가 없으면 피 이동 효과가 없어요.' : '미션패를 획득한 사람에게 미션 배수가 적용돼요.'}</p>
     ${btn('돌아가기','close','btn--primary btn--wide')}
   </section></div>`;
 }
@@ -929,7 +929,7 @@ function finishOpening() {
   const {seed, winner, rematch, roundMultiplier} = opening;
   clearOpening();
   app.game = createInitialGame(seed,app.difficulty,app.stake,winner,roundMultiplier);
-  if (app.game.mission?.effect) app.game.mission.enabled = app.missionsEnabled !== false;
+  if (app.game.mission) app.game.mission.enabled = true;
   if (app.doubleStake) app.doubleStake.gameUuid = app.game.gameUuid;
   if (!rematch && app.game.phase !== 'round-ended') {
     app.game.lastAction = `${winner === 'human' ? '내가' : '상대가'} 선 뽑기에서 이겨 먼저 칩니다.`;
@@ -1059,7 +1059,6 @@ function mutate(action, value, cardId) {
       save();effects('긴급 '+kr(EMERGENCY_RECHARGE)+'냥 충전!','win');render();return;
     case 'help': overlay='help';render();return;
     case 'cardbook': overlay='cardbook';render();return;
-    case 'mission-toggle': if (app.game?.mission && !missionView(app.game)?.locked) { app.game=setMissionEnabled(app.game,app.game.mission.enabled===false); app.missionsEnabled=app.game.mission.enabled; save(); render(); } return;
     case 'mission': if (missionView(app.game)) {overlay='mission';render();} return;
     case 'captures': {
       if(!app.game)return;
