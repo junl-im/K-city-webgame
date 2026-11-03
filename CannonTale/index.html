@@ -616,6 +616,28 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
 @media(orientation:landscape) and (max-height:365px){
  #menu .hero-stage-info small{display:none}
 }
+
+/* v1.7: aspect-correct FULL-BODY canvas crop, never background zoom or clipping */
+#menu .hero-stage{min-width:0;overflow:visible!important;}
+#menu .hero-stage-portrait{
+ position:relative;flex:1 1 53%;min-width:0;max-width:55%;height:100%;min-height:0;
+ background-image:none!important;background-size:initial!important;background-position:center!important;
+ overflow:visible!important;filter:none!important;
+}
+#menu #heroPreviewCanvas{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;overflow:visible;filter:drop-shadow(0 5px 4px #0f283c83)}
+#menu .hero-stage-info{flex:0 1 43%;max-width:43%;min-width:0;}
+#menu .hero-stage-info strong,#menu .hero-stage-info small{overflow-wrap:anywhere;}
+@media(max-width:740px) and (orientation:portrait){
+ #menu .hero-stage-portrait{flex-basis:55%;max-width:55%;height:100%;min-height:0;background-size:initial!important;}
+ #menu .hero-stage-info{flex-basis:42%;max-width:42%;}
+}
+@media(orientation:portrait) and (max-height:540px){
+ #menu .hero-stage-portrait{flex-basis:52%;max-width:52%;background-size:initial!important;}
+}
+@media(orientation:landscape) and (max-height:650px){
+ #menu .hero-stage-portrait{flex:1 1 auto;width:100%;max-width:100%;min-height:0;height:75%;background-size:initial!important;}
+ #menu .hero-stage-info{flex:0 0 auto;max-width:100%}
+}
 </style>
 </head>
 <body>
@@ -650,7 +672,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
     <div class="hero-art">
      <img id="menuArtwork" src="Artillery_Fox_Bear_Atlas_v0_3.webp" alt="" aria-hidden="true">
      <div id="heroPreview" class="hero-stage" data-hero="fox" aria-live="polite">
-      <span class="hero-stage-portrait" aria-hidden="true"></span>
+      <span class="hero-stage-portrait" aria-hidden="true"><canvas id="heroPreviewCanvas" aria-hidden="true"></canvas></span>
       <span class="hero-stage-info"><strong id="heroPreviewName">여우 궁수</strong><small id="heroPreviewWeapon">새총 · 정확한 조준</small></span>
      </div>
     </div>
@@ -723,11 +745,38 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   rabbit:{name:'토끼 기술자',weapon:'분열 발사기 · 연쇄 타격'},
   cat:{name:'고양이 마법사',weapon:'지팡이 · 바람 제어'}
  };
+ let lastHeroPreviewKey='';
+ function drawHeroPreview(){
+  if($('menu').hidden)return false;
+  const preview=$('heroPreviewCanvas');
+  const w=Math.floor(preview.clientWidth),h=Math.floor(preview.clientHeight);
+  const art=selectedHero==='rabbit'||selectedHero==='cat'?rosterAtlas:atlas;
+  if(w<2||h<2||!art||!art.complete||art.naturalWidth<4||art.naturalHeight<4)return false;
+  const dpr=Math.min(2,devicePixelRatio||1);
+  const key=[selectedHero,w,h,art.naturalWidth,art.naturalHeight,dpr].join(':');
+  if(key===lastHeroPreviewKey)return true;
+  const context=preview.getContext('2d');
+  if(!context)return false;
+  preview.width=Math.max(1,Math.round(w*dpr));
+  preview.height=Math.max(1,Math.round(h*dpr));
+  context.setTransform(dpr,0,0,dpr,0,0);
+  context.clearRect(0,0,w,h);
+  // The source contains two FULL characters: crop one half and CONTAIN it without stretching.
+  const half=art.naturalWidth/2,sourceX=selectedHero==='bear'||selectedHero==='cat'?half:0;
+  const padding=4;
+  const scale=Math.min((w-padding*2)/half,(h-padding*2)/art.naturalHeight);
+  const dw=half*scale,dh=art.naturalHeight*scale;
+  context.drawImage(art,sourceX,0,half,art.naturalHeight,(w-dw)/2,(h-dh)/2,dw,dh);
+  lastHeroPreviewKey=key;
+  return true;
+ }
  function refreshHeroPreview(){
   const chosen=heroPresentation[selectedHero]||heroPresentation.fox;
   $('heroPreview').dataset.hero=selectedHero;
   $('heroPreviewName').textContent=chosen.name;
   $('heroPreviewWeapon').textContent=chosen.weapon;
+  lastHeroPreviewKey='';
+  drawHeroPreview();
  }
  function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;}
  function refreshMenu(){refreshHeroPreview();const cleared=progress.best.filter(Boolean).length;$('progressSummary').textContent=cleared?`최고 등급 합계 ${progress.best.reduce((a,b)=>a+b,0)} / 12 · 승리 ${progress.wins}회`:'모험 기록 · 아직 첫 승리 전';$('progressTier').textContent=`완료 ${cleared} / 4`;refreshStageMap();}
@@ -1599,7 +1648,7 @@ const materialCells={
   if(panel.scrollHeight>panel.clientHeight+2)panel.classList.add('menu-tight');
   if(panel.scrollHeight>panel.clientHeight+2)panel.classList.add('menu-ultra');
  }
- function resize(){fitMenuToViewport();const w=cv.clientWidth,h=cv.clientHeight;if(w<1||h<1)return;const dpr=Math.min(2,devicePixelRatio||1),pw=Math.max(1,Math.round(w*dpr)),ph=Math.max(1,Math.round(h*dpr));if(cv.width!==pw)cv.width=pw;if(cv.height!==ph)cv.height=ph;const fit=game.overview?Math.min(w/W,h/H):h/H;game.scale=Math.max(.001,fit);game.topPad=game.overview?Math.max(0,(h-H*game.scale)/2):0;const visible=w/game.scale,edge=Math.max(0,W-visible);if(game.overview){game.camera=-(visible-W)/2;return;}const waitingForAi=game.mode==='duel'&&game.turn==='ai'&&game.phase==='aiWait';
+ function resize(){fitMenuToViewport();drawHeroPreview();const w=cv.clientWidth,h=cv.clientHeight;if(w<1||h<1)return;const dpr=Math.min(2,devicePixelRatio||1),pw=Math.max(1,Math.round(w*dpr)),ph=Math.max(1,Math.round(h*dpr));if(cv.width!==pw)cv.width=pw;if(cv.height!==ph)cv.height=ph;const fit=game.overview?Math.min(w/W,h/H):h/H;game.scale=Math.max(.001,fit);game.topPad=game.overview?Math.max(0,(h-H*game.scale)/2):0;const visible=w/game.scale,edge=Math.max(0,W-visible);if(game.overview){game.camera=-(visible-W)/2;return;}const waitingForAi=game.mode==='duel'&&game.turn==='ai'&&game.phase==='aiWait';
   const defaultCam=waitingForAi?clamp(1018-visible*.76,0,edge):game.mode==='duel'?clamp(190-visible*.24,0,edge):clamp(145-visible*.25,0,edge);
   const active=game.projectiles.find(p=>p.active);
   const impactHold=game.reviewFocusX!==null&&(game.phase==='review'||game.phase==='result');
@@ -1680,6 +1729,8 @@ const materialCells={
  window.addEventListener('popstate',()=>{if(leavingPage)return;handleBackIntent();try{window.history?.pushState?.({cannonTaleScreen:true},'',window.location.href);}catch(_){/* History may be unavailable under restricted embedding. */}});
  $('homeBtn').addEventListener('click',goHome);$('resultHomeBtn').addEventListener('click',goHome);$('againBtn').addEventListener('click',()=>newGame(game.mode,game.stage));$('nextBtn').addEventListener('click',()=>newGame('adventure',game.stage+1));
  $('helpBtn').addEventListener('click',()=>{$('help').hidden=!$('help').hidden;});$('closeHelp').addEventListener('click',()=>{$('help').hidden=true;});
+ atlas.addEventListener?.('load',()=>{lastHeroPreviewKey='';drawHeroPreview();});
+ rosterAtlas.addEventListener?.('load',()=>{lastHeroPreviewKey='';drawHeroPreview();});
  window.addEventListener('resize',()=>{
   if(game.chargeActive){cancelFireCharge();suppressNextFireClick=true;}
   game.drag=null;game.pan=null;resize();
