@@ -3854,3 +3854,11 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 
 /* Completed mission remains visible and clearly labelled. */
 .scene--game .mission-toggle:disabled {opacity:.82;cursor:not-allowed;}
+/* Hand-painted comic speech balloon; the amounts remain accessible HTML. */
+.scene--game .double-offer__button {width:min(100%,310px);min-height:0;aspect-ratio:2.8 / 1;padding:0 13% 7px;gap:6px;border:0;border-radius:0;background:transparent url('/assets/flower-double-speech-v1.png') center / 100% 100% no-repeat;box-shadow:none;color:#6e2c1c;text-shadow:0 1px #fff3d7;filter:drop-shadow(0 3px 3px #5a33284d);}
+.scene--game .double-offer__button span {font-size:clamp(16px,4.3vw,20px);font-weight:950;white-space:nowrap;}
+.scene--game .double-offer__button strong {padding:2px 5px;border:0;border-radius:0;background:none;color:#b43720;font-size:clamp(22px,5.8vw,28px);font-weight:1000;text-shadow:0 1px #fff4dc;}
+.scene--game .double-offer__button:active {transform:scale(.97);box-shadow:none;}
+@media(hover:hover){.scene--game .double-offer__button:hover {transform:translateY(-2px) rotate(-1deg);filter:drop-shadow(0 6px 5px #5a332856);}}
+@media(prefers-reduced-motion:reduce){.scene--game .double-offer__button:hover,.scene--game .double-offer__button:active {transform:none;}}
+@media(max-width:650px) and (max-height:700px){.scene--game .double-offer__button {min-height:0;width:min(100%,260px);}}
