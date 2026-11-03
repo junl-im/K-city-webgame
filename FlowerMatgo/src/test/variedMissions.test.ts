@@ -34,4 +34,22 @@ describe('판마다 달라지는 미션',()=>{
   expect(calculatePlayerScore(g,'human').total).toBe(0);
  });
 
+ it('이전 세 장 미션은 획득 전 끌 수 있고 꺼진 동안 얻은 패는 배수가 적용되지 않는다',()=>{
+  let g=arranged({kind:'points',value:1});
+  g.mission={kind:'gakpae',cardIds:['m01-01','m03-01','m08-01']};
+  g=setMissionEnabled(g,false);
+  g=playTurn(g,'human','m01-01').state;
+  expect(missionMultiplierFor(g.mission,g.humanCaptured,g.computerCaptured,'human')).toBe(1);
+  expect(()=>setMissionEnabled(g,true)).toThrow();
+  const saved=JSON.parse(JSON.stringify(g));
+  expect(missionMultiplierFor(saved.mission,saved.humanCaptured,saved.computerCaptured,'human')).toBe(1);
+ });
+ it('이전 미션을 이미 얻은 저장 판은 배수를 바꾸지 못한다',()=>{
+  let g=arranged({kind:'points',value:1});
+  g.mission={kind:'gakpae',cardIds:['m01-01','m03-01','m08-01']};
+  g=playTurn(g,'human','m01-01').state;
+  expect(missionMultiplierFor(g.mission,g.humanCaptured,g.computerCaptured,'human')).toBe(2);
+  expect(()=>setMissionEnabled(g,false)).toThrow();
+ });
+
 });

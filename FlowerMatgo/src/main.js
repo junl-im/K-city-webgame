@@ -419,7 +419,7 @@ function missionPanel(mission) {
     const x=((artworkOrdinal(target.id,ordinal)-1)/3*100).toFixed(5), y=((item.month-1)/11*100).toFixed(5);
     return `<span class="mission-mini mission-mini--${target.owner || 'open'}" style="--mission-x:${x}%;--mission-y:${y}%"><span class="mission-mini__face"></span>${target.owner ? `<span class="mission-mini__owner">${target.owner==='human'?'나':'상대'}</span>` : ''}</span>`;
   }).join('');
-  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. 자세히 보기"><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><strong>${safe(missionCompactLabel(mission))}</strong></span></button>${mission.effect ? `<button type="button" class="mission-toggle" data-action="mission-toggle" aria-label="미션 사용 ${mission.enabled?'끄기':'켜기'}" aria-pressed="${mission.enabled}" ${mission.resolvedBy?'disabled':''}>${switchContents(mission.enabled)}</button>` : ''}</div>`;
+  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="미션: ${safe(accessible)}. ${safe(effect)}. 자세히 보기"><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><strong>${safe(missionCompactLabel(mission))}</strong></span></button><button type="button" class="mission-toggle" data-action="mission-toggle" aria-label="${mission.locked?'획득된 미션은 변경할 수 없어요':`미션 사용 ${mission.enabled?'끄기':'켜기'}`}" aria-pressed="${mission.enabled}" ${mission.locked?'disabled title="획득된 미션은 변경할 수 없어요"':''}>${switchContents(mission.enabled)}</button></div>`;
 }
 
 function autoButtonContent(enabled) {
@@ -434,7 +434,7 @@ function gameScreen() {
   const yourTurn = g.phase==='playing' && g.currentPlayer==='human';
   const pending = g.humanPendingShakeMonth;
   const mission = missionView(g);
-  const isMission = id => !!mission && (!mission.effect || (mission.enabled && !mission.resolvedBy)) && mission.targets.some(target => target.id === id);
+  const isMission = id => !!mission && mission.enabled && (!mission.effect || !mission.resolvedBy) && mission.targets.some(target => target.id === id);
   const specialActionButtons = gameButtons(g);
   const hand = [...g.humanHand].sort((a,b)=>((getCard(a)?.month||0)-(getCard(b)?.month||0)));
   const floor = [...g.floorCards].sort((a,b)=>(getCard(a)?.month||0)-(getCard(b)?.month||0));
@@ -1047,7 +1047,7 @@ function mutate(action, value, cardId) {
       save();effects('긴급 '+kr(EMERGENCY_RECHARGE)+'냥 충전!','win');render();return;
     case 'help': overlay='help';render();return;
     case 'cardbook': overlay='cardbook';render();return;
-    case 'mission-toggle': if (app.game?.mission?.effect && !app.game.mission.resolvedBy) { app.game=setMissionEnabled(app.game,app.game.mission.enabled===false); app.missionsEnabled=app.game.mission.enabled; save(); render(); } return;
+    case 'mission-toggle': if (app.game?.mission && !missionView(app.game)?.locked) { app.game=setMissionEnabled(app.game,app.game.mission.enabled===false); app.missionsEnabled=app.game.mission.enabled; save(); render(); } return;
     case 'mission': if (missionView(app.game)) {overlay='mission';render();} return;
     case 'captures': {
       if(!app.game)return;
