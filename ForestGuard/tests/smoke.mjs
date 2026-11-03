@@ -295,7 +295,7 @@ assert.match(css,/Forestcraft UI/);
 assert.match(js,/waveStartHP/);
 assert.match(js,/REPAIR_COST = 120/);
 assert.match(js,/async function loadIllustration\(url,assign,required=false\)/);
-assert.match(js,/required\?16000:12000/);
+assert.match(js,/required\?26000:16000/);
 assert.match(js,/retry='\+attempt/);
 assert.match(css,/\.repair-btn\.ready/);
 assert.match(html,/라니 수비대/);
