@@ -377,7 +377,7 @@ assert.match(js,/damageFloatCount>=22/);
 assert.ok(js.includes("const flight={rise:0,drift:0"),'Moving damage number anchor must be present');
 assert.ok(js.includes("V.duration(e.type,'hurt')"),'Enemy hurt must begin at the hit frame');
 assert.ok(visuals.includes("ATTACK_POSES"),'Species-specific rear-attack timing must exist');
-assert.match(js,/\.setVisible\(elite\)/);
+assert.doesNotMatch(js,/\.setVisible\(elite\)/,'No duplicate elite overhead HP bars');
 assert.match(js,/const elite=\['shroom','guardian','boss'\]\.includes\(type\)/);
 
 assert.match(js,/missing\.length>0\|\|owned\.filter/);
