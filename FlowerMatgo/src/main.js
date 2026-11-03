@@ -396,6 +396,24 @@ function gameButtons(g) {
   }
   return actions.join('');
 }
+// Preview uses its own non-card markup so deck flight animation still targets
+// the real face-down deck, never one of the mission thumbnails.
+function missionPanel(mission) {
+  if (!mission) return '';
+  const accessible=mission.targets.map(target => {
+    const item=getCard(target.id);
+    return spokenCardName(item)+': '+(target.owner==='human'?'내가 획득':target.owner==='computer'?'상대 획득':'미획득');
+  }).join(', ');
+  const thumbs=mission.targets.map(target => {
+    const item=getCard(target.id);
+    const ordinal=Number(target.id.slice(-2));
+    const x=((artworkOrdinal(target.id,ordinal)-1)/3*100).toFixed(5);
+    const y=((item.month-1)/11*100).toFixed(5);
+    return `<span class="mission-mini mission-mini--${target.owner || 'open'}" style="--mission-x:${x}%;--mission-y:${y}%"><span class="mission-mini__face"></span>${target.owner ? `<span class="mission-mini__owner">${target.owner==='human'?'나':'상대'}</span>` : ''}</span>`;
+  }).join('');
+  return `<button type="button" class="mission-panel" data-action="mission" aria-label="꽃 미션: ${safe(accessible)}. 내 배수 ${mission.humanMultiplier}배. 자세히 보기"><span class="mission-panel__title">꽃 미션</span><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><strong>×${mission.humanMultiplier}</strong></span></button>`;
+}
+
 function gameScreen() {
   const g = app.game;
   if (!g) return home();
@@ -431,10 +449,10 @@ function gameScreen() {
       <span class="table-play__flower table-play__flower--left" aria-hidden="true">✿</span>
       <span class="table-play__flower table-play__flower--right" aria-hidden="true">✿</span>
       <div class="captured-grid">${capturedRack(g,'computer')}</div>
-      <div class="center-status"><span class="status-orb"></span>${active}<span class="round-counter">${g.turnNumber+1}턴</span>${mission ? `<button type="button" class="mission-chip" data-action="mission" aria-label="꽃 미션: 내가 ${mission.humanCount}장 획득, 미션 배수 ${mission.humanMultiplier}배. 자세히 보기">꽃 미션 ×${mission.humanMultiplier}</button>` : ''}${(g.roundMultiplier || 1)>1?`<strong class="round-multiplier" aria-label="이번 판 정산 ${g.roundMultiplier}배">${g.roundMultiplier}배 판</strong>`:''}${app.doubleStake?.gameUuid===g.gameUuid?`<strong class="round-multiplier">×${app.doubleStake.level || 2} 도전 · ${kr(app.doubleStake.amount)}냥</strong>`:''}</div>
+      <div class="center-status"><span class="status-orb"></span>${active}<span class="round-counter">${g.turnNumber+1}턴</span>${(g.roundMultiplier || 1)>1?`<strong class="round-multiplier" aria-label="이번 판 정산 ${g.roundMultiplier}배">${g.roundMultiplier}배 판</strong>`:''}${app.doubleStake?.gameUuid===g.gameUuid?`<strong class="round-multiplier">×${app.doubleStake.level || 2} 도전 · ${kr(app.doubleStake.amount)}냥</strong>`:''}</div>
       <div class="field-heading"><strong>바닥패 ${floor.length}장</strong><span>같은 무늬를 맞춰 획득!</span></div>
       <div class="field-row">
-        <div class="deck-pile">${cardBack()}<small>남은 패 <b>${g.drawPile.length}</b></small></div>
+        <div class="deck-pile">${missionPanel(mission)}${cardBack()}<small>남은 패 <b>${g.drawPile.length}</b></small></div>
         <div class="floor-area" data-density="${floorDensity(floor.length)}" aria-label="바닥에 놓인 화투패">${floor.length ? floor.map(id=>{const pile=(g.ppeokPiles||[]).find(p=>p.cardIds.includes(id)); if(!pile) return card(id,{mission:isMission(id)}); const ids=floor.filter(cardId=>pile.cardIds.includes(cardId)); return id===ids[0] ? `<span class="floor-pile" aria-label="싼 패 ${ids.length}장">${ids.map((cardId,index)=>card(cardId,{pileIndex:index+1,mission:isMission(cardId)})).join('')}</span>` : '';}).join('') : '<div class="empty-floor">바닥패가 없어요 ✿</div>'}</div>
       </div>
       <div class="game-message" aria-live="polite" title="${safe(spokenActionText(g.lastAction))}">${safe(spokenActionText(g.lastAction))}</div>
