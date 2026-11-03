@@ -638,6 +638,18 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  #menu .hero-stage-portrait{flex:1 1 auto;width:100%;max-width:100%;min-height:0;height:75%;background-size:initial!important;}
  #menu .hero-stage-info{flex:0 0 auto;max-width:100%}
 }
+
+/* Keep the stage's ammo budget readable even in the 540px portrait compact layout. */
+#menu #stageShotPreview{
+ display:block!important;flex:0 1 auto;min-width:0;max-width:46%;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font-size:clamp(9px,1.25dvh,12px);line-height:1.1;
+ color:#ffedc1;text-shadow:0 2px 4px #193442;
+}
+#menu .stage-map-control{justify-content:space-between;gap:5px}
+@media(orientation:landscape) and (max-height:400px){
+ #menu #stageShotPreview{max-width:54%;font-size:9px}
+}
 </style>
 </head>
 <body>
@@ -778,7 +790,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   lastHeroPreviewKey='';
   drawHeroPreview();
  }
- function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];const def=stageSet[chosen];$('stageShotPreview').textContent=`작전 탄약 ${def.shots}발 · 목표 ${def.foes.length}명`;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;}
+ function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];const def=stageSet[chosen];$('stageShotPreview').textContent=`탄약 ${def.shots}발 · 목표 ${def.foes.length}명`;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;}
  function refreshMenu(){refreshHeroPreview();const cleared=progress.best.filter(Boolean).length;$('progressSummary').textContent=cleared?`최고 등급 합계 ${progress.best.reduce((a,b)=>a+b,0)} / 12 · 승리 ${progress.wins}회`:'모험 기록 · 아직 첫 승리 전';$('progressTier').textContent=`완료 ${cleared} / 4`;refreshStageMap();}
  const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],rings:[],popups:[],skillEffects:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:100,aiHp:100,turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null};
  // Six authored motion phases per hero (procedural transforms of the existing PNG/WebP art).
