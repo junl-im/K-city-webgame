@@ -1,11 +1,22 @@
 # 라니 수비대 / ForestGuard — 개발 인계 메모
 © 2026 곰같은여우
 
+## 2026-11-03 v4.3 — 몬스터 전용 사망 동작·타격 파편 (검증 대기)
+- `visuals.js`: 기존 5상태와 별도로 몬스터 10종에게 `death` 상태를 추가. 일반 몬스터 5프레임(425ms), 중간보스·보스 6프레임(510ms). 원본 몬스터 그림의 비율은 동일하게 유지하고 색조·유기적인 실루엣 분해·낙하·종족별 파편을 프레임별 Canvas로 사전 생성. SVG 및 새 외부 원화 없음.
+- `game.js`: 실제 사망 시 프레임별 `motion-[종]-death-[프레임]`으로 전환. 피격/사망 시각 효과만 남고 적 제거·코인·공세 판정은 즉시 처리해 기존 밸런스와 자동 저장을 보존. 동시에 최대 12개, 추가 사망 파편은 최대 8개 사망 중 제한. 저동작 설정은 90ms로 간략화.
+- 일반 탄착 시 2조각, 치명타 탄착 시 4조각의 원화 기반 파편. 전투 효과 최대 26개 및 저동작 설정 고려. 버튼 원화·뒷모습·슬림 비율·성벽 HUD 유지.
+- `tests/hero-motion.mjs`: 10종 사망 프레임 생성·프레임 개수·길이·영웅 사망 프레임 미생성 검증.
+- `tests/browser-qa.mjs`: 390px 전투에서 실제 사망 이벤트, 적 카운트 즉시 유지, 완료 후 잔존 스프라이트 0개 확인 및 스크린샷 생성.
+- 캐시: `game.js`, `visuals.js` 모두 `v=20261103v44`.
+- **이 문서는 코드 변경 설명이며 배포·CI·실기기 성공 선언이 아님.** GitHub Actions, Pages, 320/360/390/430px 모바일 브라우저 점검 후 결과를 별도 검증한다.
+- 다음: 여우 외 네 영웅의 전용 PNG/WebP 공격 원화, 일반 몬스터의 관절별 독립 원화, 실제 Android 장시간 발열·메모리 시험.
+
+
 ## 코드의 기준본
 - GitHub: https://github.com/junl-im/K-city-webgame/tree/main/ForestGuard
 - 원본 엔트리: ForestGuard/index.html
 - 엔진/진행: ForestGuard/game.js
-- 동작별 4프레임 × 대기·달리기·공격·피격·승리: ForestGuard/visuals.js
+- 영웅 공격 8프레임·몬스터 사망 5/6프레임·대기/달리기/피격/승리 Canvas 모션: ForestGuard/visuals.js
 - 독자 원화: ForestGuard/art/forest-characters.png · rani-evolution.png
 - UI: ForestGuard/style.css
 - 기본 자동 검사: node ForestGuard/tests/smoke.mjs

@@ -1168,12 +1168,21 @@
       this.effects.push(ring);
       this.tweens.add({targets:ring,scale:critical?2.1:1.65,alpha:0,duration:critical?340:240,
         onComplete:()=>{ring.destroy();const index=this.effects.indexOf(ring);if(index>=0)this.effects.splice(index,1);}});
-      if(critical&&this.effects.length<24){
-        for(let n=0;n<3;n++){
-          const particle=this.add.image(x,y,'shard-'+(kind==='rabbit'?'crystal':kind==='cat'?'spore':'leaf')).setDisplaySize(9,9).setAlpha(.82).setDepth(7);
+      // Small hits have a two-piece painted burst; critical hits fan out farther.
+      // Respect the existing FX cap and accessibility settings on weaker phones.
+      const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      if(!reduced&&this.effects.length<22){
+        const count=critical?4:2;
+        const shard=kind==='rabbit'?'crystal':kind==='cat'?'spore':kind==='bear'?'stone':'leaf';
+        for(let n=0;n<count&&this.effects.length<26;n++){
+          const particle=this.add.image(x,y,'shard-'+shard).setDisplaySize(critical?11:7,critical?13:9)
+            .setAlpha(critical?.9:.7).setDepth(7);
+          if(kind==='megafox')particle.setTint(0xffd46c);
           this.effects.push(particle);
-          const angle=(n*2*Math.PI/3)+.22;
-          this.tweens.add({targets:particle,x:x+Math.cos(angle)*29,y:y+Math.sin(angle)*29,alpha:0,scale:.3,duration:320,
+          const angle=n*2*Math.PI/count+(critical?.22:.45),distance=critical?35:19;
+          this.tweens.add({targets:particle,x:x+Math.cos(angle)*distance,
+            y:y+Math.sin(angle)*distance-6,alpha:0,angle:n%2?105:-85,
+            scale:.24,duration:critical?360:225,
             onComplete:()=>{particle.destroy();const i=this.effects.indexOf(particle);if(i>=0)this.effects.splice(i,1);}});
         }
       }
@@ -1270,7 +1279,8 @@
       if(['guardian','shroom','boss'].includes(e.type))this.syncBattleOverlay();
       if(e.nameLabel)e.nameLabel.destroy();
       e.life.destroy();e.lifeBg.destroy();
-      // Breaches vanish immediately; defeated creatures play a bounded death sequence.
+      // A breach disappears instantly; a defeated enemy keeps only a visual
+      // 5/6-frame ghost. Damage, rewards and WaveDirector removal remain immediate.
       if(!defeated||this.dyingSprites>=12){e.spr.destroy();return;}
       this.dyingSprites++;
       const spr=e.spr;
@@ -1280,20 +1290,31 @@
         ['guardian','boss','brute'].includes(e.type)?'stone':'leaf';
       const large=['guardian','boss','shroom'].includes(e.type);
       const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-      const hurt='motion-'+e.type+'-hurt-2';
-      if(this.textures.exists(hurt))spr.setTexture(hurt);
-      if(!reduced&&this.dyingSprites<=9){
-        const total=large?5:3;
+      const frameCount=V.frameTotal(e.type,'death');
+      const first='motion-'+e.type+'-death-0';
+      if(this.textures.exists(first))spr.setTexture(first);
+      if(!reduced&&this.dyingSprites<=8){
+        const total=large?4:2;
         for(let n=0;n<total;n++){
-          const particle=this.add.image(e.x,e.y,'shard-'+kind).setDepth(7).setDisplaySize(large?21:13,large?21:13);
-          const angle=n/total*Math.PI*2,dist=large?53:32;
-          this.tweens.add({targets:particle,x:e.x+Math.cos(angle)*dist,y:e.y+Math.sin(angle)*dist-13,
-            alpha:0,angle:n%2?100:-120,scale:0.35,duration:large?430:340,
-            onComplete:()=>particle.destroy()});
+          const particle=this.add.image(e.x,e.y,'shard-'+kind).setDepth(7)
+            .setDisplaySize(large?20:12,large?20:12);
+          const angle=n/total*Math.PI*2,dist=large?50:30;
+          this.tweens.add({targets:particle,x:e.x+Math.cos(angle)*dist,
+            y:e.y+Math.sin(angle)*dist-13,alpha:0,angle:n%2?100:-120,
+            scale:.3,duration:large?410:310,onComplete:()=>particle.destroy()});
         }
       }
-      this.tweens.add({targets:spr,alpha:0,y:spr.y+16,angle:spr.angle+(large?7:17),
-        scaleX:spr.scaleX*.70,scaleY:spr.scaleY*.68,duration:reduced?100:large?440:300,
+      const finalAlpha=reduced?.12:.18;
+      this.tweens.add({targets:spr,alpha:finalAlpha,y:spr.y+(large?20:16),
+        angle:spr.angle+(large?7:13),scaleX:spr.scaleX*.77,scaleY:spr.scaleY*.77,
+        duration:reduced?90:V.duration(e.type,'death'),ease:'Linear',
+        onUpdate:()=>{
+          if(!spr.active||reduced)return;
+          const progress=Math.max(0,Math.min(1,(1-spr.alpha)/(1-finalAlpha)));
+          const frame=Math.min(frameCount-1,Math.floor(progress*frameCount));
+          const texture='motion-'+e.type+'-death-'+frame;
+          if(this.textures.exists(texture)&&spr.texture.key!==texture)spr.setTexture(texture);
+        },
         onComplete:()=>{this.dyingSprites=Math.max(0,this.dyingSprites-1);spr.destroy();}});
     }
     clearBossWarning(e){
@@ -2048,8 +2069,22 @@
            foxRasterReady:!!foxAttackBitmap,
            eliteAttack6:battle.textures.exists('motion-shroom-attack-5'),
            eliteHurt6:battle.textures.exists('motion-guardian-hurt-5'),
+           ordinaryDeath5:battle.textures.exists('motion-sprout-death-4'),
+           eliteDeath6:battle.textures.exists('motion-shroom-death-5'),
+           deathDuration:V.duration('shroom','death'),
            heroDuration:V.duration('fox','attack')};
        },
+       previewDefeat(){
+         if(!battle||battle.ended)return null;
+         const before=battle.enemies.length;
+         battle.spawnEnemy('sprout');
+         const enemy=battle.enemies[battle.enemies.length-1];
+         enemy.y=285;enemy.spr.setPosition(210,285);
+         battle.removeEnemy(enemy,true);
+         return {enemyCountUnchanged:battle.enemies.length===before,
+           deathCount:battle.dyingSprites,texture:enemy.spr.texture.key};
+       },
+       deathFxCount(){return battle?.dyingSprites??null;},
        damageNumberTrack(){
          if(!battle||battle.ended)return null;
          const dummy={type:'sprout',x:160,y:275,spr:{active:true}};

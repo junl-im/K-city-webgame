@@ -16,8 +16,8 @@ const textures={
 };
 for(const id of ['fox','bear','rabbit','cat'])textures.data.set('hero-'+id,{});
 textures.data.set('evo-0',{});
-textures.data.set('enemy-sprout',{});
-for(const id of ['shroom','guardian'])textures.data.set('enemy-'+id,{});
+for(const id of ['sprout','runner','brute','boss','thorn','crystal','shroom','guardian','spore','imp'])
+  textures.data.set('enemy-'+id,{});
 const window={};
 const document={createElement(tag){
   assert.equal(tag,'canvas');
@@ -39,10 +39,22 @@ for(const state of states){
   assert.equal(textures.exists('motion-sprout-'+state+'-4'),false,
     'Ordinary enemies should keep four frames for mobile memory');
 }
-for(const id of ['shroom','guardian'])for(const state of ['attack','hurt']){
+for(const id of ['shroom','guardian','boss'])for(const state of ['attack','hurt','death']){
   assert.ok(textures.exists('motion-'+id+'-'+state+'-5'));
   assert.equal(textures.exists('motion-'+id+'-'+state+'-6'),false);
 }
+for(const id of ['sprout','runner','brute','thorn','crystal','spore','imp']){
+  assert.equal(visuals.frameTotal(id,'death'),5);
+  for(let f=0;f<5;f++)assert.ok(textures.exists('motion-'+id+'-death-'+f),
+    'Death texture missing: '+id+'/'+f);
+  assert.equal(textures.exists('motion-'+id+'-death-5'),false);
+}
+assert.equal(visuals.duration('sprout','death'),425);
+assert.equal(visuals.duration('shroom','death'),510);
+assert.equal(visuals.frameTotal('fox','death'),0);
+assert.equal(textures.exists('motion-fox-death-0'),false);
+assert.match(source,/globalCompositeOperation='destination-out'/,
+  'Monster dissolve should cut the painted silhouette without a rectangular flash');
 const sprite={
   active:true,scene:{textures},texture:{key:''},data:new Map(),
   getData(key){return this.data.get(key);},
@@ -59,4 +71,4 @@ for(let f=0;f<8;f++){
 visuals.animate(sprite,'fox','idle',1525);
 assert.match(sprite.texture.key,/^motion-fox-idle-/);
 assert.ok(!source.includes('<svg')&&!source.includes('data:image/svg+xml'));
-console.log('ForestGuard five hero 8-beat attacks, elite 6-frame impacts, and mobile fallback: PASS');
+console.log('ForestGuard hero attacks, 10 species 5/6-frame deaths, elite hits and mobile fallback: PASS');

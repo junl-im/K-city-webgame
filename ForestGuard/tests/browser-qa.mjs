@@ -280,8 +280,16 @@ try{
       await page.waitForTimeout(130);
       await page.screenshot({path:new URL('../test-output/element-combat-v39-390.png',import.meta.url).pathname});
       const motion=await page.evaluate(()=>window.__ForestGuardQA.motionInfo());
-      assert.deepEqual(motion,{heroAttack8:true,foxRasterReady:true,eliteAttack6:true,eliteHurt6:true,heroDuration:520},
-        'Eight-beat rear attacks and elite hit frames must be baked into the actual battle');
+      assert.deepEqual(motion,{heroAttack8:true,foxRasterReady:true,eliteAttack6:true,
+        eliteHurt6:true,ordinaryDeath5:true,eliteDeath6:true,deathDuration:510,heroDuration:520},
+        'Rear attacks, elite hit frames and species-specific death frames must exist at runtime');
+      const death=await page.evaluate(()=>window.__ForestGuardQA.previewDefeat());
+      assert.ok(death.enemyCountUnchanged&&death.deathCount>=1&&
+        death.texture==='motion-sprout-death-0',
+        'Defeated monsters should animate with no delay to wave accounting');
+      await page.waitForTimeout(150);
+      await page.screenshot({path:new URL('../test-output/monster-death-v43-390.png',import.meta.url).pathname});
+      await page.waitForFunction(()=>window.__ForestGuardQA.deathFxCount()===0,null,{timeout:1600});
       const tracked=await page.evaluate(()=>window.__ForestGuardQA.damageNumberTrack());
       assert.ok(tracked?.alive&&tracked.shift>22,'Damage number must follow moving enemy position');
       await page.screenshot({path:new URL('../test-output/motion-impact-v40-390.png',import.meta.url).pathname});

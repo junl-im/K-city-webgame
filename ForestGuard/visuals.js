@@ -1,4 +1,4 @@
-/* 라니 수비대 v3.0 — 독자 Canvas 모션 및 PNG UI 문양 | © 2026 곰같은여우
+/* 라니 수비대 v4.3 — 몬스터 전용 사망 프레임 및 독자 Canvas 모션 | © 2026 곰같은여우
  * Source character paintings remain the original ForestGuard PNG assets.
  * Every animation frame below is newly assembled from that character's painting.
  * No SVG, emoji glyphs or third-party character art.
@@ -6,11 +6,15 @@
 (function(global){
   'use strict';
   const STATES=['idle','run','attack','hurt','victory'];
+  const ENEMY_STATES=[...STATES,'death'];
   // Existing rear-view paintings become eight distinct attack beats; other states stay compact.
   const HERO_IDS=new Set(['fox','megafox','bear','rabbit','cat']);
   const ELITE_IDS=new Set(['boss','guardian','shroom']);
-  function frameTotal(id,state){return HERO_IDS.has(id)?(state==='attack'?8:6):ELITE_IDS.has(id)&&['attack','hurt'].includes(state)?6:4;}
-  function frameStep(state){return state==='run'?105:state==='attack'?65:state==='hurt'?80:state==='victory'?125:180;}
+  function frameTotal(id,state){
+    if(state==='death')return HERO_IDS.has(id)?0:ELITE_IDS.has(id)?6:5;
+    return HERO_IDS.has(id)?(state==='attack'?8:6):ELITE_IDS.has(id)&&['attack','hurt'].includes(state)?6:4;
+  }
+  function frameStep(state){return state==='death'?85:state==='run'?105:state==='attack'?65:state==='hurt'?80:state==='victory'?125:180;}
   function duration(id,state){return frameTotal(id,state)*frameStep(state);}
   const ATTACK_POSES={
     fox:[[0,0,-.02,1],[-2,-2,-.05,.98],[-5,-3,-.09,.96],[-7,-4,-.11,.96],[7,1,.10,1.04],[5,0,.08,1.02],[2,-1,.03,1],[0,0,0,1]],
@@ -187,11 +191,49 @@
       }
     }
     if(state==='hurt'){dx=frame%2?-7:5;rot=frame%2?-.13:.10;sy=ELITE_IDS.has(id)?.90+frame*.015:.94;}
+    if(state==='death'){
+      const fade=(frame+1)/frameTotal(id,state);
+      dx=Math.sin(frame*1.9)*(ELITE_IDS.has(id)?3:5)*fade;
+      dy=fade*(ELITE_IDS.has(id)?15:19);
+      rot=(frame%2?-1:1)*fade*(ELITE_IDS.has(id)?.095:.15);
+      sx=1-fade*.16;sy=sx;
+    }
     if(state==='victory'){dy=frame%2?-12:-4;rot=Math.sin(phase)*.08;sx=1.04;}
     // Rebuilt artwork must never be warped differently across X and Y.
     // Motion stays readable through translation, rotation and uniform size changes.
     const uniformScale=Math.sqrt(Math.max(.7,sx*sy));
-    c.save();c.translate(64+dx,64+dy);c.rotate(rot);c.scale(uniformScale,uniformScale);c.drawImage(img,-62,-62,124,124);c.restore();
+    c.save();c.translate(64+dx,64+dy);c.rotate(rot);c.scale(uniformScale,uniformScale);
+    if(state==='death')c.globalAlpha=Math.max(.13,1-((frame+1)/frameTotal(id,state))*.68);
+    c.drawImage(img,-62,-62,124,124);c.restore();
+    if(state==='death'){
+      // Five/six separately painted Canvas frames: organic silhouette breakup,
+      // progressive sinking and species-colored fragments; never a rectangular flash.
+      const progress=(frame+1)/frameTotal(id,state);
+      const elite=ELITE_IDS.has(id);
+      const tint=id==='crystal'?'#b6e8ff':id==='shroom'||id==='spore'?'#e9b27a':
+        id==='boss'||id==='guardian'||id==='brute'?'#dfc394':'#b8dd8f';
+      c.save();c.globalCompositeOperation='destination-out';c.fillStyle='#000';
+      if(frame>0)for(let i=0;i<(elite?5:4);i++){
+        const angle=i*2.399+id.length*.17;
+        const x=64+Math.cos(angle)*(15+i*7)+dx;
+        const y=62+Math.sin(angle)*(17+i*5)+dy;
+        const radius=Math.max(1,(progress-.16)*(elite?17:14));
+        c.beginPath();c.ellipse(x,y,radius,radius*(.72+(i%2)*.27),angle,0,Math.PI*2);c.fill();
+      }
+      c.restore();
+      c.save();c.globalCompositeOperation='source-atop';
+      c.fillStyle=elite?'rgba(255,223,177,.25)':'rgba(255,238,192,.14)';
+      c.fillRect(0,0,128,128);c.restore();
+      c.save();c.strokeStyle=tint;c.lineCap='round';c.lineWidth=elite?3:2;
+      c.globalAlpha=Math.max(.13,.87-progress*.54);
+      for(let k=0;k<(elite?4:3);k++){
+        const a=k*2.17+frame*.28;
+        const distance=23+progress*(elite?28:19);
+        const x=64+Math.cos(a)*distance,y=70+Math.sin(a)*distance+progress*9;
+        c.beginPath();c.moveTo(x-4,y+3);c.quadraticCurveTo(x,y-4-progress*5,x+4,y-7);c.stroke();
+      }
+      c.restore();
+    }
     if(state==='run'){stroke(c,'rgba(255,240,190,.55)',3);line(c,[30,104,19-frame*3,103]);line(c,[95,107,103+frame*2,105]);}
     if(state==='attack'){
       c.save();c.translate(64,52);c.rotate(((frame>=6?7-frame:frame)-1)*.18);if(frame>=6)c.globalAlpha=.22;
@@ -279,7 +321,7 @@
       const key=baseTexture(id,textures);
       if(!textures.exists(key))continue;
       const img=textures.get(key).getSourceImage();
-      for(const state of STATES)for(let frame=0;frame<frameTotal(id,state);frame++){
+      for(const state of (HERO_IDS.has(id)?STATES:ENEMY_STATES))for(let frame=0;frame<frameTotal(id,state);frame++){
         const k='motion-'+id+'-'+state+'-'+frame;
         if(textures.exists(k))continue;
         const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
@@ -303,5 +345,5 @@
     sprite.setData('motionState',state);sprite.setData('motionUntil',until);
     sprite.setData('motionStart',Number.isFinite(start)?start:null);
   }
-  global.ForestGuardVisuals={build,animate,trigger,duration,icon,setIcon,portrait};
+  global.ForestGuardVisuals={build,animate,trigger,duration,frameTotal,icon,setIcon,portrait};
 })(window);
