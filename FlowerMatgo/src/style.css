@@ -3994,3 +3994,37 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 @media(max-height:650px){.scene--home .hero-copy {margin-top:20px;}}
 @media(prefers-reduced-transparency:reduce){.scene--home .hero-copy {background:#fbf5e8;}}
 @media(prefers-reduced-transparency:reduce){.scene--home .hero-copy {background:linear-gradient(145deg,rgba(255,250,234,.74),rgba(247,238,216,.68));}}
+/* Rani Matgo: illustrated, compact choice surfaces. */
+.scene--home .home-actions .btn--jewel,.scene--select .setup-bottom > .btn--primary,.scene--game .result-actions .btn--primary {display:flex;align-items:center;justify-content:center;width:min(100%,235px);min-width:0;min-height:58px;margin-inline:auto;padding:8px 38px;border:0;border-radius:0;background:transparent url('/assets/rani-button-red-v1.png') center/100% 100% no-repeat;box-shadow:none;color:#fff6df;font-weight:950;text-shadow:0 2px 3px #491006,0 0 4px #5b0e08;}
+.scene--game .result-actions .btn--primary {width:min(100%,210px);min-height:58px;}
+.scene--game .modal-box--choice {width:min(430px,100%);padding:clamp(20px,5vw,32px) clamp(18px,5vw,32px);border:0;border-radius:20px;background:#073b29 url('/assets/rani-dialog-jade-v1.png') center/100% 100% no-repeat;box-shadow:0 12px 34px #061b14ab;backdrop-filter:none;color:#fff6dd;}
+.scene--game .modal-box--choice .decision-kicker {color:#f5ce81;text-shadow:0 1px 3px #07190e;}
+.scene--game .modal-box--choice h2 {font-family:Georgia,'Malgun Gothic',serif;color:#fff5d6;text-shadow:0 2px 4px #05170e;font-size:clamp(23px,5vw,30px);}
+.scene--game .modal-box--choice .decision-hint {color:#f5e4c4;font-size:13px;}
+.scene--game .modal-box--choice .decision-score {background:rgba(9,32,22,.74);border:1px solid #c9a566;color:#ffedc5;}
+.scene--game .modal-box--choice .decision-score > strong {color:#ffdd83;}
+.scene--game .modal-box--choice .decision-review-button {min-height:38px;width:auto;padding:7px 16px;background:#f2dfba;color:#49331e;border:1px solid #e8c987;font-weight:900;}
+.scene--game .modal-box--choice .choice-actions {gap:5px;margin:8px auto;width:100%;}
+.scene--game .modal-box--choice .decision-option {min-height:76px;padding:9px 12%;border:0;border-radius:0;background:transparent url('/assets/rani-button-jade-v1.png') center/100% 100% no-repeat;box-shadow:none;color:#fff5df;text-shadow:0 2px 3px #071f12;}
+.scene--game .modal-box--choice .decision-option--go {background-image:url('/assets/rani-button-red-v1.png');color:#fff8e3;}
+.scene--game .modal-box--choice .decision-option--stop {background-image:url('/assets/rani-button-jade-v1.png');color:#fff8e3;}
+.scene--game .modal-box--choice .decision-option strong {font-size:clamp(20px,5vw,27px);line-height:1.05;}
+.scene--game .modal-box--choice .decision-option small {font-size:clamp(10px,2.7vw,12px);}
+.scene--game .modal-box--choice .decision-timer {color:#f6dba4!important;}
+.scene--game .modal-box--choice .decision-timer strong {color:#ffd978;}
+.scene--game .mission-status-row .mission-panel {min-height:90px;padding:6px 7px 5px;}
+.scene--game .mission-status-row .mission-panel__content {flex-direction:column;max-width:100%;gap:2px;}
+.scene--game .mission-status-row .mission-panel__cards {gap:2px;}
+.scene--game .mission-status-row .mission-mini {width:clamp(23px,5.8vw,34px);}
+.scene--game .mission-status-row .mission-panel__reward {flex-direction:row;gap:4px;}
+.scene--game .mission-status-row .mission-panel__reward strong {font-size:clamp(12px,3vw,17px);}
+.scene--game .mission-status-row .mission-toggle {left:0;right:auto;top:0;bottom:auto;min-width:36px;min-height:32px;padding:4px;border:1px solid #dfbd7a;border-radius:9px;background:#1b573b;color:#fff3ca;font-size:10px;font-weight:950;box-shadow:0 2px 5px #11261aa8;}
+.scene--game .mission-status-row .mission-toggle[aria-pressed=false] {background:#33342e;color:#ddd;border-color:#8e8b76;}
+.scene--game .mission-status-row .mission-toggle:disabled {opacity:.8;}
+@media(max-width:650px){.scene--game .mission-status-row .mission-panel {min-height:83px;}.scene--game .mission-status-row .mission-mini {width:clamp(21px,6vw,27px);}.scene--game .modal-box--choice {padding:20px 16px;}.scene--game .modal-box--choice .decision-option {min-height:66px;}.scene--game .modal-box--choice .decision-timer {font-size:11px!important;}}
+@media(max-height:600px){.scene--game .mission-status-row .mission-panel {min-height:72px;}.scene--game .mission-status-row .mission-mini {width:21px;}.scene--game .modal-box--choice {padding:14px 15px;}.scene--game .modal-box--choice .decision-option {min-height:58px;}.scene--game .modal-box--choice .decision-hint {margin:2px 0 4px;}}
+.scene--game .mission-status-row .mission-panel__title {padding-left:20px;}
+.scene--game .mission-status-row .mission-panel__content {padding-top:7px;}
+.scene--game .mission-status-row .mission-panel {min-height:98px;}
+@media(max-height:600px){.scene--game .mission-status-row .mission-panel {min-height:85px;}}
+.scene--game .modal-box--choice .gookjin-card .hwatu {width:clamp(64px,18vw,90px);max-width:100%;}
