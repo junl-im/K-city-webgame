@@ -262,6 +262,14 @@ try{
     assert.ok(layers.heroY<=575&&layers.heroHeight>=90,'Hero should stand above battlements');
     assert.equal(layers.fieldCount,1,'Exactly one stage background must render');
     if(size.width===390){
+      const elemental=await page.evaluate(()=>window.__ForestGuardQA.elementVisuals());
+      assert.ok(elemental.sourceReady,'Original four-element painting must load in battle');
+      assert.deepEqual(elemental.textures,{forest:true,frost:true,stone:true,flame:true},
+        'Every elemental painting quadrant must become a Phaser texture');
+      const cues=await page.evaluate(()=>window.__ForestGuardQA.previewElementCues());
+      assert.deepEqual(cues,[true,true,true,true],'All four original elemental combat cues must render');
+      await page.waitForTimeout(130);
+      await page.screenshot({path:new URL('../test-output/element-combat-v39-390.png',import.meta.url).pathname});
       await page.waitForFunction(()=>window.__ForestGuardQA.damageFeedback()!==null,null,{timeout:12000});
       const damageNow=await page.evaluate(()=>window.__ForestGuardQA.damageFeedback());
       assert.ok(damageNow.ordinaryBarHidden,'Ordinary mobs must not show an HP bar');

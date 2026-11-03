@@ -65,6 +65,14 @@ assert.match(html,/rani-element-spells-v38\.png/);
 assert.match(js,/paintElementSpell\(icon,card\.id,b\)/);
 assert.match(js,/paintElementSpell\(icon,choice\.id===/);
 assert.match(element38,/rani-element-card/);
+for(const token of [
+  "'element-cue-'+element",
+  "this.showElementCue('forest',target.x,target.y)",
+  "this.showElementCue('frost',e.x+13,e.y)",
+  "this.showElementCue('flame',e.x-13,e.y)",
+  "this.showElementCue('stone',210,522,true)",
+  "this.showElementCue('forest',210,521,true)"
+])assert.ok(js.includes(token),'Elemental combat effect missing: '+token);
 assert.doesNotMatch(element38,/<svg|\.svg|data:image\/svg/i);
 const illustrated31=read('illustrated-v31.css');
 const scene35=read('scene-v35.css'), route35=read('scene-v35.js');
@@ -192,7 +200,7 @@ assert.match(js,/hasDashed/);
 assert.match(js,/hasRallied/);
 assert.match(js,/guarding\?Math\.min\(\.55/);
 assert.match(css,/\.hero-slot\.empty\{border:0!important/);
-assert.match(html,/game\.js\?v=20261103a/);
+assert.match(html,/game\.js\?v=20261103b/);
 assert.match(html,/visuals\.js\?v=20261102a/);
 assert.match(visuals,/frameTotal\(id\)/);
 assert.match(visuals,/drawHeroWeapon\(c,id,frame\)/);

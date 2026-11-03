@@ -137,6 +137,7 @@
   const biomeLoading = [null,null,null];
   const biomeFiles = ['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'];
   let monsterBitmap = null, fortBitmap = null, mushroomAttackBitmap = null, rampartBitmap = null, rearBitmap = null;
+  let elementSpellBitmap = null; // v3.9: existing original paintings, reused during combat.
   const ART_VERSION = '20261031r';
   async function prepareAtlas(stageIndex){
     const load=(url,assign)=>new Promise(resolve=>{
@@ -164,6 +165,7 @@
       load('./art/forest-monsters-v14-clean.webp?v='+ART_VERSION,art=>{monsterBitmap=art;}),
       load('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;}),
       load('./art/mushroom-colossus-attack-v19.webp?v=20261101d',art=>{mushroomAttackBitmap=art;}),
+       load('./art/rani-element-spells-v38.png?v=20261103a',art=>{elementSpellBitmap=art;}),
       load('./art/painted-rampart-front-v24.webp?v=20261101j',art=>{rampartBitmap=art;})
     ]);
     const biome=Math.floor(stageIndex/4);
@@ -643,6 +645,16 @@
         c.drawImage(evolutionBitmap,(i%4)*cw,Math.floor(i/4)*ch,cw,ch,0,0,w,h);
       }else paintHero(c,w,h,'fox');
     });
+    // v3.9: crop the existing transparent 2x2 painting once per scene; no SVG.
+    if(elementSpellBitmap){
+      const side=Math.min(elementSpellBitmap.naturalWidth,elementSpellBitmap.naturalHeight)/2;
+      for(const [element,index] of [['forest',0],['frost',1],['stone',2],['flame',3]]){
+        createCanvasTexture(scene,'element-cue-'+element,128,128,ctx=>{
+          ctx.drawImage(elementSpellBitmap,(index%2)*side,Math.floor(index/2)*side,
+            side,side,0,0,128,128);
+        });
+      }
+    }
     // Reusable illustration-like elemental fragments, painted once per battle on Canvas.
     for(const [element,core,rim] of [
       ['leaf','#91bb5e','#e9df9b'],['crystal','#69d1ee','#e3faff'],
@@ -823,7 +835,7 @@
       this.terrainTimer=this.terrainConfig?this.terrainConfig.interval:Infinity;
       this.terrainWarned=false;this.terrainWarning=false;this.terrainCueUntil=0;this.terrainCueText='';
       this.terrainEvents=0;this.overlayTimer=0;
-      this.cardCounts={};this.synergies=new Set();this.gameClock=0;this.attackFxActive=0;this.damageFloatCount=0;this.damageFloatSerial=0;
+      this.cardCounts={};this.synergies=new Set();this.gameClock=0;this.attackFxActive=0;this.damageFloatCount=0;this.damageFloatSerial=0;this.elementCueTimes=Object.create(null);
       this.heroIds=[null,null,'fox',null,null];this.targetModes=Array(HERO_CAPACITY).fill('front');this.attackTimes=Array(HERO_CAPACITY).fill(0);this.enemies=[];this.projectiles=[];this.effects=[];this.dyingSprites=0;
       this.focusEnemy=null;this.focusUntil=0;this.focusReticle=null;this.lastFortHP=-1;
       const personal=state.stats[this.stage.id]||{};
@@ -1094,6 +1106,29 @@
       this.tweens.add({targets:rise,y:455,alpha:0,duration:1500,onComplete:()=>rise.destroy()});
       showBanner(name);renderSlots();renderHUD();
     }
+    showElementCue(element,x,y,force=false){
+      // Actual passive proc feedback, at most once per element per second.
+      if(this.ended||this.effects.length>=22)return false;
+      const key='element-cue-'+element;
+      if(!this.textures.exists(key))return false; // A missing optional image cannot break combat.
+      const now=this.gameClock;
+      if(!force&&now-(this.elementCueTimes[element]??-10000)<1000)return false;
+      this.elementCueTimes[element]=now;
+      const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      const size=element==='stone'?68:76;
+      const art=this.add.image(x,y-14,key).setDisplaySize(size,size).setAlpha(.94).setDepth(7.5);
+      this.effects.push(art);
+      const clear=()=>{
+        if(art.active)art.destroy();
+        const at=this.effects.indexOf(art);
+        if(at>=0)this.effects.splice(at,1);
+      };
+      if(reduced)this.time.delayedCall(380,clear);
+      else this.tweens.add({targets:art,y:y-41,alpha:0,
+        scaleX:art.scaleX*1.13,scaleY:art.scaleY*1.13,duration:570,
+        ease:'Sine.Out',onComplete:clear});
+      return true;
+    }
     impactAt(x,y,kind,critical=false){
       if(this.effects.length>=26)return;
       const color=kind==='rabbit'?0x9deaff:kind==='cat'?0xffab65:kind==='megafox'?0xffe387:kind==='bear'?0xe7d5a1:0xbee38b;
@@ -1144,6 +1179,10 @@
       if(kind==='rabbit'||this.freeze||(kind==='megafox'&&this.evolutionPath==='moon'))
         e.slow=Math.max(e.slow,kind==='rabbit'?1900:kind==='megafox'&&this.evolutionPath==='moon'?1150:650);
       if(this.flame)e.hp-=Math.max(4,Math.floor(actual*(this.synergies.has('wildfire')?.38:.15)*(e.type==='sprout'?1.25:1)));
+       if(kind==='rabbit'||this.freeze||(kind==='megafox'&&this.evolutionPath==='moon'))
+         this.showElementCue('frost',e.x+13,e.y);
+       if(this.flame||(kind==='megafox'&&this.evolutionPath==='sun'))
+         this.showElementCue('flame',e.x-13,e.y);
       if(this.spark && Math.random()<.20+this.spark*.1){
         const near=this.enemies.find(other=>other!==e&&!other.untargetable&&Math.hypot(other.x-e.x,other.y-e.y)<100);
         if(near){near.hp-=Math.round(actual*.55);near.life.width=near.lifeWidth*Math.max(0,near.hp/near.maxHP);
@@ -1406,6 +1445,7 @@
       const target=this.enemies.filter(e=>!e.untargetable).sort((a,b)=>b.y-a.y)[0];
       if(!target)return;
       target.rooted=Math.max(target.rooted,1150+450*this.roots);
+      this.showElementCue('forest',target.x,target.y);
       const vines=this.add.circle(target.x,target.y,23,0x7acb5b,.14).setStrokeStyle(4,0x9adc75,.9).setDepth(6);
       this.tweens.add({targets:vines,scale:1.6,alpha:0,duration:570,onComplete:()=>vines.destroy()});
       if(this.synergies.has('bramblefire')){
@@ -1422,6 +1462,7 @@
       this.coins-=REPAIR_COST;this.repairs++;
       const healed=Math.min(REPAIR_HEAL,this.maxHP-this.hp);
       this.hp+=healed;
+      this.showElementCue('stone',210,522,true);
       this.impactAt(210,532,'rabbit',true);
       const shine=this.add.rectangle(210,532,340,12,0xa7efae,.55).setDepth(8);
       this.tweens.add({targets:shine,scaleY:4,alpha:0,duration:430,onComplete:()=>shine.destroy()});
@@ -1631,7 +1672,7 @@
       if(id==='haste')this.speedBonus*=1.2;
       if(id==='multi')this.multi=Math.min(3,this.multi+1);
       if(id==='ice')this.freeze++;
-      if(id==='wall')this.hp=Math.min(this.maxHP,this.hp+600);
+      if(id==='wall'){this.hp=Math.min(this.maxHP,this.hp+600);this.showElementCue('stone',210,526,true);}
       if(id==='flame')this.flame++;
       if(id==='crit')this.crit=Math.min(.65,this.crit+.13);
       if(id==='spark')this.spark=Math.min(3,this.spark+1);
@@ -1775,7 +1816,7 @@
         V.animate(e.spr,e.type,'run',this.gameClock);
         if(e.y>=538){
           let leak=e.type==='boss'?580:e.type==='guardian'?360:e.type==='shroom'?255:e.type==='crystal'?190:e.type==='brute'?220:90;
-          if(this.wardCharges>0){leak=Math.ceil(leak*.5);this.wardCharges--;showBanner('숲의 수호 · 성벽 피해 감소!');}
+          if(this.wardCharges>0){leak=Math.ceil(leak*.5);this.wardCharges--;this.showElementCue('forest',210,521,true);showBanner('숲의 수호 · 성벽 피해 감소!');}
           this.hp=Math.max(0,this.hp-leak);
           this.cameras.main.shake(110,.002);
           this.removeEnemy(e);renderHUD();if(this.hp<=0){this.finish(false);return;}
@@ -1949,7 +1990,18 @@
         return {ordinaryBarHidden:noBar,floatCount:battle.damageFloatCount,
           heroCount:battle.heroIds.filter(Boolean).length};
       },
-      renderInfo(){
+      elementVisuals(){
+         if(!battle||battle.ended)return null;
+         return {sourceReady:!!elementSpellBitmap,
+           textures:Object.fromEntries(['forest','frost','stone','flame'].map(kind=>
+             [kind,battle.textures.exists('element-cue-'+kind)]))};
+       },
+       previewElementCues(){
+         if(!battle||battle.ended)return null;
+         return ['forest','frost','stone','flame'].map((kind,i)=>
+           battle.showElementCue(kind,72+i*92,310,true));
+       },
+       renderInfo(){
         if(!battle||!battle.rampartFront)return null;
         const front=battle.rampartFront,hero=battle.heroSprites.find(Boolean);
         return {frontTexture:front.texture.key,frontDepth:front.depth,frontY:front.y,
