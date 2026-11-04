@@ -4066,3 +4066,8 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--game .modal-shade--decision {background:rgba(10,29,23,.48);backdrop-filter:blur(4px);}
 .scene--game .turn-impact__text {max-width:min(80vw,270px);white-space:normal;line-height:1.15;}
 @media(prefers-reduced-motion:reduce){.scene--game .modal-shade--decision {backdrop-filter:none;}}
+/* Keep event lettering visible for the full message lifetime; turn notices remain brief. */
+.scene--game .central-event:not(.turn-notice) {animation-duration:2.4s;}
+.scene--game .central-event--high-go:not(.turn-notice) {font-size:clamp(42px,14vw,96px);color:#ffe17c;animation-name:rani-high-go-call;animation-duration:3.1s;text-shadow:0 3px 0 #8e2b11,3px 5px 0 #4a190c,-3px -1px 0 #4a190c,0 0 16px #ffad47a8,0 6px 13px #000b;}
+@keyframes rani-high-go-call {0%{opacity:0;transform:translate(-50%,-50%) scale(.65) rotate(-4deg);}10%{opacity:1;transform:translate(-50%,-50%) scale(1.16) rotate(2deg);}19%{transform:translate(-50%,-50%) scale(.96) rotate(-1deg);}27%,76%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0);}100%{opacity:0;transform:translate(-50%,-53%) scale(.98);}}
+@media(prefers-reduced-motion:reduce){.scene--game .central-event--high-go:not(.turn-notice){animation:none;}}

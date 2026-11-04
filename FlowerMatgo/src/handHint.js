@@ -5,5 +5,5 @@ export function handHint(game,id) {
  if(game.floorCards.some(cardId=>getCard(cardId)?.month===item.month)) return 'match';
  const captured=[...(game.humanCaptured || []),...(game.computerCaptured || [])].filter(cardId=>getCard(cardId)?.month===item.month).length;
  const hand=game.humanHand.filter(cardId=>getCard(cardId)?.month===item.month).length;
- return captured===2 && hand===2 ? 'dead' : 'none';
+ return ((captured===2 && hand===2) || (captured===3 && hand===1)) ? 'dead' : 'none';
 }

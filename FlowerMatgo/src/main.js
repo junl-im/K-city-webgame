@@ -187,7 +187,8 @@ function effects(label, kind = 'special', visualKind = kind, silent = false) {
   flashKind = visualKind;
   clearTimeout(fxTimer);
   if (!silent) tone(kind);
-  fxTimer = setTimeout(() => { flash = '';flashKind = 'special'; if (app.screen === 'game' && app.game?.phase !== 'round-ended' && !turnTransition) { if (ROOT.querySelector('#go-stop-title')) { ROOT.querySelectorAll('.central-event:not(.turn-notice), .event-plaque').forEach(node => node.remove()); } else render(); } }, SPECIAL_FLASH_MS);
+  const highGo = visualKind === 'go' && Number(String(label).match(/(\d+)고/)?.[1] || 0) >= 4;
+  fxTimer = setTimeout(() => { flash = '';flashKind = 'special'; if (app.screen === 'game' && app.game?.phase !== 'round-ended' && !turnTransition) { if (ROOT.querySelector('#go-stop-title')) { ROOT.querySelectorAll('.central-event:not(.turn-notice), .event-plaque').forEach(node => node.remove()); } else render(); } }, highGo ? 3100 : SPECIAL_FLASH_MS);
 }
 function announceTurn(game, delay = 120) {
   clearTimeout(turnNoticeTimer);
@@ -500,7 +501,7 @@ function gameScreen() {
       <div class="game-message" aria-live="polite" title="${safe(spokenActionText(g.lastAction))}">${safe(spokenActionText(g.lastAction))}</div>
     </div>
     <div class="player-area bottom-safe">
-      <div class="player-status"><div><span class="mascot mascot--bear player-mini-avatar" aria-hidden="true"></span><span class="me-badge">나</span><strong>${me.total}점</strong><span class="go-count">${g.humanGoCount ? g.humanGoCount+'고' : '고 없음'}</span></div>${specialActionButtons ? `<span class="special-controls" role="group" aria-label="가능한 특수 행동">${specialActionButtons}</span>` : ''}${flash && flashKind !== 'event-list' ? `<span class="event-plaque" role="status" aria-live="polite">${safe(specialMoment(flashKind,flash).title)}</span>` : ''}</div>
+      <div class="player-status"><div><span class="mascot mascot--bear player-mini-avatar" aria-hidden="true"></span><span class="me-badge">나</span><strong>${me.total}점</strong><span class="go-count">${g.humanGoCount ? g.humanGoCount+'고' : '고 없음'}</span></div>${specialActionButtons ? `<span class="special-controls" role="group" aria-label="가능한 특수 행동">${specialActionButtons}</span>` : ''}${flash && !['event-list','go','shake'].includes(flashKind) ? `<span class="event-plaque" role="status" aria-live="polite">${safe(specialMoment(flashKind,flash).title)}</span>` : ''}</div>
       ${capturedRack(g)}
       <div class="hand-heading"><strong>내 패 ${hand.length}장</strong> <span>${yourTurn?'패를 눌러 내기':'상대 차례'}</span></div>
       <div class="hand-workspace">
@@ -509,7 +510,7 @@ function gameScreen() {
       </div>
     </div>
 
-    ${flash && ['event-list','go','shake'].includes(flashKind) ? `<div class="central-event" aria-hidden="true">${safe(specialMoment(flashKind,flash).title)}</div>` : ''}
+    ${flash && ['event-list','go','shake'].includes(flashKind) ? `<div class="central-event ${flashKind==='go' && Number(flash.match(/(\d+)고/)?.[1] || 0)>=4 ? 'central-event--high-go' : ''}" aria-hidden="true">${safe(specialMoment(flashKind,flash).title)}</div>` : ''}
     <div class="turn-countdown" aria-hidden="true" hidden><strong></strong></div>
     ${gameOverlay(g)}
   </main>`;
