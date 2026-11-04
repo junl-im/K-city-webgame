@@ -1,0 +1,159 @@
+/* 라니 수비대 v4.8 — one illustrated result scene, restrained battle labels.
+   Original forest / party / button bitmaps only. No SVG, no game-rule changes. */
+
+/* The results live on the same forest as the recruit and growth scenes.
+   Never stack a second opaque wood rectangle over the illustrated backdrop. */
+#modal-layer:has(#modal-box.result-dialog){
+  padding:max(9px,env(safe-area-inset-top)) 10px max(9px,env(safe-area-inset-bottom))!important;
+}
+#modal-layer:has(#modal-box.result-dialog) .modal-scrim{
+  background:linear-gradient(180deg,rgba(5,22,18,.75),rgba(5,29,24,.79) 55%,rgba(3,16,14,.88)),
+    url('./art/forest-entrance-v08.png') center 48%/cover no-repeat!important;
+  backdrop-filter:blur(2px)!important;
+}
+#modal-layer #modal-box.result-dialog{
+  width:min(452px,100%)!important;max-width:452px!important;
+  max-height:calc(100dvh - 18px)!important;
+  padding:clamp(9px,2.4vw,16px)!important;
+  overflow-x:hidden!important;overflow-y:auto!important;
+  border:0!important;border-radius:0!important;background:transparent!important;
+  box-shadow:none!important;filter:none!important;color:#f7ecd2!important;
+  scrollbar-width:thin;scrollbar-color:#dbc89a6b transparent;
+}
+#modal-layer #modal-box.result-dialog .modal-top{
+  min-height:34px!important;margin:0!important;padding:0 3px!important;
+  background:none!important;border:0!important;box-shadow:none!important;
+}
+#modal-layer #modal-box.result-dialog #modal-kicker{
+  color:#dbc9a2!important;font:750 11px/1.2 var(--fg-story-font),sans-serif!important;
+  letter-spacing:.02em!important;text-shadow:0 2px 5px #071b15!important;
+}
+#modal-layer #modal-box.result-dialog .close-button{display:none!important}
+#modal-layer #modal-box.result-dialog #modal-title{
+  margin:1px 0 4px!important;padding:0!important;
+  font:850 clamp(23px,6vw,31px)/1.16 var(--fg-action-font),sans-serif!important;
+  letter-spacing:-.05em!important;color:#ffe6a7!important;
+  text-shadow:0 3px 6px #071b13!important;
+}
+#modal-layer #modal-box.result-dialog:not(.result-win) #modal-title{color:#ffd0ac!important}
+#modal-layer #modal-box.result-dialog #modal-description{
+  margin:1px 0 7px!important;
+  color:#e9dfc5!important;font:650 clamp(11px,2.85vw,12px)/1.4 var(--fg-story-font),sans-serif!important;
+  text-align:center!important;text-shadow:0 1px 4px #071912!important;
+}
+#modal-layer #modal-box.result-dialog .result-presentation{gap:clamp(5px,1.5dvh,10px)!important}
+#modal-layer #modal-box.result-dialog .result-stars{
+  min-height:38px!important;gap:4px!important;margin:0!important;filter:none!important;
+}
+#modal-layer #modal-box.result-dialog .result-star{width:36px!important;height:36px!important}
+#modal-layer #modal-box.result-dialog .result-star:nth-child(2).earned{
+  width:45px!important;height:45px!important;
+}
+#modal-layer #modal-box.result-dialog .result-star.earned{
+  filter:drop-shadow(0 2px 3px rgba(55,32,12,.54))!important;
+}
+#modal-layer #modal-box.result-dialog .result-hero-scene{
+  width:100%!important;height:clamp(140px,25dvh,205px)!important;
+  min-height:140px!important;max-height:205px!important;
+  margin:0 auto!important;border:0!important;border-radius:0!important;
+  background:radial-gradient(ellipse 58% 65% at 50% 66%,rgba(245,210,124,.14),transparent 100%),
+    var(--fg-party-v35) center bottom/contain no-repeat!important;
+  box-shadow:none!important;filter:none!important;
+  mask-image:linear-gradient(180deg,transparent 0%,#000 10%,#000 92%,transparent 100%)!important;
+}
+#modal-layer #modal-box.result-dialog .result-hero-banner{display:none!important}
+#modal-layer #modal-box.result-dialog .result-stats{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:0!important;border:0!important;border-radius:16px!important;
+  background:linear-gradient(155deg,rgba(23,55,43,.71),rgba(9,35,29,.83))!important;
+  box-shadow:inset 0 1px rgba(249,221,163,.15),0 4px 11px rgba(0,12,9,.29)!important;
+  overflow:hidden!important;
+}
+#modal-layer #modal-box.result-dialog .result-stat{
+  min-width:0!important;min-height:81px!important;
+  padding:8px 3px 7px!important;gap:3px!important;
+  border:0!important;border-radius:0!important;background:none!important;
+  box-shadow:none!important;filter:none!important;
+}
+#modal-layer #modal-box.result-dialog .result-stat + .result-stat{
+  box-shadow:inset 1px 0 rgba(224,203,157,.23)!important;
+}
+#modal-layer #modal-box.result-dialog .result-stat-icon{
+  width:26px!important;height:26px!important;filter:drop-shadow(0 2px 3px rgba(0,12,8,.53))!important;
+}
+#modal-layer #modal-box.result-dialog .result-stat>span:not(.result-stat-icon){
+  color:#e6d8b9!important;font:700 clamp(9px,2.35vw,10px)/1.16 var(--fg-story-font),sans-serif!important;
+}
+#modal-layer #modal-box.result-dialog .result-stat strong{
+  max-width:100%!important;color:#ffebbb!important;
+  font:850 clamp(10px,2.95vw,14px)/1.24 var(--fg-action-font),sans-serif!important;
+  font-variant-numeric:tabular-nums;letter-spacing:-.035em!important;
+}
+#modal-layer #modal-box.result-dialog .result-note{
+  margin:2px 0!important;color:#e9dfc8!important;
+  font:650 11px/1.35 var(--fg-story-font),sans-serif!important;
+  text-shadow:0 1px 4px #071b12!important;
+}
+#modal-layer #modal-box.result-dialog #modal-actions{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;margin:10px 0 0!important;padding:0!important;
+}
+#modal-layer #modal-box.result-dialog #modal-actions .modal-action{
+  width:100%!important;min-width:0!important;min-height:44px!important;height:44px!important;
+  border:0!important;border-radius:0!important;padding:5px 9px!important;
+  background:var(--fg-btn-gold) center/100% 100% no-repeat!important;
+  box-shadow:none!important;filter:drop-shadow(0 2px 4px rgba(0,13,9,.38))!important;
+  color:#3f321c!important;text-shadow:0 1px rgba(255,247,210,.66)!important;
+  font:850 clamp(11px,2.95vw,13px)/1.2 var(--fg-action-font),sans-serif!important;
+}
+#modal-layer #modal-box.result-dialog #modal-actions .modal-action.alt{
+  background-image:var(--fg-btn-emerald)!important;
+  color:#f8eac9!important;text-shadow:0 1px 3px #10271b!important;
+}
+#modal-layer #modal-box.result-dialog #modal-actions .modal-action:focus-visible{
+  outline:2px solid #ffe2a1!important;outline-offset:2px!important;
+}
+
+/* Preserve the hand-painted empty pedestals: the old .28 opacity made them
+   look like missing sprites. Keep the existing PNG frame on occupied slots. */
+#game-screen .battle-toolbar .hero-slot.empty{opacity:.70!important}
+#game-screen .battle-toolbar .hero-slot.empty .empty-station{
+  filter:drop-shadow(0 3px 3px rgba(3,20,13,.55))!important;
+}
+#game-screen .battle-toolbar .hero-slot>span:last-child{
+  font:750 clamp(8px,2vw,10px)/1.1 var(--fg-story-font),sans-serif!important;
+  text-shadow:0 1px 3px #081d14!important;
+}
+#game-screen .boss-hud #boss-role{
+  border:0!important;border-radius:0!important;background:none!important;
+  color:#ffdda2!important;font:850 9px/1.1 var(--fg-action-font),sans-serif!important;
+  padding:0!important;text-shadow:0 1px 2px #251a12!important;
+}
+#game-screen .boss-hud .boss-title-row{gap:5px!important}
+#game-screen .boss-hud #boss-title{
+  overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+}
+
+@media(max-width:360px){
+  #modal-layer #modal-box.result-dialog{padding:7px 5px!important}
+  #modal-layer #modal-box.result-dialog .result-stats{border-radius:12px!important}
+  #modal-layer #modal-box.result-dialog .result-stat{padding-inline:1px!important}
+  #game-screen .battle-toolbar .hero-slot>span:last-child{font-size:8px!important}
+}
+@media(max-height:620px){
+  #modal-layer #modal-box.result-dialog .modal-top{min-height:25px!important}
+  #modal-layer #modal-box.result-dialog #modal-title{font-size:22px!important}
+  #modal-layer #modal-box.result-dialog .result-stars{min-height:30px!important}
+  #modal-layer #modal-box.result-dialog .result-star{width:30px!important;height:30px!important}
+  #modal-layer #modal-box.result-dialog .result-star:nth-child(2).earned{width:37px!important;height:37px!important}
+  #modal-layer #modal-box.result-dialog .result-hero-scene{
+    height:clamp(105px,19dvh,130px)!important;min-height:105px!important;
+  }
+  #modal-layer #modal-box.result-dialog .result-stat{min-height:65px!important;padding-block:4px!important}
+  #modal-layer #modal-box.result-dialog .result-stat-icon{width:22px!important;height:22px!important}
+  #modal-layer #modal-box.result-dialog #modal-actions{margin-top:6px!important}
+  #modal-layer #modal-box.result-dialog #modal-actions .modal-action{min-height:39px!important;height:39px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #modal-layer #modal-box.result-dialog .result-star{transition:none!important}
+}
