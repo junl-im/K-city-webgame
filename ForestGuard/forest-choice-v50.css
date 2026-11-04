@@ -1,0 +1,107 @@
+/* ForestGuard v5.0 — a single hand-painted forest language for choice cards.
+   Bitmap art only; no SVG, duplicate frames, or changes to the game rules. */
+
+/* Use the SAME carved acorn/card silhouette for heroes and growth choices. */
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card{
+  position:relative!important;
+  background:url('./art/forest-choice-card-v50.webp') center/100% 100% no-repeat!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  filter:drop-shadow(0 5px 6px rgba(0,14,10,.43))!important;
+  padding:clamp(14px,2.6dvh,20px) clamp(6px,2vw,10px) clamp(11px,2.4dvh,17px)!important;
+  gap:3px!important;
+  transition:transform .17s ease,filter .17s ease!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card:is(.recommended,.combo,.rare){
+  background:url('./art/forest-choice-card-v50.webp') center/100% 100% no-repeat!important;
+  box-shadow:none!important;
+  filter:brightness(1.08) drop-shadow(0 6px 7px rgba(0,14,10,.48))!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card:focus-visible{
+  outline:0!important;
+  filter:brightness(1.14) drop-shadow(0 0 5px rgba(255,220,143,.85))!important;
+}
+@media(hover:hover){
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card:hover{
+    transform:translateY(-2px)!important;
+    filter:brightness(1.12) drop-shadow(0 7px 7px rgba(0,14,10,.49))!important;
+  }
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card:active{
+  transform:scale(.975)!important;
+  filter:brightness(1.18) drop-shadow(0 2px 3px rgba(0,14,10,.43))!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card strong{
+  color:#ffeabd!important;
+  font-family:var(--fg-action-font),sans-serif!important;
+  font-size:clamp(11px,3vw,13px)!important;
+  line-height:1.2!important;
+  text-shadow:0 2px 3px #051911!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card small{
+  color:#f5e9ce!important;
+  line-height:1.28!important;
+  text-shadow:0 1px 3px #061b13!important;
+}
+
+/* Transparent painted heroes sit ON the bark card, with no inner square. */
+#modal-layer #modal-box.recruit-dialog .recruit-card.recruit-bear .recruit-portrait{
+  background-image:url('./art/recruit-bear-cutout-v50.webp')!important;
+}
+#modal-layer #modal-box.recruit-dialog .recruit-card.recruit-rabbit .recruit-portrait{
+  background-image:url('./art/recruit-rabbit-cutout-v50.webp')!important;
+}
+#modal-layer #modal-box.recruit-dialog .recruit-card.recruit-cat .recruit-portrait{
+  background-image:url('./art/recruit-cat-cutout-v50.webp')!important;
+}
+#modal-layer #modal-box.recruit-dialog .recruit-card .recruit-portrait{
+  background-repeat:no-repeat!important;
+  background-size:contain!important;
+  background-position:center center!important;
+  filter:drop-shadow(0 3px 3px rgba(0,14,9,.5))!important;
+}
+#modal-layer #modal-box.recruit-dialog .recruit-card .recruit-badge-line{
+  height:17px!important;
+  flex-basis:17px!important;
+  min-height:17px!important;
+}
+#modal-layer #modal-box.recruit-dialog .recruit-card .recruit-tag{
+  background:#ead09a!important;
+  color:#3e2c1b!important;
+  font-size:9px!important;
+  line-height:1.35!important;
+  box-shadow:none!important;
+}
+
+/* Keep the same hierarchy in the growth screen and the result caption. */
+#modal-layer #modal-box.growth-dialog .draft-card .spell-emoji{
+  filter:drop-shadow(0 3px 4px rgba(0,15,10,.56))!important;
+}
+#modal-layer #modal-box.result-dialog .result-note{
+  color:#f4e5c3!important;
+  text-shadow:0 2px 3px #061a13!important;
+}
+@media(max-width:360px){
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card{
+    padding:11px 4px 10px!important;
+    gap:2px!important;
+  }
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card strong{
+    font-size:11px!important;
+  }
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card small{
+    font-size:9px!important;
+    line-height:1.25!important;
+  }
+}
+@media(max-height:620px){
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card{
+    padding-top:10px!important;padding-bottom:8px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card{
+    transition:none!important;
+  }
+}

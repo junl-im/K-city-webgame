@@ -10,6 +10,20 @@ const modal47=read('modal-composition-v47.css');
 const result48=read('result-continuity-v48.css');
 const choice49=read('choice-polish-v49.css');
 const type491=read('legibility-v491.css');
+const choice50=read('forest-choice-v50.css');
+assert.match(html,/forest-choice-v50\.css\?v=20261104v50/);
+assert.match(choice50,/forest-choice-card-v50\.webp/);
+assert.match(choice50,/recruit-bear-cutout-v50\.webp/);
+assert.match(choice50,/recruit-rabbit-cutout-v50\.webp/);
+assert.match(choice50,/recruit-cat-cutout-v50\.webp/);
+assert.doesNotMatch(choice50,/<svg|data:image\/svg\+xml|\.svg(?:["'(])/i);
+for(const asset of ['forest-choice-card','recruit-bear-cutout','recruit-rabbit-cutout','recruit-cat-cutout']){
+  const webp=readFileSync(new URL(`art/${asset}-v50.webp`,root));
+  assert.ok(webp.length>12_000&&webp.length<150_000,`${asset}: expect compact raster art`);
+  assert.equal(webp.toString('ascii',0,4),'RIFF');
+  assert.equal(webp.toString('ascii',8,12),'WEBP');
+  assert.equal(webp.readUInt32LE(4),webp.length-8,`${asset}: truncated WebP`);
+}
 assert.match(html,/legibility-v491\.css\?v=20261104v491/);
 assert.match(type491,/home-stage-copy span/);
 assert.match(type491,/hero-slot>span:last-child/);
@@ -20,6 +34,9 @@ assert.match(pagesWorkflow,/cp ForestGuard\/index\.html[^\n]*ForestGuard\/legibi
   'GitHub Pages must copy the new illustrated lettering stylesheet');
 assert.match(pagesWorkflow,/test -s MagicGarden\/dist\/ForestGuard\/legibility-v491\.css/,
   'GitHub Pages must verify the lettering stylesheet exists in the published artifact');
+assert.match(pagesWorkflow,/cp ForestGuard\/index\.html[^\n]*ForestGuard\/forest-choice-v50\.css[^\n]*MagicGarden\/dist\/ForestGuard\//);
+assert.match(pagesWorkflow,/cp ForestGuard\/art\/\{forest-choice-card,recruit-bear-cutout,recruit-rabbit-cutout,recruit-cat-cutout\}-v50\.webp/);
+assert.match(pagesWorkflow,/MagicGarden\/dist\/ForestGuard\/art\/\$asset-v50\.webp/);
 assert.match(html,/choice-polish-v49\.css\?v=20261104v49/);
 assert.match(choice49,/recruit-badge-line/);
 assert.match(choice49,/word-break:keep-all/);

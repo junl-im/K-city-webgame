@@ -379,10 +379,12 @@ try{
         heading:getComputedStyle(card.querySelector('strong')).fontFamily,
         description:getComputedStyle(card.querySelector('small')).wordBreak,
         badge:card.querySelectorAll('.recruit-tag').length,
+        cardPainting:getComputedStyle(card).backgroundImage,
         painted:getComputedStyle(card.querySelector('.recruit-portrait')).backgroundImage
       })));
       assert.ok(crispText.every(c=>c.heading.includes('Apple SD Gothic Neo')&&
-        c.description==='keep-all'&&c.painted.includes('.webp')&&c.badge<=1),
+        c.description==='keep-all'&&c.painted.includes('-cutout-v50.webp')&&
+        c.cardPainting.includes('forest-choice-card-v50.webp')&&c.badge<=1),
         'Selection cards need consistent Korean text, painted art and only one badge');
       const badgeLayout=await page.locator('.recruit-card').evaluateAll(cards=>cards.map(card=>{
         const portrait=card.querySelector('.recruit-portrait').getBoundingClientRect();
@@ -428,10 +430,11 @@ try{
           const index=(y*canvas.width+x)*4,r=pixels[index],g=pixels[index+1],b=pixels[index+2];
           if(r>125&&r>g*1.55&&r>b*1.45)redPixels++;
         }
-        return {source,redPixels};
+        return {source,redPixels,cornerAlpha:pixels[3]};
       });
-      assert.match(rabbitArt.source,/recruit-rabbit-clean-v46\.webp/,'Clean companion image loaded');
+      assert.match(rabbitArt.source,/recruit-rabbit-cutout-v50\.webp/,'Transparent rabbit painting loaded');
       assert.ok(rabbitArt.redPixels<20,'Red recommendation plaque must not be baked into rabbit art: '+JSON.stringify(rabbitArt));
+      assert.equal(rabbitArt.cornerAlpha,0,'Hero art must have real transparent outer pixels, not a hidden rectangular photo');
       const recruitLayout=await page.locator('.recruit-card').evaluateAll(cards=>cards.map(card=>{
         const outer=card.getBoundingClientRect();
         const portrait=card.querySelector('.recruit-portrait').getBoundingClientRect();
@@ -474,12 +477,14 @@ try{
           const bounds=node.getBoundingClientRect(),heading=node.querySelector('strong').getBoundingClientRect(),
             detail=node.querySelector('small').getBoundingClientRect();
           return {left:bounds.left,right:bounds.right,top:bounds.top,bottom:bounds.bottom,
+            painting:getComputedStyle(node).backgroundImage,
             headingBottom:heading.bottom,detailTop:detail.top,detailBottom:detail.bottom};
         });
         return {left:r.left,right:r.right,bottom:r.bottom,background:getComputedStyle(box).backgroundImage,cards};
       });
       assert.ok(growthBox.left>=-2&&growthBox.right<=size.width+2&&
-        growthBox.cards.every(card=>card.headingBottom<=card.detailTop+2&&card.detailBottom<=card.bottom+2),
+        growthBox.cards.every(card=>card.painting.includes('forest-choice-card-v50.webp')&&
+          card.headingBottom<=card.detailTop+2&&card.detailBottom<=card.bottom+2),
         'Growth cards must have distinct non-overlapping descriptions: '+JSON.stringify(growthBox));
       await page.screenshot({path:new URL('../test-output/growth-v45-390.png',import.meta.url).pathname});
       await page.locator('.draft-card').first().click();
