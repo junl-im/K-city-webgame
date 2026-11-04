@@ -25,6 +25,11 @@ assert(html.includes('menu-logo-main')&&html.includes('캐논테일'),'New illus
 assert(html.includes('background-image:var(--stage-art)'),'Reuse existing project scenery atlases for home background');
 assert(html.includes('grid-template-areas:"title" "art" "mode"'),'Mobile home must arrange illustrated content into a single viewport');
 assert(html.includes('game.mode===\'duel\'?2.45:2.85'),'Post-impact countdown must be shortened');
+assert(html.includes('v1.8 combat HUD'),'Combat controls should share fantasy illustration styling');
+assert(html.includes('#controls #fire.charging'),'Charging state must stay visually distinct from ready and fired');
+assert(html.includes('#stageMap .stage-tile.selected'),'Stage selection needs a highlighted illustrated tile');
+assert(html.includes('#result .result-panel'),'End-of-battle should share the fantasy parchment theme');
+assert(html.includes('id="adventureBtn"')&&html.includes('id="duelBtn"'),'Illustrated mode buttons must keep interactive IDs');
 assert(!/<svg|image\/svg\+xml/.test(html),'CannonTale must stay SVG-free');
 assert(html.includes("duelPilot(pilot,x-dir*42"),'Duel must use independent crew portraits rather than full handheld weapon figures');
 assert(html.includes('const transition=attacking?'),'Authored foe attack/idle poses must blend through phase transitions');
