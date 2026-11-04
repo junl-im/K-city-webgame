@@ -1715,14 +1715,18 @@
       for(const id of ['bear','rabbit','cat']){
         const pick=document.createElement('button');pick.type='button';pick.className='spell-card recruit-card recruit-'+id;
         const portrait=document.createElement('span');V.portrait(portrait,id);portrait.classList.add('recruit-portrait');
+        // v4.7: keep the recommendation in its own row, never over the painting.
+        const badgeLine=document.createElement('span');badgeLine.className='recruit-badge-line';
+        badgeLine.setAttribute('aria-hidden','true');
         if(id===recommendedId){
           pick.classList.add('recommended');
-          const tag=document.createElement('span');tag.className='recruit-tag';tag.textContent='추천';
-          pick.append(tag);
+          const tag=document.createElement('span');tag.className='recruit-tag';tag.textContent='추천 동료';
+          badgeLine.append(tag);
         }
         const name=document.createElement('strong');name.textContent=HEROES[id].name;
         const detail=document.createElement('small');detail.textContent=descriptions[id];
-        pick.append(portrait,name,detail);
+        pick.setAttribute('aria-label',HEROES[id].name+(id===recommendedId?' · 추천 동료':'')+' · '+descriptions[id]);
+        pick.append(portrait,badgeLine,name,detail);
         pick.addEventListener('click',()=>{
           this.chooseFirstCompanion(id,false);
         });
