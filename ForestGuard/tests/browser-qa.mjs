@@ -291,6 +291,9 @@ try{
         ordinaryHurt5:true,hurtDuration:400,eliteAttack6:true,
         eliteHurt6:true,ordinaryDeath5:true,eliteDeath6:true,deathDuration:510,heroDuration:520},
         'All painted rear attacks and 5/6-frame monster hit reactions must load at runtime');
+      const chroma=await page.evaluate(()=>window.__ForestGuardQA.attackFrameSpill());
+      assert.deepEqual(chroma,{fox:0,bear:0,rabbit:0,cat:0,megafox:0},
+        'No saturated-red background contamination in the five rear-attack textures');
       const death=await page.evaluate(()=>window.__ForestGuardQA.previewDefeat());
       assert.ok(death.enemyCountUnchanged&&death.deathCount>=1&&
         death.texture==='motion-sprout-death-0',

@@ -26,6 +26,20 @@ const document={createElement(tag){
 runInNewContext(source,{window,document});
 const visuals=window.ForestGuardVisuals;
 visuals.build({textures});
+// A vivid red chroma chip must disappear while warm cloth and magic remain.
+const rgba=Uint8ClampedArray.from([
+  252,22,16,255, 250,166,50,255, 141,69,60,255, 170,70,55,100, 244,190,181,255
+]);
+let wrote=false;
+const paint={getImageData(){return {data:rgba};},putImageData(){wrote=true;}};
+const matte=visuals.cleanAttackFrame(paint,5,1);
+assert.deepEqual({...matte},{removed:1,softened:1});
+assert.ok(wrote);
+assert.equal(rgba[3],0,'Stray pure-red background must vanish');
+assert.equal(rgba[7],255,'Orange spell color must remain');
+assert.equal(rgba[11],255,'Muted bear scarf must remain');
+assert.equal(rgba[15],18,'Semi-transparent red matte must feather');
+assert.equal(rgba[19],255,'Rabbit ear pink must remain');
 const defenders=['fox','megafox','bear','rabbit','cat'];
 const states=['idle','run','attack','hurt','victory'];
 for(const id of defenders)for(const state of states){
@@ -75,6 +89,8 @@ for(let f=0;f<8;f++){
     'Hero attack frames must progress from windup to release');
 }
 visuals.animate(sprite,'fox','idle',1525);
-assert.match(sprite.texture.key,/^motion-fox-idle-/);
+assert.equal(sprite.texture.key,'motion-fox-idle-0','Recovery must start at the resting pose');
+visuals.animate(sprite,'fox','idle',1705);
+assert.equal(sprite.texture.key,'motion-fox-idle-1','Resting frames continue smoothly after recovery');
 assert.ok(!source.includes('<svg')&&!source.includes('data:image/svg+xml'));
-console.log('ForestGuard v4.4 hero attacks, 10 species eased hits and 5/6-frame deaths: PASS');
+console.log('ForestGuard v4.6 matte cleanup, chained motion recovery and ten enemy deaths: PASS');

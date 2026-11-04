@@ -392,12 +392,34 @@
       }
     }
   }
+  // v4.6: frame-local matte cleanup. Generated rear paintings include tiny
+  // saturated-red chroma spill around the cutout; keep cloth and spell colors.
+  // Operates on 128px Canvas frames only, so we never mutate source artwork.
+  function cleanAttackFrame(ctx,w,h){
+    const image=ctx.getImageData(0,0,w,h),pixels=image.data;
+    let removed=0,softened=0;
+    for(let i=0;i<pixels.length;i+=4){
+      const r=pixels[i],g=pixels[i+1],b=pixels[i+2],a=pixels[i+3];
+      if(a===0)continue;
+      const chromaRed=r>=185&&g<=92&&b<=90&&r>g*1.95&&r>b*1.9;
+      const redFringe=a<170&&r>=145&&g<=110&&b<=100&&r>g*1.65&&r>b*1.7;
+      if(chromaRed){pixels[i+3]=0;removed++;}
+      else if(redFringe){pixels[i+3]=Math.round(a*.18);softened++;}
+    }
+    if(removed||softened)ctx.putImageData(image,0,0);
+    return {removed,softened};
+  }
   function animate(sprite,id,defaultState,now){
     if(!sprite||!sprite.active)return;
-    const current=sprite.getData('motionState');
-    const state=current&&now<sprite.getData('motionUntil')?current:defaultState;
+    let current=sprite.getData('motionState');
+    // Expiring a reaction starts the normal stance at frame zero, not at
+    // an arbitrary global-clock frame that can jump between silhouettes.
+    if(current&&now>=sprite.getData('motionUntil')){
+      current=null;sprite.setData('motionState',null);sprite.setData('motionStart',now);
+    }
+    const state=current||defaultState;
     const start=sprite.getData('motionStart');
-    const clock=state===current&&Number.isFinite(start)?Math.max(0,now-start):now;
+    const clock=Number.isFinite(start)?Math.max(0,now-start):now;
     const frame=Math.floor(clock/frameStep(state))%frameTotal(id,state);
     const key='motion-'+id+'-'+state+'-'+frame;
     if(sprite.scene.textures.exists(key)&&sprite.texture.key!==key)sprite.setTexture(key);
@@ -407,5 +429,5 @@
     sprite.setData('motionState',state);sprite.setData('motionUntil',until);
     sprite.setData('motionStart',Number.isFinite(start)?start:null);
   }
-  global.ForestGuardVisuals={build,animate,trigger,duration,frameTotal,icon,setIcon,portrait};
+  global.ForestGuardVisuals={build,animate,trigger,duration,frameTotal,icon,setIcon,portrait,cleanAttackFrame};
 })(window);

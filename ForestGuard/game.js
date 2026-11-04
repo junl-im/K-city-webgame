@@ -121,6 +121,8 @@
     rabbit:{name:'토끼 마법사',icon:'🐰',damage:24,interval:1050,range:605,color:0xa9eafa},
     cat:{name:'고양이 기술자',icon:'🐱',damage:31,interval:1150,range:470,color:0xff9b6f}
   };
+  // Shared rear-view weapon sockets for shots and cast accents.
+  const HERO_MUZZLES=Object.freeze({fox:[-17,-24],megafox:[-20,-27],bear:[18,-29],rabbit:[20,-34],cat:[21,-23]});
   const state = {unlocked:1,clears:[],best:{},stats:{},selected:0,muted:false};
   try {
     const loaded = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}');
@@ -793,6 +795,7 @@
           const fit=Math.min(128/frameW,128/frameH),dw=frameW*fit,dh=frameH*fit;
           c.drawImage(sheet,(frame%4)*frameW,Math.floor(frame/4)*frameH,
             frameW,frameH,(128-dw)/2,(128-dh)/2,dw,dh);
+          V.cleanAttackFrame(c,128,128);
         });
       }
     }
@@ -1103,27 +1106,29 @@
       const vision=hero.range*(1+this.hunter*.16)*fog*(id==='megafox'&&this.evolutionPath==='moon'?1.2:1);
       const target=this.targetFor(x,vision,this.targetModes[i]);if(!target)return;
       const num=id==='fox'?1+this.multi:id==='megafox'?2+this.multi:1;
+      const sprite=this.heroSprites[i],muzzle=HERO_MUZZLES[id]||[0,-24];
+      const anchorX=sprite?.active?Math.max(x-9,Math.min(x+9,sprite.x)):x;
+      const anchorY=sprite?.active?Math.max(556,Math.min(568,sprite.y)):566;
       for(let p=0;p<num;p++){
         const offset=(p-(num-1)/2)*12;
-        // Back-view muzzle sockets, without changes to combat math.
-        const muzzle={fox:[-17,-24],megafox:[-20,-27],bear:[18,-29],rabbit:[20,-34],cat:[21,-23]}[id]||[0,-24];
-        const bolt=this.add.image(x+muzzle[0]+offset,566+muzzle[1],'shot-'+id).setDisplaySize(id==='cat'?31:id==='rabbit'?27:32,32).setDepth(6);
+        // Spawn at the currently animated weapon, even during chained attacks.
+        const bolt=this.add.image(anchorX+muzzle[0]+offset,anchorY+muzzle[1],'shot-'+id).setDisplaySize(id==='cat'?31:id==='rabbit'?27:32,32).setDepth(6);
         const trailColor=id==='rabbit'?0x8fe5ff:id==='cat'?0xffb56c:id==='megafox'?0xffe77f:id==='bear'?0xe8cf9e:0xb9e18a;
         const trail=this.add.image(bolt.x-23,bolt.y,'trail-'+id).setDisplaySize(id==='megafox'?78:65,22).setAlpha(.72).setDepth(5);
         const evolvePower=id==='megafox'&&this.evolutionPath==='sun'?1.25:1;
         this.projectiles.push({spr:bolt,trail,target,x:bolt.x,y:bolt.y,damage:hero.damage*this.damageBonus*evolvePower,kind:id});
       }
-      const sprite=this.heroSprites[i];if(sprite){
+      if(sprite){
         V.trigger(sprite,'attack',this.gameClock+V.duration(id,'attack'),this.gameClock);
         if(id==='megafox')this.animateEvolutionAttack(sprite);
         // Return smoothly to the same back-view stance after every shot.
         // New attacks interrupt only the previous visual lunge.
         this.tweens.killTweensOf(sprite);
-        sprite.setPosition(x,566);
+        sprite.setPosition(anchorX,anchorY);
         const reach=id==='bear'?6:id==='rabbit'?2:4;
         this.tweens.add({targets:sprite,x:x-reach,y:559,duration:95,ease:'Sine.easeOut',
           onComplete:()=>{if(sprite.active)this.tweens.add({targets:sprite,x,y:566,duration:170,ease:'Sine.easeInOut'});}});
-        this.playHeroAttackCue(x+({fox:-17,megafox:-20,bear:18,rabbit:20,cat:21}[id]||0),id);
+        this.playHeroAttackCue(anchorX+muzzle[0],id);
       }
     }
     playHeroAttackCue(x,id){
@@ -2153,6 +2158,22 @@
          if(!battle||battle.ended)return null;
          return ['forest','frost','stone','flame'].map((kind,i)=>
            battle.showElementCue(kind,72+i*92,310,true));
+       },
+       attackFrameSpill(){
+         if(!battle||battle.ended)return null;
+         return Object.fromEntries(['fox','bear','rabbit','cat','megafox'].map(id=>{
+           const key='motion-'+id+'-attack-3';
+           if(!battle.textures.exists(key))return [id,-1];
+           const canvas=battle.textures.get(key).getSourceImage();
+           const pixels=canvas.getContext('2d',{willReadFrequently:true})
+             .getImageData(0,0,canvas.width,canvas.height).data;
+           let red=0;
+           for(let p=0;p<pixels.length;p+=4){
+             const r=pixels[p],g=pixels[p+1],b=pixels[p+2],a=pixels[p+3];
+             if(a>0&&r>=185&&g<=92&&b<=90&&r>g*1.95&&r>b*1.9)red++;
+           }
+           return [id,red];
+         }));
        },
        motionInfo(){
          if(!battle||battle.ended)return null;
