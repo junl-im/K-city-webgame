@@ -650,6 +650,292 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
 @media(orientation:landscape) and (max-height:400px){
  #menu #stageShotPreview{max-width:54%;font-size:9px}
 }
+
+/* CannonTale v1.8: illustrated menu from the existing licensed project art.
+   The screenshots are visual direction, not baked noninteractive UI. SVG-free. */
+#menu.overlay{
+  isolation:isolate;position:absolute;overflow:hidden;
+  background:linear-gradient(180deg,#458cb2,#2a6685 48%,#183f55 100%)!important;
+  padding:max(4px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right))
+          max(4px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));
+}
+#menu.overlay::before,#menu.overlay::after{
+  content:"";position:absolute;left:0;right:0;z-index:-1;pointer-events:none;
+  background-image:var(--stage-art);background-repeat:no-repeat;
+  filter:saturate(1.14) contrast(1.05);
+}
+#menu.overlay::before{
+  top:0;height:66%;background-size:auto 220%;background-position:6% top;
+  -webkit-mask-image:linear-gradient(#000 55%,transparent 100%);
+  mask-image:linear-gradient(#000 55%,transparent 100%);
+}
+#menu.overlay::after{
+  bottom:0;height:54%;background-size:auto 210%;background-position:98% top;
+  opacity:.72;-webkit-mask-image:linear-gradient(transparent,#000 44%);
+  mask-image:linear-gradient(transparent,#000 44%);
+}
+#menu .menu-panel{
+  position:relative!important;isolation:isolate;
+  display:grid!important;grid-template-columns: minmax(0,1fr);
+  grid-template-rows:auto minmax(90px,1fr) auto auto auto auto auto!important;
+  grid-template-areas:"title" "art" "mode" "opts" "map" "progress" "heroes"!important;
+  align-content:stretch!important;justify-content:stretch!important;
+  width:min(680px,100%)!important;height:100%!important;max-height:100%!important;
+  min-height:0!important;gap:clamp(3px,.7dvh,9px)!important;
+  padding:clamp(8px,1.4dvh,14px)!important;
+  border:0!important;border-radius:24px!important;overflow:hidden!important;
+  background:linear-gradient(180deg,#092d3b28 0%,#143f5335 45%,#102b3f88 100%)!important;
+  box-shadow:inset 0 0 55px #09243536,0 8px 35px #12253830!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+#menu .eyebrow{display:none!important}
+#menu #welcomeTitle{
+  grid-area:title;position:relative;justify-self:center;align-self:start;
+  width:min(390px,95%);min-width:0;margin:0!important;padding:5px 12px 5px!important;
+  color:#ffdb8d!important;text-align:center;font-family:Georgia,"Malgun Gothic",serif;
+  font-weight:1000;letter-spacing:-.08em;
+  background:
+    radial-gradient(ellipse at 50% 0%,#e7a64d44,transparent 72%),
+    repeating-linear-gradient(1deg,#3d251cbb 0 6px,#65442eec 8px 12px,#34211bda 14px 19px);
+  border-radius:22% 18% 25% 19% / 19% 23% 18% 22%;
+  box-shadow:inset 0 3px #f5ca7894,inset 0 -5px #19150dd9,
+             0 4px 0 #332116de,0 7px 15px #0b233ca0;
+  text-shadow:0 2px #7e3a20,0 4px #3d1f19,1px 1px #fff8cc,0 6px 9px #050a14a9!important;
+}
+#menu #welcomeTitle::before{
+  content:"";display:block;position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+  width:51px;height:26px;pointer-events:none;
+  background:var(--action-icons) no-repeat left top/200% 200%;
+  filter:drop-shadow(0 3px 3px #0b2d3a99);
+}
+#menu .menu-logo-main{display:block;font-size:clamp(28px,6.5vw,47px);line-height:1.02;white-space:nowrap}
+#menu .menu-logo-sub{display:block;font:900 clamp(9px,1.65vw,12px)/1.1 Georgia,serif;
+  letter-spacing:.17em;color:#f5dc9a;text-shadow:0 2px 2px #361d17}
+#menu .hero-art{
+  grid-area:art;position:relative!important;width:100%;max-height:none!important;height:100%!important;
+  min-height:0!important;margin:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;overflow:visible!important;
+  background:radial-gradient(ellipse at 39% 84%,#ffd68c47 0,transparent 64%)!important;
+  box-shadow:none!important;
+}
+#menu .hero-art::after{display:none!important}
+#menu .hero-stage{height:100%!important;justify-content:center!important;gap:8px!important;overflow:visible!important}
+#menu .hero-stage-portrait{
+  flex:1 1 60%!important;max-width:60%!important;min-width:0!important;
+  height:100%!important;min-height:0!important;filter:drop-shadow(0 9px 8px #092436bd)!important;
+}
+#menu #heroPreviewCanvas{display:block;width:100%;height:100%;filter:none}
+#menu .hero-stage-info{
+  flex:1 1 36%!important;max-width:38%!important;min-width:0!important;
+  align-self:center;padding:7px 3px 7px 8px;
+  background:linear-gradient(90deg,#132d398c,#22434d45);
+  border-radius:12px;text-shadow:0 2px 5px #041c2d;
+}
+#menu .hero-stage-info strong{font-family:Georgia,"Malgun Gothic",serif;font-size:clamp(14px,3.2dvh,24px)!important;color:#ffdea0!important}
+#menu .hero-stage-info small{color:#f4ead4!important;font-size:clamp(9px,1.8dvh,12px)!important}
+#menu .menu-subline{display:none!important}
+#menu .mode-grid{
+  grid-area:mode;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  min-width:0;gap:clamp(6px,2vw,15px)!important;margin:0!important;
+}
+#menu .mode-card{
+  position:relative;display:flex;flex-direction:column;align-items:center;justify-content:end;
+  min-height:clamp(88px,15.5dvh,133px)!important;height:100%;min-width:0;
+  padding:clamp(4px,.7dvh,10px) 5px 8px!important;
+  background:
+    repeating-linear-gradient(95deg,#20191420 0 5px,transparent 7px 16px),
+    linear-gradient(165deg,#a06f3e 0%,#573824 38%,#3d271d 75%,#8b5b37 100%)!important;
+  clip-path:polygon(7% 7%,14% 2%,86% 2%,94% 8%,99% 20%,99% 81%,91% 96%,10% 96%,1% 81%,1% 19%);
+  border:0!important;border-radius:0!important;
+  box-shadow:none!important;filter:drop-shadow(0 4px 4px #091d2980);
+  text-align:center;color:#ffe5a8!important;
+  transition:transform .14s,filter .14s!important;
+}
+#menu .mode-card:nth-child(2){
+  background:
+    repeating-linear-gradient(96deg,#17202c25 0 5px,transparent 8px 16px),
+    linear-gradient(165deg,#66758a 0%,#2a4458 35%,#223544 77%,#5b7482 100%)!important;
+}
+#menu .mode-card::after{
+  position:absolute!important;top:0!important;left:50%!important;right:auto!important;
+  width:clamp(45px,10dvh,78px)!important;height:clamp(45px,10dvh,78px)!important;
+  transform:translateX(-50%)!important;opacity:1!important;
+  background-image:var(--action-icons)!important;background-size:200% 200%!important;
+  filter:drop-shadow(0 3px 3px #0d152599)!important;
+}
+#menu .mode-card:nth-child(2)::after{background-position:100% 0!important}
+#menu .mode-number{
+  position:absolute;top:5px;left:8px;
+  font-size:clamp(7px,1.15dvh,10px)!important;letter-spacing:.05em;
+  color:#f9d79b!important;text-shadow:0 2px 3px #101622;
+}
+#menu .mode-card strong{
+  position:relative;z-index:2;line-height:1.05;font-family:Georgia,"Malgun Gothic",serif;
+  font-size:clamp(16px,3.1dvh,28px)!important;letter-spacing:-.045em;
+  color:#ffe7a7!important;text-shadow:0 2px #3c1a11,0 4px 5px #080f18c7!important;
+  white-space:nowrap;
+}
+#menu .mode-card span:last-child{
+  position:relative;z-index:2;line-height:1.15;margin-top:3px;
+  font-size:clamp(9px,1.35dvh,12px)!important;color:#fff4d2!important;
+  text-shadow:0 2px #1b1824c9;display:block!important;
+}
+#menu .mode-card:active{transform:translateY(2px) scale(.97)!important;filter:brightness(1.3)}
+#menu .mode-card:focus-visible,.hero-choice:focus-visible{outline:3px solid #fff1a4;outline-offset:1px}
+#menu .setup-options{
+  grid-area:opts;display:grid!important;grid-template-columns:1fr 1fr!important;
+  gap:6px!important;margin:0!important;
+}
+#menu .option-box{
+  min-width:0;min-height:32px!important;
+  border:0!important;border-radius:11px!important;box-shadow:none!important;
+  background:linear-gradient(105deg,#523b2ce3,#926c4799)!important;
+  color:#ffe6b6!important;text-shadow:0 1px 2px #181e28;
+  font-size:clamp(9px,1.35dvh,12px)!important;
+}
+#menu .option-box select{
+  min-width:0;max-width:55%;background:#192e3dc9!important;color:#fff3cf!important;
+  border:0!important;font-size:clamp(9px,1.3dvh,12px)!important;
+}
+#menu .stage-map-control{grid-area:map;display:flex;min-height:27px!important;align-items:center;justify-content:space-between;gap:6px;margin:0!important}
+#menu .map-open{
+  position:relative;min-height:27px!important;padding:4px 11px 4px 35px!important;
+  background:linear-gradient(145deg,#8d6843,#4b3429)!important;
+  color:#ffe6b2!important;border:0!important;border-radius:10px!important;
+  box-shadow:inset 0 2px #e9bc7290,0 3px 8px #0a253c82!important;
+}
+#menu .map-open::before{width:28px!important;height:27px!important;top:0!important;left:3px!important}
+#menu #stageShotPreview{display:block!important;max-width:55%!important;color:#ffedbb!important;text-shadow:0 2px 5px #051e30}
+#menu .menu-progress{
+  grid-area:progress;display:flex;align-items:center;justify-content:space-between;
+  min-width:0;min-height:27px!important;padding:5px 10px!important;
+  background:linear-gradient(90deg,#0c2536aa,#1a4856aa)!important;
+  border-radius:12px!important;color:#fff0c9!important;
+  box-shadow:inset 0 1px #ffe9af32!important;
+}
+#menu .hero-picker{grid-area:heroes;min-width:0;margin:0!important;padding:3px 6px 5px;
+  border:0!important;border-radius:14px;background:linear-gradient(#122d3fbd,#091f30d6)!important;
+  box-shadow:inset 0 2px #fff2c929!important;}
+#menu .hero-picker-title{margin:0 0 4px!important;font-size:clamp(9px,1.7dvh,12px)!important}
+#menu .hero-grid{gap:clamp(3px,1vw,10px)!important}
+#menu .hero-choice{
+  min-width:0;min-height:clamp(45px,7.5dvh,67px)!important;
+  flex-direction:row!important;align-items:center;justify-content:center;
+  padding:2px!important;gap:clamp(1px,.7vw,5px)!important;
+  border:0!important;border-radius:100px!important;
+  background:linear-gradient(145deg,#8a7055,#3e413d)!important;
+  box-shadow:inset 0 1px #fff7c681!important;
+  color:#fff1d4!important;
+}
+#menu .hero-choice.selected{
+  background:linear-gradient(145deg,#e4c373,#87512d)!important;
+  box-shadow:inset 0 2px #fff5bb,0 0 12px #ffd15caa!important;
+  transform:translateY(-1px);
+}
+#menu .hero-choice .hero-portrait{width:clamp(29px,5dvh,44px)!important;height:clamp(31px,5.2dvh,46px)!important;flex:none}
+#menu .hero-choice .hero-text strong{font-size:clamp(10px,1.6dvh,13px)!important;color:#fff5dd!important}
+#menu .hero-choice .hero-text small{display:none!important}
+/* Fantasy parchment map and results, sharing the home screen's scenic backdrop. */
+#stageMap.overlay,#result.overlay{
+ background:linear-gradient(180deg,#193b56d5,#24576bc9),var(--stage-art) left top/auto 200% no-repeat!important;
+}
+#stageMap .map-panel,#result .result-panel{
+ border:0!important;border-radius:21px!important;
+ background:linear-gradient(150deg,#fff0c9 0%,#e8c58b 52%,#c9a474 100%)!important;
+ box-shadow:inset 0 3px #fff9dcb9,inset 0 -5px #986643,0 12px 32px #081e31b0!important;
+ color:#55321e!important;
+}
+#stageMap .stage-tile{
+ background:linear-gradient(150deg,#725538,#342922)!important;color:#fff1c9!important;
+ border:0!important;box-shadow:0 3px 7px #182b3985!important;
+}
+#stageMap .stage-tile.selected{
+ background:linear-gradient(145deg,#c69c51,#67432a)!important;
+ box-shadow:0 0 0 2px #ffeaaf,0 4px 12px #152c35a8!important;
+}
+#stageMap .stage-tile strong{color:#ffedbf!important;text-shadow:0 1px 3px #342018}
+#stageMap .stage-tile small{color:#f4dfbf!important}
+#result .result-panel{max-width:480px!important;text-align:center;}
+#result #resultTitle{font:1000 clamp(26px,6vw,39px)/1.05 Georgia,"Malgun Gothic",serif;color:#713e25!important}
+#result .paper-btn{
+ border:0!important;border-radius:14px!important;
+ background:linear-gradient(165deg,#ffdc82,#bf7539 52%,#754124)!important;
+ color:#fff6d5!important;text-shadow:0 1px 3px #492015;
+ box-shadow:inset 0 2px #fff2c57d,0 4px 8px #46362a99!important;
+}
+#result .paper-btn.light{background:linear-gradient(#6c8fa0,#254458)!important}
+/* Shorter automatic post-impact review, with battlefield remaining visible behind it. */
+.shot-review{
+ background:linear-gradient(130deg,#594331ec,#a57646df,#52392ee8)!important;
+ border:0!important;border-radius:16px!important;color:#fff2ce!important;
+ box-shadow:inset 0 2px #fff0c35d,0 6px 17px #101e2bb2!important;
+}
+.review-copy strong,.review-copy small,.review-kicker{color:#ffedc3!important}
+.review-continue{
+ border:0!important;border-radius:12px!important;
+ background:linear-gradient(150deg,#ffdd83,#c8833b,#7d492a)!important;
+ color:#fff7dc!important;text-shadow:0 1px 2px #553923;
+ box-shadow:inset 0 2px #fff2b27b,0 3px 5px #51311b99!important;
+}
+.review-countdown{color:#ffdf87!important;text-shadow:0 3px #7f3b23,0 6px 12px #081d31d9!important;}
+@media(max-width:740px){
+ #menu .menu-panel{
+   grid-template-rows:auto minmax(65px,1fr) minmax(85px,17dvh) auto auto auto auto!important;
+   gap:clamp(3px,.65dvh,6px)!important;
+ }
+ #menu #welcomeTitle{width:min(330px,90%);padding:5px 7px 4px!important}
+ #menu .menu-logo-main{font-size:clamp(25px,6.8vw,35px)}
+ #menu .mode-card{min-height:clamp(80px,14dvh,113px)!important}
+ #menu .mode-card::after{width:clamp(41px,8dvh,65px)!important;height:clamp(41px,8dvh,65px)!important}
+ #menu .hero-picker{padding:2px 5px 4px}
+ #menu .hero-choice{min-height:clamp(40px,6.4dvh,56px)!important}
+ #menu .hero-stage-info{padding:5px 2px 5px 6px}
+}
+@media(max-height:610px){
+ #menu .menu-panel{grid-template-rows:auto minmax(45px,1fr) minmax(65px,16dvh) auto auto auto auto!important;gap:2px!important;padding:5px!important}
+ #menu #welcomeTitle{padding:3px 6px!important}
+ #menu .menu-logo-main{font-size:clamp(19px,4.5dvh,28px)}
+ #menu .hero-stage-info small{display:none!important}
+ #menu .mode-card{min-height:60px!important;padding:3px 3px 5px!important}
+ #menu .mode-card::after{width:36px!important;height:36px!important}
+ #menu .mode-card strong{font-size:clamp(12px,3dvh,17px)!important}
+ #menu .mode-card span:last-child{display:none!important}
+ #menu .hero-choice{min-height:34px!important}
+ #menu .hero-choice .hero-portrait{height:28px!important;width:27px!important}
+ #menu .stage-map-control{min-height:22px!important}
+ #menu .menu-progress{min-height:20px!important;padding:2px 7px!important}
+}
+@media(orientation:landscape) and (max-height:650px){
+ #menu .menu-panel{
+   grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr)!important;
+   grid-template-rows:auto minmax(30px,1fr) auto auto auto!important;
+   grid-template-areas:
+     "title mode"
+     "art mode"
+     "art opts"
+     "art map"
+     "heroes progress"!important;
+   gap:3px 8px!important;
+ }
+ #menu #welcomeTitle{width:100%!important}
+ #menu .hero-stage{flex-direction:column!important;justify-content:center!important}
+ #menu .hero-stage-portrait{width:100%!important;max-width:100%!important;flex:1 1 auto!important}
+ #menu .hero-stage-info{max-width:100%!important;flex:0 0 auto!important;align-items:center;padding:2px 4px!important}
+ #menu .hero-stage-info strong{font-size:clamp(11px,2.7vh,16px)!important}
+ #menu .hero-picker{min-height:0!important}
+ #menu .hero-picker-title{display:none!important}
+ #menu .hero-choice .hero-text{display:none!important}
+ #menu .mode-grid{height:100%!important}
+ #menu .mode-card{min-height:0!important}
+ #menu .mode-card::after{width:clamp(38px,10vh,65px)!important;height:clamp(38px,10vh,65px)!important}
+ #menu .menu-progress{align-self:center}
+}
+@media(orientation:landscape) and (max-height:360px){
+ #menu .hero-stage-info{display:none!important}
+ #menu .menu-logo-main{font-size:17px}
+ #menu .menu-panel{padding:3px!important}
+}
+
 </style>
 </head>
 <body>
@@ -679,8 +965,8 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
 <div id="shotReview" class="shot-review" hidden role="status" aria-live="polite"><div class="review-copy"><span class="review-kicker">방금 포격의 결과</span><strong id="reviewTitle">착탄 확인</strong><small id="reviewDetail">전장에 남은 결과를 확인해 보세요</small></div><button id="reviewContinue" class="review-continue" type="button">다음 발사</button></div>
   <div id="menu" class="overlay">
    <section class="panel menu-panel" aria-labelledby="welcomeTitle">
-    <div class="eyebrow">TWO WAYS TO FIRE · ONE WORLD</div>
-    <h1 id="welcomeTitle">무너뜨리는 손맛,<br>맞혀 이기는 짜릿함.</h1>
+    <div class="eyebrow">숲의 수호자 · 포격으로 여는 모험</div>
+    <h1 id="welcomeTitle"><span class="menu-logo-main">캐논테일</span><small class="menu-logo-sub">CANNON TALE</small></h1>
     <div class="hero-art">
      <img id="menuArtwork" src="Artillery_Fox_Bear_Atlas_v0_3.webp" alt="" aria-hidden="true">
      <div id="heroPreview" class="hero-stage" data-hero="fox" aria-live="polite">
@@ -688,10 +974,10 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
       <span class="hero-stage-info"><strong id="heroPreviewName">여우 궁수</strong><small id="heroPreviewWeapon">새총 · 정확한 조준</small></span>
      </div>
     </div>
-    <p class="menu-subline">하나의 물리 세계, 두 가지 포격의 재미. 원하는 모험을 골라보세요.</p>
+    <p class="menu-subline">무너뜨리는 모험 · 맞혀 이기는 결투</p>
     <div class="mode-grid">
-     <button class="mode-card" id="adventureBtn" type="button" aria-label="모험 포격 시작, 4개 지역의 요새 파괴"><span class="mode-number">MODE 01</span><strong>모험 포격</strong><span>4개 지역의 요새를 무너뜨려요. 마지막에는 요새 대장이 기다립니다.</span></button>
-     <button class="mode-card" id="duelBtn" type="button" aria-label="포격 결투 시작, 각도 파워 바람을 활용한 AI 대결"><span class="mode-number">MODE 02</span><strong>포격 결투</strong><span>각도·발사 파워·바람을 활용해 AI 상대와 번갈아 대결하세요.</span></button>
+     <button class="mode-card" id="adventureBtn" type="button" aria-label="모험 포격 시작, 4개 지역의 요새 파괴"><span class="mode-number">ADVENTURE · 01</span><strong>모험 포격</strong><span>요새를 무너뜨려라!</span></button>
+     <button class="mode-card" id="duelBtn" type="button" aria-label="포격 결투 시작, 각도 파워 바람을 활용한 AI 대결"><span class="mode-number">DUEL · 02</span><strong>포격 결투</strong><span>바람을 읽고 승부하라!</span></button>
     </div>
     <div class="setup-options">
       <label class="option-box">모험 지역 <select id="adventureStage"><option value="0">1. 잔디 초소</option><option value="1">2. 돌담 숲</option><option value="2">3. 바람숲 다리</option><option value="3">4. 고철 요새</option></select></label>
@@ -1125,7 +1411,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   }
   game.reviewFocusX=game.lastImpact?.x??(game.mode==='adventure'?850:game.turn==='player'?1018:190);
   game.reviewInfo={title,detail};
-  game.reviewTimer=game.mode==='duel'?4:7;
+  game.reviewTimer=game.mode==='duel'?2.45:2.85;
   game.phase='review';game.phaseTime=0;game.panX=null;
   $('reviewTitle').textContent=title;$('reviewDetail').textContent=detail;
   $('reviewContinue').textContent=game.reviewNext==='win'?'승리 결과 보기':game.reviewNext==='lose'?'도전 결과 보기':game.reviewNext==='aiWait'?'상대 차례로':game.mode==='duel'?'내 차례로':'다음 발사';
