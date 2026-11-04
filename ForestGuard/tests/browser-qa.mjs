@@ -344,6 +344,37 @@ try{
       assert.equal(await page.locator('.recruit-card.recommended').count(),1,'Exactly one recommended companion');
       assert.equal(await page.locator('.recruit-tag').count(),1,'Only one recommendation badge in first-companion UI');
       assert.equal(await page.locator('.recruit-card.recommended .recruit-tag').count(),1,'Badge belongs to the recommended card');
+      const badgeLayout=await page.locator('.recruit-card').evaluateAll(cards=>cards.map(card=>{
+        const portrait=card.querySelector('.recruit-portrait').getBoundingClientRect();
+        const slot=card.querySelector('.recruit-badge-line').getBoundingClientRect();
+        const title=card.querySelector('strong').getBoundingClientRect();
+        return {recommended:card.classList.contains('recommended'),
+          portraitBottom:portrait.bottom,slotTop:slot.top,slotBottom:slot.bottom,
+          titleTop:title.top,tagCount:card.querySelectorAll('.recruit-tag').length};
+      }));
+      assert.ok(badgeLayout.length===3&&badgeLayout.every(item=>
+        item.slotTop>=item.portraitBottom-2&&item.slotBottom<=item.titleTop+2&&
+        item.tagCount===(item.recommended?1:0)),
+        'Recommendation text must occupy its own row, never overlap a portrait: '+JSON.stringify(badgeLayout));
+      const forestModal=await page.locator('#modal-box').evaluate(box=>({
+        panel:getComputedStyle(box).backgroundImage,
+        backdrop:getComputedStyle(document.querySelector('#modal-layer .modal-scrim')).backgroundImage
+      }));
+      assert.equal(forestModal.panel,'none','Companion selection must not show an extra rectangular background');
+      assert.ok(forestModal.backdrop.includes('forest-entrance-v08.png'),
+        'Choice modal should share a single illustrated forest backdrop');
+      await page.setViewportSize({width:320,height:568});
+      const compactChoice=await page.locator('#modal-box').evaluate(box=>{
+        const r=box.getBoundingClientRect(),rows=[...box.querySelectorAll('.recruit-card')].map(c=>c.getBoundingClientRect());
+        return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,
+          scrollHeight:box.scrollHeight,clientHeight:box.clientHeight,
+          cards:rows.map(a=>({left:a.left,right:a.right,bottom:a.bottom}))};
+      });
+      assert.ok(compactChoice.top>=-2&&compactChoice.bottom<=570&&
+        compactChoice.left>=-2&&compactChoice.right<=322&&
+        compactChoice.cards.every(c=>c.left>=-2&&c.right<=322&&c.bottom<=570),
+        '320px recruit cards must remain fully inside the phone viewport: '+JSON.stringify(compactChoice));
+      await page.setViewportSize(size);
       const rabbitArt=await page.locator('.recruit-rabbit .recruit-portrait').evaluate(async portrait=>{
         const background=getComputedStyle(portrait).backgroundImage;
         const source=background.match(/url\((?:["'])?([^"')]+)(?:["'])?\)/)?.[1];
