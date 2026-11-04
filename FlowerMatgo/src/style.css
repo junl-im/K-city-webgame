@@ -4082,3 +4082,10 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--game .mission-dialog .mission-progress {background:#0d2c20d9;color:#ffe3a0;border:1px solid #c9a568;}
 .scene--game .mission-dialog > .btn {width:min(100%,190px);min-height:55px;margin:4px auto 0;padding:8px 25px;border:0;border-radius:0;background:transparent url('/assets/rani-button-jade-v1.png') center/100% 100% no-repeat;color:#fff6df;text-shadow:0 2px 3px #071f12;box-shadow:none;}
 @media(max-height:600px){.scene--game .mission-dialog {padding:15px 17px;}.scene--game .mission-targets {margin:6px 0;}.scene--game .mission-target .hwatu {width:46px;}}
+/* Keep navigation and decision guidance readable on narrow phones. */
+.scene--select .nav .btn--quiet {flex:0 0 auto;width:auto;min-width:0;min-height:40px;padding:7px 12px;white-space:nowrap;line-height:1.2;}
+.scene--select .opponent-card__text span {word-break:keep-all;overflow-wrap:normal;}
+.scene--game .modal-box--choice .decision-timer {width:fit-content;max-width:100%;margin:8px auto 2px!important;padding:5px 9px;border-radius:9px;background:rgba(5,28,18,.83);color:#ffedc4!important;line-height:1.35;text-align:center;word-break:keep-all;}
+.scene--game .modal-box--choice .decision-timer strong {color:#ffdb7a;}
+.scene--game .modal-box--choice .decision-option:focus-visible,.scene--game .mission-panel:focus-visible,.scene--select .opponent-card:focus-visible {outline:3px solid #ffe29a;outline-offset:3px;}
+@media(max-width:360px){.scene--select .opponent-card__text span {font-size:9px;letter-spacing:-.04em;}.scene--game .modal-box--choice .decision-timer {font-size:10px!important;padding:4px 7px;}}
