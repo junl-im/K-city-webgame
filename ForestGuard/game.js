@@ -1705,11 +1705,12 @@
       const track=document.createElement('div');track.className='recruit-progress';track.setAttribute('aria-hidden','true');
       const fill=document.createElement('span');fill.id='recruit-progress-fill';
       fill.style.width=(this.recruitRemaining/RECRUIT_TIMEOUT*100)+'%';track.appendChild(fill);
+      const recommendedId=['rabbit','bear','cat'][this.stage.id%3];
       const wrap=document.createElement('div');wrap.className='card-grid recruit-grid';
       for(const id of ['bear','rabbit','cat']){
         const pick=document.createElement('button');pick.type='button';pick.className='spell-card recruit-card recruit-'+id;
         const portrait=document.createElement('span');V.portrait(portrait,id);portrait.classList.add('recruit-portrait');
-        if(id===(this.stage.id%3===0?'rabbit':this.stage.id%3===1?'bear':'cat')){
+        if(id===recommendedId){
           pick.classList.add('recommended');
           const tag=document.createElement('span');tag.className='recruit-tag';tag.textContent='추천';
           pick.append(tag);

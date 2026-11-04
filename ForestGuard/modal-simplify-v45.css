@@ -171,6 +171,10 @@
   background-repeat:no-repeat!important;
   filter:drop-shadow(0 3px 3px rgba(4,16,9,.4))!important;
 }
+/* v4.5.1: 토끼 모집 원화의 고정 '추천' 글씨 제거. 추천 배지는 런타임에서 한 번만 표시. */
+#modal-layer #modal-box.recruit-dialog .recruit-card.recruit-rabbit .recruit-portrait {
+  background-image:url('./art/recruit-rabbit-clean-v46.webp')!important;
+}
 #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card strong {
   display:block!important;
   width:100%!important;
