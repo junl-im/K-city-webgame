@@ -209,6 +209,14 @@ try{
       assert.ok(alphas&&Object.keys(alphas).length===10,'All ten monster textures must exist');
       assert.ok(Object.entries(alphas).every(([,corners])=>corners.every(value=>value===0)),
         'Original opaque monster atlas corners must be cut out: '+JSON.stringify(alphas));
+      const hurt=await page.evaluate(()=>window.__ForestGuardQA.monsterHurtPaintingQA());
+      assert.equal(hurt.loaded,true,'New independent painted monster hurt atlas must decode');
+      assert.ok(hurt.sourceSize[0]>=1000&&hurt.sourceSize[1]>=500,
+        'Ten-species hurt atlas should retain detailed transparent source art');
+      assert.equal(Object.keys(hurt.items).length,10,'Every monster needs its own hit painting');
+      assert.ok(Object.entries(hurt.items).every(([,item])=>
+        item.transparentCorners&&item.opaquePixels>=80),
+        'No new opaque rectangular backing or missing species in v4.9 hit art: '+JSON.stringify(hurt));
     }
     const battle=await page.evaluate(()=>{
       const arena=document.querySelector('.arena-wrap').getBoundingClientRect();
@@ -289,7 +297,8 @@ try{
       assert.deepEqual(motion,{heroAttack8:true,foxRasterReady:true,
         paintedHeroAttacks:{bear:true,rabbit:true,cat:true,megafox:true},
         ordinaryHurt5:true,hurtDuration:400,eliteAttack6:true,
-        eliteHurt6:true,ordinaryDeath5:true,eliteDeath6:true,deathDuration:510,heroDuration:520},
+        eliteHurt6:true,paintedMonsterHurt:true,paintedMonsterKinds:10,
+        ordinaryDeath5:true,eliteDeath6:true,deathDuration:510,heroDuration:520},
         'All painted rear attacks and 5/6-frame monster hit reactions must load at runtime');
       const chroma=await page.evaluate(()=>window.__ForestGuardQA.attackFrameSpill());
       assert.deepEqual(chroma,{fox:0,bear:0,rabbit:0,cat:0,megafox:0},
@@ -344,6 +353,15 @@ try{
       assert.equal(await page.locator('.recruit-card.recommended').count(),1,'Exactly one recommended companion');
       assert.equal(await page.locator('.recruit-tag').count(),1,'Only one recommendation badge in first-companion UI');
       assert.equal(await page.locator('.recruit-card.recommended .recruit-tag').count(),1,'Badge belongs to the recommended card');
+      const crispText=await page.locator('.recruit-card').evaluateAll(cards=>cards.map(card=>({
+        heading:getComputedStyle(card.querySelector('strong')).fontFamily,
+        description:getComputedStyle(card.querySelector('small')).wordBreak,
+        badge:card.querySelectorAll('.recruit-tag').length,
+        painted:getComputedStyle(card.querySelector('.recruit-portrait')).backgroundImage
+      })));
+      assert.ok(crispText.every(c=>c.heading.includes('Apple SD Gothic Neo')&&
+        c.description==='keep-all'&&c.painted.includes('.webp')&&c.badge<=1),
+        'Selection cards need consistent Korean text, painted art and only one badge');
       const badgeLayout=await page.locator('.recruit-card').evaluateAll(cards=>cards.map(card=>{
         const portrait=card.querySelector('.recruit-portrait').getBoundingClientRect();
         const slot=card.querySelector('.recruit-badge-line').getBoundingClientRect();

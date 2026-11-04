@@ -40,6 +40,7 @@ jobs:
           trap 'kill "$SERVER_PID" || true' EXIT
           sleep 2
           node ForestGuard/tests/browser-qa.mjs
+          node ForestGuard/tests/soak-mobile.mjs
       - name: Keep inspection screenshots on pass or failure
         if: always()
         uses: actions/upload-artifact@v4

@@ -227,6 +227,37 @@
     }
     c.restore();
   }
+  // Midboss-only painted attack tells: fungal spores, root sweep and bell pulse.
+  // All strokes are baked into six 128px textures once, never spawned each tick.
+  function inkEliteAttack(c,id,frame){
+    if(!ELITE_IDS.has(id))return;
+    const intensity=Math.sin(Math.PI*(frame+.5)/frameTotal(id,'attack'));
+    c.save();c.lineCap='round';c.lineJoin='round';
+    c.globalAlpha=Math.max(.12,intensity*.64);
+    if(id==='shroom'){
+      c.strokeStyle='#f6c28e';c.fillStyle='#f2d49d';c.lineWidth=2;
+      for(let k=0;k<4;k++){
+        const a=k*Math.PI/2+frame*.20,x=64+Math.cos(a)*45,y=52+Math.sin(a)*32;
+        c.beginPath();c.arc(x,y,2.2+(k%2),0,Math.PI*2);c.fill();
+      }
+      c.beginPath();c.arc(66,53,43,-2.5,-.6);c.stroke();
+    }else if(id==='guardian'){
+      c.strokeStyle='#d5dfa0';c.lineWidth=3.1;
+      for(const side of [-1,1]){
+        c.beginPath();c.moveTo(64+side*22,104);
+        c.quadraticCurveTo(64+side*(34+frame*2),85,64+side*48,68-frame*2);
+        c.stroke();
+      }
+    }else if(id==='boss'){
+      c.strokeStyle='#efd29e';c.lineWidth=2.7;
+      for(let k=0;k<3;k++){
+        const radius=19+k*12+frame*2;
+        c.beginPath();c.arc(66,59,radius,-.62,.45);c.stroke();
+      }
+      c.fillStyle='#ffe4ab';c.beginPath();c.arc(68,49,3.5,0,Math.PI*2);c.fill();
+    }
+    c.restore();
+  }
   function motionPaint(c,img,id,state,frame){
     const phase=frame/frameTotal(id,state)*Math.PI*2;
     c.clearRect(0,0,128,128);
@@ -324,6 +355,7 @@
         }
         c.restore();
       }
+      inkEliteAttack(c,id,frame);
     }
     if(state==='attack'&&HERO_IDS.has(id)){
       drawHeroWeapon(c,id,frame);
