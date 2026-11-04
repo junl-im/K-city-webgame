@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { createInitialGame, playTurn, setMissionEnabled, scoreFor } from '../engine/gameState';
 import { createCardMission, isMissionComplete } from '../engine/rules/missions';
 import { createMatgoDeck } from '../engine/deck';
+import { missionView } from '../missionView.js';
 import { opponentSetWarnings } from '../opponentSetWarnings.js';
 
 beforeAll(()=>{if(!globalThis.crypto?.randomUUID) Object.defineProperty(globalThis,'crypto',{value:{randomUUID:()=> '00000000-0000-4000-8000-000000000000'}})});
@@ -48,6 +49,21 @@ describe('다장 미션',()=>{
   g.computerCaptured.push('m03-01');const result=playTurn(g,'human','m01-01');
   expect(result.state.humanMissionPoints||0).toBe(0);expect(result.state.mission.resolvedBy).toBeUndefined();
   expect(isMissionComplete(result.state.mission,result.state.humanCaptured,result.state.computerCaptured)).toBe(true);
+ });
+ it('서로 나눠 가진 실패 상태에서 미션 피를 뺏으면 완료로 바뀌고 보상은 한 번만 적용된다',()=>{
+  let g=createInitialGame(717,'normal',100,'human');
+  const zones=['humanHand','computerHand','floorCards','drawPile','humanCaptured','computerCaptured'] as const;
+  const move=(id:string,to:typeof zones[number])=>{for(const z of zones){const i=g[z].indexOf(id);if(i>=0)g[z].splice(i,1)}g[to].push(id)};
+  move('m03-03','humanCaptured');move('m04-03','humanCaptured');move('m02-03','computerCaptured');move('bonus-pee-1','humanHand');
+  g.phase='playing';g.currentPlayer='human';g.mission={kind:'gakpae',cardIds:['m03-03','m04-03','m02-03'],requiredCount:3,effect:{kind:'points',value:3},enabled:true};
+  expect(missionView(g)?.status).toBe('failed');
+  const result=playTurn(g,'human','bonus-pee-1');g=result.state;
+  expect(g.humanCaptured).toContain('m02-03');expect(g.computerCaptured).not.toContain('m02-03');
+  expect(missionView(g)?.status).toBe('complete');expect(g.mission.resolvedBy).toBe('human');expect(g.humanMissionPoints).toBe(3);
+  const after=playTurn(g,'human',g.humanHand[0]).state;expect(after.humanMissionPoints).toBe(3);expect(missionView(after)?.status).toBe('complete');
+ });
+ it('완료 전 미션패가 아직 남으면 진행 상태를 유지한다',()=>{
+  const g=arranged(['m01-01','m01-02','m03-01'],3);expect(missionView(g)?.status).toBe('active');
  });
  it('2장 목표 미션은 한 장을 얻은 후에도 껐다 켤 수 있다',()=>{
   let g=playTurn(arranged(['m01-01','m03-01','m08-01'],2),'human','m01-01').state;
