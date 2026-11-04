@@ -1089,6 +1089,36 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
 @media(max-height:430px){
  #menu .hero-choice.selected::after{width:13px!important;height:13px!important;font-size:10px;top:-2px!important}
 }
+
+/* v1.9 -- end-of-battle reward presentation uses real CannonTale cannon illustrations. */
+#result .result-panel{position:relative!important;overflow:auto!important}
+#result .result-panel::before{
+ content:"";display:block;margin:-3px auto 4px;width:clamp(72px,23vw,122px);
+ height:clamp(55px,12dvh,93px);
+ background:var(--action-icons) no-repeat 0% 0%/200% 200%;
+ filter:drop-shadow(0 4px 5px #69502c75);pointer-events:none;
+}
+#result[data-mode="duel"] .result-panel::before{background-position:100% 0%}
+#result[data-outcome="lost"] .result-panel::before{background-position:0% 100%;filter:drop-shadow(0 4px 5px #4f39408c) saturate(.82)}
+#result #resultTag{
+ border:0!important;box-shadow:0 3px 7px #4c362f6b;
+ padding:6px 14px;letter-spacing:.085em;
+ font-family:Georgia,"Malgun Gothic",serif;
+}
+#result #resultText{line-height:1.5;max-width:34rem;margin:10px auto 16px;color:#5c402e}
+#result .panel-actions{gap:clamp(6px,2vw,11px);justify-content:center}
+#result .panel-actions .paper-btn{
+ min-height:43px;font-size:clamp(11px,2vw,15px);
+ transition:transform .12s,filter .12s;
+}
+#result .panel-actions .paper-btn:active{transform:translateY(2px) scale(.98)}
+#result #nextBtn:not([hidden]){filter:drop-shadow(0 0 6px #ffd27e7a)}
+@media(max-height:520px){
+ #result .result-panel::before{width:66px;height:48px}
+ #result #resultText{margin:6px auto 10px;font-size:12px;line-height:1.3}
+ #result .panel-actions .paper-btn{min-height:34px;padding:5px 8px}
+}
+@media(prefers-reduced-motion:reduce){#result .panel-actions .paper-btn{transition:none}}
 </style>
 </head>
 <body>
@@ -1440,7 +1470,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   const h=heroSet[game.hero],abilityPhase=game.phase===h.timing||(h.timing==='aim'&&canResumeAimFromReview()),ready=!game.abilityUsed&&game.turn==='player'&&abilityPhase&&(h.timing!=='flying'||game.projectiles.some(p=>p.active&&p.owner==='player'&&(!p.split||game.hero==='fox')));
   $('abilityBtn').disabled=!ready;$('abilityBtn').textContent=`${game.abilityUsed?'사용 완료':'특수기'} · ${h.ability}`;
  }
- function showResult(won){$('reviewCountdown').hidden=true;$('shotReview').hidden=true;$('enemyEntrance').hidden=true;game.introLife=0;game.phase='result';game.phaseTime=0;game.drag=null;const star=game.shots<=2?3:game.shots<game.maxShots?2:1;if(won&&game.mode==='adventure'){progress.best[game.stage]=Math.max(progress.best[game.stage],star);progress.wins++;progress.lastStage=Math.min(game.stage+1,stageSet.length-1);$('adventureStage').value=String(progress.lastStage);saveProgress();refreshMenu();}actorMotion(won?'player':'ai',won?'victory':'hit',1.3);$('result').hidden=false;$('resultTag').textContent=won?'MISSION CLEAR':'TRY AGAIN';$('resultTag').style.background=won?'#568c73':'#9d6970';$('resultTitle').textContent=won?'승리! 멋진 포격이었어요.':'아쉽지만 다시 도전!';const grade=star===3?'완벽한 공략':star===2?'우수한 공략':'임무 완수';$('resultText').textContent=game.mode==='adventure'?(won?`${grade}! ${game.shots}발로 ${stageSet[game.stage].name}을 공략했어요. 이번 등급 ${star}/3 · 최고 등급 ${progress.best[game.stage]}/3.${game.stage===stageSet.length-1?' 준비된 모험 지역을 모두 마쳤습니다.':' 다음 지역도 도전해 보세요.'}`:'포탄이 모두 떨어졌어요. 폭탄탄으로 지지대를 노리거나 각도를 조절해 보세요.'):(won?'상대 내구도를 모두 소진시켰습니다. 바람과 각도를 잘 읽었어요.':'우리 팀 내구도가 소진됐습니다. 난이도와 바람을 확인해 다시 도전해 보세요.');$('nextBtn').hidden=game.mode!=='adventure'||!won||game.stage===stageSet.length-1;playSound(won?'win':'lose');updateHud();}
+ function showResult(won){$('reviewCountdown').hidden=true;$('shotReview').hidden=true;$('enemyEntrance').hidden=true;game.introLife=0;game.phase='result';game.phaseTime=0;game.drag=null;const star=game.shots<=2?3:game.shots<game.maxShots?2:1;if(won&&game.mode==='adventure'){progress.best[game.stage]=Math.max(progress.best[game.stage],star);progress.wins++;progress.lastStage=Math.min(game.stage+1,stageSet.length-1);$('adventureStage').value=String(progress.lastStage);saveProgress();refreshMenu();}actorMotion(won?'player':'ai',won?'victory':'hit',1.3);$('result').dataset.outcome=won?'won':'lost';$('result').dataset.mode=game.mode;$('result').hidden=false;$('resultTag').textContent=won?'MISSION CLEAR':'TRY AGAIN';$('resultTag').style.background=won?'#568c73':'#9d6970';$('resultTitle').textContent=won?'승리! 멋진 포격이었어요.':'아쉽지만 다시 도전!';const grade=star===3?'완벽한 공략':star===2?'우수한 공략':'임무 완수';$('resultText').textContent=game.mode==='adventure'?(won?`${grade}! ${game.shots}발로 ${stageSet[game.stage].name}을 공략했어요. 이번 등급 ${star}/3 · 최고 등급 ${progress.best[game.stage]}/3.${game.stage===stageSet.length-1?' 준비된 모험 지역을 모두 마쳤습니다.':' 다음 지역도 도전해 보세요.'}`:'포탄이 모두 떨어졌어요. 폭탄탄으로 지지대를 노리거나 각도를 조절해 보세요.'):(won?'상대 내구도를 모두 소진시켰습니다. 바람과 각도를 잘 읽었어요.':'우리 팀 내구도가 소진됐습니다. 난이도와 바람을 확인해 다시 도전해 보세요.');$('nextBtn').hidden=game.mode!=='adventure'||!won||game.stage===stageSet.length-1;playSound(won?'win':'lose');updateHud();}
  function playSound(kind){if(!game.sound)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ac=game.audio||(game.audio=new AC());if(ac.state==='suspended')ac.resume();const now=ac.currentTime,osc=ac.createOscillator(),gain=ac.createGain();const shapes={fire:{freq:290,end:95,duration:.18,volume:.10,type:'triangle'},blast:{freq:125,end:40,duration:.28,volume:.14,type:'sawtooth'},win:{freq:560,end:880,duration:.32,volume:.10,type:'sine'},lose:{freq:270,end:130,duration:.38,volume:.09,type:'triangle'},ui:{freq:470,end:600,duration:.09,volume:.06,type:'sine'}};const s=shapes[kind]||shapes.ui;osc.type=s.type;osc.frequency.setValueAtTime(s.freq,now);osc.frequency.exponentialRampToValueAtTime(s.end,now+s.duration);gain.gain.setValueAtTime(.001,now);gain.gain.exponentialRampToValueAtTime(s.volume,now+.018);gain.gain.exponentialRampToValueAtTime(.001,now+s.duration);osc.connect(gain);gain.connect(ac.destination);osc.start(now);osc.stop(now+s.duration+.02);}catch(_){/* Audio is optional; the game always remains playable. */}}
  function useAbility(){
   const h=heroSet[game.hero];if(game.abilityUsed||game.turn!=='player'||game.phase!==h.timing)return;
