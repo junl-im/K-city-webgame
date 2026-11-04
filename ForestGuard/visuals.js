@@ -95,6 +95,10 @@
       element.style.backgroundPosition='center';
     }
     element.style.backgroundRepeat='no-repeat';
+    // The painted star shares a packed atlas row with the flame illustration.
+    // Its last 10% contains red flame fragments from the next cell; trim only
+    // that unused transparent tail, keeping the complete gold star intact.
+    if(name==='star')element.style.clipPath='inset(0 0 10.5% 0)';
     // Keep live icon tile offsets even when illustrated panel CSS uses !important.
     element.style.setProperty('--rani-icon-image',element.style.backgroundImage);
     element.style.setProperty('--rani-icon-size',element.style.backgroundSize);
@@ -454,6 +458,56 @@
     }
     return {removed,softened};
   }
+  // The original monster paintings stay untouched. At Phaser's 128px texture
+  // size, strip isolated atlas crumbs and saturated-red chroma fringe that
+  // otherwise travel across the battlefield with the animated character.
+  function cleanEnemyFrame(ctx,w,h){
+    const image=ctx.getImageData(0,0,w,h),rgba=image.data,total=w*h;
+    const visible=new Uint8Array(total),visited=new Uint8Array(total);
+    const groups=[],queue=new Int32Array(total);
+    for(let i=0;i<total;i++)visible[i]=rgba[i*4+3]>=42?1:0;
+    for(let i=0;i<total;i++){
+      if(!visible[i]||visited[i])continue;
+      let head=0,tail=1;queue[0]=i;visited[i]=1;
+      const group=[];
+      while(head<tail){
+        const p=queue[head++],x=p%w,y=(p/w)|0;group.push(p);
+        for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+          if(!dx&&!dy)continue;
+          const nx=x+dx,ny=y+dy;if(nx<0||nx>=w||ny<0||ny>=h)continue;
+          const n=ny*w+nx;
+          if(visible[n]&&!visited[n]){visited[n]=1;queue[tail++]=n;}
+        }
+      }
+      groups.push(group);
+    }
+    const largest=Math.max(0,...groups.map(group=>group.length));
+    if(!largest)return {islands:0,fringe:0};
+    const minArea=Math.max(9,Math.min(115,Math.round(largest*.017)));
+    let islands=0,fringe=0;
+    const keep=new Uint8Array(total);
+    for(const group of groups){
+      if(group.length<minArea){
+        islands+=group.length;
+        for(const p of group)rgba[p*4+3]=0;
+      }else for(const p of group)keep[p]=1;
+    }
+    for(let p=0;p<total;p++){
+      if(!keep[p])continue;
+      const k=p*4,r=rgba[k],g=rgba[k+1],b=rgba[k+2],a=rgba[k+3];
+      const vividRed=r>=186&&g<=74&&b<=74&&r>g*2&&r>b*2;
+      const paleRed=a<170&&r>=147&&g<=108&&b<=100&&r>g*1.75&&r>b*1.8;
+      if(!vividRed&&!paleRed)continue;
+      const x=p%w,y=(p/w)|0;
+      // Never erase an internal red mushroom cap: clean only exposed edges.
+      const exposed=x===0||x===w-1||y===0||y===h-1||
+        (x>0&&!visible[p-1])||(x<w-1&&!visible[p+1])||
+        (y>0&&!visible[p-w])||(y<h-1&&!visible[p+w]);
+      if(exposed){rgba[k+3]=0;fringe++;}
+    }
+    if(islands||fringe)ctx.putImageData(image,0,0);
+    return {islands,fringe};
+  }
   function animate(sprite,id,defaultState,now){
     if(!sprite||!sprite.active)return;
     let current=sprite.getData('motionState');
@@ -474,5 +528,5 @@
     sprite.setData('motionState',state);sprite.setData('motionUntil',until);
     sprite.setData('motionStart',Number.isFinite(start)?start:null);
   }
-  global.ForestGuardVisuals={build,animate,trigger,duration,frameTotal,icon,setIcon,portrait,cleanAttackFrame};
+  global.ForestGuardVisuals={build,animate,trigger,duration,frameTotal,icon,setIcon,portrait,cleanAttackFrame,cleanEnemyFrame};
 })(window);

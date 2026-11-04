@@ -696,14 +696,17 @@
       }
     }
     ['sprout','runner','brute','boss'].forEach(type=>createCanvasTexture(scene,'enemy-'+type,128,128,(c,w,h)=>{
-      if(atlasBitmap){atlasCell(c,w,h,{sprout:4,runner:5,brute:6,boss:7}[type]);isolateEnemyBackdrop(c,w,h);}
+      if(atlasBitmap){
+        atlasCell(c,w,h,{sprout:4,runner:5,brute:6,boss:7}[type]);
+        isolateEnemyBackdrop(c,w,h);V.cleanEnemyFrame(c,w,h);
+      }
       else paintEnemy(c,w,h,type);
     }));
     Object.entries({thorn:0,spore:1,imp:2,crystal:3,shroom:4,guardian:5}).forEach(([type,i])=>createCanvasTexture(scene,'enemy-'+type,128,128,(c,w,h)=>{
       if(monsterBitmap){
         const tw=monsterBitmap.naturalWidth/3,th=monsterBitmap.naturalHeight/2;
         c.drawImage(monsterBitmap,(i%3)*tw,Math.floor(i/3)*th,tw,th,0,0,w,h);
-        isolateEnemyBackdrop(c,w,h);
+        isolateEnemyBackdrop(c,w,h);V.cleanEnemyFrame(c,w,h);
       }else paintEnemy(c,w,h,['thorn','spore','imp'].includes(type)?'sprout':type==='crystal'?'brute':'boss');
     }));
     for(let i=0;i<8;i++)createCanvasTexture(scene,'evo-'+i,128,128,(c,w,h)=>{
@@ -804,6 +807,7 @@
             c.drawImage(monsterHurtBitmap,(index%5)*cw,Math.floor(index/5)*ch,
               cw,ch,-width/2,-height/2,width,height);
             c.restore();
+            V.cleanEnemyFrame(c,128,128);
           });
         }
       }

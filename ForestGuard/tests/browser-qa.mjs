@@ -231,6 +231,19 @@ try{
       assert.ok(Object.entries(hurt.items).every(([,item])=>
         item.transparentCorners&&item.opaquePixels>=80),
         'No new opaque rectangular backing or missing species in v4.9 hit art: '+JSON.stringify(hurt));
+      const cleanup=await page.evaluate(()=>{
+        const canvas=document.createElement('canvas');canvas.width=64;canvas.height=64;
+        const c=canvas.getContext('2d',{willReadFrequently:true});
+        c.fillStyle='#78b76a';c.fillRect(12,12,37,37);
+        c.fillStyle='#fa1010';c.fillRect(11,18,1,22); // chroma-key fringe attached to body
+        c.fillStyle='#e8c283';c.fillRect(57,58,3,3); // disconnected atlas debris
+        const report=window.ForestGuardVisuals.cleanEnemyFrame(c,64,64);
+        const alpha=(x,y)=>c.getImageData(x,y,1,1).data[3];
+        return {report,body:alpha(30,30),fringe:alpha(11,22),island:alpha(58,59)};
+      });
+      assert.ok(cleanup.body===255&&cleanup.fringe===0&&cleanup.island===0&&
+        cleanup.report.fringe>=20&&cleanup.report.islands>=9,
+      'Monster matte cleanup must keep the body and remove moving chroma fragments: '+JSON.stringify(cleanup));
     }
     const battle=await page.evaluate(()=>{
       const arena=document.querySelector('.arena-wrap').getBoundingClientRect();
@@ -563,6 +576,10 @@ try{
     await page.evaluate(()=>window.__ForestGuardQA.finish(true));
     await page.locator('#modal-box.result-dialog.result-win').waitFor();
     assert.equal(await page.locator('.result-star.earned').count(),3,'Full HP victory earns three stars');
+    const starTrim=await page.locator('.result-star.earned').evaluateAll(nodes=>
+      nodes.map(node=>getComputedStyle(node).clipPath));
+    assert.ok(starTrim.every(value=>value.includes('10.5%')),
+      'Packed star atlas must trim the stray red flame fragments under every reward star: '+starTrim.join(', '));
     assert.equal(await page.locator('.result-stat').count(),3,'Show real currency, HP and squad metrics');
     assert.equal(await page.locator('#modal-actions button').count(),2,'Next stage and map actions');
     const winLayout=await page.evaluate(()=>{
