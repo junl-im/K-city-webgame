@@ -251,7 +251,7 @@ assert.match(js,/e\.type==='shroom'\?246:216/);
 assert.match(js,/painted-rampart-front-v24\.webp/);
 assert.match(js,/createCanvasTexture\(scene,'painted-rampart-front'/);
 assert.match(js,/setDepth\(7\)/);
-assert.match(js,/playHeroAttackCue\(x\+\(/);
+assert.match(js,/playHeroAttackCue\(anchorX\+muzzle\[0\],id\)/);
 assert.match(js,/attackFxActive>=12/);
 assert.match(js,/mushroom-colossus-attack-v19\.webp/);
 assert.match(js,/motion-shroom-attack-'\+frame/);

@@ -407,6 +407,19 @@
       else if(redFringe){pixels[i+3]=Math.round(a*.18);softened++;}
     }
     if(removed||softened)ctx.putImageData(image,0,0);
+    // Canvas premultiplication can quantize nearly transparent fringe pixels
+    // back into saturated red during putImageData. Clear any surviving specks
+    // directly on the canvas, so the final texture has no red matte at all.
+    if(removed||softened){
+      const finalPixels=ctx.getImageData(0,0,w,h).data;
+      for(let i=0;i<finalPixels.length;i+=4){
+        const r=finalPixels[i],g=finalPixels[i+1],b=finalPixels[i+2],a=finalPixels[i+3];
+        if(a>0&&r>=185&&g<=92&&b<=90&&r>g*1.95&&r>b*1.9){
+          const pixel=i/4;ctx.clearRect(pixel%w,Math.floor(pixel/w),1,1);
+          removed++;
+        }
+      }
+    }
     return {removed,softened};
   }
   function animate(sprite,id,defaultState,now){
