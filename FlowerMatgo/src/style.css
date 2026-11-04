@@ -4136,3 +4136,11 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 @media(max-width:650px) and (max-height:700px) {
  .scene--game .double-offer p {font-size:12px;line-height:1.35;}
 }
+
+/* The short action label stays in the painted centre; its explanation is
+   already in the dialog and remains available to assistive technology. */
+.scene--game .modal-box--choice:has(#go-stop-title) .decision-option small,
+.scene--game .modal-box--choice:has(#gookjin-choice-title) .decision-option small {
+ position:absolute;width:1px;height:1px;padding:0;overflow:hidden;
+ clip-path:inset(50%);white-space:nowrap;
+}
