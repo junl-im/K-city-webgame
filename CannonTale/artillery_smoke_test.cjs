@@ -26,6 +26,8 @@ assert(html.includes('background-image:var(--stage-art)'),'Reuse existing projec
 assert(html.includes('grid-template-areas:"title" "art" "mode"'),'Mobile home must arrange illustrated content into a single viewport');
 assert(html.includes('game.mode===\'duel\'?2.45:2.85'),'Post-impact countdown must be shortened');
 assert(html.includes('v1.8 combat HUD'),'Combat controls should share fantasy illustration styling');
+assert(html.includes('v1.9 selected-hero information'),'Hero choices need visible real skill descriptions');
+assert(html.includes('v1.9 -- end-of-battle'),'Battle outcome art must use existing illustrations');
 assert(html.includes('#controls #fire.charging'),'Charging state must stay visually distinct from ready and fired');
 assert(html.includes('#stageMap .stage-tile.selected'),'Stage selection needs a highlighted illustrated tile');
 assert(html.includes('#result .result-panel'),'End-of-battle should share the fantasy parchment theme');
@@ -91,9 +93,13 @@ assert.equal(el('stageShotPreview').textContent.includes('3발'),true,'First sta
 assert.equal(el('heroPreview').dataset.hero,'fox','Restored selected hero must appear in opening artwork');
 el('hero-cat').click();
 assert.equal(el('heroPreview').dataset.hero,'cat','Selecting cat must change main illustration');
-assert(el('heroPreviewWeapon').textContent.includes('지팡이'),'Hero preview must match actual cat weapon');assertContainedPreview('cat');
+assert(el('heroPreviewWeapon').textContent.includes('지팡이'),'Hero preview must match actual cat weapon');
+assert(el('heroPreviewSkill').textContent.includes('발사 전 · 바람 전환'),'Cat skill preview must match its real pre-shot ability');
+assertContainedPreview('cat');
 el('hero-rabbit').click();
-assert(el('heroPreviewWeapon').textContent.includes('분열 발사기'),'Rabbit preview weapon should match projectiles');assertContainedPreview('rabbit');
+assert(el('heroPreviewWeapon').textContent.includes('분열 발사기'),'Rabbit preview weapon should match projectiles');
+assert(el('heroPreviewSkill').textContent.includes('비행 중 · 오중 분열'),'Rabbit skill preview must match the mid-flight split');
+assertContainedPreview('rabbit');
 el('hero-fox').click();
 assert.equal(el('heroPreview').dataset.hero,'fox','Hero can be switched back without reload');assertContainedPreview('fox');
 el('hero-bear').click();assertContainedPreview('bear');
@@ -352,6 +358,8 @@ if(/v0_[67]/.test(versionedPath)){
  assert.deepEqual(state().savedBest.slice(0,2),[3,2],'Prior progress must not be lost');
  el('adventureStage').value='2';el('adventureBtn').click();frames(3);
  window.__finishForTest(true);
+ assert.equal(el('result').dataset.outcome,'won','Victory artwork state should be set');
+ assert.equal(el('result').dataset.mode,'adventure','Result art must reflect adventure mode');
  assert.equal(state().savedBest[2],3,'A successful stage must save its best grade');
  assert.equal(state().savedWins,6,'Victory total must increase');
  assert.equal(el('adventureStage').value,'3','The menu must recommend the next stage');
