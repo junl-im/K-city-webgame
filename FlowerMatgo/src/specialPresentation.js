@@ -37,7 +37,18 @@ export function eventAnnouncement(result, actor = 'human') {
   const events = Array.isArray(result.specialEvents) ? result.specialEvents : [];
   const labels = [...new Set(events.map(event => String(event.label || '').trim()).filter(Boolean))];
   if (!labels.length && result.ppeok) labels.push('뻑');
-  if (!labels.length) return null;
+  const stolen = Array.isArray(result.stolenPee) ? new Set(result.stolenPee).size : 0;
   const text = labels.map(label => /[!?]$/.test(label) ? label : label + '!').join(' · ');
-  return actor === 'computer' ? '상대 ' + text : text;
+  const event = text && actor === 'computer' ? '상대 ' + text : text;
+  const transfer = stolen ? (actor === 'computer' ? `내 피 ${stolen}장 뺏김!` : `상대 피 ${stolen}장 뺏기!`) : '';
+  return [event,transfer].filter(Boolean).join(' · ') || null;
+}
+
+// Wording is always from the human player's perspective and uses real transfers.
+export function piTransferAnnouncement(result) {
+  if (!result) return '';
+  const transfer=result.missionTransfer;
+  if (!transfer || !Array.isArray(transfer.cardIds) || !transfer.cardIds.length) return '';
+  const n=transfer.cardIds.length;
+  return transfer.to === 'human' ? `상대 피 ${n}장 내게 이동` : `내 피 ${n}장 상대에게 이동`;
 }

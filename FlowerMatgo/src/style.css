@@ -4060,3 +4060,9 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--game .triple-choice .choice-actions .decision-option {flex:0 1 150px;max-width:150px;}
 /* Re-rendering a pending decision must not replay the entrance animation. */
 .scene--game .modal-box--choice:has(#go-stop-title) {animation:none;}
+/* Supporting controls share a quiet paper-and-jade palette. */
+.scene--home .home-quick-links .btn,.scene--select .nav .btn--quiet,.scene--game .result-actions .btn--quiet,.scene--game .decision-review-button,.scene--game .decision-cancel .btn {border:1px solid #d3bb91;border-radius:12px;background:rgba(249,242,223,.92);color:#526b52;box-shadow:0 2px 5px #15382b35;text-shadow:none;font-weight:850;}
+.scene--home .home-quick-links .btn:hover,.scene--select .nav .btn--quiet:hover,.scene--game .result-actions .btn--quiet:hover,.scene--game .decision-review-button:hover {background:#fff8e7;color:#754c32;}
+.scene--game .modal-shade--decision {background:rgba(10,29,23,.48);backdrop-filter:blur(4px);}
+.scene--game .turn-impact__text {max-width:min(80vw,270px);white-space:normal;line-height:1.15;}
+@media(prefers-reduced-motion:reduce){.scene--game .modal-shade--decision {backdrop-filter:none;}}

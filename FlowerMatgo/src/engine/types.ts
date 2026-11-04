@@ -113,6 +113,7 @@ export interface TurnResult {
   bonusStolenPee?: string[];
   specialEvents?: TurnSpecialEvent[];
   missionCards?: string[];
+  missionTransfer?: { from: PlayerId; to: PlayerId; cardIds: string[] } | null;
   missionMultiplier?: number;
   missionCompleted?: boolean;
   missionProgress?: number;
