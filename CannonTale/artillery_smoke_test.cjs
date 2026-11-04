@@ -20,6 +20,12 @@ assert(html.includes('bear:-1,rabbit:1,cat:-1'),'Hero art must map intrinsic lef
 assert(html.includes('if((f.kind||0)===0)ctx.scale(-1,1)'),'Acorn guardian should face attacking player');
 assert(html.includes('Illustrated Canvas 2D projectile silhouettes'),'Projectile renderer should contain hero-specific artwork');
 assert(html.includes('scenery-integrated title'),'First screen should use transparent scenery-integrated game UI');
+assert(html.includes('CannonTale v1.8: illustrated menu'),'Scenic fantasy homepage needs active CSS');
+assert(html.includes('menu-logo-main')&&html.includes('캐논테일'),'New illustrated game title must remain visible');
+assert(html.includes('background-image:var(--stage-art)'),'Reuse existing project scenery atlases for home background');
+assert(html.includes('grid-template-areas:"title" "art" "mode"'),'Mobile home must arrange illustrated content into a single viewport');
+assert(html.includes('game.mode===\'duel\'?2.45:2.85'),'Post-impact countdown must be shortened');
+assert(!/<svg|image\/svg\+xml/.test(html),'CannonTale must stay SVG-free');
 assert(html.includes("duelPilot(pilot,x-dir*42"),'Duel must use independent crew portraits rather than full handheld weapon figures');
 assert(html.includes('const transition=attacking?'),'Authored foe attack/idle poses must blend through phase transitions');
 assert(html.includes('const heroMotionKeys={'),'All four heroes require independently timed six-step recoil');
@@ -369,6 +375,17 @@ assert.deepEqual(state().canvas,[844,390],'Landscape 844x390 canvas must match i
 assert(html.includes('spawnCollapseFragments(b)'),'Broken blocks should create large independent falling chunks');
 assert(html.includes('drawFoeElementalAttack(f,attackSurge)'),'The four monsters should emit state-specific attack FX');
 assert(html.includes('shatteredDescription'),'The impact report should list material-specific destruction');
+// Post-impact review automatically returns to aiming without a 7-second forced delay.
+el('homeBtn').click();
+el('adventureStage').value='0';el('adventureBtn').click();frames(3);
+el('angle').value='82';el('angle').dispatch('input');
+el('power').value='20';el('power').dispatch('input');
+el('fire').click();waitForReview();
+assert.equal(state().phase,'review','Short-shot impact should open the review overlay');
+frames(185);
+assert.equal(state().phase,'aim','Review should return to aiming in under about 3 seconds');
+assert.equal(el('fire').disabled,false,'FIRE must be active again after automatic result review');
+el('homeBtn').click();
 // Runtime compact fallback: an unusually short Android web viewport must use compact density.
 el('homeBtn').click();
 const menuPanelClasses=new Set();
