@@ -504,15 +504,33 @@ try{
     assert.equal(await page.locator('.result-stat').count(),3,'Show real currency, HP and squad metrics');
     assert.equal(await page.locator('#modal-actions button').count(),2,'Next stage and map actions');
     const winLayout=await page.evaluate(()=>{
-      const r=document.querySelector('#modal-box').getBoundingClientRect();
+      const box=document.querySelector('#modal-box'),r=box.getBoundingClientRect();
+      const scene=document.querySelector('.result-hero-scene'),sceneRect=scene.getBoundingClientRect();
+      const buttons=[...document.querySelectorAll('#modal-actions button')].map(node=>{
+        const rect=node.getBoundingClientRect();
+        return {left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom};
+      });
       return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,
         scrollX:document.documentElement.scrollWidth-innerWidth,
         scrollY:document.documentElement.scrollHeight-innerHeight,
-        stats:[...document.querySelectorAll('.result-stat strong')].map(n=>n.textContent)};
+        panel:getComputedStyle(box).backgroundImage,
+        backdrop:getComputedStyle(document.querySelector('#modal-layer .modal-scrim')).backgroundImage,
+        art:getComputedStyle(scene).backgroundImage,
+        sceneBottom:sceneRect.bottom,
+        statisticsTop:document.querySelector('.result-stats').getBoundingClientRect().top,
+        buttons,stats:[...document.querySelectorAll('.result-stat strong')].map(n=>n.textContent)};
     });
     assert.ok(winLayout.left>=-2&&winLayout.right<=size.width+2&&
       winLayout.top>=-2&&winLayout.bottom<=size.height+2,'Illustrated results must fit mobile screen');
     assert.ok(winLayout.scrollX<=2&&winLayout.scrollY<=2,'Results must not scroll document');
+    assert.equal(winLayout.panel,'none','Result dialogue must not add a second opaque rectangular background');
+    assert.match(winLayout.backdrop,/forest-entrance-v08\.png/,'Results share one forest scene');
+    assert.match(winLayout.art,/rani-rearguard-v35\.png/,'Result character artwork remains a separate original cutout');
+    assert.ok(!winLayout.art.includes('forest-entrance-v08.png'),'Result panel must not duplicate the scene backdrop');
+    assert.ok(winLayout.sceneBottom<=winLayout.statisticsTop+2,'Result painting and rewards must not overlap');
+    assert.ok(winLayout.buttons.length===2&&winLayout.buttons.every(b=>
+      b.left>=-2&&b.right<=size.width+2&&b.top>=-2&&b.bottom<=size.height+2),
+      'Result actions must stay visible on a single phone screen: '+JSON.stringify(winLayout.buttons));
     await page.screenshot({path:new URL('../test-output/forest-results-win-'+size.width+'.png',import.meta.url).pathname});
     await page.locator('#modal-actions button').first().click();
     await page.waitForFunction(()=>document.getElementById('stage-name').textContent==='달리는 버섯들'&&
