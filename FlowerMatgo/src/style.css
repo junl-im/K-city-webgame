@@ -4091,3 +4091,7 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 @media(max-width:360px){.scene--select .opponent-card__text span {font-size:9px;letter-spacing:-.04em;}.scene--game .modal-box--choice .decision-timer {font-size:10px!important;padding:4px 7px;}}
 /* Preserve the exact wallet value for assistive technology and hover, while keeping the compact mobile HUD readable. */
 @media(max-width:650px){.scene--game .game-wallet b[data-mobile] {font-size:0;}.scene--game .game-wallet b[data-mobile]::after {content:attr(data-mobile);font-size:clamp(10px,3.3vw,13px);}}
+/* Fit the entire floor card into the available area on shorter desktops. */
+@media (min-width:651px) and (min-height:711px) and (max-height:800px) {
+ .scene--game .floor-area .hwatu {max-width:clamp(40px,calc((100svh - 590px) * .4),84px);}
+}
