@@ -297,7 +297,8 @@ try{
       assert.deepEqual(motion,{heroAttack8:true,foxRasterReady:true,
         paintedHeroAttacks:{bear:true,rabbit:true,cat:true,megafox:true},
         ordinaryHurt5:true,hurtDuration:400,eliteAttack6:true,
-        eliteHurt6:true,ordinaryDeath5:true,eliteDeath6:true,deathDuration:510,heroDuration:520},
+        eliteHurt6:true,paintedMonsterHurt:true,paintedMonsterKinds:10,
+        ordinaryDeath5:true,eliteDeath6:true,deathDuration:510,heroDuration:520},
         'All painted rear attacks and 5/6-frame monster hit reactions must load at runtime');
       const chroma=await page.evaluate(()=>window.__ForestGuardQA.attackFrameSpill());
       assert.deepEqual(chroma,{fox:0,bear:0,rabbit:0,cat:0,megafox:0},
