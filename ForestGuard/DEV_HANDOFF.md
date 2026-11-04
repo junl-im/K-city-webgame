@@ -519,3 +519,10 @@
 - `forest-choice-v50.css`에서 모집·성장 카드의 중복 테두리를 없애고 포커스/선택 피드백, 한글 가독성, 작은 화면 여백을 일관 조정. 결과창의 안내글만 같은 색감으로 연결.
 - Pages 배포 파일 목록과 smoke/브라우저 검사에서 신규 CSS·원화 존재, 이미지 로딩·알파 및 320px 화면 배치를 검증. 기존 공격 루프·스테이지·세이브·몬스터 아틀라스·타 게임 폴더 불변.
 - CI/실제 브라우저/Pages/Notion/Drive 여부는 개별 성공 확인 후 완료로 판정. 실기기 Android 장시간 FPS·발열·메모리 검증은 별도 남음.
+
+## 2026-11-05 v5.0.1 — '성장의 순간' 원화 아틀라스 잘림 복구
+- v5.0 정식 병합: [PR #164](https://github.com/junl-im/K-city-webgame/pull/164), `main` 커밋 `4c68929340061dbc3ea3a2da138045960d93049e`. 메인 smoke/모바일 Chromium/Pages 각각 성공 (runs `41850817409`, `41850817462`, `41850817389`). 노션/구글드라이브 읽기 재검증 완료.
+- 사용자 신고 원인: 성장 카드 CSS의 `background-size:contain!important`와 `background-position:center!important`가 기존 4×4 일반 스킬/2×2 속성 원화 아틀라스의 실제 칸 선택을 덮어씀. 여러 아이콘이 작은 그림으로 전부 노출되는 현상.
+- v5.0.1 수정: `forest-choice-v50.css`의 성장 카드에서 원화별 CSS 변수(`--rani-icon-size`, `--rani-icon-position`, `--rani-icon-image`)를 다시 적용. 곰·토끼·고양이 동료 합류 카드에는 실제 투명 영웅 WebP 초상을 표시.
+- v5.0.1 브라우저 QA는 일반 스킬 4×4/서리 속성 2×2/곰 초상을 고정 선택해 각 이미지의 실제 렌더 크기와 URL을 검증. 캐시 키 갱신, 게임/세이브/원본/타 폴더 유지. 이번 수정의 GitHub CI·Pages 성공은 확인 후 별도 완료 판정.
+- 실제 Android Samsung Internet·iOS Safari 실기기 장시간 FPS·메모리·발열·12스테이지 수동 완주는 아직 미완료.

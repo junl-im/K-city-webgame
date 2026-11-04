@@ -1812,6 +1812,16 @@
         const b=document.createElement('button');b.type='button';b.className='spell-card draft-card'+
           (card.rare?' rare':'')+(this.comboFor(card.id)?' combo recommended':'');
         const icon=document.createElement('span');icon.className='spell-emoji';V.setIcon(icon,card.id==='bear'?'shield':card.id);paintElementSpell(icon,card.id,b);
+        // A companion reward should show that companion, not an unrelated HUD glyph.
+        if(['bear','rabbit','cat'].includes(card.id)){
+          const art='url("./art/recruit-'+card.id+'-cutout-v50.webp")';
+          icon.style.backgroundImage=art;icon.style.backgroundSize='contain';
+          icon.style.backgroundPosition='center';
+          icon.style.setProperty('--rani-icon-image',art);
+          icon.style.setProperty('--rani-icon-size','contain');
+          icon.style.setProperty('--rani-icon-position','center');
+          icon.dataset.heroArt=card.id;
+        }
         const title=document.createElement('strong');title.textContent=card.title;
         const desc=document.createElement('small');
         const combo=this.comboFor(card.id);
@@ -2195,9 +2205,15 @@
         battle.removeEnemy(enemy);
         return result;
       },
-      previewGrowth(){
+      previewGrowth(cardIds){
         if(!battle||battle.ended||battle.pendingRecruit)return false;
-        battle.showDraft(true);return true;
+        if(Array.isArray(cardIds)){
+          const choices=cardIds.map(id=>CARDS.find(card=>card.id===id));
+          if(choices.length!==3||choices.some(card=>!card))return false;
+          battle.draftChoices=choices;
+          battle.showDraft(false);
+        }else battle.showDraft(true);
+        return true;
       },
       rosterInfo(){return battle?{capacity:HERO_CAPACITY,ids:[...battle.heroIds],positions:[...HERO_POSITIONS]}:null;},
       damageFeedback(){

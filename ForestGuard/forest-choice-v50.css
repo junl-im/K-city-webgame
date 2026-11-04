@@ -78,6 +78,15 @@
 #modal-layer #modal-box.growth-dialog .draft-card .spell-emoji{
   filter:drop-shadow(0 3px 4px rgba(0,15,10,.56))!important;
 }
+/* Growth art may be a 4x4 skill atlas, a 2x2 element atlas, or a hero cutout.
+   Older dialog styles force `contain`/`center`, exposing the *entire* atlas.
+   Restore the exact tile transform set by ForestGuardVisuals/paintElementSpell. */
+#modal-layer #modal-box.growth-dialog .draft-card .spell-emoji.painted-icon{
+  background-image:var(--rani-icon-image)!important;
+  background-size:var(--rani-icon-size)!important;
+  background-position:var(--rani-icon-position)!important;
+  background-repeat:no-repeat!important;
+}
 #modal-layer #modal-box.result-dialog .result-note{
   color:#f4e5c3!important;
   text-shadow:0 2px 3px #061a13!important;
