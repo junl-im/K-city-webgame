@@ -470,14 +470,21 @@ try{
       await page.locator('.recruit-rabbit').click();
       assert.equal(await page.locator('.hero-slot:not(.empty)').count(),2,'Recruit joins the defense');
       assert.equal(await page.locator('.hero-slot.empty').count(),3,'Three future reinforcement slots remain');
-      assert.equal(await page.evaluate(()=>window.__ForestGuardQA.previewGrowth()),true);
+      // v5.0.1: all three icon sources must crop correctly, not show their full sprite sheet.
+      assert.equal(await page.evaluate(()=>window.__ForestGuardQA.previewGrowth(['power','ice','bear'])),true);
       assert.equal(await page.locator('.draft-card').count(),3,'Growth modal preserves three active choices');
       const growthBox=await page.locator('#modal-box').evaluate(box=>{
         const r=box.getBoundingClientRect(),cards=[...box.querySelectorAll('.draft-card')].map(node=>{
           const bounds=node.getBoundingClientRect(),heading=node.querySelector('strong').getBoundingClientRect(),
-            detail=node.querySelector('small').getBoundingClientRect();
+            detail=node.querySelector('small').getBoundingClientRect(),
+            icon=node.querySelector('.spell-emoji'),style=getComputedStyle(icon);
           return {left:bounds.left,right:bounds.right,top:bounds.top,bottom:bounds.bottom,
             painting:getComputedStyle(node).backgroundImage,
+            iconImage:style.backgroundImage,iconSize:style.backgroundSize,
+            expectedIconSize:style.getPropertyValue('--rani-icon-size').trim(),
+            iconPosition:style.backgroundPosition,
+            expectedIconPosition:style.getPropertyValue('--rani-icon-position').trim(),
+            companion:icon.dataset.heroArt||null,
             headingBottom:heading.bottom,detailTop:detail.top,detailBottom:detail.bottom};
         });
         return {left:r.left,right:r.right,bottom:r.bottom,background:getComputedStyle(box).backgroundImage,cards};
@@ -486,6 +493,16 @@ try{
         growthBox.cards.every(card=>card.painting.includes('forest-choice-card-v50.webp')&&
           card.headingBottom<=card.detailTop+2&&card.detailBottom<=card.bottom+2),
         'Growth cards must have distinct non-overlapping descriptions: '+JSON.stringify(growthBox));
+      assert.deepEqual(growthBox.cards.map(card=>card.iconSize),['400% 400%','200% 200%','contain'],
+        'Growth icons must display a single skill/element tile or companion painting, never the full atlas');
+      assert.ok(growthBox.cards.every(card=>card.iconSize===card.expectedIconSize)&&
+        growthBox.cards[0].iconPosition===growthBox.cards[0].expectedIconPosition&&
+        growthBox.cards[1].iconPosition===growthBox.cards[1].expectedIconPosition&&
+        growthBox.cards[0].iconImage.includes('rani-ui-icons-v04.webp')&&
+        growthBox.cards[1].iconImage.includes('rani-element-spells-v38.png')&&
+        growthBox.cards[2].iconImage.includes('recruit-bear-cutout-v50.webp')&&
+        growthBox.cards[2].companion==='bear',
+        'Wrong illustration/crop in growth choices: '+JSON.stringify(growthBox.cards));
       await page.screenshot({path:new URL('../test-output/growth-v45-390.png',import.meta.url).pathname});
       await page.locator('.draft-card').first().click();
       assert.equal(await page.locator('#modal-layer').isHidden(),true,'Growth choice applies and closes');
