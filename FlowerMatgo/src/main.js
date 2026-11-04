@@ -18,7 +18,7 @@ import { floorDensity } from './floorLayout.js';
 import { artworkOrdinal, cardBookLabel, cardVisualDetails } from './cardDisplay.js';
 import { hwatuFamily, spokenActionText, spokenCardName } from './cardNames.js';
 import { animateResolvedTurn, motionOrigin } from './turnPresentation.js';
-import { eventAnnouncement } from './specialPresentation.js';
+import { eventAnnouncement, piTransferAnnouncement } from './specialPresentation.js';
 import { SPECIAL_FLASH_MS, specialMoment } from './specialMoment.js';
 import { cardSoundProfile } from './cardSoundDesign.js';
 import { newlyCompletedCombos } from './scoreCombos.js';
@@ -881,7 +881,7 @@ function commitGame(next, result=null, motion=null) {
   }
   if (gotGookjin) app.pendingGookjinChoice = true;
   const specialText = eventAnnouncement(result, previous?.currentPlayer);
-  const missionText = result?.missionCards?.length ? `${previous?.currentPlayer==='computer'?'상대 ':''}${result.missionEffect ? '미션 완료 · '+result.missionEffect : result.missionRequired > 1 ? '미션패 '+result.missionProgress+'/'+result.missionRequired : '미션패 ×'+(result.missionMultiplier || 1)}` : null;
+  const missionText = result?.missionCards?.length ? `${previous?.currentPlayer==='computer'?'상대 ':''}${result.missionEffect ? '미션 완료 · '+(piTransferAnnouncement(result) || result.missionEffect) : result.missionRequired > 1 ? '미션패 '+result.missionProgress+'/'+result.missionRequired : '미션패 ×'+(result.missionMultiplier || 1)}` : null;
   const eventText = [specialText, missionText].filter(Boolean).join(' · ');
   finishRound();
   if (eventText) effects(eventText, 'special', 'event-list', !!motion);

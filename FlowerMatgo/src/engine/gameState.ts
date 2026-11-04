@@ -235,6 +235,7 @@ function missionOutcome(state: GameState, player: PlayerId, capturedCardIds: str
   // A disabled mission may finish but must never grant its effect.
   if (mission?.effect && mission.enabled === false && !mission.resolvedBy && completedNow) mission.resolvedBy = player;
   let missionEffect = '';
+  let missionTransfer: { from: PlayerId; to: PlayerId; cardIds: string[] } | null = null;
   if (missionCards.length && mission?.effect && !mission.resolvedBy && completedNow) {
     mission.resolvedBy = player;
     const effect = mission.effect;
@@ -246,10 +247,11 @@ function missionOutcome(state: GameState, player: PlayerId, capturedCardIds: str
     else {
       const receiver = effect.kind === 'steal' ? player : otherPlayer(player);
       const moved = stealPee(state, receiver, effect.value);
-      missionEffect = moved.length ? (effect.kind === 'steal' ? `상대 피 ${moved.length}장 뺏기` : `상대에게 피 ${moved.length}장 주기`) : '이동할 피가 없어 효과 없음';
+      if (moved.length) missionTransfer = { from: otherPlayer(receiver), to: receiver, cardIds: moved };
+      missionEffect = moved.length ? (effect.kind === 'steal' ? `피 ${moved.length}장 뺏기` : `피 ${moved.length}장 주기`) : '이동할 피가 없어 효과 없음';
     }
   }
-  return {missionEffect, missionCards, missionCompleted: !!missionEffect, missionProgress: progress, missionRequired: required, missionMultiplier:missionMultiplierFor(state.mission,state.humanCaptured,state.computerCaptured,player)};
+  return {missionEffect, missionTransfer, missionCards, missionCompleted: !!missionEffect, missionProgress: progress, missionRequired: required, missionMultiplier:missionMultiplierFor(state.mission,state.humanCaptured,state.computerCaptured,player)};
 }
 
 function missionMessage(outcome: ReturnType<typeof missionOutcome>): string {

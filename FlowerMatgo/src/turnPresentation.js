@@ -322,7 +322,10 @@ function spawnCaptureSweep(root, ids, source, drawnTarget, cue, player, result, 
   prioritized.slice(0,MAX_CAPTURE_SPRITES).forEach((id,index) => {
     setTimeout(() => {
       if (!root.isConnected) return;
-      const from = fromFloor.get(id) || (id === cue.drawn ? drawnTarget : source);
+      const stolen = Array.isArray(result?.stolenPee) && result.stolenPee.includes(id);
+      const opponentRack = root.querySelector(player === 'human' ? '.collection-rack--opponent' : '.collection-rack--human');
+      const stolenOrigin = stolen ? measure([...opponentRack?.querySelectorAll('[data-card]') || []].find(el => el.dataset.card === id) || opponentRack) : null;
+      const from = stolenOrigin || fromFloor.get(id) || (id === cue.drawn ? drawnTarget : source);
       if (!from) return;
       const type = captureVisualType(id,asDoubleJunk);
       const group = type
