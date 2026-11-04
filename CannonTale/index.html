@@ -1058,6 +1058,37 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){
  #menu .hero-stage-portrait,#menu.overlay::before{transition:none!important}
 }
+
+/* v1.9 selected-hero information and real skill iconography */
+#menu .hero-stage-info .hero-skill-preview{
+ display:block;max-width:100%;padding:4px 7px 4px 24px;
+ position:relative;border-radius:8px;background:linear-gradient(100deg,#9b673da0,#29473c4d);
+ color:#ffedbe!important;font-size:clamp(9px,1.55dvh,12px)!important;
+ font-weight:800;line-height:1.2;text-shadow:0 1px 3px #1a2c37;
+}
+#menu .hero-stage-info .hero-skill-preview::before{
+ content:"";position:absolute;left:3px;top:50%;transform:translateY(-50%);
+ width:17px;height:17px;opacity:.95;pointer-events:none;
+ background:var(--action-icons) no-repeat right bottom/200% 200%;
+ filter:drop-shadow(0 1px 2px #172b30);
+}
+#menu .hero-choice.selected::after{
+ content:"✓"!important;display:grid;place-items:center;
+ width:19px!important;height:19px!important;top:-5px!important;right:0!important;
+ border-radius:50%;background:linear-gradient(145deg,#e1ffc5,#52994b 55%,#1c5e3f)!important;
+ color:#fff9d5;font:1000 14px/1 system-ui,sans-serif;
+ text-shadow:0 1px 2px #135033;box-shadow:0 2px 5px #092527aa!important;
+ filter:drop-shadow(0 0 4px #b4ef7c);
+}
+@media(max-height:590px){
+ #menu .hero-stage-info .hero-skill-preview{display:none}
+}
+@media(orientation:landscape) and (max-height:650px){
+ #menu .hero-stage-info .hero-skill-preview{display:none}
+}
+@media(max-height:430px){
+ #menu .hero-choice.selected::after{width:13px!important;height:13px!important;font-size:10px;top:-2px!important}
+}
 </style>
 </head>
 <body>
@@ -1093,7 +1124,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
      <img id="menuArtwork" src="Artillery_Fox_Bear_Atlas_v0_3.webp" alt="" aria-hidden="true">
      <div id="heroPreview" class="hero-stage" data-hero="fox" aria-live="polite">
       <span class="hero-stage-portrait" aria-hidden="true"><canvas id="heroPreviewCanvas" aria-hidden="true"></canvas></span>
-      <span class="hero-stage-info"><strong id="heroPreviewName">여우 궁수</strong><small id="heroPreviewWeapon">새총 · 정확한 조준</small></span>
+      <span class="hero-stage-info"><strong id="heroPreviewName">여우 궁수</strong><small id="heroPreviewWeapon">새총 · 정확한 조준</small><small class="hero-skill-preview" id="heroPreviewSkill">특수기 · 탄도 보정</small></span>
      </div>
     </div>
     <p class="menu-subline">무너뜨리는 모험 · 맞혀 이기는 결투</p>
@@ -1160,10 +1191,10 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  function saveProgress(){try{window.localStorage?.setItem(saveKey,JSON.stringify(progress));}catch(_){/* Private browsing or blocked storage: gameplay continues normally. */}}
  let selectedHero=progress.hero;
  const heroPresentation={
-  fox:{name:'여우 궁수',weapon:'새총 · 정확한 조준'},
-  bear:{name:'곰 포병',weapon:'대포 · 무거운 관통'},
-  rabbit:{name:'토끼 기술자',weapon:'분열 발사기 · 연쇄 타격'},
-  cat:{name:'고양이 마법사',weapon:'지팡이 · 바람 제어'}
+  fox:{name:'여우 궁수',weapon:'새총 · 정확한 조준',skill:'비행 중 · 탄도 보정'},
+  bear:{name:'곰 포병',weapon:'대포 · 무거운 관통',skill:'발사 전 · 관통 장약'},
+  rabbit:{name:'토끼 기술자',weapon:'분열 발사기 · 연쇄 타격',skill:'비행 중 · 오중 분열'},
+  cat:{name:'고양이 마법사',weapon:'지팡이 · 바람 제어',skill:'발사 전 · 바람 전환'}
  };
  let lastHeroPreviewKey='';
  const heroHeadCrops={
@@ -1221,6 +1252,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   $('heroPreview').dataset.hero=selectedHero;
   $('heroPreviewName').textContent=chosen.name;
   $('heroPreviewWeapon').textContent=chosen.weapon;
+  $('heroPreviewSkill').textContent=chosen.skill;
   lastHeroPreviewKey='';
   drawHeroBadges();drawHeroPreview();
  }
