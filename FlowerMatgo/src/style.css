@@ -4095,3 +4095,10 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 @media (min-width:651px) and (min-height:711px) and (max-height:800px) {
  .scene--game .floor-area .hwatu {max-width:clamp(40px,calc((100svh - 590px) * .4),84px);}
 }
+
+/* Keep a crowded table visible above the capture rack on short phones. */
+@media (max-width:650px) and (max-height:700px) {
+ .scene--game .floor-area[data-density="busy"] .hwatu,
+ .scene--game .floor-area[data-density="packed"] .hwatu {width:clamp(29px,9.5vw,39px);}
+ .scene--game .floor-area[data-density="dense"] .hwatu {width:clamp(27px,8.8vw,34px);}
+}
