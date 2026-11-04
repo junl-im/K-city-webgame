@@ -1,0 +1,119 @@
+/* 라니 수비대 v4.9 — one forest, one painting, one recommendation.
+   Visual-only refinements; no SVG, modal wrappers or balance changes. */
+
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) #modal-title{
+  max-width:100%!important;
+  margin-inline:auto!important;
+  text-wrap:balance!important;
+  overflow-wrap:break-word!important;
+  letter-spacing:-.035em!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) #modal-description{
+  text-wrap:pretty!important;
+  max-width:38ch!important;
+  margin-inline:auto!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .card-grid{
+  width:100%!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:clamp(6px,1.7vw,9px)!important;
+  align-items:stretch!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card{
+  box-sizing:border-box!important;
+  min-width:0!important;
+  max-width:100%!important;
+  justify-content:flex-start!important;
+  align-items:center!important;
+  overflow:hidden!important;
+  gap:4px!important;
+  border:0!important;
+  box-shadow:inset 0 1px rgba(255,235,179,.18),0 4px 11px rgba(0,11,8,.30)!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card strong{
+  display:block!important;
+  flex:0 0 auto!important;
+  min-width:0!important;
+  width:100%!important;
+  text-align:center!important;
+  font-family:var(--fg-action-font),sans-serif!important;
+  letter-spacing:-.035em!important;
+  line-height:1.25!important;
+  overflow-wrap:normal!important;
+  word-break:keep-all!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card small{
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:3!important;
+  line-clamp:3!important;
+  min-height:0!important;
+  width:100%!important;
+  margin:auto 0 0!important;
+  overflow:hidden!important;
+  text-wrap:pretty!important;
+  word-break:keep-all!important;
+  text-align:center!important;
+  line-height:1.38!important;
+  text-shadow:0 1px 3px rgba(0,16,10,.86)!important;
+}
+#modal-layer #modal-box.recruit-dialog .recruit-card .recruit-portrait{
+  display:block!important;
+  background-repeat:no-repeat!important;
+  background-position:center center!important;
+  background-size:contain!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  filter:drop-shadow(0 3px 3px rgba(1,15,11,.3))!important;
+}
+#modal-layer #modal-box.recruit-dialog .recruit-card .recruit-badge-line{
+  position:relative!important;
+  display:grid!important;
+  place-items:center!important;
+  height:18px!important;
+  min-height:18px!important;
+  flex:0 0 18px!important;
+  margin:0!important;
+  overflow:visible!important;
+}
+#modal-layer #modal-box.recruit-dialog .recruit-card .recruit-tag{
+  position:static!important;
+  display:inline-block!important;
+  padding:1px 7px!important;
+  border:0!important;
+  border-radius:11px!important;
+  background:rgba(240,210,144,.95)!important;
+  box-shadow:none!important;
+  color:#46321d!important;
+  font:800 9px/1.5 var(--fg-action-font),sans-serif!important;
+  text-shadow:none!important;
+  white-space:nowrap!important;
+}
+#modal-layer #modal-box.growth-dialog .draft-card{
+  gap:5px!important;
+}
+#modal-layer #modal-box.growth-dialog .draft-card .spell-emoji{
+  display:block!important;
+  margin:10px auto 5px!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  filter:drop-shadow(0 3px 3px rgba(0,16,12,.4))!important;
+}
+#modal-layer #modal-box.growth-dialog .draft-index{
+  position:absolute!important;
+  top:7px!important;left:9px!important;
+  color:#f1dba9!important;
+  font:800 10px/1.2 var(--fg-action-font),sans-serif!important;
+}
+@media(max-width:360px){
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .card-grid{gap:5px!important}
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card{padding-inline:4px!important}
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card strong{font-size:11px!important}
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card small{font-size:9px!important;line-height:1.32!important}
+}
+@media(max-height:620px){
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card{gap:3px!important}
+  #modal-layer #modal-box.growth-dialog .draft-card .spell-emoji{margin:6px auto 3px!important}
+  #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) #modal-description{line-height:1.3!important}
+}

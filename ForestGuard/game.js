@@ -138,7 +138,7 @@
   const biomeBitmaps = [null,null,null];
   const biomeLoading = [null,null,null];
   const biomeFiles = ['forest-entrance-v08.png','misty-canyon-v08.png','moonlit-highland-v08.png'];
-  let monsterBitmap = null, fortBitmap = null, mushroomAttackBitmap = null, rampartBitmap = null, rearBitmap = null;
+  let monsterBitmap = null, monsterHurtBitmap = null, fortBitmap = null, mushroomAttackBitmap = null, rampartBitmap = null, rearBitmap = null;
   let elementSpellBitmap = null, foxAttackBitmap = null; // Original raster illustrations, never SVG.
   const heroAttackBitmaps = {bear:null,rabbit:null,cat:null,megafox:null}; // v4.4 illustrated rear-view sheets
   const ART_VERSION = '20261031r';
@@ -180,6 +180,9 @@
       loadIllustration('./art/rani-rear-party-v31.webp?v=20261101a',art=>{rearBitmap=art;},true),
       loadIllustration('./art/forest-battleground-v04.webp?v=20261031d',art=>{fieldBitmap=art;}),
       loadIllustration('./art/forest-monsters-v14-clean.webp?v='+ART_VERSION,art=>{monsterBitmap=art;},true),
+      // Ten separately painted impact poses on one compact transparent 5×2 WebP.
+      // Optional: failed loading leaves the existing bounded Canvas reactions intact.
+      loadIllustration('./art/forest-monsters-hurt-clean-v49.webp?v=20261104v49b',art=>{monsterHurtBitmap=art;}),
       loadIllustration('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;}),
       loadIllustration('./art/mushroom-colossus-attack-v19.webp?v=20261101d',art=>{mushroomAttackBitmap=art;}),
       loadIllustration('./art/rani-element-spells-v38.png?v=20261103a',art=>{elementSpellBitmap=art;}),
@@ -780,6 +783,31 @@
       });
     }
     V.build(scene);
+    // v4.9: the middle hurt beats use independent species paintings, while the
+    // entry/settle frames remain the original silhouette for seamless recovery.
+    // Replacing existing Canvas keys does not increase the Phaser texture count.
+    if(monsterHurtBitmap&&monsterHurtBitmap.naturalWidth>=500&&monsterHurtBitmap.naturalHeight>=200){
+      const ids=['sprout','runner','brute','boss','thorn','spore','imp','crystal','shroom','guardian'];
+      const cw=monsterHurtBitmap.naturalWidth/5,ch=monsterHurtBitmap.naturalHeight/2;
+      for(const [index,id] of ids.entries()){
+        const count=V.frameTotal(id,'hurt');
+        for(let frame=1;frame<count-1;frame++){
+          const key='motion-'+id+'-hurt-'+frame;
+          if(scene.textures.exists(key))scene.textures.remove(key);
+          createCanvasTexture(scene,key,128,128,c=>{
+            const progress=frame/(count-1),impact=Math.sin(Math.PI*progress);
+            const fit=Math.min(120/cw,120/ch),width=cw*fit,height=ch*fit;
+            const direction=index%2===0?-1:1;
+            c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
+            c.save();c.translate(64+direction*impact*3.5,64-impact*2);
+            c.rotate(direction*impact*.035);
+            c.drawImage(monsterHurtBitmap,(index%5)*cw,Math.floor(index/5)*ch,
+              cw,ch,-width/2,-height/2,width,height);
+            c.restore();
+          });
+        }
+      }
+    }
     // v4.4: swap in genuine species-specific, rear-facing 8-frame paintings.
     // Incomplete/missing optional art never breaks a battle or its Canvas fallback.
     const illustratedAttacks={fox:foxAttackBitmap,...heroAttackBitmaps};
@@ -1121,13 +1149,16 @@
       if(sprite){
         V.trigger(sprite,'attack',this.gameClock+V.duration(id,'attack'),this.gameClock);
         if(id==='megafox')this.animateEvolutionAttack(sprite);
-        // Return smoothly to the same back-view stance after every shot.
-        // New attacks interrupt only the previous visual lunge.
+        // One continuous lunge/recovery lasting exactly the illustrated 8 beats.
+        // When consecutive attacks arrive, continue from the current coordinates.
         this.tweens.killTweensOf(sprite);
-        sprite.setPosition(anchorX,anchorY);
+        sprite.setPosition(Math.max(x-9,Math.min(x+9,sprite.x)),
+          Math.max(556,Math.min(568,sprite.y)));
         const reach=id==='bear'?6:id==='rabbit'?2:4;
-        this.tweens.add({targets:sprite,x:x-reach,y:559,duration:95,ease:'Sine.easeOut',
-          onComplete:()=>{if(sprite.active)this.tweens.add({targets:sprite,x,y:566,duration:170,ease:'Sine.easeInOut'});}});
+        const windup=Math.round(V.duration(id,'attack')*.43);
+        this.tweens.add({targets:sprite,x:x-reach,y:559,duration:windup,ease:'Sine.easeOut',
+          onComplete:()=>{if(sprite.active)this.tweens.add({targets:sprite,x,y:566,
+            duration:V.duration(id,'attack')-windup,ease:'Sine.easeInOut'});}});
         this.playHeroAttackCue(anchorX+muzzle[0],id);
       }
     }
@@ -2128,6 +2159,32 @@
           return [type,[[0,0],[w-1,0],[0,h-1],[w-1,h-1]].map(([x,y])=>ctx.getImageData(x,y,1,1).data[3])];
         }));
       },
+      monsterHurtPaintingQA(){
+        if(!battle||battle.ended)return null;
+        const kinds=['sprout','runner','brute','boss','thorn','spore','imp','crystal','shroom','guardian'];
+        return {loaded:!!monsterHurtBitmap,
+          sourceSize:monsterHurtBitmap?[monsterHurtBitmap.naturalWidth,monsterHurtBitmap.naturalHeight]:null,
+          items:Object.fromEntries(kinds.map(type=>{
+            const key='motion-'+type+'-hurt-2',texture=battle.textures.get(key);
+            const canvas=texture.getSourceImage(),ctx=canvas.getContext('2d',{willReadFrequently:true});
+            const samples=[[0,0],[127,0],[0,127],[127,127]].map(([x,y])=>
+              ctx.getImageData(x,y,1,1).data[3]);
+            const image=ctx.getImageData(0,0,128,128).data;
+            let opaque=0;
+            for(let i=3;i<image.length;i+=4)if(image[i]>128)opaque++;
+            return [type,{transparentCorners:samples.every(alpha=>alpha===0),opaquePixels:opaque}];
+          }))};
+      },
+      performanceSnapshot(){
+        if(!battle)return null;
+        const memory=performance.memory;
+        return {textures:Object.keys(battle.textures.list||{}).length,
+          effects:battle.effects.length,dyingSprites:battle.dyingSprites,
+          enemies:battle.enemies.length,projectiles:battle.projectiles.length,
+          usedJSHeap:memory?.usedJSHeapSize??null,
+          jsHeapLimit:memory?.jsHeapSizeLimit??null,
+          stageEnded:battle.ended};
+      },
       bossSingleIndicator(){
         if(!battle||battle.ended)return null;
         battle.spawnEnemy('guardian');
@@ -2189,6 +2246,8 @@
            hurtDuration:V.duration('sprout','hurt'),
            eliteAttack6:battle.textures.exists('motion-shroom-attack-5'),
            eliteHurt6:battle.textures.exists('motion-guardian-hurt-5'),
+           paintedMonsterHurt:!!monsterHurtBitmap,
+           paintedMonsterKinds:monsterHurtBitmap?10:0,
            ordinaryDeath5:battle.textures.exists('motion-sprout-death-4'),
            eliteDeath6:battle.textures.exists('motion-shroom-death-5'),
            deathDuration:V.duration('shroom','death'),
