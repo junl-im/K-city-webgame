@@ -9,11 +9,14 @@ export function missionView(game) {
   const human = Array.isArray(game.humanCaptured) ? game.humanCaptured : [];
   const computer = Array.isArray(game.computerCaptured) ? game.computerCaptured : [];
   const progress = evaluateCardMission(mission, human, computer);
+  const failed = !!mission.requiredCount && !mission.resolvedBy && (isMissionComplete(mission, human, computer) || game.phase === 'round-ended');
+  const status = mission.resolvedBy ? (mission.enabled === false ? 'skipped' : 'complete') : failed ? 'failed' : 'active';
   return {
     effect: mission.effect || null,
     unconditional: !!mission.unconditional,
     requiredCount: mission.requiredCount || null,
-    failed: !!mission.requiredCount && !mission.resolvedBy && isMissionComplete(mission, human, computer),
+    failed,
+    status,
     enabled: mission.enabled !== false,
     resolvedBy: mission.resolvedBy || null,
     locked: isMissionComplete(mission, human, computer) || game.phase === 'round-ended',
