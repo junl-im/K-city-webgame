@@ -4102,3 +4102,10 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
  .scene--game .floor-area[data-density="packed"] .hwatu {width:clamp(29px,9.5vw,39px);}
  .scene--game .floor-area[data-density="dense"] .hwatu {width:clamp(27px,8.8vw,34px);}
 }
+
+/* Make the mission targets and their progress easier to read on phones. */
+@media (max-width:650px) {
+ .scene--game .mission-status-row .mission-mini {width:clamp(24px,7vw,30px);}
+ .scene--game .mission-status-row .mission-panel__cards {gap:2px;}
+ .scene--game .mission-status-row .mission-panel__reward small {font-size:10px;}
+}
