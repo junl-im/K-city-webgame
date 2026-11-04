@@ -15,6 +15,11 @@ assert.match(type491,/home-stage-copy span/);
 assert.match(type491,/hero-slot>span:last-child/);
 assert.match(type491,/word-break:keep-all/);
 assert.doesNotMatch(type491,/<svg|data:image\/svg\+xml|\.svg(?:["'(])/i);
+const pagesWorkflow=readFileSync(new URL('../.github/workflows/magic-garden-pages.yml',root),'utf8');
+assert.match(pagesWorkflow,/cp ForestGuard\/index\.html[^\n]*ForestGuard\/legibility-v491\.css[^\n]*MagicGarden\/dist\/ForestGuard\//,
+  'GitHub Pages must copy the new illustrated lettering stylesheet');
+assert.match(pagesWorkflow,/test -s MagicGarden\/dist\/ForestGuard\/legibility-v491\.css/,
+  'GitHub Pages must verify the lettering stylesheet exists in the published artifact');
 assert.match(html,/choice-polish-v49\.css\?v=20261104v49/);
 assert.match(choice49,/recruit-badge-line/);
 assert.match(choice49,/word-break:keep-all/);
