@@ -107,6 +107,20 @@ try{
     assert.ok(homeFlow.footerBottom<=size.height+2&&
       homeFlow.mask==='none'&&homeFlow.artSrc.includes('rani-title-v31.webp'),
       'Transparent hand-painted title and footer must fit without clipping');
+    const missionType=await page.evaluate(()=>{
+      const copy=document.getElementById('home-stage-story');
+      const board=document.querySelector('.home-stage-spot');
+      const story=copy.getBoundingClientRect();
+      const surface=board.getBoundingClientRect();
+      return {fontSize:parseFloat(getComputedStyle(copy).fontSize),
+        whiteSpace:getComputedStyle(copy).whiteSpace,
+        boardBottom:surface.bottom,storyBottom:story.bottom};
+    });
+    assert.ok(missionType.fontSize>=(size.width<=360?10.5:11),
+      'Mission text must be legible on the painted wooden sign: '+JSON.stringify(missionType));
+    assert.equal(missionType.whiteSpace,'normal','Mission story should wrap instead of silently disappearing');
+    assert.ok(missionType.storyBottom<=missionType.boardBottom+2,
+      'Mission story must stay within its painting: '+JSON.stringify(missionType));
     const homeButtons=await page.evaluate(()=>
       ['#start-btn','#resume-btn','#stage-list-btn','#help-btn','#intel-btn'].map(sel=>{
         const el=document.querySelector(sel),s=getComputedStyle(el);
@@ -277,6 +291,14 @@ try{
       'Five portraits must not clip off-screen');
     assert.ok(edges.every(x=>Math.abs(x.top-edges[0].top)<=2&&x.bottom<=size.height+2),
       'Five heroes must sit on ONE visible toolbar row, never wrap to a second row');
+    const commandType=await page.evaluate(()=>{
+      const hero=document.querySelector('.hero-slot span:last-child');
+      const command=document.getElementById('skill-caption');
+      return {heroFont:parseFloat(getComputedStyle(hero).fontSize),
+        commandFont:parseFloat(getComputedStyle(command).fontSize)};
+    });
+    assert.ok(commandType.heroFont>=8.5&&commandType.commandFont>=8.5,
+      'Battle roster/skill labels must remain legible on illustrated controls: '+JSON.stringify(commandType));
     const layers=await page.evaluate(()=>window.__ForestGuardQA?.renderInfo());
     assert.ok(layers&&layers.artLoaded,'New independent wall artwork must load');
     assert.equal(layers.frontTexture,'painted-rampart-front','Original painted wall foreground must render');
