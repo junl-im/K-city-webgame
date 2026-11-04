@@ -4075,3 +4075,10 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--game .mission-status-badge {display:inline-flex;align-items:center;justify-content:center;padding:2px 5px;border:1px solid #e7c98b;border-radius:6px;background:#356c49;color:#fff5d7;font-family:'Rani Jua','Malgun Gothic',sans-serif;font-size:clamp(8px,2.3vw,11px);line-height:1;text-shadow:none;}
 .scene--game .mission-status-badge--failed {background:#70443a;border-color:#d2a295;color:#fff1e7;}
 .scene--game .mission-status-badge--skipped {background:#505b53;border-color:#aeb8a7;color:#f3f3e7;}
+/* Mission details follow the same jade-and-gold language as decisions. */
+.scene--game .mission-dialog {padding:24px 20px;border:0;background:#073b29 url('/assets/rani-dialog-jade-v1.png') center/100% 100% no-repeat;color:#fff4d9;}
+.scene--game .mission-dialog h2 {color:#fff1ce;text-shadow:0 2px 3px #071b11;}
+.scene--game .mission-dialog p,.scene--game .mission-dialog .mission-note,.scene--game .mission-dialog .mission-target small {color:#f5e6c7;}
+.scene--game .mission-dialog .mission-progress {background:#0d2c20d9;color:#ffe3a0;border:1px solid #c9a568;}
+.scene--game .mission-dialog > .btn {width:min(100%,190px);min-height:55px;margin:4px auto 0;padding:8px 25px;border:0;border-radius:0;background:transparent url('/assets/rani-button-jade-v1.png') center/100% 100% no-repeat;color:#fff6df;text-shadow:0 2px 3px #071f12;box-shadow:none;}
+@media(max-height:600px){.scene--game .mission-dialog {padding:15px 17px;}.scene--game .mission-targets {margin:6px 0;}.scene--game .mission-target .hwatu {width:46px;}}

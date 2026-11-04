@@ -1,4 +1,5 @@
 import { createDeck, shuffleDeck } from '../deck';
+import { getCard } from '../cards';
 import type { CardMission, PlayerId } from '../types';
 import { randomInteger } from '../random';
 
@@ -21,7 +22,19 @@ export function createCardMission(seed: number): CardMission | null {
   const effect = effects[choice.value];
   if (effect?.kind === 'unconditional') return {kind:'gakpae', cardIds:[], unconditional:true, effect:{kind:'multiplier',value:effect.value}, enabled:true};
   const requiredCount = 2 + randomInteger(choice.seed ^ 0x65d28a31, 2).value;
-  return effect ? {kind:'gakpae', cardIds:shuffled.cards.slice(0,3), requiredCount, effect, enabled:true} : null;
+  if (!effect) return null;
+  const themes = ['mixed','bright','animal','ribbon','junk','spring','summer','autumn','winter'] as const;
+  const targetTheme = themes[randomInteger(choice.seed ^ 0x31c4e77d, themes.length).value];
+  const seasons: Record<string, number[]> = {spring:[3,4,5],summer:[6,7,8],autumn:[9,10,11],winter:[12,1,2]};
+  const candidates = shuffled.cards.filter(id => {
+    const card = getCard(id);
+    if (!card) return false;
+    if (targetTheme === 'mixed') return true;
+    if (targetTheme === 'junk') return card.type === 'junk' || card.type === 'doubleJunk';
+    if (targetTheme in seasons) return seasons[targetTheme].includes(card.month);
+    return card.type === targetTheme;
+  });
+  return {kind:'gakpae', targetTheme, cardIds:candidates.slice(0,3), requiredCount, effect, enabled:true};
 }
 
 /** A legacy three-card mission completes when all targets have been taken. */
