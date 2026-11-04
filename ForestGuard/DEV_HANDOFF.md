@@ -493,3 +493,17 @@
 - GitHub 커밋/CI/Pages/Notion/Drive 반영 여부는 각각 실제 결과 확인 후 별도 보고.
 
 - v4.2.1 후속 QA 조정: 지역 PNG 첫 실패 시 재시도, 계속 실패해도 기존 숲길 WebP가 있으면 전투 지속. 대형 홈 배경 로딩 중에는 경량 숲 원화를 먼저 표시. 자동 QA는 성공 결과 확인 뒤 판정.
+
+## 2026-11-04 v4.9 — 몬스터 10종 피격 원화·선택 카드 연출 (GitHub 반영 완료)
+- 공식 소스 기준: [GitHub PR #158](https://github.com/junl-im/K-city-webgame/pull/158), `main` 병합 커밋 `f14994be744481b0ddbb24c63c2c87c9805cd77f`.
+- 몬스터 10종 개별 투명 피격 그림 아틀라스 `forest-monsters-hurt-clean-v49.webp`, 중간보스 3종 공격·피격 연결, 영웅 연속 공격/복귀 타이밍 보정, 영웅·강화 카드의 글자·그림 분리 배치.
+- Node smoke 성공, 모바일 Chromium 320/360/390/430px·PC 및 88초 반복 전투 자동 QA 성공. `main` 병합 후 모바일 QA [성공](https://github.com/junl-im/K-city-webgame/actions/runs/41839960359), [GitHub Pages 배포 성공](https://github.com/junl-im/K-city-webgame/actions/runs/41839960374).
+- 실제 공개 브라우저에서 첫 화면의 일러스트, 시작 버튼, 1-1 전투 진입·영웅 5칸·성벽 HUD 확인: https://junl-im.github.io/K-city-webgame/ForestGuard/#forest-guard.
+- SVG/이중 사각 테두리 금지, 12스테이지/저장키 `gomfox.forestguard.v1`/전투 밸런스/다른 게임 폴더 보존.
+- Android Samsung Internet/iOS Safari 실기기 FPS·발열·장시간 메모리 검증, 3보스/12스테이지 수동 전수 완주는 **미완료**.
+
+## v4.9.1 — 목재 안내판 및 전열/스킬 글자 가독성 패치 (코드 검증 대기)
+- `legibility-v491.css`를 맨 마지막 스타일로 연결. 글자 명암/그림자/크기를 손그림 목재 안내판과 전투 HUD에 맞추고 긴 퀘스트 안내는 2줄(320px·낮은 화면은 1줄)로 제어.
+- WebP 아트·전투 로직·게임 수치·세이브 구조는 불변. 추가 원화 프레임·SVG·별도 버튼 사각 테두리 없음.
+- `tests/smoke.mjs`에 새 CSS 연결 및 SVG 금지 검사를, `tests/browser-qa.mjs`에 실제 글자 크기·오버플로 검사 추가.
+- 검증/저장/배포 결과는 성공 확인 후 이 문서에 추가 기록. 안드로이드 실제 기기 미검증 상태 유지.
