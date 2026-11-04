@@ -338,6 +338,26 @@ try{
         return !modal.hidden && modal.querySelectorAll('.recruit-card').length===3;
       },null,{timeout:50000});
       assert.equal(await page.locator('.recruit-card').count(),3,'Three distinct first companions');
+      assert.equal(await page.locator('.recruit-card.recommended').count(),1,'Exactly one recommended companion');
+      assert.equal(await page.locator('.recruit-tag').count(),1,'Only one recommendation badge in first-companion UI');
+      assert.equal(await page.locator('.recruit-card.recommended .recruit-tag').count(),1,'Badge belongs to the recommended card');
+      const rabbitArt=await page.locator('.recruit-rabbit .recruit-portrait').evaluate(async portrait=>{
+        const background=getComputedStyle(portrait).backgroundImage;
+        const source=background.match(/url\((?:["'])?([^"')]+)(?:["'])?\)/)?.[1];
+        if(!source)return {source:'',redPixels:-1};
+        const img=new Image();img.src=source;await img.decode();
+        const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+        const context=canvas.getContext('2d',{willReadFrequently:true});context.drawImage(img,0,0);
+        const pixels=context.getImageData(0,0,canvas.width,canvas.height).data;
+        let redPixels=0;
+        for(let y=0;y<canvas.height*.13;y++)for(let x=Math.floor(canvas.width*.73);x<canvas.width;x++){
+          const index=(y*canvas.width+x)*4,r=pixels[index],g=pixels[index+1],b=pixels[index+2];
+          if(r>125&&r>g*1.55&&r>b*1.45)redPixels++;
+        }
+        return {source,redPixels};
+      });
+      assert.match(rabbitArt.source,/recruit-rabbit-clean-v46\.webp/,'Clean companion image loaded');
+      assert.ok(rabbitArt.redPixels<20,'Red recommendation plaque must not be baked into rabbit art: '+JSON.stringify(rabbitArt));
       const recruitLayout=await page.locator('.recruit-card').evaluateAll(cards=>cards.map(card=>{
         const outer=card.getBoundingClientRect();
         const portrait=card.querySelector('.recruit-portrait').getBoundingClientRect();
