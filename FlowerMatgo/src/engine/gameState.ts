@@ -6,7 +6,7 @@ import { drawThroughBonusPee, isBonusPee, playBonusPeeFromHand } from './rules/b
 import { canChooseGoStop } from './rules/decisions';
 import { calculatePlayerScore } from './rules/scoring';
 import { calculateSettlement } from './rules/settlement';
-import { capturedMissionCards, createCardMission, isMissionComplete, missionMultiplierFor } from './rules/missions';
+import { capturedMissionCards, createCardMission, isMissionComplete, missionMultiplierFor, missionRequiredCount } from './rules/missions';
 import type { RoundMultiplier } from './rules/nagari';
 import { DEFAULT_MATGO_RULES, isMatgoPointValue, matgoRulesForPointValue, type MatgoPointValue } from './rules/settings';
 import { evaluateChongtong, findBombOptions, findShakeOptions, isThreePpeok, stealPeeByValue, stealPeeCards } from './rules/specialRules';
@@ -228,7 +228,7 @@ function ppeokCaptureEvent(state: GameState, player: PlayerId, pile: PpeokPile |
 function missionOutcome(state: GameState, player: PlayerId, capturedCardIds: string[]) {
   const missionCards = capturedMissionCards(state.mission, capturedCardIds);
   const mission = state.mission;
-  const required = mission?.requiredCount ?? 1;
+  const required = missionRequiredCount(mission);
   const owned = player === 'human' ? state.humanCaptured : state.computerCaptured;
   const progress = mission ? mission.cardIds.filter(id => owned.includes(id)).length : 0;
   const completedNow = !!mission?.cardIds.some(id => capturedCardIds.includes(id)) && progress >= required;
@@ -304,7 +304,7 @@ export function setMissionEnabled(state: GameState, enabled: boolean): GameState
   if (enabled && next.mission!.effect) {
     const id = next.mission!.cardIds[0];
     const owner = next.humanCaptured.includes(id) ? 'human' : next.computerCaptured.includes(id) ? 'computer' : null;
-    if (owner) { const outcome = missionOutcome(next, owner, [id]); next.lastAction = `미션 완료! ${outcome.missionEffect}.`; }
+    if (owner) { const outcome = missionOutcome(next, owner, [id]); if (outcome.missionCompleted) next.lastAction = `미션 완료! ${outcome.missionEffect}.`; }
   }
   return next;
 }

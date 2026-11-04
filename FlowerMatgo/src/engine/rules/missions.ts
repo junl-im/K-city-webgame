@@ -34,7 +34,13 @@ export function createCardMission(seed: number): CardMission | null {
     if (targetTheme in seasons) return seasons[targetTheme].includes(card.month);
     return card.type === targetTheme;
   });
-  return {kind:'gakpae', targetTheme, cardIds:candidates.slice(0,3), requiredCount, effect, enabled:true};
+  return {kind:'gakpae', targetTheme, cardIds:candidates.slice(0,requiredCount), requiredCount, effect, enabled:true};
+}
+
+/** Every displayed target is required, including on older unfinished saves. */
+export function missionRequiredCount(mission: CardMission | null | undefined): number {
+  if (!mission || mission.unconditional) return 0;
+  return mission.cardIds.length;
 }
 
 /** A legacy three-card mission completes when all targets have been taken. */
@@ -61,8 +67,8 @@ export function evaluateCardMission(
   return {
     humanCardIds,
     computerCardIds,
-    humanMultiplier: mission.enabled === false ? 1 : mission.effect ? (mission.effect.kind === 'multiplier' && mission.resolvedBy === 'human' ? mission.effect.value : 1) : 2 ** humanCardIds.length,
-    computerMultiplier: mission.enabled === false ? 1 : mission.effect ? (mission.effect.kind === 'multiplier' && mission.resolvedBy === 'computer' ? mission.effect.value : 1) : 2 ** computerCardIds.length
+    humanMultiplier: mission.enabled === false ? 1 : mission.effect ? (mission.effect.kind === 'multiplier' && mission.resolvedBy === 'human' ? mission.effect.value : 1) : (mission.cardIds.length > 0 && humanCardIds.length === mission.cardIds.length ? 2 ** mission.cardIds.length : 1),
+    computerMultiplier: mission.enabled === false ? 1 : mission.effect ? (mission.effect.kind === 'multiplier' && mission.resolvedBy === 'computer' ? mission.effect.value : 1) : (mission.cardIds.length > 0 && computerCardIds.length === mission.cardIds.length ? 2 ** mission.cardIds.length : 1)
   };
 }
 

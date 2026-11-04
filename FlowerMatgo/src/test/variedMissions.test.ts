@@ -8,7 +8,7 @@ import type {CardMission} from '../engine/types';
 beforeAll(()=>{if(!globalThis.crypto?.randomUUID) Object.defineProperty(globalThis,'crypto',{value:{randomUUID:()=> '00000000-0000-4000-8000-000000000000'}})});
 function arranged(effect: NonNullable<CardMission['effect']>, enabled=true){
  const g=createInitialGame(707,'normal',100,'human'); const fixed=['m01-01','m01-02','m04-01','m02-04']; const remaining=createMatgoDeck().filter(x=>!fixed.includes(x));
- g.humanHand=['m01-01',...remaining.splice(0,9)];g.computerHand=remaining.splice(0,10);g.floorCards=['m01-02',...remaining.splice(0,7)];g.drawPile=['m04-01',...remaining];g.humanCaptured=[];g.computerCaptured=['m02-04'];g.phase='playing';g.currentPlayer='human';g.mission={kind:'gakpae',cardIds:['m01-01'],effect,enabled};return g;
+ g.humanHand=['m01-01',...remaining.splice(0,9)];g.computerHand=remaining.splice(0,10);g.floorCards=['m01-02',...remaining.splice(0,7)];g.drawPile=['m04-01',...remaining];g.humanCaptured=[];g.computerCaptured=['m02-04'];g.phase='playing';g.currentPlayer='human';g.mission={kind:'gakpae',cardIds:['m01-01','m01-02'],requiredCount:2,effect,enabled};return g;
 }
 describe('판마다 달라지는 미션',()=>{
  it('여러 시드에서 없음과 모든 효과·배수가 등장한다',()=>{const effects=new Set(Array.from({length:3000},(_,i)=>{const m=createCardMission(i+1);return m?.effect ? `${m.effect.kind}:${m.effect.value}`:'none'})); for(const key of ['none','points:1','points:2','points:3','points:-1','points:-2','points:-3','steal:1','give:1',...[2,3,4,5,6,7,8].map(x=>`multiplier:${x}`)]) expect(effects.has(key),key).toBe(true)});
@@ -39,13 +39,13 @@ describe('판마다 달라지는 미션',()=>{
   let g=arranged({kind:'points',value:1});
   g.mission={kind:'gakpae',cardIds:['m01-01','m03-01','m08-01']};
   g=playTurn(g,'human','m01-01').state;
-  expect(missionMultiplierFor(g.mission,g.humanCaptured,g.computerCaptured,'human')).toBe(2);
+  expect(missionMultiplierFor(g.mission,g.humanCaptured,g.computerCaptured,'human')).toBe(1);
   g=setMissionEnabled(g,false);
   expect(missionMultiplierFor(g.mission,g.humanCaptured,g.computerCaptured,'human')).toBe(1);
   g=setMissionEnabled(JSON.parse(JSON.stringify(g)),true);
-  expect(missionMultiplierFor(g.mission,g.humanCaptured,g.computerCaptured,'human')).toBe(2);
+  expect(missionMultiplierFor(g.mission,g.humanCaptured,g.computerCaptured,'human')).toBe(1);
   g.phase='awaiting-go-stop';g.pendingDecision='human';
-  expect(chooseStop(g,'human').settlement?.missionMultiplier).toBe(2);
+  expect(chooseStop(g,'human').settlement?.missionMultiplier).toBe(1);
  });
  it('모든 미션패가 양쪽에 획득되면 완료되어 바꿀 수 없다',()=>{
   let g=arranged({kind:'points',value:1});
@@ -59,7 +59,7 @@ describe('판마다 달라지는 미션',()=>{
   g=setMissionEnabled(g,false);g=playTurn(g,'human','m01-01').state;
   expect(missionMultiplierFor(g.mission,g.humanCaptured,g.computerCaptured,'human')).toBe(1);
   g=setMissionEnabled(g,true);
-  expect(missionMultiplierFor(g.mission,g.humanCaptured,g.computerCaptured,'human')).toBe(2);
+  expect(missionMultiplierFor(g.mission,g.humanCaptured,g.computerCaptured,'human')).toBe(1);
  });
 
 });

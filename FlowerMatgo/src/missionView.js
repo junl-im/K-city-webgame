@@ -1,5 +1,5 @@
 import { getCard } from './engine/cards';
-import { evaluateCardMission, isMissionComplete } from './engine/rules/missions';
+import { evaluateCardMission, isMissionComplete, missionRequiredCount } from './engine/rules/missions';
 
 // Presentation only: old saves without a mission remain unchanged.
 export function missionView(game) {
@@ -9,13 +9,14 @@ export function missionView(game) {
   const human = Array.isArray(game.humanCaptured) ? game.humanCaptured : [];
   const computer = Array.isArray(game.computerCaptured) ? game.computerCaptured : [];
   const progress = evaluateCardMission(mission, human, computer);
-  const failed = !!mission.requiredCount && !mission.resolvedBy && (isMissionComplete(mission, human, computer) || game.phase === 'round-ended');
-  const status = mission.resolvedBy ? (mission.enabled === false ? 'skipped' : 'complete') : failed ? 'failed' : 'active';
+  const legacyComplete = !mission.effect && mission.cardIds.length > 0 && (progress.humanCardIds.length === mission.cardIds.length || progress.computerCardIds.length === mission.cardIds.length);
+  const failed = !mission.unconditional && !mission.resolvedBy && !legacyComplete && (isMissionComplete(mission, human, computer) || game.phase === 'round-ended');
+  const status = mission.resolvedBy || legacyComplete ? (mission.enabled === false ? 'skipped' : 'complete') : failed ? 'failed' : 'active';
   return {
     effect: mission.effect || null,
     targetTheme: mission.targetTheme || 'mixed',
     unconditional: !!mission.unconditional,
-    requiredCount: mission.requiredCount || null,
+    requiredCount: mission.unconditional ? null : missionRequiredCount(mission),
     failed,
     status,
     enabled: mission.enabled !== false,

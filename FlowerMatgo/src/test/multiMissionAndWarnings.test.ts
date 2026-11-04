@@ -16,13 +16,13 @@ function arranged(ids, required, enabled=true) {
  g.mission={kind:'gakpae',cardIds:ids,requiredCount:required,effect:{kind:'points',value:3},enabled};return g;
 }
 describe('다장 미션',()=>{
- it('새 미션은 목표 3장 중 2장 또는 3장이 필요하고 미션 없음도 있다',()=>{
+ it('새 미션은 표시된 목표 2장 또는 3장 모두가 필요하고 미션 없음도 있다',()=>{
   const missions=Array.from({length:3000},(_,i)=>createCardMission(i+1));
   expect(missions.some(m=>!m)).toBe(true);
   expect(missions.some(m=>m?.unconditional)).toBe(true);
   const cardMissions=missions.filter(m=>m && !m.unconditional);
   expect(new Set(cardMissions.map(m=>m.requiredCount))).toEqual(new Set([2,3]));
-  for(const m of cardMissions) expect(m.cardIds).toHaveLength(3);
+  for(const m of cardMissions) expect(m.cardIds).toHaveLength(m.requiredCount);
  });
  it('목표 하나만 먹으면 진행 상태이며 보상 없이 스위치를 조작할 수 있다',()=>{
   const g=playTurn(arranged(['m01-01','m03-01','m08-01'],2),'human','m01-01').state;
@@ -31,7 +31,7 @@ describe('다장 미션',()=>{
   expect(setMissionEnabled(g,false).mission.enabled).toBe(false);
  });
  it('한 턴에 두 목표를 획득하면 2장 미션을 한 번만 달성한다',()=>{
-  const result=playTurn(arranged(['m01-01','m01-02','m03-01'],2),'human','m01-01');
+  const result=playTurn(arranged(['m01-01','m01-02'],2),'human','m01-01');
   expect(result.state.mission.resolvedBy).toBe('human');expect(result.state.humanMissionPoints).toBe(3);
   expect(result.missionCompleted).toBe(true);expect(scoreFor(result.state,'human').total).toBeGreaterThanOrEqual(3);
  });
@@ -71,8 +71,14 @@ describe('다장 미션',()=>{
   expect(g.mission.enabled).toBe(true);expect(g.mission.resolvedBy).toBeUndefined();
  });
  it('꺼진 미션이 기준에 도달해도 효과가 적용되지 않는다',()=>{
-  const g=playTurn(arranged(['m01-01','m01-02','m03-01'],2,false),'human','m01-01').state;
+  const g=playTurn(arranged(['m01-01','m01-02'],2,false),'human','m01-01').state;
   expect(g.humanMissionPoints||0).toBe(0);expect(g.mission.resolvedBy).toBe('human');
+ });
+ it('이전 저장에서 3장 중 2장 조건이어도 표시된 3장을 모두 모아야 한다',()=>{
+  const result=playTurn(arranged(['m01-01','m01-02','m03-01'],2),'human','m01-01');
+  expect(result.state.mission.resolvedBy).toBeUndefined();
+  expect(result.state.humanMissionPoints||0).toBe(0);
+  expect(missionView(result.state)?.requiredCount).toBe(3);
  });
 });
 describe('상대 조합 비상',()=>{
