@@ -40,14 +40,14 @@
   line-height:1.18!important;
   text-shadow:0 1px 3px #081d15!important;
 }
-#game-screen .hero-slot span:last-child{
+#game-screen .battle-toolbar .hero-slot>span:last-child{
   font-size:clamp(8.5px,2.35vw,10.5px)!important;
   line-height:1.2!important;
   letter-spacing:-.045em!important;
   color:#fff4d8!important;
   text-shadow:0 1px 3px #071c14,0 0 4px #0f2a20!important;
 }
-#game-screen .hero-slot.empty span:last-child{
+#game-screen .battle-toolbar .hero-slot.empty>span:last-child{
   color:#ead8b1!important;
 }
 #game-screen .battle-toolbar .evo-button small,
@@ -74,7 +74,7 @@
     -webkit-line-clamp:1!important;
     line-clamp:1!important;
   }
-  #game-screen .hero-slot span:last-child{font-size:8.5px!important}
+  #game-screen .battle-toolbar .hero-slot>span:last-child{font-size:8.5px!important}
 }
 @media(max-height:620px){
   .menu:not(.stage-choosing) .home-stage-copy span{

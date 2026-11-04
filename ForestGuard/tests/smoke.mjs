@@ -12,7 +12,7 @@ const choice49=read('choice-polish-v49.css');
 const type491=read('legibility-v491.css');
 assert.match(html,/legibility-v491\.css\?v=20261104v491/);
 assert.match(type491,/home-stage-copy span/);
-assert.match(type491,/hero-slot span:last-child/);
+assert.match(type491,/hero-slot>span:last-child/);
 assert.match(type491,/word-break:keep-all/);
 assert.doesNotMatch(type491,/<svg|data:image\/svg\+xml|\.svg(?:["'(])/i);
 assert.match(html,/choice-polish-v49\.css\?v=20261104v49/);
