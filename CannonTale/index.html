@@ -936,6 +936,81 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  #menu .menu-panel{padding:3px!important}
 }
 
+
+/* v1.8 combat HUD: compact illustration-backed artillery controls (no SVG). */
+#controls.controls{
+ border:0!important;
+ background:
+  radial-gradient(ellipse at 51% 0%,#7d946e45,transparent 57%),
+  repeating-linear-gradient(93deg,#1927351a 0 7px,transparent 10px 23px),
+  linear-gradient(175deg,#4e6270f0,#243848fa 70%,#172d3afc)!important;
+ box-shadow:inset 0 3px #dbe8c54a,0 -6px 19px #0917256c!important;
+}
+#controls .weapon-group,#controls .aim,#controls .action-col{
+ color:#f6e6c6;text-shadow:0 1px 3px #0b2033;
+}
+#controls .weapon{
+ border:0!important;border-radius:14px!important;min-width:0;
+ background:linear-gradient(155deg,#66778173,#223945b8)!important;
+ box-shadow:inset 0 1px #fff7d344,0 2px 6px #071a2a6b!important;
+ color:#f6e7c6!important;transition:transform .12s,filter .12s,background .12s;
+}
+#controls .weapon.selected{
+ background:linear-gradient(150deg,#a88c5a,#654732)!important;
+ box-shadow:inset 0 2px #fff2bc9c,0 0 9px #ffc56855!important;
+ color:#fff4d2!important;
+}
+#controls .weapon:active{transform:scale(.95)}
+#controls #fire{
+ border:0!important;
+ border-radius:25% 27% 24% 26% / 27% 26% 24% 25%!important;
+ background:
+   radial-gradient(circle at 50% 9%,#ffe4a4 0,#f6b351 20%,#c85028 67%,#723324 100%)!important;
+ box-shadow:inset 0 3px #fff3b7ad,inset 0 -5px #642622,
+            0 4px 0 #462d21,0 5px 12px #0a1c31b5!important;
+ color:#fff6c5!important;
+ text-shadow:0 2px #70331e,0 3px 6px #331c18!important;
+ filter:drop-shadow(0 2px 2px #2c1d21);
+}
+#controls #fire::before{
+ opacity:.98!important;filter:drop-shadow(0 3px 3px #653219bb) brightness(1.07)!important;
+}
+#controls #fire.charging{
+ background:radial-gradient(circle at 50% 9%,#fff8bd,#ffcd56 26%,#e87530 68%,#853927)!important;
+ transform:translateY(3px) scale(.97)!important;
+ box-shadow:inset 0 3px #fff7c3,0 1px 8px #ffb049a8!important;
+}
+#controls #fire.recent-shot,#controls #fire:disabled{
+ filter:saturate(.57) brightness(.74)!important;
+}
+#controls #abilityBtn,#controls #overview{
+ border:0!important;border-radius:13px!important;
+ background:linear-gradient(155deg,#47687cae,#223c52ed)!important;
+ box-shadow:inset 0 2px #d9e8da50,0 3px 8px #09182c80!important;
+ color:#ecf6e1!important;
+}
+#controls #abilityBtn:not(:disabled){
+ background:linear-gradient(150deg,#82724ebd,#37675eda)!important;
+ box-shadow:inset 0 2px #fff4b370,0 3px 8px #10233388!important;
+}
+#controls #abilityBtn:disabled{opacity:.52}
+#controls .aim input[type="range"]{accent-color:#f7bf66;touch-action:pan-x}
+#controls .aim .number{color:#ffe4a2!important}
+#controls #chargeGauge{
+ height:7px;background:#402d27dd;
+ border-radius:12px;box-shadow:inset 0 1px #211619,0 0 5px #643e22!important;
+}
+#controls #chargeFill{background:linear-gradient(90deg,#7bcc7b,#fbe274 65%,#f16c39)!important}
+@media(orientation:portrait) and (max-width:600px){
+ #controls .weapon{border-radius:9px!important}
+ #controls #fire{border-radius:24% 26% 25% 24%!important}
+ #controls #chargeGauge{height:5px}
+}
+@media(orientation:landscape) and (max-height:550px){
+ #controls #fire{border-radius:12px!important}
+ #controls .weapon{border-radius:9px!important}
+}
+
 </style>
 </head>
 <body>
