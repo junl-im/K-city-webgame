@@ -8,7 +8,6 @@ const html=read('index.html'),css=read('style.css'),js=read('game.js'),visuals=r
 const modal45=read('modal-simplify-v45.css');
 const modal47=read('modal-composition-v47.css');
 assert.match(html,/modal-composition-v47\.css\?v=20261104v47/);
-assert.match(html,/game\.js\?v=20261104v47/);
 assert.match(modal47,/\.recruit-badge-line/);
 assert.match(modal47,/background:transparent!important/);
 assert.match(modal47,/recruit-rabbit-clean-v46\.webp|forest-entrance-v08\.png/);
@@ -249,7 +248,7 @@ assert.match(js,/hasDashed/);
 assert.match(js,/hasRallied/);
 assert.match(js,/guarding\?Math\.min\(\.55/);
 assert.match(css,/\.hero-slot\.empty\{border:0!important/);
-assert.match(html,/game\.js\?v=20261104v46b/);
+assert.match(html,/game\.js\?v=20261104v47/);
 assert.match(html,/visuals\.js\?v=20261104v46/);
 assert.match(visuals,/frameTotal\(id,state\)/);
 assert.match(visuals,/drawHeroWeapon\(c,id,frame\)/);
