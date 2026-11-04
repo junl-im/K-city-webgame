@@ -22,6 +22,7 @@ export interface TurnSpecialEvent {
 
 export interface CardMission {
   kind: 'gakpae';
+  targetTheme?: 'mixed' | 'bright' | 'animal' | 'ribbon' | 'junk' | 'spring' | 'summer' | 'autumn' | 'winter';
   cardIds: string[];
   requiredCount?: number;
   unconditional?: boolean;

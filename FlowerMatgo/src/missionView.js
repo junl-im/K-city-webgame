@@ -13,6 +13,7 @@ export function missionView(game) {
   const status = mission.resolvedBy ? (mission.enabled === false ? 'skipped' : 'complete') : failed ? 'failed' : 'active';
   return {
     effect: mission.effect || null,
+    targetTheme: mission.targetTheme || 'mixed',
     unconditional: !!mission.unconditional,
     requiredCount: mission.requiredCount || null,
     failed,
