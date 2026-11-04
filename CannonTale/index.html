@@ -1011,6 +1011,53 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  #controls .weapon{border-radius:9px!important}
 }
 
+
+/* v1.9 -- hand-painted roster HEAD portraits, each cropped from the original hero atlas. */
+#menu .hero-choice{position:relative}
+#menu .hero-choice .hero-portrait{
+ position:relative;display:block;flex:none!important;
+ width:clamp(33px,6.2dvh,54px)!important;height:clamp(33px,6.2dvh,54px)!important;
+ border-radius:50%;overflow:hidden;isolation:isolate;
+ background:radial-gradient(circle at 35% 20%,#c6e5b3,#425d55 70%)!important;
+ box-shadow:inset 0 1px #fff0bf,0 0 0 2px #c29b57,0 2px 4px #081b2e91!important;
+}
+#menu .hero-choice .hero-portrait canvas{width:100%;height:100%;display:block;object-fit:cover}
+#menu .hero-choice.selected .hero-portrait{
+ box-shadow:inset 0 1px #fff6ce,0 0 0 2px #ffe2a1,0 0 15px #ffcc5cb8!important;
+}
+#menu .hero-choice.selected::after{
+ content:"";position:absolute;top:-4px;right:4px;width:13px;height:13px;
+ background:radial-gradient(circle,#fff8ce 15%,#ffc45d 45%,transparent 75%);
+ border-radius:50%;pointer-events:none;filter:drop-shadow(0 0 3px #ffdf7d);
+}
+#menu .hero-stage-portrait{transition:filter .2s ease}
+#menu .hero-stage[data-hero="fox"] .hero-stage-portrait{filter:drop-shadow(0 9px 7px #522f1f8c)!important}
+#menu .hero-stage[data-hero="bear"] .hero-stage-portrait{filter:drop-shadow(0 9px 7px #133147ac)!important}
+#menu .hero-stage[data-hero="rabbit"] .hero-stage-portrait{filter:drop-shadow(0 9px 7px #4d3569ab)!important}
+#menu .hero-stage[data-hero="cat"] .hero-stage-portrait{filter:drop-shadow(0 9px 7px #13666a9a)!important}
+/* Regional backdrop: real existing 2x2 stage illustration atlas changes with selected mission. */
+#menu.overlay::before{
+ background-size:200% 200%!important;background-position:0% 0%!important;
+ transition:filter .22s,opacity .22s;
+}
+#menu[data-stage="1"]::before{background-position:100% 0%!important}
+#menu[data-stage="2"]::before{background-position:0% 100%!important}
+#menu[data-stage="3"]::before{background-position:100% 100%!important}
+#menu[data-stage="3"]::after{background-position:100% 100%!important;opacity:.55}
+#menu .menu-logo-main{filter:drop-shadow(0 1px 1px #e8b96725)}
+@media(max-width:740px){
+ #menu .hero-choice .hero-portrait{width:clamp(29px,5.9dvh,43px)!important;height:clamp(29px,5.9dvh,43px)!important}
+}
+@media(orientation:landscape) and (max-height:650px){
+ #menu .hero-choice .hero-portrait{width:clamp(28px,8.8vh,38px)!important;height:clamp(28px,8.8vh,38px)!important}
+}
+@media(max-height:440px){
+ #menu .hero-choice .hero-portrait{width:27px!important;height:27px!important}
+ #menu .hero-choice.selected::after{width:9px;height:9px;top:0;right:1px}
+}
+@media(prefers-reduced-motion:reduce){
+ #menu .hero-stage-portrait,#menu.overlay::before{transition:none!important}
+}
 </style>
 </head>
 <body>
@@ -1063,10 +1110,10 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
     <div class="hero-picker" aria-label="플레이어 캐릭터 선택">
       <div class="hero-picker-title"><span>나의 포격 영웅</span><small>전투 중 특수 능력 사용 가능</small></div>
       <div class="hero-grid">
-        <button type="button" class="hero-choice selected" data-hero="fox" aria-pressed="true"><span class="hero-portrait"></span><span class="hero-text"><strong>여우</strong><small>탄도 보정</small></span></button>
-        <button type="button" class="hero-choice" data-hero="bear" aria-pressed="false"><span class="hero-portrait"></span><span class="hero-text"><strong>곰</strong><small>관통 장약</small></span></button>
-        <button type="button" class="hero-choice" data-hero="rabbit" aria-pressed="false"><span class="hero-portrait"></span><span class="hero-text"><strong>토끼</strong><small>오중 분열</small></span></button>
-        <button type="button" class="hero-choice" data-hero="cat" aria-pressed="false"><span class="hero-portrait"></span><span class="hero-text"><strong>고양이</strong><small>바람 전환</small></span></button>
+        <button type="button" class="hero-choice selected" data-hero="fox" aria-pressed="true"><span class="hero-portrait"><canvas id="heroBadgeFox" aria-hidden="true"></canvas></span><span class="hero-text"><strong>여우</strong><small>탄도 보정</small></span></button>
+        <button type="button" class="hero-choice" data-hero="bear" aria-pressed="false"><span class="hero-portrait"><canvas id="heroBadgeBear" aria-hidden="true"></canvas></span><span class="hero-text"><strong>곰</strong><small>관통 장약</small></span></button>
+        <button type="button" class="hero-choice" data-hero="rabbit" aria-pressed="false"><span class="hero-portrait"><canvas id="heroBadgeRabbit" aria-hidden="true"></canvas></span><span class="hero-text"><strong>토끼</strong><small>오중 분열</small></span></button>
+        <button type="button" class="hero-choice" data-hero="cat" aria-pressed="false"><span class="hero-portrait"><canvas id="heroBadgeCat" aria-hidden="true"></canvas></span><span class="hero-text"><strong>고양이</strong><small>바람 전환</small></span></button>
       </div>
     </div>
    </section>
@@ -1119,6 +1166,31 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   cat:{name:'고양이 마법사',weapon:'지팡이 · 바람 제어'}
  };
  let lastHeroPreviewKey='';
+ const heroHeadCrops={
+  fox:[.166,0,.275,.565],bear:[.663,0,.285,.56],
+  rabbit:[.065,0,.34,.595],cat:[.612,0,.294,.575]
+ };
+ const badgeDrawCache={};
+ function drawHeroBadges(){
+  for(const id of ['fox','bear','rabbit','cat']){
+   const art=id==='rabbit'||id==='cat'?rosterAtlas:atlas;
+   if(!art.complete||art.naturalWidth<4||art.naturalHeight<4)continue;
+   const view=$('heroBadge'+id[0].toUpperCase()+id.slice(1));
+   if(!view)continue;
+   const w=Math.max(24,Math.round(view.clientWidth||44)),h=Math.max(24,Math.round(view.clientHeight||44));
+   const dpr=Math.min(2,devicePixelRatio||1),key=[w,h,dpr,art.naturalWidth,art.naturalHeight].join(':');
+   if(badgeDrawCache[id]===key)continue;
+   const context=view.getContext('2d');if(!context)continue;
+   view.width=Math.round(w*dpr);view.height=Math.round(h*dpr);
+   context.setTransform(dpr,0,0,dpr,0,0);context.clearRect(0,0,w,h);
+   const [u,v,uw,vh]=heroHeadCrops[id];
+   const sx=u*art.naturalWidth,sy=v*art.naturalHeight;
+   const sw=uw*art.naturalWidth,sh=vh*art.naturalHeight;
+   const scale=Math.max(w/sw,h/sh),dw=sw*scale,dh=sh*scale;
+   context.drawImage(art,sx,sy,sw,sh,(w-dw)/2,(h-dh)/2,dw,dh);
+   badgeDrawCache[id]=key;
+  }
+ }
  function drawHeroPreview(){
   if($('menu').hidden)return false;
   const preview=$('heroPreviewCanvas');
@@ -1141,6 +1213,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   const dw=half*scale,dh=art.naturalHeight*scale;
   context.drawImage(art,sourceX,0,half,art.naturalHeight,(w-dw)/2,(h-dh)/2,dw,dh);
   lastHeroPreviewKey=key;
+  drawHeroBadges();
   return true;
  }
  function refreshHeroPreview(){
@@ -1149,9 +1222,9 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   $('heroPreviewName').textContent=chosen.name;
   $('heroPreviewWeapon').textContent=chosen.weapon;
   lastHeroPreviewKey='';
-  drawHeroPreview();
+  drawHeroBadges();drawHeroPreview();
  }
- function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];const def=stageSet[chosen];$('stageShotPreview').textContent=`탄약 ${def.shots}발 · 목표 ${def.foes.length}명`;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;}
+ function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;$('menu').dataset.stage=String(chosen);const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];const def=stageSet[chosen];$('stageShotPreview').textContent=`탄약 ${def.shots}발 · 목표 ${def.foes.length}명`;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;}
  function refreshMenu(){refreshHeroPreview();const cleared=progress.best.filter(Boolean).length;$('progressSummary').textContent=cleared?`최고 등급 합계 ${progress.best.reduce((a,b)=>a+b,0)} / 12 · 승리 ${progress.wins}회`:'모험 기록 · 아직 첫 승리 전';$('progressTier').textContent=`완료 ${cleared} / 4`;refreshStageMap();}
  const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],rings:[],popups:[],skillEffects:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:100,aiHp:100,turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null};
  // Six authored motion phases per hero (procedural transforms of the existing PNG/WebP art).
