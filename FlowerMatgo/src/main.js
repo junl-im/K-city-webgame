@@ -38,6 +38,7 @@ const DIFFICULTIES = [
 ];
 const BASE_WALLET = 1000000;
 const kr = n => Math.round(Number(n)||0).toLocaleString('ko-KR');
+const compactWallet = n => { const amount=Math.round(Number(n)||0); return amount>=100000000 ? '약 '+new Intl.NumberFormat('ko-KR',{notation:'compact',maximumFractionDigits:1}).format(amount) : kr(amount); };
 const safe = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const defaultSave = () => ({
   screen: 'home', difficulty: 'normal', stake: 100, wallet: BASE_WALLET,
@@ -481,7 +482,7 @@ function gameScreen() {
     <header class="game-top top-safe">
       <button class="nav-round" data-action="home" title="메인으로" aria-label="메인으로" type="button">${uiIcon('home')}</button>
       <div class="game-title">${brand()}<small>점당 ${kr(g.pointValue)}냥</small></div>
-      <div class="game-wallet" aria-label="보유 놀이머니"><span>내 지갑</span><b>✦ ${kr(app.wallet)}</b></div>
+      <div class="game-wallet" aria-label="보유 놀이머니 ${kr(app.wallet)}냥" title="보유 놀이머니 ${kr(app.wallet)}냥"><span>내 지갑</span><b data-mobile="✦ ${safe(compactWallet(app.wallet))}" aria-hidden="true">✦ ${kr(app.wallet)}</b></div>
       <button class="nav-round" data-action="cardbook" type="button" title="48장 화투패 도감" aria-label="48장 화투패 도감">${uiIcon('album')}</button>
       <button class="nav-round" data-action="help" type="button" title="도움말" aria-label="도움말">${uiIcon('help')}</button>
     </header>

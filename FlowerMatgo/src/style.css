@@ -4089,3 +4089,5 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--game .modal-box--choice .decision-timer strong {color:#ffdb7a;}
 .scene--game .modal-box--choice .decision-option:focus-visible,.scene--game .mission-panel:focus-visible,.scene--select .opponent-card:focus-visible {outline:3px solid #ffe29a;outline-offset:3px;}
 @media(max-width:360px){.scene--select .opponent-card__text span {font-size:9px;letter-spacing:-.04em;}.scene--game .modal-box--choice .decision-timer {font-size:10px!important;padding:4px 7px;}}
+/* Preserve the exact wallet value for assistive technology and hover, while keeping the compact mobile HUD readable. */
+@media(max-width:650px){.scene--game .game-wallet b[data-mobile] {font-size:0;}.scene--game .game-wallet b[data-mobile]::after {content:attr(data-mobile);font-size:clamp(10px,3.3vw,13px);}}
