@@ -831,10 +831,17 @@
         });
       }
     }
-    if(mushroomAttackBitmap)for(let frame=0;frame<4;frame++){
+    // The original painting has four distinct poses, but the elite motion
+    // timeline has six beats. Reuse its return poses for beats 5/6 instead of
+    // suddenly switching to unrelated generated artwork during recovery.
+    const shroomAttackPose=[0,1,2,3,2,1];
+    if(mushroomAttackBitmap)for(let frame=0;frame<shroomAttackPose.length;frame++){
       const key='motion-shroom-attack-'+frame;
       if(scene.textures.exists(key))scene.textures.remove(key);
-      createCanvasTexture(scene,key,128,128,c=>c.drawImage(mushroomAttackBitmap,frame*320,0,320,320,0,0,128,128));
+      createCanvasTexture(scene,key,128,128,c=>{
+        c.drawImage(mushroomAttackBitmap,shroomAttackPose[frame]*320,0,320,320,0,0,128,128);
+        V.cleanEnemyFrame(c,128,128);
+      });
     }
   }
   class WaveDirector {
@@ -2285,6 +2292,22 @@
            }
            return [id,red];
          }));
+       },
+       shroomAttackPaintingQA(){
+         if(!battle||battle.ended||!mushroomAttackBitmap)return null;
+         const frames=Array.from({length:6},(_,i)=>{
+           const key='motion-shroom-attack-'+i;
+           if(!battle.textures.exists(key))return null;
+           const canvas=battle.textures.get(key).getSourceImage();
+           return canvas.getContext('2d',{willReadFrequently:true})
+             .getImageData(0,0,128,128).data;
+         });
+         if(frames.some(frame=>!frame))return {loaded:false};
+         const alike=(a,b)=>frames[a].every((value,i)=>value===frames[b][i]);
+         const corners=frames.map(data=>[3,127*4+3,127*128*4+3,(128*128-1)*4+3]
+           .every(index=>data[index]===0));
+         return {loaded:true,returnPoses:alike(2,4)&&alike(1,5),
+           fullMotion:!alike(0,3),transparentCorners:corners.every(Boolean)};
        },
        motionInfo(){
          if(!battle||battle.ended)return null;
