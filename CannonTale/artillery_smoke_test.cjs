@@ -22,6 +22,24 @@ assert(html.includes('Illustrated Canvas 2D projectile silhouettes'),'Projectile
 assert(html.includes('scenery-integrated title'),'First screen should use transparent scenery-integrated game UI');
 assert(html.includes('CannonTale v1.8: illustrated menu'),'Scenic fantasy homepage needs active CSS');
 
+assert(html.includes('v2.0.2 -- real illustrated HUD buttons'),'Full illustrative HUD should replace generic CSS buttons');
+for(const name of [
+ 'hud_fire_ready.webp','hud_fire_charge.webp','hud_fire_pressed.webp','hud_fire_disabled.webp',
+ 'hud_ability_ready.webp','hud_ability_used.webp','hud_view_ready.webp',
+ 'hud_weapon_normal.webp','hud_weapon_bomb.webp','hud_weapon_split.webp'
+]){
+ assert(html.includes('art/'+name),'Every illustrated HUD state must reference the actual '+name+' asset');
+}
+assert(html.includes('#controls #fire.charging')&&html.includes('hud_fire_charge.webp'),
+ 'Holding the FIRE button should show its dedicated charging artwork');
+assert(html.includes('#controls #fire.recent-shot')&&html.includes('hud_fire_pressed.webp'),
+ 'A freshly fired shell needs visibly different pressed artwork');
+assert(html.includes('#controls #fire:disabled')&&html.includes('hud_fire_disabled.webp'),
+ 'Disabled FIRE must use its original monochrome drawing');
+assert(html.includes('#controls .weapon[data-weapon="split"]'),
+ 'Split and bomb projectile selections must have distinct artwork selectors');
+
+
 assert(html.includes('<picture class="ct-home-scene"'),'Home must actually render a responsive PC/mobile artwork picture');
 assert(html.includes('srcset="art/home_mobile_v2.webp"'),'Portrait must load the prepared vertical background art');
 assert(html.includes('src="art/home_pc_v2.webp"'),'Landscape must load the prepared horizontal background art');
