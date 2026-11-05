@@ -1119,6 +1119,140 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  #result .panel-actions .paper-btn{min-height:34px;padding:5px 8px}
 }
 @media(prefers-reduced-motion:reduce){#result .panel-actions .paper-btn{transition:none}}
+
+/* v2.0 -- ACTUAL prepared PC/mobile full-screen CannonTale WebP illustrations.
+ * Keep real clickable DOM buttons over artwork; never use a screenshot of baked-in labels. */
+.app:has(#menu:not([hidden])) .top,
+.app:has(#menu:not([hidden])) #controls{display:none!important}
+#menu.overlay{
+  display:grid;justify-items:end!important;align-items:center!important;
+  position:absolute;inset:0;isolation:isolate;overflow:hidden;
+  padding:clamp(7px,1.2vh,18px) clamp(8px,3.2vw,56px)!important;
+  background:#438abb!important;backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+#menu.overlay[hidden]{display:none!important}
+#menu.overlay::before,#menu.overlay::after{display:none!important}
+#menu .ct-home-scene{
+  position:absolute;inset:0;display:block;overflow:hidden;z-index:0;
+  pointer-events:none;contain:layout paint;user-select:none;
+}
+#menu .ct-home-scene img{
+  position:absolute;inset:0;display:block;width:100%;height:100%;
+  object-fit:cover;object-position:center center;
+  image-rendering:auto;
+}
+#menu .ct-home-scene::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,#061f3a05 0%,#0a263817 39%,#092b4474 70%,#0b263d98 100%);
+  pointer-events:none;
+}
+#menu .menu-panel{
+  z-index:1;position:relative!important;
+  width:min(565px,48vw)!important;max-width:none!important;
+  height:min(100%,805px)!important;max-height:100%!important;
+  margin:0!important;padding:clamp(7px,1.1vh,13px)!important;
+  border:0!important;border-radius:19px!important;
+  overflow:hidden!important;min-height:0!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto minmax(48px,1fr) auto auto auto auto auto!important;
+  grid-template-areas:"title" "art" "mode" "opts" "map" "progress" "heroes"!important;
+  gap:clamp(3px,.75vh,9px)!important;
+  background:linear-gradient(180deg,#0b2a394d,#102e3c24 48%,#11273585)!important;
+  box-shadow:inset 0 1px #fff6d530,0 5px 22px #061d3049!important;
+  backdrop-filter:blur(1.25px)!important;
+  -webkit-backdrop-filter:blur(1.25px)!important;
+}
+#menu #welcomeTitle{width:min(390px,97%)!important;justify-self:center;line-height:1.05}
+#menu .hero-art{
+  min-height:0!important;max-height:none!important;
+  overflow:visible!important;background:radial-gradient(ellipse at 39% 65%,#f7d7982a,transparent 68%)!important;
+}
+#menu .hero-stage-portrait{min-height:0!important;height:100%!important}
+#menu .hero-stage-info{
+  border-radius:12px!important;
+  background:linear-gradient(90deg,#0a293bc4,#0f324692)!important;
+  box-shadow:inset 0 1px #fff4bf2c!important;
+}
+#menu .mode-card{
+  min-height:clamp(66px,13.2vh,120px)!important;
+  -webkit-tap-highlight-color:transparent;
+}
+#menu .setup-options .option-box,#menu .stage-map-control .map-open{
+  -webkit-tap-highlight-color:transparent;
+}
+#menu .hero-picker{
+  border-radius:16px!important;
+  background:linear-gradient(150deg,#061c2fcc,#142c3bc9)!important;
+}
+#menu .hero-choice{
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+@media (orientation:portrait){
+ #menu.overlay{
+  justify-items:center!important;align-items:stretch!important;
+  padding:max(5px,env(safe-area-inset-top)) max(5px,env(safe-area-inset-right))
+          max(5px,env(safe-area-inset-bottom)) max(5px,env(safe-area-inset-left))!important;
+ }
+ #menu .ct-home-scene img{object-position:center center}
+ #menu .ct-home-scene::after{
+  background:linear-gradient(180deg,#0825360d,#09304818 23%,#0c253453 47%,#092333bd 100%);
+ }
+ #menu .menu-panel{
+  width:min(100%,590px)!important;height:100%!important;
+  grid-template-rows:auto minmax(35px,1fr) minmax(73px,15vh) auto auto auto auto!important;
+  gap:clamp(2px,.6vh,7px)!important;
+  padding:clamp(5px,.9vh,10px)!important;
+  background:linear-gradient(180deg,#102b3a12 0%,#0c2f3612 46%,#071d34aa 100%)!important;
+  box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ }
+ #menu #welcomeTitle{width:min(310px,82%)!important}
+ #menu .mode-card{min-height:clamp(66px,13.5vh,115px)!important}
+ #menu .hero-art{max-height:none!important}
+ #menu .hero-stage-info{background:linear-gradient(90deg,#0c273fa3,#153b4892)!important}
+}
+@media (orientation:landscape) and (max-height:660px){
+ #menu.overlay{
+  justify-items:stretch!important;align-items:stretch!important;
+  padding:4px 9px!important;
+ }
+ #menu .ct-home-scene::after{
+  background:linear-gradient(90deg,#08283b32 0%,#17354b4e 41%,#102c3a9c 100%);
+ }
+ #menu .menu-panel{
+  justify-self:end!important;
+  width:min(730px,65vw)!important;min-height:0!important;height:100%!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr)!important;
+  grid-template-rows:auto minmax(26px,1fr) auto auto auto!important;
+  grid-template-areas:"title mode" "art mode" "art opts" "art map" "heroes progress"!important;
+  gap:3px 8px!important;padding:5px 8px!important;
+ }
+ #menu .hero-stage{flex-direction:column!important}
+ #menu .hero-stage-portrait{width:100%!important;max-width:100%!important}
+ #menu .hero-stage-info{max-width:100%!important;padding:3px!important}
+ #menu .hero-stage-info .hero-skill-preview{display:none!important}
+ #menu .hero-picker{min-height:0!important;padding:2px!important}
+ #menu .mode-grid{min-height:0!important}
+ #menu .mode-card{min-height:0!important;height:100%!important}
+}
+@media (orientation:landscape) and (min-height:661px) and (max-width:1000px){
+ #menu .menu-panel{width:min(550px,57vw)!important}
+}
+@media (orientation:portrait) and (max-height:615px){
+ #menu .menu-panel{
+  grid-template-rows:auto minmax(24px,1fr) minmax(58px,13vh) auto auto auto auto!important;
+  gap:2px!important;padding:4px 6px!important;
+ }
+ #menu .menu-logo-main{font-size:clamp(20px,5.4vw,29px)!important}
+ #menu .hero-stage-info .hero-skill-preview{display:none!important}
+ #menu .mode-card{min-height:60px!important}
+ #menu .hero-choice{min-height:35px!important}
+}
+@media (prefers-reduced-motion:reduce){
+ #menu .mode-card,#menu .hero-choice{transition:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -1147,6 +1281,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
 <div id="reviewCountdown" class="review-countdown" hidden aria-hidden="true">5</div>
 <div id="shotReview" class="shot-review" hidden role="status" aria-live="polite"><div class="review-copy"><span class="review-kicker">방금 포격의 결과</span><strong id="reviewTitle">착탄 확인</strong><small id="reviewDetail">전장에 남은 결과를 확인해 보세요</small></div><button id="reviewContinue" class="review-continue" type="button">다음 발사</button></div>
   <div id="menu" class="overlay">
+   <picture class="ct-home-scene" aria-hidden="true"><source media="(orientation:portrait)" srcset="art/home_mobile_v2.webp"><img src="art/home_pc_v2.webp" alt="" decoding="async" fetchpriority="high"></picture>
    <section class="panel menu-panel" aria-labelledby="welcomeTitle">
     <div class="eyebrow">숲의 수호자 · 포격으로 여는 모험</div>
     <h1 id="welcomeTitle"><span class="menu-logo-main">캐논테일</span><small class="menu-logo-sub">CANNON TALE</small></h1>
