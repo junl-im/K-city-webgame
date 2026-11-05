@@ -13,7 +13,7 @@ if(/v0_[67]/.test(versionedPath)){
 }
 assert(script.includes(' window.__artilleryLoadoutDebug='),'Duel diagnostics hook must be present');
 script=script.replace(' window.__artilleryLoadoutDebug=',
- ' window.__forceAiHeroForTest=(hero)=>{game.aiHero=hero;}; window.__forceAiAttackForTest=()=>{actorMotion("ai","attack",.48);}; window.__forceFoeFrameForTest=(kind,frame)=>{const f=game.foes[0];if(!f)return;f.kind=kind;f.alive=frame!==5;f.hp=55;f.deathTimer=frame===5?3.8:0;f.hitAnim=frame===4?.62:0;f.hitFlash=0;f.attackAnim=frame===1?.68:frame===2?.42:frame===3?.07:0;f.attackCooldown=99;}; window.__artilleryLoadoutDebug=');
+ ' window.__forceAiHeroForTest=(hero)=>{game.aiHero=hero;}; window.__forceAiAttackForTest=()=>{actorMotion("ai","attack",.48);}; window.__forceFoeFrameForTest=(kind,frame)=>{const f=game.foes[0];if(!f)return;f.kind=kind;f.alive=frame!==5;f.hp=55;f.deathTimer=frame===5?3.8:0;f.hitAnim=frame===4?.62:0;f.hitFlash=0;f.attackAnim=frame===1?.68:frame===2?.42:frame===3?.07:0;f.attackCooldown=99;}; window.__forceProjectileForTest=(hero,weapon)=>{game.projectiles=[{x:540,y:220,vx:170,vy:-20,r:weapon==="bomb"?13:10,hero,weapon,active:true,age:0,split:weapon==="split",trail:[],pierce:0,hitBlocks:[],hitFoes:[]}];}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(html.includes('Artillery_Illustrated_UI_v1_1.png'),'The painted v1.1 UI atlas should be referenced');
@@ -92,6 +92,12 @@ for(const foe of ['acorn','golem','wind','boss']){
  assert.equal(bytes.subarray(0,4).toString(),'RIFF',`${foe} action asset must be WebP`);
  assert.equal(bytes.subarray(8,12).toString(),'WEBP',`${foe} action asset must have a WebP signature`);
 }
+assert(html.includes('art/hero_ammunition_v25.webp'),'The twelve hand-painted weapon/ammo combinations must load');
+const ammoBytes=fs.readFileSync(`${__dirname}/art/hero_ammunition_v25.webp`);
+assert.equal(ammoBytes.subarray(0,4).toString(),'RIFF','Projectile atlas must be WebP');
+assert.equal(ammoBytes.subarray(8,12).toString(),'WEBP','Projectile atlas must have a WebP signature');
+assert(html.includes('drawPaintedAmmunition(p)'),'In-flight projectiles must use equipped-hero illustration');
+assert(html.includes("m.hero==='cat'"),'Magic staff discharge should differ from the cannon muzzle');
 assert(html.includes('function paintedFoeArtReady(kind)'),'Independent 6-frame monster art should take priority over legacy poses');
 assert(html.includes('ctx.save();ctx.clip();ctx.drawImage(materialAtlas,'),'Physical fragments should have painted, clipped material textures');
 assert(html.includes('ctx.rotate(dir*(16*Math.PI/180-a))'),'Only the barrel must rotate with the firing angle');
@@ -116,6 +122,7 @@ const splitCannonColumns=new Set(),heroAttackFrames=Object.fromEntries(['fox','b
 const foeFrameIds=['foeAcornArtwork','foeGolemArtwork','foeWindArtwork','foeBossArtwork'];
 const paintedFoeFrames=foeFrameIds.map(()=>new Set());
 let paintedShardDrawCalls=0,legacyCombatDrawCalls=0;
+const paintedAmmunitionCells=new Set();
 function testDrawImage(...args){
  imageDrawCalls++;
  if(args.length===9&&args[7]===52&&args[8]===56)duelPilotDrawCalls++;
@@ -132,8 +139,9 @@ function testDrawImage(...args){
  if(foeIndex>=0)paintedFoeFrames[foeIndex].add(Math.floor(args[2]/512)*3+Math.floor(args[1]/512));
  if(args[0]?.id==='combatArtwork')legacyCombatDrawCalls++;
  if(args[0]?.id==='materialArtwork'&&args[3]<=92&&args[2]>=680)paintedShardDrawCalls++;
+ if(args[0]?.id==='heroAmmunitionArtwork')paintedAmmunitionCells.add(`${Math.round(args[2]/(810/4))},${Math.round(args[1]/(1080/3))}`);
 }
-const noOpKeys=new Set(['clearRect','save','restore','translate','setTransform','beginPath','moveTo','lineTo','fill','ellipse','arc','roundRect','fillText','strokeText','closePath','scale','rotate','rect','clip','bezierCurveTo']);
+const noOpKeys=new Set(['clearRect','save','restore','translate','setTransform','beginPath','moveTo','lineTo','fill','ellipse','arc','roundRect','fillText','strokeText','closePath','scale','rotate','rect','clip','bezierCurveTo','quadraticCurveTo']);
 const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?testDrawImage:key==='stroke'?()=>{if(obj.strokeStyle==='#f4e6b9b0'&&obj.lineWidth>=3&&obj.lineWidth<=5)mediumTrajectoryStrokes++;}:noOpKeys.has(key)?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
 ctx.fillRect=noOp;
 const previewCtx=new Proxy(ctx,{get:(obj,key)=>key==='drawImage'?(...args)=>previewDraws.push(args):key==='clearRect'?noOp:obj[key]});
@@ -149,6 +157,7 @@ for(const hero of Object.keys(heroAttackFrames)){
  const art=el(`${hero}AttackArtwork`);art.complete=true;art.naturalWidth=1536;art.naturalHeight=1024;
 }
 for(const id of foeFrameIds){const art=el(id);art.complete=true;art.naturalWidth=1536;art.naturalHeight=1024;}
+{const art=el('heroAmmunitionArtwork');art.complete=true;art.naturalWidth=1080;art.naturalHeight=810;}
 const document={referrer:'',getElementById:el,querySelectorAll:selector=>selector==='[data-weapon]'?weapons:selector==='[data-hero]'?heroes:selector==='[data-stage]'?stages:[]};
 if(/v0_[34]/.test(versionedPath)){const art=el('menuArtwork');art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}
 if(/v0_[567]/.test(versionedPath)){for(const type of ['menuArtwork','rosterArtwork']){const art=el(type);art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}}
@@ -476,6 +485,8 @@ assert(activeDuelLoadout.paintedCannonReady,'Both original bitmap cannons must l
 assert(activeDuelLoadout.splitCannonReady,'The rotating cannon-parts atlas must be loaded');
 assert(activeDuelLoadout.foxAttackReady,'The transparent fox attack frames must be loaded');
 assert.deepEqual(activeDuelLoadout.paintedAttackReady,{fox:true,bear:true,rabbit:true,cat:true},'All four independent attack sheets must load');
+assert(activeDuelLoadout.paintedAmmunitionReady,'Each equipped character must use its painted ammunition graphics');
+assert.deepEqual(activeDuelLoadout.ammunitionCells.columns,{normal:0,bomb:1,split:2},'Shell selection must choose the ammo column');
 assert(activeDuelLoadout.playerMuzzle.weapon===activeDuelLoadout.player.weapon&&activeDuelLoadout.aiMuzzle.weapon===activeDuelLoadout.ai.weapon,
  'Duel muzzle positions must correspond to the wielded weapon');
 if(activeDuelLoadout.player.hero==='bear'||activeDuelLoadout.ai.hero==='bear'){
@@ -569,5 +580,12 @@ for(let kind=0;kind<foeFrameIds.length;kind++){
 assert.equal(legacyCombatDrawCalls,0,'Legacy monster atlas with unwanted paint remnants must not render when new sheets are loaded');
 window.__damageBlockForTest(30);frames(3);
 assert(paintedShardDrawCalls>0,'Wood debris should reuse the original damaged material painting');
+for(const hero of ['fox','bear','rabbit','cat']){
+ for(const weapon of ['normal','bomb','split']){
+  window.__forceProjectileForTest(hero,weapon);frames(1);
+ }
+}
+assert.deepEqual([...paintedAmmunitionCells].sort(),Array.from({length:4},(_,r)=>Array.from({length:3},(_,c)=>`${r},${c}`)).flat().sort(),
+ 'All 12 hero/ammunition combinations must draw their own painted atlas cell');
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');

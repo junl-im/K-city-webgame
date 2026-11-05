@@ -1641,6 +1641,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   <img id="foeGolemArtwork" src="art/foe_golem_v24.webp" alt="" hidden aria-hidden="true">
   <img id="foeWindArtwork" src="art/foe_wind_v24.webp" alt="" hidden aria-hidden="true">
   <img id="foeBossArtwork" src="art/foe_boss_v24.webp" alt="" hidden aria-hidden="true">
+  <img id="heroAmmunitionArtwork" src="art/hero_ammunition_v25.webp" alt="" hidden aria-hidden="true">
   <div id="bossBanner" class="boss-banner" hidden>요새 대장 출현</div>
   <div id="enemyEntrance" class="enemy-entrance" hidden aria-hidden="true"><span class="enemy-entrance-figure"></span><span class="enemy-entrance-copy"><small>FOREST ENCOUNTER</small><strong id="enemyEntranceName"></strong></span></div>
   <div id="hint" class="corner-hint" hidden></div>
@@ -1717,6 +1718,8 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  const angleEl=$('angle'),powerEl=$('power'),atlas=$('menuArtwork'),rosterAtlas=$('rosterArtwork'),stageAtlas=$('stageArtwork'),enemyAtlas=$('enemyArtwork'),combatAtlas=$('combatArtwork'),materialAtlas=$('materialArtwork'),duelCannonAtlas=$('duelCannonArtwork'),duelPartsAtlas=$('duelCannonPartsArtwork'),foxAttackAtlas=$('foxAttackArtwork'),M=window.Matter;
  const paintedAttackAtlases={fox:foxAttackAtlas,bear:$('bearAttackArtwork'),rabbit:$('rabbitAttackArtwork'),cat:$('catAttackArtwork')};
  const paintedFoeAtlases=[$('foeAcornArtwork'),$('foeGolemArtwork'),$('foeWindArtwork'),$('foeBossArtwork')];
+ const heroAmmunitionAtlas=$('heroAmmunitionArtwork');
+ const ammunitionRows={fox:0,bear:1,rabbit:2,cat:3},ammunitionColumns={normal:0,bomb:1,split:2};
  if(!M){document.title='물리 엔진을 불러오지 못했습니다';throw Error('Matter.js is required for v0.2');}
  const heroSet={fox:{name:'여우',ability:'탄도 보정',timing:'flying'},bear:{name:'곰',ability:'관통 장약',timing:'aim'},rabbit:{name:'토끼',ability:'오중 분열',timing:'flying'},cat:{name:'고양이',ability:'바람 전환',timing:'aim'}};
  const saveKey='wind-artillery-progress-v06';
@@ -2642,6 +2645,17 @@ const materialCells={
   const lx=clamp(hit.x,58,W-58),ly=clamp(hit.y-30,36,H-38);
   roundRect(lx-46,ly-17,92,26,13,'#1c3f4abb');ctx.fillStyle=color;ctx.font='800 13px system-ui, sans-serif';ctx.textAlign='center';ctx.fillText(label,lx,ly+1);ctx.restore();
  }
+ function paintedAmmunitionReady(){return !!(heroAmmunitionAtlas?.complete&&heroAmmunitionAtlas.naturalWidth>3&&heroAmmunitionAtlas.naturalHeight>4);}
+ function drawPaintedAmmunition(p){
+  if(!paintedAmmunitionReady())return false;
+  const hero=p.hero||'fox',row=ammunitionRows[hero]??0,col=ammunitionColumns[p.weapon]??0;
+  const cellW=heroAmmunitionAtlas.naturalWidth/3,cellH=heroAmmunitionAtlas.naturalHeight/4;
+  const drawH=p.r*3.1,drawW=drawH*cellW/cellH;
+  // Character controls the weapon/row; selected shell type controls the column.
+  // Keep the illustrated cell proportions, including transparent margins, intact.
+  ctx.drawImage(heroAmmunitionAtlas,col*cellW,row*cellH,cellW,cellH,-drawW/2,-drawH/2,drawW,drawH);
+  return true;
+ }
  function drawProjectiles(){
   // Illustrated Canvas 2D projectile silhouettes; no SVG or external sprites.
   const palettes={
@@ -2663,29 +2677,30 @@ const materialCells={
    ctx.rotate(Math.atan2(p.vy,p.vx));
    if(p.pierce>0){ellipse(0,0,p.r+6,p.r+6,'#83ebc681');}
    if(p.guided){ellipse(0,0,p.r+7,p.r+7,'#9cffe676');}
-   if(hero==='fox'){
+   const painted=drawPaintedAmmunition(p);
+   if(!painted&&hero==='fox'){
     ellipse(0,0,p.r*.9,p.r*.83,tones[2]);
     ellipse(-1,-2,p.r*.72,p.r*.6,tones[1]);
     ctx.strokeStyle=tones[0];ctx.lineWidth=2;ctx.beginPath();ctx.arc(-1,-1,p.r*.57,-2.7,-.6);ctx.stroke();
     ellipse(-p.r*.35,-p.r*.3,2.4,1.4,'#fff3c3');
-   }else if(hero==='bear'){
+   }else if(!painted&&hero==='bear'){
     ellipse(0,0,p.r,p.r,tones[2]);ellipse(-2,-2,p.r*.82,p.r*.8,tones[1]);
     ctx.strokeStyle=tones[0];ctx.lineWidth=2.8;
     for(let j=-1;j<=1;j++){ctx.beginPath();ctx.moveTo(-p.r*.34,j*4);ctx.lineTo(p.r*.37,j*4);ctx.stroke();}
     ellipse(-p.r*.36,-p.r*.37,p.r*.25,p.r*.16,'#fff8e2');
-   }else if(hero==='rabbit'){
+   }else if(!painted&&hero==='rabbit'){
     ctx.fillStyle=tones[1];ctx.beginPath();ctx.moveTo(p.r*1.2,0);ctx.lineTo(-p.r*.33,-p.r*.83);ctx.lineTo(-p.r*.95,0);ctx.lineTo(-p.r*.33,p.r*.83);ctx.closePath();ctx.fill();
     ctx.fillStyle=tones[0];ctx.beginPath();ctx.moveTo(p.r*.87,0);ctx.lineTo(-p.r*.3,-p.r*.49);ctx.lineTo(-p.r*.54,0);ctx.lineTo(-p.r*.3,p.r*.49);ctx.closePath();ctx.fill();
     ctx.strokeStyle=tones[2];ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(-p.r*.4,-p.r*.65);ctx.lineTo(p.r*.25,0);ctx.lineTo(-p.r*.4,p.r*.65);ctx.stroke();
-   }else{
+   }else if(!painted){
     ellipse(0,0,p.r+4,p.r+4,'#6ee6d85c');ellipse(0,0,p.r*.86,p.r*.86,tones[1]);ellipse(-2,-2,p.r*.57,p.r*.57,tones[0]);
     ctx.strokeStyle='#e7fff8';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,p.r+3,-.8,2.4);ctx.stroke();
    }
-   if(p.weapon==='bomb'){
+   if(!painted&&p.weapon==='bomb'){
     ctx.strokeStyle='#ffb96f';ctx.lineWidth=2.8;ctx.beginPath();
     ctx.arc(0,0,p.r+2,0,Math.PI*1.65);ctx.stroke();
     ellipse(-p.r*.35,-p.r*.7,2.6,2.6,'#fff0be');
-   }else if(p.weapon==='split'){
+   }else if(!painted&&p.weapon==='split'){
     ctx.strokeStyle=tones[0];ctx.lineWidth=2.2;
     ctx.beginPath();ctx.moveTo(-p.r*.6,-p.r*.85);ctx.lineTo(-p.r*1.25,0);ctx.lineTo(-p.r*.6,p.r*.85);ctx.stroke();
    }
@@ -2704,6 +2719,21 @@ const materialCells={
    ctx.strokeStyle='#ffdf9a';ctx.lineWidth=3*fade;
    for(let i=0;i<5;i++){const a=(i-2)*.3,r=25+(1-fade)*32;ctx.beginPath();ctx.moveTo(m.x,m.y);
     ctx.lineTo(m.x+m.dir*Math.cos(a)*r,m.y+Math.sin(a)*r);ctx.stroke();}
+   // Keep the same real muzzle socket, but give each equipped weapon its own discharge.
+   ctx.lineCap='round';
+   if(m.hero==='fox'){
+    ctx.strokeStyle='#eac785';ctx.lineWidth=2.5*fade;
+    for(const bend of [-1,1]){ctx.beginPath();ctx.moveTo(m.x-m.dir*8,m.y+bend*8);ctx.quadraticCurveTo(m.x+m.dir*11,m.y+bend*15,m.x+m.dir*(30+(1-fade)*12),m.y+bend*9);ctx.stroke();}
+   }else if(m.hero==='bear'){
+    ctx.strokeStyle='#e6dcc7';ctx.lineWidth=6*fade;
+    for(let i=-1;i<=1;i++){ctx.beginPath();ctx.arc(m.x-m.dir*8,m.y+i*11,10+(1-fade)*18,-.7,1.7);ctx.stroke();}
+   }else if(m.hero==='rabbit'){
+    ctx.strokeStyle='#d5b4ff';ctx.lineWidth=3*fade;
+    for(let i=-1;i<=1;i++){ctx.beginPath();ctx.moveTo(m.x+m.dir*8,m.y);ctx.lineTo(m.x+m.dir*(35+(1-fade)*15),m.y+i*(13+(1-fade)*12));ctx.stroke();}
+   }else if(m.hero==='cat'){
+    ctx.strokeStyle='#bbfff1';ctx.lineWidth=3*fade;
+    for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(m.x+m.dir*10,m.y,12+(1-fade)*20+i*5,i*1.3,i*1.3+1.8);ctx.stroke();}
+   }
   }
   for(const e of game.blastCores){
    const t=1-e.life/e.total,fade=clamp(e.life/e.total,0,1);
@@ -2844,7 +2874,7 @@ const materialCells={
  document.addEventListener?.('visibilitychange',()=>{if(document.hidden&&game.chargeActive){cancelFireCharge();suppressNextFireClick=true;}});
  window.addEventListener('keydown',e=>{if(e.key==='Escape'){handleBackIntent();return;}if(e.code==='Space'&&game.phase==='aim'&&e.target.tagName!=='BUTTON'){e.preventDefault();firePlayer();}if(e.code==='KeyQ'&&game.mode!=='menu'&&e.target.tagName!=='INPUT'){e.preventDefault();useAbility();}});
  // Small, read-only automation hook for smoke testing; not required to play.
- window.__artilleryLoadoutDebug=()=>({player:{hero:game.hero,weapon:duelWeapon(game.hero)},ai:{hero:game.aiHero,weapon:duelWeapon(game.aiHero)},paintedCannonReady:!!(duelCannonAtlas?.complete&&duelCannonAtlas.naturalWidth>0),splitCannonReady:!!(duelPartsAtlas?.complete&&duelPartsAtlas.naturalWidth>0),foxAttackReady:!!(foxAttackAtlas?.complete&&foxAttackAtlas.naturalWidth>0),paintedAttackReady:Object.fromEntries(Object.entries(paintedAttackAtlases).map(([hero,img])=>[hero,!!(img?.complete&&img.naturalWidth>0&&img.naturalHeight>0)])),playerMuzzle:muzzleFor('player'),aiMuzzle:muzzleFor('ai',game.aiAngle),playerPivot:cannonTrunnion('player'),aiPivot:cannonTrunnion('ai')});
+ window.__artilleryLoadoutDebug=()=>({player:{hero:game.hero,weapon:duelWeapon(game.hero)},ai:{hero:game.aiHero,weapon:duelWeapon(game.aiHero)},paintedCannonReady:!!(duelCannonAtlas?.complete&&duelCannonAtlas.naturalWidth>0),splitCannonReady:!!(duelPartsAtlas?.complete&&duelPartsAtlas.naturalWidth>0),foxAttackReady:!!(foxAttackAtlas?.complete&&foxAttackAtlas.naturalWidth>0),paintedAmmunitionReady:paintedAmmunitionReady(),ammunitionCells:{rows:ammunitionRows,columns:ammunitionColumns},paintedAttackReady:Object.fromEntries(Object.entries(paintedAttackAtlases).map(([hero,img])=>[hero,!!(img?.complete&&img.naturalWidth>0&&img.naturalHeight>0)])),playerMuzzle:muzzleFor('player'),aiMuzzle:muzzleFor('ai',game.aiAngle),playerPivot:cannonTrunnion('player'),aiPivot:cannonTrunnion('ai')});
  window.__artilleryDebug=()=>({mode:game.mode,stage:game.stage,difficulty:game.difficulty,hero:game.hero,aiHero:game.aiHero,abilityUsed:game.abilityUsed,abilityArmed:game.abilityArmed,abilityCount:game.abilityCount,wind:game.wind,phase:game.phase,shots:game.shots,maxShots:game.maxShots,hitStreak:game.hitStreak,popupPositions:game.popups.map(p=>({x:p.x,y:p.y,value:p.value})),chargeActive:game.chargeActive,chargeAimX:game.chargeAimX,camera:game.camera,chargedPower:game.chargedPower,heroMotionFrame:actorPoseFrame('player',game.hero).index,turn:game.turn,projectiles:game.projectiles.length,projectilePierce:game.projectiles[0]?.pierce||0,foes:game.foes.filter(x=>x.alive).length,bossHp:game.foes.find(f=>f.boss&&f.alive)?.hp||0,playerHp:game.playerHp,aiHp:game.aiHp,sound:game.sound,canvas:[cv.width,cv.height],rotatingBlocks:game.blocks.filter(b=>Math.abs(b.angle)>.05).length,physics:!!game.engine,spriteReady:spriteReady(game.hero),sceneReady:sceneReady(),enemyReady:enemyArtReady(),combatReady:combatArtReady(),paintedFoeReady:paintedFoeAtlases.map((_,kind)=>paintedFoeArtReady(kind)),foePoses:game.foes.map(f=>foePose(f)),foeAttacks:game.foes.reduce((n,f)=>n+f.attackCount,0),rubbleCount:game.rubble.length,materialReady:materialArtReady(),introVisible:!$('enemyEntrance').hidden,materialTiers:game.blocks.map(b=>damageTier(b)),aimImpact:game.phase==='aim'?predict(game.angle,game.power,game.wind).impact?.kind||'none':'inactive',debrisCount:game.debris.length,stageMapOpen:!$('stageMap').hidden,exitOpen:!$('exitConfirm').hidden,savedBest:progress.best.slice(),savedWins:progress.wins,skillEffects:game.skillEffects.length,blastCores:game.blastCores.length,dyingFoes:game.foes.filter(f=>!f.alive&&f.deathTimer>0).length,damagedBlocks:game.blocks.filter(b=>b.hp<b.maxHp).length,reviewVisible:!$('shotReview').hidden,reviewTitle:game.reviewInfo?.title||'',reviewFocusX:game.reviewFocusX,reviewNext:game.reviewNext,reviewTimer:game.reviewTimer,materials:{wood:game.blocks.filter(b=>b.type==='wood').length,stone:game.blocks.filter(b=>b.type==='stone').length,iron:game.blocks.filter(b=>b.type==='iron').length},aiShots:game.aiShots,aiWeapon:game.lastAiWeapon,aiTactic:game.aiTactic,recoil:game.recoil.player,actorMotion:game.actorAnim.player.kind,actorMotionLife:game.actorAnim.player.life});
  $('adventureStage').value=String(progress.lastStage);$('duelDifficulty').value=progress.difficulty;document.querySelectorAll('[data-hero]').forEach(b=>{const chosen=b.dataset.hero===selectedHero;b.classList.toggle('selected',chosen);b.setAttribute?.('aria-pressed',String(chosen));});refreshMenu();
  requestAnimationFrame(frame);
