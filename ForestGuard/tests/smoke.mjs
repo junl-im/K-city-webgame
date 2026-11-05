@@ -65,6 +65,7 @@ assert.match(choice50,/close-button:focus-visible/);
 assert.ok(choice50.includes('#modal-box.growth-dialog #modal-actions .modal-action.alt'));
 assert.ok(choice50.includes('background:var(--fg-btn-sapphire) center/100% 100% no-repeat!important'));
 assert.ok(choice50.includes('font-size:clamp(10px,2.6vw,11px)!important'));
+assert.ok(choice50.includes('#modal-box.growth-dialog .spell-card.draft-card small'));
 assert.match(choice50,/#modal-box\.growth-dialog \.draft-progress/);
 assert.match(choice50,/border:0!important;border-radius:0!important/);
 assert.ok(result48.includes('clamp(10px,2.55vw,11px)'));

@@ -154,12 +154,12 @@
   filter:brightness(.90) drop-shadow(0 2px 3px rgba(0,16,12,.46))!important;
 }
 /* Keep the three carved cards readable at narrow widths without another frame. */
-#modal-layer #modal-box.growth-dialog .draft-card strong{
+#modal-layer #modal-box.growth-dialog .spell-card.draft-card strong{
   font-size:clamp(11px,3.15vw,13px)!important;
   line-height:1.25!important;
   text-wrap:balance;
 }
-#modal-layer #modal-box.growth-dialog .draft-card small{
+#modal-layer #modal-box.growth-dialog .spell-card.draft-card small{
   font-size:clamp(10px,2.6vw,11px)!important;
   line-height:1.3!important;
   color:#f7e8cc!important;
