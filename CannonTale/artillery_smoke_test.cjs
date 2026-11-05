@@ -11,6 +11,9 @@ if(/v0_[67]/.test(versionedPath)){
  assert(script.includes(marker),'Expected a stable v0.6 boot marker');
  script=script.replace(marker,' window.__simulateAdventureImpactForTest=(hit)=>{const b=game.blocks.find(v=>v.hp>20);game.phase="flying";game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,v)=>a+Math.max(0,v.hp),0),blockCounts:["wood","stone","iron"].map(t=>game.blocks.filter(v=>v.type===t).length),playerHp:game.playerHp,aiHp:game.aiHp};if(hit&&b)b.hp-=12;game.lastImpact={x:840,y:410};game.projectiles=[];finishFlight();return game.hitStreak;}; window.__damageDuelForTest=(owner)=>{const x=owner==="ai"?1018:190;applyExplosion({x,y:terrainY(x)-29,weapon:"normal"});return game.popups.at(-1);}; window.__weaponSocketForTest=(hero,owner="player")=>{const before=game.hero;game.hero=hero;const p=muzzleFor(owner,game.angle);game.hero=before;return p;}; window.__spawnFollowPopupForTest=()=>{const f=game.foes.find(x=>x.alive);spawnCombatPopup(f,"-17","blast");return {x:f.x,y:f.y};}; window.__moveFollowTargetForTest=(dx)=>{const f=game.foes.find(x=>x.alive);M.Body.setPosition(f.body,{x:f.body.position.x+dx,y:f.body.position.y});}; window.__materialHitForTest=()=>{const b=game.blocks.find(v=>v.type==="wood"&&v.hp>20);const pre=damageTier(b);markBlockImpact(b,pre,27);return {x:b.body.position.x,y:b.body.position.y};};  window.__moveMaterialForTest=(dx)=>{const b=game.blocks.find(v=>v.type==="wood"&&v.hp>20);M.Body.setPosition(b.body,{x:b.body.position.x+dx,y:b.body.position.y});};  window.__finishForTest=showResult; window.__hitFoeForTest=(damage)=>{const f=game.foes.find(x=>x.alive);if(!f)return;f.hp-=damage;f.hitAnim=.64;f.hitFlash=.3;f.attackAnim=0;if(f.hp<=0)defeatFoe(f);}; window.__damageBlockForTest=(damage)=>{const b=game.blocks.find(x=>x.type===\'wood\');if(!b)return -1;const prev=damageTier(b);b.hp-=damage;markBlockImpact(b,prev,damage);return damageTier(b);}; requestAnimationFrame(frame);\n})();');
 }
+assert(script.includes(' window.__artilleryLoadoutDebug='),'Duel diagnostics hook must be present');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__forceAiHeroForTest=(hero)=>{game.aiHero=hero;}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(html.includes('Artillery_Illustrated_UI_v1_1.png'),'The painted v1.1 UI atlas should be referenced');
@@ -74,6 +77,10 @@ assert(html.includes('#result .result-panel'),'End-of-battle should share the fa
 assert(html.includes('id="adventureBtn"')&&html.includes('id="duelBtn"'),'Illustrated mode buttons must keep interactive IDs');
 assert(!/<svg|image\/svg\+xml/.test(html),'CannonTale must stay SVG-free');
 assert(html.includes('art/duel_cannons_v21.webp'),'An original allied/enemy cannon atlas must be loaded');
+assert(html.includes('art/duel_cannon_parts_v22.webp'),'The independently painted gun barrels and carriages must load');
+assert(html.includes('art/fox_attack_v22.webp'),'Fox must use six independently painted attack poses');
+assert(html.includes('ctx.rotate(dir*(16*Math.PI/180-a))'),'Only the barrel must rotate with the firing angle');
+assert(html.includes('function cannonTrunnion(owner)'),'Muzzle and barrel pivot must share one source of truth');
 assert(/#controls #abilityBtn:not\(:disabled\)\{[^}]*background:transparent url\("art\/hud_ability_ready\.webp"\)/.test(html),'An enabled special ability must retain its illustrated bitmap, not the obsolete solid gradient');
 assert(html.includes('function duelActor(x,dir,own)'),'Duel visuals must be selected by the actual hero');
 assert(html.includes("if(hero==='bear'){cannon("),'Only the bear should operate a field cannon');
@@ -89,7 +96,21 @@ const handlers={};
 const elements=new Map();
 const noOp=()=>{};
 let imageDrawCalls=0,mediumTrajectoryStrokes=0,duelPilotDrawCalls=0,paintedCannonDrawCalls=0,previewDraws=[],badgeDraws=[];
-const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?(...args)=>{imageDrawCalls++;if(args.length===9&&args[7]===52&&args[8]===56)duelPilotDrawCalls++;if(args[0]?.id==='duelCannonArtwork')paintedCannonDrawCalls++;}:key==='stroke'?()=>{if(obj.strokeStyle==='#f4e6b9b0'&&obj.lineWidth>=3&&obj.lineWidth<=5)mediumTrajectoryStrokes++;}:key==='clearRect'||key==='save'||key==='restore'||key==='translate'||key==='setTransform'||key==='beginPath'||key==='moveTo'||key==='lineTo'||key==='stroke'||key==='fill'||key==='ellipse'||key==='arc'||key==='roundRect'||key==='fillText'||key==='strokeText'||key==='closePath'||key==='scale'||key==='rotate'||key==='rect'||key==='clip'||key==='bezierCurveTo'?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
+let splitCarriageDraws=0,splitBarrelDraws=0;
+const splitCannonColumns=new Set(),foxAttackFrames=new Set();
+function testDrawImage(...args){
+ imageDrawCalls++;
+ if(args.length===9&&args[7]===52&&args[8]===56)duelPilotDrawCalls++;
+ if(args[0]?.id==='duelCannonArtwork')paintedCannonDrawCalls++;
+ if(args[0]?.id==='duelCannonPartsArtwork'){
+  splitCannonColumns.add(args[1]);
+  if(args[2]===0)splitCarriageDraws++;
+  else splitBarrelDraws++;
+ }
+ if(args[0]?.id==='foxAttackArtwork')foxAttackFrames.add(Math.floor(args[2]/512)*3+Math.floor(args[1]/512));
+}
+const noOpKeys=new Set(['clearRect','save','restore','translate','setTransform','beginPath','moveTo','lineTo','fill','ellipse','arc','roundRect','fillText','strokeText','closePath','scale','rotate','rect','clip','bezierCurveTo']);
+const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?testDrawImage:key==='stroke'?()=>{if(obj.strokeStyle==='#f4e6b9b0'&&obj.lineWidth>=3&&obj.lineWidth<=5)mediumTrajectoryStrokes++;}:noOpKeys.has(key)?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
 ctx.fillRect=noOp;
 const previewCtx=new Proxy(ctx,{get:(obj,key)=>key==='drawImage'?(...args)=>previewDraws.push(args):key==='clearRect'?noOp:obj[key]});
 function el(id){if(!elements.has(id)){const listeners={},classes=new Set(),item={id,hidden:false,disabled:false,style:{},value:'',textContent:'',dataset:{},clientWidth:id==='field'?1280:id==='heroPreviewCanvas'?210:0,clientHeight:id==='field'?620:id==='heroPreviewCanvas'?120:0,width:0,height:0,tagName:'DIV',classList:{toggle(cls,force){if(force===undefined)force=!classes.has(cls);if(force)classes.add(cls);else classes.delete(cls);return !!force;},contains(cls){return classes.has(cls);}},addEventListener(type,fn){listeners[type]=fn;},dispatch(type,event={}){listeners[type]?.({target:item,...event});},click(){this.dispatch('click');},getContext:()=>id==='heroPreviewCanvas'?previewCtx:id.startsWith('heroBadge')?new Proxy(ctx,{get:(obj,key)=>key==='drawImage'?(...args)=>badgeDraws.push({id,args}):obj[key]}):ctx,getBoundingClientRect(){return{left:0,top:0,width:this.clientWidth,height:this.clientHeight};},setPointerCapture:noOp};elements.set(id,item);}return elements.get(id);}
@@ -99,6 +120,8 @@ const stages=[0,1,2,3].map(type=>{const b=el('stage-'+type);b.dataset.stage=Stri
 for(const id of ['stageMap','result','help','exitConfirm','enemyEntrance','shotReview'])el(id).hidden=true;
 for(const id of ['materialArtwork','combatArtwork']){const art=el(id);art.complete=true;art.naturalWidth=id==='combatArtwork'?1262:1536;art.naturalHeight=id==='combatArtwork'?1246:1024;}
 {const art=el('duelCannonArtwork');art.complete=true;art.naturalWidth=1774;art.naturalHeight=887;}
+{const art=el('duelCannonPartsArtwork');art.complete=true;art.naturalWidth=1774;art.naturalHeight=887;}
+{const art=el('foxAttackArtwork');art.complete=true;art.naturalWidth=1536;art.naturalHeight=1024;}
 const document={referrer:'',getElementById:el,querySelectorAll:selector=>selector==='[data-weapon]'?weapons:selector==='[data-hero]'?heroes:selector==='[data-stage]'?stages:[]};
 if(/v0_[34]/.test(versionedPath)){const art=el('menuArtwork');art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}
 if(/v0_[567]/.test(versionedPath)){for(const type of ['menuArtwork','rosterArtwork']){const art=el(type);art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}}
@@ -423,10 +446,12 @@ assert.equal(activeDuelLoadout.player.weapon,expectedWeapons[activeDuelLoadout.p
 assert.equal(activeDuelLoadout.ai.weapon,expectedWeapons[activeDuelLoadout.ai.hero]);
 assert.notEqual(activeDuelLoadout.player.hero,activeDuelLoadout.ai.hero,'AI must select a distinct hero');
 assert(activeDuelLoadout.paintedCannonReady,'Both original bitmap cannons must load successfully');
+assert(activeDuelLoadout.splitCannonReady,'The rotating cannon-parts atlas must be loaded');
+assert(activeDuelLoadout.foxAttackReady,'The transparent fox attack frames must be loaded');
 assert(activeDuelLoadout.playerMuzzle.weapon===activeDuelLoadout.player.weapon&&activeDuelLoadout.aiMuzzle.weapon===activeDuelLoadout.ai.weapon,
  'Duel muzzle positions must correspond to the wielded weapon');
 if(activeDuelLoadout.player.hero==='bear'||activeDuelLoadout.ai.hero==='bear'){
- assert(paintedCannonDrawCalls>=4&&duelPilotDrawCalls>=4,'Bear sides must use a real illustrated cannon with only a cropped pilot');
+ assert(splitCarriageDraws>=4&&splitBarrelDraws>=4&&duelPilotDrawCalls>=4,'Bear sides need independent illustrated wheel and barrel layers');
 }
 assert.equal(state().mode,'duel');
 assert.equal(state().turn,'player');
@@ -479,7 +504,19 @@ el('hero-bear').click();el('duelBtn').click();frames(4);
 const bearLoadout=window.__artilleryLoadoutDebug();
 assert.equal(bearLoadout.player.weapon,'cannon');
 assert.notEqual(bearLoadout.ai.hero,'bear');
-assert(paintedCannonDrawCalls>=4,`The golden allied cannon cell must be rendered when Bear is selected (draws=${paintedCannonDrawCalls})`);
+assert(splitCarriageDraws>=4&&splitBarrelDraws>=4&&splitCannonColumns.has(0),'The golden cannon must show both pivoted barrel and fixed wheels');
+assert.equal(paintedCannonDrawCalls,0,'Full one-piece cannon artwork should be fallback only');
 assert.equal(bearLoadout.playerMuzzle.weapon,'cannon');
+const pivot=bearLoadout.playerPivot,muzzle=bearLoadout.playerMuzzle;
+assert(Math.abs(muzzle.x-(pivot.x+Math.cos(43*Math.PI/180)*pivot.length))<.01,'Allied shell must spawn at its illustrated barrel tip');
+assert(Math.abs(muzzle.y-(pivot.y-Math.sin(43*Math.PI/180)*pivot.length))<.01,'Allied shell must track the rotated gun elevation');
+el('angle').value='68';el('angle').dispatch('input');frames(2);
+const raised=window.__artilleryLoadoutDebug().playerMuzzle;
+assert(raised.x<muzzle.x&&raised.y<muzzle.y,'Raising aim must move the actual cannon mouth up and back');
+window.__forceAiHeroForTest('bear');frames(3);
+assert(splitCannonColumns.has(887),'Enemy side must use the separately illustrated dark steel carriage and barrel');
+el('homeBtn').click();el('hero-fox').click();el('duelBtn').click();frames(2);
+el('fire').click();frames(30);
+assert.deepEqual([...foxAttackFrames].sort(),[0,1,2,3,4,5],'Fox must play six separate illustrated recoil frames');
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');
