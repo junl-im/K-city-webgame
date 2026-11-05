@@ -1543,6 +1543,69 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  }
 }
 
+/* v2.0.3: fill the entire combat dock with usable illustrated controls.
+   The old auto-sized action track collapsed both wide bitmap buttons to 0px.
+   The portrait dock also reserved a second, completely unused 86px grid track. */
+#controls.controls{
+ width:100%;min-width:0;
+ grid-template-columns:minmax(0,.95fr) minmax(0,1.25fr) minmax(0,1.05fr);
+}
+#controls .weapon-group,#controls .aim,#controls .action-col{min-width:0;}
+#controls .action-col{
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(68px,.82fr);
+ align-items:center!important;width:100%;min-width:0;
+ gap:clamp(3px,.5vw,9px);
+}
+#controls #overview,#controls #abilityBtn{
+ width:100%!important;min-width:0!important;flex:none!important;
+}
+#controls #fire{justify-self:center;max-width:100%;}
+/* Earlier selected-state gradients used a stronger selector than the new art.
+   Restore the matching painted bitmap for each selected ammunition type. */
+#controls .weapon.selected{
+ background:transparent url("art/hud_weapon_normal.webp") center/contain no-repeat!important;
+ box-shadow:none!important;
+}
+#controls .weapon.selected[data-weapon="bomb"]{
+ background-image:url("art/hud_weapon_bomb.webp")!important;
+}
+#controls .weapon.selected[data-weapon="split"]{
+ background-image:url("art/hud_weapon_split.webp")!important;
+}
+@media (min-width:781px) and (max-width:990px) and (min-height:551px){
+ #controls.controls{
+  grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+  grid-template-areas:"weapons aim" "actions actions";
+  row-gap:3px;
+ }
+ #controls .weapon-group{grid-area:weapons}
+ #controls .aim{grid-area:aim}
+ #controls .action-col{grid-area:actions;max-width:100%}
+ #controls .weapon{height:52px!important}
+ #controls #overview,#controls #abilityBtn{height:52px!important}
+ #controls #fire{height:62px!important;width:80px!important}
+}
+@media (max-width:780px) and (orientation:portrait){
+ #controls.controls{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-areas:"weapons" "aim" "actions"!important;
+  row-gap:4px;column-gap:0;
+ }
+ #controls .weapon-group{grid-area:weapons}
+ #controls .aim{grid-area:aim}
+ #controls .action-col{
+  grid-area:actions;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(68px,.82fr);
+  justify-items:stretch;gap:4px!important;
+ }
+ #controls #overview,#controls #abilityBtn{width:100%!important;}
+ #controls #fire{justify-self:center;}
+}
+@media (orientation:landscape) and (max-height:550px){
+ #controls.controls{grid-template-columns:minmax(0,.85fr) minmax(0,1.2fr) minmax(0,1.4fr)}
+ #controls .action-col{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(48px,.72fr);gap:2px}
+}
+
 </style>
 </head>
 <body>

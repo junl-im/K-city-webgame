@@ -23,6 +23,14 @@ assert(html.includes('scenery-integrated title'),'First screen should use transp
 assert(html.includes('CannonTale v1.8: illustrated menu'),'Scenic fantasy homepage needs active CSS');
 
 assert(html.includes('v2.0.2 -- real illustrated HUD buttons'),'Full illustrative HUD should replace generic CSS buttons');
+assert(html.includes('v2.0.3: fill the entire combat dock'),'Combat control dock should have the responsive full-width layout fix');
+assert(/#controls\.controls\{\s*width:100%;min-width:0;\s*grid-template-columns:minmax\(0,\.95fr\) minmax\(0,1\.25fr\) minmax\(0,1\.05fr\)/.test(html),'Desktop dock needs three explicitly flexible tracks; the former auto action track collapsed buttons');
+assert(/@media \(max-width:780px\) and \(orientation:portrait\)\{\s*#controls\.controls\{\s*grid-template-columns:minmax\(0,1fr\)!important/.test(html),'Portrait dock should not reserve an unused 86px column');
+for(const weapon of ['normal','bomb','split']){
+ assert(html.includes('art/hud_weapon_'+weapon+'.webp'),'Selected ammunition must keep its painted bitmap');
+}
+assert(/#controls \.weapon\.selected\{\s*background:transparent url\("art\/hud_weapon_normal.webp"\)/.test(html),'The selected-ammo gradient must not conceal original bitmap artwork');
+assert(/#controls #overview,#controls #abilityBtn\{\s*width:100%!important/.test(html),'Action icons must not collapse to zero width');
 assert(html.includes('#controls #fire.recent-shot{'),'Pressed artwork must match the fired state even when FIRE is disabled');
 assert(html.includes('#controls #fire:disabled:not(.recent-shot){'),'Long-flight disabled art must not override the pressed illustration');
 for(const name of [
