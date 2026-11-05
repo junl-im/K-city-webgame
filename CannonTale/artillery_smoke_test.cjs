@@ -18,6 +18,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__forceImpactAtTimeForTest=(hero,weapon,time)=>{const total=weapon==="bomb"?.65:.46;game.blastCores=[{x:540,y:200,life:total*(1-time),total,radius:weapon==="bomb"?69:41,hero,weapon,seed:0}];}; window.__impactMotesForTest=(hero,weapon)=>{spawnImpactMotes({x:530,y:270,hero,weapon},weapon==="bomb");return game.impactMotes.length;}; window.__impactMotePositionsForTest=()=>game.impactMotes.map(m=>({x:m.x,y:m.y,life:m.life})); window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__probeMaterialColumnForTest=(type,tier)=>drawPaintedColumn({w:26,h:108,type},tier); window.__probeCollapseForTest=()=>{const b=game.blocks.find(v=>v.type==="wood");const old=damageTier(b);b.hp=-1;markBlockImpact(b,old,95);b.dead=true;M.Composite.remove(game.engine.world,b.body);game.blocks=game.blocks.filter(v=>!v.dead);return game.collapseGhosts.length;}; window.__collapseGhostCountForTest=()=>game.collapseGhosts.length; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__groundToastForTest=()=>groundToastLayout(); window.__materialSoundForTest=()=>({wood:soundShapes.wood,stone:soundShapes.stone,iron:soundShapes.iron}); window.__triggerMaterialSoundForTest=(name)=>{const saved=game.sound;game.sound=true;playSound(name);game.sound=saved;}; window.__directionalImpactForTest=(offset)=>{const b=game.blocks.find(v=>v.type==="stone");if(!b)return null;const originalHp=b.hp;b.hp=b.maxHp*.42;markBlockImpact(b,0,34,b.body.position.x+offset);const result={side:b.impactSide,scar:b.hp<b.maxHp};b.hp=originalHp;return result;}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(html.includes('Artillery_Illustrated_UI_v1_1.png'),'The painted v1.1 UI atlas should be referenced');
@@ -31,6 +33,10 @@ assert(html.includes('CannonTale v1.8: illustrated menu'),'Scenic fantasy homepa
 
 assert(html.includes('v2.0.2 -- real illustrated HUD buttons'),'Full illustrative HUD should replace generic CSS buttons');
 assert(html.includes('v2.0.3: fill the entire combat dock'),'Combat control dock should have the responsive full-width layout fix');
+assert(/#shotReview\.shot-review\{[^}]*top:auto!important;[^}]*bottom:clamp\(/.test(html),'Post-impact result toast must appear at ground level rather than on top of the scene');
+assert(html.includes('function groundToastLayout()'),'Transient gameplay toasts must share the lower-ground notification design');
+assert(html.includes('function drawImpactScar(b,tier)'),'The hit side must leave a persistent directional crack on damaged structures');
+assert(html.includes('if(tier!==previousTier||b.hp<=0)playSound(b.type)'),'Material damage must trigger a distinct wood/stone/iron audio cue');
 assert(/#controls\.controls\{\s*width:100%;min-width:0;\s*grid-template-columns:minmax\(0,\.95fr\) minmax\(0,1\.25fr\) minmax\(0,1\.05fr\)/.test(html),'Desktop dock needs three explicitly flexible tracks; the former auto action track collapsed buttons');
 assert(/@media \(max-width:780px\) and \(orientation:portrait\)\{\s*#controls\.controls\{\s*grid-template-columns:minmax\(0,1fr\)!important/.test(html),'Portrait dock should not reserve an unused 86px column');
 for(const weapon of ['normal','bomb','split']){
@@ -527,9 +533,15 @@ el('overview').click();frames(5);
 assert.deepEqual(state().canvas,[390,355]);
 el('field').clientWidth=360;el('field').clientHeight=640;frames(5);
 assert.deepEqual(state().canvas,[360,640],'Portrait 360x640 canvas must match its container');
+const portraitToast=window.__groundToastForTest();
+assert(portraitToast.y>=640*.77&&portraitToast.y<=594,'Portrait notification must sit below the horizon near the ground');
+assert(portraitToast.screenWidth<=360-1,'Portrait toast must fit inside the actual visible battlefield');
 el('field').clientWidth=844;el('field').clientHeight=390;frames(5);
 assert.deepEqual(state().canvas,[844,390],'Landscape 844x390 canvas must match its container');
-assert(html.includes('spawnCollapseFragments(b)'),'Broken blocks should create large independent falling chunks');
+const landscapeToast=window.__groundToastForTest();
+assert(landscapeToast.y>=640*.77&&landscapeToast.y<=594,'Landscape notification must stay at ground level');
+assert(landscapeToast.fontSize>=portraitToast.fontSize,'Landscape toast can use larger type without hiding the target area');
+assert(html.includes('spawnCollapseFragments(b,direction)'),'Broken blocks should create large independent falling chunks biased by the impact direction');
 assert(html.includes('drawFoeElementalAttack(f,attackSurge)'),'The four monsters should emit state-specific attack FX');
 assert(html.includes('shatteredDescription'),'The impact report should list material-specific destruction');
 // Post-impact review automatically returns to aiming without a 7-second forced delay.
@@ -594,6 +606,24 @@ for(let kind=0;kind<foeFrameIds.length;kind++){
 assert.equal(legacyCombatDrawCalls,0,'Legacy monster atlas with unwanted paint remnants must not render when new sheets are loaded');
 window.__damageBlockForTest(30);frames(3);
 assert(paintedShardDrawCalls>0,'Wood debris should reuse the original damaged material painting');
+const leftImpact=window.__directionalImpactForTest(-70),rightImpact=window.__directionalImpactForTest(70);
+assert.equal(leftImpact.side,1,'Left-side impacts must crack and scatter toward the right');
+assert.equal(rightImpact.side,-1,'Right-side impacts must crack and scatter toward the left');
+assert(leftImpact.scar&&rightImpact.scar,'Both hit directions must leave visible material damage');
+const materialSounds=window.__materialSoundForTest();
+assert.deepEqual([materialSounds.wood.type,materialSounds.stone.type,materialSounds.iron.type],['triangle','sawtooth','sine'],'Timber, rock and steel must have separate sound timbres');
+assert(materialSounds.wood.duration<materialSounds.stone.duration&&materialSounds.stone.duration<materialSounds.iron.duration,'Metallic clang should ring longer than cracking wood and stone');
+const playedMaterials=[];
+window.AudioContext=class{
+ constructor(){this.currentTime=0;this.destination={};}
+ createOscillator(){const note={type:'',frequency:{setValueAtTime(v){note.startFrequency=v;},exponentialRampToValueAtTime:noOp},connect:noOp,start(){playedMaterials.push({type:note.type,frequency:note.startFrequency});},stop:noOp};return note;}
+ createGain(){return {gain:{setValueAtTime:noOp,exponentialRampToValueAtTime:noOp},connect:noOp};}
+};
+for(const material of ['wood','stone','iron'])window.__triggerMaterialSoundForTest(material);
+assert.deepEqual(playedMaterials.map(x=>x.type),['triangle','sawtooth','sine','sine'],'Sound synthesis must actually produce three material timbres plus metallic ring');
+assert.equal(playedMaterials.at(-1).frequency,1170,'Steel must add a high-frequency ringing harmonic');
+window.__triggerMaterialSoundForTest('wood');
+assert.equal(playedMaterials.length,4,'Simultaneous duplicate timber impacts must be rate-limited');
 const columnImage=fs.readFileSync(__dirname+'/art/material_columns_v28.webp');
 assert.equal(columnImage.toString('ascii',0,4),'RIFF','The pillar damage atlas must be a WebP bitmap');
 assert.equal(columnImage.toString('ascii',8,12),'WEBP','The pillar damage atlas must retain its WebP signature');
