@@ -1150,14 +1150,20 @@
       const sprite=this.heroSprites[i],muzzle=HERO_MUZZLES[id]||[0,-24];
       const anchorX=sprite?.active?Math.max(x-9,Math.min(x+9,sprite.x)):x;
       const anchorY=sprite?.active?Math.max(556,Math.min(568,sprite.y)):566;
+      // Hold the actual shot until the painted eight-frame weapon reaches release.
+      // Use battle time, so a pause or 2x playback never sends a frozen hero's arrow.
+      const windup=Math.round(V.duration(id,'attack')*.43);
       for(let p=0;p<num;p++){
         const offset=(p-(num-1)/2)*12;
-        // Spawn at the currently animated weapon, even during chained attacks.
-        const bolt=this.add.image(anchorX+muzzle[0]+offset,anchorY+muzzle[1],'shot-'+id).setDisplaySize(id==='cat'?31:id==='rabbit'?27:32,32).setDepth(6);
-        const trailColor=id==='rabbit'?0x8fe5ff:id==='cat'?0xffb56c:id==='megafox'?0xffe77f:id==='bear'?0xe8cf9e:0xb9e18a;
-        const trail=this.add.image(bolt.x-23,bolt.y,'trail-'+id).setDisplaySize(id==='megafox'?78:65,22).setAlpha(.72).setDepth(5);
+        const bolt=this.add.image(anchorX+muzzle[0]+offset,anchorY+muzzle[1],'shot-'+id)
+          .setDisplaySize(id==='cat'?31:id==='rabbit'?27:32,32).setDepth(6).setVisible(false);
+        const trail=this.add.image(bolt.x-23,bolt.y,'trail-'+id)
+          .setDisplaySize(id==='megafox'?78:65,22).setAlpha(.72).setDepth(5).setVisible(false);
         const evolvePower=id==='megafox'&&this.evolutionPath==='sun'?1.25:1;
-        this.projectiles.push({spr:bolt,trail,target,x:bolt.x,y:bolt.y,damage:hero.damage*this.damageBonus*evolvePower,kind:id});
+        this.projectiles.push({spr:bolt,trail,target,x:bolt.x,y:bolt.y,
+          damage:hero.damage*this.damageBonus*evolvePower,kind:id,
+          launchSlot:i,muzzle,muzzleOffset:offset,burstHead:p===0,
+          releaseAt:this.gameClock+(sprite?.active?windup:0),released:false});
       }
       if(sprite){
         V.trigger(sprite,'attack',this.gameClock+V.duration(id,'attack'),this.gameClock);
@@ -1168,14 +1174,26 @@
         sprite.setPosition(Math.max(x-9,Math.min(x+9,sprite.x)),
           Math.max(556,Math.min(568,sprite.y)));
         const reach=id==='bear'?6:id==='rabbit'?2:4;
-        const windup=Math.round(V.duration(id,'attack')*.43);
-        this.tweens.add({targets:sprite,x:x-reach,y:559,duration:windup,ease:'Sine.easeOut',
+        this.tweens.add({targets:sprite,x:x-reach,y:559,duration:windup,timeScale:this.speed,ease:'Sine.easeOut',
           onComplete:()=>{if(sprite.active)this.tweens.add({targets:sprite,x,y:566,
-            duration:V.duration(id,'attack')-windup,ease:'Sine.easeInOut'});}});
-        this.playHeroAttackCue(anchorX+muzzle[0],id);
+            duration:V.duration(id,'attack')-windup,timeScale:this.speed,ease:'Sine.easeInOut'});}});
       }
     }
-    playHeroAttackCue(x,id){
+    releaseProjectile(p){
+      // A moving archer or a changed roster must not leave the bolt floating at
+      // an old firing socket. Resolve the living rear-view weapon on release.
+      const sprite=this.heroIds[p.launchSlot]===p.kind?this.heroSprites[p.launchSlot]:null;
+      const x=HERO_POSITIONS[p.launchSlot];
+      const actorX=sprite?.active?Math.max(x-9,Math.min(x+9,sprite.x)):x;
+      const actorY=sprite?.active?Math.max(556,Math.min(568,sprite.y)):566;
+      p.x=actorX+p.muzzle[0]+p.muzzleOffset;
+      p.y=actorY+p.muzzle[1];
+      p.spr.setPosition(p.x,p.y).setVisible(true);
+      p.trail.setPosition(p.x-23,p.y).setVisible(true);
+      p.released=true;
+      if(p.burstHead)this.playHeroAttackCue(p.x-p.muzzleOffset,p.kind,p.y);
+    }
+    playHeroAttackCue(x,id,y=535){
       const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if(reduced||this.attackFxActive>=12||this.ended)return;
       const key=id==='rabbit'?'shard-crystal':id==='cat'?'shard-spore':'shard-leaf';
@@ -1183,7 +1201,7 @@
       for(let n=0;n<2;n++){
         if(this.attackFxActive>=12)break;
         this.attackFxActive++;
-        const fx=this.add.image(x+(n?20:-8),535-n*7,key).setDisplaySize(15+n*4,16+n*3)
+        const fx=this.add.image(x+(n?20:-8),y-n*7,key).setDisplaySize(15+n*4,16+n*3)
           .setAlpha(.83).setDepth(6.5);
         if(tint)fx.setTint(tint);
         this.tweens.add({targets:fx,x:fx.x+(n?18:-12),y:fx.y-20-n*10,
@@ -2047,6 +2065,10 @@
       for(let i=this.projectiles.length-1;i>=0;i--){
         const p=this.projectiles[i],t=p.target;
         if(!this.enemies.includes(t)){p.spr.destroy();p.trail.destroy();this.projectiles.splice(i,1);continue;}
+        if(!p.released){
+          if(this.gameClock<p.releaseAt)continue;
+          this.releaseProjectile(p);
+        }
         const dx=t.x-p.x,dy=t.y-p.y,d=Math.hypot(dx,dy);
         const speed=(p.kind==='rabbit'?510:p.kind==='cat'?465:660)*dt/1000;
         if(d<=speed+17){this.hitEnemy(t,p.damage,p.kind);p.spr.destroy();p.trail.destroy();this.projectiles.splice(i,1);}
@@ -2325,6 +2347,32 @@
            eliteDeath6:battle.textures.exists('motion-shroom-death-5'),
            deathDuration:V.duration('shroom','death'),
            heroDuration:V.duration('fox','attack')};
+       },
+       attackReleaseQA(){
+         if(!battle||battle.ended||battle.drafting)return null;
+         battle.spawnEnemy('runner');
+         const target=battle.enemies[battle.enemies.length-1];
+         target.y=405;target.spd=0;
+         const previousFocus=battle.focusEnemy,previousUntil=battle.focusUntil;
+         battle.focusEnemy=target;battle.focusUntil=battle.gameClock+1000;
+         const count=battle.projectiles.length;
+         battle.shoot(2);
+         const shots=battle.projectiles.slice(count).filter(p=>p.target===target);
+         const first=shots[0];
+         const staged=!!first&&shots.every(p=>!p.spr.visible&&!p.trail.visible&&
+           !p.released&&p.releaseAt>battle.gameClock);
+         const fox=battle.heroSprites[2],savedX=fox.x,savedY=fox.y;
+         fox.setPosition(savedX+3,savedY-2);
+         if(first)battle.releaseProjectile(first);
+         const socket=!!first&&first.released&&first.spr.visible&&first.trail.visible&&
+           Math.abs(first.x-(fox.x+HERO_MUZZLES.fox[0]+first.muzzleOffset))<.01&&
+           Math.abs(first.y-(fox.y+HERO_MUZZLES.fox[1]))<.01;
+         fox.setPosition(savedX,savedY);
+         for(const p of battle.projectiles.splice(count)){p.spr.destroy();p.trail.destroy();}
+         battle.focusEnemy=previousFocus;battle.focusUntil=previousUntil;
+         battle.removeEnemy(target);
+         return {staged,socket,releaseDelay:first?.releaseAt-battle.gameClock||0,
+           launchCount:shots.length,animation:fox.getData('motionState')};
        },
        attackGestureQA(){
          if(!battle||battle.ended||battle.drafting)return null;
