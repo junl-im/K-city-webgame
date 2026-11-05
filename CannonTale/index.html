@@ -1909,7 +1909,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
    Use a bounded illustration gutter so live captions stay inside the painted surface. */
 #menu .hero-stage-info{
  padding:5px 7px 5px clamp(43px,5vw,65px)!important;
- box-sizing:border-box;
+ box-sizing:border-box;position:relative;
 }
 #menu .hero-stage-info strong,
 #menu .hero-stage-info small{
@@ -1932,6 +1932,63 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  #menu .hero-stage-info{padding:2px 5px 2px clamp(35px,8vw,50px)!important}
 }
 @media(prefers-reduced-motion:reduce){#menu .hero-choice{transition:none}}
+
+/* v3.2: dedicated, painted storybook emblems for all heroes and regions. */
+#menu .hero-stage-info::before{
+ content:"";position:absolute;left:clamp(7px,1.2vw,13px);top:50%;
+ width:clamp(29px,3.4vw,39px);height:clamp(29px,3.4vw,39px);
+ transform:translateY(-50%);pointer-events:none;
+ background-image:url("art/hero_ability_medals_v32.webp");
+ background-repeat:no-repeat;background-size:200% 200%;
+ filter:drop-shadow(0 2px 3px #39241273);
+}
+#menu .hero-stage[data-hero="fox"] .hero-stage-info::before{background-position:0 0}
+#menu .hero-stage[data-hero="bear"] .hero-stage-info::before{background-position:100% 0}
+#menu .hero-stage[data-hero="rabbit"] .hero-stage-info::before{background-position:0 100%}
+#menu .hero-stage[data-hero="cat"] .hero-stage-info::before{background-position:100% 100%}
+#menu .hero-choice{position:relative;padding-right:clamp(17px,2.8dvh,27px)!important}
+#menu .hero-choice::before{
+ content:"";position:absolute;right:3px;top:50%;transform:translateY(-50%);
+ width:clamp(16px,2.7dvh,24px);height:clamp(16px,2.7dvh,24px);
+ background:url("art/hero_ability_medals_v32.webp") 0 0/200% 200% no-repeat;
+ filter:drop-shadow(0 1px 2px #4d332c70);pointer-events:none;
+}
+#menu .hero-choice[data-hero="bear"]::before{background-position:100% 0}
+#menu .hero-choice[data-hero="rabbit"]::before{background-position:0 100%}
+#menu .hero-choice[data-hero="cat"]::before{background-position:100% 100%}
+#menu .select-trigger[data-select-target="adventureStage"]::before{
+ content:"";flex:none;width:clamp(20px,3.6dvh,29px);height:clamp(20px,3.6dvh,29px);
+ background:url("art/stage_medals_v32.webp") 0 0/200% 200% no-repeat;
+ filter:drop-shadow(0 1px 2px #593e1e60);pointer-events:none;
+}
+#menu .select-trigger[data-stage-index="1"]::before{background-position:100% 0}
+#menu .select-trigger[data-stage-index="2"]::before{background-position:0 100%}
+#menu .select-trigger[data-stage-index="3"]::before{background-position:100% 100%}
+#menu .custom-select-option.stage-option{
+ display:flex;align-items:center;gap:8px;min-height:47px;padding:4px 8px;
+}
+#menu .custom-select-option .choice-medal{
+ display:block;flex:0 0 36px;width:36px;height:36px;
+ background:url("art/stage_medals_v32.webp") center/200% 200% no-repeat;
+ filter:drop-shadow(0 2px 2px #634a2b55);pointer-events:none;
+}
+#menu .custom-select-option[data-stage-option="0"] .choice-medal{background-position:0 0}
+#menu .custom-select-option[data-stage-option="1"] .choice-medal{background-position:100% 0}
+#menu .custom-select-option[data-stage-option="2"] .choice-medal{background-position:0 100%}
+#menu .custom-select-option[data-stage-option="3"] .choice-medal{background-position:100% 100%}
+#menu .custom-select-option .choice-caption{display:flex;flex-direction:column;min-width:0;gap:2px}
+#menu .custom-select-option .choice-caption strong{display:block;color:#55351e;font-size:clamp(11px,1.4vw,14px);line-height:1.15}
+#menu .custom-select-option .choice-caption small{display:block;color:#876543;font-size:10px;line-height:1.2}
+#menu .custom-select-option[aria-selected="true"] .choice-caption strong{color:#3b572c}
+@media(max-width:430px){
+ #menu .select-trigger[data-select-target="adventureStage"]::before{width:18px;height:18px}
+ #menu .select-trigger[data-select-target="adventureStage"]{gap:2px;padding-left:7px;padding-right:6px}
+ #menu .hero-stage-info::before{width:27px;height:27px;left:6px}
+ #menu .hero-choice{padding-right:13px!important}
+ #menu .hero-choice::before{right:1px;width:13px;height:13px}
+ #menu .custom-select-option.stage-option{min-height:43px}
+ #menu .custom-select-option .choice-medal{flex-basis:31px;width:31px;height:31px}
+}
 
 </style>
 </head>
@@ -2121,6 +2178,11 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   $('heroPreviewName').textContent=chosen.name;
   $('heroPreviewWeapon').textContent=chosen.weapon;
   $('heroPreviewSkill').textContent=chosen.skill;
+  $('heroPreview').title=`${chosen.name} · ${chosen.weapon} · ${chosen.skill}`;
+  document.querySelectorAll('.hero-choice[data-hero]').forEach(button=>{
+   const info=heroPresentation[button.dataset.hero];
+   if(info){button.title=`${info.name} · ${info.skill}`;button.setAttribute('aria-label',`${info.name}, ${info.weapon}, 특수기 ${info.skill}`);}
+  });
   lastHeroPreviewKey='';
   drawHeroBadges();drawHeroPreview();
  }
@@ -2130,6 +2192,8 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
    const chosen=Array.from(select.options).find(option=>option.value===select.value);
    const label=chosen?.textContent||'선택';
    trigger.querySelector('.select-current').textContent=label;
+   if(trigger.dataset.selectTarget==='adventureStage')trigger.dataset.stageIndex=String(clamp(Number(select.value)||0,0,3));
+   trigger.title=label;
    trigger.setAttribute('aria-label',`${trigger.dataset.selectTarget==='adventureStage'?'모험 지역':'결투 난이도'}: ${label}`);
   });
  }
@@ -2154,7 +2218,15 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
    const item=document.createElement('button');
    item.type='button';item.className='custom-select-option';item.id=`custom-choice-${id}-${i}`;
    item.setAttribute('role','option');item.setAttribute('aria-selected',String(option.value===select.value));
-   item.textContent=option.textContent;
+   if(id==='adventureStage'){
+    const stageDetails=['초원 · 목재 초소','숲길 · 돌담 방어선','강풍 · 흔들다리','철갑 · 마지막 요새'];
+    item.classList.add('stage-option');item.dataset.stageOption=String(i);
+    const icon=document.createElement('span');icon.className='choice-medal';icon.setAttribute('aria-hidden','true');
+    const caption=document.createElement('span');caption.className='choice-caption';
+    const name=document.createElement('strong');name.textContent=option.textContent;
+    const note=document.createElement('small');note.textContent=stageDetails[i]||'';
+    caption.append(name,note);item.append(icon,caption);
+   }else item.textContent=option.textContent;
    item.addEventListener('click',()=>{
     select.value=option.value;
     select.dispatchEvent(new Event('change',{bubbles:true}));
@@ -2167,7 +2239,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   layer.hidden=false;activeIllustratedSelect=id;trigger.setAttribute('aria-expanded','true');
   const bounds=$('menu').getBoundingClientRect(),rect=trigger.getBoundingClientRect();
   const width=Math.min(Math.max(185,rect.width+50),Math.max(110,bounds.width-20));
-  const height=Math.min(choices.length*39+22,230);
+  const height=Math.min(choices.length*(id==='adventureStage'?47:39)+22,230);
   const below=bounds.bottom-rect.bottom-8,above=rect.top-bounds.top-8;
   const upward=below<height&&above>below;
   const maxHeight=Math.max(66,Math.min(height,upward?above:below));

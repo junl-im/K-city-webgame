@@ -43,6 +43,16 @@ for(const asset of ['popup_ground_notice_v31.webp','popup_impact_review_v31.webp
  assert.equal(bytes.subarray(0,4).toString(),'RIFF',`${asset} must be a binary WebP asset`);
  assert.equal(bytes.subarray(8,12).toString(),'WEBP',`${asset} must retain WebP encoding`);
 }
+for(const asset of ['hero_ability_medals_v32.webp','stage_medals_v32.webp']){
+ assert(html.includes('art/'+asset),`The character and stage UI must display ${asset}`);
+ const bytes=fs.readFileSync(`${__dirname}/art/${asset}`);
+ assert.equal(bytes.subarray(0,4).toString(),'RIFF',`${asset} must be real WebP artwork`);
+ assert.equal(bytes.subarray(8,12).toString(),'WEBP',`${asset} must not be SVG or placeholder text`);
+}
+assert(/<select id="adventureStage" hidden tabindex="-1" aria-hidden="true">/.test(html),'Android must not open the system stage-picker sheet');
+assert(/<select id="duelDifficulty" hidden tabindex="-1" aria-hidden="true">/.test(html),'Android must not open the system difficulty picker');
+assert(html.includes("item.classList.add('stage-option')")&&html.includes('choice-medal'),'The in-game picker must paint a distinct stage medal for each option');
+assert(html.includes('trigger.dataset.stageIndex='),'The selected stage emblem must follow saved progress');
 assert(html.includes('id="customSelectLayer"')&&html.includes('function openIllustratedSelect(id)'),'Game must use interactive illustrated drop-downs rather than native select popups');
 assert(html.includes('select.dispatchEvent(new Event(\'change\''),'Illustrated drop-downs must propagate selection to original game state listeners');
 assert(html.includes('refreshIllustratedSelects();'),'Programmatic level changes must update the illustrated drop-down label');
