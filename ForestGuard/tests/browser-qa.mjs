@@ -348,6 +348,10 @@ try{
         eliteHurt6:true,paintedMonsterHurt:true,paintedMonsterKinds:10,
         ordinaryDeath5:true,eliteDeath6:true,deathDuration:510,heroDuration:520},
         'All painted rear attacks and 5/6-frame monster hit reactions must load at runtime');
+      const release=await page.evaluate(()=>window.__ForestGuardQA.attackReleaseQA());
+      assert.ok(release?.staged&&release.socket&&release.launchCount===1&&
+        release.releaseDelay>=200&&release.releaseDelay<=240&&release.animation==='attack',
+        'Painted fox attack must wind up before its hidden bolt leaves the moving weapon: '+JSON.stringify(release));
       const shroomPainting=await page.evaluate(()=>window.__ForestGuardQA.shroomAttackPaintingQA());
       assert.deepEqual(shroomPainting,{loaded:true,returnPoses:true,fullMotion:true,transparentCorners:true},
         'Mushroom elite must have six continuous transparent painted attack frames');
