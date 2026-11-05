@@ -13,7 +13,7 @@ if(/v0_[67]/.test(versionedPath)){
 }
 assert(script.includes(' window.__artilleryLoadoutDebug='),'Duel diagnostics hook must be present');
 script=script.replace(' window.__artilleryLoadoutDebug=',
- ' window.__forceAiHeroForTest=(hero)=>{game.aiHero=hero;}; window.__artilleryLoadoutDebug=');
+ ' window.__forceAiHeroForTest=(hero)=>{game.aiHero=hero;}; window.__forceAiAttackForTest=()=>{actorMotion("ai","attack",.48);}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(html.includes('Artillery_Illustrated_UI_v1_1.png'),'The painted v1.1 UI atlas should be referenced');
@@ -79,6 +79,13 @@ assert(!/<svg|image\/svg\+xml/.test(html),'CannonTale must stay SVG-free');
 assert(html.includes('art/duel_cannons_v21.webp'),'An original allied/enemy cannon atlas must be loaded');
 assert(html.includes('art/duel_cannon_parts_v22.webp'),'The independently painted gun barrels and carriages must load');
 assert(html.includes('art/fox_attack_v22.webp'),'Fox must use six independently painted attack poses');
+for(const hero of ['bear','rabbit','cat']){
+ assert(html.includes(`art/${hero}_attack_v23.webp`),`${hero} must have its own independently painted six-frame attack asset`);
+ const bytes=fs.readFileSync(`${__dirname}/art/${hero}_attack_v23.webp`);
+ assert.equal(bytes.subarray(0,4).toString(),'RIFF',`${hero} attack asset must be a real WebP binary`);
+ assert.equal(bytes.subarray(8,12).toString(),'WEBP',`${hero} attack asset must retain WebP format`);
+}
+assert(html.includes('function drawHeroAttackFrame(which,x,y,scale,dir,side)'),'All four heroes must use their individually painted animation frames');
 assert(html.includes('ctx.rotate(dir*(16*Math.PI/180-a))'),'Only the barrel must rotate with the firing angle');
 assert(html.includes('function cannonTrunnion(owner)'),'Muzzle and barrel pivot must share one source of truth');
 assert(/#controls #abilityBtn:not\(:disabled\)\{[^}]*background:transparent url\("art\/hud_ability_ready\.webp"\)/.test(html),'An enabled special ability must retain its illustrated bitmap, not the obsolete solid gradient');
@@ -97,7 +104,7 @@ const elements=new Map();
 const noOp=()=>{};
 let imageDrawCalls=0,mediumTrajectoryStrokes=0,duelPilotDrawCalls=0,paintedCannonDrawCalls=0,previewDraws=[],badgeDraws=[];
 let splitCarriageDraws=0,splitBarrelDraws=0;
-const splitCannonColumns=new Set(),foxAttackFrames=new Set();
+const splitCannonColumns=new Set(),heroAttackFrames=Object.fromEntries(['fox','bear','rabbit','cat'].map(hero=>[hero,new Set()]));
 function testDrawImage(...args){
  imageDrawCalls++;
  if(args.length===9&&args[7]===52&&args[8]===56)duelPilotDrawCalls++;
@@ -107,7 +114,9 @@ function testDrawImage(...args){
   if(args[2]===0)splitCarriageDraws++;
   else splitBarrelDraws++;
  }
- if(args[0]?.id==='foxAttackArtwork')foxAttackFrames.add(Math.floor(args[2]/512)*3+Math.floor(args[1]/512));
+ for(const hero of Object.keys(heroAttackFrames)){
+  if(args[0]?.id===`${hero}AttackArtwork`)heroAttackFrames[hero].add(Math.floor(args[2]/512)*3+Math.floor(args[1]/512));
+ }
 }
 const noOpKeys=new Set(['clearRect','save','restore','translate','setTransform','beginPath','moveTo','lineTo','fill','ellipse','arc','roundRect','fillText','strokeText','closePath','scale','rotate','rect','clip','bezierCurveTo']);
 const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?testDrawImage:key==='stroke'?()=>{if(obj.strokeStyle==='#f4e6b9b0'&&obj.lineWidth>=3&&obj.lineWidth<=5)mediumTrajectoryStrokes++;}:noOpKeys.has(key)?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
@@ -121,7 +130,9 @@ for(const id of ['stageMap','result','help','exitConfirm','enemyEntrance','shotR
 for(const id of ['materialArtwork','combatArtwork']){const art=el(id);art.complete=true;art.naturalWidth=id==='combatArtwork'?1262:1536;art.naturalHeight=id==='combatArtwork'?1246:1024;}
 {const art=el('duelCannonArtwork');art.complete=true;art.naturalWidth=1774;art.naturalHeight=887;}
 {const art=el('duelCannonPartsArtwork');art.complete=true;art.naturalWidth=1774;art.naturalHeight=887;}
-{const art=el('foxAttackArtwork');art.complete=true;art.naturalWidth=1536;art.naturalHeight=1024;}
+for(const hero of Object.keys(heroAttackFrames)){
+ const art=el(`${hero}AttackArtwork`);art.complete=true;art.naturalWidth=1536;art.naturalHeight=1024;
+}
 const document={referrer:'',getElementById:el,querySelectorAll:selector=>selector==='[data-weapon]'?weapons:selector==='[data-hero]'?heroes:selector==='[data-stage]'?stages:[]};
 if(/v0_[34]/.test(versionedPath)){const art=el('menuArtwork');art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}
 if(/v0_[567]/.test(versionedPath)){for(const type of ['menuArtwork','rosterArtwork']){const art=el(type);art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}}
@@ -448,6 +459,7 @@ assert.notEqual(activeDuelLoadout.player.hero,activeDuelLoadout.ai.hero,'AI must
 assert(activeDuelLoadout.paintedCannonReady,'Both original bitmap cannons must load successfully');
 assert(activeDuelLoadout.splitCannonReady,'The rotating cannon-parts atlas must be loaded');
 assert(activeDuelLoadout.foxAttackReady,'The transparent fox attack frames must be loaded');
+assert.deepEqual(activeDuelLoadout.paintedAttackReady,{fox:true,bear:true,rabbit:true,cat:true},'All four independent attack sheets must load');
 assert(activeDuelLoadout.playerMuzzle.weapon===activeDuelLoadout.player.weapon&&activeDuelLoadout.aiMuzzle.weapon===activeDuelLoadout.ai.weapon,
  'Duel muzzle positions must correspond to the wielded weapon');
 if(activeDuelLoadout.player.hero==='bear'||activeDuelLoadout.ai.hero==='bear'){
@@ -517,6 +529,18 @@ window.__forceAiHeroForTest('bear');frames(3);
 assert(splitCannonColumns.has(887),'Enemy side must use the separately illustrated dark steel carriage and barrel');
 el('homeBtn').click();el('hero-fox').click();el('duelBtn').click();frames(2);
 el('fire').click();frames(30);
-assert.deepEqual([...foxAttackFrames].sort(),[0,1,2,3,4,5],'Fox must play six separate illustrated recoil frames');
+assert.deepEqual([...heroAttackFrames.fox].sort(),[0,1,2,3,4,5],'Fox must play six separate illustrated recoil frames');
+for(const hero of ['bear','rabbit','cat']){
+ el('homeBtn').click();el('hero-'+hero).click();el('adventureStage').value='0';el('adventureBtn').click();frames(2);
+ el('fire').click();frames(30);
+ assert.deepEqual([...heroAttackFrames[hero]].sort(),[0,1,2,3,4,5],`${hero} adventure launch must paint all six individual attack poses`);
+}
+// The opponent's handheld weapon and left-facing artwork must use the same animation path.
+el('homeBtn').click();el('hero-bear').click();el('duelBtn').click();frames(2);
+for(const hero of ['fox','rabbit','cat']){
+ heroAttackFrames[hero].clear();
+ window.__forceAiHeroForTest(hero);window.__forceAiAttackForTest();frames(30);
+ assert.deepEqual([...heroAttackFrames[hero]].sort(),[0,1,2,3,4,5],`${hero} opponent must paint all six independent attack frames`);
+}
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');
