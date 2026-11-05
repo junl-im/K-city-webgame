@@ -225,7 +225,7 @@ const handlers={};
 const elements=new Map();
 const noOp=()=>{};
 let imageDrawCalls=0,mediumTrajectoryStrokes=0,duelPilotDrawCalls=0,paintedCannonDrawCalls=0,previewDraws=[],badgeDraws=[];
-const overviewSkySources=[],miniHudLabels=[];
+const overviewSkySources=[];
 let splitCarriageDraws=0,splitBarrelDraws=0;
 const splitCannonColumns=new Set(),heroAttackFrames=Object.fromEntries(['fox','bear','rabbit','cat'].map(hero=>[hero,new Set()]));
 const foeFrameIds=['foeAcornArtwork','foeGolemArtwork','foeWindArtwork','foeBossArtwork'];
@@ -261,7 +261,7 @@ function testDrawImage(...args){
  if(args[0]?.id==='heroImpactStagesArtwork')paintedImpactStageCells.add(`${Math.round(args[2]/240)},${Math.round(args[1]/240)}`);
 }
 const noOpKeys=new Set(['clearRect','save','restore','translate','setTransform','beginPath','moveTo','lineTo','fill','ellipse','arc','roundRect','fillText','strokeText','closePath','scale','rotate','rect','clip','bezierCurveTo','quadraticCurveTo']);
-const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?testDrawImage:key==='fillText'?(value)=>{if(/^(아군|상대) · /.test(String(value)))miniHudLabels.push(String(value));}:key==='stroke'?()=>{if(obj.strokeStyle==='#f4e6b9b0'&&obj.lineWidth>=3&&obj.lineWidth<=5)mediumTrajectoryStrokes++;if(['#ffcb79','#58616d','#c1a3f2','#91f7e4'].includes(obj.strokeStyle))flightRibbonColors.add(obj.strokeStyle);}:noOpKeys.has(key)?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
+const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?testDrawImage:key==='stroke'?()=>{if(obj.strokeStyle==='#f4e6b9b0'&&obj.lineWidth>=3&&obj.lineWidth<=5)mediumTrajectoryStrokes++;if(['#ffcb79','#58616d','#c1a3f2','#91f7e4'].includes(obj.strokeStyle))flightRibbonColors.add(obj.strokeStyle);}:noOpKeys.has(key)?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
 ctx.fillRect=noOp;
 const previewCtx=new Proxy(ctx,{get:(obj,key)=>key==='drawImage'?(...args)=>previewDraws.push(args):key==='clearRect'?noOp:obj[key]});
 function el(id){if(!elements.has(id)){const listeners={},classes=new Set(),item={id,hidden:false,disabled:false,style:{},value:'',textContent:'',dataset:{},clientWidth:id==='field'?1280:id==='heroPreviewCanvas'?210:0,clientHeight:id==='field'?620:id==='heroPreviewCanvas'?120:0,width:0,height:0,tagName:'DIV',classList:{toggle(cls,force){if(force===undefined)force=!classes.has(cls);if(force)classes.add(cls);else classes.delete(cls);return !!force;},contains(cls){return classes.has(cls);}},addEventListener(type,fn){listeners[type]=fn;},dispatch(type,event={}){listeners[type]?.({target:item,...event});},click(){this.dispatch('click');},getContext:()=>id==='heroPreviewCanvas'?previewCtx:id.startsWith('heroBadge')?new Proxy(ctx,{get:(obj,key)=>key==='drawImage'?(...args)=>badgeDraws.push({id,args}):obj[key]}):ctx,getBoundingClientRect(){return{left:0,top:0,width:this.clientWidth,height:this.clientHeight};},setPointerCapture:noOp};elements.set(id,item);}return elements.get(id);}
@@ -673,8 +673,12 @@ assert.equal(state().mode,'duel');
 assert.equal(state().turn,'player');
 assert.equal(state().maxShots,Infinity,'Duel deathmatch has no ammunition or round cap');
 assert(el('leftStatus').hidden&&el('rightStatus').hidden,'Legacy lower-corner durability text must be hidden in duels');
-assert(miniHudLabels.some(t=>t.startsWith('아군 · '))&&miniHudLabels.some(t=>t.startsWith('상대 · ')),
- 'Both original character-specific miniature health plates must render above duel heroes');
+const hud=window.__duelHudDebug();
+assert.equal(hud.visible.player,true,'Player HP gauge must follow the visible player hero');
+assert.equal(hud.visible.ai,hud.opponentScreenX>=0&&hud.opponentScreenX<=hud.viewportWidth,
+ 'Opponent gauge may only appear when the opponent is actually inside the camera view');
+assert(html.includes('function drawDuelHealthHud(x,owner)')&&!html.includes('roundRect(-75,-34,150,59'),
+ 'Hero HP display must be a narrow unframed gauge, not a large decorative plaque');
 const popup=window.__damageDuelForTest('ai');
 assert.equal(popup.x,1018,'Duel damage must float next to the actual struck AI');
 assert(popup.y<590&&popup.y>0,'Duel damage must appear above the character');
@@ -692,8 +696,18 @@ frames(5);
 assert.deepEqual(state().canvas,[390,355]);
 el('overview').click();frames(5);
 assert.deepEqual(state().canvas,[390,355]);
+assert(window.__duelHudDebug().visible.player&&window.__duelHudDebug().visible.ai,
+ 'Battle overview should show both HP gauges above both visible heroes');
 el('field').clientWidth=360;el('field').clientHeight=640;frames(5);
 assert.deepEqual(state().canvas,[360,640],'Portrait 360x640 canvas must match its container');
+assert(window.__duelHudDebug().visible.player&&window.__duelHudDebug().visible.ai,
+ 'Portrait overview should keep both small health gauges attached to their heroes');
+el('overview').click();frames(6);
+assert.equal(window.__duelHudDebug().visible.ai,false,
+ 'A portrait camera focused on our hero must NOT show the offscreen opponent gauge');
+assert.equal(window.__duelHudDebug().visible.player,true,
+ 'Our hero should retain its own slim gauge above its head');
+el('overview').click();frames(3);
 assert(overviewSkySources.some(s=>s.destinationHeight>50&&s.sourceHeight>=100),
  'Portrait overview must extend a substantial section of painted sky rather than stretching two pixels into stripes');
 assert(overviewSkySources.every(s=>s.sourceHeight>2),'Overview sky must never stretch a one- or two-pixel-wide painted scanline');
