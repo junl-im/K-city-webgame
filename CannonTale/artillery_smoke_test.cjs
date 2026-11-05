@@ -107,6 +107,10 @@ assert(v40Style.includes('flex:0 0 51%!important')&&v40Style.includes('grid-temp
 assert(v40Style.includes('white-space:normal!important')&&v40Style.includes('overflow-wrap:anywhere'),'Long Korean weapon/skill names must wrap inside the larger plaque');
 assert(v40Style.includes('orientation:portrait')&&v40Style.includes('orientation:landscape'),'Hero info must fit both narrow and wide aspect ratios');
 assert(!/<svg|image\/svg\+xml/.test(v40Style),'Hero plaque patch must remain SVG-free');
+const v41Style=html.slice(html.lastIndexOf('/* v4.1: Shift the live lettering'),html.indexOf('</style>'));
+assert(v41Style.includes('grid-template-columns:34% minmax(0,1fr)!important')&&v41Style.includes('grid-template-columns:35% minmax(0,1fr)!important'),'Hero plaque text must move right with a larger emblem gutter on desktop and portrait');
+assert(v41Style.includes('grid-template-columns:32% minmax(0,1fr)!important'),'Short landscape hero plaque still needs a safe medal gutter');
+assert(!/<svg|image\/svg\+xml/.test(v41Style),'Hero label adjustment must remain SVG-free');
 for(const asset of ['popup_ground_notice_v31.webp','popup_impact_review_v31.webp','popup_exit_confirm_v31.webp','popup_parchment_modal_v31.webp','popup_action_button_v31.webp','hero_info_plaque_v31.webp','hero_portrait_frame_v31.webp']){
  assert(html.includes('art/'+asset),`Real illustrated popup and hero UI must use ${asset}`);
  const bytes=fs.readFileSync(`${__dirname}/art/${asset}`);
@@ -455,12 +459,18 @@ assert.equal(el('chargeGauge').hidden,false,'Hold should reveal illustrated char
 assert.equal(state().heroMotionFrame,-1,'Holding FIRE must put hero into charge pose');
 frames(12);
 const earlyZoom=state().chargeZoom,earlyReveal=state().chargeReveal;
+const earlyCamera=window.__chargeCameraDebug();
 frames(48);
 assert(Number.isFinite(state().chargeAimX),'Charging must track the predicted landing x');
+const heldCamera=window.__chargeCameraDebug();
+assert(heldCamera.power>earlyCamera.power,'Long hold must increase actual charged power');
+assert(heldCamera.aimX>earlyCamera.aimX+20,'Landing forecast must use the increasing held power, not the stale power slider');
+assert(heldCamera.glintX>earlyCamera.glintX+20,'The visible leading reticle must travel outward as charging advances');
 assert(earlyZoom<1&&state().chargeZoom<earlyZoom,'Long press should smoothly widen the battlefield as power rises');
 assert(earlyReveal>.18&&state().chargeReveal>earlyReveal,'Forecast dots should gradually reveal more of the trajectory');
-assert(Math.abs(state().playerScreenX-chargeScreenAnchor)<22,'Charge zoom must keep the launch hero close to the original screen position');
-assert(state().chargeZoom>.72,'Cinematic zoom must preserve readable stage artwork and characters');
+assert(heldCamera.heroX>heldCamera.width*.05&&heldCamera.heroX<chargeScreenAnchor+4,'Camera must widen from the shooter without abandoning the visible launch position');
+assert(heldCamera.glintScreenX>=0&&heldCamera.glintScreenX<=heldCamera.width*.98,`The moving aimpoint should remain in the visible battlefield: ${JSON.stringify(heldCamera)}`);
+assert(state().chargeZoom>.3,'Cinematic zoom should not shrink the battle into a strip');
 assert(Number(el('fireLabel').textContent.replace(/[^0-9]/g,''))>20,'Charge should rise while holding');
 el('fire').dispatch('pointerup',{pointerId:7});
 assert.equal(state().shots,1,'Releasing a charged button must fire');
@@ -483,11 +493,22 @@ el('fire').dispatch('pointerdown',{pointerId:89,button:0});
 frames(80);
 assert(state().chargeZoom<.93,'Portrait long press should visibly pull back the camera');
 assert(state().chargeReveal>.55,'Portrait forecast should grow with the held power');
-assert(Math.abs(state().playerScreenX-portraitAnchor)<26,'The portrait shooter should remain anchored during the camera action');
+const portraitCamera=window.__chargeCameraDebug();
+assert(portraitCamera.heroX>portraitCamera.width*.05&&portraitCamera.heroX<=portraitAnchor+8,'Portrait camera must preserve the shooter near its left edge');
+assert(portraitCamera.glintScreenX>=0&&portraitCamera.glintScreenX<=portraitCamera.width*.99,`Portrait camera must progressively widen until its visible aimpoint is in frame: ${JSON.stringify(portraitCamera)}`);
+assert(state().chargeZoom<.85,'Portrait camera should pull back in proportion to the actual shot distance');
 const portraitHeldZoom=state().chargeZoom;
 el('fire').dispatch('pointercancel',{pointerId:89});frames(28);
 assert.equal(state().shots,0,'Cancelling a charge must not fire a projectile');
 assert(state().chargeZoom>portraitHeldZoom,'Cancelling a charge must recover the normal camera smoothly');
+// Short landscape stays anchored and shows the traveling glint without clipping.
+el('field').clientWidth=844;el('field').clientHeight=390;frames(15);
+el('fire').dispatch('pointerdown',{pointerId:91,button:0});frames(72);
+const landscapeCamera=window.__chargeCameraDebug();
+assert(landscapeCamera.heroX>=0&&landscapeCamera.heroX<landscapeCamera.width*.35,'Landscape camera must keep the shooter visible');
+assert(landscapeCamera.glintScreenX>=0&&landscapeCamera.glintScreenX<=landscapeCamera.width,'Landscape target must stay visible as power grows');
+el('fire').dispatch('pointercancel',{pointerId:91});frames(18);
+assert.equal(state().shots,0,'Landscape charging cancel must not fire');
 el('homeBtn').click();
 // Mobile interruptions must cancel charging without dispatching a phantom shot.
 el('adventureBtn').click();frames(3);

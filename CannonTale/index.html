@@ -2528,6 +2528,16 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  #menu .hero-stage-info>strong{font-size:clamp(10px,2.8dvh,13px)!important}
  #menu .hero-stage-info>small,#menu .hero-stage-info>.hero-skill-preview{font-size:clamp(8px,2.1dvh,10px)!important}
 }
+
+/* v4.1: Shift the live lettering away from the hero medal while retaining
+   the larger v4.0 painted parchment and its wrapping text safe-zone. */
+#menu .hero-stage-info{grid-template-columns:34% minmax(0,1fr)!important}
+@media(orientation:portrait) and (max-width:600px){
+ #menu .hero-stage-info{grid-template-columns:35% minmax(0,1fr)!important}
+}
+@media(orientation:landscape) and (max-height:660px){
+ #menu .hero-stage-info{grid-template-columns:32% minmax(0,1fr)!important}
+}
 </style>
 </head>
 <body>
@@ -2805,7 +2815,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;$('menu').dataset.stage=String(chosen);const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];const def=stageSet[chosen];$('stageShotPreview').textContent=`탄약 ${def.shots}발 · 목표 ${def.foes.length}명`;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;refreshIllustratedSelects();}
  function refreshMenu(){refreshHeroPreview();const cleared=progress.best.filter(Boolean).length;$('progressSummary').textContent=cleared?`최고 등급 합계 ${progress.best.reduce((a,b)=>a+b,0)} / 12 · 승리 ${progress.wins}회`:'모험 기록 · 아직 첫 승리 전';$('progressTier').textContent=`완료 ${cleared} / 4`;refreshStageMap();}
- const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:100,aiHp:100,turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,chainHits:0,crushHits:0,weaponFractures:0};
+ const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:100,aiHp:100,turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,chargeFocusX:null,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,chainHits:0,crushHits:0,weaponFractures:0};
  // Six authored motion phases per hero (procedural transforms of the existing PNG/WebP art).
  // They are NOT six separately painted sprite frames.
  const heroMotionKeys={
@@ -3012,8 +3022,8 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   if(canResumeAimFromReview())completeReview();
   if(game.phase!=='aim')return false;
   game.chargeActive=true;game.chargeElapsed=0;game.chargeStartPower=game.power;game.chargedPower=20;
-  game.chargeAimX=null;game.chargeReveal=.18;game.panX=null;
-  // Hold the player near the same screen X while zooming out toward the forecast.
+  game.chargeAimX=null;game.chargeFocusX=null;game.chargeReveal=.18;game.panX=null;
+  // Begin at the shooter; open up the world as the predicted aimpoint travels.
   game.chargeAnchorPx=clamp((origin().x-game.camera)*game.scale,cv.clientWidth*.12,cv.clientWidth*.28);
   $('chargeGauge').hidden=false;$('chargeFill').style.width='20%';
   $('fireLabel').textContent='파워 20%';$('fire').classList.toggle('charging',true);
@@ -3022,7 +3032,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function releaseFireCharge(){
   if(!game.chargeActive)return false;
-  game.chargeActive=false;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeReveal=1;
+  game.chargeActive=false;game.chargeAimX=null;game.chargeFocusX=null;game.chargeAnchorPx=null;game.chargeReveal=1;
   $('chargeGauge').hidden=true;$('fire').classList.toggle('charging',false);
   // Quick taps reuse the last selected power. A deliberate hold selects a new strength.
   game.power=game.chargeElapsed<.22?game.chargeStartPower:game.chargedPower;
@@ -3030,7 +3040,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   firePlayer();return true;
  }
  function cancelFireCharge(){
-  game.chargeActive=false;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeReveal=1;$('chargeGauge').hidden=true;
+  game.chargeActive=false;game.chargeAimX=null;game.chargeFocusX=null;game.chargeAnchorPx=null;game.chargeReveal=1;$('chargeGauge').hidden=true;
   if(game.actorAnim.player.kind==='charge')actorMotion('player','idle',.01);
   $('fire').classList.toggle('charging',false);$('fireLabel').textContent='발사!';
  }
@@ -3834,7 +3844,7 @@ const materialCells={
  }}
  function drawTrajectory(){
   if(game.phase!=='aim'||game.turn!=='player')return;
-  let a=game.angle,p=game.power;
+  let a=game.angle,p=game.chargeActive?game.chargedPower:game.power;
   if(game.drag){const o=origin(),dx=clamp(o.x-game.drag.x,7,105),dy=clamp(o.y-game.drag.y,-35,95);a=clamp(Math.atan2(dy,dx)*180/Math.PI,15,82);p=clamp(Math.hypot(dx,dy)/125*100,20,100);}
   const dots=predict(a,p,game.wind,'player');
   if(game.chargeActive){const target=dots.impact||dots[dots.length-1];game.chargeAimX=target?target.x:null;}
@@ -3842,6 +3852,9 @@ const materialCells={
   const reveal=game.chargeActive?.18+.82*powerProgress:1;
   game.chargeReveal=reveal;
   const lastIndex=Math.min(dots.length-1,Math.max(2,Math.floor((dots.length-1)*reveal)));
+  // The leading glint follows the *currently charged* ballistic prediction.
+  // The camera follows this same glint instead of the stale pre-charge target.
+  if(game.chargeActive)game.chargeFocusX=dots[lastIndex]?.x??game.chargeAimX;
   // Medium-contrast trajectory: readable without hiding the stage artwork.
   if(dots.length>2){
    ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.setLineDash?.([2.5,13]);
@@ -4078,12 +4091,14 @@ const materialCells={
   const fit=game.overview?Math.min(w/W,h/H):h/H;
   const charging=game.chargeActive&&game.phase==='aim'&&game.turn==='player'&&!game.overview;
   const powerProgress=clamp((game.chargedPower-20)/80,0,1);
-  const distance=Math.max(0,(game.chargeAimX??origin().x)-origin().x);
-  const distanceWeight=clamp((distance-200)/750,0,1);
-  // No extra camera library: damped cinematic zoom tied to the real shell forecast.
-  // Keep it modest so combat characters, ground and illustrated stages stay legible.
-  const targetZoom=charging?1-(w<=650?.22:.14)*powerProgress*(.68+.32*distanceWeight):1;
-  game.chargeZoom+=((game.overview?1:targetZoom)-game.chargeZoom)*(charging?.09:.14);
+  const shotDistance=Math.max(0,(game.chargeAimX??origin().x)-origin().x);
+  const normalVisible=w/fit;
+  // Start at the player and widen with real charged-shot distance, not the
+  // previous firepower. On narrow screens reserve space for both character and
+  // moving reticle before resorting to a very small tracking pan.
+  const desiredRangeZoom=clamp((normalVisible*.83)/Math.max(170,shotDistance+55),w<=650?.30:.70,1);
+  const targetZoom=charging?Math.min(1-(w<=650?.12:.11)*powerProgress,desiredRangeZoom):1;
+  game.chargeZoom+=((game.overview?1:targetZoom)-game.chargeZoom)*(charging?.20:.14);
   if(!charging&&Math.abs(1-game.chargeZoom)<.001)game.chargeZoom=1;
   game.scale=Math.max(.001,fit*(game.overview?1:game.chargeZoom));
   // Preserve the ground line near its normal vertical position while pulling back.
@@ -4097,14 +4112,17 @@ const materialCells={
   const nearby=impactHold?game.debris.filter(d=>d.life>0&&Math.abs(d.x-game.reviewFocusX)<145):[];
   const movingCenter=nearby.length?nearby.reduce((a,d)=>a+d.x,0)/nearby.length:game.reviewFocusX;
   const impactCenter=game.reviewFocusX*.78+movingCenter*.22;
-  // The former impact-point tracking pushed the hero off small screens.
-  // Instead pin the launch position and reveal the destination by easing out.
-  const chargeCamera=origin().x-(game.chargeAnchorPx??w*.2)/game.scale;
+  // The shooter is the camera's anchor. Only when the leading aiming dot would
+  // leave the frame may the camera track it, without hiding the shooter.
+  const chargeAnchor=origin().x-(game.chargeAnchorPx??w*.2)/game.scale;
+  const chargeLead=(game.chargeFocusX??origin().x)-w*.86/game.scale;
+  const playerVisibleLimit=origin().x-w*.06/game.scale;
+  const chargeCamera=Math.min(Math.max(chargeAnchor,chargeLead),Math.max(chargeAnchor,playerVisibleLimit));
   const focus=active?active.x-visible*.43
     :charging?chargeCamera
     :game.panX!==null?game.panX
     :impactHold?impactCenter-visible*.51:defaultCam;
-  game.camera+=(clamp(focus,charging?-70:0,edge)-game.camera)*(charging?.13:.12);
+  game.camera+=(clamp(focus,charging?-70:0,edge)-game.camera)*(charging?.18:.12);
  }
  function drawChargeReadiness(){
   if(!game.chargeActive||game.phase!=='aim'||game.turn!=='player')return;
@@ -4205,6 +4223,8 @@ const materialCells={
  // Small, read-only automation hook for smoke testing; not required to play.
  window.__artilleryLoadoutDebug=()=>({player:{hero:game.hero,weapon:duelWeapon(game.hero)},ai:{hero:game.aiHero,weapon:duelWeapon(game.aiHero)},paintedCannonReady:!!(duelCannonAtlas?.complete&&duelCannonAtlas.naturalWidth>0),splitCannonReady:!!(duelPartsAtlas?.complete&&duelPartsAtlas.naturalWidth>0),foxAttackReady:!!(foxAttackAtlas?.complete&&foxAttackAtlas.naturalWidth>0),paintedAmmunitionReady:paintedAmmunitionReady(),ammunitionCells:{rows:ammunitionRows,columns:ammunitionColumns},paintedAttackReady:Object.fromEntries(Object.entries(paintedAttackAtlases).map(([hero,img])=>[hero,!!(img?.complete&&img.naturalWidth>0&&img.naturalHeight>0)])),playerMuzzle:muzzleFor('player'),aiMuzzle:muzzleFor('ai',game.aiAngle),playerPivot:cannonTrunnion('player'),aiPivot:cannonTrunnion('ai')});
  window.__artilleryDebug=()=>({mode:game.mode,stage:game.stage,difficulty:game.difficulty,hero:game.hero,aiHero:game.aiHero,abilityUsed:game.abilityUsed,abilityArmed:game.abilityArmed,abilityCount:game.abilityCount,wind:game.wind,phase:game.phase,shots:game.shots,maxShots:game.maxShots,hitStreak:game.hitStreak,popupPositions:game.popups.map(p=>({x:p.x,y:p.y,value:p.value})),chargeActive:game.chargeActive,chargeAimX:game.chargeAimX,chargeZoom:game.chargeZoom,chargeReveal:game.chargeReveal,playerScreenX:(origin().x-game.camera)*game.scale,scale:game.scale,camera:game.camera,chargedPower:game.chargedPower,heroMotionFrame:actorPoseFrame('player',game.hero).index,turn:game.turn,projectiles:game.projectiles.length,projectilePierce:game.projectiles[0]?.pierce||0,foes:game.foes.filter(x=>x.alive).length,bossHp:game.foes.find(f=>f.boss&&f.alive)?.hp||0,playerHp:game.playerHp,aiHp:game.aiHp,sound:game.sound,canvas:[cv.width,cv.height],rotatingBlocks:game.blocks.filter(b=>Math.abs(b.angle)>.05).length,physics:!!game.engine,spriteReady:spriteReady(game.hero),sceneReady:sceneReady(),enemyReady:enemyArtReady(),combatReady:combatArtReady(),paintedFoeReady:paintedFoeAtlases.map((_,kind)=>paintedFoeArtReady(kind)),foePoses:game.foes.map(f=>foePose(f)),foeAttacks:game.foes.reduce((n,f)=>n+f.attackCount,0),rubbleCount:game.rubble.length,materialReady:materialArtReady(),introVisible:!$('enemyEntrance').hidden,materialTiers:game.blocks.map(b=>damageTier(b)),aimImpact:game.phase==='aim'?predict(game.angle,game.power,game.wind).impact?.kind||'none':'inactive',debrisCount:game.debris.length,stageMapOpen:!$('stageMap').hidden,exitOpen:!$('exitConfirm').hidden,savedBest:progress.best.slice(),savedWins:progress.wins,skillEffects:game.skillEffects.length,blastCores:game.blastCores.length,dyingFoes:game.foes.filter(f=>!f.alive&&f.deathTimer>0).length,damagedBlocks:game.blocks.filter(b=>b.hp<b.maxHp).length,reviewVisible:!$('shotReview').hidden,reviewTitle:game.reviewInfo?.title||'',reviewFocusX:game.reviewFocusX,reviewNext:game.reviewNext,reviewTimer:game.reviewTimer,materials:{wood:game.blocks.filter(b=>b.type==='wood').length,stone:game.blocks.filter(b=>b.type==='stone').length,iron:game.blocks.filter(b=>b.type==='iron').length},aiShots:game.aiShots,aiWeapon:game.lastAiWeapon,aiTactic:game.aiTactic,recoil:game.recoil.player,actorMotion:game.actorAnim.player.kind,actorMotionLife:game.actorAnim.player.life});
+ // Separate compact camera debug view for portrait tracking regression tests.
+ window.__chargeCameraDebug=()=>({heroX:(origin().x-game.camera)*game.scale,aimX:game.chargeAimX,aimScreenX:game.chargeAimX===null?null:(game.chargeAimX-game.camera)*game.scale,glintX:game.chargeFocusX,glintScreenX:game.chargeFocusX===null?null:(game.chargeFocusX-game.camera)*game.scale,zoom:game.chargeZoom,power:game.chargedPower,cameraX:game.camera,width:cv.clientWidth});
  $('adventureStage').value=String(progress.lastStage);$('duelDifficulty').value=progress.difficulty;document.querySelectorAll('[data-hero]').forEach(b=>{const chosen=b.dataset.hero===selectedHero;b.classList.toggle('selected',chosen);b.setAttribute?.('aria-pressed',String(chosen));});refreshMenu();
  requestAnimationFrame(frame);
 })();
