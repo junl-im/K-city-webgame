@@ -225,6 +225,7 @@ const handlers={};
 const elements=new Map();
 const noOp=()=>{};
 let imageDrawCalls=0,mediumTrajectoryStrokes=0,duelPilotDrawCalls=0,paintedCannonDrawCalls=0,previewDraws=[],badgeDraws=[];
+const overviewSkySources=[],miniHudLabels=[];
 let splitCarriageDraws=0,splitBarrelDraws=0;
 const splitCannonColumns=new Set(),heroAttackFrames=Object.fromEntries(['fox','bear','rabbit','cat'].map(hero=>[hero,new Set()]));
 const foeFrameIds=['foeAcornArtwork','foeGolemArtwork','foeWindArtwork','foeBossArtwork'];
@@ -237,6 +238,9 @@ const paintedImpactStageCells=new Set();
 const flightRibbonColors=new Set();
 function testDrawImage(...args){
  imageDrawCalls++;
+ if(args[0]?.id==='stageArtwork'&&args.length===9&&args[4]<args[0].naturalHeight/2){
+  overviewSkySources.push({sourceHeight:args[4],destinationHeight:args[8]});
+ }
  if(args.length===9&&args[7]===52&&args[8]===56)duelPilotDrawCalls++;
  if(args[0]?.id==='duelCannonArtwork')paintedCannonDrawCalls++;
  if(args[0]?.id==='duelCannonPartsArtwork'){
@@ -257,7 +261,7 @@ function testDrawImage(...args){
  if(args[0]?.id==='heroImpactStagesArtwork')paintedImpactStageCells.add(`${Math.round(args[2]/240)},${Math.round(args[1]/240)}`);
 }
 const noOpKeys=new Set(['clearRect','save','restore','translate','setTransform','beginPath','moveTo','lineTo','fill','ellipse','arc','roundRect','fillText','strokeText','closePath','scale','rotate','rect','clip','bezierCurveTo','quadraticCurveTo']);
-const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?testDrawImage:key==='stroke'?()=>{if(obj.strokeStyle==='#f4e6b9b0'&&obj.lineWidth>=3&&obj.lineWidth<=5)mediumTrajectoryStrokes++;if(['#ffcb79','#58616d','#c1a3f2','#91f7e4'].includes(obj.strokeStyle))flightRibbonColors.add(obj.strokeStyle);}:noOpKeys.has(key)?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
+const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?testDrawImage:key==='fillText'?(value)=>{if(/^(아군|상대) · /.test(String(value)))miniHudLabels.push(String(value));}:key==='stroke'?()=>{if(obj.strokeStyle==='#f4e6b9b0'&&obj.lineWidth>=3&&obj.lineWidth<=5)mediumTrajectoryStrokes++;if(['#ffcb79','#58616d','#c1a3f2','#91f7e4'].includes(obj.strokeStyle))flightRibbonColors.add(obj.strokeStyle);}:noOpKeys.has(key)?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
 ctx.fillRect=noOp;
 const previewCtx=new Proxy(ctx,{get:(obj,key)=>key==='drawImage'?(...args)=>previewDraws.push(args):key==='clearRect'?noOp:obj[key]});
 function el(id){if(!elements.has(id)){const listeners={},classes=new Set(),item={id,hidden:false,disabled:false,style:{},value:'',textContent:'',dataset:{},clientWidth:id==='field'?1280:id==='heroPreviewCanvas'?210:0,clientHeight:id==='field'?620:id==='heroPreviewCanvas'?120:0,width:0,height:0,tagName:'DIV',classList:{toggle(cls,force){if(force===undefined)force=!classes.has(cls);if(force)classes.add(cls);else classes.delete(cls);return !!force;},contains(cls){return classes.has(cls);}},addEventListener(type,fn){listeners[type]=fn;},dispatch(type,event={}){listeners[type]?.({target:item,...event});},click(){this.dispatch('click');},getContext:()=>id==='heroPreviewCanvas'?previewCtx:id.startsWith('heroBadge')?new Proxy(ctx,{get:(obj,key)=>key==='drawImage'?(...args)=>badgeDraws.push({id,args}):obj[key]}):ctx,getBoundingClientRect(){return{left:0,top:0,width:this.clientWidth,height:this.clientHeight};},setPointerCapture:noOp};elements.set(id,item);}return elements.get(id);}
@@ -667,6 +671,10 @@ if(activeDuelLoadout.player.hero==='bear'||activeDuelLoadout.ai.hero==='bear'){
 }
 assert.equal(state().mode,'duel');
 assert.equal(state().turn,'player');
+assert.equal(state().maxShots,Infinity,'Duel deathmatch has no ammunition or round cap');
+assert(el('leftStatus').hidden&&el('rightStatus').hidden,'Legacy lower-corner durability text must be hidden in duels');
+assert(miniHudLabels.some(t=>t.startsWith('아군 · '))&&miniHudLabels.some(t=>t.startsWith('상대 · ')),
+ 'Both original character-specific miniature health plates must render above duel heroes');
 const popup=window.__damageDuelForTest('ai');
 assert.equal(popup.x,1018,'Duel damage must float next to the actual struck AI');
 assert(popup.y<590&&popup.y>0,'Duel damage must appear above the character');
@@ -686,6 +694,9 @@ el('overview').click();frames(5);
 assert.deepEqual(state().canvas,[390,355]);
 el('field').clientWidth=360;el('field').clientHeight=640;frames(5);
 assert.deepEqual(state().canvas,[360,640],'Portrait 360x640 canvas must match its container');
+assert(overviewSkySources.some(s=>s.destinationHeight>50&&s.sourceHeight>=100),
+ 'Portrait overview must extend a substantial section of painted sky rather than stretching two pixels into stripes');
+assert(overviewSkySources.every(s=>s.sourceHeight>2),'Overview sky must never stretch a one- or two-pixel-wide painted scanline');
 const portraitToast=window.__groundToastForTest();
 assert(portraitToast.y>=640*.77&&portraitToast.y<=594,'Portrait notification must sit below the horizon near the ground');
 assert(portraitToast.screenWidth<=360-1,'Portrait toast must fit inside the actual visible battlefield');
@@ -707,6 +718,16 @@ assert.equal(state().phase,'review','Short-shot impact should open the review ov
 frames(185);
 assert.equal(state().phase,'aim','Review should return to aiming in under about 3 seconds');
 assert.equal(el('fire').disabled,false,'FIRE must be active again after automatic result review');
+el('homeBtn').click();
+// Skills with a phase requirement must stay tappable and display a reason when unavailable.
+el('hero-fox').click();el('duelBtn').click();frames(3);
+assert.equal(el('abilityBtn').disabled,false,'Fox flight-only skill must be tappable before firing');
+assert(el('abilityBtn').classList.contains('ability-unavailable'),'Dormant flight skill keeps painted inactive artwork');
+assert(el('abilityBtn').title.includes('포탄이 날아가는'),'Skill button must announce the flight timing condition');
+el('abilityBtn').click();
+assert.equal(state().abilityCount,0,'A premature special-ability tap must not consume its charge');
+assert(window.__cannonUiDebug().message.includes('포탄이 날아가는')&&window.__cannonUiDebug().messageTime>0,
+ 'Blocked special abilities must show a visible on-battlefield explanation');
 el('homeBtn').click();
 // Runtime compact fallback: an unusually short Android web viewport must use compact density.
 el('homeBtn').click();
@@ -853,5 +874,15 @@ el('homeBtn').click();el('adventureBtn').click();
 assert.equal(el('hint').hidden,false,'Entering a new battle should show the brief hint again');
 frames(290);
 assert.equal(el('hint').hidden,true,'The ground hint must automatically dismiss after roughly 4.5 seconds');
+// All four adventure landscapes and the duel arena share the same overview sky extension.
+el('field').clientWidth=360;el('field').clientHeight=640;
+for(let stage=0;stage<4;stage++){
+ el('homeBtn').click();el('adventureStage').value=String(stage);el('adventureBtn').click();frames(2);
+ const before=overviewSkySources.length;
+ el('overview').click();frames(2);
+ const fresh=overviewSkySources.slice(before);
+ assert(fresh.length>0&&fresh.every(s=>s.sourceHeight>=100),`Map ${stage+1} overview must extend actual illustrated sky, not pixel scanlines`);
+ assert(window.__cannonUiDebug().skyPad>0,`Map ${stage+1} portrait overview should retain centered vertical padding`);
+}
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');

@@ -1509,6 +1509,12 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  opacity:.67!important;
  filter:drop-shadow(0 2px 2px #10283a8b)!important;
 }
+/* Keep unavailable skills tappable: their illustrated dormant state explains itself on tap. */
+#controls #abilityBtn.ability-unavailable{
+ background:transparent url("art/hud_ability_used.webp") center/contain no-repeat!important;
+ opacity:.78!important;
+ filter:drop-shadow(0 2px 3px #10283a9c)!important;
+}
 #controls #overview:active,#controls #abilityBtn:not(:disabled):active{
  transform:translateY(2px) scale(.96)!important;
 }
@@ -2994,7 +3000,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   for(const f of game.foes){const body=M.Bodies.circle(f.x,f.y,f.r,{friction:.82,frictionStatic:1,restitution:.07,density:.0011,sleepThreshold:55,label:'foe'});body.plugin.foe=f;f.body=body;M.Composite.add(game.engine.world,body);}
  }
  function newGame(mode,stage=0){
-  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:3;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
+  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:Infinity;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
   // Every duel is hero-versus-hero. The opponent is different from the selected player.
   const challengers=['fox','bear','rabbit','cat'].filter(hero=>hero!==game.hero);
   game.aiHero=mode==='duel'?challengers[Math.floor(Math.random()*challengers.length)]:'bear';
@@ -3002,10 +3008,10 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   initPhysics();
   if(mode==='adventure')buildAdventure(game.stage);
   $('menu').hidden=true;$('stageMap').hidden=true;$('result').hidden=true;$('exitConfirm').hidden=true;$('shotReview').hidden=true;$('controls').hidden=false;
-  $('modeChip').textContent=mode==='adventure'?'모험 포격':'포격 결투';$('stageChip').textContent=mode==='adventure'?stageSet[game.stage].name:`AI ${heroSet[game.aiHero].name} · ${game.difficulty==='easy'?'쉬움':game.difficulty==='hard'?'어려움':'보통'}`;
+  $('modeChip').textContent=mode==='adventure'?'모험 포격':'데스매치';$('stageChip').textContent=mode==='adventure'?stageSet[game.stage].name:`AI ${heroSet[game.aiHero].name} · ${game.difficulty==='easy'?'쉬움':game.difficulty==='hard'?'어려움':'보통'}`;
   $('bossBanner').hidden=mode!=='adventure'||!game.foes.some(f=>f.boss);
   $('enemyEntrance').hidden=mode!=='adventure';$('enemyEntrance').dataset.stage=String(game.stage);$('enemyEntranceName').textContent=['도토리 수호병','이끼 바위거인','바람의 정령','강철 화염대장'][game.stage];
-  $('hint').hidden=false;$('hint').textContent=mode==='adventure'?`${heroSet[game.hero].name} 출전! 각도·파워 조준 · 특수기: ${heroSet[game.hero].ability}`:`${heroSet[game.hero].name} vs AI ${heroSet[game.aiHero].name}! 바람·각도·파워로 승부하세요.`;
+  $('hint').hidden=false;$('hint').textContent=mode==='adventure'?`${heroSet[game.hero].name} 출전! 각도·파워 조준 · 특수기: ${heroSet[game.hero].ability}`:`무제한 포격 데스매치! 상대 HP를 0으로 만들 때까지 계속 싸우세요.`;
   angleEl.value=game.angle;powerEl.value=game.power;chooseWeapon('normal');
   updateHud();resize();
  }
@@ -3054,14 +3060,30 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   const allow=(game.phase==='aim'&&game.turn==='player')||canResumeAimFromReview();$('fire').disabled=!allow;
   document.querySelectorAll('[data-weapon]').forEach(b=>b.disabled=!allow);
   angleEl.disabled=!allow;powerEl.disabled=!allow;
-  $('leftStatus').hidden=game.mode==='menu';$('rightStatus').hidden=game.mode==='menu';
-  $('leftStatus').textContent=game.mode==='duel'?`우리 팀 내구도 ${Math.max(0,Math.ceil(game.playerHp))} / 100`:`남은 포탄 ${Math.max(0,game.maxShots-game.shots)}발`;
+  $('leftStatus').hidden=game.mode!=='adventure';$('rightStatus').hidden=game.mode!=='adventure';
+  $('leftStatus').textContent=game.mode==='adventure'?`남은 포탄 ${Math.max(0,game.maxShots-game.shots)}발`:'';
   const boss=game.foes.find(f=>f.boss&&f.alive);
-  $('rightStatus').textContent=game.mode==='duel'?`상대 내구도 ${Math.max(0,Math.ceil(game.aiHp))} / 100 · ${game.turn==='player'?'내 차례':'상대 차례'}`:`남은 목표 ${game.foes.filter(f=>f.alive).length}마리${boss?' · 대장 '+Math.max(0,Math.ceil(boss.hp))+' HP':''}`;
+  $('rightStatus').textContent=game.mode==='adventure'?`남은 목표 ${game.foes.filter(f=>f.alive).length}마리${boss?' · 대장 '+Math.max(0,Math.ceil(boss.hp))+' HP':''}`:'';
   $('bossBanner').hidden=game.mode!=='adventure'||!boss;
   $('aimHelp').textContent=game.mode==='duel'?'위·아래 드래그로 각도 조절 · 발사 길게 눌러 파워 충전':'위·아래 드래그로 각도 조절 · 발사 길게 눌러 파워 충전';
-  const h=heroSet[game.hero],abilityPhase=game.phase===h.timing||(h.timing==='aim'&&canResumeAimFromReview()),ready=!game.abilityUsed&&game.turn==='player'&&abilityPhase&&(h.timing!=='flying'||game.projectiles.some(p=>p.active&&p.owner==='player'&&(!p.split||game.hero==='fox')));
-  $('abilityBtn').disabled=!ready;$('abilityBtn').textContent=`${game.abilityUsed?'사용 완료':'특수기'} · ${h.ability}`;
+  const h=heroSet[game.hero],reason=abilityUnavailableReason(),abilityButton=$('abilityBtn');
+  // Do not native-disable this button: tapping a dormant skill must explain its timing.
+  abilityButton.disabled=game.mode==='menu';abilityButton.classList.toggle('ability-unavailable',!!reason);
+  abilityButton.textContent=`${game.abilityUsed?'사용 완료':'특수기'} · ${h.ability}`;
+  abilityButton.title=reason||`${h.ability} 사용 가능`;
+  abilityButton.setAttribute?.('aria-label',reason?`${h.ability} · ${reason}`:`${h.ability} 사용 가능`);
+ }
+ function abilityUnavailableReason(){
+  if(game.mode==='menu'||game.phase==='result')return '전투 중에만 특수기를 사용할 수 있어요.';
+  if(game.abilityUsed)return '이번 차례 사용 완료! 다음 차례에 가능해요.';
+  if(game.turn!=='player')return '상대 차례예요. 내 차례를 기다리세요.';
+  const timing=heroSet[game.hero].timing;
+  if(timing==='aim'&&game.phase!=='aim'&&!canResumeAimFromReview())return '발사 전 조준 중에만 쓸 수 있어요.';
+  if(timing==='flying'){
+   if(game.phase!=='flying')return '포탄이 날아가는 도중에 눌러 주세요!';
+   if(!game.projectiles.some(p=>p.active&&p.owner==='player'&&!p.split))return '비행 중 포탄이 없어요. 다음 발사에 사용하세요!';
+  }
+  return '';
  }
  function earnedStars(shots,maxShots){return shots<=2?3:shots<maxShots?2:1;}
  function showResult(won){
@@ -3086,8 +3108,8 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   const lines=game.mode==='adventure'
    ?(won?[stageSet[game.stage].name,grade+' · '+game.shots+'발 사용',game.stage===stageSet.length-1?'모든 지역을 공략했어요!':`최고 ${progress.best[game.stage]}/3등급 · 다음 지역 도전!`]
       :['탄약을 모두 사용했어요.','폭탄탄으로 지지대를 노리거나','발사 각도를 다시 조절해 보세요.'])
-   :(won?['상대 내구도를 0으로 만들었어요!','바람과 각도를 읽은 멋진 승리예요.']
-      :['우리 팀 내구도가 0이 되었어요.','난이도와 바람을 확인한 뒤','다시 도전해 보세요.']);
+   :(won?['상대 HP 0! 데스매치 승리!','탄약 제한 없이 끝까지 싸운 멋진 승부예요.']
+      :['아군 HP 0! 데스매치 패배.','바람과 각도를 읽고 다시 도전해 보세요.']);
   $('resultText').textContent=lines.join('\n');
   $('nextBtn').hidden=game.mode!=='adventure'||!won||game.stage===stageSet.length-1;
   playSound(won?'win':'lose');updateHud();
@@ -3095,12 +3117,13 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  const soundShapes={fire:{freq:290,end:95,duration:.18,volume:.10,type:'triangle'},blast:{freq:125,end:40,duration:.28,volume:.14,type:'sawtooth'},wood:{freq:410,end:125,duration:.13,volume:.054,type:'triangle'},stone:{freq:185,end:52,duration:.22,volume:.065,type:'sawtooth'},iron:{freq:710,end:230,duration:.36,volume:.042,type:'sine'},win:{freq:560,end:880,duration:.32,volume:.10,type:'sine'},lose:{freq:270,end:130,duration:.38,volume:.09,type:'triangle'},ui:{freq:470,end:600,duration:.09,volume:.06,type:'sine'}};
  function playSound(kind){if(!game.sound)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ac=game.audio||(game.audio=new AC());if(ac.state==='suspended')ac.resume();const now=ac.currentTime,material=['wood','stone','iron'].includes(kind);if(material){game.lastMaterialSoundAt??={};if(now-(game.lastMaterialSoundAt[kind]??-1)<.085)return;game.lastMaterialSoundAt[kind]=now;}const osc=ac.createOscillator(),gain=ac.createGain(),s=soundShapes[kind]||soundShapes.ui;osc.type=s.type;osc.frequency.setValueAtTime(s.freq,now);osc.frequency.exponentialRampToValueAtTime(s.end,now+s.duration);gain.gain.setValueAtTime(.001,now);gain.gain.exponentialRampToValueAtTime(s.volume,now+.018);gain.gain.exponentialRampToValueAtTime(.001,now+s.duration);osc.connect(gain);gain.connect(ac.destination);osc.start(now);osc.stop(now+s.duration+.02);if(kind==='iron'){const ring=ac.createOscillator(),tail=ac.createGain();ring.type='sine';ring.frequency.setValueAtTime(1170,now);ring.frequency.exponentialRampToValueAtTime(820,now+.28);tail.gain.setValueAtTime(.001,now);tail.gain.exponentialRampToValueAtTime(.021,now+.016);tail.gain.exponentialRampToValueAtTime(.001,now+.31);ring.connect(tail);tail.connect(ac.destination);ring.start(now);ring.stop(now+.33);}}catch(_){/* Audio is optional; the game always remains playable. */}}
  function useAbility(){
-  const h=heroSet[game.hero];if(game.abilityUsed||game.turn!=='player'||game.phase!==h.timing)return;
+  const h=heroSet[game.hero],reason=abilityUnavailableReason();
+  if(reason){game.message=reason;game.messageTime=2.65;playSound('ui');return false;}
   const p=game.projectiles.find(x=>x.active&&x.owner==='player'&&!x.split);
-  if(h.timing==='flying'&&!p)return;
+  if(h.timing==='flying'&&!p){game.message='사용할 비행 중 포탄이 없어요.';game.messageTime=2.3;return false;}
   if(game.hero==='fox'){
    const target=game.mode==='adventure'?game.foes.filter(f=>f.alive&&f.x>p.x+25).sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x))[0]:{x:1018,y:terrainY(1018)-29};
-   if(!target)return;
+   if(!target){game.message='보정할 목표가 없어요. 다음 발사를 노려 보세요.';game.messageTime=2.3;return false;}
    const t=clamp((target.x-p.x)/Math.max(220,p.vx),.25,1.6),vy=(target.y-p.y-G*t*t*.5)/t;
    p.vy=clamp(p.vy*.18+vy*.82,-800,460);p.vx=Math.max(250,p.vx);p.guided=true;
    spawnSparks(p.x,p.y,19,'#a8f4e4',.6);skillEffect('fox',p.x,p.y,1);game.message='여우의 탄도 보정!';
@@ -3112,7 +3135,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    game.wind=clamp(Math.abs(game.wind)<1.2?(game.wind<=0?2.6:-2.6):-game.wind*1.25,-4,4);
    spawnSparks(origin().x,origin().y-26,14,'#c8efdf',.5);skillEffect('cat',origin().x,origin().y-35,1.3);game.message='고양이의 바람 전환!';
   }
-  game.abilityUsed=true;game.abilityCount++;game.messageTime=1.4;playSound('ui');updateHud();
+  game.abilityUsed=true;game.abilityCount++;game.messageTime=1.4;playSound('ui');updateHud();return true;
  }
  function firePlayer(){
   // One tap should resume and fire; the result ribbon remains visible until the player acts.
@@ -3266,7 +3289,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   }else{
    const damaged=enemyDamage||allyDamage;
    title=enemyDamage?`상대에게 ${enemyDamage} 피해!`:allyDamage?`아군이 ${allyDamage} 피해!`:'착탄 위치 확인';
-   detail=damaged?`아군 ${Math.max(0,Math.ceil(game.playerHp))} HP · 상대 ${Math.max(0,Math.ceil(game.aiHp))} HP`:'바람과 포탄의 착탄점을 확인하세요';
+   detail=damaged?'머리 위 HP 표시를 확인하고 다음 포격을 준비하세요':'무제한 데스매치! 착탄점을 확인하고 다시 조준하세요';
    game.reviewNext=game.playerHp<=0||game.aiHp<=0?(game.aiHp<=0&&game.playerHp>0?'win':'lose'):game.turn==='player'?'aiWait':'aim';
   }
   game.reviewFocusX=game.lastImpact?.x??(game.mode==='adventure'?850:game.turn==='player'?1018:190);
@@ -3390,8 +3413,15 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   if(sceneReady()){
    const cellW=Math.floor(stageAtlas.naturalWidth/2),cellH=Math.floor(stageAtlas.naturalHeight/2),idx=game.mode==='duel'?1:game.mode==='menu'?0:game.stage;
    const sx=(idx%2)*cellW,sy=Math.floor(idx/2)*cellH,skyTop=-game.topPad/Math.max(.001,game.scale)-2;
-   // Extend the top pixels of the painted sky during a cinematic zoom, without stretching the art.
-   if(skyTop<-25)ctx.drawImage(stageAtlas,sx,sy,cellW,2,-70,skyTop,1340,-25-skyTop+1);
+   // A two-pixel-high sky strip stretched over portrait overview produced vertical bands.
+   // Reflect a substantial section of painted sky, softly blending it into the art instead.
+   if(skyTop<-25){
+    const extra=-25-skyTop,sourceSkyH=Math.min(cellH*.48,Math.max(105,extra*cellH/(H+65)));
+    ctx.save();ctx.beginPath();ctx.rect(-70,skyTop,1340,extra+2);ctx.clip();
+    ctx.translate(0,-50);ctx.scale(1,-1);ctx.filter='blur(10px)';
+    ctx.drawImage(stageAtlas,sx,sy,cellW,sourceSkyH,-70,-25,1340,extra+15);
+    ctx.restore();
+   }
    ctx.drawImage(stageAtlas,sx,sy,cellW,cellH,-70,-25,1340,H+65);return;
   }
   const a=ctx.createLinearGradient(0,0,0,H);a.addColorStop(0,'#7db9d0');a.addColorStop(.75,'#d3e5c4');a.addColorStop(1,'#f6e4b0');ctx.fillStyle=a;ctx.fillRect(-1500,-game.topPad/Math.max(.001,game.scale)-2,4300,H+game.topPad/Math.max(.001,game.scale)+2);
@@ -3514,6 +3544,35 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    // Keep an actor visible even if an optional bitmap has not arrived yet.
    ctx.save();ctx.translate(x,terrainY(x)-55);ellipse(0,0,22,28,own?'#d98d54':'#7189a0');ctx.restore();
   }
+ }
+ function drawDuelHealthHud(x,owner){
+  const hp=clamp(owner==='player'?game.playerHp:game.aiHp,0,100),ally=owner==='player';
+  // Keep the painted mini HUD readable in close-up play and portrait overview.
+  const uiScale=clamp(1/Math.max(.001,game.scale),.78,2.8),halfWorld=75*uiScale;
+  const left=game.camera+halfWorld+10/game.scale,right=game.camera+cv.clientWidth/game.scale-halfWorld-10/game.scale;
+  const hudX=left<=right?clamp(x,left,right):x;
+  ctx.save();ctx.translate(hudX,terrainY(x)-160);ctx.scale(uiScale,uiScale);
+  ellipse(0,21,73,9,'#112c35a0');
+  const timber=ctx.createLinearGradient(0,-32,0,25);
+  timber.addColorStop(0,'#9b6847');timber.addColorStop(.24,'#694c3b');timber.addColorStop(.7,'#302d31');timber.addColorStop(1,'#71543f');
+  roundRect(-75,-34,150,59,17,timber,'#3c2925',3);
+  roundRect(-71,-30,142,50,14,'#251f27e0','#e5bc74',2.2);
+  ctx.beginPath();ctx.moveTo(-8,-33);ctx.lineTo(0,-42);ctx.lineTo(8,-33);ctx.lineTo(0,-27);ctx.closePath();ctx.fillStyle=ally?'#bff3d7':'#ffd3a9';ctx.fill();
+  for(const px of [-66,66]){ellipse(px,-4,4,4,'#b17b3c');ellipse(px,-5,2,2,'#ffdc8c');}
+  ctx.textBaseline='middle';ctx.fillStyle='#fff0c5';ctx.shadowColor='#231a1b';ctx.shadowBlur=2;
+  ctx.font='900 13px "Malgun Gothic",system-ui,sans-serif';ctx.textAlign='left';
+  ctx.fillText(`${ally?'아군':'상대'} · ${heroSet[ally?game.hero:game.aiHero].name}`,-57,-17,89);
+  ctx.textAlign='right';ctx.fillText(`${Math.ceil(hp)}`,60,-17,27);
+  ctx.shadowBlur=0;roundRect(-59,-4,118,16,7,'#100f19','#d0a665',1.6);
+  roundRect(-56,-1,112,10,4,'#403a36');
+  if(hp>0){
+   const health=ctx.createLinearGradient(0,-1,0,9);
+   if(ally){health.addColorStop(0,'#b5ffd5');health.addColorStop(.4,'#49dbab');health.addColorStop(1,'#1f807c');}
+   else{health.addColorStop(0,'#ffe2a4');health.addColorStop(.4,'#ff916a');health.addColorStop(1,'#b83f47');}
+   roundRect(-56,-1,Math.max(2,112*hp/100),10,4,health);
+   roundRect(-54,0,Math.max(1,108*hp/100),2,2,'#fff4d26b');
+  }
+  ctx.restore();
  }
  function slingshot(){const o=origin();if(spriteReady(game.hero)){
    // Every sprite already holds its character-specific weapon. Never draw a second slingshot on top.
@@ -4112,7 +4171,7 @@ const materialCells={
   for(let i=0;i<3;i++){const a=time+i*Math.PI*2/3,r=11+power*13;ellipse(m.x+Math.cos(a)*r,m.y+Math.sin(a)*r,1.7+power*1.7,1.7+power*1.7,tint);}
   ctx.restore();
  }
- function draw(){resize();const dpr=Math.min(2,devicePixelRatio||1),s=game.scale;if(!s)return;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#8bbeb8';ctx.fillRect(0,0,cv.width,cv.height);ctx.setTransform(dpr*s,0,0,dpr*s,-game.camera*dpr*s,game.topPad*dpr);ctx.save();if(game.shake>1){ctx.translate(rnd(-game.shake,game.shake),rnd(-game.shake*.6,game.shake*.6));}backdrop();if(game.mode!=='menu'){ground();drawTrajectory();if(game.mode==='adventure'){drawBlocks();drawCollapseGhosts();drawFoes();slingshot();}else{duelActor(190,1,true);duelActor(1018,-1,false);}drawChargeReadiness();drawDebris();drawProjectiles();drawParticles();drawImpactMotes();drawSkillEffects();drawImpact();drawMessage();}else{ctx.save();fox(170,450,2);bear(1008,452,2);ctx.restore();}if(game.flash>0){ctx.fillStyle=`rgba(255,245,210,${game.flash*1.4})`;ctx.fillRect(game.camera,0,cv.clientWidth/s,H);}ctx.restore();}
+ function draw(){resize();const dpr=Math.min(2,devicePixelRatio||1),s=game.scale;if(!s)return;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#8bbeb8';ctx.fillRect(0,0,cv.width,cv.height);ctx.setTransform(dpr*s,0,0,dpr*s,-game.camera*dpr*s,game.topPad*dpr);ctx.save();if(game.shake>1){ctx.translate(rnd(-game.shake,game.shake),rnd(-game.shake*.6,game.shake*.6));}backdrop();if(game.mode!=='menu'){ground();drawTrajectory();if(game.mode==='adventure'){drawBlocks();drawCollapseGhosts();drawFoes();slingshot();}else{duelActor(190,1,true);duelActor(1018,-1,false);drawDuelHealthHud(190,'player');drawDuelHealthHud(1018,'ai');}drawChargeReadiness();drawDebris();drawProjectiles();drawParticles();drawImpactMotes();drawSkillEffects();drawImpact();drawMessage();}else{ctx.save();fox(170,450,2);bear(1008,452,2);ctx.restore();}if(game.flash>0){ctx.fillStyle=`rgba(255,245,210,${game.flash*1.4})`;ctx.fillRect(game.camera,0,cv.clientWidth/s,H);}ctx.restore();}
  let prev=0,acc=0;function frame(t){if(!prev)prev=t;acc+=Math.min(.075,(t-prev)/1000);prev=t;let runs=0;while(acc>=STEP&&runs++<6){step(STEP);acc-=STEP;}draw();requestAnimationFrame(frame);}
  function pointerToWorld(e){const r=cv.getBoundingClientRect();return{x:game.camera+(e.clientX-r.left)/game.scale,y:(e.clientY-r.top-game.topPad)/game.scale};}
  cv.addEventListener('pointerdown',e=>{if(game.phase==='flying'){if(game.hero==='rabbit'&&game.turn==='player'&&!game.abilityUsed){useAbility();return;}const active=game.projectiles.find(p=>p.weapon==='split'&&!p.split);if(active){splitProjectile(active);return;}}if(game.mode==='menu'||game.phase==='result'||game.overview)return;const p=pointerToWorld(e),o=origin();if(game.mode==='adventure'&&game.phase==='aim'&&Math.hypot(p.x-o.x,p.y-o.y)<110){game.drag={x:p.x,y:p.y};cv.setPointerCapture(e.pointerId);}else{game.pan={startX:e.clientX,startY:e.clientY,startAngle:game.angle,startCamera:game.camera,kind:null};cv.setPointerCapture(e.pointerId);}});
@@ -4201,6 +4260,7 @@ const materialCells={
  window.__artilleryLoadoutDebug=()=>({player:{hero:game.hero,weapon:duelWeapon(game.hero)},ai:{hero:game.aiHero,weapon:duelWeapon(game.aiHero)},paintedCannonReady:!!(duelCannonAtlas?.complete&&duelCannonAtlas.naturalWidth>0),splitCannonReady:!!(duelPartsAtlas?.complete&&duelPartsAtlas.naturalWidth>0),foxAttackReady:!!(foxAttackAtlas?.complete&&foxAttackAtlas.naturalWidth>0),paintedAmmunitionReady:paintedAmmunitionReady(),ammunitionCells:{rows:ammunitionRows,columns:ammunitionColumns},paintedAttackReady:Object.fromEntries(Object.entries(paintedAttackAtlases).map(([hero,img])=>[hero,!!(img?.complete&&img.naturalWidth>0&&img.naturalHeight>0)])),playerMuzzle:muzzleFor('player'),aiMuzzle:muzzleFor('ai',game.aiAngle),playerPivot:cannonTrunnion('player'),aiPivot:cannonTrunnion('ai')});
  window.__artilleryDebug=()=>({mode:game.mode,stage:game.stage,difficulty:game.difficulty,hero:game.hero,aiHero:game.aiHero,abilityUsed:game.abilityUsed,abilityArmed:game.abilityArmed,abilityCount:game.abilityCount,wind:game.wind,phase:game.phase,shots:game.shots,maxShots:game.maxShots,hitStreak:game.hitStreak,popupPositions:game.popups.map(p=>({x:p.x,y:p.y,value:p.value})),chargeActive:game.chargeActive,chargeAimX:game.chargeAimX,chargeZoom:game.chargeZoom,chargeReveal:game.chargeReveal,playerScreenX:(origin().x-game.camera)*game.scale,scale:game.scale,camera:game.camera,chargedPower:game.chargedPower,heroMotionFrame:actorPoseFrame('player',game.hero).index,turn:game.turn,projectiles:game.projectiles.length,projectilePierce:game.projectiles[0]?.pierce||0,foes:game.foes.filter(x=>x.alive).length,bossHp:game.foes.find(f=>f.boss&&f.alive)?.hp||0,playerHp:game.playerHp,aiHp:game.aiHp,sound:game.sound,canvas:[cv.width,cv.height],rotatingBlocks:game.blocks.filter(b=>Math.abs(b.angle)>.05).length,physics:!!game.engine,spriteReady:spriteReady(game.hero),sceneReady:sceneReady(),enemyReady:enemyArtReady(),combatReady:combatArtReady(),paintedFoeReady:paintedFoeAtlases.map((_,kind)=>paintedFoeArtReady(kind)),foePoses:game.foes.map(f=>foePose(f)),foeAttacks:game.foes.reduce((n,f)=>n+f.attackCount,0),rubbleCount:game.rubble.length,materialReady:materialArtReady(),introVisible:!$('enemyEntrance').hidden,materialTiers:game.blocks.map(b=>damageTier(b)),aimImpact:game.phase==='aim'?predict(game.angle,game.power,game.wind).impact?.kind||'none':'inactive',debrisCount:game.debris.length,stageMapOpen:!$('stageMap').hidden,exitOpen:!$('exitConfirm').hidden,savedBest:progress.best.slice(),savedWins:progress.wins,skillEffects:game.skillEffects.length,blastCores:game.blastCores.length,dyingFoes:game.foes.filter(f=>!f.alive&&f.deathTimer>0).length,damagedBlocks:game.blocks.filter(b=>b.hp<b.maxHp).length,reviewVisible:!$('shotReview').hidden,reviewTitle:game.reviewInfo?.title||'',reviewFocusX:game.reviewFocusX,reviewNext:game.reviewNext,reviewTimer:game.reviewTimer,materials:{wood:game.blocks.filter(b=>b.type==='wood').length,stone:game.blocks.filter(b=>b.type==='stone').length,iron:game.blocks.filter(b=>b.type==='iron').length},aiShots:game.aiShots,aiWeapon:game.lastAiWeapon,aiTactic:game.aiTactic,recoil:game.recoil.player,actorMotion:game.actorAnim.player.kind,actorMotionLife:game.actorAnim.player.life});
  // Separate compact camera debug view for portrait tracking regression tests.
+ window.__cannonUiDebug=()=>({abilityReason:abilityUnavailableReason(),message:game.message,messageTime:game.messageTime,overview:game.overview,skyPad:game.topPad});
  window.__chargeCameraDebug=()=>({heroX:(origin().x-game.camera)*game.scale,aimX:game.chargeAimX,aimScreenX:game.chargeAimX===null?null:(game.chargeAimX-game.camera)*game.scale,glintX:game.chargeFocusX,glintScreenX:game.chargeFocusX===null?null:(game.chargeFocusX-game.camera)*game.scale,zoom:game.chargeZoom,power:game.chargedPower,cameraX:game.camera,width:cv.clientWidth});
  $('adventureStage').value=String(progress.lastStage);$('duelDifficulty').value=progress.difficulty;document.querySelectorAll('[data-hero]').forEach(b=>{const chosen=b.dataset.hero===selectedHero;b.classList.toggle('selected',chosen);b.setAttribute?.('aria-pressed',String(chosen));});refreshMenu();
  requestAnimationFrame(frame);
