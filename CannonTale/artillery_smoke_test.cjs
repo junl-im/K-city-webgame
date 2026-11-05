@@ -66,6 +66,11 @@ const portraitResult=fs.readFileSync(__dirname+'/art/popup_result_portrait_v36.w
 assert.equal(portraitResult.subarray(0,4).toString(),'RIFF','The new result illustration must be real raster WebP');
 assert.equal(portraitResult.subarray(8,12).toString(),'WEBP','The result illustration must preserve WebP encoding');
 assert(!/<svg|image\/svg\+xml/.test(v36Style),'Result artwork and layout must contain no SVG');
+const v361Style=html.slice(html.lastIndexOf('/* v3.6.1: CSS percentage padding'),html.indexOf('</style>'));
+assert(v361Style.includes('padding:clamp(18px,2.1vh,25px) 15px 12px clamp(62px,6vw,80px)!important'),'Desktop impact plaque text must not inherit viewport-percent padding');
+assert(v361Style.includes('padding:17px 10px 9px clamp(40px,12vw,53px)!important'),'Portrait impact text needs a bounded illustration gutter');
+assert(v361Style.includes('padding:10px 12px 8px clamp(49px,7vw,65px)!important'),'Short landscape impact text needs a bounded gutter');
+assert(430-80-15-9-110>200,'The impact card must reserve at least 200px for live desktop text');
 assert(html.includes('function fitPaintedLabel(node,minSize=9)')&&html.includes('function fitPaintedMenuLabels()'),'Live Korean labels need a fit-to-artwork calculation');
 assert(html.includes('drawHeroBadges();drawHeroPreview();fitPaintedMenuLabels();'),'Changing heroes must recalculate label size');
 assert(html.includes('  fitPaintedMenuLabels();\n }\n let activeIllustratedSelect'),'Changing stage/difficulty selection must recalculate label size');

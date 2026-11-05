@@ -2332,6 +2332,29 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  #result .panel-actions{bottom:9%;height:25%;gap:3px 8px!important}
  #result .panel-actions .paper-btn{font-size:clamp(9px,1.5vw,12px)!important}
 }
+/* v3.6.1: CSS percentage padding on a flex child was resolving against the
+   1363px battlefield, NOT the 430px impact plaque. Use bounded pixel gutters. */
+#shotReview.shot-review{
+ padding:clamp(18px,2.1vh,25px) 15px 12px clamp(62px,6vw,80px)!important;
+ gap:clamp(4px,.75vw,9px)!important;
+}
+#shotReview .review-copy{flex:1 1 0;min-width:0}
+#shotReview .review-continue{flex:0 0 auto;max-width:31%}
+@media(orientation:portrait) and (max-width:600px){
+ #shotReview.shot-review{
+  padding:17px 10px 9px clamp(40px,12vw,53px)!important;gap:4px!important;
+ }
+}
+@media(orientation:portrait) and (max-width:360px){
+ #shotReview.shot-review{
+  padding:16px 8px 8px clamp(37px,12vw,45px)!important;
+ }
+}
+@media(orientation:landscape) and (max-height:550px){
+ #shotReview.shot-review{
+  padding:10px 12px 8px clamp(49px,7vw,65px)!important;
+ }
+}
 </style>
 </head>
 <body>
