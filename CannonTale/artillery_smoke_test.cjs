@@ -36,6 +36,7 @@ assert(html.includes('CannonTale v1.8: illustrated menu'),'Scenic fantasy homepa
 assert(html.includes('v2.0.2 -- real illustrated HUD buttons'),'Full illustrative HUD should replace generic CSS buttons');
 assert(html.includes('v2.0.3: fill the entire combat dock'),'Combat control dock should have the responsive full-width layout fix');
 assert(/#shotReview\.shot-review\{[^}]*top:auto!important;[^}]*bottom:clamp\(/.test(html),'Post-impact result toast must appear at ground level rather than on top of the scene');
+assert(/#battleWrap > #hint\.corner-hint\{[^}]*left:50%!important;[^}]*top:91%!important/.test(html),'The separate welcome hint must be centered inside the battlefield dirt rather than at the sky corner');
 assert(html.includes('function groundToastLayout()'),'Transient gameplay toasts must share the lower-ground notification design');
 assert(html.includes('function drawImpactScar(b,tier)'),'The hit side must leave a persistent directional crack on damaged structures');
 assert(html.includes('if(tier!==previousTier||b.hp<=0)playSound(b.type)'),'Material damage must trigger a distinct wood/stone/iron audio cue');
@@ -263,6 +264,7 @@ if((versionedPath).includes('v0_7')){
 el('adventureBtn').click();
 frames(5);
 assert.equal(state().mode,'adventure');
+assert.equal(el('hint').hidden,false,'The entry hint should appear briefly in the ground zone');
 handlers.popstate();assert.equal(state().mode,'menu','Back from a running battle returns to the menu');
 el('adventureBtn').click();frames(5);
 assert.equal(state().foes,2);
@@ -310,6 +312,7 @@ if(/v0_[234567]/.test(versionedPath)){
 }
 el('fire').click();
 assert.equal(state().shots,1);
+assert.equal(el('hint').hidden,true,'The entry hint must vanish immediately after firing so it cannot obscure the impact result');
 if(/v0_[67]/.test(versionedPath)){
  assert.equal(state().actorMotion,'attack','The firing hero must enter attack motion');
  assert(state().actorMotionLife>0);
@@ -693,5 +696,9 @@ assert(crush.defeated,'Strong overhead impact must be able to defeat a monster')
 const cleanup=window.__cleanupBrokenBlocksForTest();
 assert(cleanup.marked&&cleanup.after<cleanup.before,'Collision-destroyed supports must leave Matter and the active block list after stepping');
 assert(cleanup.ghosts>0,'A collision-destroyed support must still show its painted breakup');
+el('homeBtn').click();el('adventureBtn').click();
+assert.equal(el('hint').hidden,false,'Entering a new battle should show the brief hint again');
+frames(290);
+assert.equal(el('hint').hidden,true,'The ground hint must automatically dismiss after roughly 4.5 seconds');
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');

@@ -1630,6 +1630,34 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
 }
 @media(prefers-reduced-motion:reduce){#shotReview.shot-review{animation:none}}
 
+/* v3.0.1: The separate start-of-battle hint belongs inside the dirt, not over the sky. */
+#battleWrap > #hint.corner-hint{
+ position:absolute;z-index:4;
+ left:50%!important;right:auto!important;
+ top:91%!important;bottom:auto!important;
+ transform:translate(-50%,-50%);
+ width:max-content;max-width:min(680px,calc(100% - 176px));
+ padding:9px 16px;border:0;border-radius:14px;
+ color:#fff1d3;background:linear-gradient(180deg,#554034f2,#33261fe8);
+ box-shadow:0 5px 11px #24191180,inset 0 1px #e3b98b55;
+ font-size:clamp(11px,1.05vw,14px);font-weight:800;line-height:1.35;
+ text-align:center;text-wrap:balance;overflow-wrap:break-word;
+ animation:groundNoticeIn .23s ease-out both;
+}
+@media(max-width:600px){
+ #battleWrap > #hint.corner-hint{
+  top:89%!important;max-width:calc(100% - 128px);
+  padding:6px 9px;font-size:10px;line-height:1.3;border-radius:10px;
+ }
+}
+@media(orientation:landscape) and (max-height:550px){
+ #battleWrap > #hint.corner-hint{
+  top:90%!important;max-width:min(460px,calc(100% - 160px));
+  padding:5px 10px;font-size:10px;
+ }
+}
+@media(prefers-reduced-motion:reduce){#battleWrap > #hint.corner-hint{animation:none}}
+
 </style>
 </head>
 <body>
@@ -1667,7 +1695,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   <img id="heroImpactStagesArtwork" src="art/hero_impacts_v27.webp" alt="" hidden aria-hidden="true">
   <div id="bossBanner" class="boss-banner" hidden>요새 대장 출현</div>
   <div id="enemyEntrance" class="enemy-entrance" hidden aria-hidden="true"><span class="enemy-entrance-figure"></span><span class="enemy-entrance-copy"><small>FOREST ENCOUNTER</small><strong id="enemyEntranceName"></strong></span></div>
-  <div id="hint" class="corner-hint" hidden></div>
+  <div id="hint" class="corner-hint" hidden role="status" aria-live="polite"></div>
   <div class="status-row"><div id="leftStatus" class="status" hidden></div><div id="rightStatus" class="status" hidden></div></div>
 <div id="reviewCountdown" class="review-countdown" hidden aria-hidden="true">5</div>
 <div id="shotReview" class="shot-review" hidden role="status" aria-live="polite"><div class="review-copy"><span class="review-kicker">방금 포격의 결과</span><strong id="reviewTitle">착탄 확인</strong><small id="reviewDetail">전장에 남은 결과를 확인해 보세요</small></div><button id="reviewContinue" class="review-continue" type="button">다음 발사</button></div>
@@ -1931,7 +1959,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
    const p={x:muzzleX,y:muzzleY,vx:v.vx,vy:v.vy,r:weapon==='bomb'?13:10,weapon,owner,hero:owner==='ai'?game.aiHero:game.hero,age:0,split:false,trail:[],active:true,pierce:owner==='player'&&game.abilityArmed?2:0,hitBlocks:[],hitFoes:[]};game.projectiles.push(p);
   if(owner==='player')game.abilityArmed=false;else game.aiAngle=ang;
   game.recoil[owner]=23;actorMotion(owner,'attack',.48);game.muzzle={x:muzzleX,y:muzzleY,dir,hero:owner==='ai'?game.aiHero:game.hero,weapon,life:.3,total:.3};spawnSparks(game.muzzle.x,game.muzzle.y,13,'#ffe8aa',.42);game.shake=Math.max(game.shake,weapon==='bomb'?4.5:2.7);playSound('fire');
-  if(owner==='player') {game.shots++;game.phase='flying';game.phaseTime=0;game.message='발사!';game.messageTime=.65;}
+  if(owner==='player') {game.shots++;game.phase='flying';game.phaseTime=0;game.message='발사!';game.messageTime=.65;game.hintTime=0;$('hint').hidden=true;}
   else {game.phase='flying';game.phaseTime=0;game.message='적의 포격!';game.messageTime=1;}
   updateHud();
  }
@@ -1990,7 +2018,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   for(const f of game.foes){const body=M.Bodies.circle(f.x,f.y,f.r,{friction:.82,frictionStatic:1,restitution:.07,density:.0011,sleepThreshold:55,label:'foe'});body.plugin.foe=f;f.body=body;M.Composite.add(game.engine.world,body);}
  }
  function newGame(mode,stage=0){
-  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:3;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
+  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:3;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
   // Every duel is hero-versus-hero. The opponent is different from the selected player.
   const challengers=['fox','bear','rabbit','cat'].filter(hero=>hero!==game.hero);
   game.aiHero=mode==='duel'?challengers[Math.floor(Math.random()*challengers.length)]:'bear';
@@ -2001,7 +2029,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   $('modeChip').textContent=mode==='adventure'?'모험 포격':'포격 결투';$('stageChip').textContent=mode==='adventure'?stageSet[game.stage].name:`AI ${heroSet[game.aiHero].name} · ${game.difficulty==='easy'?'쉬움':game.difficulty==='hard'?'어려움':'보통'}`;
   $('bossBanner').hidden=mode!=='adventure'||!game.foes.some(f=>f.boss);
   $('enemyEntrance').hidden=mode!=='adventure';$('enemyEntrance').dataset.stage=String(game.stage);$('enemyEntranceName').textContent=['도토리 수호병','이끼 바위거인','바람의 정령','강철 화염대장'][game.stage];
-  $('hint').hidden=false;$('hint').textContent=mode==='adventure'?`${heroSet[game.hero].name} 출전! 각도와 파워를 조절해 요새를 무너뜨리세요. 특수기: ${heroSet[game.hero].ability}`:`${heroSet[game.hero].name}의 ${heroPresentation[game.hero].weapon.split(' · ')[0]} 대 AI ${heroSet[game.aiHero].name}의 ${heroPresentation[game.aiHero].weapon.split(' · ')[0]}! 바람을 읽고 결투하세요.`;
+  $('hint').hidden=false;$('hint').textContent=mode==='adventure'?`${heroSet[game.hero].name} 출전! 각도·파워 조준 · 특수기: ${heroSet[game.hero].ability}`:`${heroSet[game.hero].name} vs AI ${heroSet[game.aiHero].name}! 바람·각도·파워로 승부하세요.`;
   angleEl.value=game.angle;powerEl.value=game.power;chooseWeapon('normal');
   updateHud();resize();
  }
@@ -2264,6 +2292,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  }
  function step(dt){
   game.clock+=dt;game.phaseTime+=dt;
+  if(game.hintTime>0){game.hintTime=Math.max(0,game.hintTime-dt);if(game.hintTime===0)$('hint').hidden=true;}
   if(game.chargeActive){
    game.chargeElapsed+=dt;
    const t=(game.chargeElapsed/1.35)%2;
