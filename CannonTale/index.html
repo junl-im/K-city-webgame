@@ -1642,6 +1642,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   <img id="foeWindArtwork" src="art/foe_wind_v24.webp" alt="" hidden aria-hidden="true">
   <img id="foeBossArtwork" src="art/foe_boss_v24.webp" alt="" hidden aria-hidden="true">
   <img id="heroAmmunitionArtwork" src="art/hero_ammunition_v25.webp" alt="" hidden aria-hidden="true">
+  <img id="heroImpactArtwork" src="art/hero_impacts_v26.webp" alt="" hidden aria-hidden="true">
   <div id="bossBanner" class="boss-banner" hidden>요새 대장 출현</div>
   <div id="enemyEntrance" class="enemy-entrance" hidden aria-hidden="true"><span class="enemy-entrance-figure"></span><span class="enemy-entrance-copy"><small>FOREST ENCOUNTER</small><strong id="enemyEntranceName"></strong></span></div>
   <div id="hint" class="corner-hint" hidden></div>
@@ -1719,7 +1720,9 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  const paintedAttackAtlases={fox:foxAttackAtlas,bear:$('bearAttackArtwork'),rabbit:$('rabbitAttackArtwork'),cat:$('catAttackArtwork')};
  const paintedFoeAtlases=[$('foeAcornArtwork'),$('foeGolemArtwork'),$('foeWindArtwork'),$('foeBossArtwork')];
  const heroAmmunitionAtlas=$('heroAmmunitionArtwork');
+ const heroImpactAtlas=$('heroImpactArtwork');
  const ammunitionRows={fox:0,bear:1,rabbit:2,cat:3},ammunitionColumns={normal:0,bomb:1,split:2};
+ const impactCells={fox:[0,0],bear:[1,0],rabbit:[0,1],cat:[1,1]};
  if(!M){document.title='물리 엔진을 불러오지 못했습니다';throw Error('Matter.js is required for v0.2');}
  const heroSet={fox:{name:'여우',ability:'탄도 보정',timing:'flying'},bear:{name:'곰',ability:'관통 장약',timing:'aim'},rabbit:{name:'토끼',ability:'오중 분열',timing:'flying'},cat:{name:'고양이',ability:'바람 전환',timing:'aim'}};
  const saveKey='wind-artillery-progress-v06';
@@ -2079,7 +2082,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  function applyExplosion(p){
   game.lastImpact={x:clamp(p.x,0,W),y:clamp(p.y,0,H)};
   const big=p.weapon==='bomb',radius=big?105:p.weapon==='split'?55:62,damage=(big?105:p.weapon==='split'?46:72)*(p.guided?1.08:1);
-  game.shake=Math.max(game.shake,big?19:11);game.hitStop=Math.max(game.hitStop,big?.051:.034);game.flash=big?.2:.12;game.rings.push({x:p.x,y:p.y,r:9,max:radius*1.14,life:.48,total:.48,color:big?'#ffdfab':'#fff7d7'});game.blastCores.push({x:p.x,y:p.y,life:big?.65:.46,total:big?.65:.46,radius:big?69:41,seed:rnd(0,6.3)});game.blastCores=game.blastCores.slice(-12);crater(p.x,p.y,big?49:27);spawnSparks(p.x,p.y,big?56:32,big?'#ffb966':'#fff0be',big?1.3:1);for(let i=0;i<(big?14:8);i++){const px=p.x+rnd(-26,26);game.particles.push({x:px,y:p.y+rnd(-8,8),vx:rnd(-85,85),vy:rnd(-125,-25),life:rnd(.45,.92),max:.92,r:rnd(6,15),color:i%2?'#b88f7388':'#eee0c288'});}
+  game.shake=Math.max(game.shake,big?19:11);game.hitStop=Math.max(game.hitStop,big?.051:.034);game.flash=big?.2:.12;game.rings.push({x:p.x,y:p.y,r:9,max:radius*1.14,life:.48,total:.48,color:big?'#ffdfab':'#fff7d7'});game.blastCores.push({x:p.x,y:p.y,hero:p.hero||'fox',weapon:p.weapon||'normal',life:big?.65:.46,total:big?.65:.46,radius:big?69:41,seed:rnd(0,6.3)});game.blastCores=game.blastCores.slice(-12);crater(p.x,p.y,big?49:27);spawnSparks(p.x,p.y,big?56:32,big?'#ffb966':'#fff0be',big?1.3:1);for(let i=0;i<(big?14:8);i++){const px=p.x+rnd(-26,26);game.particles.push({x:px,y:p.y+rnd(-8,8),vx:rnd(-85,85),vy:rnd(-125,-25),life:rnd(.45,.92),max:.92,r:rnd(6,15),color:i%2?'#b88f7388':'#eee0c288'});}
   playSound('blast');
   for(const b of game.blocks){
   const cx=b.body.position.x,cy=b.body.position.y,dist=Math.hypot(p.x-cx,p.y-cy);
@@ -2667,11 +2670,24 @@ const materialCells={
   for(const p of game.projectiles){
    const hero=p.hero||'fox',tones=palettes[hero]||palettes.fox;
    const tail=Math.min(15,p.trail.length);
+   // The flight ribbon follows the projectile's measured positions, so it stays
+   // aligned to wind drift and splits rather than assuming a straight trajectory.
+   if(tail>1){
+    ctx.save();ctx.lineCap='round';
+    for(let i=1;i<tail;i++){
+     const a=p.trail[p.trail.length-tail+i-1],b=p.trail[p.trail.length-tail+i],fade=i/tail;
+     ctx.globalAlpha=fade*(hero==='bear'?.21:.5);
+     ctx.strokeStyle=hero==='bear'?'#58616d':hero==='rabbit'?'#c1a3f2':hero==='cat'?'#91f7e4':'#ffcb79';
+     ctx.lineWidth=(hero==='bear'?9:hero==='cat'?5:3.5)*fade;
+     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    }
+    ctx.restore();
+   }
    for(let i=0;i<tail;i++){
     const q=p.trail[p.trail.length-tail+i],alpha=(i+1)/tail;
-    ctx.save();ctx.globalAlpha=alpha*.37;
-    const r=(.8+alpha*2.7)*(hero==='bear'?1.2:1);
-    ellipse(q.x,q.y,r,r,tones[i%2]);ctx.restore();
+    ctx.save();ctx.globalAlpha=alpha*(hero==='bear'?.23:.42);
+    const r=(.8+alpha*(hero==='bear'?4.5:2.7))*(p.weapon==='bomb'?1.2:1);
+    ellipse(q.x,q.y,r,hero==='cat'?r*.58:r,hero==='bear'?'#8995a0':tones[i%2]);ctx.restore();
    }
    ctx.save();ctx.translate(p.x,p.y);
    ctx.rotate(Math.atan2(p.vy,p.vx));
@@ -2707,6 +2723,15 @@ const materialCells={
    ctx.restore();
   }
 }
+ function paintedImpactReady(){return !!(heroImpactAtlas?.complete&&heroImpactAtlas.naturalWidth>3&&heroImpactAtlas.naturalHeight>3);}
+ function drawPaintedImpact(e,t){
+  if(!paintedImpactReady())return false;
+  const [col,row]=impactCells[e.hero]||impactCells.fox;
+  const cellW=heroImpactAtlas.naturalWidth/2,cellH=heroImpactAtlas.naturalHeight/2;
+  const size=e.radius*3.4*(.68+t*.65)*(e.weapon==='split'?.9:1);
+  ctx.drawImage(heroImpactAtlas,col*cellW,row*cellH,cellW,cellH,-size/2,-size/2,size,size);
+  return true;
+ }
  function drawParticles(){for(const p of game.particles){ctx.globalAlpha=clamp(p.life/p.max,0,1);ellipse(p.x,p.y,p.r,p.r,p.color);}ctx.globalAlpha=1;}
  function drawSkillEffects(){ctx.save();for(const e of game.skillEffects){const fade=clamp(e.life/e.total,0,1),travel=1-fade;ctx.globalAlpha=fade*.85;ctx.lineWidth=4*(.5+fade);ctx.lineCap='round';if(e.kind==='fox'){ctx.strokeStyle='#aef8db';for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(e.x,e.y,14+travel*65+i*10,-1.8+i*.28,.7+i*.28);ctx.stroke();}}else if(e.kind==='bear'){ctx.strokeStyle='#f5d591';for(let i=0;i<7;i++){const a=i*Math.PI*2/7+e.seed,r=12+travel*42;ctx.beginPath();ctx.moveTo(e.x+Math.cos(a)*r*.6,e.y+Math.sin(a)*r*.6);ctx.lineTo(e.x+Math.cos(a)*(r+19),e.y+Math.sin(a)*(r+19));ctx.stroke();}}else if(e.kind==='rabbit'){for(let i=0;i<5;i++){const a=i*Math.PI*2/5+travel*.5,r=18+travel*72;ellipse(e.x+Math.cos(a)*r,e.y+Math.sin(a)*r,6+fade*8,3+fade*5,'#e6c2f6');}}else if(e.kind==='cat'){ctx.strokeStyle='#bce8d3';for(let i=0;i<3;i++){const a=game.clock*3+i*2.1;ctx.beginPath();ctx.arc(e.x,e.y,25+i*15+travel*18,a,a+Math.PI*1.1);ctx.stroke();}}else{ctx.strokeStyle='#ffe6cf';ctx.beginPath();ctx.arc(e.x,e.y,12+travel*33,0,Math.PI*2);ctx.stroke();}}ctx.restore();}
  function drawImpact(){ctx.save();
@@ -2737,15 +2762,17 @@ const materialCells={
   }
   for(const e of game.blastCores){
    const t=1-e.life/e.total,fade=clamp(e.life/e.total,0,1);
-   ctx.save();ctx.translate(e.x,e.y);ctx.rotate(e.seed);ctx.globalAlpha=Math.min(1,fade*1.8);
+   ctx.save();ctx.translate(e.x,e.y);ctx.rotate(e.seed*.1);ctx.globalAlpha=Math.min(1,fade*1.8);
    const outer=e.radius*(.48+t*.9);
-   ellipse(0,0,outer,outer*.88,'#f37b456a');
-   ellipse(0,0,outer*.76,outer*.75,'#ffce79a6');
-   ellipse(0,0,outer*.44,outer*.44,'#fff9cf');
-   ctx.strokeStyle='#fff0bc';ctx.lineWidth=5*fade;ctx.lineCap='round';
-   for(let i=0;i<9;i++){const a=i*Math.PI*2/9,inner=outer*.7,far=outer*(1.2+t*.75);
-    ctx.beginPath();ctx.moveTo(Math.cos(a)*inner,Math.sin(a)*inner);
-    ctx.lineTo(Math.cos(a)*far,Math.sin(a)*far);ctx.stroke();}
+   if(!drawPaintedImpact(e,t)){
+    ellipse(0,0,outer,outer*.88,'#f37b456a');
+    ellipse(0,0,outer*.76,outer*.75,'#ffce79a6');
+    ellipse(0,0,outer*.44,outer*.44,'#fff9cf');
+    ctx.strokeStyle='#fff0bc';ctx.lineWidth=5*fade;ctx.lineCap='round';
+    for(let i=0;i<9;i++){const a=i*Math.PI*2/9,inner=outer*.7,far=outer*(1.2+t*.75);
+     ctx.beginPath();ctx.moveTo(Math.cos(a)*inner,Math.sin(a)*inner);
+     ctx.lineTo(Math.cos(a)*far,Math.sin(a)*far);ctx.stroke();}
+   }
    ctx.restore();
   }
   for(const r of game.rings){ctx.globalAlpha=clamp(r.life/r.total,0,1);ctx.strokeStyle=r.color;
