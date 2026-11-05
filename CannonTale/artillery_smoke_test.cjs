@@ -35,7 +35,13 @@ assert(html.includes('CannonTale v1.8: illustrated menu'),'Scenic fantasy homepa
 
 assert(html.includes('v2.0.2 -- real illustrated HUD buttons'),'Full illustrative HUD should replace generic CSS buttons');
 assert(html.includes('v2.0.3: fill the entire combat dock'),'Combat control dock should have the responsive full-width layout fix');
-assert(/#shotReview\.shot-review\{[^}]*top:auto!important;[^}]*bottom:clamp\(/.test(html),'Post-impact result toast must appear at ground level rather than on top of the scene');
+assert(/\/\* v3\.3: Move the post-shot report into the sky/.test(html),'Post-impact layout must include the newest sky placement update');
+const finalStyle=html.slice(html.lastIndexOf('/* v3.3: Move the post-shot report into the sky'),html.indexOf('</style>'));
+assert(/#shotReview\.shot-review\{[^}]*top:clamp\(24px,9%,92px\)!important;bottom:auto!important/.test(finalStyle),'The post-shot result plaque must occupy upper air, not the ground');
+assert(/@media\(orientation:portrait\) and \(max-width:600px\)\{\s*#shotReview\.shot-review\{[^}]*top:clamp\(72px,20%,196px\)!important;bottom:auto!important/.test(finalStyle),'Portrait result plaque must appear above the center countdown');
+assert(/@media\(orientation:landscape\) and \(max-height:550px\)\{\s*#shotReview\.shot-review\{[^}]*top:clamp\(5px,4%,23px\)!important;bottom:auto!important/.test(finalStyle),'Short landscape view must retain sky placement without clipping');
+assert(finalStyle.includes('--ct-ui-font')&&finalStyle.includes('#controls .aim .aim-label')&&finalStyle.includes('.top .chip,.top .tiny'),'Responsive typography must fit the illustrated live-text UI');
+assert(!finalStyle.includes('#controls .weapon{')&&!finalStyle.includes('#controls #fire{'),'Typography must not double-render the labels already painted onto combat HUD artwork');
 assert(/#battleWrap > #hint\.corner-hint\{[^}]*left:50%!important;[^}]*top:91%!important/.test(html),'The separate welcome hint must be centered inside the battlefield dirt rather than at the sky corner');
 for(const asset of ['popup_ground_notice_v31.webp','popup_impact_review_v31.webp','popup_exit_confirm_v31.webp','popup_parchment_modal_v31.webp','popup_action_button_v31.webp','hero_info_plaque_v31.webp','hero_portrait_frame_v31.webp']){
  assert(html.includes('art/'+asset),`Real illustrated popup and hero UI must use ${asset}`);
