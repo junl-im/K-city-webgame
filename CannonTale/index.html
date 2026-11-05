@@ -1631,6 +1631,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   <img id="enemyArtwork" src="Artillery_Enemy_Atlas_v0_8.png" alt="" hidden aria-hidden="true">
    <img id="combatArtwork" src="Artillery_Combat_Poses_v1_2.png" alt="" hidden aria-hidden="true">
   <img id="materialArtwork" src="Artillery_Material_Damage_Atlas_v1_0.webp" alt="" hidden aria-hidden="true">
+  <img id="materialColumnArtwork" src="art/material_columns_v28.webp" alt="" hidden aria-hidden="true">
   <img id="duelCannonArtwork" src="art/duel_cannons_v21.webp" alt="" hidden aria-hidden="true">
   <img id="duelCannonPartsArtwork" src="art/duel_cannon_parts_v22.webp" alt="" hidden aria-hidden="true">
   <img id="foxAttackArtwork" src="art/fox_attack_v22.webp" alt="" hidden aria-hidden="true">
@@ -1717,7 +1718,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  const cv=$('field'),ctx=cv.getContext('2d',{alpha:false});
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  const rnd=(a,b)=>a+Math.random()*(b-a);
- const angleEl=$('angle'),powerEl=$('power'),atlas=$('menuArtwork'),rosterAtlas=$('rosterArtwork'),stageAtlas=$('stageArtwork'),enemyAtlas=$('enemyArtwork'),combatAtlas=$('combatArtwork'),materialAtlas=$('materialArtwork'),duelCannonAtlas=$('duelCannonArtwork'),duelPartsAtlas=$('duelCannonPartsArtwork'),foxAttackAtlas=$('foxAttackArtwork'),M=window.Matter;
+ const angleEl=$('angle'),powerEl=$('power'),atlas=$('menuArtwork'),rosterAtlas=$('rosterArtwork'),stageAtlas=$('stageArtwork'),enemyAtlas=$('enemyArtwork'),combatAtlas=$('combatArtwork'),materialAtlas=$('materialArtwork'),materialColumnAtlas=$('materialColumnArtwork'),duelCannonAtlas=$('duelCannonArtwork'),duelPartsAtlas=$('duelCannonPartsArtwork'),foxAttackAtlas=$('foxAttackArtwork'),M=window.Matter;
  const paintedAttackAtlases={fox:foxAttackAtlas,bear:$('bearAttackArtwork'),rabbit:$('rabbitAttackArtwork'),cat:$('catAttackArtwork')};
  const paintedFoeAtlases=[$('foeAcornArtwork'),$('foeGolemArtwork'),$('foeWindArtwork'),$('foeBossArtwork')];
  const heroAmmunitionAtlas=$('heroAmmunitionArtwork');
@@ -1801,7 +1802,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  }
  function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;$('menu').dataset.stage=String(chosen);const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];const def=stageSet[chosen];$('stageShotPreview').textContent=`탄약 ${def.shots}발 · 목표 ${def.foes.length}명`;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;}
  function refreshMenu(){refreshHeroPreview();const cleared=progress.best.filter(Boolean).length;$('progressSummary').textContent=cleared?`최고 등급 합계 ${progress.best.reduce((a,b)=>a+b,0)} / 12 · 승리 ${progress.wins}회`:'모험 기록 · 아직 첫 승리 전';$('progressTier').textContent=`완료 ${cleared} / 4`;refreshStageMap();}
- const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:100,aiHp:100,turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null};
+ const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:100,aiHp:100,turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null};
  // Six authored motion phases per hero (procedural transforms of the existing PNG/WebP art).
  // They are NOT six separately painted sprite frames.
  const heroMotionKeys={
@@ -1933,7 +1934,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   for(const f of game.foes){const body=M.Bodies.circle(f.x,f.y,f.r,{friction:.82,frictionStatic:1,restitution:.07,density:.0011,sleepThreshold:55,label:'foe'});body.plugin.foe=f;f.body=body;M.Composite.add(game.engine.world,body);}
  }
  function newGame(mode,stage=0){
-  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:3;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
+  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:3;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
   // Every duel is hero-versus-hero. The opponent is different from the selected player.
   const challengers=['fox','bear','rabbit','cat'].filter(hero=>hero!==game.hero);
   game.aiHero=mode==='duel'?challengers[Math.floor(Math.random()*challengers.length)]:'bear';
@@ -1948,7 +1949,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   angleEl.value=game.angle;powerEl.value=game.power;chooseWeapon('normal');
   updateHud();resize();
  }
- function goHome(){cancelFireCharge();$('reviewCountdown').hidden=true;game.mode='menu';game.phase='menu';game.projectiles=[];game.particles=[];game.skillEffects=[];game.impactMotes=[];game.debris=[];game.rubble=[];game.blastCores=[];game.drag=null;game.pan=null;game.panX=null;game.reviewFocusX=null;game.reviewInfo=null;game.reviewTimer=0;$('shotReview').hidden=true;$('menu').hidden=false;$('stageMap').hidden=true;$('result').hidden=true;$('exitConfirm').hidden=true;$('controls').hidden=true;$('hint').hidden=true;$('leftStatus').hidden=true;$('rightStatus').hidden=true;$('bossBanner').hidden=true;$('enemyEntrance').hidden=true;game.introLife=0;$('windChip').textContent='바람 —';$('modeChip').textContent='모드 선택';$('stageChip').textContent='첫 플레이를 시작해요';refreshMenu();resize();}
+ function goHome(){cancelFireCharge();$('reviewCountdown').hidden=true;game.mode='menu';game.phase='menu';game.projectiles=[];game.particles=[];game.skillEffects=[];game.impactMotes=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.blastCores=[];game.drag=null;game.pan=null;game.panX=null;game.reviewFocusX=null;game.reviewInfo=null;game.reviewTimer=0;$('shotReview').hidden=true;$('menu').hidden=false;$('stageMap').hidden=true;$('result').hidden=true;$('exitConfirm').hidden=true;$('controls').hidden=true;$('hint').hidden=true;$('leftStatus').hidden=true;$('rightStatus').hidden=true;$('bossBanner').hidden=true;$('enemyEntrance').hidden=true;game.introLife=0;$('windChip').textContent='바람 —';$('modeChip').textContent='모드 선택';$('stageChip').textContent='첫 플레이를 시작해요';refreshMenu();resize();}
  function chooseWeapon(type){game.weapon=type;document.querySelectorAll('[data-weapon]').forEach(b=>b.classList.toggle('selected',b.dataset.weapon===type));updateHud();}
  // A shot-review should not lock the next round's controls if more ammo remains.
  function canResumeAimFromReview(){
@@ -2047,6 +2048,12 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   }
   game.debris=game.debris.slice(-160);
  }
+ function spawnCollapseGhost(b){
+  // Keep the shattered silhouette briefly visible after its physics body is removed.
+  const total=.36;
+  game.collapseGhosts.push({x:b.body.position.x,y:b.body.position.y,w:b.w,h:b.h,angle:b.body.angle,type:b.type,life:total,total});
+  game.collapseGhosts=game.collapseGhosts.slice(-20);
+ }
  // A short fracture flash ties hand-painted damage tiers to the physics collision.
  function markBlockImpact(b,previousTier,power){
   b.damageFlash=.32;
@@ -2060,6 +2067,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
    game.rings.push({x,y,r:3,max:20+tier*9,life:.24,total:.24,color:b.type==='iron'?'#f5ac63':b.type==='stone'?'#d9e8e9':'#ffd49c'});
   }
   if(b.hp<=0){
+   spawnCollapseGhost(b);
    spawnCollapseFragments(b);
    game.shake=Math.max(game.shake,b.type==='iron'?15:b.type==='stone'?11:8);
    spawnDebris(x,y,b.type,b.w>75?25:16);
@@ -2238,6 +2246,8 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
    }
   }
   game.impactMotes=game.impactMotes.filter(m=>m.life>0&&m.y<H+45);
+  for(const g of game.collapseGhosts)g.life-=dt;
+  game.collapseGhosts=game.collapseGhosts.filter(g=>g.life>0);
   for(const d of game.debris){
   d.life-=dt;d.vy+=G*.73*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.angle+=d.spin*dt;
   if(d.x>=0&&d.x<W&&d.y+d.h/2>=terrainY(d.x)){
@@ -2402,6 +2412,23 @@ const materialCells={
   iron:[1001,26,335,302]
  };
  function materialArtReady(){return !!(materialAtlas&&materialAtlas.complete&&materialAtlas.naturalWidth>0&&materialAtlas.naturalHeight>0);}
+ const columnCells={wood:[210,188],stone:[530,196],iron:[863,193]};
+ const columnRows=[[0,402],[416,398],[831,411]];
+ function columnArtReady(){return !!(materialColumnAtlas&&materialColumnAtlas.complete&&materialColumnAtlas.naturalWidth>0&&materialColumnAtlas.naturalHeight>0);}
+ function isStructuralColumn(b){return b.h>b.w*1.65&&b.w<=52;}
+ function drawPaintedColumn(b,tier){
+  if(!isStructuralColumn(b)||!columnArtReady())return false;
+  const rect=columnCells[b.type];if(!rect)return false;
+  const [sourceY,sourceH]=columnRows[tier];
+  const sx=materialColumnAtlas.naturalWidth/1262,sy=materialColumnAtlas.naturalHeight/1246;
+  const x=-b.w/2,y=-b.h/2,cap=Math.min(b.h*.24,Math.max(6,b.w*.48)),edge=78;
+  // Vertical three-slice artwork: caps keep their shape on narrow, tall physics bodies.
+  ctx.save();ctx.beginPath();ctx.rect(x,y,b.w,b.h);ctx.clip();
+  ctx.drawImage(materialColumnAtlas,rect[0]*sx,sourceY*sy,rect[1]*sx,edge*sy,x,y,b.w,cap);
+  ctx.drawImage(materialColumnAtlas,rect[0]*sx,(sourceY+edge)*sy,rect[1]*sx,(sourceH-edge*2)*sy,x,y+cap,b.w,b.h-cap*2);
+  ctx.drawImage(materialColumnAtlas,rect[0]*sx,(sourceY+sourceH-edge)*sy,rect[1]*sx,edge*sy,x,y+b.h-cap,b.w,cap);
+  ctx.restore();return true;
+ }
  function damageTier(b){const wear=clamp(1-b.hp/b.maxHp,0,1);return wear>.65?2:wear>.26?1:0;}
  function drawPaintedMaterial(b,tier){
   if(!materialArtReady())return false;
@@ -2434,7 +2461,7 @@ const materialCells={
   const x=-b.w/2,y=-b.h/2,w=b.w,h=b.h,wear=clamp(1-b.hp/b.maxHp,0,1);
   const tier=wear>.65?2:wear>.26?1:0,wood=b.type==='wood',stone=b.type==='stone';
   ctx.save();ctx.translate(b.body.position.x,b.body.position.y);ctx.rotate(b.angle);
-  if(drawPaintedMaterial(b,tier)){drawDamageOverlay(b,tier);ctx.restore();continue;}
+  if(drawPaintedColumn(b,tier)||drawPaintedMaterial(b,tier)){drawDamageOverlay(b,tier);ctx.restore();continue;}
   ctx.shadowColor='#1c293066';ctx.shadowBlur=9;ctx.shadowOffsetY=4;
   const material=ctx.createLinearGradient(x,y,x+w,y+h);
   if(wood){material.addColorStop(0,'#e7b478');material.addColorStop(.48,'#bd8151');material.addColorStop(1,'#85533e');}
@@ -2489,6 +2516,23 @@ const materialCells={
   drawDamageOverlay(b,tier);
   ctx.restore();
  }}
+ function drawCollapseGhosts(){
+  for(const g of game.collapseGhosts){
+   const progress=clamp(1-g.life/g.total,0,1),fade=clamp(g.life/(g.total*.6),0,1);
+   for(let half=0;half<2;half++){
+    const sign=half===0?-1:1;
+    ctx.save();ctx.globalAlpha=fade;
+    ctx.translate(g.x+sign*g.w*.27*progress,g.y+g.h*.23*progress*progress);
+    ctx.rotate(g.angle+sign*.17*progress);
+    ctx.beginPath();ctx.rect(-g.w/2,half===0?-g.h/2:0,g.w,g.h/2);ctx.clip();
+    if(!drawPaintedColumn(g,2)&&!drawPaintedMaterial(g,2)){
+     ctx.fillStyle=g.type==='wood'?'#ad7447':g.type==='stone'?'#899ba7':'#55848a';
+     ctx.fillRect(-g.w/2,-g.h/2,g.w,g.h);
+    }
+    ctx.restore();
+   }
+  }
+ }
  function drawShard(d){
   const w=d.w,h=d.h;
   ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.angle);
@@ -2882,7 +2926,7 @@ const materialCells={
   for(let i=0;i<3;i++){const a=time+i*Math.PI*2/3,r=11+power*13;ellipse(m.x+Math.cos(a)*r,m.y+Math.sin(a)*r,1.7+power*1.7,1.7+power*1.7,tint);}
   ctx.restore();
  }
- function draw(){resize();const dpr=Math.min(2,devicePixelRatio||1),s=game.scale;if(!s)return;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#8bbeb8';ctx.fillRect(0,0,cv.width,cv.height);ctx.setTransform(dpr*s,0,0,dpr*s,-game.camera*dpr*s,game.topPad*dpr);ctx.save();if(game.shake>1){ctx.translate(rnd(-game.shake,game.shake),rnd(-game.shake*.6,game.shake*.6));}backdrop();if(game.mode!=='menu'){ground();drawTrajectory();if(game.mode==='adventure'){drawBlocks();drawFoes();slingshot();}else{duelActor(190,1,true);duelActor(1018,-1,false);}drawChargeReadiness();drawDebris();drawProjectiles();drawParticles();drawImpactMotes();drawSkillEffects();drawImpact();drawMessage();}else{ctx.save();fox(170,450,2);bear(1008,452,2);ctx.restore();}if(game.flash>0){ctx.fillStyle=`rgba(255,245,210,${game.flash*1.4})`;ctx.fillRect(game.camera,0,cv.clientWidth/s,H);}ctx.restore();}
+ function draw(){resize();const dpr=Math.min(2,devicePixelRatio||1),s=game.scale;if(!s)return;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#8bbeb8';ctx.fillRect(0,0,cv.width,cv.height);ctx.setTransform(dpr*s,0,0,dpr*s,-game.camera*dpr*s,game.topPad*dpr);ctx.save();if(game.shake>1){ctx.translate(rnd(-game.shake,game.shake),rnd(-game.shake*.6,game.shake*.6));}backdrop();if(game.mode!=='menu'){ground();drawTrajectory();if(game.mode==='adventure'){drawBlocks();drawCollapseGhosts();drawFoes();slingshot();}else{duelActor(190,1,true);duelActor(1018,-1,false);}drawChargeReadiness();drawDebris();drawProjectiles();drawParticles();drawImpactMotes();drawSkillEffects();drawImpact();drawMessage();}else{ctx.save();fox(170,450,2);bear(1008,452,2);ctx.restore();}if(game.flash>0){ctx.fillStyle=`rgba(255,245,210,${game.flash*1.4})`;ctx.fillRect(game.camera,0,cv.clientWidth/s,H);}ctx.restore();}
  let prev=0,acc=0;function frame(t){if(!prev)prev=t;acc+=Math.min(.075,(t-prev)/1000);prev=t;let runs=0;while(acc>=STEP&&runs++<6){step(STEP);acc-=STEP;}draw();requestAnimationFrame(frame);}
  function pointerToWorld(e){const r=cv.getBoundingClientRect();return{x:game.camera+(e.clientX-r.left)/game.scale,y:(e.clientY-r.top-game.topPad)/game.scale};}
  cv.addEventListener('pointerdown',e=>{if(game.phase==='flying'){if(game.hero==='rabbit'&&game.turn==='player'&&!game.abilityUsed){useAbility();return;}const active=game.projectiles.find(p=>p.weapon==='split'&&!p.split);if(active){splitProjectile(active);return;}}if(game.mode==='menu'||game.phase==='result'||game.overview)return;const p=pointerToWorld(e),o=origin();if(game.mode==='adventure'&&game.phase==='aim'&&Math.hypot(p.x-o.x,p.y-o.y)<110){game.drag={x:p.x,y:p.y};cv.setPointerCapture(e.pointerId);}else{game.pan={startX:e.clientX,startY:e.clientY,startAngle:game.angle,startCamera:game.camera,kind:null};cv.setPointerCapture(e.pointerId);}});

@@ -16,6 +16,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__forceAiHeroForTest=(hero)=>{game.aiHero=hero;}; window.__forceAiAttackForTest=()=>{actorMotion("ai","attack",.48);}; window.__forceFoeFrameForTest=(kind,frame)=>{const f=game.foes[0];if(!f)return;f.kind=kind;f.alive=frame!==5;f.hp=55;f.deathTimer=frame===5?3.8:0;f.hitAnim=frame===4?.62:0;f.hitFlash=0;f.attackAnim=frame===1?.68:frame===2?.42:frame===3?.07:0;f.attackCooldown=99;}; window.__forceProjectileForTest=(hero,weapon)=>{game.projectiles=[{x:540,y:220,vx:170,vy:-20,r:weapon==="bomb"?13:10,hero,weapon,active:true,age:0,split:weapon==="split",trail:Array.from({length:7},(_,i)=>({x:480+i*8,y:242-i*3})),pierce:0,hitBlocks:[],hitFoes:[]}];}; window.__forceImpactForTest=(hero,weapon)=>{game.projectiles=[];game.blastCores=[{x:540,y:200,life:.48,total:.48,radius:weapon==="bomb"?69:41,hero,weapon,seed:0}];}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__forceImpactAtTimeForTest=(hero,weapon,time)=>{const total=weapon==="bomb"?.65:.46;game.blastCores=[{x:540,y:200,life:total*(1-time),total,radius:weapon==="bomb"?69:41,hero,weapon,seed:0}];}; window.__impactMotesForTest=(hero,weapon)=>{spawnImpactMotes({x:530,y:270,hero,weapon},weapon==="bomb");return game.impactMotes.length;}; window.__impactMotePositionsForTest=()=>game.impactMotes.map(m=>({x:m.x,y:m.y,life:m.life})); window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__probeMaterialColumnForTest=(type,tier)=>drawPaintedColumn({w:26,h:108,type},tier); window.__probeCollapseForTest=()=>{const b=game.blocks.find(v=>v.type==="wood");const old=damageTier(b);b.hp=-1;markBlockImpact(b,old,95);b.dead=true;M.Composite.remove(game.engine.world,b.body);game.blocks=game.blocks.filter(v=>!v.dead);return game.collapseGhosts.length;}; window.__collapseGhostCountForTest=()=>game.collapseGhosts.length; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(html.includes('Artillery_Illustrated_UI_v1_1.png'),'The painted v1.1 UI atlas should be referenced');
@@ -124,6 +126,7 @@ const splitCannonColumns=new Set(),heroAttackFrames=Object.fromEntries(['fox','b
 const foeFrameIds=['foeAcornArtwork','foeGolemArtwork','foeWindArtwork','foeBossArtwork'];
 const paintedFoeFrames=foeFrameIds.map(()=>new Set());
 let paintedShardDrawCalls=0,legacyCombatDrawCalls=0;
+const paintedColumnCells=new Set();
 const paintedAmmunitionCells=new Set();
 const paintedImpactCells=new Set();
 const paintedImpactStageCells=new Set();
@@ -144,6 +147,7 @@ function testDrawImage(...args){
  if(foeIndex>=0)paintedFoeFrames[foeIndex].add(Math.floor(args[2]/512)*3+Math.floor(args[1]/512));
  if(args[0]?.id==='combatArtwork')legacyCombatDrawCalls++;
  if(args[0]?.id==='materialArtwork'&&args[3]<=92&&args[2]>=680)paintedShardDrawCalls++;
+ if(args[0]?.id==='materialColumnArtwork')paintedColumnCells.add(`${Math.floor(args[1]/(1262/3))},${Math.floor(args[2]/(1246/3))}`);
  if(args[0]?.id==='heroAmmunitionArtwork')paintedAmmunitionCells.add(`${Math.round(args[2]/(810/4))},${Math.round(args[1]/(1080/3))}`);
  if(args[0]?.id==='heroImpactArtwork')paintedImpactCells.add(`${Math.round(args[2]/384)},${Math.round(args[1]/384)}`);
  if(args[0]?.id==='heroImpactStagesArtwork')paintedImpactStageCells.add(`${Math.round(args[2]/240)},${Math.round(args[1]/240)}`);
@@ -158,6 +162,7 @@ const heroes=['fox','bear','rabbit','cat'].map(type=>{const b=el('hero-'+type);b
 const stages=[0,1,2,3].map(type=>{const b=el('stage-'+type);b.dataset.stage=String(type);return b;});
 for(const id of ['stageMap','result','help','exitConfirm','enemyEntrance','shotReview'])el(id).hidden=true;
 for(const id of ['materialArtwork','combatArtwork']){const art=el(id);art.complete=true;art.naturalWidth=id==='combatArtwork'?1262:1536;art.naturalHeight=id==='combatArtwork'?1246:1024;}
+{const art=el('materialColumnArtwork');art.complete=true;art.naturalWidth=1262;art.naturalHeight=1246;}
 {const art=el('duelCannonArtwork');art.complete=true;art.naturalWidth=1774;art.naturalHeight=887;}
 {const art=el('duelCannonPartsArtwork');art.complete=true;art.naturalWidth=1774;art.naturalHeight=887;}
 for(const hero of Object.keys(heroAttackFrames)){
@@ -589,6 +594,20 @@ for(let kind=0;kind<foeFrameIds.length;kind++){
 assert.equal(legacyCombatDrawCalls,0,'Legacy monster atlas with unwanted paint remnants must not render when new sheets are loaded');
 window.__damageBlockForTest(30);frames(3);
 assert(paintedShardDrawCalls>0,'Wood debris should reuse the original damaged material painting');
+const columnImage=fs.readFileSync(__dirname+'/art/material_columns_v28.webp');
+assert.equal(columnImage.toString('ascii',0,4),'RIFF','The pillar damage atlas must be a WebP bitmap');
+assert.equal(columnImage.toString('ascii',8,12),'WEBP','The pillar damage atlas must retain its WebP signature');
+for(const material of ['wood','stone','iron'])for(let tier=0;tier<3;tier++){
+ assert(window.__probeMaterialColumnForTest(material,tier),`The ${material} pillar needs a real tier-${tier} painting`);
+}
+assert.deepEqual([...paintedColumnCells].sort(),Array.from({length:3},(_,x)=>Array.from({length:3},(_,y)=>`${x},${y}`)).flat().sort(),
+ 'Every material needs its own intact, damaged and critical pillar illustration');
+el('materialColumnArtwork').complete=false;
+assert.equal(window.__probeMaterialColumnForTest('wood',1),false,'Unavailable new pillar art must fall back to the legacy atlas');
+el('materialColumnArtwork').complete=true;
+assert(window.__probeCollapseForTest()>0,'Destroyed supports must show a short-lived painted split silhouette');
+frames(27);
+assert.equal(window.__collapseGhostCountForTest(),0,'Collapse silhouettes must clear within half a second');
 for(const hero of ['fox','bear','rabbit','cat']){
  for(const weapon of ['normal','bomb','split']){
   window.__forceProjectileForTest(hero,weapon);frames(1);
