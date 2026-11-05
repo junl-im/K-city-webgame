@@ -2218,6 +2218,36 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 }
 @media(prefers-reduced-motion:reduce){#shotReview.shot-review::before{transition:none}}
 
+/* v3.5: Keep text inside its painted safe-zone even on very narrow phones.
+   Long impact summaries can use two lines; the image alone remains translucent. */
+#shotReview .review-copy strong{
+ display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+ overflow:hidden;word-break:keep-all;overflow-wrap:anywhere;
+ line-height:1.2!important;text-shadow:0 1px 2px #fff8e6,0 0 5px #fff2d2;
+}
+#shotReview .review-copy small{
+ max-width:100%;line-height:1.24!important;word-break:keep-all;
+ text-shadow:0 1px 2px #fff8e6,0 0 4px #fff2d2;
+}
+#shotReview .review-copy{gap:2px;min-width:0;align-self:center}
+#shotReview .review-continue{display:grid;place-items:center;align-self:center;flex-shrink:0}
+#menu .custom-select-option:not(.stage-option){
+ display:grid;place-items:center;text-align:center;
+ min-height:44px;line-height:1.2;padding:5px 12px;
+}
+@media(orientation:portrait) and (max-width:360px){
+ #shotReview.shot-review{
+  width:calc(100% - 40px)!important;
+  padding:17px 7% 10px 14%!important;gap:2px;
+ }
+ #shotReview .review-continue{width:67px;min-width:0;height:40px;font-size:9px!important}
+ #shotReview .review-copy strong{font-size:11px!important}
+ #shotReview .review-copy small{font-size:9px!important}
+ #menu .hero-stage-info{grid-template-columns:32% minmax(0,1fr)}
+ #menu .hero-choice .hero-portrait{width:29px!important;height:29px!important}
+ #menu .hero-choice .hero-text{max-width:49%}
+}
+
 </style>
 </head>
 <body>
@@ -2400,6 +2430,18 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   drawHeroBadges();
   return true;
  }
+ function fitPaintedLabel(node,minSize=9){
+  if(!node||!node.clientWidth)return;
+  node.style.removeProperty('font-size');
+  const base=Number.parseFloat(getComputedStyle(node).fontSize);
+  if(!Number.isFinite(base)||node.scrollWidth<=node.clientWidth+1)return;
+  const fitted=Math.max(minSize,Math.min(base,base*(node.clientWidth-3)/node.scrollWidth));
+  node.style.setProperty('font-size',`${fitted.toFixed(1)}px`,'important');
+ }
+ function fitPaintedMenuLabels(){
+  if($('menu').hidden)return;
+  document.querySelectorAll('#menu #heroPreviewName,#menu #heroPreviewWeapon,#menu #heroPreviewSkill,#menu .hero-choice .hero-text strong,#menu .select-current').forEach(el=>fitPaintedLabel(el,el.tagName==='SMALL'?8:9));
+ }
  function refreshHeroPreview(){
   const chosen=heroPresentation[selectedHero]||heroPresentation.fox;
   $('heroPreview').dataset.hero=selectedHero;
@@ -2412,7 +2454,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    if(info){button.title=`${info.name} · ${info.skill}`;button.setAttribute('aria-label',`${info.name}, ${info.weapon}, 특수기 ${info.skill}`);}
   });
   lastHeroPreviewKey='';
-  drawHeroBadges();drawHeroPreview();
+  drawHeroBadges();drawHeroPreview();fitPaintedMenuLabels();
  }
  function refreshIllustratedSelects(){
   document.querySelectorAll('[data-select-target]').forEach(trigger=>{
@@ -2424,6 +2466,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    trigger.title=label;
    trigger.setAttribute('aria-label',`${trigger.dataset.selectTarget==='adventureStage'?'모험 지역':'결투 난이도'}: ${label}`);
   });
+  fitPaintedMenuLabels();
  }
  let activeIllustratedSelect=null;
  function closeIllustratedSelect(returnFocus=false){
@@ -3679,6 +3722,7 @@ const materialCells={
   panel.classList.remove('menu-tight','menu-ultra');
   if(panel.scrollHeight>panel.clientHeight+2)panel.classList.add('menu-tight');
   if(panel.scrollHeight>panel.clientHeight+2)panel.classList.add('menu-ultra');
+  fitPaintedMenuLabels();
  }
  function resize(){fitMenuToViewport();drawHeroPreview();const w=cv.clientWidth,h=cv.clientHeight;if(w<1||h<1)return;const dpr=Math.min(2,devicePixelRatio||1),pw=Math.max(1,Math.round(w*dpr)),ph=Math.max(1,Math.round(h*dpr));if(cv.width!==pw)cv.width=pw;if(cv.height!==ph)cv.height=ph;const fit=game.overview?Math.min(w/W,h/H):h/H;game.scale=Math.max(.001,fit);game.topPad=game.overview?Math.max(0,(h-H*game.scale)/2):0;const visible=w/game.scale,edge=Math.max(0,W-visible);if(game.overview){game.camera=-(visible-W)/2;return;}const waitingForAi=game.mode==='duel'&&game.turn==='ai'&&game.phase==='aiWait';
   const defaultCam=waitingForAi?clamp(1018-visible*.76,0,edge):game.mode==='duel'?clamp(190-visible*.24,0,edge):clamp(145-visible*.25,0,edge);

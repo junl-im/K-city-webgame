@@ -51,6 +51,13 @@ assert(v34Style.includes('grid-template-columns:34% minmax(0,1fr)'),'Hero info l
 assert(v34Style.includes('grid-column:2;justify-self:stretch'),'Hero title, weapon and ability descriptions must share the same safe label column');
 assert(v34Style.includes('background:transparent!important;')&&v34Style.includes('opacity:.56;'),'The illustrated sky report must be visibly translucent without fading its live text');
 assert(v34Style.includes('width:min(345px,calc(100% - 80px))!important;'),'Mobile impact report must be comfortably inset from both edges');
+const v35Style=html.slice(html.lastIndexOf('/* v3.5: Keep text inside its painted safe-zone'),html.indexOf('</style>'));
+assert(v35Style.includes('-webkit-line-clamp:2')&&v35Style.includes('#shotReview .review-copy small'),'The transparent result card must wrap readable text inside its painted bounds');
+assert(v35Style.includes('max-width:360px')&&v35Style.includes('width:calc(100% - 40px)!important;'),'Very narrow phones must give the combat report enough content space');
+assert(v35Style.includes('.custom-select-option:not(.stage-option)'),'Difficulty choices need their own centered alignment, not the stage medal layout');
+assert(html.includes('function fitPaintedLabel(node,minSize=9)')&&html.includes('function fitPaintedMenuLabels()'),'Live Korean labels need a fit-to-artwork calculation');
+assert(html.includes('drawHeroBadges();drawHeroPreview();fitPaintedMenuLabels();'),'Changing heroes must recalculate label size');
+assert(html.includes('  fitPaintedMenuLabels();\n }\n let activeIllustratedSelect'),'Changing stage/difficulty selection must recalculate label size');
 assert(html.includes("const height=Math.min(choices.length*(id==='adventureStage'?53:44)+(id==='adventureStage'?78:72),320)"),'Custom selector height must reserve top and bottom artwork gutters');
 assert(/#battleWrap > #hint\.corner-hint\{[^}]*left:50%!important;[^}]*top:91%!important/.test(html),'The separate welcome hint must be centered inside the battlefield dirt rather than at the sky corner');
 for(const asset of ['popup_ground_notice_v31.webp','popup_impact_review_v31.webp','popup_exit_confirm_v31.webp','popup_parchment_modal_v31.webp','popup_action_button_v31.webp','hero_info_plaque_v31.webp','hero_portrait_frame_v31.webp']){
