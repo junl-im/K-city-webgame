@@ -22,11 +22,13 @@
 }
 #modal-layer #modal-box.result-dialog .modal-top{
   min-height:34px!important;margin:0!important;padding:0 3px!important;
+  justify-content:center!important;
   background:none!important;border:0!important;box-shadow:none!important;
 }
 #modal-layer #modal-box.result-dialog #modal-kicker{
   color:#dbc9a2!important;font:750 11px/1.2 var(--fg-story-font),sans-serif!important;
   letter-spacing:.02em!important;text-shadow:0 2px 5px #071b15!important;
+  text-align:center!important;width:100%!important;
 }
 #modal-layer #modal-box.result-dialog .close-button{display:none!important}
 #modal-layer #modal-box.result-dialog #modal-title{
@@ -43,11 +45,11 @@
 }
 #modal-layer #modal-box.result-dialog .result-presentation{gap:clamp(5px,1.5dvh,10px)!important}
 #modal-layer #modal-box.result-dialog .result-stars{
-  min-height:38px!important;gap:4px!important;margin:0!important;filter:none!important;
+  min-height:43px!important;gap:clamp(7px,2.4vw,11px)!important;margin:0!important;filter:none!important;
 }
-#modal-layer #modal-box.result-dialog .result-star{width:36px!important;height:36px!important}
+#modal-layer #modal-box.result-dialog .result-star{width:40px!important;height:40px!important}
 #modal-layer #modal-box.result-dialog .result-star:nth-child(2).earned{
-  width:45px!important;height:45px!important;
+  width:49px!important;height:49px!important;
 }
 #modal-layer #modal-box.result-dialog .result-star.earned{
   filter:drop-shadow(0 2px 3px rgba(55,32,12,.54))!important;
@@ -144,8 +146,8 @@
   #modal-layer #modal-box.result-dialog .modal-top{min-height:25px!important}
   #modal-layer #modal-box.result-dialog #modal-title{font-size:22px!important}
   #modal-layer #modal-box.result-dialog .result-stars{min-height:30px!important}
-  #modal-layer #modal-box.result-dialog .result-star{width:30px!important;height:30px!important}
-  #modal-layer #modal-box.result-dialog .result-star:nth-child(2).earned{width:37px!important;height:37px!important}
+  #modal-layer #modal-box.result-dialog .result-star{width:32px!important;height:32px!important}
+  #modal-layer #modal-box.result-dialog .result-star:nth-child(2).earned{width:40px!important;height:40px!important}
   #modal-layer #modal-box.result-dialog .result-hero-scene{
     height:clamp(105px,19dvh,130px)!important;min-height:105px!important;
   }

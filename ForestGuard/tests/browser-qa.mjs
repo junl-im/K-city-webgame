@@ -393,6 +393,16 @@ try{
       assert.equal(await page.locator('.recruit-card.recommended').count(),1,'Exactly one recommended companion');
       assert.equal(await page.locator('.recruit-tag').count(),1,'Only one recommendation badge in first-companion UI');
       assert.equal(await page.locator('.recruit-card.recommended .recruit-tag').count(),1,'Badge belongs to the recommended card');
+      const recruitHeading=await page.locator('#modal-box.recruit-dialog .modal-top').evaluate(header=>{
+        const root=header.closest('#modal-box').getBoundingClientRect();
+        const label=header.querySelector('#modal-kicker').getBoundingClientRect();
+        const close=header.querySelector('.close-button').getBoundingClientRect();
+        return {offset:Math.abs((label.left+label.right)/2-(root.left+root.right)/2),
+          labelRight:label.right,closeLeft:close.left,columns:getComputedStyle(header).gridTemplateColumns};
+      });
+      assert.ok(recruitHeading.offset<=3&&recruitHeading.labelRight<=recruitHeading.closeLeft+1&&
+        recruitHeading.columns.split(' ').length===3,
+        'Companion chapter cue must center between the painted scene and the close control: '+JSON.stringify(recruitHeading));
       const crispText=await page.locator('.recruit-card').evaluateAll(cards=>cards.map(card=>({
         heading:getComputedStyle(card.querySelector('strong')).fontFamily,
         description:getComputedStyle(card.querySelector('small')).wordBreak,
@@ -491,6 +501,12 @@ try{
       // v5.0.1: all three icon sources must crop correctly, not show their full sprite sheet.
       assert.equal(await page.evaluate(()=>window.__ForestGuardQA.previewGrowth(['power','ice','bear'])),true);
       assert.equal(await page.locator('.draft-card').count(),3,'Growth modal preserves three active choices');
+      const growthHeading=await page.locator('#modal-box.growth-dialog .modal-top').evaluate(header=>{
+        const root=header.closest('#modal-box').getBoundingClientRect();
+        const label=header.querySelector('#modal-kicker').getBoundingClientRect();
+        return Math.abs((label.left+label.right)/2-(root.left+root.right)/2);
+      });
+      assert.ok(growthHeading<=3,'Growth chapter cue must be centered over its three choices');
       const growthBox=await page.locator('#modal-box').evaluate(box=>{
         const r=box.getBoundingClientRect(),cards=[...box.querySelectorAll('.draft-card')].map(node=>{
           const bounds=node.getBoundingClientRect(),heading=node.querySelector('strong').getBoundingClientRect(),
@@ -581,6 +597,12 @@ try{
     await page.evaluate(()=>window.__ForestGuardQA.finish(true));
     await page.locator('#modal-box.result-dialog.result-win').waitFor();
     assert.equal(await page.locator('.result-star.earned').count(),3,'Full HP victory earns three stars');
+    const resultHeading=await page.locator('#modal-box.result-dialog .modal-top').evaluate(header=>{
+      const root=header.closest('#modal-box').getBoundingClientRect();
+      const label=header.querySelector('#modal-kicker').getBoundingClientRect();
+      return Math.abs((label.left+label.right)/2-(root.left+root.right)/2);
+    });
+    assert.ok(resultHeading<=3,'Victory scene chapter cue must align with title and stars');
     const starTrim=await page.locator('.result-star.earned').evaluateAll(nodes=>
       nodes.map(node=>getComputedStyle(node).clipPath));
     assert.ok(starTrim.every(value=>value.includes('10.5%')),

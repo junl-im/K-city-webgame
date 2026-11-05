@@ -2,6 +2,24 @@
    Bitmap art only; no SVG, duplicate frames, or changes to the game rules. */
 
 /* Use the SAME carved acorn/card silhouette for heroes and growth choices. */
+/* A balanced illustrated heading: the close action sits on the right while
+   the chapter cue remains truly centered over the painting at every width. */
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .modal-top{
+  display:grid!important;
+  grid-template-columns:38px minmax(0,1fr) 38px!important;
+  align-items:center!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .modal-top::before{
+  content:"";
+  grid-column:1;grid-row:1;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) #modal-kicker{
+  grid-column:2;grid-row:1;
+  width:100%!important;text-align:center!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .modal-top .close-button{
+  grid-column:3;grid-row:1;justify-self:end!important;
+}
 #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card{
   position:relative!important;
   background:url('./art/forest-choice-card-v50.webp') center/100% 100% no-repeat!important;
@@ -42,6 +60,7 @@
 #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card small{
   color:#f5e9ce!important;
   line-height:1.28!important;
+  letter-spacing:-.01em!important;
   text-shadow:0 1px 3px #061b13!important;
 }
 
