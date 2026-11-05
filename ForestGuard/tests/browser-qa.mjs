@@ -398,6 +398,37 @@ try{
         }
       }
     }
+    if(size.width===320){
+      // The narrowest phone must render the real painted free-reroll control
+      // and readable growth captions, without a detached CSS pill.
+      assert.equal(await page.evaluate(()=>window.__ForestGuardQA.previewGrowth(['power','ice','bear'])),true);
+      const compactGrowth=await page.locator('#modal-box.growth-dialog').evaluate(box=>{
+        const reroll=box.querySelector('#modal-actions .modal-action.alt');
+        const button=reroll.getBoundingClientRect(),dialog=box.getBoundingClientRect();
+        const paint=getComputedStyle(reroll);
+        const cardDetails=[...box.querySelectorAll('.draft-card small')].map(el=>({
+          fontSize:parseFloat(getComputedStyle(el).fontSize),
+          bottom:el.getBoundingClientRect().bottom,
+          cardBottom:el.closest('.draft-card').getBoundingClientRect().bottom
+        }));
+        return {background:paint.backgroundImage,border:parseFloat(paint.borderTopWidth),
+          radius:paint.borderRadius,shadow:paint.boxShadow,
+          button:{left:button.left,right:button.right,top:button.top,bottom:button.bottom,height:button.height},
+          dialog:{top:dialog.top,bottom:dialog.bottom},cardDetails};
+      });
+      assert.ok(compactGrowth.background.includes('btn-sapphire-v33.webp')&&
+        compactGrowth.border===0&&compactGrowth.radius==='0px'&&compactGrowth.shadow==='none',
+        'Growth reroll must use the original painted sapphire image without CSS frames: '+JSON.stringify(compactGrowth));
+      assert.ok(compactGrowth.button.left>=0&&compactGrowth.button.right<=size.width&&
+        compactGrowth.button.height>=44&&compactGrowth.button.bottom<=size.height+2&&
+        compactGrowth.dialog.top>=-2&&compactGrowth.dialog.bottom<=size.height+2,
+        'Growth reroll and dialog must fit the narrow phone: '+JSON.stringify(compactGrowth));
+      assert.ok(compactGrowth.cardDetails.every(x=>x.fontSize>=10&&x.bottom<=x.cardBottom+2),
+        'Growth card lettering must be legible and remain inside each painting: '+JSON.stringify(compactGrowth));
+      await page.screenshot({path:new URL('../test-output/growth-painted-reroll-320.png',import.meta.url).pathname});
+      await page.locator('#modal-close').click();
+      assert.equal(await page.locator('#modal-layer').isHidden(),true);
+    }
     if(size.width===390){
       // A real first-wave combat smoke: fast-forward, verify the free recruit, reopen it from the empty perch.
       await page.locator('#speed-btn').click();
