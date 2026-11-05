@@ -37,6 +37,15 @@ assert(html.includes('v2.0.2 -- real illustrated HUD buttons'),'Full illustrativ
 assert(html.includes('v2.0.3: fill the entire combat dock'),'Combat control dock should have the responsive full-width layout fix');
 assert(/#shotReview\.shot-review\{[^}]*top:auto!important;[^}]*bottom:clamp\(/.test(html),'Post-impact result toast must appear at ground level rather than on top of the scene');
 assert(/#battleWrap > #hint\.corner-hint\{[^}]*left:50%!important;[^}]*top:91%!important/.test(html),'The separate welcome hint must be centered inside the battlefield dirt rather than at the sky corner');
+for(const asset of ['popup_ground_notice_v31.webp','popup_impact_review_v31.webp','popup_exit_confirm_v31.webp','popup_parchment_modal_v31.webp','popup_action_button_v31.webp','hero_info_plaque_v31.webp','hero_portrait_frame_v31.webp']){
+ assert(html.includes('art/'+asset),`Real illustrated popup and hero UI must use ${asset}`);
+ const bytes=fs.readFileSync(`${__dirname}/art/${asset}`);
+ assert.equal(bytes.subarray(0,4).toString(),'RIFF',`${asset} must be a binary WebP asset`);
+ assert.equal(bytes.subarray(8,12).toString(),'WEBP',`${asset} must retain WebP encoding`);
+}
+assert(html.includes('id="customSelectLayer"')&&html.includes('function openIllustratedSelect(id)'),'Game must use interactive illustrated drop-downs rather than native select popups');
+assert(html.includes('select.dispatchEvent(new Event(\'change\''),'Illustrated drop-downs must propagate selection to original game state listeners');
+assert(html.includes('refreshIllustratedSelects();'),'Programmatic level changes must update the illustrated drop-down label');
 assert(html.includes('function groundToastLayout()'),'Transient gameplay toasts must share the lower-ground notification design');
 assert(html.includes('function drawImpactScar(b,tier)'),'The hit side must leave a persistent directional crack on damaged structures');
 assert(html.includes('if(tier!==previousTier||b.hp<=0)playSound(b.type)'),'Material damage must trigger a distinct wood/stone/iron audio cue');
@@ -169,7 +178,7 @@ function el(id){if(!elements.has(id)){const listeners={},classes=new Set(),item=
 const weapons=['normal','bomb','split'].map(type=>{const b=el('weapon-'+type);b.dataset.weapon=type;return b;});
 const heroes=['fox','bear','rabbit','cat'].map(type=>{const b=el('hero-'+type);b.dataset.hero=type;return b;});
 const stages=[0,1,2,3].map(type=>{const b=el('stage-'+type);b.dataset.stage=String(type);return b;});
-for(const id of ['stageMap','result','help','exitConfirm','enemyEntrance','shotReview'])el(id).hidden=true;
+for(const id of ['stageMap','result','help','exitConfirm','enemyEntrance','shotReview','customSelectLayer'])el(id).hidden=true;
 for(const id of ['materialArtwork','combatArtwork']){const art=el(id);art.complete=true;art.naturalWidth=id==='combatArtwork'?1262:1536;art.naturalHeight=id==='combatArtwork'?1246:1024;}
 {const art=el('materialColumnArtwork');art.complete=true;art.naturalWidth=1262;art.naturalHeight=1246;}
 {const art=el('duelCannonArtwork');art.complete=true;art.naturalWidth=1774;art.naturalHeight=887;}

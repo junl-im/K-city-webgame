@@ -1658,6 +1658,255 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
 }
 @media(prefers-reduced-motion:reduce){#battleWrap > #hint.corner-hint{animation:none}}
 
+/* v3.1: individually illustrated bitmap popups, hero plaques and self-painted selectors.
+   All labels remain interactive DOM text; no SVG, baked-in letters, or duplicate borders. */
+#battleWrap > #hint.corner-hint{
+ width:min(650px,calc(100% - 100px))!important;
+ max-width:none!important;min-height:57px;
+ display:grid;place-items:center;
+ padding:10px 10% 10px 16%!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ background:transparent url("art/popup_ground_notice_v31.webp") center/100% 100% no-repeat!important;
+ color:#54341f!important;text-shadow:0 1px #fff0bd7a;
+ font-size:clamp(10px,1.08vw,14px)!important;font-weight:900;
+}
+#battleWrap > #hint.corner-hint[hidden]{display:none!important}
+#bossBanner.boss-banner{
+ top:auto;bottom:24%;left:50%;width:min(400px,calc(100% - 70px));
+ min-height:50px;padding:9px 14% 9px 19%;border:0;border-radius:0;box-shadow:none;
+ color:#54341f;text-align:center;text-shadow:0 1px #fff1cba3;
+ background:transparent url("art/popup_ground_notice_v31.webp") center/100% 100% no-repeat;
+}
+#shotReview.shot-review{
+ width:min(560px,calc(100% - 14px))!important;min-height:116px;
+ padding:26px 6% 15px 15%!important;gap:clamp(4px,1vw,11px);
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ background:transparent url("art/popup_impact_review_v31.webp") center/100% 100% no-repeat!important;
+ color:#4d2c17!important;
+}
+#shotReview .review-copy{gap:1px;min-width:0}
+#shotReview .review-kicker{color:#7d4b2b!important;font-size:10px}
+#shotReview .review-copy strong{color:#512e1a!important;text-shadow:0 1px #fff3d18f;font-size:clamp(12px,1.9vw,18px)}
+#shotReview .review-copy small{color:#64432b!important;font-size:clamp(9px,1.2vw,12px)}
+#shotReview .review-continue{
+ flex:none;min-width:clamp(78px,19%,110px);height:53px;min-height:0;
+ padding:5px 8px;border:0!important;border-radius:0!important;
+ background:transparent url("art/popup_action_button_v31.webp") center/100% 100% no-repeat!important;
+ box-shadow:none!important;color:#4f2d14!important;text-shadow:0 1px #ffe7a3!important;
+ font-weight:1000;font-size:clamp(10px,1.4vw,13px);
+}
+#shotReview .review-continue:active{transform:translateY(2px) scale(.97)}
+#stageMap .map-panel,#result .result-panel,#help.help{
+ border:0!important;border-radius:0!important;
+ background:transparent url("art/popup_parchment_modal_v31.webp") center/100% 100% no-repeat!important;
+ box-shadow:none!important;color:#573721!important;
+ scrollbar-width:thin;scrollbar-color:#a47646 #efd6a1;
+}
+#stageMap .map-panel{
+ width:min(860px,97vw)!important;max-height:calc(100dvh - 16px)!important;
+ padding:clamp(35px,8dvh,65px) clamp(27px,5vw,55px) clamp(25px,5dvh,48px)!important;
+}
+#stageMap .map-head{position:relative;justify-content:center;min-height:34px}
+#stageMap .map-head>div{text-align:center}
+#stageMap .map-head h2{font-size:clamp(19px,3vw,27px);color:#633c22}
+#stageMap .map-head .eyebrow{color:#9b6a43;font-size:9px}
+#stageMap #closeStageMap{
+ position:absolute;right:0;top:50%;transform:translateY(-50%);
+ padding:7px 12px;border:0;border-radius:0;background:transparent url("art/popup_action_button_v31.webp") center/100% 100% no-repeat!important;
+ color:#573016;box-shadow:none!important;text-shadow:0 1px #fce1a0;
+}
+#result .result-panel{
+ width:min(520px,94vw)!important;max-height:calc(100dvh - 20px)!important;
+ padding:clamp(41px,7dvh,66px) clamp(24px,5vw,46px) clamp(23px,4dvh,37px)!important;
+}
+#result #resultTitle{font-size:clamp(20px,4.6vw,35px);color:#723e22!important}
+#result #resultText{color:#60452e!important;font-size:clamp(11px,1.8vw,14px)}
+#result .result-panel::before{margin-top:0!important}
+#result .result-visual{background:#876037!important;color:#fff5d6!important}
+#result .paper-btn,#result .paper-btn.light,#stageMap #closeStageMap{
+ background:transparent url("art/popup_action_button_v31.webp") center/100% 100% no-repeat!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ color:#563114!important;text-shadow:0 1px #ffe5ad!important;
+}
+#result .panel-actions{justify-content:center;gap:5px}
+#result .panel-actions .paper-btn{min-height:41px;padding:7px 13px;font-size:clamp(10px,1.8vw,14px)}
+#exitConfirm .exit-panel{
+ position:relative;overflow:hidden!important;
+ width:min(480px,94vw,calc((100dvh - 20px)*1.25))!important;
+ height:auto;aspect-ratio:1402/1122;
+ min-height:0!important;max-height:calc(100dvh - 20px)!important;
+ margin:0;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;
+ background:transparent url("art/popup_exit_confirm_v31.webp") center/100% 100% no-repeat!important;
+ color:#5d3c24!important;
+}
+#exitConfirm .exit-panel .eyebrow{display:none}
+#exitConfirm .exit-panel h2{
+ position:absolute;left:18%;top:10%;width:64%;margin:0!important;
+ color:#6b3921;font-size:clamp(13px,3vw,24px);line-height:1.14;
+}
+#exitConfirm .exit-panel p{
+ position:absolute;top:38%;left:29%;right:9%;margin:0!important;
+ font-size:clamp(10px,1.9vw,14px);line-height:1.45;color:#644328!important;
+}
+#exitConfirm .exit-panel .panel-actions{
+ position:absolute;left:22%;right:14%;bottom:10%;margin:0;
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7%;
+}
+#exitConfirm .exit-panel .paper-btn,#exitConfirm .exit-panel .paper-btn.light{
+ display:grid;place-items:center;min-width:0;min-height:clamp(26px,8dvh,50px);
+ padding:0;border:0!important;border-radius:0!important;box-shadow:none!important;
+ background:transparent!important;color:#653818!important;
+ font-size:clamp(10px,2.4vw,15px);text-shadow:0 1px #ffe4a3;
+}
+#help.help{
+ top:50%;left:50%;right:auto;transform:translate(-50%,-50%);
+ width:min(490px,calc(100% - 12px));max-height:min(90%,580px);
+ padding:clamp(49px,9dvh,75px) clamp(34px,6vw,57px) clamp(24px,5dvh,42px);
+ overflow:auto;touch-action:pan-y;z-index:7;
+ font-size:clamp(11px,1.3vw,13px);line-height:1.52;
+}
+#help.help h2{text-align:center;color:#673a20;font-size:clamp(17px,3vw,23px)}
+#help.help p{color:#513b2a;font-weight:650}
+#help.help button{
+ float:none;position:sticky;top:0;left:100%;z-index:1;
+ border:0;border-radius:0;padding:7px 14px;
+ background:transparent url("art/popup_action_button_v31.webp") center/100% 100% no-repeat!important;
+ color:#59341d;box-shadow:none;text-shadow:0 1px #fff0b3;
+}
+/* Character selection: independent painted medallions and real live hero busts. */
+#menu .hero-stage-info{
+ flex:0 1 44%;max-width:44%;height:clamp(49px,9dvh,86px);
+ display:flex!important;flex-direction:column;align-items:flex-start;justify-content:center;
+ padding:7px 8% 7px 16%!important;gap:2px!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ background:transparent url("art/hero_info_plaque_v31.webp") center/100% 100% no-repeat!important;
+ text-shadow:0 1px #fff2bf!important;
+}
+#menu .hero-stage-info strong{color:#5d321c!important;font-size:clamp(12px,1.9dvh,21px)!important}
+#menu .hero-stage-info small{color:#64452d!important;font-size:clamp(9px,1.22dvh,12px)!important}
+#menu .hero-picker{background:transparent!important;box-shadow:none!important;border:0!important;padding:0!important}
+#menu .hero-grid{gap:clamp(2px,.55vw,7px)!important}
+#menu .hero-choice{
+ display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;
+ min-height:clamp(44px,8dvh,62px)!important;height:clamp(44px,8dvh,62px);
+ padding:4px 6px 5px 4px!important;gap:2px!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;
+ background:transparent url("art/hero_info_plaque_v31.webp") center/100% 100% no-repeat!important;
+ filter:drop-shadow(0 2px 2px #0b273c60);transition:filter .12s,transform .12s;
+}
+#menu .hero-choice.selected{
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ background:transparent url("art/hero_info_plaque_v31.webp") center/100% 100% no-repeat!important;
+ filter:drop-shadow(0 1px 4px #ffd778) brightness(1.11);
+ transform:translateY(-1px) scale(1.025);
+}
+#menu .hero-choice .hero-portrait{
+ position:relative;flex:0 0 auto!important;overflow:visible!important;
+ width:clamp(35px,6.2dvh,53px)!important;height:clamp(35px,6.2dvh,53px)!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ background:transparent url("art/hero_portrait_frame_v31.webp") center/contain no-repeat!important;
+}
+#menu .hero-choice .hero-portrait canvas{
+ position:absolute;inset:14%;width:72%!important;height:72%!important;
+ border-radius:50%;object-fit:cover;
+}
+#menu .hero-choice.selected .hero-portrait{box-shadow:none!important}
+#menu .hero-choice.selected::after{
+ content:"✓"!important;display:grid;place-items:center;
+ background:#275942!important;color:#fff5cc;box-shadow:0 2px 5px #0e271d88!important;
+ font-size:11px;top:0!important;right:0!important;
+}
+#menu .hero-choice .hero-text{display:flex;flex:0 1 auto;min-width:0;gap:1px}
+#menu .hero-choice .hero-text strong{
+ color:#623619!important;font-size:clamp(9px,1.4dvh,13px)!important;
+ text-shadow:0 1px #fff0c6!important;
+}
+#menu .hero-choice .hero-text small{color:#79573c!important;font-size:9px!important;display:none!important}
+/* The visual select trigger is the only user-facing control; native select retains state for game logic. */
+#menu .setup-options{overflow:visible!important;position:relative;z-index:3}
+#menu .option-box.illustrated-select{
+ position:relative;min-width:0;min-height:clamp(32px,5dvh,45px)!important;
+ padding:2px 3px!important;gap:2px!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ background:transparent!important;
+}
+#menu .illustrated-select .option-caption{
+ flex:0 1 39%;min-width:0;font-size:clamp(9px,1.3dvh,12px);
+ color:#ffe7b9;text-shadow:0 2px 3px #081e30;font-weight:1000;
+ word-break:keep-all;
+}
+#menu .illustrated-select select[hidden]{display:none!important}
+#menu .select-trigger{
+ flex:1 1 61%;min-width:0;min-height:clamp(28px,4.8dvh,40px);
+ display:flex;align-items:center;justify-content:space-between;gap:3px;
+ padding:5px clamp(9px,1.3vw,14px);
+ border:0;border-radius:0;box-shadow:none;
+ background:transparent url("art/popup_action_button_v31.webp") center/100% 100% no-repeat;
+ color:#59371c;font-size:clamp(9px,1.28dvh,12px);font-weight:1000;white-space:nowrap;
+ text-shadow:0 1px #ffe2a9;
+}
+#menu .select-trigger .select-current{
+ min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font-size:inherit;line-height:1.2;
+}
+#menu .select-trigger>span:last-child{font-size:13px;line-height:1}
+#menu .select-trigger:active{transform:translateY(2px)}
+#menu .custom-select-layer{position:absolute;inset:0;z-index:9;background:#092a3b35;pointer-events:auto}
+#menu .custom-select-layer[hidden]{display:none!important}
+#menu .custom-select-menu{
+ position:absolute;z-index:1;display:flex;flex-direction:column;overflow-y:auto;
+ touch-action:pan-y;padding:13px 14px;border:0;border-radius:11px;
+ background:#f4daa4 url("art/popup_parchment_modal_v31.webp") center/100% 100% no-repeat;
+ box-shadow:0 10px 22px #081c2faa;scrollbar-width:thin;scrollbar-color:#a57b50 transparent;
+}
+#menu .custom-select-option{
+ display:block;flex:none;min-height:35px;padding:7px 9px;border:0;border-radius:7px;
+ background:transparent;color:#573a22;font-size:clamp(11px,1.5vw,14px);
+ font-weight:850;text-align:left;white-space:normal;word-break:keep-all;
+}
+#menu .custom-select-option[aria-selected="true"]{background:#c99b5980;color:#382618}
+#menu .custom-select-option:hover,#menu .custom-select-option:focus-visible{
+ background:#e9c17e9c;outline:2px solid #a76f39;outline-offset:-2px;
+}
+@media(orientation:portrait) and (max-width:600px){
+ #battleWrap > #hint.corner-hint{width:calc(100% - 46px)!important;min-height:58px;padding:8px 9% 8px 17%!important;font-size:10px!important}
+ #shotReview.shot-review{min-height:101px;padding:21px 5% 12px 13%!important;gap:3px}
+ #shotReview .review-kicker{font-size:8px}
+ #shotReview .review-continue{min-width:75px;height:45px;padding:4px;font-size:10px}
+ #menu .hero-stage-info{height:clamp(43px,8dvh,75px);padding-left:16%!important}
+ #menu .hero-choice{min-height:clamp(38px,7dvh,54px)!important;height:clamp(38px,7dvh,54px);padding:2px!important}
+ #menu .hero-choice .hero-portrait{width:clamp(29px,5.4dvh,43px)!important;height:clamp(29px,5.4dvh,43px)!important}
+ #menu .hero-choice .hero-text strong{font-size:clamp(9px,1.2dvh,11px)!important}
+ #menu .illustrated-select .option-caption{font-size:9px}
+ #menu .select-trigger{padding:4px 8px;font-size:9px}
+ #stageMap .map-panel{padding:35px 25px 24px!important}
+ #stageMap .map-head{margin-bottom:5px}
+ #stageMap .map-grid{gap:6px}
+ #stageMap .stage-tile{padding:5px}
+ #stageMap .stage-tile strong{font-size:11px}
+ #stageMap .stage-tile small{font-size:9px}
+}
+@media(orientation:landscape) and (max-height:660px){
+ #menu .hero-stage-info{max-width:100%;width:100%;height:clamp(34px,10dvh,49px);padding:1px 6px 1px 31%!important}
+ #menu .hero-stage-info strong{font-size:clamp(10px,2.4dvh,13px)!important}
+ #menu .hero-stage-info small{font-size:9px!important}
+ #menu .hero-choice .hero-text{display:none!important}
+ #menu .hero-choice .hero-portrait{width:clamp(25px,7dvh,40px)!important;height:clamp(25px,7dvh,40px)!important}
+ #menu .hero-choice{height:clamp(30px,8dvh,44px);min-height:30px!important}
+ #menu .select-trigger{min-height:26px;font-size:10px;padding:2px 8px}
+ #stageMap .map-panel{padding:29px 35px 20px!important}
+ #stageMap .stage-thumb{min-height:25px;max-height:64px}
+ #help.help{max-height:94%}
+}
+@media(max-height:450px){
+ #battleWrap > #hint.corner-hint{min-height:40px;padding-top:3px!important;padding-bottom:3px!important}
+ #shotReview.shot-review{min-height:68px;padding-top:14px!important;padding-bottom:7px!important}
+ #shotReview .review-continue{height:37px}
+ #stageMap .map-panel{padding-top:20px!important;padding-bottom:15px!important}
+ #result .result-panel{padding-top:23px!important;padding-bottom:18px!important}
+}
+@media(prefers-reduced-motion:reduce){#menu .hero-choice{transition:none}}
+
 </style>
 </head>
 <body>
@@ -1717,8 +1966,8 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
      <button class="mode-card" id="duelBtn" type="button" aria-label="포격 결투 시작, 각도 파워 바람을 활용한 AI 대결"><span class="mode-number">DUEL · 02</span><strong>포격 결투</strong><span>바람을 읽고 승부하라!</span></button>
     </div>
     <div class="setup-options">
-      <label class="option-box">모험 지역 <select id="adventureStage"><option value="0">1. 잔디 초소</option><option value="1">2. 돌담 숲</option><option value="2">3. 바람숲 다리</option><option value="3">4. 고철 요새</option></select></label>
-      <label class="option-box">결투 난이도 <select id="duelDifficulty"><option value="easy">쉬움</option><option value="normal" selected>보통</option><option value="hard">어려움</option></select></label>
+      <div class="option-box illustrated-select"><span class="option-caption">모험 지역</span><select id="adventureStage" hidden tabindex="-1" aria-hidden="true"><option value="0">1. 잔디 초소</option><option value="1">2. 돌담 숲</option><option value="2">3. 바람숲 다리</option><option value="3">4. 고철 요새</option></select><button type="button" class="select-trigger" data-select-target="adventureStage" aria-label="모험 지역 선택" aria-haspopup="listbox" aria-expanded="false"><span class="select-current">1. 잔디 초소</span><span aria-hidden="true">▾</span></button></div>
+      <div class="option-box illustrated-select"><span class="option-caption">결투 난이도</span><select id="duelDifficulty" hidden tabindex="-1" aria-hidden="true"><option value="easy">쉬움</option><option value="normal" selected>보통</option><option value="hard">어려움</option></select><button type="button" class="select-trigger" data-select-target="duelDifficulty" aria-label="결투 난이도 선택" aria-haspopup="listbox" aria-expanded="false"><span class="select-current">보통</span><span aria-hidden="true">▾</span></button></div>
     </div>
     <div class="stage-map-control"><button id="stageMapBtn" class="map-open" type="button">모험 지역 지도</button><span class="map-note" id="stageShotPreview">작전 탄약 3발 · 목표 2명</span></div>
     <div class="menu-progress"><span id="progressSummary">모험 기록 · 아직 첫 승리 전</span><strong id="progressTier">완료 0 / 4</strong></div>
@@ -1732,6 +1981,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
       </div>
     </div>
    </section>
+   <div class="custom-select-layer" id="customSelectLayer" hidden><div class="custom-select-menu" id="customSelectMenu" role="listbox" aria-label="항목 선택"></div></div>
   </div>
   <div id="stageMap" class="overlay" hidden>
     <section class="panel map-panel" aria-label="모험 지역 지도"><div class="map-head"><div><span class="eyebrow">ADVENTURE REGION MAP</span><h2>모험 지역 지도</h2></div><button id="closeStageMap" class="tiny" type="button">닫기</button></div>
@@ -1848,7 +2098,61 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   lastHeroPreviewKey='';
   drawHeroBadges();drawHeroPreview();
  }
- function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;$('menu').dataset.stage=String(chosen);const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];const def=stageSet[chosen];$('stageShotPreview').textContent=`탄약 ${def.shots}발 · 목표 ${def.foes.length}명`;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;}
+ function refreshIllustratedSelects(){
+  document.querySelectorAll('[data-select-target]').forEach(trigger=>{
+   const select=$(trigger.dataset.selectTarget);
+   const chosen=Array.from(select.options).find(option=>option.value===select.value);
+   const label=chosen?.textContent||'선택';
+   trigger.querySelector('.select-current').textContent=label;
+   trigger.setAttribute('aria-label',`${trigger.dataset.selectTarget==='adventureStage'?'모험 지역':'결투 난이도'}: ${label}`);
+  });
+ }
+ let activeIllustratedSelect=null;
+ function closeIllustratedSelect(returnFocus=false){
+  const layer=$('customSelectLayer');
+  layer.hidden=true;
+  if(activeIllustratedSelect){
+   const trigger=document.querySelector(`[data-select-target="${activeIllustratedSelect}"]`);
+   trigger?.setAttribute('aria-expanded','false');
+   if(returnFocus)trigger?.focus();
+  }
+  activeIllustratedSelect=null;
+ }
+ function openIllustratedSelect(id){
+  const select=$(id),layer=$('customSelectLayer'),popup=$('customSelectMenu');
+  const trigger=document.querySelector(`[data-select-target="${id}"]`);
+  if(!select||!trigger)return;
+  if(activeIllustratedSelect===id){closeIllustratedSelect(true);return;}
+  closeIllustratedSelect();
+  const choices=Array.from(select.options).map((option,i)=>{
+   const item=document.createElement('button');
+   item.type='button';item.className='custom-select-option';item.id=`custom-choice-${id}-${i}`;
+   item.setAttribute('role','option');item.setAttribute('aria-selected',String(option.value===select.value));
+   item.textContent=option.textContent;
+   item.addEventListener('click',()=>{
+    select.value=option.value;
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+    refreshIllustratedSelects();closeIllustratedSelect(true);playSound('ui');
+   });
+   return item;
+  });
+  popup.replaceChildren(...choices);
+  popup.setAttribute('aria-label',id==='adventureStage'?'모험 지역 선택':'결투 난이도 선택');
+  layer.hidden=false;activeIllustratedSelect=id;trigger.setAttribute('aria-expanded','true');
+  const bounds=$('menu').getBoundingClientRect(),rect=trigger.getBoundingClientRect();
+  const width=Math.min(Math.max(185,rect.width+50),Math.max(110,bounds.width-20));
+  const height=Math.min(choices.length*39+22,230);
+  const below=bounds.bottom-rect.bottom-8,above=rect.top-bounds.top-8;
+  const upward=below<height&&above>below;
+  const maxHeight=Math.max(66,Math.min(height,upward?above:below));
+  const top=upward?rect.top-bounds.top-maxHeight-4:rect.bottom-bounds.top+4;
+  popup.style.left=`${Math.max(8,Math.min(bounds.width-width-8,rect.left-bounds.left))}px`;
+  popup.style.top=`${Math.max(8,top)}px`;
+  popup.style.width=`${width}px`;
+  popup.style.maxHeight=`${maxHeight}px`;
+  (choices.find(item=>item.getAttribute('aria-selected')==='true')||choices[0])?.focus();
+ }
+ function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;$('menu').dataset.stage=String(chosen);const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];const def=stageSet[chosen];$('stageShotPreview').textContent=`탄약 ${def.shots}발 · 목표 ${def.foes.length}명`;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;refreshIllustratedSelects();}
  function refreshMenu(){refreshHeroPreview();const cleared=progress.best.filter(Boolean).length;$('progressSummary').textContent=cleared?`최고 등급 합계 ${progress.best.reduce((a,b)=>a+b,0)} / 12 · 승리 ${progress.wins}회`:'모험 기록 · 아직 첫 승리 전';$('progressTier').textContent=`완료 ${cleared} / 4`;refreshStageMap();}
  const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:100,aiHp:100,turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,chainHits:0,crushHits:0,weaponFractures:0};
  // Six authored motion phases per hero (procedural transforms of the existing PNG/WebP art).
@@ -3111,15 +3415,28 @@ const materialCells={
  $('inspectResultBtn').addEventListener('click',()=>{if(game.phase!=='result')return;$('result').hidden=true;$('reviewTitle').textContent=game.reviewInfo?.title||'전투 종료';$('reviewDetail').textContent='전장의 최종 파괴 상태를 직접 살펴보세요';$('reviewContinue').textContent='결과 다시 보기';$('shotReview').hidden=false;});
  $('abilityBtn').addEventListener('click',()=>{if(canResumeAimFromReview()&&heroSet[game.hero].timing==='aim')completeReview();useAbility();});
  document.querySelectorAll('[data-hero]').forEach(b=>b.addEventListener('click',()=>{selectedHero=b.dataset.hero;progress.hero=selectedHero;saveProgress();refreshHeroPreview();document.querySelectorAll('[data-hero]').forEach(item=>{const chosen=item.dataset.hero===selectedHero;item.classList.toggle('selected',chosen);item.setAttribute?.('aria-pressed',String(chosen));});playSound('ui');}));
+ document.querySelectorAll('[data-select-target]').forEach(trigger=>trigger.addEventListener('click',()=>openIllustratedSelect(trigger.dataset.selectTarget)));
+ $('customSelectLayer').addEventListener('click',e=>{if(e.target===$('customSelectLayer'))closeIllustratedSelect(true);});
+ $('customSelectMenu').addEventListener('keydown',e=>{
+  const choices=Array.from($('customSelectMenu').querySelectorAll('.custom-select-option'));
+  const index=choices.indexOf(document.activeElement);
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'||e.key==='Home'||e.key==='End'){
+   e.preventDefault();
+   const next=e.key==='Home'?0:e.key==='End'?choices.length-1:
+    (index+(e.key==='ArrowDown'?1:-1)+choices.length)%choices.length;
+   choices[next]?.focus();
+  }
+ });
  $('adventureStage').addEventListener('change',()=>{progress.lastStage=clamp(Number($('adventureStage').value)||0,0,3);saveProgress();refreshStageMap();});
  $('stageMapBtn').addEventListener('click',()=>{refreshStageMap();$('stageMap').hidden=false;});
  $('closeStageMap').addEventListener('click',()=>{$('stageMap').hidden=true;});
  document.querySelectorAll('[data-stage]').forEach(b=>b.addEventListener('click',()=>{const stage=clamp(Number(b.dataset.stage)||0,0,3);$('adventureStage').value=String(stage);progress.lastStage=stage;saveProgress();refreshStageMap();$('stageMap').hidden=true;}));
- $('duelDifficulty').addEventListener('change',()=>{progress.difficulty=$('duelDifficulty').value;saveProgress();});
+ $('duelDifficulty').addEventListener('change',()=>{progress.difficulty=$('duelDifficulty').value;saveProgress();refreshIllustratedSelects();});
  $('overview').addEventListener('click',()=>{game.overview=!game.overview;$('overview').textContent=game.overview?'조준 화면':'전장 보기';resize();});
  $('adventureBtn').addEventListener('click',()=>newGame('adventure',Number($('adventureStage').value)||0));$('duelBtn').addEventListener('click',()=>newGame('duel',0));
  $('soundBtn').addEventListener('click',()=>{game.sound=!game.sound;$('soundBtn').textContent=game.sound?'소리 켬':'소리 끔';$('soundBtn').setAttribute?.('aria-pressed',String(game.sound));playSound('ui');});
  function handleBackIntent(){
+  if(!$('customSelectLayer').hidden){closeIllustratedSelect(true);return;}
   if(!$('exitConfirm').hidden){$('exitConfirm').hidden=true;return;}
   if(!$('help').hidden){$('help').hidden=true;return;}
   if(!$('stageMap').hidden){$('stageMap').hidden=true;return;}
@@ -3140,6 +3457,7 @@ const materialCells={
  rosterAtlas.addEventListener?.('load',()=>{lastHeroPreviewKey='';drawHeroPreview();});
  window.addEventListener('resize',()=>{
   if(game.chargeActive){cancelFireCharge();suppressNextFireClick=true;}
+  if(!$('customSelectLayer').hidden)closeIllustratedSelect();
   game.drag=null;game.pan=null;resize();
  });
  window.addEventListener('blur',()=>{if(game.chargeActive){cancelFireCharge();suppressNextFireClick=true;}game.drag=null;game.pan=null;});
