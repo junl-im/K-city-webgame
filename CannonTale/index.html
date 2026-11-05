@@ -1403,6 +1403,146 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  #menu .mode-card,#menu #stageMapBtn{transition:none!important}
 }
 
+
+/* v2.0.2 -- real illustrated HUD buttons extracted from user's original asset sheet.
+   The CSS targets existing controls only; game input and state transitions stay unchanged. */
+#controls .weapon{
+ position:relative!important;flex:1 1 0!important;
+ display:block!important;align-self:center;
+ width:100%!important;min-width:0!important;
+ height:clamp(44px,6.6vh,72px)!important;min-height:0!important;
+ padding:0!important;margin:0!important;
+ border:0!important;border-radius:0!important;
+ background:transparent url("art/hud_weapon_normal.webp") center/contain no-repeat!important;
+ box-shadow:none!important;outline-offset:2px!important;
+ font-size:0!important;line-height:0!important;color:transparent!important;
+ text-shadow:none!important;
+ filter:drop-shadow(0 2px 3px #0b2439aa);
+ -webkit-tap-highlight-color:transparent;
+ transition:filter .12s,transform .12s!important;
+}
+#controls .weapon[data-weapon="bomb"]{
+ background-image:url("art/hud_weapon_bomb.webp")!important;
+}
+#controls .weapon[data-weapon="split"]{
+ background-image:url("art/hud_weapon_split.webp")!important;
+}
+#controls .weapon::before,#controls .weapon::after{display:none!important;content:none!important}
+#controls .weapon.selected{
+ background-color:transparent!important;
+ box-shadow:none!important;
+ filter:drop-shadow(0 0 6px #ffca64a8) saturate(1.18) brightness(1.09)!important;
+ transform:translateY(-1px);
+}
+#controls .weapon:disabled{opacity:.43!important;filter:grayscale(.9) brightness(.76)!important}
+#controls .weapon:active{transform:translateY(2px) scale(.96)!important}
+#controls #fire{
+ position:relative!important;flex:0 0 auto!important;
+ width:clamp(68px,7.4vw,100px)!important;
+ height:clamp(68px,10.3vh,95px)!important;
+ min-width:0!important;min-height:0!important;
+ border:0!important;border-radius:0!important;
+ padding:0!important;margin:0!important;
+ background:transparent url("art/hud_fire_ready.webp") center/contain no-repeat!important;
+ box-shadow:none!important;filter:drop-shadow(0 3px 4px #0b2439a4)!important;
+ color:transparent!important;font-size:0!important;line-height:0!important;
+ text-shadow:none!important;
+ transition:filter .1s,transform .1s!important;
+}
+#controls #fire::before,#controls #fire::after{display:none!important;content:none!important}
+#controls #fire.charging{
+ background-image:url("art/hud_fire_charge.webp")!important;
+ filter:drop-shadow(0 0 8px #ffbc4685)!important;
+ transform:scale(1.04)!important;
+}
+#controls #fire.recent-shot:not(:disabled){
+ background-image:url("art/hud_fire_pressed.webp")!important;
+ transform:translateY(2px) scale(.96)!important;
+ filter:drop-shadow(0 1px 4px #ffba6199)!important;
+}
+#controls #fire:disabled{
+ background-image:url("art/hud_fire_disabled.webp")!important;
+ opacity:.84!important;filter:drop-shadow(0 2px 3px #11253280)!important;
+ transform:none!important;
+}
+#controls #fire #fireLabel{
+ position:absolute!important;left:50%;bottom:15%;transform:translateX(-50%);
+ z-index:3;display:block;width:max-content;max-width:88%;
+ font-size:0!important;line-height:0!important;overflow:hidden;
+ color:transparent!important;text-shadow:none!important;
+}
+#controls #fire.charging #fireLabel{
+ bottom:10%;min-width:66%;
+ font-size:clamp(9px,1.6vh,12px)!important;line-height:1.15!important;
+ padding:3px 4px;
+ border-radius:10px;background:#452f28dc;
+ color:#fff1bf!important;text-shadow:0 1px #6e3f29!important;
+}
+#controls #fire #chargeGauge{
+ z-index:4;left:13%!important;right:13%!important;bottom:2%!important;
+ height:clamp(4px,.7vh,8px)!important;
+ border-radius:12px!important;
+}
+#controls #overview,#controls #abilityBtn{
+ position:relative!important;flex:0 1 145px!important;
+ min-width:0!important;
+ height:clamp(42px,6.9vh,72px)!important;min-height:0!important;
+ padding:0!important;margin:0!important;
+ border:0!important;border-radius:0!important;
+ box-shadow:none!important;
+ background:transparent url("art/hud_view_ready.webp") center/contain no-repeat!important;
+ color:transparent!important;font-size:0!important;line-height:0!important;
+ text-shadow:none!important;
+ filter:drop-shadow(0 3px 4px #091d318c)!important;
+ -webkit-tap-highlight-color:transparent;
+ transition:transform .12s,filter .12s!important;
+}
+#controls #overview::before,#controls #overview::after,
+#controls #abilityBtn::before,#controls #abilityBtn::after{display:none!important;content:none!important}
+#controls #abilityBtn{background-image:url("art/hud_ability_ready.webp")!important}
+#controls #abilityBtn:disabled{
+ background-image:url("art/hud_ability_used.webp")!important;
+ opacity:.67!important;
+ filter:drop-shadow(0 2px 2px #10283a8b)!important;
+}
+#controls #overview:active,#controls #abilityBtn:not(:disabled):active{
+ transform:translateY(2px) scale(.96)!important;
+}
+#controls .aim{
+ border-radius:14px;padding:6px 9px;
+ background:linear-gradient(160deg,#324d59bf,#182d41c9)!important;
+ box-shadow:inset 0 1px #f4d48c3d,0 2px 4px #0b1e2f50;
+}
+#controls input[type="range"]{
+ border:1px solid #80623e;
+ background:linear-gradient(90deg,#d99c42,#f6da8e 58%,#78623e)!important;
+}
+#controls .action-col{align-items:center!important}
+@media(orientation:portrait) and (max-width:600px){
+ #controls .weapon{height:clamp(39px,6.2vh,56px)!important}
+ #controls #fire{
+  width:clamp(62px,17vw,78px)!important;height:clamp(60px,9vh,78px)!important;
+ }
+ #controls #overview,#controls #abilityBtn{
+  width:clamp(66px,19vw,92px)!important;
+  height:clamp(39px,6.4vh,55px)!important;flex:0 0 auto!important;
+ }
+ #controls .aim{padding:3px 5px!important;border-radius:9px!important}
+ #controls #fire.charging #fireLabel{font-size:9px!important;min-width:85%!important}
+ #controls .action-col{gap:1px!important}
+}
+@media(orientation:landscape) and (max-height:550px){
+ #controls .weapon{height:clamp(32px,12vh,51px)!important}
+ #controls #fire{width:clamp(51px,8vw,72px)!important;height:clamp(46px,14vh,59px)!important}
+ #controls #overview,#controls #abilityBtn{height:clamp(36px,12vh,50px)!important}
+ #controls .aim{padding:3px 5px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #controls #fire,#controls .weapon,#controls #abilityBtn,#controls #overview{
+  transition:none!important;
+ }
+}
+
 </style>
 </head>
 <body>
