@@ -256,7 +256,7 @@ function missionOutcome(state: GameState, player: PlayerId, capturedCardIds: str
 
 function missionMessage(outcome: ReturnType<typeof missionOutcome>): string {
   return outcome.missionCards.length
-    ? outcome.missionEffect ? ` 미션 완료! ${outcome.missionEffect}.` : outcome.missionRequired > 1 ? ` 미션패 ${outcome.missionProgress}/${outcome.missionRequired}장 확보!` : ` 미션패 ${outcome.missionCards.length}장을 획득해 미션 배수가 ×${outcome.missionMultiplier}가 되었습니다.`
+    ? outcome.missionEffect ? ` 미션 완료! ${outcome.missionEffect}.` : outcome.missionRequired > 1 ? ' 미션패를 확보했습니다.' : ` 미션패 ${outcome.missionCards.length}장을 획득해 미션 배수가 ×${outcome.missionMultiplier}가 되었습니다.`
     : '';
 }
 
@@ -271,6 +271,11 @@ function advanceAfterAction(next: GameState, player: PlayerId, actionMessage: st
     return;
   }
   const score = scoreFor(next, player);
+  const actorHasNoTurns = next[keys.hand].length === 0 && (next[keys.bombSkips] ?? 0) === 0;
+  if (actorHasNoTurns && canChooseGoStop(score.total, next[keys.lastGo])) {
+    finishScoredRound(next, player, '마지막 패까지 모두 내서 자동으로 스톱했습니다.');
+    return;
+  }
   const allTurnsFinished = next.humanHand.length === 0
     && next.computerHand.length === 0
     && (next.humanBombSkips ?? 0) === 0
@@ -557,6 +562,11 @@ export function chooseGo(state: GameState, player: PlayerId): GameState {
   if (state.phase !== 'awaiting-go-stop' || state.pendingDecision !== player) throw new Error('지금은 고를 선택할 수 없습니다.');
   const next = structuredClone(state);
   const keys = keysFor(player);
+  // Recover older saved decisions made after the player's last playable turn.
+  if (next[keys.hand].length === 0 && (next[keys.bombSkips] ?? 0) === 0) {
+    finishScoredRound(next, player, '마지막 패까지 모두 내서 자동으로 스톱했습니다.');
+    return next;
+  }
   const score = scoreFor(next, player);
   next[keys.go] += 1;
   next[keys.lastGo] = score.total;
@@ -621,17 +631,24 @@ export function setGookjinChoice(state: GameState, player: PlayerId, asDoubleJun
   const canDecide = canChooseGoStop(score.total, next[keys.lastGo]);
   const allTurnsFinished = next.humanHand.length === 0 && next.computerHand.length === 0
     && (next.humanBombSkips ?? 0) === 0 && (next.computerBombSkips ?? 0) === 0;
-  const wasFinalTurnResult = allTurnsFinished && next.phase === 'round-ended'
+  const actorHasNoTurns = next[keys.hand].length === 0 && (next[keys.bombSkips] ?? 0) === 0;
+  const wasFinalTurnResult = next.phase === 'round-ended' && (allTurnsFinished || actorHasNoTurns)
     && (previousLastAction.includes('마지막 패까지') || next.roundResult === 'nagari');
   if (wasFinalTurnResult) {
     if (canDecide) finishScoredRound(next, player, `${choiceAction} 마지막 패까지 모두 내서 자동으로 스톱했습니다.`);
-    else {
+    else if (allTurnsFinished) {
       next.pendingDecision = null; next.winner = null; next.roundResult = 'nagari'; next.settlement = null;
       next.lastAction = `${choiceAction} 모든 패를 냈지만 7점에 도달하지 못해 나가리입니다.`;
+    } else {
+      next.phase = 'playing'; next.pendingDecision = null; next.winner = null; next.roundResult = null; next.settlement = null;
+      next.currentPlayer = otherPlayer(player);
+      next.lastAction = `${choiceAction} 점수가 부족해 상대 차례로 넘어갑니다.`;
     }
   } else if (next.phase === 'awaiting-go-stop' && next.pendingDecision === player && !canDecide) {
     next.phase = 'playing'; next.pendingDecision = null;
     next.lastAction += ` 현재 ${score.total}점이라 승부 선택 없이 상대 차례로 넘어갑니다.`;
+  } else if (next.phase === 'playing' && canDecide && actorHasNoTurns) {
+    finishScoredRound(next, player, `${choiceAction} 마지막 패까지 모두 내서 자동으로 스톱했습니다.`);
   } else if (next.phase === 'playing' && canDecide) {
     next.phase = 'awaiting-go-stop';
     next.pendingDecision = player;

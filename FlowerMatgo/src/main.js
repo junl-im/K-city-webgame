@@ -15,6 +15,7 @@ import { opponentSetWarnings } from './opponentSetWarnings.js';
 import { missionView } from './missionView.js';
 import { doubleOffer } from './doubleStake.js';
 import { floorDensity } from './floorLayout.js';
+import { settleOpeningPpeok } from './openingPpeok.js';
 import { artworkOrdinal, cardBookLabel, cardVisualDetails } from './cardDisplay.js';
 import { hwatuFamily, spokenActionText, spokenCardName } from './cardNames.js';
 import { animateResolvedTurn, motionOrigin } from './turnPresentation.js';
@@ -96,6 +97,7 @@ let audioCtx = null;
 let turnNoticeTimer = null;
 let turnTransition = false;
 let turnTransitionTimer = null;
+let pendingResolvedCheckpoint = null;
 let clockInterval = null;
 let autoTimer = null;
 let clockKey = null;
@@ -107,7 +109,11 @@ let opening = null;
 let openingTimer = null;
 
 function save() {
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(app)); }
+  const checkpoint = pendingResolvedCheckpoint;
+  const snapshot = checkpoint && app.game?.gameUuid === checkpoint.game.gameUuid
+    ? {...app, game:checkpoint.game, pendingGookjinChoice:app.pendingGookjinChoice || checkpoint.gotGookjin}
+    : app;
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot)); }
   catch { /* Private browsing may reject storage. In-memory play still works. */ }
 }
 function tone(kind = 'tap') {
@@ -455,7 +461,7 @@ function missionPanel(mission) {
     const x=((artworkOrdinal(target.id,ordinal)-1)/3*100).toFixed(5), y=((item.month-1)/11*100).toFixed(5);
     return `<span class="mission-mini mission-mini--${target.owner || 'open'}" style="--mission-x:${x}%;--mission-y:${y}%"><span class="mission-mini__face"></span>${target.owner ? `<span class="mission-mini__owner">${target.owner==='human'?'나':'상대'}</span>` : ''}</span>`;
   }).join('');
-  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="${safe(themeTitle)} ${safe(statusDetail)}: ${safe(accessible)}. ${safe(effect)}. ${mission.requiredCount ? `목표 ${mission.requiredCount}장, 나 ${mission.humanCount}장, 상대 ${mission.computerCount}장.` : ''} 자세히 보기"><span class="mission-panel__title" aria-hidden="true">${safe(themeTitle)}${statusText ? `<span class="mission-status-badge mission-status-badge--${mission.status}">${statusText}</span>` : ''}</span><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><span class="mission-panel__reward">${mission.unconditional ? `<span class="mission-unconditional-art" aria-hidden="true"></span><strong>×${mission.effect.value}배</strong>` : `<strong>${safe(missionCompactLabel(mission))}</strong>`}${mission.requiredCount ? `<small>${mission.humanCount}/${mission.requiredCount}</small>` : ''}</span></span></button></div>`;
+  return `<div class="mission-widget"><button type="button" class="mission-panel" data-action="mission" aria-label="${safe(themeTitle)} ${safe(statusDetail)}: ${safe(accessible)}. ${safe(effect)}. ${mission.requiredCount ? `목표 ${mission.requiredCount}장, 나 ${mission.humanCount}장, 상대 ${mission.computerCount}장.` : ''} 자세히 보기"><span class="mission-panel__title" aria-hidden="true">${safe(themeTitle)}${statusText ? `<span class="mission-status-badge mission-status-badge--${mission.status}">${statusText}</span>` : ''}</span><span class="mission-panel__content" aria-hidden="true"><span class="mission-panel__cards">${thumbs}</span><span class="mission-panel__reward">${mission.unconditional ? `<span class="mission-unconditional-art" aria-hidden="true"></span><strong>×${mission.effect.value}배</strong>` : `<strong>${safe(missionCompactLabel(mission))}</strong>`}</span></span></button></div>`;
 }
 
 function autoButtonContent(enabled) {
@@ -528,7 +534,7 @@ function missionOverlay(g) {
   return `<div class="modal-shade modal-shade--decision"><section class="modal-box mission-dialog" role="dialog" aria-modal="true" aria-labelledby="mission-title">
     <h2 id="mission-title">${safe(mission.unconditional ? '무조건 미션' : missionThemeLabel(mission))}</h2><p>${mission.unconditional ? `조건 없이 승자의 정산에 ×${mission.effect.value}배가 적용돼요. 판이 끝나면 정산에 반영돼요.` : mission.effect ? `미션패 ${mission.requiredCount || 1}장을 먼저 획득한 사람에게 ${safe(missionEffectLabel(mission.effect))} 효과가 적용돼요. 배수는 승리 정산에 반영돼요.` : '미션패를 한 장씩 먹을 때마다 그 사람의 미션 배수가 두 배가 돼요.'}</p>
     <div class="mission-targets">${mission.targets.map(target=>`<div class="mission-target">${card(target.id,{small:true})}<small>${target.owner==='human'?'내가 획득':target.owner==='computer'?'상대 획득':'미획득'}</small></div>`).join('')}</div>
-    <p class="mission-progress">${mission.effect ? (mission.resolvedBy ? (!mission.enabled?'미션 꺼짐 · 효과 없음':mission.resolvedBy==='human'?'내가 완료':'상대가 완료') : mission.failed ? (g.phase==='round-ended' ? '이번 판 미션 실패' : '현재 실패 · 피 이동 시 다시 달라질 수 있어요') : (mission.enabled?'나 '+mission.humanCount+'/'+(mission.requiredCount||1)+' · 상대 '+mission.computerCount+'/'+(mission.requiredCount||1):'미션 꺼짐')) : `나 ${mission.humanCount}장 · ×${mission.humanMultiplier} <span>상대 ${mission.computerCount}장 · ×${mission.computerMultiplier}</span>`}</p>
+    <p class="mission-progress">${mission.effect ? (mission.resolvedBy ? (!mission.enabled?'미션 꺼짐 · 효과 없음':mission.resolvedBy==='human'?'내가 완료':'상대가 완료') : mission.failed ? (g.phase==='round-ended' ? '이번 판 미션 실패' : '현재 실패 · 피 이동 시 다시 달라질 수 있어요') : (mission.enabled?'나 '+mission.humanCount+'장 · 상대 '+mission.computerCount+'장':'미션 꺼짐')) : `나 ${mission.humanCount}장 · ×${mission.humanMultiplier} <span>상대 ${mission.computerCount}장 · ×${mission.computerMultiplier}</span>`}</p>
     <p class="mission-note">${mission.effect ? '미션패의 위치는 공개되지 않아요. 이동할 피가 없으면 피 이동 효과가 없어요.' : '미션패를 획득한 사람에게 미션 배수가 적용돼요.'}</p>
     ${btn('돌아가기','close','btn--primary btn--wide')}
   </section></div>`;
@@ -849,16 +855,23 @@ function showScoreSet(player, combo) {
 }
 function commitGame(next, result=null, motion=null) {
   const gotGookjin = !!result && !app.game?.humanCaptured?.includes('m09-01') && next.humanCaptured.includes('m09-01');
+  if (result) {
+    const openingPpeok = settleOpeningPpeok(app, next);
+    if (openingPpeok) {
+      result.openingPpeok = openingPpeok;
+      next.lastAction += ` ${openingPpeok.player === 'human' ? '첫뻑 보상' : '상대 첫뻑 지급'} ${kr(openingPpeok.amount)}냥.`;
+    }
+  }
   if (result && motion && app.screen==='game' && !turnTransition) {
     turnTransition = true;
+    pendingResolvedCheckpoint = {game:next, gotGookjin};
     const scene = ROOT.querySelector('.scene--game');
     scene?.classList.add('is-resolving');
     scene?.setAttribute('aria-busy','true');
     syncTurnClock();
     // Keep the old cards visible while they fly, but checkpoint the resolved
     // engine state now. Reloading during the flight must never replay a turn.
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ ...app, game: next, pendingGookjinChoice: app.pendingGookjinChoice || gotGookjin })); }
-    catch { /* In-memory play is still supported when storage is unavailable. */ }
+    save();
     let wait = 0;
     try { wait = animateResolvedTurn({root:ROOT, result, cardHTML:id=>card(id), sound:cardSound, ...motion}); }
     catch(error) { console.error('Card animation failed; recovering turn:',error); }
@@ -866,11 +879,13 @@ function commitGame(next, result=null, motion=null) {
       turnTransitionTimer = setTimeout(() => {
         turnTransitionTimer = null;
         turnTransition = false;
+        pendingResolvedCheckpoint = null;
         commitGame(next,result);
       },wait);
       return;
     }
     turnTransition = false;
+    pendingResolvedCheckpoint = null;
   }
   const previous = app.game;
   const scoreGains = previous ? [
@@ -888,8 +903,9 @@ function commitGame(next, result=null, motion=null) {
   }
   if (gotGookjin) app.pendingGookjinChoice = true;
   const specialText = eventAnnouncement(result, previous?.currentPlayer);
-  const missionText = result?.missionCards?.length ? `${previous?.currentPlayer==='computer'?'상대 ':''}${result.missionEffect ? '미션 완료 · '+(piTransferAnnouncement(result) || result.missionEffect) : result.missionRequired > 1 ? '미션패 '+result.missionProgress+'/'+result.missionRequired : '미션패 ×'+(result.missionMultiplier || 1)}` : null;
-  const eventText = [specialText, missionText].filter(Boolean).join(' · ');
+  const missionText = result?.missionCards?.length ? `${previous?.currentPlayer==='computer'?'상대 ':''}${result.missionEffect ? '미션 완료 · '+(piTransferAnnouncement(result) || result.missionEffect) : result.missionRequired > 1 ? '미션패 획득' : '미션패 ×'+(result.missionMultiplier || 1)}` : null;
+  const openingPpeokText = result?.openingPpeok ? `${result.openingPpeok.player === 'human' ? '첫뻑 +' : '상대 첫뻑 −'}${kr(result.openingPpeok.amount)}냥` : null;
+  const eventText = [specialText, openingPpeokText, missionText].filter(Boolean).join(' · ');
   finishRound();
   if (eventText) effects(eventText, 'special', 'event-list', !!motion);
   save(); render();

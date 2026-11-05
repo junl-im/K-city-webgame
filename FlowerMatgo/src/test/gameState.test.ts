@@ -279,6 +279,41 @@ describe('기본 맞고 진행 상태', () => {
     expect(result.lastAction).toContain('자동으로 스톱');
   });
 
+  it.each(['human','computer'] as const)('%s가 마지막 손패로 점수를 내면 상대 손패가 남아도 자동 스톱한다', player => {
+    const game = createArrangedGame({humanHand:['m02-03'], humanHandSize:1, computerHand:['m06-03'], computerHandSize:1,
+      floorCards:['m02-04','m06-04'], floorSize:2, drawFirst:['m04-03'],
+      humanCaptured:['m01-01','m03-01','m08-01','m11-01','m12-01'],computerCaptured:['m07-03']});
+    if (player === 'computer') {
+      [game.humanCaptured, game.computerCaptured] = [game.computerCaptured, game.humanCaptured];
+      game.currentPlayer = 'computer';
+    }
+    const result = playTurn(game,player,player === 'human' ? 'm02-03' : 'm06-03').state;
+    expect(result.phase).toBe('round-ended'); expect(result.pendingDecision).toBeNull();
+    expect(result.winner).toBe(player); expect(result.settlement?.displayAmount).toBeGreaterThan(0);
+  });
+
+  it('손패가 없어도 폭탄 뒤집기 차례가 남아 있으면 고·스톱을 선택할 수 있다',()=>{
+    const game=createArrangedGame({humanHand:['m02-03'],humanHandSize:1,computerHand:['m06-03'],computerHandSize:1,
+      floorCards:['m02-04'],floorSize:1,drawFirst:['m04-03'],humanCaptured:['m01-01','m03-01','m08-01','m11-01','m12-01']});
+    game.humanBombSkips=1;
+    const result=playTurn(game,'human','m02-03').state;
+    expect(result.phase).toBe('awaiting-go-stop');expect(result.pendingDecision).toBe('human');
+  });
+
+  it('마지막 패 이후 점수가 부족하면 상대에게 남은 차례를 넘긴다',()=>{
+    const game=createArrangedGame({humanHand:['m02-03'],humanHandSize:1,computerHand:['m06-03'],computerHandSize:1,
+      floorCards:['m02-04'],floorSize:1,drawFirst:['m04-03']});
+    const result=playTurn(game,'human','m02-03').state;
+    expect(result.phase).toBe('playing');expect(result.currentPlayer).toBe('computer');expect(result.winner).toBeNull();
+  });
+
+  it('이전 저장의 마지막 패 고 선택도 나가리가 아닌 자동 스톱으로 복구한다',()=>{
+    const game=createInitialGame(31);game.humanHand=[];game.humanBombSkips=0;game.computerHand=['m05-01'];
+    game.humanCaptured=['m01-01','m03-01','m08-01','m11-01','m12-01'];
+    game.phase='awaiting-go-stop';game.pendingDecision='human';
+    const result=chooseGo(game,'human');expect(result.phase).toBe('round-ended');expect(result.winner).toBe('human');expect(result.humanGoCount).toBe(0);
+  });
+
   it('양쪽 마지막 패까지 모두 냈지만 7점 미만이면 바로 나가리로 끝낸다', () => {
     const game = createArrangedGame({
       humanHand: ['m02-03'], humanHandSize: 1,
@@ -372,6 +407,22 @@ describe('기본 맞고 진행 상태', () => {
     expect(next.winner).toBe('human');
     expect(next.roundResult).toBe('win');
     expect(next.settlement?.finalScore).toBeGreaterThanOrEqual(7);
+  });
+
+  it('상대 손패가 남아도 마지막 국진 선택으로 7점이 되면 자동 스톱한다',()=>{
+    const game=createInitialGame(31);game.humanHand=[];game.computerHand=['m05-01'];game.humanBombSkips=0;
+    game.humanCaptured=['m01-01','m03-01','m08-01','m01-02','m02-02','m03-02','m01-03','m01-04','m02-03','m02-04','m03-03','m03-04','m04-03','m04-04','m09-01'];
+    game.phase='playing';game.currentPlayer='computer';game.humanGookjinAsDoubleJunk=false;
+    const next=setGookjinChoice(game,'human',true);
+    expect(next.phase).toBe('round-ended');expect(next.winner).toBe('human');expect(next.pendingDecision).toBeNull();
+  });
+
+  it('마지막 국진 선택으로 점수가 부족해지면 상대에게 남은 차례를 넘긴다',()=>{
+    const game=createInitialGame(31);game.humanHand=[];game.computerHand=['m05-01'];game.humanBombSkips=0;
+    game.humanCaptured=['m01-01','m03-01','m08-01','m01-02','m02-02','m03-02','m01-03','m01-04','m02-03','m02-04','m03-03','m03-04','m04-03','m04-04','m09-01'];
+    game.humanGookjinAsDoubleJunk=true;game.phase='round-ended';game.winner='human';game.roundResult='win';game.lastAction='마지막 패까지 모두 내서 자동으로 스톱했습니다.';
+    const next=setGookjinChoice(game,'human',false);
+    expect(next.phase).toBe('playing');expect(next.winner).toBeNull();expect(next.currentPlayer).toBe('computer');expect(next.settlement).toBeNull();
   });
 
   it('바닥에 같은 월 패가 두 장이면 지정한 패를 선택해 먹는다', () => {
