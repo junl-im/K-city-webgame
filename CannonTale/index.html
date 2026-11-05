@@ -1500,6 +1500,10 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
 #controls #overview::before,#controls #overview::after,
 #controls #abilityBtn::before,#controls #abilityBtn::after{display:none!important;content:none!important}
 #controls #abilityBtn{background-image:url("art/hud_ability_ready.webp")!important}
+#controls #abilityBtn:not(:disabled){
+ /* The older high-specificity active-state gradient must not erase this bitmap. */
+ background:transparent url("art/hud_ability_ready.webp") center/contain no-repeat!important;
+}
 #controls #abilityBtn:disabled{
  background-image:url("art/hud_ability_used.webp")!important;
  opacity:.67!important;

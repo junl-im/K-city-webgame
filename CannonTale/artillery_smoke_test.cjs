@@ -74,6 +74,7 @@ assert(html.includes('#result .result-panel'),'End-of-battle should share the fa
 assert(html.includes('id="adventureBtn"')&&html.includes('id="duelBtn"'),'Illustrated mode buttons must keep interactive IDs');
 assert(!/<svg|image\/svg\+xml/.test(html),'CannonTale must stay SVG-free');
 assert(html.includes('art/duel_cannons_v21.webp'),'An original allied/enemy cannon atlas must be loaded');
+assert(/#controls #abilityBtn:not\(:disabled\)\{[^}]*background:transparent url\("art\/hud_ability_ready\.webp"\)/.test(html),'An enabled special ability must retain its illustrated bitmap, not the obsolete solid gradient');
 assert(html.includes('function duelActor(x,dir,own)'),'Duel visuals must be selected by the actual hero');
 assert(html.includes("if(hero==='bear'){cannon("),'Only the bear should operate a field cannon');
 assert(html.includes('duelHandMuzzles'),'Handheld weapons need their own launch points');
