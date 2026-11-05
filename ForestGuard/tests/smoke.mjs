@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync,statSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {runInNewContext} from 'node:vm';
 const root=new URL('../',import.meta.url);
 const read=name=>readFileSync(new URL(name,root),'utf8');
 const html=read('index.html'),css=read('style.css'),js=read('game.js'),visuals=read('visuals.js');
@@ -12,8 +13,43 @@ const choice49=read('choice-polish-v49.css');
 const type491=read('legibility-v491.css');
 const choice50=read('forest-choice-v50.css');
 assert.match(html,/forest-choice-v50\.css\?v=20261105v501/);
-assert.match(html,/game\.js\?v=20261105v502/);
-assert.match(html,/visuals\.js\?v=20261105v502/);
+assert.match(html,/game\.js\?v=20261105v503/);
+assert.match(html,/visuals\.js\?v=20261105v503/);
+assert.match(visuals,/const ATTACK_PERSONALITY=\{/);
+assert.match(js,/motionBaseScale:spr\.scaleX/);
+assert.match(js,/const freshImpact=V\.trigger\(e\.spr,'hurt'/);
+assert.match(js,/const attackMotion=attacking\?Math\.sin\(Math\.PI\*attackProgress\):0/);
+assert.match(js,/const progress=Math\.max\(0,Math\.min\(1,tween\.progress\)\)/);
+{
+  // The full hurt beat must survive rapid projectile hits and ordinary ability
+  // triggers. An elite's real attack is still allowed to interrupt a reaction.
+  const sandbox={window:{}};runInNewContext(visuals,sandbox);
+  const V=sandbox.window.ForestGuardVisuals;
+  const makeEnemy=type=>{
+    const data=new Map([['enemyType',type]]);
+    return {active:true,getData:key=>data.get(key),setData:(key,value)=>data.set(key,value),
+      scene:{textures:{exists:()=>true}},texture:{key:''},setTexture(key){this.texture.key=key;}};
+  };
+  const runner=makeEnemy('runner'),hurt=V.duration('runner','hurt');
+  assert.equal(hurt,400);
+  assert.equal(V.trigger(runner,'hurt',hurt,0),true);
+  assert.equal(V.trigger(runner,'hurt',hurt+45,45),false,'Early repeated hits must not rewind');
+  assert.equal(V.trigger(runner,'attack',hurt+100,100),false,'Dash should not erase recoil');
+  assert.equal(V.trigger(runner,'idle',hurt+100,100),false,'Warning should not erase recoil');
+  assert.equal(runner.getData('motionStart'),0);
+  V.animate(runner,'runner','run',250);
+  assert.equal(runner.texture.key,'motion-runner-hurt-3');
+  assert.equal(V.trigger(runner,'hurt',hurt+300,300),true,'Late impacts may restart a visible beat');
+  V.animate(runner,'runner','run',315);
+  assert.equal(runner.texture.key,'motion-runner-hurt-0');
+  V.animate(runner,'runner','run',701);
+  assert.equal(runner.texture.key,'motion-runner-run-0','Expired hurt must settle into the run');
+  const boss=makeEnemy('boss');
+  assert.equal(V.trigger(boss,'hurt',V.duration('boss','hurt'),0),true);
+  assert.equal(V.trigger(boss,'attack',600,120),true,'Boss payoff must stay visible');
+  V.animate(boss,'boss','run',250);
+  assert.equal(boss.texture.key,'motion-boss-attack-2');
+}
 assert.match(visuals,/name==='star'\)element\.style\.clipPath='inset\(0 0 10\.5% 0\)'/);
 assert.match(visuals,/function cleanEnemyFrame\(ctx,w,h\)/);
 assert.match(js,/V\.cleanEnemyFrame\(c,w,h\)/);
@@ -312,8 +348,8 @@ assert.match(js,/hasDashed/);
 assert.match(js,/hasRallied/);
 assert.match(js,/guarding\?Math\.min\(\.55/);
 assert.match(css,/\.hero-slot\.empty\{border:0!important/);
-assert.match(html,/game\.js\?v=20261105v502/);
-assert.match(html,/visuals\.js\?v=20261105v502/);
+assert.match(html,/game\.js\?v=20261105v503/);
+assert.match(html,/visuals\.js\?v=20261105v503/);
 assert.match(visuals,/frameTotal\(id,state\)/);
 assert.match(visuals,/drawHeroWeapon\(c,id,frame\)/);
 assert.match(css,/One continuous forest illustration/);

@@ -190,6 +190,15 @@
     shroom:[-1,9,8,.10,'#ffd6a2',63,57],
     guardian:[1,5,7,.07,'#d5e9a7',83,66]
   };
+  // Facing and force of the ten enemy windups. A scout darts, an armored
+  // creature plants its feet, and the three elites have weightier releases.
+  // The original silhouette is never stretched on a single axis.
+  const ATTACK_PERSONALITY={
+    sprout:[-1,.68,.55],runner:[1,1.25,.85],brute:[-1,.48,1.35],
+    boss:[1,.60,1.55],thorn:[-1,1.18,.9],spore:[1,.65,.7],
+    imp:[-1,1.4,.8],crystal:[1,.35,1.2],shroom:[-1,.55,1.45],
+    guardian:[1,.46,1.7]
+  };
   function inkHurtAccent(c,id,frame){
     const p=HURT_PERSONALITY[id];if(!p)return;
     const strength=Math.sin(Math.PI*(frame+.3)/frameTotal(id,'hurt'));
@@ -275,9 +284,13 @@
         const pose=ATTACK_POSES[id][frame]||ATTACK_POSES[id][7];
         [dx,dy,rot,sy]=pose;
       }else{
-        dx=frame<=2?-7+frame*2:Math.max(0,10-(frame-3)*3);
-        rot=frame<=2?-.13+frame*.035:.15-(frame-3)*.05;
-        sy=frame<=2?.94+frame*.02:1.04-(frame-3)*.02;
+        const [direction,agility,weight]=ATTACK_PERSONALITY[id];
+        const beats=frameTotal(id,state),release=Math.ceil(beats*.5);
+        const windup=frame<release,progress=windup?(frame+1)/release:(frame-release+1)/(beats-release);
+        dx=direction*(windup?-8*agility*progress:11*agility*(1-progress*.55));
+        dy=windup?3*weight*progress:-6*weight*(1-progress*.7);
+        rot=direction*(windup?-.11*agility*progress:.13*agility*(1-progress*.65));
+        sx=sy=windup?1-.045*weight*progress:1+.047*weight*(1-progress*.6);
       }
     }
     if(state==='hurt'){
@@ -524,9 +537,22 @@
     if(sprite.scene.textures.exists(key)&&sprite.texture.key!==key)sprite.setTexture(key);
   }
   function trigger(sprite,state,until,start){
-    if(!sprite||!sprite.active)return;
+    if(!sprite||!sprite.active)return false;
+    // Impacts arrive in bursts. Do not rewind an illustrated hit to frame 0
+    // on every projectile or let a minor ability erase the reaction mid-beat.
+    // Elite attacks still take priority so a boss payoff is never hidden.
+    const current=sprite.getData('motionState'),end=sprite.getData('motionUntil');
+    const previousStart=sprite.getData('motionStart');
+    const elapsed=Number.isFinite(start)&&Number.isFinite(previousStart)?start-previousStart:Infinity;
+    if(current==='hurt'&&Number.isFinite(end)&&Number.isFinite(start)&&start<end){
+      if(state==='hurt'&&Number.isFinite(elapsed)&&elapsed<
+        duration(sprite.getData('enemyType')||'sprout','hurt')*.55)return false;
+      if(state==='idle')return false;
+      if(state==='attack'&&!ELITE_IDS.has(sprite.getData('enemyType')))return false;
+    }
     sprite.setData('motionState',state);sprite.setData('motionUntil',until);
     sprite.setData('motionStart',Number.isFinite(start)?start:null);
+    return true;
   }
   global.ForestGuardVisuals={build,animate,trigger,duration,frameTotal,icon,setIcon,portrait,cleanAttackFrame,cleanEnemyFrame};
 })(window);
