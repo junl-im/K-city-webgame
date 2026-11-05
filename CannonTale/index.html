@@ -1253,6 +1253,156 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  #menu .mode-card,#menu .hero-choice{transition:none!important}
 }
 
+
+/* v2.0.1 -- actual hand-painted transparent PNG button/logo assets.
+   Keep text in the DOM for screen readers while hiding duplicate visual labels. */
+#menu #welcomeTitle{
+ position:relative!important;
+ display:block!important;
+ width:min(330px,85%)!important;
+ height:auto!important;
+ aspect-ratio:531/317!important;
+ max-height:min(17.5dvh,175px)!important;
+ min-height:0!important;
+ margin:0 auto!important;padding:0!important;
+ background:transparent url("art/title_logo.png") center/contain no-repeat!important;
+ border:0!important;border-radius:0!important;
+ box-shadow:none!important;
+ filter:drop-shadow(0 5px 5px #092333a8)!important;
+ color:transparent!important;
+}
+#menu #welcomeTitle::before,#menu #welcomeTitle::after{display:none!important}
+#menu #welcomeTitle .menu-logo-main,
+#menu #welcomeTitle .menu-logo-sub{
+ position:absolute!important;width:1px!important;height:1px!important;
+ clip-path:inset(50%)!important;overflow:hidden!important;
+ white-space:nowrap!important;padding:0!important;margin:0!important;
+}
+#menu .mode-grid{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ align-items:center;justify-content:center;gap:clamp(3px,1.2vw,13px)!important;
+ margin:0!important;min-width:0!important;
+}
+#menu .mode-card,#menu .mode-card:nth-child(2){
+ position:relative;display:block!important;min-width:0!important;
+ width:100%!important;height:auto!important;min-height:0!important;
+ max-height:min(15.5dvh,138px)!important;
+ border:0!important;border-radius:0!important;clip-path:none!important;
+ padding:0!important;margin:0!important;overflow:visible!important;
+ aspect-ratio:672/222!important;
+ background:transparent url("art/mode_adventure.png") center/contain no-repeat!important;
+ box-shadow:none!important;outline-offset:3px!important;
+ filter:drop-shadow(0 3px 5px #061f30b0)!important;
+ transition:transform .14s ease,filter .14s ease!important;
+ -webkit-tap-highlight-color:transparent;
+ touch-action:manipulation;
+}
+#menu .mode-card:nth-child(2){
+ aspect-ratio:612/223!important;
+ background-image:url("art/mode_duel.png")!important;
+}
+#menu .mode-card::before,#menu .mode-card::after{display:none!important}
+#menu .mode-card>*{
+ position:absolute!important;width:1px!important;height:1px!important;
+ overflow:hidden!important;clip-path:inset(50%)!important;
+ white-space:nowrap!important;margin:0!important;padding:0!important;
+}
+#menu .mode-card:active{
+ transform:translateY(3px) scale(.965)!important;
+ filter:drop-shadow(0 1px 2px #061a29ad) brightness(.89)!important;
+}
+#menu .mode-card:hover:not(:active){
+ filter:drop-shadow(0 5px 7px #112c3cbb) brightness(1.07)!important;
+}
+#menu .mode-card:focus-visible{
+ outline:3px solid #ffe7a0!important;
+ outline-offset:1px!important;
+ border-radius:18px!important;
+}
+#menu .hero-picker-title{
+ position:relative!important;display:block!important;
+ width:min(185px,69%)!important;height:auto!important;
+ aspect-ratio:640/167!important;
+ min-height:0!important;
+ margin:0 auto clamp(1px,.5vh,4px)!important;padding:0!important;
+ background:transparent url("art/hero_chooser.png") center/contain no-repeat!important;
+ font-size:0!important;line-height:0!important;
+}
+#menu .hero-picker-title>*{
+ position:absolute!important;width:1px!important;height:1px!important;
+ overflow:hidden!important;clip-path:inset(50%)!important;
+ white-space:nowrap!important;
+}
+#menu #stageMapBtn.map-open{
+ position:relative!important;
+ flex:0 1 auto!important;
+ display:block!important;
+ width:clamp(113px,21vw,204px)!important;
+ min-width:105px!important;min-height:0!important;
+ height:auto!important;
+ aspect-ratio:618/155!important;
+ margin:0!important;padding:0!important;
+ background:transparent url("art/stage_chooser.png") center/contain no-repeat!important;
+ color:transparent!important;font-size:0!important;line-height:0!important;
+ box-shadow:none!important;border:0!important;border-radius:0!important;
+ text-shadow:none!important;
+ filter:drop-shadow(0 3px 4px #0b243b9c)!important;
+ transition:transform .12s,filter .12s;
+}
+#menu #stageMapBtn::before,#menu #stageMapBtn::after{display:none!important}
+#menu #stageMapBtn:active{
+ transform:translateY(2px) scale(.97);
+ filter:drop-shadow(0 1px 2px #1d273a) brightness(.87)!important;
+}
+#menu #stageMapBtn:focus-visible{
+ outline:2px solid #ffe7a0!important;outline-offset:2px!important;
+}
+#menu .hero-picker{
+ padding:clamp(2px,.45vh,5px) clamp(3px,.7vw,9px)!important;
+ background:linear-gradient(160deg,#0c263bd8,#142d3fd0)!important;
+}
+#menu .stage-map-control{
+ display:flex!important;align-items:center!important;
+ justify-content:space-between!important;
+ min-height:0!important;height:auto!important;
+ gap:clamp(3px,.8vw,8px)!important;
+}
+#menu #stageShotPreview{
+ align-self:center;max-width:49%!important;
+ font-size:clamp(9px,1.45vh,12px)!important;
+ color:#ffe4aa!important;
+}
+@media (orientation:portrait){
+ #menu #welcomeTitle{
+  width:min(250px,69%)!important;
+  max-height:min(17vh,155px)!important;
+ }
+ #menu .hero-picker-title{width:min(170px,58%)!important;}
+ #menu .mode-card,#menu .mode-card:nth-child(2){
+  min-height:0!important;max-height:13.9vh!important;
+ }
+ #menu #stageMapBtn{width:clamp(120px,41vw,175px)!important;min-width:112px!important;}
+ #menu #stageShotPreview{font-size:clamp(9px,1.55vh,11px)!important}
+}
+@media (orientation:portrait) and (max-height:625px){
+ #menu #welcomeTitle{width:min(192px,62%)!important;max-height:14vh!important}
+ #menu .hero-picker-title{width:130px!important}
+ #menu .mode-card,#menu .mode-card:nth-child(2){max-height:12vh!important}
+ #menu #stageMapBtn{width:120px!important}
+}
+@media (orientation:landscape) and (max-height:660px){
+ #menu #welcomeTitle{
+  width:min(210px,100%)!important;max-height:31vh!important;
+  justify-self:center!important;
+ }
+ #menu .hero-picker-title{display:none!important}
+ #menu .mode-card,#menu .mode-card:nth-child(2){max-height:clamp(52px,19vh,99px)!important}
+ #menu #stageMapBtn{width:clamp(108px,16vw,150px)!important}
+}
+@media (prefers-reduced-motion:reduce){
+ #menu .mode-card,#menu #stageMapBtn{transition:none!important}
+}
+
 </style>
 </head>
 <body>
