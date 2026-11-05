@@ -2474,6 +2474,60 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 @media(prefers-reduced-motion:reduce){
  #battleWrap > #hint.corner-hint,#shotReview.shot-review{animation:none!important}
 }
+
+/* v4.0: The hero's painted plaque gets a larger illustration/text safe-zone.
+   The left emblem occupies its own column; longer weapon/skill text can wrap. */
+#menu .hero-stage{gap:clamp(2px,.6vw,8px)}
+#menu .hero-stage-info{
+ flex:0 0 51%!important;width:51%!important;max-width:51%!important;
+ height:clamp(78px,12dvh,124px)!important;min-height:72px!important;
+ grid-template-columns:30% minmax(0,1fr)!important;
+ grid-template-rows:repeat(3,auto)!important;
+ align-content:center;row-gap:clamp(2px,.35dvh,5px)!important;
+ padding:9px clamp(12px,1.6vw,21px) 9px 4px!important;
+ box-sizing:border-box;overflow:visible!important;
+}
+#menu .hero-stage-portrait{flex:1 1 48%;max-width:48%}
+#menu .hero-stage-info::before{
+ left:clamp(9px,2vw,20px)!important;
+ width:clamp(30px,4.3vw,52px)!important;
+ height:clamp(30px,4.3vw,52px)!important;
+}
+#menu .hero-stage-info>strong{
+ font-size:clamp(13px,1.65vw,21px)!important;line-height:1.14!important;
+ white-space:normal!important;overflow:visible!important;text-overflow:clip;
+}
+#menu .hero-stage-info>small,
+#menu .hero-stage-info>.hero-skill-preview{
+ font-size:clamp(10px,1.05vw,14px)!important;line-height:1.19!important;
+ white-space:normal!important;overflow:visible!important;text-overflow:clip;
+ word-break:keep-all;overflow-wrap:anywhere;
+}
+@media(orientation:portrait) and (max-width:600px){
+ #menu .hero-stage{gap:2px}
+ #menu .hero-stage-info{
+  flex-basis:53%!important;width:53%!important;max-width:53%!important;
+  height:clamp(82px,12dvh,114px)!important;min-height:78px!important;
+  grid-template-columns:29% minmax(0,1fr)!important;
+  padding:6px 9px 6px 2px!important;row-gap:2px!important;
+ }
+ #menu .hero-stage-portrait{max-width:46%}
+ #menu .hero-stage-info::before{left:7px!important;width:clamp(28px,7vw,36px)!important;height:clamp(28px,7vw,36px)!important}
+ #menu .hero-stage-info>strong{font-size:clamp(12px,3.4vw,15px)!important}
+ #menu .hero-stage-info>small,#menu .hero-stage-info>.hero-skill-preview{font-size:clamp(9px,2.6vw,11px)!important}
+}
+@media(orientation:landscape) and (max-height:660px){
+ #menu .hero-stage-info{
+  flex:0 0 auto!important;width:100%!important;max-width:100%!important;
+  height:clamp(48px,12dvh,74px)!important;min-height:0!important;
+  grid-template-columns:27% minmax(0,1fr)!important;
+  padding:3px 7px 3px 2px!important;row-gap:0!important;
+ }
+ #menu .hero-stage-portrait{max-width:100%}
+ #menu .hero-stage-info::before{width:clamp(20px,6dvh,30px)!important;height:clamp(20px,6dvh,30px)!important;left:5px!important}
+ #menu .hero-stage-info>strong{font-size:clamp(10px,2.8dvh,13px)!important}
+ #menu .hero-stage-info>small,#menu .hero-stage-info>.hero-skill-preview{font-size:clamp(8px,2.1dvh,10px)!important}
+}
 </style>
 </head>
 <body>
@@ -2751,7 +2805,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;$('menu').dataset.stage=String(chosen);const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];const def=stageSet[chosen];$('stageShotPreview').textContent=`탄약 ${def.shots}발 · 목표 ${def.foes.length}명`;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;refreshIllustratedSelects();}
  function refreshMenu(){refreshHeroPreview();const cleared=progress.best.filter(Boolean).length;$('progressSummary').textContent=cleared?`최고 등급 합계 ${progress.best.reduce((a,b)=>a+b,0)} / 12 · 승리 ${progress.wins}회`:'모험 기록 · 아직 첫 승리 전';$('progressTier').textContent=`완료 ${cleared} / 4`;refreshStageMap();}
- const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:100,aiHp:100,turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,chainHits:0,crushHits:0,weaponFractures:0};
+ const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:100,aiHp:100,turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,chainHits:0,crushHits:0,weaponFractures:0};
  // Six authored motion phases per hero (procedural transforms of the existing PNG/WebP art).
  // They are NOT six separately painted sprite frames.
  const heroMotionKeys={
@@ -2930,7 +2984,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   for(const f of game.foes){const body=M.Bodies.circle(f.x,f.y,f.r,{friction:.82,frictionStatic:1,restitution:.07,density:.0011,sleepThreshold:55,label:'foe'});body.plugin.foe=f;f.body=body;M.Composite.add(game.engine.world,body);}
  }
  function newGame(mode,stage=0){
-  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:3;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
+  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:3;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
   // Every duel is hero-versus-hero. The opponent is different from the selected player.
   const challengers=['fox','bear','rabbit','cat'].filter(hero=>hero!==game.hero);
   game.aiHero=mode==='duel'?challengers[Math.floor(Math.random()*challengers.length)]:'bear';
@@ -2945,7 +2999,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   angleEl.value=game.angle;powerEl.value=game.power;chooseWeapon('normal');
   updateHud();resize();
  }
- function goHome(){cancelFireCharge();$('reviewCountdown').hidden=true;game.mode='menu';game.phase='menu';game.projectiles=[];game.particles=[];game.skillEffects=[];game.impactMotes=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.blastCores=[];game.drag=null;game.pan=null;game.panX=null;game.reviewFocusX=null;game.reviewInfo=null;game.reviewTimer=0;$('shotReview').hidden=true;$('menu').hidden=false;$('stageMap').hidden=true;$('result').hidden=true;$('exitConfirm').hidden=true;$('controls').hidden=true;$('hint').hidden=true;$('leftStatus').hidden=true;$('rightStatus').hidden=true;$('bossBanner').hidden=true;$('enemyEntrance').hidden=true;game.introLife=0;$('windChip').textContent='바람 —';$('modeChip').textContent='모드 선택';$('stageChip').textContent='첫 플레이를 시작해요';refreshMenu();resize();}
+ function goHome(){cancelFireCharge();game.chargeZoom=1;game.chargeReveal=1;$('reviewCountdown').hidden=true;game.mode='menu';game.phase='menu';game.projectiles=[];game.particles=[];game.skillEffects=[];game.impactMotes=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.blastCores=[];game.drag=null;game.pan=null;game.panX=null;game.reviewFocusX=null;game.reviewInfo=null;game.reviewTimer=0;$('shotReview').hidden=true;$('menu').hidden=false;$('stageMap').hidden=true;$('result').hidden=true;$('exitConfirm').hidden=true;$('controls').hidden=true;$('hint').hidden=true;$('leftStatus').hidden=true;$('rightStatus').hidden=true;$('bossBanner').hidden=true;$('enemyEntrance').hidden=true;game.introLife=0;$('windChip').textContent='바람 —';$('modeChip').textContent='모드 선택';$('stageChip').textContent='첫 플레이를 시작해요';refreshMenu();resize();}
  function chooseWeapon(type){game.weapon=type;document.querySelectorAll('[data-weapon]').forEach(b=>b.classList.toggle('selected',b.dataset.weapon===type));updateHud();}
  // A shot-review should not lock the next round's controls if more ammo remains.
  function canResumeAimFromReview(){
@@ -2958,7 +3012,9 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   if(canResumeAimFromReview())completeReview();
   if(game.phase!=='aim')return false;
   game.chargeActive=true;game.chargeElapsed=0;game.chargeStartPower=game.power;game.chargedPower=20;
-  game.chargeAimX=null;game.panX=null;
+  game.chargeAimX=null;game.chargeReveal=.18;game.panX=null;
+  // Hold the player near the same screen X while zooming out toward the forecast.
+  game.chargeAnchorPx=clamp((origin().x-game.camera)*game.scale,cv.clientWidth*.12,cv.clientWidth*.28);
   $('chargeGauge').hidden=false;$('chargeFill').style.width='20%';
   $('fireLabel').textContent='파워 20%';$('fire').classList.toggle('charging',true);
   actorMotion('player','charge',1.5);
@@ -2966,7 +3022,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function releaseFireCharge(){
   if(!game.chargeActive)return false;
-  game.chargeActive=false;game.chargeAimX=null;
+  game.chargeActive=false;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeReveal=1;
   $('chargeGauge').hidden=true;$('fire').classList.toggle('charging',false);
   // Quick taps reuse the last selected power. A deliberate hold selects a new strength.
   game.power=game.chargeElapsed<.22?game.chargeStartPower:game.chargedPower;
@@ -2974,7 +3030,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   firePlayer();return true;
  }
  function cancelFireCharge(){
-  game.chargeActive=false;game.chargeAimX=null;$('chargeGauge').hidden=true;
+  game.chargeActive=false;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeReveal=1;$('chargeGauge').hidden=true;
   if(game.actorAnim.player.kind==='charge')actorMotion('player','idle',.01);
   $('fire').classList.toggle('charging',false);$('fireLabel').textContent='발사!';
  }
@@ -3322,8 +3378,14 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  function drawCloud(x,y,scale=1){ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);ellipse(-38,6,32,17,'#ffffffab');ellipse(-8,-4,35,23,'#ffffffb5');ellipse(26,5,40,19,'#ffffffaa');ctx.restore();}
  function sceneReady(){return !!(stageAtlas&&stageAtlas.complete&&stageAtlas.naturalWidth>0&&stageAtlas.naturalHeight>0);}
  function backdrop(){
-  if(sceneReady()){const cellW=Math.floor(stageAtlas.naturalWidth/2),cellH=Math.floor(stageAtlas.naturalHeight/2),idx=game.mode==='duel'?1:game.mode==='menu'?0:game.stage;ctx.drawImage(stageAtlas,(idx%2)*cellW,Math.floor(idx/2)*cellH,cellW,cellH,-70,-25,1340,H+65);return;}
-  const a=ctx.createLinearGradient(0,0,0,H);a.addColorStop(0,'#7db9d0');a.addColorStop(.75,'#d3e5c4');a.addColorStop(1,'#f6e4b0');ctx.fillStyle=a;ctx.fillRect(-1500,0,4300,H);
+  if(sceneReady()){
+   const cellW=Math.floor(stageAtlas.naturalWidth/2),cellH=Math.floor(stageAtlas.naturalHeight/2),idx=game.mode==='duel'?1:game.mode==='menu'?0:game.stage;
+   const sx=(idx%2)*cellW,sy=Math.floor(idx/2)*cellH,skyTop=-game.topPad/Math.max(.001,game.scale)-2;
+   // Extend the top pixels of the painted sky during a cinematic zoom, without stretching the art.
+   if(skyTop<-25)ctx.drawImage(stageAtlas,sx,sy,cellW,2,-70,skyTop,1340,-25-skyTop+1);
+   ctx.drawImage(stageAtlas,sx,sy,cellW,cellH,-70,-25,1340,H+65);return;
+  }
+  const a=ctx.createLinearGradient(0,0,0,H);a.addColorStop(0,'#7db9d0');a.addColorStop(.75,'#d3e5c4');a.addColorStop(1,'#f6e4b0');ctx.fillStyle=a;ctx.fillRect(-1500,-game.topPad/Math.max(.001,game.scale)-2,4300,H+game.topPad/Math.max(.001,game.scale)+2);
   ellipse(987,110,60,60,'#fff0ba');ellipse(987,110,46,46,'#fff7d4');
   const shift=game.clock*8;for(let i=0;i<7;i++)drawCloud((i*230-shift*.23+2600)%1700-250,68+Math.sin(i*3)*37,.65+(i%3)*.14);
   ctx.beginPath();ctx.moveTo(-600,485);for(let x=-600;x<=1900;x+=24)ctx.lineTo(x,380+49*Math.sin(x/177)+23*Math.cos(x/93));ctx.lineTo(1900,H);ctx.lineTo(-600,H);ctx.closePath();ctx.fillStyle='#9cc6b9';ctx.fill();
@@ -3331,8 +3393,10 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   for(let i=0;i<18;i++){const x=i*97+19,y=475+23*Math.sin(x/118);ctx.strokeStyle='#467e78';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,y+17);ctx.lineTo(x,y-20);ctx.stroke();for(let j=-1;j<=1;j++)ellipse(x+j*12,y-19+Math.abs(j)*7,14,17,'#72a597');}
  }
  function ground(){
-  const lo=Math.max(0,Math.floor(game.camera)-40),hi=Math.min(W,Math.ceil(game.camera+cv.clientWidth/game.scale)+40),grad=ctx.createLinearGradient(0,435,0,H);grad.addColorStop(0,'#bd9568');grad.addColorStop(1,'#7a695f');
-  ctx.beginPath();ctx.moveTo(lo,H+30);for(let x=lo;x<=hi;x+=5)ctx.lineTo(x,terrainY(x));ctx.lineTo(hi,terrainY(hi));ctx.lineTo(hi,H+30);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+  const lo=Math.floor(game.camera)-40,hi=Math.ceil(game.camera+cv.clientWidth/game.scale)+40;
+  const floorBottom=Math.max(H+30,(cv.clientHeight-game.topPad)/Math.max(.001,game.scale)+30);
+  const grad=ctx.createLinearGradient(0,435,0,H);grad.addColorStop(0,'#bd9568');grad.addColorStop(1,'#7a695f');
+  ctx.beginPath();ctx.moveTo(lo,floorBottom);for(let x=lo;x<=hi;x+=5)ctx.lineTo(x,terrainY(x));ctx.lineTo(hi,terrainY(hi));ctx.lineTo(hi,floorBottom);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
   ctx.beginPath();for(let x=lo;x<=hi;x+=5){if(x===lo)ctx.moveTo(x,terrainY(x));else ctx.lineTo(x,terrainY(x));}ctx.strokeStyle='#4e946e';ctx.lineWidth=11;ctx.lineJoin='round';ctx.stroke();
   ctx.beginPath();for(let x=lo;x<=hi;x+=5){if(x===lo)ctx.moveTo(x,terrainY(x)-3);else ctx.lineTo(x,terrainY(x)-3);}ctx.strokeStyle='#a0ca83';ctx.lineWidth=3;ctx.stroke();
   for(let i=Math.floor(lo/37)*37;i<hi;i+=37){const y=terrainY(i);if(y<H-30){ellipse(i,y+19,5,2,'#876e5f');ellipse(i+13,y+46,7,3,'#93765f');}}
@@ -3774,17 +3838,28 @@ const materialCells={
   if(game.drag){const o=origin(),dx=clamp(o.x-game.drag.x,7,105),dy=clamp(o.y-game.drag.y,-35,95);a=clamp(Math.atan2(dy,dx)*180/Math.PI,15,82);p=clamp(Math.hypot(dx,dy)/125*100,20,100);}
   const dots=predict(a,p,game.wind,'player');
   if(game.chargeActive){const target=dots.impact||dots[dots.length-1];game.chargeAimX=target?target.x:null;}
+  const powerProgress=clamp((game.chargedPower-20)/80,0,1);
+  const reveal=game.chargeActive?.18+.82*powerProgress:1;
+  game.chargeReveal=reveal;
+  const lastIndex=Math.min(dots.length-1,Math.max(2,Math.floor((dots.length-1)*reveal)));
   // Medium-contrast trajectory: readable without hiding the stage artwork.
   if(dots.length>2){
    ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.setLineDash?.([2.5,13]);
    ctx.beginPath();ctx.moveTo(dots[0].x,dots[0].y);
-   for(let i=3;i<dots.length;i+=3)ctx.lineTo(dots[i].x,dots[i].y);
-   const last=dots[dots.length-1];ctx.lineTo(last.x,last.y);
+   for(let i=3;i<lastIndex;i+=3)ctx.lineTo(dots[i].x,dots[i].y);
+   const last=dots[lastIndex];ctx.lineTo(last.x,last.y);
    ctx.strokeStyle='#263e51aa';ctx.lineWidth=7;ctx.stroke();
    ctx.strokeStyle='#f4e6b9b0';ctx.lineWidth=3.9;ctx.stroke();
    ctx.setLineDash?.([]);ctx.restore();
-   for(let i=16;i<dots.length;i+=24){const pt=dots[i];ellipse(pt.x,pt.y,2.3,2.3,'#f2e8c5a5');}
+   for(let i=16;i<lastIndex;i+=24){const pt=dots[i];ellipse(pt.x,pt.y,2.3,2.3,'#f2e8c5a5');}
+   if(game.chargeActive&&lastIndex<dots.length-1){
+    // A moving glint leads the growing forecast; the final ring appears at full power.
+    ctx.save();ctx.globalAlpha=.68+.24*Math.sin(game.clock*8);
+    ctx.beginPath();ctx.arc(last.x,last.y,6+3*powerProgress,0,Math.PI*2);
+    ctx.fillStyle='#fff3c8';ctx.shadowColor='#f7ce78';ctx.shadowBlur=12;ctx.fill();ctx.restore();
+   }
   }
+  if(game.chargeActive&&lastIndex<dots.length-1)return;
   const hit=dots.impact;
   if(!hit||hit.y<20||hit.y>H-14)return;
   const target=hit.kind==='foe',color=target?'#93f1c7':hit.kind==='block'?'#ffe1a6':'#e6f2f1';
@@ -3995,21 +4070,42 @@ const materialCells={
   if(panel.scrollHeight>panel.clientHeight+2)panel.classList.add('menu-ultra');
   fitPaintedMenuLabels();
  }
- function resize(){fitMenuToViewport();drawHeroPreview();const w=cv.clientWidth,h=cv.clientHeight;if(w<1||h<1)return;const dpr=Math.min(2,devicePixelRatio||1),pw=Math.max(1,Math.round(w*dpr)),ph=Math.max(1,Math.round(h*dpr));if(cv.width!==pw)cv.width=pw;if(cv.height!==ph)cv.height=ph;const fit=game.overview?Math.min(w/W,h/H):h/H;game.scale=Math.max(.001,fit);game.topPad=game.overview?Math.max(0,(h-H*game.scale)/2):0;const visible=w/game.scale,edge=Math.max(0,W-visible);if(game.overview){game.camera=-(visible-W)/2;return;}const waitingForAi=game.mode==='duel'&&game.turn==='ai'&&game.phase==='aiWait';
+ function resize(){
+  fitMenuToViewport();drawHeroPreview();
+  const w=cv.clientWidth,h=cv.clientHeight;if(w<1||h<1)return;
+  const dpr=Math.min(2,devicePixelRatio||1),pw=Math.max(1,Math.round(w*dpr)),ph=Math.max(1,Math.round(h*dpr));
+  if(cv.width!==pw)cv.width=pw;if(cv.height!==ph)cv.height=ph;
+  const fit=game.overview?Math.min(w/W,h/H):h/H;
+  const charging=game.chargeActive&&game.phase==='aim'&&game.turn==='player'&&!game.overview;
+  const powerProgress=clamp((game.chargedPower-20)/80,0,1);
+  const distance=Math.max(0,(game.chargeAimX??origin().x)-origin().x);
+  const distanceWeight=clamp((distance-200)/750,0,1);
+  // No extra camera library: damped cinematic zoom tied to the real shell forecast.
+  // Keep it modest so combat characters, ground and illustrated stages stay legible.
+  const targetZoom=charging?1-(w<=650?.22:.14)*powerProgress*(.68+.32*distanceWeight):1;
+  game.chargeZoom+=((game.overview?1:targetZoom)-game.chargeZoom)*(charging?.09:.14);
+  if(!charging&&Math.abs(1-game.chargeZoom)<.001)game.chargeZoom=1;
+  game.scale=Math.max(.001,fit*(game.overview?1:game.chargeZoom));
+  // Preserve the ground line near its normal vertical position while pulling back.
+  game.topPad=game.overview?Math.max(0,(h-H*game.scale)/2):Math.max(0,(h-H*game.scale)*.65);
+  const visible=w/game.scale,edge=Math.max(0,W-visible);
+  if(game.overview){game.camera=-(visible-W)/2;return;}
+  const waitingForAi=game.mode==='duel'&&game.turn==='ai'&&game.phase==='aiWait';
   const defaultCam=waitingForAi?clamp(1018-visible*.76,0,edge):game.mode==='duel'?clamp(190-visible*.24,0,edge):clamp(145-visible*.25,0,edge);
   const active=game.projectiles.find(p=>p.active);
   const impactHold=game.reviewFocusX!==null&&(game.phase==='review'||game.phase==='result');
   const nearby=impactHold?game.debris.filter(d=>d.life>0&&Math.abs(d.x-game.reviewFocusX)<145):[];
   const movingCenter=nearby.length?nearby.reduce((a,d)=>a+d.x,0)/nearby.length:game.reviewFocusX;
   const impactCenter=game.reviewFocusX*.78+movingCenter*.22;
-  // While charging, make the predicted landing point the camera focus, not the muzzle.
-  // AimX comes from the trajectory already drawn on the previous frame; no extra physics prediction.
-  const chargeFocus=game.chargeActive&&game.phase==='aim'&&Number.isFinite(game.chargeAimX);
+  // The former impact-point tracking pushed the hero off small screens.
+  // Instead pin the launch position and reveal the destination by easing out.
+  const chargeCamera=origin().x-(game.chargeAnchorPx??w*.2)/game.scale;
   const focus=active?active.x-visible*.43
-    :chargeFocus?game.chargeAimX-visible*.57
+    :charging?chargeCamera
     :game.panX!==null?game.panX
     :impactHold?impactCenter-visible*.51:defaultCam;
-  game.camera+=(clamp(focus,0,edge)-game.camera)*(chargeFocus?.16:.12);}
+  game.camera+=(clamp(focus,charging?-70:0,edge)-game.camera)*(charging?.13:.12);
+ }
  function drawChargeReadiness(){
   if(!game.chargeActive||game.phase!=='aim'||game.turn!=='player')return;
   const m=muzzleFor('player',game.angle),power=game.chargedPower/100;
@@ -4108,7 +4204,7 @@ const materialCells={
  window.addEventListener('keydown',e=>{if(e.key==='Escape'){handleBackIntent();return;}if(e.code==='Space'&&game.phase==='aim'&&e.target.tagName!=='BUTTON'){e.preventDefault();firePlayer();}if(e.code==='KeyQ'&&game.mode!=='menu'&&e.target.tagName!=='INPUT'){e.preventDefault();useAbility();}});
  // Small, read-only automation hook for smoke testing; not required to play.
  window.__artilleryLoadoutDebug=()=>({player:{hero:game.hero,weapon:duelWeapon(game.hero)},ai:{hero:game.aiHero,weapon:duelWeapon(game.aiHero)},paintedCannonReady:!!(duelCannonAtlas?.complete&&duelCannonAtlas.naturalWidth>0),splitCannonReady:!!(duelPartsAtlas?.complete&&duelPartsAtlas.naturalWidth>0),foxAttackReady:!!(foxAttackAtlas?.complete&&foxAttackAtlas.naturalWidth>0),paintedAmmunitionReady:paintedAmmunitionReady(),ammunitionCells:{rows:ammunitionRows,columns:ammunitionColumns},paintedAttackReady:Object.fromEntries(Object.entries(paintedAttackAtlases).map(([hero,img])=>[hero,!!(img?.complete&&img.naturalWidth>0&&img.naturalHeight>0)])),playerMuzzle:muzzleFor('player'),aiMuzzle:muzzleFor('ai',game.aiAngle),playerPivot:cannonTrunnion('player'),aiPivot:cannonTrunnion('ai')});
- window.__artilleryDebug=()=>({mode:game.mode,stage:game.stage,difficulty:game.difficulty,hero:game.hero,aiHero:game.aiHero,abilityUsed:game.abilityUsed,abilityArmed:game.abilityArmed,abilityCount:game.abilityCount,wind:game.wind,phase:game.phase,shots:game.shots,maxShots:game.maxShots,hitStreak:game.hitStreak,popupPositions:game.popups.map(p=>({x:p.x,y:p.y,value:p.value})),chargeActive:game.chargeActive,chargeAimX:game.chargeAimX,camera:game.camera,chargedPower:game.chargedPower,heroMotionFrame:actorPoseFrame('player',game.hero).index,turn:game.turn,projectiles:game.projectiles.length,projectilePierce:game.projectiles[0]?.pierce||0,foes:game.foes.filter(x=>x.alive).length,bossHp:game.foes.find(f=>f.boss&&f.alive)?.hp||0,playerHp:game.playerHp,aiHp:game.aiHp,sound:game.sound,canvas:[cv.width,cv.height],rotatingBlocks:game.blocks.filter(b=>Math.abs(b.angle)>.05).length,physics:!!game.engine,spriteReady:spriteReady(game.hero),sceneReady:sceneReady(),enemyReady:enemyArtReady(),combatReady:combatArtReady(),paintedFoeReady:paintedFoeAtlases.map((_,kind)=>paintedFoeArtReady(kind)),foePoses:game.foes.map(f=>foePose(f)),foeAttacks:game.foes.reduce((n,f)=>n+f.attackCount,0),rubbleCount:game.rubble.length,materialReady:materialArtReady(),introVisible:!$('enemyEntrance').hidden,materialTiers:game.blocks.map(b=>damageTier(b)),aimImpact:game.phase==='aim'?predict(game.angle,game.power,game.wind).impact?.kind||'none':'inactive',debrisCount:game.debris.length,stageMapOpen:!$('stageMap').hidden,exitOpen:!$('exitConfirm').hidden,savedBest:progress.best.slice(),savedWins:progress.wins,skillEffects:game.skillEffects.length,blastCores:game.blastCores.length,dyingFoes:game.foes.filter(f=>!f.alive&&f.deathTimer>0).length,damagedBlocks:game.blocks.filter(b=>b.hp<b.maxHp).length,reviewVisible:!$('shotReview').hidden,reviewTitle:game.reviewInfo?.title||'',reviewFocusX:game.reviewFocusX,reviewNext:game.reviewNext,reviewTimer:game.reviewTimer,materials:{wood:game.blocks.filter(b=>b.type==='wood').length,stone:game.blocks.filter(b=>b.type==='stone').length,iron:game.blocks.filter(b=>b.type==='iron').length},aiShots:game.aiShots,aiWeapon:game.lastAiWeapon,aiTactic:game.aiTactic,recoil:game.recoil.player,actorMotion:game.actorAnim.player.kind,actorMotionLife:game.actorAnim.player.life});
+ window.__artilleryDebug=()=>({mode:game.mode,stage:game.stage,difficulty:game.difficulty,hero:game.hero,aiHero:game.aiHero,abilityUsed:game.abilityUsed,abilityArmed:game.abilityArmed,abilityCount:game.abilityCount,wind:game.wind,phase:game.phase,shots:game.shots,maxShots:game.maxShots,hitStreak:game.hitStreak,popupPositions:game.popups.map(p=>({x:p.x,y:p.y,value:p.value})),chargeActive:game.chargeActive,chargeAimX:game.chargeAimX,chargeZoom:game.chargeZoom,chargeReveal:game.chargeReveal,playerScreenX:(origin().x-game.camera)*game.scale,scale:game.scale,camera:game.camera,chargedPower:game.chargedPower,heroMotionFrame:actorPoseFrame('player',game.hero).index,turn:game.turn,projectiles:game.projectiles.length,projectilePierce:game.projectiles[0]?.pierce||0,foes:game.foes.filter(x=>x.alive).length,bossHp:game.foes.find(f=>f.boss&&f.alive)?.hp||0,playerHp:game.playerHp,aiHp:game.aiHp,sound:game.sound,canvas:[cv.width,cv.height],rotatingBlocks:game.blocks.filter(b=>Math.abs(b.angle)>.05).length,physics:!!game.engine,spriteReady:spriteReady(game.hero),sceneReady:sceneReady(),enemyReady:enemyArtReady(),combatReady:combatArtReady(),paintedFoeReady:paintedFoeAtlases.map((_,kind)=>paintedFoeArtReady(kind)),foePoses:game.foes.map(f=>foePose(f)),foeAttacks:game.foes.reduce((n,f)=>n+f.attackCount,0),rubbleCount:game.rubble.length,materialReady:materialArtReady(),introVisible:!$('enemyEntrance').hidden,materialTiers:game.blocks.map(b=>damageTier(b)),aimImpact:game.phase==='aim'?predict(game.angle,game.power,game.wind).impact?.kind||'none':'inactive',debrisCount:game.debris.length,stageMapOpen:!$('stageMap').hidden,exitOpen:!$('exitConfirm').hidden,savedBest:progress.best.slice(),savedWins:progress.wins,skillEffects:game.skillEffects.length,blastCores:game.blastCores.length,dyingFoes:game.foes.filter(f=>!f.alive&&f.deathTimer>0).length,damagedBlocks:game.blocks.filter(b=>b.hp<b.maxHp).length,reviewVisible:!$('shotReview').hidden,reviewTitle:game.reviewInfo?.title||'',reviewFocusX:game.reviewFocusX,reviewNext:game.reviewNext,reviewTimer:game.reviewTimer,materials:{wood:game.blocks.filter(b=>b.type==='wood').length,stone:game.blocks.filter(b=>b.type==='stone').length,iron:game.blocks.filter(b=>b.type==='iron').length},aiShots:game.aiShots,aiWeapon:game.lastAiWeapon,aiTactic:game.aiTactic,recoil:game.recoil.player,actorMotion:game.actorAnim.player.kind,actorMotionLife:game.actorAnim.player.life});
  $('adventureStage').value=String(progress.lastStage);$('duelDifficulty').value=progress.difficulty;document.querySelectorAll('[data-hero]').forEach(b=>{const chosen=b.dataset.hero===selectedHero;b.classList.toggle('selected',chosen);b.setAttribute?.('aria-pressed',String(chosen));});refreshMenu();
  requestAnimationFrame(frame);
 })();
