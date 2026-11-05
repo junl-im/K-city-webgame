@@ -419,6 +419,15 @@ try{
       assert.ok(recruitHeading.offset<=3&&recruitHeading.labelRight<=recruitHeading.closeLeft+1&&
         recruitHeading.columns.split(' ').length===3,
         'Companion chapter cue must center between the painted scene and the close control: '+JSON.stringify(recruitHeading));
+      const illustratedClose=await page.locator('#modal-close').evaluate(el=>{
+        const css=getComputedStyle(el);
+        return {art:css.backgroundImage,size:css.backgroundSize,position:css.backgroundPosition,
+          border:parseFloat(css.borderTopWidth),font:parseFloat(css.fontSize)};
+      });
+      assert.ok(illustratedClose.art.includes('rani-ui-icons-v04.webp')&&
+        illustratedClose.size==='400% 400%'&&illustratedClose.position.startsWith('66.')&&
+        illustratedClose.border===0&&illustratedClose.font===0,
+        'Dismiss control must use an illustrated back-arrow, not the generic CSS circle: '+JSON.stringify(illustratedClose));
       const crispText=await page.locator('.recruit-card').evaluateAll(cards=>cards.map(card=>({
         heading:getComputedStyle(card.querySelector('strong')).fontFamily,
         description:getComputedStyle(card.querySelector('small')).wordBreak,
@@ -624,6 +633,12 @@ try{
     assert.ok(starTrim.every(value=>value.includes('21.5%')),
       'Packed star atlas must trim the stray red flame fragments under every reward star: '+starTrim.join(', '));
     assert.equal(await page.locator('.result-stat').count(),3,'Show real currency, HP and squad metrics');
+    const resultStatFonts=await page.locator('.result-stat').evaluateAll(items=>items.map(item=>({
+      label:parseFloat(getComputedStyle(item.querySelector('span:not(.result-stat-icon)')).fontSize),
+      amount:parseFloat(getComputedStyle(item.querySelector('strong')).fontSize)
+    })));
+    assert.ok(resultStatFonts.every(stat=>stat.label>=10&&stat.amount>=11),
+      'Results must keep reward captions and totals readable on 320px phones: '+JSON.stringify(resultStatFonts));
     assert.equal(await page.locator('#modal-actions button').count(),2,'Next stage and map actions');
     const winLayout=await page.evaluate(()=>{
       const box=document.querySelector('#modal-box'),r=box.getBoundingClientRect();
