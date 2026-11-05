@@ -1455,12 +1455,12 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  filter:drop-shadow(0 0 8px #ffbc4685)!important;
  transform:scale(1.04)!important;
 }
-#controls #fire.recent-shot:not(:disabled){
+#controls #fire.recent-shot{
  background-image:url("art/hud_fire_pressed.webp")!important;
  transform:translateY(2px) scale(.96)!important;
  filter:drop-shadow(0 1px 4px #ffba6199)!important;
 }
-#controls #fire:disabled{
+#controls #fire:disabled:not(.recent-shot){
  background-image:url("art/hud_fire_disabled.webp")!important;
  opacity:.84!important;filter:drop-shadow(0 2px 3px #11253280)!important;
  transform:none!important;
