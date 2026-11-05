@@ -307,6 +307,36 @@ describe('기본 맞고 진행 상태', () => {
     expect(result.phase).toBe('playing');expect(result.currentPlayer).toBe('computer');expect(result.winner).toBeNull();
   });
 
+  it('마지막 보너스패 이후 보충할 패가 없으면 점수에 따라 자동 스톱한다',()=>{
+    const game=createArrangedGame({humanHand:['bonus-pee-1'],humanHandSize:1,computerHand:['m06-03'],computerHandSize:1,
+      floorCards:['m02-04'],floorSize:1,drawFirst:[],humanCaptured:['m01-01','m03-01','m08-01','m11-01','m12-01'],computerCaptured:['m07-03']});
+    game.drawPile=[];
+    const result=playTurn(game,'human','bonus-pee-1');
+    expect(result.replacementCardId).toBeNull();expect(result.continuesTurn).toBe(false);
+    expect(result.state.phase).toBe('round-ended');expect(result.state.winner).toBe('human');
+  });
+
+  it('보충 패 없는 마지막 보너스패로 점수가 부족하면 상대 차례로 넘긴다',()=>{
+    const game=createArrangedGame({humanHand:['bonus-pee-1'],humanHandSize:1,computerHand:['m06-03'],computerHandSize:1,
+      floorCards:['m02-04'],floorSize:1,drawFirst:[]});game.drawPile=[];
+    const result=playTurn(game,'human','bonus-pee-1');
+    expect(result.continuesTurn).toBe(false);expect(result.state.phase).toBe('playing');expect(result.state.currentPlayer).toBe('computer');
+  });
+
+  it('마지막 보너스패 뒤 양쪽 차례가 끝나고 점수가 부족하면 나가리다',()=>{
+    const game=createArrangedGame({humanHand:['bonus-pee-1'],humanHandSize:1,computerHand:[],computerHandSize:0,
+      floorCards:['m02-04'],floorSize:1,drawFirst:[]});game.drawPile=[];
+    const result=playTurn(game,'human','bonus-pee-1');
+    expect(result.continuesTurn).toBe(false);expect(result.state.roundResult).toBe('nagari');
+  });
+
+  it('보너스패 이후 폭탄 뒤집기 차례가 남으면 차례를 유지한다',()=>{
+    const game=createArrangedGame({humanHand:['bonus-pee-1'],humanHandSize:1,computerHand:['m06-03'],computerHandSize:1,
+      floorCards:['m02-04'],floorSize:1,drawFirst:[]});game.drawPile=[];game.humanBombSkips=1;
+    const result=playTurn(game,'human','bonus-pee-1');
+    expect(result.continuesTurn).toBe(true);expect(result.state.currentPlayer).toBe('human');
+  });
+
   it('이전 저장의 마지막 패 고 선택도 나가리가 아닌 자동 스톱으로 복구한다',()=>{
     const game=createInitialGame(31);game.humanHand=[];game.humanBombSkips=0;game.computerHand=['m05-01'];
     game.humanCaptured=['m01-01','m03-01','m08-01','m11-01','m12-01'];

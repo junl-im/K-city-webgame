@@ -391,7 +391,10 @@ export function playTurn(state: GameState, player: PlayerId, cardId: string, opt
     const mission = missionOutcome(next, player, captured);
     const actor = player === 'human' ? '내가' : '컴퓨터가';
     const stealMessage = bonus.stolenPee.length ? ' 상대 피 1장을 가져왔습니다.' : '';
-    next.lastAction = `${actor} 보너스패를 내고 새 패를 받았습니다.${stealMessage}${missionMessage(mission)} 같은 차례를 계속합니다.`;
+    const canContinue = next[keys.hand].length > 0 || (next[keys.bombSkips] ?? 0) > 0;
+    const action = `보너스패를 냈습니다.${bonus.replacementCardId ? ' 새 패를 받았습니다.' : ''}${stealMessage}${missionMessage(mission)}`;
+    if (canContinue) next.lastAction = `${actor} ${action} 같은 차례를 계속합니다.`;
+    else advanceAfterAction(next, player, action);
     return {
       state: next,
       playedCardId: cardId,
@@ -404,7 +407,7 @@ export function playTurn(state: GameState, player: PlayerId, cardId: string, opt
       specialEvents: [],
       ...mission,
       replacementCardId: bonus.replacementCardId,
-      continuesTurn: true
+      continuesTurn: canContinue
     };
   }
   const initialMatches = matchingFloorCards(next, cardId);
