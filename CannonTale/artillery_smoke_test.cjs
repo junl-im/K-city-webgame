@@ -14,6 +14,8 @@ if(/v0_[67]/.test(versionedPath)){
 assert(script.includes(' window.__artilleryLoadoutDebug='),'Duel diagnostics hook must be present');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__forceAiHeroForTest=(hero)=>{game.aiHero=hero;}; window.__forceAiAttackForTest=()=>{actorMotion("ai","attack",.48);}; window.__forceFoeFrameForTest=(kind,frame)=>{const f=game.foes[0];if(!f)return;f.kind=kind;f.alive=frame!==5;f.hp=55;f.deathTimer=frame===5?3.8:0;f.hitAnim=frame===4?.62:0;f.hitFlash=0;f.attackAnim=frame===1?.68:frame===2?.42:frame===3?.07:0;f.attackCooldown=99;}; window.__forceProjectileForTest=(hero,weapon)=>{game.projectiles=[{x:540,y:220,vx:170,vy:-20,r:weapon==="bomb"?13:10,hero,weapon,active:true,age:0,split:weapon==="split",trail:Array.from({length:7},(_,i)=>({x:480+i*8,y:242-i*3})),pierce:0,hitBlocks:[],hitFoes:[]}];}; window.__forceImpactForTest=(hero,weapon)=>{game.projectiles=[];game.blastCores=[{x:540,y:200,life:.48,total:.48,radius:weapon==="bomb"?69:41,hero,weapon,seed:0}];}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__forceImpactAtTimeForTest=(hero,weapon,time)=>{const total=weapon==="bomb"?.65:.46;game.blastCores=[{x:540,y:200,life:total*(1-time),total,radius:weapon==="bomb"?69:41,hero,weapon,seed:0}];}; window.__impactMotesForTest=(hero,weapon)=>{spawnImpactMotes({x:530,y:270,hero,weapon},weapon==="bomb");return game.impactMotes.length;}; window.__impactMotePositionsForTest=()=>game.impactMotes.map(m=>({x:m.x,y:m.y,life:m.life})); window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(html.includes('Artillery_Illustrated_UI_v1_1.png'),'The painted v1.1 UI atlas should be referenced');
@@ -124,6 +126,7 @@ const paintedFoeFrames=foeFrameIds.map(()=>new Set());
 let paintedShardDrawCalls=0,legacyCombatDrawCalls=0;
 const paintedAmmunitionCells=new Set();
 const paintedImpactCells=new Set();
+const paintedImpactStageCells=new Set();
 const flightRibbonColors=new Set();
 function testDrawImage(...args){
  imageDrawCalls++;
@@ -143,6 +146,7 @@ function testDrawImage(...args){
  if(args[0]?.id==='materialArtwork'&&args[3]<=92&&args[2]>=680)paintedShardDrawCalls++;
  if(args[0]?.id==='heroAmmunitionArtwork')paintedAmmunitionCells.add(`${Math.round(args[2]/(810/4))},${Math.round(args[1]/(1080/3))}`);
  if(args[0]?.id==='heroImpactArtwork')paintedImpactCells.add(`${Math.round(args[2]/384)},${Math.round(args[1]/384)}`);
+ if(args[0]?.id==='heroImpactStagesArtwork')paintedImpactStageCells.add(`${Math.round(args[2]/240)},${Math.round(args[1]/240)}`);
 }
 const noOpKeys=new Set(['clearRect','save','restore','translate','setTransform','beginPath','moveTo','lineTo','fill','ellipse','arc','roundRect','fillText','strokeText','closePath','scale','rotate','rect','clip','bezierCurveTo','quadraticCurveTo']);
 const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?testDrawImage:key==='stroke'?()=>{if(obj.strokeStyle==='#f4e6b9b0'&&obj.lineWidth>=3&&obj.lineWidth<=5)mediumTrajectoryStrokes++;if(['#ffcb79','#58616d','#c1a3f2','#91f7e4'].includes(obj.strokeStyle))flightRibbonColors.add(obj.strokeStyle);}:noOpKeys.has(key)?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
@@ -162,6 +166,7 @@ for(const hero of Object.keys(heroAttackFrames)){
 for(const id of foeFrameIds){const art=el(id);art.complete=true;art.naturalWidth=1536;art.naturalHeight=1024;}
 {const art=el('heroAmmunitionArtwork');art.complete=true;art.naturalWidth=1080;art.naturalHeight=810;}
 {const art=el('heroImpactArtwork');art.complete=true;art.naturalWidth=768;art.naturalHeight=768;}
+{const art=el('heroImpactStagesArtwork');art.complete=true;art.naturalWidth=720;art.naturalHeight=960;}
 const document={referrer:'',getElementById:el,querySelectorAll:selector=>selector==='[data-weapon]'?weapons:selector==='[data-hero]'?heroes:selector==='[data-stage]'?stages:[]};
 if(/v0_[34]/.test(versionedPath)){const art=el('menuArtwork');art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}
 if(/v0_[567]/.test(versionedPath)){for(const type of ['menuArtwork','rosterArtwork']){const art=el(type);art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}}
@@ -596,12 +601,30 @@ assert.deepEqual([...flightRibbonColors].sort(),['#ffcb79','#58616d','#c1a3f2','
 const paintedImpactFile=fs.readFileSync(__dirname+'/art/hero_impacts_v26.webp');
 assert.equal(paintedImpactFile.toString('ascii',0,4),'RIFF','v2.6 impact art must be a real binary WebP');
 assert.equal(paintedImpactFile.toString('ascii',8,12),'WEBP','v2.6 impact art must load as WebP');
+const stageArt=el('heroImpactStagesArtwork');stageArt.complete=false;
 for(const hero of ['fox','bear','rabbit','cat']){
  for(const weapon of ['normal','bomb','split']){
   window.__forceImpactForTest(hero,weapon);frames(1);
  }
 }
 assert.deepEqual([...paintedImpactCells].sort(),['0,0','0,1','1,0','1,1'].sort(),
- 'All four character impacts must draw their own transparent illustrated effects');
+ 'All four character impacts must retain the v2.6 fallback when the animation asset is absent');
+stageArt.complete=true;
+const impactStagesFile=fs.readFileSync(__dirname+'/art/hero_impacts_v27.webp');
+assert.equal(impactStagesFile.toString('ascii',0,4),'RIFF','v2.7 animation frames must be a real binary WebP');
+assert.equal(impactStagesFile.toString('ascii',8,12),'WEBP','v2.7 animation frames must be genuine WebP');
+for(const hero of ['fox','bear','rabbit','cat']){
+ for(const weapon of ['normal','bomb','split']){
+  for(const t of [.03,.38,.82]){window.__forceImpactAtTimeForTest(hero,weapon,t);frames(1);}
+ }
+}
+assert.deepEqual([...paintedImpactStageCells].sort(),Array.from({length:4},(_,r)=>Array.from({length:3},(_,c)=>`${r},${c}`)).flat().sort(),
+ 'Every hero must render three distinct impact animation stages across all ammunition types');
+const fragmentCount=window.__impactMotesForTest('cat','bomb');
+assert(fragmentCount>=23,'Heavy shells must produce enough animated impact fragments');
+const fragmentsBefore=window.__impactMotePositionsForTest();frames(4);
+const fragmentsAfter=window.__impactMotePositionsForTest();
+assert(fragmentsAfter.some((m,i)=>Math.abs(m.y-fragmentsBefore[i].y)>1),
+ 'Physical impact fragments must move independently under gravity after the explosion');
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');
