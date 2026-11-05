@@ -24,6 +24,13 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__fracturePartsForTest=(type,weapon="normal")=>{const b={w:28,h:104,type,impactSide:1,body:M.Bodies.rectangle(810,290,28,104)};spawnCollapseGhost(b,weapon);return {count:collapsePieces[type].length,total:game.collapseGhosts.at(-1).total};}; window.__weaponMaterialForTest=(type,weapon)=>materialWeaponFactor(type,weapon); window.__chainCollisionForTest=()=>{newGame("adventure",0);game.shots=1;const [a,b]=game.blocks;M.Body.setVelocity(a.body,{x:9,y:0});M.Body.setVelocity(b.body,{x:-9,y:0});const before=[a.hp,b.hp],initial=game.chainHits;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});const after=[a.hp,b.hp];M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});return {before,after,cooled:[a.hp,b.hp],count:game.chainHits-initial};}; window.__crushCollisionForTest=()=>{newGame("adventure",0);game.shots=1;const block=game.blocks[0],foe=game.foes[0];M.Body.setPosition(block.body,{x:foe.x,y:foe.y-64});M.Body.setVelocity(block.body,{x:0,y:10});const before=foe.hp;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:block.body,bodyB:foe.body}]});return {before,after:foe.hp,crushHits:game.crushHits,defeated:!foe.alive};}; window.__cleanupBrokenBlocksForTest=()=>{newGame("adventure",0);game.shots=1;const [a,b]=game.blocks;a.hp=1;M.Body.setVelocity(a.body,{x:9,y:0});M.Body.setVelocity(b.body,{x:-9,y:0});const before=game.blocks.length;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});const marked=a.dead;step(1/60);return {before,after:game.blocks.length,marked,ghosts:game.collapseGhosts.length};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__foeHitReactionForTest=(damage,sourceOffset)=>{const f=game.foes.find(x=>x.alive),oldRings=game.rings.length;foeHitReaction(f,damage,f.x+sourceOffset);return {direction:f.hitDirection,strength:f.hitStrength,anim:f.hitAnim,rings:game.rings.length-oldRings};}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__gradeStarsForTest=earnedStars; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__setDeathAgeForTest=(age)=>{const f=game.foes[0];f.alive=false;f.kind=0;f.deathTimer=3.8-age;f.hitAnim=0;f.attackAnim=0;}; window.__restoreFoeForTest=()=>{const f=game.foes[0];f.alive=true;f.deathTimer=0;}; window.__artilleryLoadoutDebug=');
+// In the six-pose atlas probe, select the settled death frame after the brief
+// hurt-to-prone transition rather than at the exact moment of defeat.
+script=script.replace('f.deathTimer=frame===5?3.8:0;','f.deathTimer=frame===5?3.59:0;');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(html.includes('id="resultMedals"')&&html.includes('data-stars="1"'),'Adventure results must have three illustrated grade slots');
@@ -147,7 +154,7 @@ assert(html.includes('.app:has(#menu:not([hidden])) .top'),'Top HUD must disappe
 assert(html.includes('menu-logo-main')&&html.includes('캐논테일'),'New illustrated game title must remain visible');
 assert(html.includes('background-image:var(--stage-art)'),'Reuse existing project scenery atlases for home background');
 assert(html.includes('grid-template-areas:"title" "art" "mode"'),'Mobile home must arrange illustrated content into a single viewport');
-assert(html.includes('game.mode===\'duel\'?2.45:2.85'),'Post-impact countdown must be shortened');
+assert(html.includes("game.reviewTimer=finalShot?2.05:game.mode==='duel'?1.65:1.85"),'Post-impact countdown must be brief while final outcomes linger');
 assert(html.includes('v1.8 combat HUD'),'Combat controls should share fantasy illustration styling');
 assert(html.includes('v1.9 selected-hero information'),'Hero choices need visible real skill descriptions');
 assert(html.includes('v1.9 -- end-of-battle'),'Battle outcome art must use existing illustrations');
@@ -390,13 +397,14 @@ assert.equal(state().shots,1);
 assert(peakBlasts>0,'v0.9 projectile impact must create animated blast cores');
 assert.equal(state().phase,'review','Adventure should hold the impact instead of returning to the launcher');
 assert.equal(state().reviewVisible,true,'The impact review ribbon must remain visible');
+assert(state().reviewTimer<=1.9,'Ordinary impact countdown must no longer hold for almost three seconds');
 assert.equal(el('reviewCountdown').hidden,false,'Count number must show before transition');
 assert(Number(el('reviewCountdown').textContent)>0,'Countdown must show positive integer');
 assert(Number.isFinite(state().reviewFocusX),'The camera should retain a real impact focus');
 assert(el('reviewTitle').textContent.length>0,'Shot outcome must be summarized');
 assert(state().rubbleCount>=0,'The review must preserve its rubble state safely');
 assert(state().foePoses.every(p=>['idle','attack','hurt','death'].includes(p)),'Every enemy animation state must be defined');
-frames(125);
+frames(55);
 assert.equal(state().phase,'review','Adventure impact should remain visible until player confirmation');
 if(state().foes>0 && state().shots<state().maxShots){
  assert.equal(el('angle').disabled,false,'Angle slider must be operable after first shot');
@@ -495,6 +503,8 @@ if(/v0_[67]/.test(versionedPath)){
  assert(el('reviewTitle').textContent.includes('2연속 명중'),'Result should reward the streak');
  el('reviewContinue').click();assert.equal(state().phase,'aim');
  assert.equal(window.__simulateAdventureImpactForTest(false),0,'Miss resets the streak');
+ frames(125);
+ assert.equal(state().phase,'aim','The shorter countdown must auto-advance without an extra full count beat');
  el('homeBtn').click();
  el('adventureBtn').click();frames(3);
  assert.equal(window.__damageBlockForTest(26),1,'Timber must reach painted cracked tier');
@@ -558,6 +568,9 @@ if(/v0_[567]/.test(versionedPath)){
   }
 }
 if(/v0_[67]/.test(versionedPath)){
+ assert.equal(window.__gradeStarsForTest(2,4),3,'Two-shot clear earns three painted medals');
+ assert.equal(window.__gradeStarsForTest(3,4),2,'Three of four shells earns two painted medals');
+ assert.equal(window.__gradeStarsForTest(3,3),1,'Last-shell clear earns one painted medal');
  assert.equal(JSON.parse(saved.get('wind-artillery-progress-v06')).hero,'cat','Hero choice must persist');
  assert.deepEqual(state().savedBest.slice(0,2),[3,2],'Prior progress must not be lost');
  el('adventureStage').value='2';el('adventureBtn').click();frames(3);
@@ -684,6 +697,11 @@ for(let kind=0;kind<foeFrameIds.length;kind++){
  }
  assert.deepEqual([...paintedFoeFrames[kind]].sort(),[0,1,2,3,4,5],`${foeFrameIds[kind]} must paint every frame from idle to defeat`);
 }
+paintedFoeFrames[0].clear();window.__setDeathAgeForTest(.05);frames(1);
+assert(paintedFoeFrames[0].has(4),'Defeated foes first play their illustrated hurt keyframe');
+paintedFoeFrames[0].clear();window.__setDeathAgeForTest(.22);frames(1);
+assert(paintedFoeFrames[0].has(5),'Defeated foes then settle into the authored prone keyframe');
+window.__restoreFoeForTest();
 assert.equal(legacyCombatDrawCalls,0,'Legacy monster atlas with unwanted paint remnants must not render when new sheets are loaded');
 window.__damageBlockForTest(30);frames(3);
 assert(paintedShardDrawCalls>0,'Wood debris should reuse the original damaged material painting');

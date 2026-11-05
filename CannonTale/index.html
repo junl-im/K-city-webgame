@@ -2361,6 +2361,11 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 }
 #shotReview .review-copy{flex:1 1 0;min-width:0}
 #shotReview .review-continue{flex:0 0 auto;max-width:31%}
+/* v3.8: Keep the impact unobstructed and the brief countdown subordinate to it. */
+#reviewCountdown.review-countdown{
+ font-size:clamp(30px,6.8vh,62px)!important;
+ opacity:.78;text-shadow:0 2px 2px #543a2e,0 4px 9px #122c46a8!important;
+}
 @media(orientation:portrait) and (max-width:600px){
  #shotReview.shot-review{
   padding:17px 10px 9px clamp(40px,12vw,53px)!important;gap:4px!important;
@@ -2374,6 +2379,24 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 @media(orientation:landscape) and (max-height:550px){
  #shotReview.shot-review{
   padding:10px 12px 8px clamp(49px,7vw,65px)!important;
+ }
+}
+/* v3.8: Compact result parchment keeps all 3 real medals and Korean labels
+   inside their printed artwork zones on narrow portrait screens. */
+@media(orientation:portrait) and (max-width:380px){
+ #result .result-medals{top:33.1%;left:23%;width:54%;height:9.7%;gap:3px}
+ #result[data-outcome="won"][data-mode="adventure"] #resultText{
+  top:43.7%;height:20.5%;padding-inline:5px!important;
+  font-size:clamp(10px,2.9vw,11px)!important;line-height:1.43!important;
+ }
+ #result .panel-actions{gap:3px 4px!important}
+ #result .panel-actions .paper-btn{font-size:clamp(9px,2.85vw,11px)!important}
+}
+@media(orientation:landscape) and (max-height:390px){
+ #result .result-medals{top:33%;height:11%}
+ #result[data-outcome="won"][data-mode="adventure"] #resultText{
+  top:45%;height:19%;font-size:clamp(9px,2.6vh,11px)!important;
+  line-height:1.33!important;
  }
 }
 </style>
@@ -2900,10 +2923,11 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   const h=heroSet[game.hero],abilityPhase=game.phase===h.timing||(h.timing==='aim'&&canResumeAimFromReview()),ready=!game.abilityUsed&&game.turn==='player'&&abilityPhase&&(h.timing!=='flying'||game.projectiles.some(p=>p.active&&p.owner==='player'&&(!p.split||game.hero==='fox')));
   $('abilityBtn').disabled=!ready;$('abilityBtn').textContent=`${game.abilityUsed?'사용 완료':'특수기'} · ${h.ability}`;
  }
+ function earnedStars(shots,maxShots){return shots<=2?3:shots<maxShots?2:1;}
  function showResult(won){
   $('reviewCountdown').hidden=true;$('shotReview').hidden=true;$('enemyEntrance').hidden=true;
   game.introLife=0;game.phase='result';game.phaseTime=0;game.drag=null;
-  const star=game.shots<=2?3:game.shots<game.maxShots?2:1;
+  const star=earnedStars(game.shots,game.maxShots);
   if(won&&game.mode==='adventure'){
    progress.best[game.stage]=Math.max(progress.best[game.stage],star);
    progress.wins++;progress.lastStage=Math.min(game.stage+1,stageSet.length-1);
@@ -3107,7 +3131,10 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   }
   game.reviewFocusX=game.lastImpact?.x??(game.mode==='adventure'?850:game.turn==='player'?1018:190);
   game.reviewInfo={title,detail};
-  game.reviewTimer=game.mode==='duel'?2.45:2.85;
+  // Brief enough to avoid waiting through three full count beats; the result
+  // ribbon still remains tappable and winning/losing reviews linger a little.
+  const finalShot=game.reviewNext==='win'||game.reviewNext==='lose';
+  game.reviewTimer=finalShot?2.05:game.mode==='duel'?1.65:1.85;
   game.phase='review';game.phaseTime=0;game.panX=null;
   $('reviewTitle').textContent=title;$('reviewDetail').textContent=detail;
   $('reviewContinue').textContent=game.reviewNext==='win'?'승리 결과 보기':game.reviewNext==='lose'?'도전 결과 보기':game.reviewNext==='aiWait'?'상대 차례로':game.mode==='duel'?'내 차례로':'다음 발사';
@@ -3566,7 +3593,8 @@ const materialCells={
  function drawFoes(){for(const f of game.foes){
   if(!f.alive&&f.deathTimer<=0)continue;
   const pose=foePose(f),dying=pose==='death',hurt=pose==='hurt',attacking=pose==='attack';
-  const deathProgress=dying?clamp((3.8-f.deathTimer)/.9,0,1):0;
+  const deathAge=dying?3.8-f.deathTimer:0;
+  const deathProgress=dying?clamp(deathAge/.72,0,1):0;
   const stagger=clamp(f.hitAnim/.72,0,1),attackProgress=attacking?1-clamp(f.attackAnim/.72,0,1):0;
   const recoil=Math.sin((1-stagger)*Math.PI)*f.r*(f.boss?.26:.42)*(f.hitStrength||0);
   const attackSurge=attacking?Math.sin(Math.PI*attackProgress):0;
@@ -3575,9 +3603,9 @@ const materialCells={
   const stretch=dying?1-deathProgress*.07:1-stagger*.11+attackSurge*.04+breathe*.016;
   const shake=hurt?stagger*Math.sin(game.clock*68)*5:0;
   const landing=1-entry,landBounce=Math.sin((1-landing)*Math.PI*2.25)*landing*8;
-  const rise=dying?deathProgress*14:-(landing*29)+landBounce+breathe*(f.boss?1.6:2);
+  const rise=dying?-Math.sin(deathProgress*Math.PI)*6+Math.min(6,deathProgress*6):-(landing*29)+landBounce+breathe*(f.boss?1.6:2);
   const opacity=dying?clamp(f.deathTimer/.75,0,1):1;
-  const settle=dying?Math.sin(deathProgress*Math.PI*.5):0;
+  const settle=dying?Math.sin(deathProgress*Math.PI):0;
   const x=f.x+shake+(hurt?(f.hitDirection||1)*recoil:0)-attackSurge*(f.boss?13:10),y=f.y+rise-(hurt?recoil*.25:0);
   ctx.save();ctx.globalAlpha=opacity;ctx.translate(x,y);
   // The painted final frame is already lying down; avoid rotating the entire cutout again.
@@ -3588,7 +3616,8 @@ const materialCells={
   if((f.kind||0)===0)ctx.scale(-1,1);
   if(paintedFoeArtReady(f.kind)){
    const img=paintedFoeAtlases[clamp(f.kind||0,0,3)];
-   const frame=dying?5:hurt?4:attacking?(attackProgress<.27?1:attackProgress<.74?2:3):0;
+   // The authored hurt pose bridges the hit and the authored prone death pose.
+   const frame=dying?(deathAge<.16?4:5):hurt?4:attacking?(attackProgress<.27?1:attackProgress<.74?2:3):0;
    const tileW=img.naturalWidth/3,tileH=img.naturalHeight/2;
    const w=f.r*(f.boss?5.85:5.55),h=f.r*(f.boss?5.05:5.2);
    ctx.translate(0,f.r*.67);
