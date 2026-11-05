@@ -1905,6 +1905,32 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  #stageMap .map-panel{padding-top:20px!important;padding-bottom:15px!important}
  #result .result-panel{padding-top:23px!important;padding-bottom:18px!important}
 }
+/* v3.1.1: Percent padding was measured against the whole hero stage, not its plaque.
+   Use a bounded illustration gutter so live captions stay inside the painted surface. */
+#menu .hero-stage-info{
+ padding:5px 7px 5px clamp(43px,5vw,65px)!important;
+ box-sizing:border-box;
+}
+#menu .hero-stage-info strong,
+#menu .hero-stage-info small{
+ display:block;max-width:100%;min-width:0;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ overflow-wrap:normal!important;word-break:keep-all;
+}
+#menu .hero-stage-info .hero-skill-preview{
+ width:100%;min-height:0;padding:0!important;
+ background:transparent!important;border-radius:0!important;
+ color:#68462d!important;
+ font-size:clamp(9px,1.22dvh,12px)!important;
+ line-height:1.16!important;text-shadow:0 1px #fff0bd!important;
+}
+#menu .hero-stage-info .hero-skill-preview::before{display:none!important}
+@media(orientation:portrait) and (max-width:600px){
+ #menu .hero-stage-info{padding:3px 5px 3px clamp(38px,10vw,53px)!important}
+}
+@media(orientation:landscape) and (max-height:660px){
+ #menu .hero-stage-info{padding:2px 5px 2px clamp(35px,8vw,50px)!important}
+}
 @media(prefers-reduced-motion:reduce){#menu .hero-choice{transition:none}}
 
 </style>
