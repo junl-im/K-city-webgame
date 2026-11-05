@@ -32,6 +32,12 @@ const keysFor = (player: PlayerId) => player === 'human'
   ? { hand: 'humanHand', captured: 'humanCaptured', go: 'humanGoCount', lastGo: 'humanScoreAtLastGo', ppeok: 'humanPpeokCount', openingPpeok: 'humanOpeningPpeokCount', sweep: 'humanSweepCount', gookjin: 'humanGookjinAsDoubleJunk', bombSkips: 'humanBombSkips', bombCount: 'humanBombCount', shake: 'humanShakeCount', shakenMonths: 'humanShakenMonths', pendingShake: 'humanPendingShakeMonth' } as const
   : { hand: 'computerHand', captured: 'computerCaptured', go: 'computerGoCount', lastGo: 'computerScoreAtLastGo', ppeok: 'computerPpeokCount', openingPpeok: 'computerOpeningPpeokCount', sweep: 'computerSweepCount', gookjin: 'computerGookjinAsDoubleJunk', bombSkips: 'computerBombSkips', bombCount: 'computerBombCount', shake: 'computerShakeCount', shakenMonths: 'computerShakenMonths', pendingShake: 'computerPendingShakeMonth' } as const;
 
+function nextPlayablePlayer(state: GameState, player: PlayerId): PlayerId {
+  const opponent = otherPlayer(player);
+  const keys = keysFor(opponent);
+  return state[keys.hand].length > 0 || (state[keys.bombSkips] ?? 0) > 0 ? opponent : player;
+}
+
 export function createInitialGame(
   seed = Date.now(),
   computerDifficulty: AiDifficulty = 'normal',
@@ -263,7 +269,7 @@ function missionMessage(outcome: ReturnType<typeof missionOutcome>): string {
 function advanceAfterAction(next: GameState, player: PlayerId, actionMessage: string) {
   const keys = keysFor(player);
   next.turnNumber += 1;
-  next.currentPlayer = otherPlayer(player);
+  next.currentPlayer = nextPlayablePlayer(next, player);
   next.lastAction = `${player === 'human' ? '내가' : '컴퓨터가'} ${actionMessage}`;
 
   if (isThreePpeok(next[keys.ppeok])) {
@@ -575,7 +581,7 @@ export function chooseGo(state: GameState, player: PlayerId): GameState {
   next[keys.lastGo] = score.total;
   next.phase = 'playing';
   next.pendingDecision = null;
-  next.currentPlayer = otherPlayer(player);
+  next.currentPlayer = nextPlayablePlayer(next, player);
   next.lastAction = `${player === 'human' ? '내가' : '컴퓨터가'} ${next[keys.go]}고를 선택했습니다.`;
   return next;
 }
@@ -655,7 +661,7 @@ export function setGookjinChoice(state: GameState, player: PlayerId, asDoubleJun
   } else if (next.phase === 'playing' && canDecide) {
     next.phase = 'awaiting-go-stop';
     next.pendingDecision = player;
-    next.currentPlayer = otherPlayer(player);
+    next.currentPlayer = nextPlayablePlayer(next, player);
     next.lastAction += ` 현재 ${score.total}점입니다. 고 또는 스톱을 선택하세요.`;
   }
   return next;

@@ -337,6 +337,22 @@ describe('기본 맞고 진행 상태', () => {
     expect(result.continuesTurn).toBe(true);expect(result.state.currentPlayer).toBe('human');
   });
 
+  it('상대가 낼 패와 폭탄 차례가 모두 없으면 내 남은 차례를 계속 진행한다',()=>{
+    const game=createArrangedGame({humanHand:[],humanHandSize:0,computerHand:['m06-03','m07-03'],computerHandSize:2,
+      floorCards:['m06-04'],floorSize:1,drawFirst:['m04-03']});
+    game.currentPlayer='computer';game.humanBombSkips=0;
+    const next=playTurn(game,'computer','m06-03').state;
+    expect(next.phase).toBe('playing');expect(next.computerHand).toHaveLength(1);expect(next.currentPlayer).toBe('computer');
+  });
+
+  it('상대 차례가 모두 소진된 상태에서 고를 해도 내 남은 패를 진행한다',()=>{
+    const game=createInitialGame(31);game.computerHand=[];game.computerBombSkips=0;
+    game.humanCaptured=['m01-01','m03-01','m08-01','m11-01','m12-01'];
+    game.phase='awaiting-go-stop';game.pendingDecision='human';
+    const next=chooseGo(game,'human');
+    expect(next.phase).toBe('playing');expect(next.currentPlayer).toBe('human');
+  });
+
   it('이전 저장의 마지막 패 고 선택도 나가리가 아닌 자동 스톱으로 복구한다',()=>{
     const game=createInitialGame(31);game.humanHand=[];game.humanBombSkips=0;game.computerHand=['m05-01'];
     game.humanCaptured=['m01-01','m03-01','m08-01','m11-01','m12-01'];
