@@ -36,7 +36,7 @@ assert(html.includes('CannonTale v1.8: illustrated menu'),'Scenic fantasy homepa
 assert(html.includes('v2.0.2 -- real illustrated HUD buttons'),'Full illustrative HUD should replace generic CSS buttons');
 assert(html.includes('v2.0.3: fill the entire combat dock'),'Combat control dock should have the responsive full-width layout fix');
 assert(/\/\* v3\.3: Move the post-shot report into the sky/.test(html),'Post-impact layout must include the newest sky placement update');
-const finalStyle=html.slice(html.lastIndexOf('/* v3.3: Move the post-shot report into the sky'),html.indexOf('</style>'));
+const finalStyle=html.slice(html.lastIndexOf('/* v3.3: Move the post-shot report into the sky'),html.indexOf('/* v3.4: Real bitmap selector folio'));
 assert(/#shotReview\.shot-review\{[^}]*top:clamp\(24px,9%,92px\)!important;bottom:auto!important/.test(finalStyle),'The post-shot result plaque must occupy upper air, not the ground');
 assert(/@media\(orientation:portrait\) and \(max-width:600px\)\{\s*#shotReview\.shot-review\{[^}]*top:clamp\(72px,20%,196px\)!important;bottom:auto!important/.test(finalStyle),'Portrait result plaque must appear above the center countdown');
 assert(/@media\(orientation:landscape\) and \(max-height:550px\)\{\s*#shotReview\.shot-review\{[^}]*top:clamp\(5px,4%,23px\)!important;bottom:auto!important/.test(finalStyle),'Short landscape view must retain sky placement without clipping');
@@ -55,6 +55,17 @@ const v35Style=html.slice(html.lastIndexOf('/* v3.5: Keep text inside its painte
 assert(v35Style.includes('-webkit-line-clamp:2')&&v35Style.includes('#shotReview .review-copy small'),'The transparent result card must wrap readable text inside its painted bounds');
 assert(v35Style.includes('max-width:360px')&&v35Style.includes('width:calc(100% - 40px)!important;'),'Very narrow phones must give the combat report enough content space');
 assert(v35Style.includes('.custom-select-option:not(.stage-option)'),'Difficulty choices need their own centered alignment, not the stage medal layout');
+const v36Style=html.slice(html.lastIndexOf('/* v3.6: Outcome lettering uses'),html.indexOf('</style>'));
+assert(v36Style.includes('art/popup_result_portrait_v36.webp'),'Victory and defeat need the new illustrated portrait parchment');
+assert(v36Style.includes('aspect-ratio:1122/1402!important'),'Portrait outcome proportions must match the painted art');
+assert(v36Style.includes('grid-template-columns:repeat(2,minmax(0,1fr))'),'Outcome buttons must stay within two text-safe columns');
+assert(v36Style.includes('.paper-btn[hidden]{display:none!important}'),'Hidden next-stage button must not take a result slot');
+assert(v36Style.includes('aspect-ratio:1536/1024!important'),'Short landscape uses the matching wide illustrated parchment');
+assert(v36Style.includes('grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(62px,.76fr)'),'Mobile combat dock must not overflow on the right');
+const portraitResult=fs.readFileSync(__dirname+'/art/popup_result_portrait_v36.webp');
+assert.equal(portraitResult.subarray(0,4).toString(),'RIFF','The new result illustration must be real raster WebP');
+assert.equal(portraitResult.subarray(8,12).toString(),'WEBP','The result illustration must preserve WebP encoding');
+assert(!/<svg|image\/svg\+xml/.test(v36Style),'Result artwork and layout must contain no SVG');
 assert(html.includes('function fitPaintedLabel(node,minSize=9)')&&html.includes('function fitPaintedMenuLabels()'),'Live Korean labels need a fit-to-artwork calculation');
 assert(html.includes('drawHeroBadges();drawHeroPreview();fitPaintedMenuLabels();'),'Changing heroes must recalculate label size');
 assert(html.includes('  fitPaintedMenuLabels();\n }\n let activeIllustratedSelect'),'Changing stage/difficulty selection must recalculate label size');
@@ -535,6 +546,9 @@ if(/v0_[67]/.test(versionedPath)){
  window.__finishForTest(true);
  assert.equal(el('result').dataset.outcome,'won','Victory artwork state should be set');
  assert.equal(el('result').dataset.mode,'adventure','Result art must reflect adventure mode');
+ assert.equal(el('resultTag').textContent,'임무 성공','Portrait banner must contain a short Korean outcome heading');
+ assert.equal(el('resultTitle').textContent,'모험 승리!','Victory title must fit inside the new painted text zone');
+ assert(el('resultText').textContent.split('\n').length>=3,'Outcome summary must use readable lines');
  assert.equal(state().savedBest[2],3,'A successful stage must save its best grade');
  assert.equal(state().savedWins,6,'Victory total must increase');
  assert.equal(el('adventureStage').value,'3','The menu must recommend the next stage');
