@@ -2180,7 +2180,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  overflow:hidden;text-overflow:ellipsis;
 }
 #shotReview.shot-review{
- width:min(470px,calc(100% - 46px))!important;
+ width:min(430px,calc(100% - 60px))!important;
  min-height:106px;
  background:transparent!important;
  isolation:isolate;
@@ -2188,7 +2188,8 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 #shotReview.shot-review::before{
  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
  background:transparent url("art/popup_impact_review_v31.webp") center/100% 100% no-repeat;
- opacity:.82;
+ /* The parchment is deliberately translucent; the live result text stays at 100%. */
+ opacity:.56;
 }
 #shotReview .review-copy{position:relative;z-index:1}
 #shotReview .review-continue{position:relative;z-index:1}
@@ -2205,7 +2206,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  #menu .select-trigger[data-select-target="adventureStage"]::before{width:18px;height:18px}
  #menu .select-trigger[data-select-target="duelDifficulty"]{padding:3px 8px!important}
  #shotReview.shot-review{
-  width:min(365px,calc(100% - 64px))!important;
+  width:min(345px,calc(100% - 80px))!important;
   min-height:94px;padding:20px 4% 11px 13%!important;
  }
  #shotReview .review-continue{width:clamp(70px,25%,88px);min-width:0;height:43px}
@@ -2213,7 +2214,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 @media(orientation:landscape) and (max-height:550px){
  #menu .custom-select-menu{padding-top:30px!important;padding-bottom:23px!important}
  #menu .hero-stage-info{grid-template-columns:34% minmax(0,1fr);row-gap:0;padding:2px 7px 2px 0!important}
- #shotReview.shot-review{width:min(420px,calc(100% - 46px))!important;min-height:72px}
+ #shotReview.shot-review{width:min(400px,calc(100% - 60px))!important;min-height:72px}
 }
 @media(prefers-reduced-motion:reduce){#shotReview.shot-review::before{transition:none}}
 

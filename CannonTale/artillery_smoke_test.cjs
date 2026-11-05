@@ -49,8 +49,8 @@ assert.equal(folioBytes.subarray(0,4).toString(),'RIFF','New selector image must
 assert.equal(folioBytes.subarray(8,12).toString(),'WEBP','Selector frame must preserve WebP format');
 assert(v34Style.includes('grid-template-columns:34% minmax(0,1fr)'),'Hero info labels must be placed to the right of the artwork gutter');
 assert(v34Style.includes('grid-column:2;justify-self:stretch'),'Hero title, weapon and ability descriptions must share the same safe label column');
-assert(v34Style.includes('background:transparent!important;')&&v34Style.includes('opacity:.82;'),'The narrower sky report must only fade its illustrated background, not its live text');
-assert(v34Style.includes('width:min(365px,calc(100% - 64px))!important;'),'Mobile impact report must be inset further from both edges');
+assert(v34Style.includes('background:transparent!important;')&&v34Style.includes('opacity:.56;'),'The illustrated sky report must be visibly translucent without fading its live text');
+assert(v34Style.includes('width:min(345px,calc(100% - 80px))!important;'),'Mobile impact report must be comfortably inset from both edges');
 assert(html.includes("const height=Math.min(choices.length*(id==='adventureStage'?53:44)+(id==='adventureStage'?78:72),320)"),'Custom selector height must reserve top and bottom artwork gutters');
 assert(/#battleWrap > #hint\.corner-hint\{[^}]*left:50%!important;[^}]*top:91%!important/.test(html),'The separate welcome hint must be centered inside the battlefield dirt rather than at the sky corner');
 for(const asset of ['popup_ground_notice_v31.webp','popup_impact_review_v31.webp','popup_exit_confirm_v31.webp','popup_parchment_modal_v31.webp','popup_action_button_v31.webp','hero_info_plaque_v31.webp','hero_portrait_frame_v31.webp']){
