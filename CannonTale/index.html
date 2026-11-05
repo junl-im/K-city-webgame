@@ -4096,9 +4096,10 @@ const materialCells={
   // Start at the player and widen with real charged-shot distance, not the
   // previous firepower. On narrow screens reserve space for both character and
   // moving reticle before resorting to a very small tracking pan.
-  const desiredRangeZoom=clamp((normalVisible*.83)/Math.max(170,shotDistance+55),w<=650?.30:.70,1);
+  const desiredRangeZoom=clamp((normalVisible*.80)/Math.max(170,shotDistance+55),w<=650?.28:.70,1);
   const targetZoom=charging?Math.min(1-(w<=650?.12:.11)*powerProgress,desiredRangeZoom):1;
-  game.chargeZoom+=((game.overview?1:targetZoom)-game.chargeZoom)*(charging?.20:.14);
+  // Respond promptly if a projected hit suddenly jumps past an obstacle.
+  game.chargeZoom+=((game.overview?1:targetZoom)-game.chargeZoom)*(charging?.32:.14);
   if(!charging&&Math.abs(1-game.chargeZoom)<.001)game.chargeZoom=1;
   game.scale=Math.max(.001,fit*(game.overview?1:game.chargeZoom));
   // Preserve the ground line near its normal vertical position while pulling back.
@@ -4115,14 +4116,20 @@ const materialCells={
   // The shooter is the camera's anchor. Only when the leading aiming dot would
   // leave the frame may the camera track it, without hiding the shooter.
   const chargeAnchor=origin().x-(game.chargeAnchorPx??w*.2)/game.scale;
-  const chargeLead=(game.chargeFocusX??origin().x)-w*.86/game.scale;
+  const chargeLead=(game.chargeFocusX??origin().x)-w*.82/game.scale;
   const playerVisibleLimit=origin().x-w*.06/game.scale;
   const chargeCamera=Math.min(Math.max(chargeAnchor,chargeLead),Math.max(chargeAnchor,playerVisibleLimit));
   const focus=active?active.x-visible*.43
     :charging?chargeCamera
     :game.panX!==null?game.panX
     :impactHold?impactCenter-visible*.51:defaultCam;
-  game.camera+=(clamp(focus,charging?-70:0,edge)-game.camera)*(charging?.18:.12);
+  game.camera+=(clamp(focus,charging?-70:0,edge)-game.camera)*(charging?.33:.12);
+  if(charging&&Number.isFinite(game.chargeFocusX)){
+   // Forecast collisions can move the glint several hundred world units in one
+   // frame. Keep its visible ring inside the screen while retaining the hero.
+   const minForGlint=game.chargeFocusX-w*.94/game.scale;
+   game.camera=clamp(Math.max(game.camera,Math.min(minForGlint,playerVisibleLimit)),-70,edge);
+  }
  }
  function drawChargeReadiness(){
   if(!game.chargeActive||game.phase!=='aim'||game.turn!=='player')return;
