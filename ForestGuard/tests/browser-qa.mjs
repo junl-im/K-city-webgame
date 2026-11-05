@@ -237,13 +237,23 @@ try{
         c.fillStyle='#78b76a';c.fillRect(12,12,37,37);
         c.fillStyle='#fa1010';c.fillRect(11,18,1,22); // chroma-key fringe attached to body
         c.fillStyle='#e8c283';c.fillRect(57,58,3,3); // disconnected atlas debris
+        c.fillStyle='rgba(184,209,166,.10)';c.fillRect(54,6,6,4); // faint stray pixels outside silhouette
         const report=window.ForestGuardVisuals.cleanEnemyFrame(c,64,64);
         const alpha=(x,y)=>c.getImageData(x,y,1,1).data[3];
-        return {report,body:alpha(30,30),fringe:alpha(11,22),island:alpha(58,59)};
+        return {report,body:alpha(30,30),fringe:alpha(11,22),island:alpha(58,59),ghost:alpha(56,8)};
       });
-      assert.ok(cleanup.body===255&&cleanup.fringe===0&&cleanup.island===0&&
-        cleanup.report.fringe>=20&&cleanup.report.islands>=9,
+      assert.ok(cleanup.body===255&&cleanup.fringe===0&&cleanup.island===0&&cleanup.ghost===0&&
+        cleanup.report.fringe>=20&&cleanup.report.islands>=9&&cleanup.report.wisps>=20,
       'Monster matte cleanup must keep the body and remove moving chroma fragments: '+JSON.stringify(cleanup));
+      const broadHalo=await page.evaluate(()=>{
+        const canvas=document.createElement('canvas');canvas.width=64;canvas.height=64;
+        const c=canvas.getContext('2d',{willReadFrequently:true});
+        c.fillStyle='#78b76a';c.fillRect(12,12,37,37);
+        c.fillStyle='rgba(190,226,153,.1)';c.fillRect(43,2,20,9);
+        const report=window.ForestGuardVisuals.cleanEnemyFrame(c,64,64);
+        return {report,haloAlpha:c.getImageData(59,5,1,1).data[3]};
+      });
+      assert.ok(broadHalo.haloAlpha>0,'Larger intentional spell glow must survive matte cleanup: '+JSON.stringify(broadHalo));
     }
     const battle=await page.evaluate(()=>{
       const arena=document.querySelector('.arena-wrap').getBoundingClientRect();
@@ -277,6 +287,9 @@ try{
       'HUD button frames must come only from painted art: '+JSON.stringify(battleButtonArt));
     assert.ok(battleButtonArt.find(x=>x.sel==='#view-btn').image.includes('btn-sapphire-v33.webp'));
     assert.ok(battleButtonArt.find(x=>x.sel==='#speed-btn').image.includes('btn-emerald-v33.webp'));
+    const hudLabelFont=await page.locator('.battle-toolbar .hero-slot').first().evaluate(slot=>
+      parseFloat(getComputedStyle(slot.querySelector('span:last-child')).fontSize));
+    assert.ok(hudLabelFont>=9,'Painted hero slot labels should remain readable on narrow mobile: '+hudLabelFont);
     assert.equal(battle.svgCount,0,'No SVG in live battle');
     assert.equal(battle.backdrop,'none','Phaser battlefield must not have duplicate wallpaper');
     assert.ok(battle.scrollX<=2&&battle.scrollY<=2,'Battle page must fit a viewport: '+JSON.stringify(battle));
@@ -335,6 +348,9 @@ try{
         eliteHurt6:true,paintedMonsterHurt:true,paintedMonsterKinds:10,
         ordinaryDeath5:true,eliteDeath6:true,deathDuration:510,heroDuration:520},
         'All painted rear attacks and 5/6-frame monster hit reactions must load at runtime');
+      const shroomPainting=await page.evaluate(()=>window.__ForestGuardQA.shroomAttackPaintingQA());
+      assert.deepEqual(shroomPainting,{loaded:true,returnPoses:true,fullMotion:true,transparentCorners:true},
+        'Mushroom elite must have six continuous transparent painted attack frames');
       const gesture=await page.evaluate(()=>window.__ForestGuardQA.attackGestureQA());
       assert.ok(gesture&&gesture.state==='attack'&&gesture.animation&&
         gesture.scaleRatio>1.005&&gesture.scaleRatio<1.07&&gesture.preservedAspect&&
@@ -605,7 +621,7 @@ try{
     assert.ok(resultHeading<=3,'Victory scene chapter cue must align with title and stars');
     const starTrim=await page.locator('.result-star.earned').evaluateAll(nodes=>
       nodes.map(node=>getComputedStyle(node).clipPath));
-    assert.ok(starTrim.every(value=>value.includes('10.5%')),
+    assert.ok(starTrim.every(value=>value.includes('21.5%')),
       'Packed star atlas must trim the stray red flame fragments under every reward star: '+starTrim.join(', '));
     assert.equal(await page.locator('.result-stat').count(),3,'Show real currency, HP and squad metrics');
     assert.equal(await page.locator('#modal-actions button').count(),2,'Next stage and map actions');

@@ -95,10 +95,10 @@
       element.style.backgroundPosition='center';
     }
     element.style.backgroundRepeat='no-repeat';
-    // The painted star shares a packed atlas row with the flame illustration.
-    // Its last 10% contains red flame fragments from the next cell; trim only
-    // that unused transparent tail, keeping the complete gold star intact.
-    if(name==='star')element.style.clipPath='inset(0 0 10.5% 0)';
+    // The star tile has overlapping flame scraps in the bottom ~20% of its
+    // packed cell, not just the outer 10%. The gold ornament ends above this
+    // seam; clip the unused tail so no red fragments hang below victory stars.
+    if(name==='star')element.style.clipPath='inset(0 0 21.5% 0)';
     // Keep live icon tile offsets even when illustrated panel CSS uses !important.
     element.style.setProperty('--rani-icon-image',element.style.backgroundImage);
     element.style.setProperty('--rani-icon-size',element.style.backgroundSize);
@@ -497,7 +497,7 @@
     const largest=Math.max(0,...groups.map(group=>group.length));
     if(!largest)return {islands:0,fringe:0};
     const minArea=Math.max(9,Math.min(115,Math.round(largest*.017)));
-    let islands=0,fringe=0;
+    let islands=0,fringe=0,wisps=0;
     const keep=new Uint8Array(total);
     for(const group of groups){
       if(group.length<minArea){
@@ -518,8 +518,42 @@
         (y>0&&!visible[p-w])||(y<h-1&&!visible[p+w]);
       if(exposed){rgba[k+3]=0;fringe++;}
     }
-    if(islands||fringe)ctx.putImageData(image,0,0);
-    return {islands,fringe};
+    // Light, disconnected matte dust is below the solid silhouette threshold
+    // and used to survive the component pass. Preserve the feathered edge of
+    // the character and intentional *large* spell halos, while removing only
+    // small faint islands far from any retained painted silhouette.
+    const faint=new Uint8Array(total),seenFaint=new Uint8Array(total);
+    for(let p=0;p<total;p++){
+      const a=rgba[p*4+3];if(a===0||a>=42)continue;
+      const x=p%w,y=(p/w)|0;
+      let nearBody=false;
+      for(let dy=-2;dy<=2&&!nearBody;dy++)for(let dx=-2;dx<=2;dx++){
+        const nx=x+dx,ny=y+dy;
+        if(nx>=0&&nx<w&&ny>=0&&ny<h&&keep[ny*w+nx]){nearBody=true;break;}
+      }
+      if(!nearBody)faint[p]=1;
+    }
+    const faintLimit=Math.max(20,Math.min(100,Math.round(largest*.04)));
+    for(let p=0;p<total;p++){
+      if(!faint[p]||seenFaint[p])continue;
+      let head=0,tail=1;queue[0]=p;seenFaint[p]=1;
+      while(head<tail){
+        const at=queue[head++],x=at%w,y=(at/w)|0;
+        for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+          if(!dx&&!dy)continue;
+          const nx=x+dx,ny=y+dy;
+          if(nx<0||nx>=w||ny<0||ny>=h)continue;
+          const n=ny*w+nx;
+          if(faint[n]&&!seenFaint[n]){seenFaint[n]=1;queue[tail++]=n;}
+        }
+      }
+      if(tail<faintLimit){
+        wisps+=tail;
+        for(let j=0;j<tail;j++)rgba[queue[j]*4+3]=0;
+      }
+    }
+    if(islands||fringe||wisps)ctx.putImageData(image,0,0);
+    return {islands,fringe,wisps};
   }
   function animate(sprite,id,defaultState,now){
     if(!sprite||!sprite.active)return;
