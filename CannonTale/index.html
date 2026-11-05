@@ -2090,6 +2090,133 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 }
 @media(prefers-reduced-motion:reduce){#shotReview.shot-review{animation:none}}
 
+/* v3.4: Real bitmap selector folio, measured label safe-zones, and lighter sky notice.
+   Keep native DOM text/buttons interactive; nothing here draws SVG or duplicate art labels. */
+#menu .custom-select-menu{
+ min-width:0;max-width:calc(100% - 16px);
+ padding:34px clamp(19px,6.5%,31px) 29px!important;
+ gap:1px;box-sizing:border-box;
+ border:0!important;border-radius:0!important;box-shadow:0 8px 16px #0b1e2e55!important;
+ background:transparent url("art/popup_select_folio_v34.webp") center/100% 100% no-repeat!important;
+ overscroll-behavior:contain;
+ scrollbar-width:thin;scrollbar-color:#a27443 transparent;
+}
+#menu .custom-select-option.stage-option{
+ width:100%;min-height:53px;flex:0 0 auto;
+ display:flex;align-items:center;gap:7px;padding:4px 5px!important;
+ border:0!important;border-radius:9px;box-shadow:none;
+ color:#59381f;font-size:clamp(10px,1.55vw,14px);
+}
+#menu .custom-select-option.stage-option .choice-medal{
+ flex:0 0 clamp(29px,7.5vw,35px);width:clamp(29px,7.5vw,35px);
+ height:clamp(29px,7.5vw,35px);
+}
+#menu .custom-select-option .choice-caption{flex:1 1 0;min-width:0;gap:3px}
+#menu .custom-select-option .choice-caption strong{
+ display:block;max-width:100%;font-size:clamp(11px,1.55vw,13px);
+ line-height:1.15;letter-spacing:-.055em;white-space:nowrap;
+ overflow:hidden;text-overflow:ellipsis;
+}
+#menu .custom-select-option .choice-caption small{
+ display:block;max-width:100%;font-size:clamp(9px,1.1vw,11px);
+ line-height:1.2;letter-spacing:-.04em;white-space:nowrap;
+ overflow:hidden;text-overflow:ellipsis;
+}
+#menu .custom-select-option[aria-selected="true"]{
+ background:linear-gradient(90deg,#cca26017,#b57d3952 45%,#cca26017)!important;
+}
+#menu .hero-stage-info{
+ display:grid!important;
+ grid-template-columns:34% minmax(0,1fr);
+ grid-template-rows:repeat(3,min-content);
+ align-content:center;justify-content:stretch;
+ row-gap:2px;
+ padding:3px clamp(6px,1.1vw,11px) 3px 0!important;
+ box-sizing:border-box;
+}
+#menu .hero-stage-info>strong,
+#menu .hero-stage-info>small{
+ grid-column:2;justify-self:stretch;min-width:0;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ text-align:left;word-break:keep-all;
+}
+#menu .hero-stage-info>strong{font-size:clamp(11px,2.8vw,16px)!important;line-height:1.16!important}
+#menu .hero-stage-info>small{font-size:clamp(9px,2.15vw,11px)!important;line-height:1.2!important}
+#menu .hero-stage-info>.hero-skill-preview{
+ font-size:clamp(9px,2.12vw,11px)!important;line-height:1.2!important;
+}
+#menu .hero-stage-info::before{
+ left:clamp(4px,.8vw,9px)!important;
+ width:clamp(24px,6vw,38px)!important;height:clamp(24px,6vw,38px)!important;
+}
+#menu .select-trigger{
+ position:relative;min-width:0;overflow:hidden;
+ font-size:clamp(10px,1.28dvh,12px)!important;
+ letter-spacing:-.065em;line-height:1.16;
+}
+#menu .select-trigger[data-select-target="adventureStage"]{
+ display:grid;grid-template-columns:clamp(18px,2.7vw,25px) minmax(0,1fr) 11px;
+ align-items:center;justify-content:stretch;column-gap:3px;
+ padding:3px clamp(8px,1.15vw,13px)!important;
+}
+#menu .select-trigger[data-select-target="adventureStage"]::before{
+ width:clamp(18px,2.7vw,25px);height:clamp(18px,2.7vw,25px);
+}
+#menu .select-trigger[data-select-target="duelDifficulty"]{
+ display:grid;grid-template-columns:minmax(0,1fr) 12px;
+ column-gap:1px;align-items:center;justify-content:stretch;
+ padding:3px clamp(8px,1.15vw,13px)!important;
+}
+#menu .select-trigger .select-current{
+ display:block;min-width:0;width:100%;max-width:100%;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ line-height:1.18;text-align:center;
+}
+#menu .select-trigger>span:last-child{justify-self:center;line-height:1;font-size:clamp(10px,1.7vw,13px)}
+#menu .hero-choice .hero-text{min-width:0;max-width:50%;align-items:flex-start}
+#menu .hero-choice .hero-text strong{
+ display:block;max-width:100%;font-size:clamp(9px,1.4dvh,13px)!important;
+ line-height:1.15;letter-spacing:-.045em;white-space:nowrap;
+ overflow:hidden;text-overflow:ellipsis;
+}
+#shotReview.shot-review{
+ width:min(470px,calc(100% - 46px))!important;
+ min-height:106px;
+ background:transparent!important;
+ isolation:isolate;
+}
+#shotReview.shot-review::before{
+ content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+ background:transparent url("art/popup_impact_review_v31.webp") center/100% 100% no-repeat;
+ opacity:.82;
+}
+#shotReview .review-copy{position:relative;z-index:1}
+#shotReview .review-continue{position:relative;z-index:1}
+@media(orientation:portrait) and (max-width:600px){
+ #menu .custom-select-menu{padding:33px 19px 27px!important}
+ #menu .custom-select-option.stage-option{min-height:52px;padding:3px 4px!important;gap:6px}
+ #menu .custom-select-option .choice-caption strong{font-size:clamp(11px,3vw,13px)}
+ #menu .custom-select-option .choice-caption small{font-size:clamp(9px,2.4vw,11px)}
+ #menu .hero-stage-info{grid-template-columns:35% minmax(0,1fr);padding:2px 7px 2px 0!important;row-gap:1px}
+ #menu .hero-stage-info>strong{font-size:clamp(10px,2.9vw,13px)!important}
+ #menu .hero-stage-info>small,#menu .hero-stage-info>.hero-skill-preview{font-size:clamp(8px,2.2vw,10px)!important}
+ #menu .select-trigger{font-size:clamp(9px,2.5vw,11px)!important}
+ #menu .select-trigger[data-select-target="adventureStage"]{grid-template-columns:18px minmax(0,1fr) 10px;padding:3px 6px!important;gap:1px}
+ #menu .select-trigger[data-select-target="adventureStage"]::before{width:18px;height:18px}
+ #menu .select-trigger[data-select-target="duelDifficulty"]{padding:3px 8px!important}
+ #shotReview.shot-review{
+  width:min(365px,calc(100% - 64px))!important;
+  min-height:94px;padding:20px 4% 11px 13%!important;
+ }
+ #shotReview .review-continue{width:clamp(70px,25%,88px);min-width:0;height:43px}
+}
+@media(orientation:landscape) and (max-height:550px){
+ #menu .custom-select-menu{padding-top:30px!important;padding-bottom:23px!important}
+ #menu .hero-stage-info{grid-template-columns:34% minmax(0,1fr);row-gap:0;padding:2px 7px 2px 0!important}
+ #shotReview.shot-review{width:min(420px,calc(100% - 46px))!important;min-height:72px}
+}
+@media(prefers-reduced-motion:reduce){#shotReview.shot-review::before{transition:none}}
+
 </style>
 </head>
 <body>
@@ -2338,8 +2465,10 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   popup.setAttribute('aria-label',id==='adventureStage'?'모험 지역 선택':'결투 난이도 선택');
   layer.hidden=false;activeIllustratedSelect=id;trigger.setAttribute('aria-expanded','true');
   const bounds=$('menu').getBoundingClientRect(),rect=trigger.getBoundingClientRect();
-  const width=Math.min(Math.max(185,rect.width+50),Math.max(110,bounds.width-20));
-  const height=Math.min(choices.length*(id==='adventureStage'?47:39)+22,230);
+  // v3.4: The illustrated portrait folio needs a clear parchment gutter above and
+  // below the option rows. Size the popover to its artwork, not just its text.
+  const width=Math.min(Math.max(id==='adventureStage'?260:205,rect.width+50),Math.max(160,bounds.width-20));
+  const height=Math.min(choices.length*(id==='adventureStage'?53:44)+(id==='adventureStage'?78:72),320);
   const below=bounds.bottom-rect.bottom-8,above=rect.top-bounds.top-8;
   const upward=below<height&&above>below;
   const maxHeight=Math.max(66,Math.min(height,upward?above:below));
