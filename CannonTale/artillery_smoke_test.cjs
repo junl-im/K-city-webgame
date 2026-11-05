@@ -91,7 +91,17 @@ assert(html.includes('function fitPaintedLabel(node,minSize=9)')&&html.includes(
 assert(html.includes('drawHeroBadges();drawHeroPreview();fitPaintedMenuLabels();'),'Changing heroes must recalculate label size');
 assert(html.includes('  fitPaintedMenuLabels();\n }\n let activeIllustratedSelect'),'Changing stage/difficulty selection must recalculate label size');
 assert(html.includes("const height=Math.min(choices.length*(id==='adventureStage'?53:44)+(id==='adventureStage'?78:72),320)"),'Custom selector height must reserve top and bottom artwork gutters');
-assert(/#battleWrap > #hint\.corner-hint\{[^}]*left:50%!important;[^}]*top:91%!important/.test(html),'The separate welcome hint must be centered inside the battlefield dirt rather than at the sky corner');
+const v39Style=html.slice(html.lastIndexOf('/* v3.9: The entry notification'),html.indexOf('</style>'));
+assert(v39Style.startsWith('/* v3.9: The entry notification'),'The latest notification rules must take precedence over legacy ground positioning');
+assert(v39Style.includes('top:clamp(16px,5.5%,44px)!important;bottom:auto!important;'),'Battle entry notification should sit near the top of the battlefield');
+assert(v39Style.includes('width:min(440px,calc(100% - 64px))!important;'),'Desktop entry notification must have narrow, symmetric gutters');
+assert(v39Style.includes('opacity:.55;')&&v39Style.includes('opacity:.48'),'Both painted notification backdrops must be translucent without fading readable captions');
+assert(v39Style.includes('isolation:isolate')&&v39Style.includes('.corner-hint::before'),'Notification bitmap opacity must be independent from its readable Korean text');
+assert(v39Style.includes('top:clamp(9px,2.5%,22px)!important;'),'Portrait impact report must sit close to the top rather than the trajectory');
+assert(v39Style.includes('width:min(328px,calc(100% - 36px))!important;'),'Portrait notification cards must stay narrow but retain enough text width');
+assert(v39Style.includes('white-space:normal!important;text-overflow:clip!important;'),'Result action labels should wrap instead of being clipped');
+assert(v39Style.includes('-webkit-line-clamp:2;')&&v39Style.includes('.stage-option'),'Long stage names must fit into the selector artwork on two lines');
+assert(!/<svg|image\/svg\+xml/.test(v39Style),'Latest notification layout must stay SVG-free');
 for(const asset of ['popup_ground_notice_v31.webp','popup_impact_review_v31.webp','popup_exit_confirm_v31.webp','popup_parchment_modal_v31.webp','popup_action_button_v31.webp','hero_info_plaque_v31.webp','hero_portrait_frame_v31.webp']){
  assert(html.includes('art/'+asset),`Real illustrated popup and hero UI must use ${asset}`);
  const bytes=fs.readFileSync(`${__dirname}/art/${asset}`);
