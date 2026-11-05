@@ -20,6 +20,17 @@
 #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .modal-top .close-button{
   grid-column:3;grid-row:1;justify-self:end!important;
 }
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .modal-top .close-button{
+  /* The 4x4 atlas back-arrow matches all other illustrated forest controls. */
+  width:38px!important;height:38px!important;min-height:38px!important;
+  border:0!important;border-radius:0!important;
+  background:url('./art/rani-ui-icons-v04.webp') 66.6667% 0%/400% 400% no-repeat!important;
+  box-shadow:none!important;filter:drop-shadow(0 2px 3px rgba(3,18,12,.45))!important;
+  font-size:0!important;color:transparent!important;text-shadow:none!important;
+}
+#modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .modal-top .close-button:focus-visible{
+  outline:2px solid #ffe2a1!important;outline-offset:2px!important;
+}
 #modal-layer #modal-box:is(.recruit-dialog,.growth-dialog) .spell-card{
   position:relative!important;
   background:url('./art/forest-choice-card-v50.webp') center/100% 100% no-repeat!important;
