@@ -218,6 +218,21 @@ jobs:
           test -s MagicGarden/dist/CannonTale/Artillery_Forest_Enemy_Atlas_v1_0.webp
           test -s MagicGarden/dist/CannonTale/Artillery_Illustrated_UI_v1_1.png
           test -s MagicGarden/dist/CannonTale/Artillery_Combat_Poses_v1_2.png
+          # v2.0 illustration artwork is referenced by relative URLs from CannonTale/index.html.
+          # Every binary asset must ship alongside the HTML, not only remain in GitHub source.
+          mkdir -p MagicGarden/dist/CannonTale/art
+          cp -a CannonTale/art/. MagicGarden/dist/CannonTale/art/
+          for artwork in \
+            home_pc_v2.webp home_mobile_v2.webp \
+            title_logo.png mode_adventure.png mode_duel.png hero_chooser.png stage_chooser.png \
+            hud_fire_ready.webp hud_fire_charge.webp hud_fire_pressed.webp hud_fire_disabled.webp \
+            hud_ability_ready.webp hud_ability_used.webp hud_view_ready.webp \
+            hud_weapon_normal.webp hud_weapon_bomb.webp hud_weapon_split.webp; do
+            test -s "CannonTale/art/$artwork"
+            test -s "MagicGarden/dist/CannonTale/art/$artwork"
+          done
+          grep -q 'art/home_mobile_v2.webp' MagicGarden/dist/CannonTale/index.html
+          grep -q 'art/hud_fire_ready.webp' MagicGarden/dist/CannonTale/index.html
           echo "Independent CannonTale staged at /CannonTale/"
 
       - name: Upload short-lived Pages deployment artifact
