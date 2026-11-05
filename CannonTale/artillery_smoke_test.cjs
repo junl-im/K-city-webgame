@@ -22,8 +22,17 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__groundToastForTest=()=>groundToastLayout(); window.__materialSoundForTest=()=>({wood:soundShapes.wood,stone:soundShapes.stone,iron:soundShapes.iron}); window.__triggerMaterialSoundForTest=(name)=>{const saved=game.sound;game.sound=true;playSound(name);game.sound=saved;}; window.__directionalImpactForTest=(offset)=>{const b=game.blocks.find(v=>v.type==="stone");if(!b)return null;const originalHp=b.hp;b.hp=b.maxHp*.42;markBlockImpact(b,0,34,b.body.position.x+offset);const result={side:b.impactSide,scar:b.hp<b.maxHp};b.hp=originalHp;return result;}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__fracturePartsForTest=(type,weapon="normal")=>{const b={w:28,h:104,type,impactSide:1,body:M.Bodies.rectangle(810,290,28,104)};spawnCollapseGhost(b,weapon);return {count:collapsePieces[type].length,total:game.collapseGhosts.at(-1).total};}; window.__weaponMaterialForTest=(type,weapon)=>materialWeaponFactor(type,weapon); window.__chainCollisionForTest=()=>{newGame("adventure",0);game.shots=1;const [a,b]=game.blocks;M.Body.setVelocity(a.body,{x:9,y:0});M.Body.setVelocity(b.body,{x:-9,y:0});const before=[a.hp,b.hp],initial=game.chainHits;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});const after=[a.hp,b.hp];M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});return {before,after,cooled:[a.hp,b.hp],count:game.chainHits-initial};}; window.__crushCollisionForTest=()=>{newGame("adventure",0);game.shots=1;const block=game.blocks[0],foe=game.foes[0];M.Body.setPosition(block.body,{x:foe.x,y:foe.y-64});M.Body.setVelocity(block.body,{x:0,y:10});const before=foe.hp;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:block.body,bodyB:foe.body}]});return {before,after:foe.hp,crushHits:game.crushHits,defeated:!foe.alive};}; window.__cleanupBrokenBlocksForTest=()=>{newGame("adventure",0);game.shots=1;const [a,b]=game.blocks;a.hp=1;M.Body.setVelocity(a.body,{x:9,y:0});M.Body.setVelocity(b.body,{x:-9,y:0});const before=game.blocks.length;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});const marked=a.dead;step(1/60);return {before,after:game.blocks.length,marked,ghosts:game.collapseGhosts.length};}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__foeHitReactionForTest=(damage,sourceOffset)=>{const f=game.foes.find(x=>x.alive),oldRings=game.rings.length;foeHitReaction(f,damage,f.x+sourceOffset);return {direction:f.hitDirection,strength:f.hitStrength,anim:f.hitAnim,rings:game.rings.length-oldRings};}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
+assert(html.includes('id="resultMedals"')&&html.includes('data-stars="1"'),'Adventure results must have three illustrated grade slots');
+{
+ const asset='victory_star_medal_v37.webp',bytes=fs.readFileSync(`${__dirname}/art/${asset}`);
+ assert(html.includes(`art/${asset}`),'Victory grade must reference the illustrated star asset');
+ assert.equal(bytes.subarray(0,4).toString(),'RIFF','Grade medal must be a real WebP, not a vector stand-in');
+ assert.equal(bytes.subarray(8,12).toString(),'WEBP','Grade medal must have a WebP signature');
+}
 assert(html.includes('Artillery_Illustrated_UI_v1_1.png'),'The painted v1.1 UI atlas should be referenced');
 assert(html.includes('Artillery_Combat_Poses_v1_2.png'),'The transparent combat pose atlas should be referenced');
 assert(html.includes('first-screen viewport-fit redesign'),'Entry menu must have viewport fit rules');
@@ -490,6 +499,10 @@ if(/v0_[67]/.test(versionedPath)){
  el('adventureBtn').click();frames(3);
  assert.equal(window.__damageBlockForTest(26),1,'Timber must reach painted cracked tier');
  assert.equal(window.__damageBlockForTest(27),2,'Timber must reach painted fractured tier');
+ const leftHit=window.__foeHitReactionForTest(20,-100),rightHit=window.__foeHitReactionForTest(80,100);
+ assert.equal(leftHit.direction,1,'Leftward shot must push the enemy toward the right');
+ assert.equal(rightHit.direction,-1,'Rightward hit must push the enemy toward the left');
+ assert(rightHit.strength>leftHit.strength&&leftHit.rings>0,'Stronger hit must intensify the recoil and paint a hit ring');
  window.__hitFoeForTest(10);
  assert.equal(state().foePoses[0],'hurt','Impact must interrupt attack and show hurt artwork');
  window.__hitFoeForTest(500);
@@ -554,6 +567,8 @@ if(/v0_[67]/.test(versionedPath)){
  assert.equal(el('resultTag').textContent,'임무 성공','Portrait banner must contain a short Korean outcome heading');
  assert.equal(el('resultTitle').textContent,'모험 승리!','Victory title must fit inside the new painted text zone');
  assert(el('resultText').textContent.split('\n').length>=3,'Outcome summary must use readable lines');
+ assert.equal(el('resultMedals').hidden,false,'Adventure win must show the painted three-slot medal row');
+ assert.equal(el('resultMedals').dataset.stars,'3','A two-shot completion must illuminate all three medals');
  assert.equal(state().savedBest[2],3,'A successful stage must save its best grade');
  assert.equal(state().savedWins,6,'Victory total must increase');
  assert.equal(el('adventureStage').value,'3','The menu must recommend the next stage');

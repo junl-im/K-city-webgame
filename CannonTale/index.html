@@ -2285,6 +2285,25 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  font-weight:750!important;line-height:1.52!important;letter-spacing:-.035em!important;
  word-break:keep-all;overflow-wrap:anywhere;color:#604126!important;
 }
+/* v3.7: Authored bitmap grade medals sit between the heading and the summary. */
+#result .result-medals{
+ position:absolute;top:33.2%;left:22%;width:56%;height:10.2%;
+ display:flex;align-items:center;justify-content:center;gap:clamp(4px,1.3vw,12px);
+ margin:0;padding:0;pointer-events:none;
+}
+#result .result-medals[hidden]{display:none!important}
+#result .result-medals span{
+ display:block;height:100%;aspect-ratio:1;
+ background:transparent url("art/victory_star_medal_v37.webp") center/contain no-repeat;
+ filter:drop-shadow(0 2px 2px #56371a4d);
+}
+#result .result-medals[data-stars="1"] span:nth-child(n+2),
+#result .result-medals[data-stars="2"] span:nth-child(3){
+ filter:grayscale(1) brightness(.75);opacity:.38;
+}
+#result[data-outcome="won"][data-mode="adventure"] #resultText{
+ top:44.5%;height:19.5%;
+}
 #result .panel-actions{
  position:absolute!important;left:13%;right:13%;bottom:10.2%;height:22%;
  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));
@@ -2329,6 +2348,8 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  #result #resultTag{top:6%;height:10%}
  #result #resultTitle{top:22%;height:12%;font-size:clamp(16px,3vw,24px)!important}
  #result #resultText{top:36%;height:25%;font-size:clamp(10px,1.5vw,12px)!important;line-height:1.35!important}
+ #result .result-medals{top:33.5%;height:11.5%}
+ #result[data-outcome="won"][data-mode="adventure"] #resultText{top:45%;height:18%}
  #result .panel-actions{bottom:9%;height:25%;gap:3px 8px!important}
  #result .panel-actions .paper-btn{font-size:clamp(9px,1.5vw,12px)!important}
 }
@@ -2442,7 +2463,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
     </section>
   </div>
   <div id="result" class="overlay" hidden>
-   <section class="panel result-panel"><span id="resultTag" class="result-visual">전투 종료</span><h1 id="resultTitle">결과</h1><p id="resultText"></p><div class="panel-actions"><button id="againBtn" class="paper-btn" type="button">다시 도전</button><button id="nextBtn" class="paper-btn light" type="button">다음 스테이지</button><button id="inspectResultBtn" class="paper-btn light" type="button">파괴 현장 보기</button><button id="resultHomeBtn" class="paper-btn light" type="button">모드 선택</button></div></section>
+   <section class="panel result-panel"><span id="resultTag" class="result-visual">전투 종료</span><h1 id="resultTitle">결과</h1><div id="resultMedals" class="result-medals" role="img" aria-label="획득 등급" hidden><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></div><p id="resultText"></p><div class="panel-actions"><button id="againBtn" class="paper-btn" type="button">다시 도전</button><button id="nextBtn" class="paper-btn light" type="button">다음 스테이지</button><button id="inspectResultBtn" class="paper-btn light" type="button">파괴 현장 보기</button><button id="resultHomeBtn" class="paper-btn light" type="button">모드 선택</button></div></section>
   </div>
   <div id="exitConfirm" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="exitTitle">
    <section class="panel exit-panel"><span class="eyebrow">ONE MORE ADVENTURE?</span><h2 id="exitTitle">모험을 마칠까요?</h2><p>여정은 이곳에 남아 있어요. 다음에 돌아오면 이어서 도전할 수 있어요.</p><div class="panel-actions"><button id="exitStayBtn" class="paper-btn" type="button">계속 놀기</button><button id="exitLeaveBtn" class="paper-btn light" type="button">나가기</button></div></section>
@@ -2654,6 +2675,17 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function actorMotion(owner,kind,time){game.actorAnim[owner]={kind,life:time,total:time};}
  function skillEffect(kind,x,y,time=.8){game.skillEffects.push({kind,x,y,life:time,total:time,seed:rnd(0,Math.PI*2)});game.skillEffects=game.skillEffects.slice(-25);}
+ function foeHitReaction(foe,damage,fromX){
+  if(!foe.alive)return;
+  foe.hitDirection=foe.x>=fromX?1:-1;
+  foe.hitStrength=clamp(damage/(foe.boss?125:70),.38,1.35);
+  foe.hitFlash=foe.boss?.46:.39;foe.hitAnim=.72;foe.attackAnim=0;
+  const tint=['#c5e97a','#e9cfad','#a1eaff','#ffb16a'][foe.kind||0];
+  spawnSparks(foe.x,foe.y-foe.r*.4,foe.boss?16:7,tint,foe.boss?.78:.48);
+  game.rings.push({x:foe.x,y:foe.y-foe.r*.3,r:4,max:foe.r*(foe.boss?2:1.5),life:.3,total:.3,color:tint});
+  game.rings=game.rings.slice(-40);
+  if(foe.boss){game.shake=Math.max(game.shake,12);game.hitStop=Math.max(game.hitStop,.053);}
+ }
  const stageSet=[
   {name:'잔디 언덕의 초소',shots:3,foes:[{x:810},{x:904}],blocks:[{x:765,w:22,h:105,type:'wood'},{x:863,w:22,h:105,type:'wood'},{x:750,w:152,h:22,type:'wood'},{x:814,w:24,h:74,type:'stone'}]},
   {name:'돌담 너머의 숲',shots:4,foes:[{x:765},{x:896},{x:1005}],blocks:[{x:719,w:27,h:117,type:'stone'},{x:833,w:27,h:117,type:'stone'},{x:710,w:167,h:20,type:'wood'},{x:948,w:27,h:98,type:'wood'},{x:1029,w:27,h:98,type:'wood'},{x:936,w:135,h:18,type:'wood'}]},
@@ -2693,7 +2725,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    const overhead=block.body.position.y<foe.body.position.y-foe.r*.2&&block.body.velocity.y>foe.body.velocity.y+1.3;
    if(relative>2.8||overhead&&relative>1.8){
     const damage=Math.round(clamp(relative*(overhead?10:7),10,overhead?100:70));
-    foe.hp-=damage;foe.hitCooldown=.45;foe.hitFlash=.35;foe.hitAnim=.64;foe.attackAnim=0;
+    foe.hp-=damage;foe.hitCooldown=.45;foeHitReaction(foe,damage,block.body.position.x);
     if(overhead){game.crushHits++;spawnCombatPopup(foe,`압착 -${damage}`,'impact',foe.r+35);}
     else spawnCombatPopup(foe,`충돌 -${damage}`,'impact',foe.r+35);
     spawnSparks(foe.x,foe.y,overhead?17:10,overhead?'#f2d39c':'#d7b7f4',overhead?1:.7);
@@ -2796,7 +2828,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   // Lay horizontal beams on uprights rather than intersecting them.
   for(const b of game.blocks){if(b.w>80){const supports=game.blocks.filter(s=>s!==b&&s.w<40&&Math.abs((s.x+s.w/2)-(b.x+b.w/2))<110);if(supports.length) b.y=Math.min(...supports.map(s=>s.y))-b.h+3;}}
   for(const b of game.blocks){const body=M.Bodies.rectangle(b.x+b.w/2,b.y+b.h/2,b.w,b.h,{density:b.type==='iron'?.0028:b.type==='stone'?.0019:.0009,friction:.67,frictionStatic:.95,restitution:.03,chamfer:{radius:1.5},sleepThreshold:65,label:b.type});body.plugin.block=b;b.body=body;M.Composite.add(game.engine.world,body);}
-  game.foes=def.foes.map((f,i)=>{const x=f.x,r=f.r||21;return{x,y:terrainY(x)-r-3,r,hp:f.hp||55,maxHp:f.hp||55,boss:!!f.boss,kind:f.boss?3:stage===2?2:stage===1||stage===3?1:0,alive:true,wobble:rnd(0,6),hitCooldown:0,hitFlash:0,hitAnim:0,attackAnim:0,attackCooldown:rnd(1.7,3.1),attackCount:0,deathTimer:0,deathAngle:0,spawnTime:0};});
+  game.foes=def.foes.map((f,i)=>{const x=f.x,r=f.r||21;return{x,y:terrainY(x)-r-3,r,hp:f.hp||55,maxHp:f.hp||55,boss:!!f.boss,kind:f.boss?3:stage===2?2:stage===1||stage===3?1:0,alive:true,wobble:rnd(0,6),hitCooldown:0,hitFlash:0,hitAnim:0,hitDirection:1,hitStrength:0,attackAnim:0,attackCooldown:rnd(1.7,3.1),attackCount:0,deathTimer:0,deathAngle:0,spawnTime:0};});
   for(const f of game.foes){const body=M.Bodies.circle(f.x,f.y,f.r,{friction:.82,frictionStatic:1,restitution:.07,density:.0011,sleepThreshold:55,label:'foe'});body.plugin.foe=f;f.body=body;M.Composite.add(game.engine.world,body);}
  }
  function newGame(mode,stage=0){
@@ -2882,9 +2914,13 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   $('result').dataset.mode=game.mode;$('result').hidden=false;
   $('resultTag').textContent=won?'임무 성공':'재도전 안내';
   $('resultTitle').textContent=won?(game.mode==='adventure'?'모험 승리!':'결투 승리!'):'아쉬운 패배';
+  const displayMedals=won&&game.mode==='adventure';
+  $('resultMedals').hidden=!displayMedals;
+  $('resultMedals').dataset.stars=String(star);
+  $('resultMedals').ariaLabel=`이번 공략 ${star}등급, 3등급 만점`;
   const grade=star===3?'완벽한 공략':star===2?'우수한 공략':'임무 완수';
   const lines=game.mode==='adventure'
-   ?(won?[stageSet[game.stage].name,grade+' · '+game.shots+'발 사용','이번 등급 '+star+'/3 · 최고 '+progress.best[game.stage]+'/3',game.stage===stageSet.length-1?'모든 지역을 공략했어요!':'다음 지역도 도전해 보세요!']
+   ?(won?[stageSet[game.stage].name,grade+' · '+game.shots+'발 사용',game.stage===stageSet.length-1?'모든 지역을 공략했어요!':`최고 ${progress.best[game.stage]}/3등급 · 다음 지역 도전!`]
       :['탄약을 모두 사용했어요.','폭탄탄으로 지지대를 노리거나','발사 각도를 다시 조절해 보세요.'])
    :(won?['상대 내구도를 0으로 만들었어요!','바람과 각도를 읽은 멋진 승리예요.']
       :['우리 팀 내구도가 0이 되었어요.','난이도와 바람을 확인한 뒤','다시 도전해 보세요.']);
@@ -3019,7 +3055,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   if(b.hp<=0){b.dead=true;M.Composite.remove(game.engine.world,b.body);}
  }
  game.blocks=game.blocks.filter(b=>!b.dead);
-  for(const f of game.foes){if(!f.alive)continue;const dist=Math.hypot(p.x-f.x,p.y-f.y);if(dist<radius+f.r){const dealt=Math.max(12,(1-dist/(radius+f.r))*damage*1.45);f.hp-=dealt;f.hitFlash=.38;f.hitAnim=.64;f.attackAnim=0;spawnCombatPopup(f,'-'+Math.round(dealt),big?'blast':'normal');M.Sleeping.set(f.body,false);M.Body.setVelocity(f.body,{x:f.body.velocity.x+(f.x-p.x)/(dist||1)*4,y:-6});if(f.hp<=0)defeatFoe(f);}}
+  for(const f of game.foes){if(!f.alive)continue;const dist=Math.hypot(p.x-f.x,p.y-f.y);if(dist<radius+f.r){const dealt=Math.max(12,(1-dist/(radius+f.r))*damage*1.45);f.hp-=dealt;foeHitReaction(f,dealt,p.x);spawnCombatPopup(f,'-'+Math.round(dealt),big?'blast':'normal');M.Sleeping.set(f.body,false);M.Body.setVelocity(f.body,{x:f.body.velocity.x+(f.x-p.x)/(dist||1)*4,y:-6});if(f.hp<=0)defeatFoe(f);}}
   if(game.mode==='duel'){
    for(const c of [{owner:'player',x:190},{owner:'ai',x:1018}]){
     const cy=terrainY(c.x)-29,dist=Math.hypot(p.x-c.x,p.y-cy);
@@ -3039,7 +3075,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    M.Body.setAngularVelocity(target.body,target.body.angularVelocity+.14);
    if(target.hp<=0){target.dead=true;M.Composite.remove(game.engine.world,target.body);game.blocks=game.blocks.filter(b=>!b.dead);}
   }else{
-   p.hitFoes.push(target);target.hp-=95;target.hitFlash=.4;target.hitAnim=.64;target.attackAnim=0;spawnCombatPopup(target,'관통 -95','pierce',target.r+26);
+   p.hitFoes.push(target);target.hp-=95;foeHitReaction(target,95,p.x);spawnCombatPopup(target,'관통 -95','pierce',target.r+26);
    if(target.hp<=0)defeatFoe(target);
   }
   spawnSparks(p.x,p.y,15,'#a8f4e4',.8);skillEffect('bear',p.x,p.y,.45);game.message='관통 성공!';game.messageTime=.8;
@@ -3531,7 +3567,8 @@ const materialCells={
   if(!f.alive&&f.deathTimer<=0)continue;
   const pose=foePose(f),dying=pose==='death',hurt=pose==='hurt',attacking=pose==='attack';
   const deathProgress=dying?clamp((3.8-f.deathTimer)/.9,0,1):0;
-  const stagger=clamp(f.hitAnim/.64,0,1),attackProgress=attacking?1-clamp(f.attackAnim/.72,0,1):0;
+  const stagger=clamp(f.hitAnim/.72,0,1),attackProgress=attacking?1-clamp(f.attackAnim/.72,0,1):0;
+  const recoil=Math.sin((1-stagger)*Math.PI)*f.r*(f.boss?.26:.42)*(f.hitStrength||0);
   const attackSurge=attacking?Math.sin(Math.PI*attackProgress):0;
   const breathe=Math.sin(game.clock*(f.boss?2.6:3.4)+f.wobble);
   const entry=clamp(f.spawnTime/.5,0,1),squash=dying?1-deathProgress*.05:1+stagger*.13+attackSurge*.11;
@@ -3541,10 +3578,10 @@ const materialCells={
   const rise=dying?deathProgress*14:-(landing*29)+landBounce+breathe*(f.boss?1.6:2);
   const opacity=dying?clamp(f.deathTimer/.75,0,1):1;
   const settle=dying?Math.sin(deathProgress*Math.PI*.5):0;
-  const x=f.x+shake-attackSurge*(f.boss?13:10),y=f.y+rise;
+  const x=f.x+shake+(hurt?(f.hitDirection||1)*recoil:0)-attackSurge*(f.boss?13:10),y=f.y+rise-(hurt?recoil*.25:0);
   ctx.save();ctx.globalAlpha=opacity;ctx.translate(x,y);
   // The painted final frame is already lying down; avoid rotating the entire cutout again.
-  ctx.rotate(dying&&paintedFoeArtReady(f.kind)?0:dying?f.deathAngle*settle*.8:hurt?stagger*.07*Math.sin(game.clock*30):attacking?-.07*attackSurge:.014*breathe);
+  ctx.rotate(dying&&paintedFoeArtReady(f.kind)?0:dying?f.deathAngle*settle*.8:hurt?-(f.hitDirection||1)*Math.sin((1-stagger)*Math.PI)*.13:attacking?-.07*attackSurge:.014*breathe);
   ctx.scale(squash*(1+settle*.13),stretch*(1-settle*.25));
   // Acorn guardian's source pose faces right: mirror it toward the player on the left.
   // Golem and wind sprite sheets already face left; iron boss faces front.
