@@ -112,7 +112,7 @@ assert.match(js,/frame=1;frame<count-1/);
 assert.match(js,/duration:V\.duration\(id,'attack'\)-windup/);
 assert.match(visuals,/function inkEliteAttack\(c,id,frame\)/);
 assert.match(visuals,/inkEliteAttack\(c,id,frame\)/);
-assert.match(html,/result-continuity-v48\.css\?v=20261105v504/);
+assert.match(html,/result-continuity-v48\.css\?v=20261105v506/);
 assert.match(result48,/#modal-box\.result-dialog/);
 assert.match(result48,/background:transparent!important/);
 assert.match(result48,/--fg-party-v35/);
