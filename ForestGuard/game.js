@@ -1090,6 +1090,7 @@
       const lifeYOffset=Math.round(sh*.53)+8;
       const renderedSize=Math.round(Math.sqrt(sw*sh)); // Equal pixel scale: no width/height stretching.
       const spr=this.add.image(lane,-38,'motion-'+type+'-run-0').setDisplaySize(renderedSize,renderedSize).setDepth(4);
+      spr.setData('enemyType',type);
       const lifeBg=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth+2,6,0x302a20).setDepth(5).setVisible(false);
       if(['shroom','guardian','boss'].includes(type)){
         const ring=this.add.ellipse(lane,-25,type==='shroom'?142:155,34,
@@ -1100,6 +1101,7 @@
       const life=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth,4,type==='guardian'?0xffcb73:type==='shroom'?0xf4a86e:0xe18754).setDepth(5).setVisible(false);
       const nameLabel=null;
       const enemy={nameLabel,type,x:lane,baseX:lane,windPhase:Math.random()*Math.PI*2,y:-38,spr,lifeBg,life,lifeWidth,lifeYOffset,hp,maxHP:hp,spd,slow:0,rooted:0,
+        motionBaseScale:spr.scaleX,lastAttackCue:null,
         armor:type==='crystal'?.34:type==='shroom'?.12:this.stage.id===9?(type==='runner'?0:.3):(type==='brute'?.18:0),
         abilityCooldown:type==='guardian'?4100:type==='shroom'?7700:5400,warning:0,hidden:0,untargetable:false,surge:0,
         tellRing:null,tellBack:null,tellFill:null,guarding:false,hasDashed:false,hasRallied:false,hasSpores:false,crystalShatterUntil:0};
@@ -1340,10 +1342,10 @@
       if(kind==='megafox')e.hp-=Math.floor(actual*.2);
       e.life.width=e.lifeWidth*Math.max(0,e.hp/e.maxHP);
       this.showDamageNumber(e,actual,crit,kind);
-      V.trigger(e.spr,'hurt',this.gameClock+V.duration(e.type,'hurt'),this.gameClock);
+      const freshImpact=V.trigger(e.spr,'hurt',this.gameClock+V.duration(e.type,'hurt'),this.gameClock);
       // Show the painted first impact pose immediately; later frames unfold in update().
       const hurtFrame='motion-'+e.type+'-hurt-0';
-      if(this.textures.exists(hurtFrame))e.spr.setTexture(hurtFrame);
+      if(freshImpact&&this.textures.exists(hurtFrame))e.spr.setTexture(hurtFrame);
       if(kind==='megafox'&&this.evolutionPath==='sun'){
         for(const other of [...this.enemies]){
           if(other===e||other.untargetable||Math.hypot(other.x-e.x,other.y-e.y)>78)continue;
@@ -1407,10 +1409,12 @@
       const finalAlpha=reduced?.12:.18;
       this.tweens.add({targets:spr,alpha:finalAlpha,y:spr.y+(large?20:16),
         angle:spr.angle+(large?7:13),scaleX:spr.scaleX*.77,scaleY:spr.scaleY*.77,
-        duration:reduced?90:V.duration(e.type,'death'),ease:'Linear',
-        onUpdate:()=>{
+        duration:reduced?90:V.duration(e.type,'death')+65,ease:'Linear',
+        onUpdate:tween=>{
           if(!spr.active||reduced)return;
-          const progress=Math.max(0,Math.min(1,(1-spr.alpha)/(1-finalAlpha)));
+          // Frame selection follows elapsed tween time, not alpha rounding.
+          // All five/six illustrated beats get a complete, visible interval.
+          const progress=Math.max(0,Math.min(1,tween.progress));
           const frame=Math.min(frameCount-1,Math.floor(progress*frameCount));
           const texture='motion-'+e.type+'-death-'+frame;
           if(this.textures.exists(texture)&&spr.texture.key!==texture)spr.setTexture(texture);
@@ -1593,7 +1597,8 @@
         }else if(!e.untargetable&&e.y>105){
           e.abilityCooldown-=dt;
           if(e.abilityCooldown<=0){
-            V.trigger(e.spr,'attack',this.gameClock+700,this.gameClock);
+            // The warning is the held anticipation, not a premature strike.
+            V.trigger(e.spr,'idle',this.gameClock+1250,this.gameClock);
             e.warning=1250;e.abilityCooldown=6900;
             e.spr.setTint(0xff9b60);this.startBossWarning(e);
             const title=e.type==='shroom'?'버섯 거한 · 포자탄 경고':e.type==='guardian'?'숲의 수호자 · 충격파 예고':this.stage.id===3?'뿌리 돌진 예고':this.stage.id===7?'잠복 이동 예고':'검은 종 진동 예고';
@@ -1994,8 +1999,33 @@
         const hurting=e.spr.getData('motionState')==='hurt'&&Number.isFinite(hurtUntil)&&this.gameClock<hurtUntil;
         const hurtStart=e.spr.getData('motionStart');
         const hurtProgress=hurting?Math.min(1,Math.max(0,(this.gameClock-hurtStart)/V.duration(e.type,'hurt'))):0;
-        const recoil=hurting?Math.sin(Math.PI*hurtProgress)*(['boss','guardian','shroom'].includes(e.type)?10:6):0;
-        e.spr.setPosition(e.x,e.y-recoil);
+        const attackUntil=e.spr.getData('motionUntil');
+        const attackStart=e.spr.getData('motionStart');
+        const attacking=e.spr.getData('motionState')==='attack'&&
+          Number.isFinite(attackUntil)&&Number.isFinite(attackStart)&&this.gameClock<attackUntil;
+        const attackProgress=attacking?Math.min(1,Math.max(0,
+          (this.gameClock-attackStart)/V.duration(e.type,'attack'))):0;
+        const attackMotion=attacking?Math.sin(Math.PI*attackProgress):0;
+        const elite=['boss','guardian','shroom'].includes(e.type);
+        const recoil=hurting?Math.sin(Math.PI*hurtProgress)*(elite?10:6):0;
+        // Uniform size and vertical movement only: the painted silhouette
+        // stays proportional and gameplay coordinates never change.
+        e.spr.setPosition(e.x,e.y-recoil-attackMotion*(elite?9:5));
+        e.spr.setScale(e.motionBaseScale*(1+attackMotion*(elite?.055:.032)));
+        if(attacking&&e.lastAttackCue!==attackStart){
+          e.lastAttackCue=attackStart;
+          const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if(!reduced&&this.attackFxActive<12){
+            this.attackFxActive++;
+            const color=e.type==='crystal'?0x9ae9f4:e.type==='shroom'||e.type==='spore'?0xe9ba85:
+              e.type==='guardian'||e.type==='boss'?0xe4d396:0xc5d58c;
+            const tell=this.add.ellipse(e.x,e.y+15,elite?76:38,elite?22:12,color,.18).setDepth(3);
+            this.tweens.add({targets:tell,scaleX:1.6,scaleY:1.35,alpha:0,
+              duration:elite?390:260,onComplete:()=>{
+                tell.destroy();this.attackFxActive=Math.max(0,this.attackFxActive-1);
+              }});
+          }
+        }
         e.lifeBg.setPosition(e.x,e.y-e.lifeYOffset);e.life.setPosition(e.x,e.y-e.lifeYOffset);
         if(e.nameLabel)e.nameLabel.setPosition(e.x,e.y-e.lifeYOffset-19);
         V.animate(e.spr,e.type,'run',this.gameClock);
@@ -2272,6 +2302,22 @@
            eliteDeath6:battle.textures.exists('motion-shroom-death-5'),
            deathDuration:V.duration('shroom','death'),
            heroDuration:V.duration('fox','attack')};
+       },
+       attackGestureQA(){
+         if(!battle||battle.ended||battle.drafting)return null;
+         battle.spawnEnemy('runner');
+         const enemy=battle.enemies[battle.enemies.length-1];
+         enemy.y=260;enemy.spd=0;
+         const start=battle.gameClock;
+         V.trigger(enemy.spr,'attack',start+V.duration('runner','attack'),start);
+         battle.update(0,32);
+         const result={state:enemy.spr.getData('motionState'),
+           scaleRatio:enemy.spr.scaleX/enemy.motionBaseScale,
+           preservedAspect:Math.abs(enemy.spr.scaleX-enemy.spr.scaleY)<.0001,
+           animation:enemy.spr.texture.key.startsWith('motion-runner-attack-'),
+           gameplayY:enemy.y};
+         battle.removeEnemy(enemy);
+         return result;
        },
        previewDefeat(){
          if(!battle||battle.ended)return null;

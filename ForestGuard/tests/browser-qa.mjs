@@ -335,6 +335,11 @@ try{
         eliteHurt6:true,paintedMonsterHurt:true,paintedMonsterKinds:10,
         ordinaryDeath5:true,eliteDeath6:true,deathDuration:510,heroDuration:520},
         'All painted rear attacks and 5/6-frame monster hit reactions must load at runtime');
+      const gesture=await page.evaluate(()=>window.__ForestGuardQA.attackGestureQA());
+      assert.ok(gesture&&gesture.state==='attack'&&gesture.animation&&
+        gesture.scaleRatio>1.005&&gesture.scaleRatio<1.07&&gesture.preservedAspect&&
+        gesture.gameplayY===260,
+        'Attack beat must visibly lift a proportional painted monster without altering gameplay: '+JSON.stringify(gesture));
       const chroma=await page.evaluate(()=>window.__ForestGuardQA.attackFrameSpill());
       assert.deepEqual(chroma,{fox:0,bear:0,rabbit:0,cat:0,megafox:0},
         'No saturated-red background contamination in the five rear-attack textures');
