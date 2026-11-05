@@ -1822,7 +1822,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  }
  function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;$('menu').dataset.stage=String(chosen);const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];const def=stageSet[chosen];$('stageShotPreview').textContent=`탄약 ${def.shots}발 · 목표 ${def.foes.length}명`;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;}
  function refreshMenu(){refreshHeroPreview();const cleared=progress.best.filter(Boolean).length;$('progressSummary').textContent=cleared?`최고 등급 합계 ${progress.best.reduce((a,b)=>a+b,0)} / 12 · 승리 ${progress.wins}회`:'모험 기록 · 아직 첫 승리 전';$('progressTier').textContent=`완료 ${cleared} / 4`;refreshStageMap();}
- const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:100,aiHp:100,turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null};
+ const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:100,aiHp:100,turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,chainHits:0,crushHits:0,weaponFractures:0};
  // Six authored motion phases per hero (procedural transforms of the existing PNG/WebP art).
  // They are NOT six separately painted sprite frames.
  const heroMotionKeys={
@@ -1854,7 +1854,43 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  function initialTerrain(mode) {const a=new Float32Array(W+1);for(let i=0;i<=W;i++)a[i]=mode==='duel' ? 492+27*Math.sin(i/130)+14*Math.sin(i/57)+4*Math.cos(i/21) : 525+8*Math.sin(i/143)+3*Math.sin(i/47);return a;}
  function crater(x,y,r) {const from=Math.max(0,Math.floor(x-r)),to=Math.min(W,Math.ceil(x+r));let changed=false;for(let i=from;i<=to;i++){const dx=i-x;const depth=Math.sqrt(Math.max(0,r*r-dx*dx))*.61;const old=game.terrain[i];game.terrain[i]=Math.min(H-25,Math.max(game.terrain[i],y+depth));changed||=game.terrain[i]>old+.1;}if(changed)rebuildGround(from,to);}
  function rebuildGround(from=0,to=W){if(!game.engine)return;const stride=20,start=Math.max(0,Math.floor(from/stride)),end=Math.min(W/stride-1,Math.floor(to/stride));for(let i=start;i<=end;i++){const old=game.ground[i];if(old)M.Composite.remove(game.engine.world,old);const x=i*stride+stride/2,top=(terrainY(i*stride)+terrainY(i*stride+stride))/2;const bottom=H+110;const body=M.Bodies.rectangle(x,(top+bottom)/2,stride+2,bottom-top,{isStatic:true,friction:.95,render:{visible:false},label:'terrain'});game.ground[i]=body;M.Composite.add(game.engine.world,body);}}
- function initPhysics(){game.engine=M.Engine.create({enableSleeping:true,positionIterations:9,velocityIterations:8});game.engine.gravity.y=.48;game.ground=[];rebuildGround();M.Events.on(game.engine,'collisionStart',e=>{for(const pair of e.pairs){const a=pair.bodyA.plugin,b=pair.bodyB.plugin;const foe=a.foe||b.foe,block=a.block||b.block;if(!foe||!block||!foe.alive||foe.hitCooldown>0)continue;const relative=Math.hypot(foe.body.velocity.x-block.body.velocity.x,foe.body.velocity.y-block.body.velocity.y);if(relative>2.8){foe.hp-=Math.max(10,Math.min(70,relative*7));foe.hitCooldown=.45;foe.hitFlash=.35;foe.hitAnim=.64;foe.attackAnim=0;spawnCombatPopup(foe,'충돌!','impact',foe.r+35);spawnSparks(foe.x,foe.y,10,'#d7b7f4',.7);if(foe.hp<=0)defeatFoe(foe);}}});}
+ function initPhysics(){game.engine=M.Engine.create({enableSleeping:true,positionIterations:9,velocityIterations:8});game.engine.gravity.y=.48;game.ground=[];rebuildGround();M.Events.on(game.engine,'collisionStart',e=>{
+  if(game.mode!=='adventure'||game.shots===0)return;
+  for(const pair of e.pairs){
+   const a=pair.bodyA.plugin||{},b=pair.bodyB.plugin||{};
+   const blockA=a.block,blockB=b.block;
+   if(blockA&&blockB&&!blockA.dead&&!blockB.dead){
+    const relative=Math.hypot(blockA.body.velocity.x-blockB.body.velocity.x,blockA.body.velocity.y-blockB.body.velocity.y);
+    if(relative>2.8){
+     let damaged=0;
+     for(const [target,other] of [[blockA,blockB],[blockB,blockA]]){
+      if(target.collisionCooldown>0||target.dead)continue;
+      const resistance=target.type==='iron'?.55:target.type==='stone'?.78:1;
+      const damage=Math.min(48,Math.max(5,(relative-2.2)*8*resistance));
+      const previousTier=damageTier(target);
+      target.hp-=damage;target.collisionCooldown=.24;
+      markBlockImpact(target,previousTier,damage,other.body.position.x,'collision');
+      if(target.hp<=0)target.dead=true;
+      damaged++;
+     }
+     if(damaged){game.chainHits++;game.shake=Math.max(game.shake,Math.min(8,relative*1.1));}
+    }
+    continue;
+   }
+   const foe=a.foe||b.foe,block=blockA||blockB;
+   if(!foe||!block||!foe.alive||block.dead||foe.hitCooldown>0)continue;
+   const relative=Math.hypot(foe.body.velocity.x-block.body.velocity.x,foe.body.velocity.y-block.body.velocity.y);
+   const overhead=block.body.position.y<foe.body.position.y-foe.r*.2&&block.body.velocity.y>foe.body.velocity.y+1.3;
+   if(relative>2.8||overhead&&relative>1.8){
+    const damage=Math.round(clamp(relative*(overhead?10:7),10,overhead?100:70));
+    foe.hp-=damage;foe.hitCooldown=.45;foe.hitFlash=.35;foe.hitAnim=.64;foe.attackAnim=0;
+    if(overhead){game.crushHits++;spawnCombatPopup(foe,`압착 -${damage}`,'impact',foe.r+35);}
+    else spawnCombatPopup(foe,`충돌 -${damage}`,'impact',foe.r+35);
+    spawnSparks(foe.x,foe.y,overhead?17:10,overhead?'#f2d39c':'#d7b7f4',overhead?1:.7);
+    if(foe.hp<=0)defeatFoe(foe);
+   }
+  }
+ });}
  function powerVelocity(ang,power,dir=1) {const speed=190+power*5.45,rad=ang*Math.PI/180;return {vx:Math.cos(rad)*speed*dir,vy:-Math.sin(rad)*speed};}
  function origin(owner='player'){if(game.mode==='duel') {const x=owner==='player'?190:1018;return{x,y:terrainY(x)-32};}return{x:145,y:terrainY(145)-69};}
  // Independent character weapon sockets, defined in world units relative to the firing origin.
@@ -1946,7 +1982,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  }
  function buildAdventure(stage) {
   const def=stageSet[stage%stageSet.length];
-  game.blocks=def.blocks.map((b,i)=>{const floor=terrainY(b.x+b.w/2);return{x:b.x,y:floor-b.h-(i>1&&b.w>70?92:0),w:b.w,h:b.h,type:b.type,hp:b.type==='iron'?220:b.type==='stone'?145:75,maxHp:b.type==='iron'?220:b.type==='stone'?145:75,angle:0,damageFlash:0};});
+  game.blocks=def.blocks.map((b,i)=>{const floor=terrainY(b.x+b.w/2);return{x:b.x,y:floor-b.h-(i>1&&b.w>70?92:0),w:b.w,h:b.h,type:b.type,hp:b.type==='iron'?220:b.type==='stone'?145:75,maxHp:b.type==='iron'?220:b.type==='stone'?145:75,angle:0,damageFlash:0,collisionCooldown:0,dead:false};});
   // Lay horizontal beams on uprights rather than intersecting them.
   for(const b of game.blocks){if(b.w>80){const supports=game.blocks.filter(s=>s!==b&&s.w<40&&Math.abs((s.x+s.w/2)-(b.x+b.w/2))<110);if(supports.length) b.y=Math.min(...supports.map(s=>s.y))-b.h+3;}}
   for(const b of game.blocks){const body=M.Bodies.rectangle(b.x+b.w/2,b.y+b.h/2,b.w,b.h,{density:b.type==='iron'?.0028:b.type==='stone'?.0019:.0009,friction:.67,frictionStatic:.95,restitution:.03,chamfer:{radius:1.5},sleepThreshold:65,label:b.type});body.plugin.block=b;b.body=body;M.Composite.add(game.engine.world,body);}
@@ -1954,7 +1990,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   for(const f of game.foes){const body=M.Bodies.circle(f.x,f.y,f.r,{friction:.82,frictionStatic:1,restitution:.07,density:.0011,sleepThreshold:55,label:'foe'});body.plugin.foe=f;f.body=body;M.Composite.add(game.engine.world,body);}
  }
  function newGame(mode,stage=0){
-  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:3;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
+  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:3;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
   // Every duel is hero-versus-hero. The opponent is different from the selected player.
   const challengers=['fox','bear','rabbit','cat'].filter(hero=>hero!==game.hero);
   game.aiHero=mode==='duel'?challengers[Math.floor(Math.random()*challengers.length)]:'bear';
@@ -2059,39 +2095,47 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   }
   game.debris=game.debris.slice(-160);
  }
- function spawnCollapseFragments(b,direction=0){
+ function spawnCollapseFragments(b,direction=0,weapon='normal'){
   // Heavier secondary fragments preserve the silhouette for a moment after the body breaks.
   const x=b.body.position.x,y=b.body.position.y,weight=b.type==='iron'?.42:b.type==='stone'?.7:1;
-  const count=Math.min(15,Math.max(5,Math.round(Math.max(b.w,b.h)/17)));
+  const count=Math.min(17,Math.max(5,Math.round(Math.max(b.w,b.h)/17)+(weapon==='bomb'?3:weapon==='split'?1:0)));
+  const burst=weapon==='bomb'?1.35:weapon==='split'?.85:1;
   for(let i=0;i<count;i++){
    const spread=(i-(count-1)/2)/Math.max(1,count-1),life=rnd(3.2,6.6);
-   game.debris.push({x:x+spread*b.w*.55,y:y+rnd(-b.h*.25,b.h*.25),vx:(spread*235+rnd(-45,45)+direction*125)*weight,vy:rnd(-230,-85)*weight,angle:b.body.angle+rnd(-.8,.8),spin:(rnd(-5,5)+direction*1.4)*weight,w:clamp(b.w/(count>8?4:3)*rnd(.65,1.45),7,b.type==='iron'?54:45),h:clamp(b.h*.39*rnd(.5,1.1),5,b.type==='wood'?18:37),life,max:life,type:b.type,textureSeed:rnd(0,1),settled:false,color:b.type==='iron'?(i%2?'#416676':'#8daba6'):b.type==='stone'?(i%2?'#768895':'#b7bdc4'):(i%2?'#9e582e':'#efb778')});
+   game.debris.push({x:x+spread*b.w*.55,y:y+rnd(-b.h*.25,b.h*.25),vx:(spread*235+rnd(-45,45)+direction*125)*weight*burst,vy:rnd(-230,-85)*weight*burst,angle:b.body.angle+rnd(-.8,.8),spin:(rnd(-5,5)+direction*1.4)*weight,w:clamp(b.w/(count>8?4:3)*rnd(.65,1.45),7,b.type==='iron'?54:45),h:clamp(b.h*.39*rnd(.5,1.1),5,b.type==='wood'?18:37),life,max:life,type:b.type,textureSeed:rnd(0,1),settled:false,color:b.type==='iron'?(i%2?'#416676':'#8daba6'):b.type==='stone'?(i%2?'#768895':'#b7bdc4'):(i%2?'#9e582e':'#efb778')});
   }
   game.debris=game.debris.slice(-160);
  }
- function spawnCollapseGhost(b){
-  // Keep the shattered silhouette briefly visible after its physics body is removed.
-  const total=.36;
-  game.collapseGhosts.push({x:b.body.position.x,y:b.body.position.y,w:b.w,h:b.h,angle:b.body.angle,type:b.type,impactSide:b.impactSide||0,life:total,total});
+ function spawnCollapseGhost(b,weapon='normal'){
+  // Wood separates into narrow splinters, stone fractures into chunks, steel peels into plates.
+  const total=b.type==='stone'?.52:b.type==='iron'?.6:.36;
+  game.collapseGhosts.push({x:b.body.position.x,y:b.body.position.y,w:b.w,h:b.h,angle:b.body.angle,type:b.type,weapon,impactSide:b.impactSide||0,life:total,total});
   game.collapseGhosts=game.collapseGhosts.slice(-20);
  }
+ function materialWeaponFactor(type,weapon){
+  if(weapon==='bomb')return type==='wood'?1.28:type==='stone'?1.16:.72;
+  if(weapon==='split')return type==='wood'?1.15:type==='stone'?.82:.65;
+  if(weapon==='pierce')return type==='wood'?1:type==='stone'?.94:1.3;
+  return type==='iron'?.9:1;
+ }
  // A short fracture flash ties hand-painted damage tiers to the physics collision.
- function markBlockImpact(b,previousTier,power,impactX=null){
+ function markBlockImpact(b,previousTier,power,impactX=null,weapon='normal'){
   b.damageFlash=.32;
   const tier=damageTier(b),x=b.body.position.x,y=b.body.position.y;
   const direction=impactX===null?(b.impactSide||0):Math.sign(x-impactX)||(b.impactSide||1);
   b.impactSide=direction;
+  if(power>=12&&weapon!=='collision')game.weaponFractures++;
   // Material damage follows the tumbling body rather than floating over the impact crater.
   if(power>=16)spawnCombatPopup(b,'-'+Math.round(power),b.type,Math.min(44,Math.max(19,b.h*.43)));
   if(tier!==previousTier&&b.hp>0){
-   spawnDebris(x,y,b.type,7+tier*4,direction);
+   spawnDebris(x,y,b.type,7+tier*4+(weapon==='bomb'?4:0),direction);
    if(tier===2){M.Sleeping.set(b.body,false);M.Body.setAngularVelocity(b.body,b.body.angularVelocity+direction*.025+rnd(-.015,.015));}
-   spawnSparks(x,y,7+tier*3,b.type==='iron'?'#ffbb72':b.type==='stone'?'#d7e6e9':'#f7c18a',.42+tier*.12);
+   spawnSparks(x,y,7+tier*3+(weapon==='bomb'?5:0),b.type==='iron'?'#ffbb72':b.type==='stone'?'#d7e6e9':'#f7c18a',.42+tier*.12);
    game.rings.push({x,y,r:3,max:20+tier*9,life:.24,total:.24,color:b.type==='iron'?'#f5ac63':b.type==='stone'?'#d9e8e9':'#ffd49c'});
   }
   if(b.hp<=0){
-   spawnCollapseGhost(b);
-   spawnCollapseFragments(b,direction);
+   spawnCollapseGhost(b,weapon);
+   spawnCollapseFragments(b,direction,weapon);
    game.shake=Math.max(game.shake,b.type==='iron'?15:b.type==='stone'?11:8);
    spawnDebris(x,y,b.type,b.w>75?25:16,direction);
    spawnSparks(x,y,b.type==='iron'?23:16,b.type==='stone'?'#d1d8df':'#db9b64',.85);
@@ -2133,8 +2177,8 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   const cx=b.body.position.x,cy=b.body.position.y,dist=Math.hypot(p.x-cx,p.y-cy);
   if(dist>=radius+Math.max(b.w,b.h)*.4)continue;
   const power=Math.max(0,(1-dist/(radius+Math.max(b.w,b.h)*.4))*damage);
-  const previousTier=damageTier(b);b.hp-=power;
-  if(power>1)markBlockImpact(b,previousTier,power,p.x);
+  const dealt=power*materialWeaponFactor(b.type,p.weapon),previousTier=damageTier(b);b.hp-=dealt;
+  if(dealt>1)markBlockImpact(b,previousTier,dealt,p.x,p.weapon);
   const ux=(cx-p.x)/(dist||1),uy=(cy-p.y)/(dist||1);
   M.Sleeping.set(b.body,false);
   M.Body.setVelocity(b.body,{x:b.body.velocity.x+ux*power*.16,y:b.body.velocity.y+uy*power*.16-power*.075});
@@ -2157,7 +2201,7 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
  function applyPierceHit(p,target,kind){
   p.pierce--;p.vx*=.96;p.vy*=.93;
   if(kind==='block'){
-   p.hitBlocks.push(target);const previousTier=damageTier(target);target.hp-=95;markBlockImpact(target,previousTier,95,p.x);M.Sleeping.set(target.body,false);
+   p.hitBlocks.push(target);const previousTier=damageTier(target),dealt=95*materialWeaponFactor(target.type,'pierce');target.hp-=dealt;markBlockImpact(target,previousTier,dealt,p.x,'pierce');M.Sleeping.set(target.body,false);
    M.Body.setVelocity(target.body,{x:target.body.velocity.x+5,y:target.body.velocity.y-4});
    M.Body.setAngularVelocity(target.body,target.body.angularVelocity+.14);
    if(target.hp<=0){target.dead=true;M.Composite.remove(game.engine.world,target.body);game.blocks=game.blocks.filter(b=>!b.dead);}
@@ -2239,7 +2283,12 @@ button:focus-visible{outline:3px solid #f6d892;outline-offset:3px}
   if(game.phase==='aiWait'){game.aiTimer-=dt;if(game.aiTimer<=0){const shot=chooseAiShot();launch('ai',shot.angle,shot.power,shot.weapon);game.message='상대 전술 · '+shot.tactic;game.messageTime=1.4;}}
   if(game.hitStop>0){game.hitStop=Math.max(0,game.hitStop-dt);return;}
   M.Engine.update(game.engine,dt*1000);
-  for(const b of game.blocks){b.x=b.body.position.x-b.w/2;b.y=b.body.position.y-b.h/2;b.angle=b.body.angle;b.damageFlash=Math.max(0,(b.damageFlash||0)-dt);}
+  // Collision callbacks may fracture a support while Matter is stepping. Remove it only after Engine.update returns.
+  if(game.blocks.some(b=>b.dead)){
+   for(const b of game.blocks)if(b.dead)M.Composite.remove(game.engine.world,b.body);
+   game.blocks=game.blocks.filter(b=>!b.dead);
+  }
+  for(const b of game.blocks){b.x=b.body.position.x-b.w/2;b.y=b.body.position.y-b.h/2;b.angle=b.body.angle;b.damageFlash=Math.max(0,(b.damageFlash||0)-dt);b.collisionCooldown=Math.max(0,(b.collisionCooldown||0)-dt);}
   for(const f of game.foes){if(!f.alive)continue;f.x=f.body.position.x;f.y=f.body.position.y;f.hitCooldown=Math.max(0,f.hitCooldown-dt);f.hitFlash=Math.max(0,f.hitFlash-dt);f.hitAnim=Math.max(0,f.hitAnim-dt);f.attackAnim=Math.max(0,f.attackAnim-dt);f.spawnTime=Math.min(1,f.spawnTime+dt);
     f.attackCooldown-=dt;
     if(f.hitAnim===0&&f.spawnTime>.8&&f.attackCooldown<=0){
@@ -2551,15 +2600,37 @@ const materialCells={
   drawImpactScar(b,tier);drawDamageOverlay(b,tier);
   ctx.restore();
  }}
+ // Fracture boundaries are independent normalized polygons, rather than two rectangular clip halves.
+ const collapsePieces={
+  wood:[
+   [[-.5,-.5],[-.19,-.5],[-.13,-.18],[-.25,.2],[-.15,.5],[-.5,.5]],
+   [[-.19,-.5],[.16,-.5],[.22,-.13],[.07,.18],[.19,.5],[-.15,.5],[-.25,.2],[-.13,-.18]],
+   [[.16,-.5],[.5,-.5],[.5,.5],[.19,.5],[.07,.18],[.22,-.13]]
+  ],
+  stone:[
+   [[-.5,-.5],[-.02,-.5],[-.17,-.16],[-.48,-.04]],
+   [[-.02,-.5],[.5,-.5],[.48,-.1],[.15,-.17],[-.17,-.16]],
+   [[-.48,-.04],[-.17,-.16],[.15,-.17],[.04,.16],[-.39,.28],[-.5,.16]],
+   [[.15,-.17],[.48,-.1],[.5,.3],[.23,.5],[.04,.16]],
+   [[-.5,.16],[-.39,.28],[.04,.16],[.23,.5],[-.5,.5]]
+  ],
+  iron:[
+   [[-.5,-.5],[-.05,-.5],[.02,-.17],[-.11,.13],[.08,.5],[-.5,.5],[-.45,.12]],
+   [[-.05,-.5],[.5,-.5],[.44,-.09],[.5,.5],[.08,.5],[-.11,.13],[.02,-.17]]
+  ]
+ };
  function drawCollapseGhosts(){
   for(const g of game.collapseGhosts){
    const progress=clamp(1-g.life/g.total,0,1),fade=clamp(g.life/(g.total*.6),0,1);
-   for(let half=0;half<2;half++){
-    const sign=half===0?-1:1;
+   const parts=collapsePieces[g.type]||collapsePieces.wood;
+   for(let i=0;i<parts.length;i++){
+    const points=parts[i],side=(i-(parts.length-1)/2)/Math.max(1,(parts.length-1)/2);
+    const burst=g.weapon==='bomb'?1.4:g.weapon==='split'?.8:1;
     ctx.save();ctx.globalAlpha=fade;
-    ctx.translate(g.x+(sign*g.w*.27+(g.impactSide||0)*17)*progress,g.y+g.h*.23*progress*progress);
-    ctx.rotate(g.angle+(sign*.17+(g.impactSide||0)*.07)*progress);
-    ctx.beginPath();ctx.rect(-g.w/2,half===0?-g.h/2:0,g.w,g.h/2);ctx.clip();
+    ctx.translate(g.x+(side*g.w*.34+(g.impactSide||0)*18)*progress*burst,
+     g.y+(g.type==='iron'?.13:g.type==='stone'?.3:.21)*g.h*progress*progress);
+    ctx.rotate(g.angle+(side*(g.type==='wood'?.27:g.type==='stone'?.4:.18)+(g.impactSide||0)*.07)*progress);
+    ctx.beginPath();points.forEach(([u,v],j)=>{if(j===0)ctx.moveTo(u*g.w,v*g.h);else ctx.lineTo(u*g.w,v*g.h);});ctx.closePath();ctx.clip();
     if(!drawPaintedColumn(g,2)&&!drawPaintedMaterial(g,2)){
      ctx.fillStyle=g.type==='wood'?'#ad7447':g.type==='stone'?'#899ba7':'#55848a';
      ctx.fillRect(-g.w/2,-g.h/2,g.w,g.h);

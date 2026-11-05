@@ -20,6 +20,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__probeMaterialColumnForTest=(type,tier)=>drawPaintedColumn({w:26,h:108,type},tier); window.__probeCollapseForTest=()=>{const b=game.blocks.find(v=>v.type==="wood");const old=damageTier(b);b.hp=-1;markBlockImpact(b,old,95);b.dead=true;M.Composite.remove(game.engine.world,b.body);game.blocks=game.blocks.filter(v=>!v.dead);return game.collapseGhosts.length;}; window.__collapseGhostCountForTest=()=>game.collapseGhosts.length; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__groundToastForTest=()=>groundToastLayout(); window.__materialSoundForTest=()=>({wood:soundShapes.wood,stone:soundShapes.stone,iron:soundShapes.iron}); window.__triggerMaterialSoundForTest=(name)=>{const saved=game.sound;game.sound=true;playSound(name);game.sound=saved;}; window.__directionalImpactForTest=(offset)=>{const b=game.blocks.find(v=>v.type==="stone");if(!b)return null;const originalHp=b.hp;b.hp=b.maxHp*.42;markBlockImpact(b,0,34,b.body.position.x+offset);const result={side:b.impactSide,scar:b.hp<b.maxHp};b.hp=originalHp;return result;}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__fracturePartsForTest=(type,weapon="normal")=>{const b={w:28,h:104,type,impactSide:1,body:M.Bodies.rectangle(810,290,28,104)};spawnCollapseGhost(b,weapon);return {count:collapsePieces[type].length,total:game.collapseGhosts.at(-1).total};}; window.__weaponMaterialForTest=(type,weapon)=>materialWeaponFactor(type,weapon); window.__chainCollisionForTest=()=>{newGame("adventure",0);game.shots=1;const [a,b]=game.blocks;M.Body.setVelocity(a.body,{x:9,y:0});M.Body.setVelocity(b.body,{x:-9,y:0});const before=[a.hp,b.hp],initial=game.chainHits;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});const after=[a.hp,b.hp];M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});return {before,after,cooled:[a.hp,b.hp],count:game.chainHits-initial};}; window.__crushCollisionForTest=()=>{newGame("adventure",0);game.shots=1;const block=game.blocks[0],foe=game.foes[0];M.Body.setPosition(block.body,{x:foe.x,y:foe.y-64});M.Body.setVelocity(block.body,{x:0,y:10});const before=foe.hp;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:block.body,bodyB:foe.body}]});return {before,after:foe.hp,crushHits:game.crushHits,defeated:!foe.alive};}; window.__cleanupBrokenBlocksForTest=()=>{newGame("adventure",0);game.shots=1;const [a,b]=game.blocks;a.hp=1;M.Body.setVelocity(a.body,{x:9,y:0});M.Body.setVelocity(b.body,{x:-9,y:0});const before=game.blocks.length;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});const marked=a.dead;step(1/60);return {before,after:game.blocks.length,marked,ghosts:game.collapseGhosts.length};}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(html.includes('Artillery_Illustrated_UI_v1_1.png'),'The painted v1.1 UI atlas should be referenced');
@@ -541,7 +543,7 @@ assert.deepEqual(state().canvas,[844,390],'Landscape 844x390 canvas must match i
 const landscapeToast=window.__groundToastForTest();
 assert(landscapeToast.y>=640*.77&&landscapeToast.y<=594,'Landscape notification must stay at ground level');
 assert(landscapeToast.fontSize>=portraitToast.fontSize,'Landscape toast can use larger type without hiding the target area');
-assert(html.includes('spawnCollapseFragments(b,direction)'),'Broken blocks should create large independent falling chunks biased by the impact direction');
+assert(html.includes('spawnCollapseFragments(b,direction,weapon)'),'Broken blocks should create large independent falling chunks biased by material, weapon and impact direction');
 assert(html.includes('drawFoeElementalAttack(f,attackSurge)'),'The four monsters should emit state-specific attack FX');
 assert(html.includes('shatteredDescription'),'The impact report should list material-specific destruction');
 // Post-impact review automatically returns to aiming without a 7-second forced delay.
@@ -675,5 +677,21 @@ const fragmentsBefore=window.__impactMotePositionsForTest();frames(4);
 const fragmentsAfter=window.__impactMotePositionsForTest();
 assert(fragmentsAfter.some((m,i)=>Math.abs(m.y-fragmentsBefore[i].y)>1),
  'Physical impact fragments must move independently under gravity after the explosion');
+const fractureStyles=['wood','stone','iron'].map(type=>window.__fracturePartsForTest(type));
+assert.deepEqual(fractureStyles.map(v=>v.count),[3,5,2],'Wood splinters, stone chunks and bent steel plates need distinct breakup silhouettes');
+assert(fractureStyles[0].total<fractureStyles[1].total&&fractureStyles[1].total<fractureStyles[2].total,'Heavy materials must linger longer during collapse');
+assert(window.__weaponMaterialForTest('wood','bomb')>window.__weaponMaterialForTest('wood','normal'),'Explosives should shatter timber more effectively');
+assert(window.__weaponMaterialForTest('iron','pierce')>window.__weaponMaterialForTest('iron','bomb'),'Piercing shells should outperform blast against steel');
+assert(window.__weaponMaterialForTest('stone','bomb')>window.__weaponMaterialForTest('stone','split'),'Stone should resist light split submunitions');
+const chain=window.__chainCollisionForTest();
+assert(chain.after.every((hp,i)=>hp<chain.before[i]),'Structural collision must damage both moving supports');
+assert.deepEqual(chain.cooled,chain.after,'Repeated collision callbacks inside cooldown must not double-count the damage');
+assert.equal(chain.count,1,'One collision pair should record a single chain reaction');
+const crush=window.__crushCollisionForTest();
+assert(crush.after<crush.before&&crush.crushHits===1,'A falling support must injure and count a crushed enemy');
+assert(crush.defeated,'Strong overhead impact must be able to defeat a monster');
+const cleanup=window.__cleanupBrokenBlocksForTest();
+assert(cleanup.marked&&cleanup.after<cleanup.before,'Collision-destroyed supports must leave Matter and the active block list after stepping');
+assert(cleanup.ghosts>0,'A collision-destroyed support must still show its painted breakup');
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');
