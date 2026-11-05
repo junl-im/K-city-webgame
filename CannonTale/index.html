@@ -3556,17 +3556,22 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    ctx.save();ctx.translate(x,terrainY(x)-55);ellipse(0,0,22,28,own?'#d98d54':'#7189a0');ctx.restore();
   }
  }
+ function duelHudAnchor(x,owner){
+  const hero=owner==='player'?game.hero:game.aiHero,dir=owner==='player'?1:-1;
+  // Bear stands behind the cannon. Its pilot head is 76 units behind the barrel pivot.
+  return {x:hero==='bear'?x-dir*76:x,y:terrainY(x)-(hero==='bear'?113:169)};
+ }
  function drawDuelHealthHud(x,owner){
   // Do not pin an offscreen opponent's HUD to the camera border.
   // The bar belongs to the actual on-map hero, never to the edge of the viewport.
-  const screenX=(x-game.camera)*game.scale,visible=screenX>=0&&screenX<=cv.clientWidth;
+  const anchor=duelHudAnchor(x,owner),screenX=(anchor.x-game.camera)*game.scale,visible=screenX>=0&&screenX<=cv.clientWidth;
   game.hudDrawn[owner]=visible;
   if(!visible)return;
   const hp=clamp(owner==='player'?game.playerHp:game.aiHp,0,100),shown=clamp(game.hudHealth[owner],0,100);
   const ally=owner==='player',pulse=game.hudHitPulse[owner]||0;
   // About 82 CSS pixels in normal combat, smaller still in full-battle overview.
   const uiScale=clamp(1/Math.max(.001,game.scale),.55,2.35);
-  ctx.save();ctx.translate(x,terrainY(x)-169);ctx.scale(uiScale,uiScale);
+  ctx.save();ctx.translate(anchor.x,anchor.y);ctx.scale(uiScale,uiScale);
   ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='900 10px "Malgun Gothic",system-ui,sans-serif';
   ctx.shadowColor='#12202a';ctx.shadowBlur=3;ctx.fillStyle='#fff5d9';
   ctx.fillText(`${Math.ceil(hp)}`,0,-11,33);
@@ -4270,7 +4275,7 @@ const materialCells={
  window.__artilleryLoadoutDebug=()=>({player:{hero:game.hero,weapon:duelWeapon(game.hero)},ai:{hero:game.aiHero,weapon:duelWeapon(game.aiHero)},paintedCannonReady:!!(duelCannonAtlas?.complete&&duelCannonAtlas.naturalWidth>0),splitCannonReady:!!(duelPartsAtlas?.complete&&duelPartsAtlas.naturalWidth>0),foxAttackReady:!!(foxAttackAtlas?.complete&&foxAttackAtlas.naturalWidth>0),paintedAmmunitionReady:paintedAmmunitionReady(),ammunitionCells:{rows:ammunitionRows,columns:ammunitionColumns},paintedAttackReady:Object.fromEntries(Object.entries(paintedAttackAtlases).map(([hero,img])=>[hero,!!(img?.complete&&img.naturalWidth>0&&img.naturalHeight>0)])),playerMuzzle:muzzleFor('player'),aiMuzzle:muzzleFor('ai',game.aiAngle),playerPivot:cannonTrunnion('player'),aiPivot:cannonTrunnion('ai')});
  window.__artilleryDebug=()=>({mode:game.mode,stage:game.stage,difficulty:game.difficulty,hero:game.hero,aiHero:game.aiHero,abilityUsed:game.abilityUsed,abilityArmed:game.abilityArmed,abilityCount:game.abilityCount,wind:game.wind,phase:game.phase,shots:game.shots,maxShots:game.maxShots,hitStreak:game.hitStreak,popupPositions:game.popups.map(p=>({x:p.x,y:p.y,value:p.value})),chargeActive:game.chargeActive,chargeAimX:game.chargeAimX,chargeZoom:game.chargeZoom,chargeReveal:game.chargeReveal,playerScreenX:(origin().x-game.camera)*game.scale,scale:game.scale,camera:game.camera,chargedPower:game.chargedPower,heroMotionFrame:actorPoseFrame('player',game.hero).index,turn:game.turn,projectiles:game.projectiles.length,projectilePierce:game.projectiles[0]?.pierce||0,foes:game.foes.filter(x=>x.alive).length,bossHp:game.foes.find(f=>f.boss&&f.alive)?.hp||0,playerHp:game.playerHp,aiHp:game.aiHp,sound:game.sound,canvas:[cv.width,cv.height],rotatingBlocks:game.blocks.filter(b=>Math.abs(b.angle)>.05).length,physics:!!game.engine,spriteReady:spriteReady(game.hero),sceneReady:sceneReady(),enemyReady:enemyArtReady(),combatReady:combatArtReady(),paintedFoeReady:paintedFoeAtlases.map((_,kind)=>paintedFoeArtReady(kind)),foePoses:game.foes.map(f=>foePose(f)),foeAttacks:game.foes.reduce((n,f)=>n+f.attackCount,0),rubbleCount:game.rubble.length,materialReady:materialArtReady(),introVisible:!$('enemyEntrance').hidden,materialTiers:game.blocks.map(b=>damageTier(b)),aimImpact:game.phase==='aim'?predict(game.angle,game.power,game.wind).impact?.kind||'none':'inactive',debrisCount:game.debris.length,stageMapOpen:!$('stageMap').hidden,exitOpen:!$('exitConfirm').hidden,savedBest:progress.best.slice(),savedWins:progress.wins,skillEffects:game.skillEffects.length,blastCores:game.blastCores.length,dyingFoes:game.foes.filter(f=>!f.alive&&f.deathTimer>0).length,damagedBlocks:game.blocks.filter(b=>b.hp<b.maxHp).length,reviewVisible:!$('shotReview').hidden,reviewTitle:game.reviewInfo?.title||'',reviewFocusX:game.reviewFocusX,reviewNext:game.reviewNext,reviewTimer:game.reviewTimer,materials:{wood:game.blocks.filter(b=>b.type==='wood').length,stone:game.blocks.filter(b=>b.type==='stone').length,iron:game.blocks.filter(b=>b.type==='iron').length},aiShots:game.aiShots,aiWeapon:game.lastAiWeapon,aiTactic:game.aiTactic,recoil:game.recoil.player,actorMotion:game.actorAnim.player.kind,actorMotionLife:game.actorAnim.player.life});
  // Separate compact camera debug view for portrait tracking regression tests.
- window.__duelHudDebug=()=>({visible:{...game.hudDrawn},paintedHp:{...game.hudHealth},heroScreenX:(190-game.camera)*game.scale,opponentScreenX:(1018-game.camera)*game.scale,viewportWidth:cv.clientWidth});
+ window.__duelHudDebug=()=>({visible:{...game.hudDrawn},paintedHp:{...game.hudHealth},heroScreenX:(duelHudAnchor(190,'player').x-game.camera)*game.scale,opponentScreenX:(duelHudAnchor(1018,'ai').x-game.camera)*game.scale,heroAnchorX:duelHudAnchor(190,'player').x,opponentAnchorX:duelHudAnchor(1018,'ai').x,viewportWidth:cv.clientWidth});
  window.__cannonUiDebug=()=>({abilityReason:abilityUnavailableReason(),message:game.message,messageTime:game.messageTime,overview:game.overview,skyPad:game.topPad});
  window.__chargeCameraDebug=()=>({heroX:(origin().x-game.camera)*game.scale,aimX:game.chargeAimX,aimScreenX:game.chargeAimX===null?null:(game.chargeAimX-game.camera)*game.scale,glintX:game.chargeFocusX,glintScreenX:game.chargeFocusX===null?null:(game.chargeFocusX-game.camera)*game.scale,zoom:game.chargeZoom,power:game.chargedPower,cameraX:game.camera,width:cv.clientWidth});
  $('adventureStage').value=String(progress.lastStage);$('duelDifficulty').value=progress.difficulty;document.querySelectorAll('[data-hero]').forEach(b=>{const chosen=b.dataset.hero===selectedHero;b.classList.toggle('selected',chosen);b.setAttribute?.('aria-pressed',String(chosen));});refreshMenu();

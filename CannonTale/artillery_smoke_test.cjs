@@ -756,6 +756,7 @@ assert(!menuPanelClasses.has('menu-tight')&&!menuPanelClasses.has('menu-ultra'),
 el('hero-bear').click();el('duelBtn').click();frames(4);
 const bearLoadout=window.__artilleryLoadoutDebug();
 assert.equal(bearLoadout.player.weapon,'cannon');
+assert.equal(window.__duelHudDebug().heroAnchorX,114,'Allied bear HP must sit over the pilot head, not over the cannon pivot');
 assert.notEqual(bearLoadout.ai.hero,'bear');
 assert(splitCarriageDraws>=4&&splitBarrelDraws>=4&&splitCannonColumns.has(0),'The golden cannon must show both pivoted barrel and fixed wheels');
 assert.equal(paintedCannonDrawCalls,0,'Full one-piece cannon artwork should be fallback only');
@@ -767,6 +768,7 @@ el('angle').value='68';el('angle').dispatch('input');frames(2);
 const raised=window.__artilleryLoadoutDebug().playerMuzzle;
 assert(raised.x<muzzle.x&&raised.y<muzzle.y,'Raising aim must move the actual cannon mouth up and back');
 window.__forceAiHeroForTest('bear');frames(3);
+assert.equal(window.__duelHudDebug().opponentAnchorX,1094,'Enemy bear HP must sit over the actual right-side pilot head');
 assert(splitCannonColumns.has(887),'Enemy side must use the separately illustrated dark steel carriage and barrel');
 el('homeBtn').click();el('hero-fox').click();el('duelBtn').click();frames(2);
 el('fire').click();frames(30);
