@@ -73,7 +73,10 @@ assert(html.includes('#stageMap .stage-tile.selected'),'Stage selection needs a 
 assert(html.includes('#result .result-panel'),'End-of-battle should share the fantasy parchment theme');
 assert(html.includes('id="adventureBtn"')&&html.includes('id="duelBtn"'),'Illustrated mode buttons must keep interactive IDs');
 assert(!/<svg|image\/svg\+xml/.test(html),'CannonTale must stay SVG-free');
-assert(html.includes("duelPilot(pilot,x-dir*42"),'Duel must use independent crew portraits rather than full handheld weapon figures');
+assert(html.includes('art/duel_cannons_v21.webp'),'An original allied/enemy cannon atlas must be loaded');
+assert(html.includes('function duelActor(x,dir,own)'),'Duel visuals must be selected by the actual hero');
+assert(html.includes("if(hero==='bear'){cannon("),'Only the bear should operate a field cannon');
+assert(html.includes('duelHandMuzzles'),'Handheld weapons need their own launch points');
 assert(html.includes('const transition=attacking?'),'Authored foe attack/idle poses must blend through phase transitions');
 assert(html.includes('const heroMotionKeys={'),'All four heroes require independently timed six-step recoil');
 assert(html.includes('function drawChargeReadiness()'),'Charging should show an in-world muzzle effect');
@@ -84,8 +87,9 @@ assert(html.includes('grid-template-areas:"eyebrow modes"'),'Landscape layout mu
 const handlers={};
 const elements=new Map();
 const noOp=()=>{};
-let imageDrawCalls=0,mediumTrajectoryStrokes=0,duelPilotDrawCalls=0,previewDraws=[],badgeDraws=[];
-const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?(...args)=>{imageDrawCalls++;if(args.length===9&&args[7]===52&&args[8]===56)duelPilotDrawCalls++;}:key==='stroke'?()=>{if(obj.strokeStyle==='#f4e6b9b0'&&obj.lineWidth>=3&&obj.lineWidth<=5)mediumTrajectoryStrokes++;}:key==='clearRect'||key==='save'||key==='restore'||key==='translate'||key==='setTransform'||key==='beginPath'||key==='moveTo'||key==='lineTo'||key==='stroke'||key==='fill'||key==='ellipse'||key==='arc'||key==='roundRect'||key==='fillRect'||key==='fillText'||key==='strokeText'||key==='closePath'||key==='scale'||key==='rotate'||key==='rect'||key==='clip'||key==='bezierCurveTo'?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
+let imageDrawCalls=0,mediumTrajectoryStrokes=0,duelPilotDrawCalls=0,paintedCannonDrawCalls=0,previewDraws=[],badgeDraws=[];
+const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?(...args)=>{imageDrawCalls++;if(args.length===9&&args[7]===52&&args[8]===56)duelPilotDrawCalls++;if(args[0]?.id==='duelCannonArtwork')paintedCannonDrawCalls++;}:key==='stroke'?()=>{if(obj.strokeStyle==='#f4e6b9b0'&&obj.lineWidth>=3&&obj.lineWidth<=5)mediumTrajectoryStrokes++;}:key==='clearRect'||key==='save'||key==='restore'||key==='translate'||key==='setTransform'||key==='beginPath'||key==='moveTo'||key==='lineTo'||key==='stroke'||key==='fill'||key==='ellipse'||key==='arc'||key==='roundRect'||key==='fillText'||key==='strokeText'||key==='closePath'||key==='scale'||key==='rotate'||key==='rect'||key==='clip'||key==='bezierCurveTo'?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
+ctx.fillRect=noOp;
 const previewCtx=new Proxy(ctx,{get:(obj,key)=>key==='drawImage'?(...args)=>previewDraws.push(args):key==='clearRect'?noOp:obj[key]});
 function el(id){if(!elements.has(id)){const listeners={},classes=new Set(),item={id,hidden:false,disabled:false,style:{},value:'',textContent:'',dataset:{},clientWidth:id==='field'?1280:id==='heroPreviewCanvas'?210:0,clientHeight:id==='field'?620:id==='heroPreviewCanvas'?120:0,width:0,height:0,tagName:'DIV',classList:{toggle(cls,force){if(force===undefined)force=!classes.has(cls);if(force)classes.add(cls);else classes.delete(cls);return !!force;},contains(cls){return classes.has(cls);}},addEventListener(type,fn){listeners[type]=fn;},dispatch(type,event={}){listeners[type]?.({target:item,...event});},click(){this.dispatch('click');},getContext:()=>id==='heroPreviewCanvas'?previewCtx:id.startsWith('heroBadge')?new Proxy(ctx,{get:(obj,key)=>key==='drawImage'?(...args)=>badgeDraws.push({id,args}):obj[key]}):ctx,getBoundingClientRect(){return{left:0,top:0,width:this.clientWidth,height:this.clientHeight};},setPointerCapture:noOp};elements.set(id,item);}return elements.get(id);}
 const weapons=['normal','bomb','split'].map(type=>{const b=el('weapon-'+type);b.dataset.weapon=type;return b;});
@@ -93,6 +97,7 @@ const heroes=['fox','bear','rabbit','cat'].map(type=>{const b=el('hero-'+type);b
 const stages=[0,1,2,3].map(type=>{const b=el('stage-'+type);b.dataset.stage=String(type);return b;});
 for(const id of ['stageMap','result','help','exitConfirm','enemyEntrance','shotReview'])el(id).hidden=true;
 for(const id of ['materialArtwork','combatArtwork']){const art=el(id);art.complete=true;art.naturalWidth=id==='combatArtwork'?1262:1536;art.naturalHeight=id==='combatArtwork'?1246:1024;}
+{const art=el('duelCannonArtwork');art.complete=true;art.naturalWidth=1774;art.naturalHeight=887;}
 const document={referrer:'',getElementById:el,querySelectorAll:selector=>selector==='[data-weapon]'?weapons:selector==='[data-hero]'?heroes:selector==='[data-stage]'?stages:[]};
 if(/v0_[34]/.test(versionedPath)){const art=el('menuArtwork');art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}
 if(/v0_[567]/.test(versionedPath)){for(const type of ['menuArtwork','rosterArtwork']){const art=el(type);art.complete=true;art.naturalWidth=1200;art.naturalHeight=549;}}
@@ -411,7 +416,17 @@ if(/v0_[67]/.test(versionedPath)){
 }
 el('duelBtn').click();
 frames(4);
-assert(duelPilotDrawCalls>=2,'Both duel sides must render cropped pilots without duplicate weapon sprites');
+const activeDuelLoadout=window.__artilleryLoadoutDebug();
+const expectedWeapons={fox:'slingshot',bear:'cannon',rabbit:'crossbow',cat:'staff'};
+assert.equal(activeDuelLoadout.player.weapon,expectedWeapons[activeDuelLoadout.player.hero]);
+assert.equal(activeDuelLoadout.ai.weapon,expectedWeapons[activeDuelLoadout.ai.hero]);
+assert.notEqual(activeDuelLoadout.player.hero,activeDuelLoadout.ai.hero,'AI must select a distinct hero');
+assert(activeDuelLoadout.paintedCannonReady,'Both original bitmap cannons must load successfully');
+assert(activeDuelLoadout.playerMuzzle.weapon===activeDuelLoadout.player.weapon&&activeDuelLoadout.aiMuzzle.weapon===activeDuelLoadout.ai.weapon,
+ 'Duel muzzle positions must correspond to the wielded weapon');
+if(activeDuelLoadout.player.hero==='bear'||activeDuelLoadout.ai.hero==='bear'){
+ assert(paintedCannonDrawCalls>=4&&duelPilotDrawCalls>=4,'Bear sides must use a real illustrated cannon with only a cropped pilot');
+}
 assert.equal(state().mode,'duel');
 assert.equal(state().turn,'player');
 const popup=window.__damageDuelForTest('ai');
@@ -458,5 +473,12 @@ el('menu').clientWidth=360;el('menu').clientHeight=500;frames(2);
 assert(menuPanelClasses.has('menu-tight')&&menuPanelClasses.has('menu-ultra'),'Very short mobile viewport must engage both compact fallbacks');
 menuProbe.clientHeight=500;el('menu').clientHeight=720;frames(2);
 assert(!menuPanelClasses.has('menu-tight')&&!menuPanelClasses.has('menu-ultra'),'Larger viewports must restore illustrated layout');
+// Explicitly select the bear to prove that the golden allied cannon is actually drawn.
+el('hero-bear').click();el('duelBtn').click();frames(4);
+const bearLoadout=window.__artilleryLoadoutDebug();
+assert.equal(bearLoadout.player.weapon,'cannon');
+assert.notEqual(bearLoadout.ai.hero,'bear');
+assert(paintedCannonDrawCalls>=4,`The golden allied cannon cell must be rendered when Bear is selected (draws=${paintedCannonDrawCalls})`);
+assert.equal(bearLoadout.playerMuzzle.weapon,'cannon');
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');
