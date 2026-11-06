@@ -219,6 +219,15 @@ try{
     await page.locator('#game-root canvas').waitFor({timeout:25000});
     await page.waitForTimeout(420);
     if(size.width===390){
+      const thorn=await page.evaluate(()=>window.__ForestGuardQA.thornPaintingQA());
+      assert.ok(thorn&&thorn.loaded&&thorn.allLoaded,
+        'Chapter 1 thorn beetle needs its own decoded four-pose artwork: '+JSON.stringify(thorn));
+      assert.ok(thorn.sourceSize[0]>=1000&&thorn.sourceSize[1]>=1000,
+        'Beetle needs mobile-readable original painted detail');
+      assert.equal(thorn.uniqueActionPoses,4,
+        'Thorn must visibly distinguish idle, sprint, horn attack and hurt');
+      assert.ok(thorn.transparentCorners&&thorn.frames.every(([w,h])=>w>=128&&h>=128),
+        'Thorn poses must be square, cut out and alpha transparent: '+JSON.stringify(thorn));
       const alphas=await page.evaluate(()=>window.__ForestGuardQA.monsterCutoutAlpha());
       assert.ok(alphas&&Object.keys(alphas).length===10,'All ten monster textures must exist');
       assert.ok(Object.entries(alphas).every(([,corners])=>corners.every(value=>value===0)),
