@@ -50,6 +50,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v49ReachSweepForTest=()=>{newGame("duel",0);const result=[];for(const owner of ["player","ai"])for(const wind of [-4.8,0,4.8])for(const lift of [-1.8,0,1.8]){let farthest=owner==="player"?0:1200,closestGround=Infinity,groundX=null,groundAngle=null,groundPower=null,exitCount=0;const farSide=owner==="player"?1200:0;for(let angle=8;angle<=88;angle+=2)for(let power=80;power<=100;power+=2){const dots=predict(angle,power,wind,owner,900,0,lift,true),last=dots.impact||dots.at(-1);if(last&&(owner==="player"?last.x>farthest:last.x<farthest))farthest=last.x;if(dots.edgeExit)exitCount++;if(dots.impact?.kind==="terrain"&&Math.abs(dots.impact.x-farSide)<closestGround){closestGround=Math.abs(dots.impact.x-farSide);groundX=dots.impact.x;groundAngle=angle;groundPower=power;}}result.push({owner,wind,lift,farthest,closestGround,groundX,groundAngle,groundPower,exitCount});}return result;}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v49ShotVelocityForTest=(mode,power)=>{newGame(mode,0);const v=powerVelocity(45,power);return Math.hypot(v.vx,v.vy);}; window.__v49EdgeExitForTest=()=>{newGame("duel",0);const out=predict(18,100,4.8,"player",900,0,0,true);return{exit:out.edgeExit,groundImpact:out.impact?.kind||null,lastX:out.at(-1)?.x};}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v50HudHitForTest=(owner,center=true,fragments=1)=>{newGame("duel",0);const target=owner==="player"?"ai":"player",x=target==="ai"?1018:190;for(let i=0;i<fragments;i++)applyExplosion({x,y:terrainY(x)-29,weapon:fragments>1?"split":"normal",owner,directTarget:target,directCenter:center?5:24,timingAccuracy:owner==="player"?(center?1:.5):undefined,hero:duelHero(owner)});game.camera=target==="ai"?800:0;game.scale=1;drawDuelHealthHud(x,target);return{owner,target,hp:game[target+"Hp"],damage:game.hudDamage[target]?{...game.hudDamage[target]}:null,pulse:game.hudHitPulse[target],hold:game.hudHitDelay[target]};}; window.__v50HudImpactStateForTest=(owner)=>({damage:game.hudDamage[owner],painted:game.hudHealth[owner]}); window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -1040,6 +1042,21 @@ for(const [owner,portion,expected] of [['player',1,'100%'],['player',.5,'50%'],[
  assert(owner==='player'?label.x>=48&&label.align==='left':label.x<=-48&&label.align==='right',`${owner} percentage must face inward and avoid the viewport edge`);
  assert(!labels.some(entry=>/^\d+$/.test(entry.label)),`${owner} HUD must not draw raw 420-based HP totals`);
  if(portion<=.25)assert.equal(label.fill,'#ffe1a3','Low health should use a shared warm warning color');
+}
+for(const owner of ['player','ai']){
+ hudTextCapture=[];
+ const critical=window.__v50HudHitForTest(owner,true),labels=hudTextCapture;
+ hudTextCapture=null;
+ assert(critical.damage?.critical&&critical.damage.loss===420-critical.hp,`Centered ${owner} hit must deliver a critical HUD response in matching percentage units`);
+ assert(critical.pulse>=1&&critical.hold>=.34,'A center strike should provide a pronounced gauge shake and readable delayed drain');
+ const percent=Math.round(critical.damage.loss/420*100);
+ assert(labels.some(label=>label.label===`−${percent}%`),`The struck ${critical.target} must see its lost durability as a flying percentage`);
+ frames(70);
+ assert.equal(window.__v50HudImpactStateForTest(critical.target).damage,null,'Damage badges must fade away instead of permanently cluttering the HUD');
+ const direct=window.__v50HudHitForTest(owner,false);
+ assert(direct.damage?.direct&&!direct.damage.critical,'Off-center direct impacts must not impersonate a critical');
+ const fragments=window.__v50HudHitForTest(owner,true,5);
+ assert(fragments.damage.loss===420-fragments.hp&&fragments.damage.loss<=100,'Multi-fragment damage must merge into one exact percentage badge and respect volley cap');
 }
 const fullRange=window.__v49ReachSweepForTest();
 assert.equal(fullRange.length,18,'Range coverage must test both combatants and all nine horizontal/vertical wind combinations');

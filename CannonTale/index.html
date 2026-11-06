@@ -3102,7 +3102,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function newGame(mode,stage=0){
   game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(mode==='duel'?-4.2:-3.3,mode==='duel'?4.2:3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);if(mode==='duel'&&Math.abs(game.wind)<1.15)game.wind=game.wind<0?-1.15:1.15;game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:Infinity;game.playerHp=DUEL_MAX_HP;game.aiHp=DUEL_MAX_HP;game.duelVolleyDamage={player:0,ai:0};game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
-  game.hudHealth={player:DUEL_MAX_HP,ai:DUEL_MAX_HP};game.hudHitPulse={player:0,ai:0};game.hudHitDelay={player:0,ai:0};game.hudDrawn={player:false,ai:false};game.duelHitMotion={player:null,ai:null};game.shotHighlights={direct:false,critical:false};game.windGuide=null;
+  game.hudHealth={player:DUEL_MAX_HP,ai:DUEL_MAX_HP};game.hudHitPulse={player:0,ai:0};game.hudHitDelay={player:0,ai:0};game.hudDamage={player:null,ai:null};game.hudDrawn={player:false,ai:false};game.duelHitMotion={player:null,ai:null};game.shotHighlights={direct:false,critical:false};game.windGuide=null;
   game.windLift=rnd(-1.9,1.9);game.shotInfluences=null;
   game.precisionActive=false;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionLast=null;game.hitEmphasis=[];$('precisionPanel').hidden=true;$('aimTelemetry').hidden=false;
   // Every duel is hero-versus-hero. The opponent is different from the selected player.
@@ -3394,7 +3394,9 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function applyExplosion(p){
   game.lastImpact={x:clamp(p.x,0,W),y:clamp(p.y,0,H)};
-  const direct=!!p.directTarget,critical=direct&&p.owner==='player'&&(p.timingAccuracy>=.9||p.directCenter<=11),bonus=critical?1.38:direct?1.16:1;
+  // Both combatants can score a critical center strike. The AI shares the
+  // same ballistic collision rule; only human shots additionally use timing.
+  const direct=!!p.directTarget,critical=direct&&(p.timingAccuracy>=.9||p.directCenter<=11),bonus=critical?1.38:direct?1.16:1;
   game.shotHighlights.direct ||=direct;game.shotHighlights.critical ||=critical;
   const big=p.weapon==='bomb',radius=big?105:p.weapon==='split'?55:62,damage=(big?105:p.weapon==='split'?46:72)*(p.guided?1.08:1)*bonus;
   game.shake=Math.max(game.shake,critical?25:direct?17:big?19:11);game.hitStop=Math.max(game.hitStop,critical?.095:direct?.062:big?.051:.034);game.flash=critical?.28:big?.2:.12;game.rings.push({x:p.x,y:p.y,r:9,max:radius*(critical?1.6:1.14),life:critical?.68:.48,total:critical?.68:.48,color:critical?'#baffea':big?'#ffdfab':'#fff7d7'});game.blastCores.push({x:p.x,y:p.y,hero:p.hero||'fox',weapon:p.weapon||'normal',life:big?.65:.46,total:big?.65:.46,radius:big?69:41,seed:rnd(0,6.3)});game.blastCores=game.blastCores.slice(-12);crater(p.x,p.y,big?49:27);spawnSparks(p.x,p.y,critical?75:direct?48:big?56:32,critical?'#baffdf':big?'#ffb966':'#fff0be',critical?1.6:big?1.3:1);for(let i=0;i<(big?14:8);i++){const px=p.x+rnd(-26,26);game.particles.push({x:px,y:p.y+rnd(-8,8),vx:rnd(-85,85),vy:rnd(-125,-25),life:rnd(.45,.92),max:.92,r:rnd(6,15),color:i%2?'#b88f7388':'#eee0c288'});}
@@ -3424,8 +3426,14 @@ body,button,input,select{font-family:var(--ct-ui-font)}
      const val=Math.min(potential,remaining);if(val<=0)continue;
      game.duelVolleyDamage[c.owner]+=val;
      if(c.owner==='player')game.playerHp=Math.max(0,game.playerHp-val);else game.aiHp=Math.max(0,game.aiHp-val);
-     game.hudHitPulse[c.owner]=critical?.9:direct?.72:.55;
-     game.hudHitDelay[c.owner]=critical?.27:direct?.22:.15;
+     game.hudHitPulse[c.owner]=critical?1:direct?.82:.66;
+     game.hudHitDelay[c.owner]=critical?.34:direct?.27:.2;
+     // A split volley produces one accumulating percent readout, rather than
+     // overlapping small labels that obscure the character's actual gauge.
+     const previous=game.hudDamage[c.owner],live=previous?.life>0;
+     const total=critical?1.05:direct?.87:.72;
+     game.hudDamage[c.owner]={loss:(live?previous.loss:0)+val,life:total,total,
+      critical:critical||(live&&previous.critical),direct:direct||(live&&previous.direct)};
      game.duelHitMotion[c.owner]={life:critical?.67:direct?.51:.38,total:critical?.67:direct?.51:.38,strength:critical?19:direct?13:8,direction:c.x<p.x?-1:1};
      spawnCombatPopup(c.owner,'-'+val,c.owner===p.directTarget?(critical?'critical':'direct'):big?'blast':'normal');
      actorMotion(c.owner,'hit',.52);skillEffect('hit',c.x,cy,.45);spawnSparks(c.x,cy,12,'#fdd2a8',.8);}
@@ -3535,6 +3543,10 @@ body,button,input,select{font-family:var(--ct-ui-font)}
     // read the damage amount without a bulky framed HP panel.
     if(game.hudHitDelay[side]===0)game.hudHealth[side]=Math.abs(actual-shown)<.15?actual:shown+(actual-shown)*Math.min(1,dt*2.45);
     game.hudHitPulse[side]=Math.max(0,game.hudHitPulse[side]-dt);
+    if(game.hudDamage[side]){
+     game.hudDamage[side].life=Math.max(0,game.hudDamage[side].life-dt);
+     if(game.hudDamage[side].life===0)game.hudDamage[side]=null;
+    }
    }
   }
   if(game.precisionActive){
@@ -3796,25 +3808,39 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   if(!visible)return;
   const hp=clamp(owner==='player'?game.playerHp:game.aiHp,0,DUEL_MAX_HP),shown=clamp(game.hudHealth[owner],0,DUEL_MAX_HP);
   const ally=owner==='player',pulse=game.hudHitPulse[owner]||0;
+  const wound=game.hudDamage[owner],low=hp>0&&hp<=DUEL_MAX_HP*.25;
   // About 82 CSS pixels in normal combat, smaller still in full-battle overview.
   const uiScale=clamp(1/Math.max(.001,game.scale),.55,2.35);
   ctx.save();ctx.translate(anchor.x,anchor.y);ctx.scale(uiScale,uiScale);
+  // Kinetic impact: a brief sideways recoil that settles with the hit flash.
+  if(pulse>0)ctx.translate(Math.sin((1-pulse)*29)*Math.min(3.3,pulse*3.3)*(ally?-1:1),0);
   // No plaque, decorative frame or extra button border: just a slim, soft HP gauge.
   roundRect(-41,-3,82,7,3.5,'#11242fba');
   if(shown>hp+.5){
    // The golden afterimage visibly drains toward the new health value.
-   ctx.shadowColor='#fff8ba';ctx.shadowBlur=4+pulse*8;
-   roundRect(-41+82*hp/DUEL_MAX_HP,-3,Math.max(0,82*(shown-hp)/DUEL_MAX_HP),7,2,'#ffe0a9');ctx.shadowBlur=0;
+   ctx.shadowColor='#ffe7ae';ctx.shadowBlur=3+pulse*6;
+   const start=-41+82*hp/DUEL_MAX_HP,length=Math.max(0,82*(shown-hp)/DUEL_MAX_HP);
+   roundRect(start,-3,length,7,2,'#fcd48b');ctx.shadowBlur=0;
+   if(pulse>.12)roundRect(start,-5,Math.max(1,length),1.6,1,'#fff6d5');
   }
   if(hp>0){
    const health=ctx.createLinearGradient(0,-3,0,4);
-   if(ally){health.addColorStop(0,'#c0ffe8');health.addColorStop(.42,'#59e7bd');health.addColorStop(1,'#209f9b');}
+   if(low){health.addColorStop(0,'#ffdf99');health.addColorStop(.42,'#ff9177');health.addColorStop(1,'#d84c61');}
+   else if(ally){health.addColorStop(0,'#c0ffe8');health.addColorStop(.42,'#59e7bd');health.addColorStop(1,'#209f9b');}
    else{health.addColorStop(0,'#ffe6a5');health.addColorStop(.42,'#ff9b6b');health.addColorStop(1,'#db5359');}
-   ctx.shadowColor=ally?'#46ffe2':'#ffad79';ctx.shadowBlur=2.5+pulse*5;
+   const heartbeat=low?.5+.5*Math.pow(Math.sin(game.clock*5.5),2):0;
+   ctx.shadowColor=low?'#ffae87':ally?'#46ffe2':'#ffad79';ctx.shadowBlur=2+pulse*5+heartbeat*2.5;
    roundRect(-41,-3,Math.max(1,82*hp/DUEL_MAX_HP),7,3.5,health);
    ctx.shadowBlur=0;
   }
-  if(pulse>0){ctx.globalAlpha=Math.min(.6,pulse*.8);roundRect(-41,-3,82,7,3.5,'#fff6da');ctx.globalAlpha=Math.min(.8,pulse);ctx.strokeStyle=ally?'#b8fff2':'#ffdfb4';ctx.lineWidth=1.8;ctx.beginPath();ctx.roundRect(-45-pulse*3,-7-pulse*2,90+pulse*6,15+pulse*4,7);ctx.stroke();}
+  if(pulse>0){
+   // Two short outward streaks communicate impact without enclosing the HUD.
+   ctx.globalAlpha=Math.min(.83,pulse*.95);roundRect(-41,-3,82,7,3.5,'#fff6da');
+   ctx.strokeStyle=wound?.critical?'#fff0a8':'#fff0d4';ctx.lineWidth=wound?.critical?2.3:1.5;
+   const spread=4+(1-pulse)*9;
+   for(const dir of [-1,1]){ctx.beginPath();ctx.moveTo(dir*(44+spread),-4);ctx.lineTo(dir*(50+spread),-8);ctx.moveTo(dir*(44+spread),4);ctx.lineTo(dir*(50+spread),8);ctx.stroke();}
+   ctx.globalAlpha=1;
+  }
   // The compact percentage flanks the bar, never floats above the character.
   // Rival labels face inward so the far-right enemy stays readable near the viewport edge.
   const percent=`${Math.ceil(hp/DUEL_MAX_HP*100)}%`;
@@ -3823,6 +3849,21 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   ctx.shadowColor='#11262e';ctx.shadowBlur=3.5;
   ctx.fillStyle=hp<=DUEL_MAX_HP*.25?'#ffe1a3':ally?'#d2fff0':'#ffe0cd';
   ctx.fillText(percent,ally?49:-49,.5,39);
+  if(low){
+   // Tiny, pulsing low-health beacon: no large alert box or extra label.
+   ctx.shadowBlur=0;ctx.globalAlpha=.48+.48*Math.pow(Math.sin(game.clock*5.5),2);
+   ctx.fillStyle='#ffae86';ctx.beginPath();ctx.arc(ally?-47:47,.4,2.1,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+  }
+  if(wound){
+   // Percentage loss is expressed in the same units as the adjacent HUD.
+   const progress=1-wound.life/wound.total,fade=Math.min(1,wound.life/.25);
+   const loss=Math.round(wound.loss/DUEL_MAX_HP*100);
+   ctx.textAlign=ally?'left':'right';ctx.font=`900 ${wound.critical?14:12}px "Malgun Gothic",system-ui,sans-serif`;
+   ctx.globalAlpha=fade;ctx.shadowColor='#392f35';ctx.shadowBlur=3;
+   ctx.fillStyle=wound.critical?'#ffe9a0':wound.direct?'#ffdfb8':'#f9e8cb';
+   ctx.fillText(`−${loss}%`,ally?49:-49,-12-progress*11,48);
+   ctx.globalAlpha=1;
+  }
   ctx.shadowBlur=0;
   ctx.restore();
  }
