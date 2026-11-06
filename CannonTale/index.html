@@ -3125,7 +3125,9 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   $('precisionPanel').hidden=false;$('precisionHeadline').textContent='중앙에 맞춰 발사!';
   $('precisionFoot').textContent='청록 정타 · 연두 근접 · 빨강 거리 손실';
   $('precisionNeedle').style.left='0%';
-  game.message='타이밍! 중앙을 맞혀 주세요';game.messageTime=1.1;
+  // The illustrated timing panel already explains the action; avoid a second
+  // large ground toast that obscures the target during a precision attempt.
+  game.message='';game.messageTime=0;
   updateHud();return true;
  }
  function precisionGrade(position){

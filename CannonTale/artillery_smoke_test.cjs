@@ -307,6 +307,7 @@ function fireNow(){
  el('fire').click();
  assert.equal(state().phase,'timing','First fire tap opens the moving precision gauge');
  assert.equal(el('precisionPanel').hidden,false,'The original illustrated precision gauge is visible');
+ assert.equal(window.__cannonUiDebug().message,'','Precision timing must not display a duplicate battlefield-blocking toast');
  const needleBefore=el('precisionNeedle').style.left;
  frames(21);
  assert.notEqual(el('precisionNeedle').style.left,needleBefore,'Precision needle must actually sweep across the gauge');
