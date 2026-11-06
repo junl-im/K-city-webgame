@@ -149,6 +149,7 @@
   const heroAttackBitmaps = {bear:null,rabbit:null,cat:null,megafox:null}; // v4.4 illustrated rear-view sheets
   const chapterBossBitmaps={3:null,7:null,11:null};
   let forestSentinelBitmap=null; // Chapter 1 has its own midboss instead of a reused silhouette.
+  let thornBeetleBitmap=null; // 2×2 genuine beetle poses replace the old hedgehog-like placeholder.
   const ART_VERSION = '20261031r';
   // Mobile connections may exceed the old eight-second cutoff during decoding.
   async function loadIllustration(url,assign,required=false){
@@ -191,6 +192,9 @@
       // Ten separately painted impact poses on one compact transparent 5×2 WebP.
       // Optional: failed loading leaves the existing bounded Canvas reactions intact.
       loadIllustration('./art/forest-monsters-hurt-clean-v49.webp?v=20261104v49b',art=>{monsterHurtBitmap=art;}),
+      // v5.3: the small first-chapter scout must read as a spined beetle,
+      // even on a 320px phone. This optional 2×2 sheet has an atlas fallback.
+      loadIllustration('./art/chapter1-thorn-beetle-v53.webp?v=20261106v53',art=>{thornBeetleBitmap=art;}),
       loadIllustration('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;}),
       loadIllustration('./art/mushroom-colossus-attack-v19.webp?v=20261101d',art=>{mushroomAttackBitmap=art;}),
       loadIllustration('./art/rani-element-spells-v38.png?v=20261103a',art=>{elementSpellBitmap=art;}),
@@ -736,6 +740,18 @@
         isolateEnemyBackdrop(c,w,h);V.cleanEnemyFrame(c,w,h);
       }else paintEnemy(c,w,h,['thorn','spore','imp'].includes(type)?'sprout':type==='crystal'?'brute':'boss');
     }));
+    // Keep the atlas silhouette only when the new optional species painting
+    // is unavailable. The independent beetle base also gives its death
+    // animation the correct insect outline, without changing battle rules.
+    if(thornBeetleBitmap){
+      scene.textures.remove('enemy-thorn');
+      const cw=thornBeetleBitmap.naturalWidth/2,ch=thornBeetleBitmap.naturalHeight/2;
+      createCanvasTexture(scene,'enemy-thorn',128,128,c=>{
+        const fit=Math.min(124/cw,124/ch),w=cw*fit,h=ch*fit;
+        c.drawImage(thornBeetleBitmap,0,0,cw,ch,(128-w)/2,(128-h)/2,w,h);
+        V.cleanEnemyFrame(c,128,128);
+      });
+    }
     for(let i=0;i<8;i++)createCanvasTexture(scene,'evo-'+i,128,128,(c,w,h)=>{
       if(evolutionBitmap){const cw=evolutionBitmap.naturalWidth/4,ch=evolutionBitmap.naturalHeight/2;
         c.drawImage(evolutionBitmap,(i%4)*cw,Math.floor(i/4)*ch,cw,ch,0,0,w,h);
@@ -869,6 +885,28 @@
         c.drawImage(mushroomAttackBitmap,shroomAttackPose[frame]*320,0,320,320,0,0,128,128);
         V.cleanEnemyFrame(c,128,128);
       });
+    }
+    // Four distinct hand-painted insect poses: steady watch, six-legged
+    // sprint, forward horn thrust and readable recoil. Keep the original
+    // derived death frames so a defeated scout visibly dissolves.
+    if(thornBeetleBitmap){
+      const cw=thornBeetleBitmap.naturalWidth/2,ch=thornBeetleBitmap.naturalHeight/2;
+      const thornPoses={idle:[0,0,0,0],run:[0,1,1,0],attack:[0,1,2,0],
+        hurt:[0,3,3,3,0],victory:[0,1,0,1]};
+      for(const [motion,sequence] of Object.entries(thornPoses)){
+        for(const [frame,pose] of sequence.entries()){
+          const key='motion-thorn-'+motion+'-'+frame;
+          if(scene.textures.exists(key))scene.textures.remove(key);
+          createCanvasTexture(scene,key,160,160,c=>{
+            const fit=Math.min(154/cw,154/ch),w=cw*fit,h=ch*fit;
+            const recoil=motion==='hurt'&&pose===3?3:0;
+            c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
+            c.drawImage(thornBeetleBitmap,(pose%2)*cw,Math.floor(pose/2)*ch,cw,ch,
+              (160-w)/2,(160-h)/2-recoil,w,h);
+            V.cleanEnemyFrame(c,160,160);
+          });
+        }
+      }
     }
     // 2×2 original paintings become complete timed action sequences. In other
     // chapters, the existing midboss painter remains untouched as fallback.
@@ -2412,6 +2450,30 @@
         return {loaded,frames,frameSize:[frame.width,frame.height],portrait:document.getElementById('boss-portrait').className,
           background:getComputedStyle(document.getElementById('boss-portrait')).backgroundImage,
           title:document.getElementById('boss-title').textContent};
+      },
+      thornPaintingQA(){
+        if(!battle||battle.ended)return null;
+        const keys=['motion-thorn-idle-0','motion-thorn-run-1',
+          'motion-thorn-attack-2','motion-thorn-hurt-2','motion-thorn-death-3'];
+        const allLoaded=keys.every(key=>battle.textures.exists(key));
+        if(!allLoaded)return {loaded:!!thornBeetleBitmap,allLoaded:false};
+        const images=keys.map(key=>battle.textures.get(key).getSourceImage());
+        const distinct=images.slice(0,4).map(canvas=>{
+          const ctx=canvas.getContext('2d',{willReadFrequently:true});
+          const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+          let hash=2166136261;
+          for(let p=0;p<data.length;p+=32){hash=Math.imul(hash^data[p],16777619);hash=Math.imul(hash^data[p+3],16777619);}
+          return hash>>>0;
+        });
+        const corners=images.slice(0,4).map(canvas=>{
+          const ctx=canvas.getContext('2d',{willReadFrequently:true});
+          return [[0,0],[canvas.width-1,0],[0,canvas.height-1],[canvas.width-1,canvas.height-1]]
+            .every(([x,y])=>ctx.getImageData(x,y,1,1).data[3]===0);
+        });
+        return {loaded:!!thornBeetleBitmap,allLoaded,
+          sourceSize:thornBeetleBitmap?[thornBeetleBitmap.naturalWidth,thornBeetleBitmap.naturalHeight]:null,
+          frames:images.map(canvas=>[canvas.width,canvas.height]),
+          uniqueActionPoses:new Set(distinct).size,transparentCorners:corners.every(Boolean)};
       },
       showEliteIntro(type='shroom'){
         if(!battle||battle.ended)return false;

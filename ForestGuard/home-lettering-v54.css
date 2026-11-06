@@ -1,0 +1,110 @@
+/* ForestGuard v5.4 — ink lives inside each illustrated wooden surface.
+ * Only text layout changes; original WebP art, silhouettes and tap targets stay intact.
+ * No SVG, no duplicated frame, no scrolling home layout. */
+.menu:not(.stage-choosing) .menu-actions-top #start-btn{
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:6px 28px!important;
+  text-align:center!important;
+  text-indent:0!important;
+  white-space:nowrap!important;
+  font-family:var(--fg-action-font)!important;
+  font-size:clamp(18px,4.8vw,21px)!important;
+  font-weight:850!important;
+  letter-spacing:.04em!important;
+  line-height:1!important;
+}
+/* Position the illustrated play decal independently so its width never
+ * pushes the word '시작' away from the actual center of the wooden button. */
+.menu:not(.stage-choosing) .menu-actions-top #start-btn span.painted-icon{
+  position:absolute!important;
+  width:22px!important;height:22px!important;
+  top:50%!important;right:clamp(15px,4.2vw,22px)!important;
+  transform:translateY(-50%)!important;
+  margin:0!important;padding:0!important;
+}
+/* Exactly two safe areas in the painted stage sign: quest text and CTA.
+ * The carved edge ornaments remain visible and cannot collide with the type. */
+.menu:not(.stage-choosing) .home-stage-spot{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) clamp(99px,27vw,116px)!important;
+  align-items:center!important;
+  column-gap:clamp(6px,1.8vw,11px)!important;
+  min-height:clamp(96px,13dvh,108px)!important;
+  padding:clamp(12px,2dvh,17px) clamp(19px,5.3vw,27px)!important;
+  box-sizing:border-box!important;
+}
+.menu:not(.stage-choosing) .home-stage-copy{
+  display:flex!important;flex-direction:column!important;
+  align-self:center!important;justify-content:center!important;
+  width:100%!important;min-width:0!important;
+  max-width:100%!important;overflow:hidden!important;
+  gap:2px!important;margin:0!important;
+}
+.menu:not(.stage-choosing) .home-stage-copy small{
+  display:block!important;
+  font-family:var(--fg-story-font)!important;
+  font-size:clamp(10px,2.65vw,11.5px)!important;
+  font-weight:750!important;
+  line-height:1.12!important;
+  letter-spacing:0!important;
+  color:#f9ddac!important;
+}
+.menu:not(.stage-choosing) .home-stage-copy strong{
+  display:block!important;
+  max-width:100%!important;
+  font-family:var(--fg-action-font)!important;
+  font-size:clamp(13px,3.5vw,15.5px)!important;
+  line-height:1.15!important;
+  letter-spacing:-.035em!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  color:#fff1cf!important;
+  text-shadow:0 1px 3px #1b1109!important;
+}
+.menu:not(.stage-choosing) .home-stage-copy span{
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;line-clamp:2!important;
+  width:100%!important;max-width:100%!important;
+  overflow:hidden!important;overflow-wrap:break-word!important;
+  white-space:normal!important;word-break:keep-all!important;
+  font-family:var(--fg-story-font)!important;
+  font-size:clamp(10.5px,2.85vw,12px)!important;
+  line-height:1.2!important;
+  font-weight:650!important;
+  color:#f7e8c6!important;
+  text-shadow:0 1px 3px #1b160c!important;
+}
+.menu:not(.stage-choosing) .home-stage-spot #stage-list-btn{
+  justify-self:end!important;align-self:center!important;
+  width:100%!important;min-width:0!important;max-width:116px!important;
+  min-height:43px!important;height:43px!important;
+  padding:4px 8px!important;
+  box-sizing:border-box!important;
+  text-align:center!important;white-space:nowrap!important;
+  font-family:var(--fg-action-font)!important;
+  font-size:clamp(11px,2.95vw,12.8px)!important;
+  font-weight:850!important;
+  letter-spacing:-.06em!important;
+  line-height:1!important;
+}
+@media(max-width:360px){
+  .menu:not(.stage-choosing) .home-stage-spot{
+    grid-template-columns:minmax(0,1fr) 101px!important;
+    padding-inline:clamp(16px,5vw,19px)!important;
+    column-gap:5px!important;
+  }
+  .menu:not(.stage-choosing) .home-stage-copy span{
+    -webkit-line-clamp:2!important;line-clamp:2!important;
+  }
+}
+@media(max-height:620px){
+  .menu:not(.stage-choosing) .home-stage-spot{
+    min-height:92px!important;padding-block:10px!important;
+  }
+  .menu:not(.stage-choosing) .home-stage-copy span{
+    -webkit-line-clamp:1!important;line-clamp:1!important;
+  }
+}
