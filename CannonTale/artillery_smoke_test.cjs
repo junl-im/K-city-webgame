@@ -37,6 +37,11 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 script=script.replace('f.deathTimer=frame===5?3.8:0;','f.deathTimer=frame===5?3.59:0;');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v45AiCycleForTest=(difficulty,wind)=>{newGame("duel",0);game.difficulty=difficulty;game.wind=wind;return Array.from({length:8},()=>chooseAiShot());}; window.__v45CriticalRecoilForTest=()=>{newGame("duel",0);applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:8,timingAccuracy:1,hero:game.hero});return game.duelHitMotion.ai?{...game.duelHitMotion.ai}:null;}; window.__v45RecoilLifeForTest=()=>game.duelHitMotion.ai?.life||0; window.__artilleryLoadoutDebug=');
+script=script.replace('game.wind=wind;game.angle=43;game.power=80;updateHud();', 'game.wind=wind;game.windLift=0;game.angle=43;game.power=80;updateHud();');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v46WindSweepForTest=()=>{newGame("duel",0);game.angle=43;game.power=76;return [[0,0],[-4,0],[4,0],[0,-1.8],[0,1.8],[-4,-1.8],[4,1.8]].map(([wind,lift])=>{const line=predict(43,76,wind,"player",900,0,lift,true),p=line.impact||line.at(-1);return{wind,lift,x:p.x,y:p.y};});}; window.__v46NeedleForTest=(needle,wind=0,lift=0)=>{newGame("duel",0);game.wind=wind;game.windLift=lift;game.angle=43;game.power=76;beginPrecision();game.precisionNeedle=needle;lockPrecision();const line=predict(43,game.precisionLast.adjusted,wind,"player",900,game.precisionLast.sideBias,lift,true),p=line.impact||line.at(-1);return{grade:game.precisionLast.grade,x:p.x,steer:game.precisionLast.sideBias,initialVx:game.projectiles[0].vx,windInfluence:game.shotInfluences.wind,timingInfluence:game.shotInfluences.timing};}; window.__v46AiForceForTest=(wind,lift)=>{newGame("duel",0);game.wind=wind;game.windLift=lift;game.difficulty="normal";const shot=chooseAiShot();launch("ai",shot.angle,shot.power,shot.weapon,undefined,shot.timingBias);const p=game.projectiles[0],before=p.vx;step(1/60);return{wind,lift,before,after:p.vx,bias:p.timingBias};}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v46CompassForTest=()=>{newGame("duel",0);return [[-3,-1.1],[3,-1.1],[-3,1.1],[3,1.1]].map(([wind,lift])=>{game.wind=wind;game.windLift=lift;updateHud();return $("windVector").textContent;});}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -680,6 +685,7 @@ if(/v0_[67]/.test(versionedPath)){
  assert.equal(JSON.parse(saved.get('wind-artillery-progress-v06')).hero,'cat','Hero choice must persist');
  assert.deepEqual(state().savedBest.slice(0,2),[3,2],'Prior progress must not be lost');
  el('adventureStage').value='2';el('adventureBtn').click();frames(3);
+ const winsBeforeCompletion=state().savedWins;
  window.__finishForTest(true);
  assert.equal(el('result').dataset.outcome,'won','Victory artwork state should be set');
  assert.equal(el('result').dataset.mode,'adventure','Result art must reflect adventure mode');
@@ -689,9 +695,9 @@ if(/v0_[67]/.test(versionedPath)){
  assert.equal(el('resultMedals').hidden,false,'Adventure win must show the painted three-slot medal row');
  assert.equal(el('resultMedals').dataset.stars,'3','A two-shot completion must illuminate all three medals');
  assert.equal(state().savedBest[2],3,'A successful stage must save its best grade');
- assert.equal(state().savedWins,6,'Victory total must increase');
+ assert.equal(state().savedWins,winsBeforeCompletion+1,'Victory total must increase');
  assert.equal(el('adventureStage').value,'3','The menu must recommend the next stage');
- assert.equal(JSON.parse(saved.get('wind-artillery-progress-v06')).wins,6,'Victory must be persisted to storage');
+ assert.equal(JSON.parse(saved.get('wind-artillery-progress-v06')).wins,winsBeforeCompletion+1,'Victory must be persisted to storage');
  el('resultHomeBtn').click();
 }
 el('duelBtn').click();
@@ -946,6 +952,8 @@ for(let stage=0;stage<4;stage++){
 for(const [needle,grade] of [[.5,'perfect'],[.43,'near'],[.68,'normal'],[.93,'off']]){
  assert.equal(window.__v43GradeForTest(needle).grade,grade,`Precision band ${needle} must have a predictable damage/range effect`);
 }
+assert.equal(window.__v43GradeForTest(.525).grade,'near','A very narrow center must no longer award a perfect hit');
+assert.equal(window.__v43GradeForTest(.48).grade,'perfect','Only the new four-percent-wide target may grant a perfect hit');
 const offCenter=window.__v43GradeForTest(.93),perfect=window.__v43GradeForTest(.5);
 assert(perfect.powerFactor>offCenter.powerFactor,'Perfect timing must yield visibly more range than an outer miss');
 const ordinaryDirect=window.__v43DirectForTest(.5);
@@ -961,6 +969,21 @@ const gustGuide=window.__v44WindGuideForTest(4.2);
 assert(calmGuide.guide&&Math.abs(calmGuide.guide.drift)<=1&&calmGuide.hidden,'No-wind aiming must not clutter the view with a false drift indicator');
 assert(gustGuide.guide&&Math.abs(gustGuide.guide.drift)>=20&&!gustGuide.hidden,'Strong wind must reveal a measurable no-wind versus actual-impact offset');
 assert(gustGuide.label.includes(gustGuide.guide.drift>=0?'→':'←'),'Wind compensation arrow must match actual projectile displacement');
+const windSweep=window.__v46WindSweepForTest();
+const [still,headwind,tailwind,rising,falling,diagonalUp,diagonalDown]=windSweep;
+assert(headwind.x<still.x-90&&tailwind.x>still.x+90,'Strong opposite crosswinds must change the ground landing by visibly large distances');
+assert(Math.abs(rising.x-falling.x)>45,'Updraft and downdraft must change hang time and horizontal landing, not just the icon');
+assert(diagonalUp.x<headwind.x+120&&diagonalDown.x>tailwind.x-120,'Diagonal wind must preserve its horizontal push while adding vertical effects');
+assert.deepEqual(window.__v46CompassForTest(),['↖','↗','↙','↘'],'The wind gauge must show all four diagonal directions correctly');
+const leanLeft=window.__v46NeedleForTest(.1),leanRight=window.__v46NeedleForTest(.9);
+assert(leanLeft.x<leanRight.x-100,'Stopping the timing needle left or right must noticeably steer the actual landing');
+assert(leanLeft.initialVx<leanRight.initialVx-100,'Timing directional effect must enter launch velocity, not only result text');
+const cornerBias=window.__v46NeedleForTest(.9,-3.5,1.3);
+assert(Math.abs(cornerBias.windInfluence)>70&&Math.abs(cornerBias.timingInfluence)>70,'Impact report must separately expose significant wind and timing corrections: '+JSON.stringify(cornerBias));
+const aiCrosswind=window.__v46AiForceForTest(-4.2,1.2);
+assert(aiCrosswind.after<aiCrosswind.before-1&&Math.abs(aiCrosswind.bias)<=1,'The AI projectile must feel the same strong wind physics and its own timing uncertainty');
+const aiReverseWind=window.__v46AiForceForTest(4.2,-1.2);
+assert(aiReverseWind.after>aiReverseWind.before+1&&Math.abs(aiReverseWind.bias)<=1,'The AI must also be pushed the opposite way by reversed diagonal wind');
 window.__v43DirectForTest(1);
 const justHit=window.__v44HealthForTest();
 assert(justHit.hold>.2&&justHit.shown>justHit.actual,'Critical damage must retain a readable HP afterimage before draining');

@@ -2573,8 +2573,8 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 .precision-panel[hidden]{display:none!important}
 .precision-head{font:950 clamp(11px,1.2vw,15px) var(--ct-ui-font);color:#fff3cf;text-align:center;line-height:1.3;text-shadow:0 2px 3px #142431,0 0 9px #152c38}
 .precision-hit{position:relative;display:block;width:100%;aspect-ratio:1200/387;border:0!important;box-shadow:none!important;outline:0;border-radius:0;background:transparent url('art/precision_timing_v43.webp') center/100% 100% no-repeat;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.precision-meter{position:absolute;left:7.3%;width:85.4%;top:57%;height:clamp(7px,1.1vh,11px);transform:translateY(-50%);border-radius:9px;overflow:visible;background:linear-gradient(90deg,#e15855 0 18%,#e9b96b 18% 33%,#c6e78b 33% 44%,#55eab8 44% 56%,#c6e78b 56% 67%,#e9b96b 67% 82%,#e15855 82% 100%);box-shadow:0 0 5px #071a28b8,inset 0 1px 3px #1820289a}
-.precision-center{position:absolute;left:44%;width:12%;height:100%;border-radius:3px;background:#b6ffee7d;box-shadow:0 0 8px #adffdcaa}
+.precision-meter{position:absolute;left:7.3%;width:85.4%;top:57%;height:clamp(7px,1.1vh,11px);transform:translateY(-50%);border-radius:9px;overflow:visible;background:linear-gradient(90deg,#e15855 0 24%,#e9b96b 24% 32%,#c6e78b 32% 41%,#78dfa9 41% 48%,#51ffd2 48% 52%,#78dfa9 52% 59%,#c6e78b 59% 68%,#e9b96b 68% 76%,#e15855 76% 100%);box-shadow:0 0 5px #071a28b8,inset 0 1px 3px #1820289a}
+.precision-center{position:absolute;left:48%;width:4%;height:100%;border-radius:3px;background:#b6ffeea8;box-shadow:0 0 8px #adffdcaa}
 .precision-needle{position:absolute;left:50%;top:50%;height:clamp(23px,3.9vh,34px);width:4px;border-radius:3px;transform:translate(-50%,-50%);background:#fff9d0;box-shadow:0 0 3px #142b38,0 0 9px #fff3bc}
 .precision-needle::before{content:'';position:absolute;top:-3px;left:50%;transform:translateX(-50%) rotate(45deg);width:9px;height:9px;background:#ffe58d;border:1px solid #fff8df}
 .precision-foot{font:850 clamp(9px,1vw,12px) var(--ct-ui-font);line-height:1.14;white-space:nowrap;color:#f9e9c4;text-shadow:0 2px 4px #0b192c;text-align:center}
@@ -2710,7 +2710,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 <script>
 "use strict";
 (() => {
- const W=1200,H=640,G=465,STEP=1/60,WIND_FORCE=18;
+ const W=1200,H=640,G=465,STEP=1/60,WIND_FORCE=37,WIND_LIFT_FORCE=30,TIMING_STEER_FORCE=110;
  const $=id=>document.getElementById(id);
  const cv=$('field'),ctx=cv.getContext('2d',{alpha:false});
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -2964,6 +2964,13 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   }
  });}
  function powerVelocity(ang,power,dir=1) {const speed=190+power*5.45,rad=ang*Math.PI/180;return {vx:Math.cos(rad)*speed*dir,vy:-Math.sin(rad)*speed};}
+ function windAcceleration(wind,lift,flightAge){
+  // The same gust curve feeds aiming, AI planning and live projectile physics.
+  // Horizontal crosswind dominates; rising/falling air changes hang time too.
+  return{x:wind*WIND_FORCE*(1+.3*Math.sin(flightAge*3.1+.7)),
+   y:lift*WIND_LIFT_FORCE*(1+.22*Math.cos(flightAge*2.6))};
+ }
+ function timingSideSpeed(bias,wind=game.wind){return clamp(bias,-1,1)*(TIMING_STEER_FORCE+Math.abs(wind)*10);}
  function origin(owner='player'){if(game.mode==='duel') {const x=owner==='player'?190:1018;return{x,y:terrainY(x)-32};}return{x:145,y:terrainY(145)-69};}
  // Independent character weapon sockets, defined in world units relative to the firing origin.
  const heroMuzzles={
@@ -2995,34 +3002,36 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   const socket=heroMuzzles[game.hero]||heroMuzzles.fox;
   return {x:o.x+dir*socket.x,y:o.y+socket.y,dir,weapon:socket.weapon};
  }
- function launch(owner,ang,power,weapon,initial) {
-  const o=origin(owner),dir=owner==='ai'?-1:1,v=initial||powerVelocity(ang,power,dir);
+ function launch(owner,ang,power,weapon,initial,sideBias=0) {
+  const o=origin(owner),dir=owner==='ai'?-1:1,v={...(initial||powerVelocity(ang,power,dir))};
+  v.vx+=timingSideSpeed(sideBias);
   game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,b)=>a+Math.max(0,b.hp),0),blockCounts:['wood','stone','iron'].map(t=>game.blocks.filter(b=>b.type===t).length),playerHp:game.playerHp,aiHp:game.aiHp};
   game.lastImpact=null;game.shotHighlights={direct:false,critical:false};game.reviewFocusX=null;game.reviewInfo=null;$('reviewCountdown').hidden=true;game.panX=null;game.overview=false;$('overview').textContent='전장 보기';$('shotReview').hidden=true;
   const socket=muzzleFor(owner,ang),muzzleX=socket.x,muzzleY=socket.y;
-   const p={x:muzzleX,y:muzzleY,vx:v.vx,vy:v.vy,r:weapon==='bomb'?13:10,weapon,owner,hero:owner==='ai'?game.aiHero:game.hero,age:0,split:false,trail:[],active:true,pierce:owner==='player'&&game.abilityArmed?2:0,hitBlocks:[],hitFoes:[],timingGrade:owner==='player'?game.precisionLast?.grade:null,timingAccuracy:owner==='player'?game.precisionLast?.accuracy:0,directTarget:null,directCenter:Infinity};game.projectiles.push(p);
+   const p={x:muzzleX,y:muzzleY,vx:v.vx,vy:v.vy,r:weapon==='bomb'?13:10,weapon,owner,hero:owner==='ai'?game.aiHero:game.hero,age:0,split:false,trail:[],active:true,pierce:owner==='player'&&game.abilityArmed?2:0,hitBlocks:[],hitFoes:[],timingGrade:owner==='player'?game.precisionLast?.grade:null,timingAccuracy:owner==='player'?game.precisionLast?.accuracy:0,timingBias:sideBias,directTarget:null,directCenter:Infinity};game.projectiles.push(p);
   if(owner==='player')game.abilityArmed=false;else game.aiAngle=ang;
   game.recoil[owner]=23;actorMotion(owner,'attack',.48);game.muzzle={x:muzzleX,y:muzzleY,dir,hero:owner==='ai'?game.aiHero:game.hero,weapon,life:.3,total:.3};spawnSparks(game.muzzle.x,game.muzzle.y,13,'#ffe8aa',.42);game.shake=Math.max(game.shake,weapon==='bomb'?4.5:2.7);playSound('fire');
   if(owner==='player') {game.shots++;game.phase='flying';game.phaseTime=0;game.message='발사!';game.messageTime=.65;game.hintTime=0;$('hint').hidden=true;}
   else {game.phase='flying';game.phaseTime=0;game.message='적의 포격!';game.messageTime=1;}
   updateHud();
  }
- function predict(ang,pow,wind,owner='player',count=640){
+ function predict(ang,pow,wind,owner='player',count=640,sideBias=0,lift=game.windLift||0,ignoreTargets=false){
   const o=origin(owner),dir=owner==='player'?1:-1,v=powerVelocity(ang,pow,dir);
   const out=[],r=10,dt=1/90;
   const socket=muzzleFor(owner,ang);
-  let x=socket.x,y=socket.y,vx=v.vx,vy=v.vy;
+  let x=socket.x,y=socket.y,vx=v.vx+timingSideSpeed(sideBias,wind),vy=v.vy;
   for(let i=0;i<count;i++){
-   vx+=wind*WIND_FORCE*dt;vy+=G*dt;x+=vx*dt;y+=vy*dt;
+   const gust=windAcceleration(wind,lift,(i+1)*dt);
+   vx+=gust.x*dt;vy+=(G+gust.y)*dt;x+=vx*dt;y+=vy*dt;
    out.push({x,y});
    if(x<0||x>W||y>H+40)break;
    if(y+r>=terrainY(x)){out.impact={x,y:terrainY(x)-r,kind:'terrain'};break;}
-   if(game.mode==='adventure'){
+   if(game.mode==='adventure'&&!ignoreTargets){
     const b=game.blocks.find(b=>{const dx=x-b.body.position.x,dy=y-b.body.position.y,a=-b.body.angle,c=Math.cos(a),si=Math.sin(a),px=dx*c-dy*si,py=dx*si+dy*c,qx=clamp(px,-b.w/2,b.w/2),qy=clamp(py,-b.h/2,b.h/2);return(px-qx)**2+(py-qy)**2<r*r;});
     if(b){out.impact={x,y,kind:'block'};break;}
     const foe=game.foes.find(f=>f.alive&&Math.hypot(x-f.x,y-f.y)<r+f.r);
     if(foe){out.impact={x,y,kind:'foe'};break;}
-   }else{
+   }else if(!ignoreTargets){
     const tx=owner==='player'?1018:190;
     if(Math.hypot(x-tx,y-(terrainY(tx)-29))<r+22){out.impact={x,y,kind:'foe'};break;}
    }
@@ -3031,6 +3040,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function chooseAiShot(){
   const target={x:190,y:terrainY(190)-29},hard=game.difficulty==='hard',easy=game.difficulty==='easy';
+  const windReading=hard?.95:easy?.64:.80;
   const plans=hard?['bomb','normal','split','bomb','normal']:easy?['normal','normal','bomb','normal','split']:['normal','bomb','normal','split'];
   const weapon=game.playerHp<=38&&!easy?'bomb':plans[game.aiShots%plans.length];
   // Different attack intentions must select different *trajectories*, not just
@@ -3042,7 +3052,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   for(let a=18;a<=87;a+=3){for(let p=35;p<=100;p+=3){
    const socket=muzzleFor('ai',a);
    let x=socket.x,y=socket.y,v=powerVelocity(a,p,-1),vx=v.vx,vy=v.vy,near=1e6;
-   for(let k=0;k<245;k++){const dt=.045;vx+=game.wind*WIND_FORCE*dt;vy+=G*dt;x+=vx*dt;y+=vy*dt;
+   for(let k=0;k<245;k++){const dt=.045,gust=windAcceleration(game.wind*windReading,(game.windLift||0)*windReading,(k+1)*dt);vx+=gust.x*dt;vy+=(G+gust.y)*dt;x+=vx*dt;y+=vy*dt;
     near=Math.min(near,Math.hypot(x-target.x,y-target.y));
     if(y>=terrainY(x)||x<0||x>W)break;
    }
@@ -3061,7 +3071,8 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   const err=easy?{angle:5.5,power:8}:hard?{angle:.55,power:1.25}:{angle:2,power:3.25};
   game.aiShots++;game.lastAiWeapon=weapon;game.aiTactic=tactic;
   return{angle:clamp(shot.angle+rnd(-err.angle,err.angle),8,88),
-   power:clamp(shot.power+rnd(-err.power,err.power),25,100),weapon,tactic};
+   power:clamp(shot.power+rnd(-err.power,err.power),25,100),weapon,tactic,
+   timingBias:rnd(-1,1)*(hard?.16:easy?.52:.32)};
  }
  function buildAdventure(stage) {
   const def=stageSet[stage%stageSet.length];
@@ -3075,6 +3086,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  function newGame(mode,stage=0){
   game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:Infinity;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
   game.hudHealth={player:100,ai:100};game.hudHitPulse={player:0,ai:0};game.hudHitDelay={player:0,ai:0};game.hudDrawn={player:false,ai:false};game.duelHitMotion={player:null,ai:null};game.shotHighlights={direct:false,critical:false};game.windGuide=null;
+  game.windLift=rnd(-1.65,1.65);game.shotInfluences=null;
   game.precisionActive=false;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionLast=null;game.hitEmphasis=[];$('precisionPanel').hidden=true;$('aimTelemetry').hidden=false;
   // Every duel is hero-versus-hero. The opponent is different from the selected player.
   const challengers=['fox','bear','rabbit','cat'].filter(hero=>hero!==game.hero);
@@ -3149,39 +3161,49 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function precisionGrade(position){
   const error=Math.abs(position-.5);
-  if(error<=.035)return{grade:'perfect',label:'완벽한 타이밍!',powerFactor:1.04,accuracy:1};
-  if(error<=.10)return{grade:'near',label:'정밀 발사!',powerFactor:1,accuracy:.9};
-  if(error<=.22)return{grade:'normal',label:'안정 발사',powerFactor:.955,accuracy:.7};
-  return{grade:'off',label:'거리 손실!',powerFactor:.85,accuracy:.32};
+  if(error<=.02+1e-8)return{grade:'perfect',label:'완벽한 타이밍!',powerFactor:1.04,accuracy:1};
+  if(error<=.09)return{grade:'near',label:'정밀 발사!',powerFactor:1,accuracy:.84};
+  if(error<=.20)return{grade:'normal',label:'편향 발사',powerFactor:.94,accuracy:.62};
+  return{grade:'off',label:'크게 빗나간 발사!',powerFactor:.82,accuracy:.22};
  }
  function lockPrecision(){
   if(game.phase!=='timing'||!game.precisionActive)return false;
   const grade=precisionGrade(game.precisionNeedle),signedOffset=(game.precisionNeedle-.5)*2;
   // Outer-band timing changes launch velocity, but never makes a shot impossible.
   const adjusted=clamp(game.power*grade.powerFactor+signedOffset*(grade.grade==='off'?3:1.5),20,100);
-  game.precisionLast={...grade,adjusted,needle:game.precisionNeedle};
+  const atX=path=>{const point=path.impact||path[path.length-1];return point?.x??0;};
+  const calm=atX(predict(game.angle,game.power,0,'player',900,0,0,true));
+  const windy=atX(predict(game.angle,game.power,game.wind,'player',900,0,game.windLift,true));
+  const timed=atX(predict(game.angle,adjusted,game.wind,'player',900,signedOffset,game.windLift,true));
+  game.shotInfluences={calm,windy,timed,wind:Math.round(windy-calm),timing:Math.round(timed-windy)};
+  game.precisionLast={...grade,adjusted,needle:game.precisionNeedle,sideBias:signedOffset};
   game.precisionActive=false;$('precisionPanel').hidden=true;
   game.chargeAimX=null;game.chargeFocusX=null;
-  launch('player',game.angle,adjusted,game.weapon);
-  game.message=grade.label;game.messageTime=1.15;
+  launch('player',game.angle,adjusted,game.weapon,undefined,signedOffset);
+  const lean=signedOffset<-.04?'← 왼쪽':signedOffset>.04?'오른쪽 →':'중앙';
+  game.message=`${grade.label} · 게이지 ${lean}`;game.messageTime=1.15;
   if(grade.grade==='perfect'){spawnSparks(origin().x,origin().y-30,13,'#aaffdc',.38);playSound('precision');}
   return true;
  }
  function updateHud(){
-  const windValue=Math.abs(game.wind),windWord=windValue>=2.65?'강풍':windValue>=1.1?'보통':'약풍';
-  $('windVector').textContent=game.wind>=0?'→':'←';$('windStrength').textContent=windValue.toFixed(1);$('windWord').textContent=windWord;
+  const lift=game.windLift||0,windValue=Math.hypot(game.wind,lift*.85),windWord=windValue>=2.65?'강풍':windValue>=1.1?'보통':'약풍';
+  const vertical=Math.abs(lift)>.65,side=Math.abs(game.wind)>.45;
+  const direction=vertical?(side?(game.wind>=0?(lift<0?'↗':'↘'):(lift<0?'↖':'↙')):(lift<0?'↑':'↓')):(game.wind>=0?'→':'←');
+  $('windVector').textContent=direction;$('windStrength').textContent=windValue.toFixed(1);$('windWord').textContent=windWord;
   $('windChip').classList.toggle('wind-high',windValue>=2.65);$('windChip').classList.toggle('wind-mid',windValue>=1.1&&windValue<2.65);
-  $('windChip').setAttribute?.('aria-label',`바람 ${game.wind>=0?'오른쪽':'왼쪽'} ${windValue.toFixed(1)} ${windWord}`);
+  $('windChip').setAttribute?.('aria-label',`바람 ${game.wind>=0?'오른쪽':'왼쪽'} ${lift<-.65?'상승':lift>.65?'하강':'수평'} ${windValue.toFixed(1)} ${windWord}`);
   $('angleValue').textContent=Math.round(game.angle)+'°';$('powerValue').textContent=Math.round(game.power)+'%';
   const o=origin(),path=predict(game.angle,game.power,game.wind,'player',900);
   const impact=path.impact||path[path.length-1];
   $('distanceValue').textContent=impact?String(Math.max(0,Math.round(Math.abs(impact.x-o.x)))):'—';
   // Same angle and power, with wind disabled: the difference is a readable
   // aim correction, not an invented physics stat. Cache for canvas rendering.
-  const calmPath=predict(game.angle,game.power,0,'player',900);
+  const landing=predict(game.angle,game.power,game.wind,'player',900,0,game.windLift,true);
+  const landingImpact=landing.impact||landing[landing.length-1];
+  const calmPath=predict(game.angle,game.power,0,'player',900,0,0,true);
   const calmImpact=calmPath.impact||calmPath[calmPath.length-1];
-  const drift=impact&&calmImpact?Math.round(impact.x-calmImpact.x):0;
-  game.windGuide=impact&&calmImpact?{windy:{x:impact.x,y:impact.y},calm:{x:calmImpact.x,y:calmImpact.y},drift}:null;
+  const drift=landingImpact&&calmImpact?Math.round(landingImpact.x-calmImpact.x):0;
+  game.windGuide=landingImpact&&calmImpact?{windy:{x:landingImpact.x,y:landingImpact.y},calm:{x:calmImpact.x,y:calmImpact.y},drift}:null;
   $('windDrift').hidden=!game.windGuide||Math.abs(drift)<20||game.turn!=='player';
   $('windDrift').textContent=`풍압 ${drift>=0?'→':'←'} ${Math.abs(drift)}`;
   if(!game.chargeActive)$('fireLabel').textContent=game.phase==='flying'?'발사 중':game.phase==='timing'?'정밀 발사':game.phase==='review'?'다음 발사':'발사!';
@@ -3431,6 +3453,10 @@ body,button,input,select{font-family:var(--ct-ui-font)}
     const miss=Math.round(Math.abs(1018-game.lastImpact.x));
     detail=`목표에서 ${miss}만큼 ${game.lastImpact.x<1018?'왼쪽':'오른쪽'} · 바람과 각도를 보정하세요`;
    }else detail='상대의 착탄 위치를 확인하고 반격을 준비하세요';
+   if(game.turn==='player'&&game.shotInfluences){
+    const effect=game.shotInfluences,arrow=value=>`${value>=0?'→':'←'}${Math.abs(value)}`;
+    detail=`바람 ${arrow(effect.wind)} · 게이지 ${arrow(effect.timing)}${damaged?' · 체력 게이지 감소':''}`;
+   }
    game.reviewNext=game.playerHp<=0||game.aiHp<=0?(game.aiHp<=0&&game.playerHp>0?'win':'lose'):game.turn==='player'?'aiWait':'aim';
   }
   game.reviewFocusX=game.lastImpact?.x??(game.mode==='adventure'?850:game.turn==='player'?1018:190);
@@ -3446,12 +3472,13 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function rollNextWind(){
   const previous=game.wind;
-  if(game.mode==='adventure'){game.wind=clamp(previous+rnd(-1.15,1.15),-4.8,4.8);return;}
+  if(game.mode==='adventure'){game.wind=clamp(previous+rnd(-1.15,1.15),-4.8,4.8);game.windLift=clamp((game.windLift||0)+rnd(-.65,.65),-1.85,1.85);return;}
   let next=rnd(-4.4,4.4);
   // Every duel turn brings a noticeable wind change, even near clamp boundaries.
   for(let attempt=0;attempt<9&&Math.abs(next-previous)<1.05;attempt++)next=rnd(-4.4,4.4);
   if(Math.abs(next-previous)<1.05)next=previous>=0?-2.2:2.2;
   game.wind=next;
+  game.windLift=rnd(-1.85,1.85);
  }
  function completeReview(){
   if(game.phase==='result'){$('reviewCountdown').hidden=true;$('shotReview').hidden=true;$('result').hidden=false;return;}
@@ -3490,10 +3517,13 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   }
   if(game.precisionActive){
    game.precisionElapsed+=dt;
-   const sweep=(game.precisionElapsed/1.52)%2;
+   const sweep=(game.precisionElapsed/1.13)%2;
    game.precisionNeedle=sweep<=1?sweep:2-sweep;
    $('precisionNeedle').style.left=(game.precisionNeedle*100).toFixed(2)+'%';
-   $('precisionPanel').classList.toggle('perfect',Math.abs(game.precisionNeedle-.5)<=.035);
+   $('precisionPanel').classList.toggle('perfect',Math.abs(game.precisionNeedle-.5)<=.02);
+   if(Math.floor(game.precisionElapsed*10)!==Math.floor((game.precisionElapsed-dt)*10)){
+    $('precisionFoot').textContent=game.precisionNeedle<.44?'← 왼쪽 편향 · 사거리 변화':game.precisionNeedle>.56?'오른쪽 편향 → · 사거리 변화':'중앙 정타 · 좁은 완벽 판정';
+   }
   }
   for(const hit of game.hitEmphasis)hit.life-=dt;
   game.hitEmphasis=game.hitEmphasis.filter(hit=>hit.life>0);
@@ -3514,7 +3544,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    if(remaining!==previous&&remaining>0)$('reviewCountdown').textContent=String(remaining);
    if(game.reviewTimer===0)completeReview();
   }
-  if(game.phase==='aiWait'){game.aiTimer-=dt;if(game.aiTimer<=0){const shot=chooseAiShot();launch('ai',shot.angle,shot.power,shot.weapon);game.message='상대 전술 · '+shot.tactic;game.messageTime=1.4;}}
+  if(game.phase==='aiWait'){game.aiTimer-=dt;if(game.aiTimer<=0){const shot=chooseAiShot();game.shotInfluences=null;launch('ai',shot.angle,shot.power,shot.weapon,undefined,shot.timingBias);game.message='상대 전술 · '+shot.tactic;game.messageTime=1.4;}}
   if(game.hitStop>0){game.hitStop=Math.max(0,game.hitStop-dt);return;}
   M.Engine.update(game.engine,dt*1000);
   // Collision callbacks may fracture a support while Matter is stepping. Remove it only after Engine.update returns.
@@ -3531,7 +3561,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
     }
     if(f.y>H+70)defeatFoe(f);}
   for(const p of game.projectiles){if(!p.active)continue;const subdt=dt/3;for(let i=0;i<3&&p.active;i++){
-    p.age+=subdt;p.vx+=game.wind*WIND_FORCE*subdt;p.vy+=G*subdt;p.x+=p.vx*subdt;p.y+=p.vy*subdt;
+    p.age+=subdt;const gust=windAcceleration(game.wind,game.windLift||0,p.age);p.vx+=gust.x*subdt;p.vy+=(G+gust.y)*subdt;p.x+=p.vx*subdt;p.y+=p.vy*subdt;
     if(p.age>.12&&p.weapon==='split'&&!p.split&&p.vy>22){splitProjectile(p);break;}
     if(p.x<-50||p.x>W+50||p.y>H+100||p.age>10){game.lastImpact={x:clamp(p.x,0,W),y:clamp(p.y,0,H)};p.active=false;break;}
     if(p.age>.13&&p.y+p.r>=terrainY(p.x)){p.active=false;applyExplosion(p);break;}
