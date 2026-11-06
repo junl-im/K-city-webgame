@@ -29,7 +29,7 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v43GradeForTest=precisionGrade; window.__v43DirectForTest=(accuracy)=>{newGame("duel",0);applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:accuracy>=.9?8:20,timingAccuracy:accuracy,hero:game.hero});return {damage:100-game.aiHp,emphasis:game.hitEmphasis.at(-1)?.text,pulse:game.hudHitPulse.ai,hpTrailer:game.hudHealth.ai};}; window.__v43WindForTest=()=>{newGame("duel",0);const changes=[];for(let i=0;i<15;i++){const old=game.wind;rollNextWind();changes.push(Math.abs(game.wind-old));}return changes;}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
- ' window.__v44WindGuideForTest=(wind)=>{newGame("duel",0);game.wind=wind;game.angle=43;game.power=80;updateHud();return {guide:game.windGuide,label:$("windDrift").textContent,hidden:$("windDrift").hidden};}; window.__v44HealthForTest=()=>({hold:game.hudHitDelay.ai,shown:game.hudHealth.ai,actual:game.aiHp}); window.__v44ReviewForTest=(critical=false)=>{newGame("duel",0);game.phase="flying";game.phaseTime=2;game.shotBaseline={foes:0,blockHp:0,playerHp:100,aiHp:100};if(critical){applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:8,timingAccuracy:1,hero:game.hero});}else{game.lastImpact={x:800,y:terrainY(800)-10};}game.projectiles=[];finishFlight();return {title:game.reviewInfo.title,detail:game.reviewInfo.detail};}; window.__artilleryLoadoutDebug=');
+ ' window.__v44WindGuideForTest=(wind)=>{newGame("duel",0);game.wind=wind;game.angle=43;game.power=80;updateHud();return {guide:game.windGuide,label:$("windDrift").textContent,hidden:$("windDrift").hidden};}; window.__v44HealthForTest=()=>({hold:game.hudHitDelay.ai,shown:game.hudHealth.ai,actual:game.aiHp}); window.__v44ReviewForTest=(critical=false)=>{newGame("duel",0);game.phase="flying";game.phaseTime=2;game.shotBaseline={foes:0,blockHp:0,playerHp:100,aiHp:100};if(critical){applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:8,timingAccuracy:1,hero:game.hero});}else{game.lastImpact={x:800,y:terrainY(800)-10};}game.projectiles=[];finishFlight();return {title:game.reviewInfo.title,detail:game.reviewInfo.detail};}; window.__v44HeroHudForTest=(hero)=>{const original=game.hero;game.hero=hero;const anchor=duelHudAnchor(190,"player");game.hero=original;return {x:anchor.x,clearance:terrainY(190)-anchor.y};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__setDeathAgeForTest=(age)=>{const f=game.foes[0];f.alive=false;f.kind=0;f.deathTimer=3.8-age;f.hitAnim=0;f.attackAnim=0;}; window.__restoreFoeForTest=()=>{const f=game.foes[0];f.alive=true;f.deathTimer=0;}; window.__artilleryLoadoutDebug=');
 // In the six-pose atlas probe, select the settled death frame after the brief
@@ -963,6 +963,11 @@ const missReview=window.__v44ReviewForTest(false);
 assert(missReview.detail.includes('218')&&missReview.detail.includes('왼쪽'),'A missed duel shot must teach the player how far and which way it missed');
 const criticalReview=window.__v44ReviewForTest(true);
 assert(criticalReview.title.includes('치명타!')&&criticalReview.title.includes('피해!'),'The review ribbon must carry forward a successful critical hit');
+for(const [hero,clearance] of [['fox',116],['bear',83],['rabbit',132],['cat',109]]){
+ const anchor=window.__v44HeroHudForTest(hero);
+ assert.equal(anchor.clearance,clearance,`Hero ${hero} HP bar must use artwork-calibrated head clearance`);
+ assert.equal(anchor.x,hero==='bear'?114:190,`Hero ${hero} HP bar must stay tied to its on-field head`);
+}
 el('homeBtn').click();el('duelBtn').click();el('fire').click();
 assert.equal(state().phase,'timing');
 handlers.popstate();

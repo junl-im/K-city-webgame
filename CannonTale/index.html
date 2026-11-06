@@ -3705,8 +3705,11 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function duelHudAnchor(x,owner){
   const hero=owner==='player'?game.hero:game.aiHero,dir=owner==='player'?1:-1;
+  // Art-specific clearance: a slim bar should sit just above the visible head,
+  // not float over the sky. Rabbit ears require a little extra breathing room.
+  const clearance={fox:116,bear:83,rabbit:132,cat:109};
   // Bear stands behind the cannon. Its pilot head is 76 units behind the barrel pivot.
-  return {x:hero==='bear'?x-dir*76:x,y:terrainY(x)-(hero==='bear'?113:169)};
+  return {x:hero==='bear'?x-dir*76:x,y:terrainY(x)-(clearance[hero]||116)};
  }
  function drawDuelHealthHud(x,owner){
   // Do not pin an offscreen opponent's HUD to the camera border.
