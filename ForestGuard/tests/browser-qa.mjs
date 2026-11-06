@@ -820,6 +820,16 @@ try{
     sentinel.background.includes('chapter1-forest-sentinel-v52.webp')&&
     sentinel.portrait.includes('chapter-sentinel')&&sentinel.title==='숲길 파수꾼',
   'Chapter 1 sentinel must retain its six painted actions and matching HUD: '+JSON.stringify(sentinel));
+  const guardianSpear=await bossPage.evaluate(()=>window.__ForestGuardQA.sentinelSpearPaintingQA());
+  assert.ok(guardianSpear?.loaded&&guardianSpear.sourceSize.every(v=>v>=1000)&&
+    guardianSpear.distinctPaintings===4&&guardianSpear.frames.every(frame=>
+      frame.size.every(n=>n===192)&&frame.visible>300&&frame.corners.every(a=>a===0)),
+    'Guardian needs four distinct transparent illustrated charge, spear and impact effects: '+JSON.stringify(guardianSpear));
+  const spearHit=await bossPage.evaluate(()=>window.__ForestGuardQA.fireSentinelSpearForQA());
+  await bossPage.waitForTimeout(750);
+  const afterSpear=await bossPage.evaluate(()=>window.__ForestGuardQA.sentinelHPForQA());
+  assert.equal(afterSpear,spearHit.expectedAfter,
+    'Painted sentinel spear must damage fort once, for exactly 45 HP');
   await bossPage.waitForTimeout(400);
   await bossPage.screenshot({path:new URL('../test-output/chapter-sentinel-0-390.png',import.meta.url).pathname});
   for(const [stage,asset,title] of [

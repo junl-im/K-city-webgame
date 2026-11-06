@@ -149,6 +149,7 @@
   const heroAttackBitmaps = {bear:null,rabbit:null,cat:null,megafox:null}; // v4.4 illustrated rear-view sheets
   const chapterBossBitmaps={3:null,7:null,11:null};
   let forestSentinelBitmap=null; // Chapter 1 has its own midboss instead of a reused silhouette.
+  let sentinelVfxBitmap=null; // Four transparent, hand-painted spear/charge/impact/aftershock effects.
   let thornBeetleBitmap=null; // 2×2 genuine beetle poses replace the old hedgehog-like placeholder.
   let runnerBitmap=null; // Four independent mushroom scout poses, facing the defenders below.
   const ART_VERSION = '20261031r';
@@ -215,7 +216,9 @@
       loadIllustration('./art/'+chapterArt.file+'?v=20261106v52',art=>{chapterBossBitmaps[stageIndex]=art;}):Promise.resolve(true);
     const sentinelLoad=stageIndex<4&&!forestSentinelBitmap?
       loadIllustration('./art/chapter1-forest-sentinel-v52.webp?v=20261106v52',art=>{forestSentinelBitmap=art;}):Promise.resolve(true);
-    await Promise.all([atlasPromise,biomeLoading[biome],bossLoad,sentinelLoad]);
+    const sentinelVfxLoad=stageIndex<4&&!sentinelVfxBitmap?
+      loadIllustration('./art/chapter1-sentinel-vfx-v56.webp?v=20261107v56',art=>{sentinelVfxBitmap=art;}):Promise.resolve(true);
+    await Promise.all([atlasPromise,biomeLoading[biome],bossLoad,sentinelLoad,sentinelVfxLoad]);
     // Keep an illustrated battle playable when a high-resolution regional PNG times out.
     // Never substitute a CSS rectangle or sacrifice the rear-view hero silhouette.
     const ready=!!(atlasBitmap&&rearBitmap&&monsterBitmap&&rampartBitmap&&(biomeBitmaps[biome]||fieldBitmap));
@@ -666,6 +669,25 @@
       c.beginPath();c.moveTo(25,54);c.bezierCurveTo(34,71,25,91,34,108);
       c.strokeStyle='#b4d37e';c.lineWidth=2;c.stroke();
     });
+    // Four independent original paintings. These never replace the final
+    // chapter boss's root spears and are optional if the network fails.
+    if(scene.stage.id<4&&sentinelVfxBitmap){
+      const frameW=sentinelVfxBitmap.naturalWidth/2;
+      const frameH=sentinelVfxBitmap.naturalHeight/2;
+      for(const [key,col,row] of [
+        ['sentinel-vfx-spear',0,0],['sentinel-vfx-charge',1,0],
+        ['sentinel-vfx-hit',0,1],['sentinel-vfx-wave',1,1]
+      ]){
+        createCanvasTexture(scene,key,192,192,c=>{
+          c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
+          c.drawImage(sentinelVfxBitmap,col*frameW,row*frameH,frameW,frameH,0,0,192,192);
+          // Generated semitransparent foliage may touch an atlas seam at
+          // alpha=1. Erase only the outer pixel to avoid a visible square edge.
+          c.clearRect(0,0,192,1);c.clearRect(0,191,192,1);
+          c.clearRect(0,0,1,192);c.clearRect(191,0,1,192);
+        });
+      }
+    }
     // Strip only opaque gray backing connected to atlas cell edges. This
     // leaves enclosed armor/stone details intact, with a feathered outline.
     const isolateEnemyBackdrop=(c,w,h)=>{
@@ -1179,7 +1201,9 @@
         e.type==='guardian'?'중간보스 출현 · 숲길 파수꾼':
           '보스 출현 · '+(CHAPTER_BOSS_ART[this.stage.id]?.name||'뿌리 거인');
       const dusk=this.add.image(210,277,'cinematic-vignette').setDepth(8);
-      const aura=this.add.ellipse(210,340,220,38,hue,.24).setDepth(8.5);
+      const aura=e.type==='guardian'&&this.textures.exists('sentinel-vfx-charge')?
+        this.add.image(210,277,'sentinel-vfx-charge').setDisplaySize(258,258).setAlpha(.68).setDepth(8.5):
+        this.add.ellipse(210,340,220,38,hue,.24).setDepth(8.5);
       const hero=this.add.image(210,258,'motion-'+e.type+'-attack-0')
         .setDisplaySize(e.type==='shroom'?246:216,e.type==='shroom'?246:216).setAlpha(1).setDepth(9);
       const label=this.add.text(210,395,caption,{
@@ -1769,14 +1793,35 @@
       }
     }
     sendForestSpear(e){
-      // Chapter 1 sentinel: a single visible spear travels to the rampart
-      // before its one strike lands. The warning can be interrupted beforehand.
+      // A four-paint visual sequence: charging roots, a downward spear,
+      // splintered impact and a fading bramble wave. Damage remains one 45 HP
+      // strike at the moment of contact; missing artwork keeps the old shot.
       const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-      const spear=this.add.image(e.x,e.y+21,'boss-root-spear')
-        .setDisplaySize(30,96).setAngle(180).setAlpha(.93).setDepth(6);
-      this.tweens.add({targets:spear,x:210,y:536,alpha:.48,
-        duration:reduced?180:430,ease:'Sine.easeIn',onComplete:()=>{
+      const painted=!!this.textures?.exists('sentinel-vfx-spear');
+      if(this.textures?.exists('sentinel-vfx-charge')){
+        const charge=this.add.image(e.x,e.y+10,'sentinel-vfx-charge')
+          .setDisplaySize(96,96).setAlpha(.76).setDepth(5.5);
+        this.tweens.add({targets:charge,scale:reduced?1.12:1.48,alpha:0,
+          duration:reduced?160:390,onComplete:()=>charge.destroy()});
+      }
+      const spear=this.add.image(e.x,e.y+21,painted?'sentinel-vfx-spear':'boss-root-spear')
+        .setDisplaySize(painted?94:30,painted?128:96)
+        .setAngle(painted?0:180).setAlpha(.95).setDepth(6);
+      this.tweens.add({targets:spear,x:210,y:536,alpha:.60,
+        duration:reduced?180:455,ease:'Sine.easeIn',onComplete:()=>{
           spear.destroy();if(this.ended)return;
+          if(this.textures?.exists('sentinel-vfx-hit')){
+            const hit=this.add.image(210,524,'sentinel-vfx-hit')
+              .setDisplaySize(164,164).setAlpha(.97).setDepth(7);
+            this.tweens.add({targets:hit,alpha:0,scale:reduced?1.04:1.28,
+              duration:reduced?160:430,onComplete:()=>hit.destroy()});
+          }
+          if(this.textures?.exists('sentinel-vfx-wave')){
+            const wave=this.add.image(210,530,'sentinel-vfx-wave')
+              .setDisplaySize(132,82).setAlpha(.72).setDepth(6.5);
+            this.tweens.add({targets:wave,alpha:0,scaleX:reduced?1.08:1.63,
+              scaleY:reduced?1.04:1.25,duration:reduced?160:520,onComplete:()=>wave.destroy()});
+          }
           this.hp=Math.max(0,this.hp-45);renderHUD();
           if(!reduced)this.cameras.main.shake(95,.0016);
           showBanner('숲길 파수꾼 · 가시창 충격! 성벽 -45');
@@ -2484,6 +2529,35 @@
           background:getComputedStyle(document.getElementById('boss-portrait')).backgroundImage,
           title:document.getElementById('boss-title').textContent};
       },
+      sentinelSpearPaintingQA(){
+        if(!battle||battle.ended||battle.stage.id!==0)return null;
+        const keys=['sentinel-vfx-spear','sentinel-vfx-charge','sentinel-vfx-hit','sentinel-vfx-wave'];
+        const loaded=!!sentinelVfxBitmap&&keys.every(key=>battle.textures.exists(key));
+        if(!loaded)return {loaded:false};
+        const frames=keys.map(key=>battle.textures.get(key).getSourceImage());
+        const sampled=frames.map(canvas=>{
+          const ctx=canvas.getContext('2d',{willReadFrequently:true});
+          const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+          let hash=2166136261,visible=0;
+          for(let p=0;p<pixels.length;p+=4){
+            if(pixels[p+3]>32)visible++;
+            if(p%128===0)hash=Math.imul(hash^pixels[p],16777619)^pixels[p+3];
+          }
+          const corners=[[0,0],[canvas.width-1,0],[0,canvas.height-1],
+            [canvas.width-1,canvas.height-1]].map(([x,y])=>ctx.getImageData(x,y,1,1).data[3]);
+          return {size:[canvas.width,canvas.height],hash:hash>>>0,visible,corners};
+        });
+        return {loaded,sourceSize:[sentinelVfxBitmap.naturalWidth,sentinelVfxBitmap.naturalHeight],
+          distinctPaintings:new Set(sampled.map(s=>s.hash)).size,frames:sampled};
+      },
+      fireSentinelSpearForQA(){
+        if(!battle||battle.ended||battle.stage.id!==0)return null;
+        battle.manualPause=true;
+        const before=battle.hp;
+        battle.sendForestSpear({x:210,y:196});
+        return {before,expectedAfter:Math.max(0,before-45)};
+      },
+      sentinelHPForQA(){return battle&&!battle.ended?battle.hp:null;},
       thornPaintingQA(){
         if(!battle||battle.ended)return null;
         const keys=['motion-thorn-idle-0','motion-thorn-run-1',
