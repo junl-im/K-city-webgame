@@ -2604,6 +2604,10 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 #windChip.wind-high .wind-vector{animation:windGust44 1.2s ease-in-out infinite alternate}
 @keyframes windGust44{from{transform:translateX(-2px);filter:drop-shadow(0 0 2px #ffb657)}to{transform:translateX(2px);filter:drop-shadow(0 0 6px #ffbe62)}}
 @media(prefers-reduced-motion:reduce){#windChip.wind-high .wind-vector{animation:none}}
+/* v5.6: understated mint feedback for a genuinely predicted duel contact. */
+#controls #fire.charging.target-window #chargeFill{
+ background:linear-gradient(90deg,#71c5b5,#b9f7cf 65%,#e9ffcb)!important;
+}
 </style>
 </head>
 <body>
@@ -3038,6 +3042,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   game.duelVolleyDamage={player:0,ai:0};
   v.vx+=timingSideSpeed(sideBias);
   game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,b)=>a+Math.max(0,b.hp),0),blockCounts:['wood','stone','iron'].map(t=>game.blocks.filter(b=>b.type===t).length),playerHp:game.playerHp,aiHp:game.aiHp};
+  game.closestApproach={distance:Infinity,x:null,y:null};
   game.lastImpact=null;game.shotHighlights={direct:false,critical:false};game.reviewFocusX=null;game.reviewInfo=null;$('reviewCountdown').hidden=true;game.panX=null;game.overview=false;$('overview').textContent='전장 보기';$('shotReview').hidden=true;
   const socket=muzzleFor(owner,ang),muzzleX=socket.x,muzzleY=socket.y;
    const p={x:muzzleX,y:muzzleY,vx:v.vx,vy:v.vy,r:weapon==='bomb'?13:10,weapon,owner,hero:owner==='ai'?game.aiHero:game.hero,age:0,split:false,trail:[],active:true,pierce:owner==='player'&&game.abilityArmed?2:0,hitBlocks:[],hitFoes:[],timingGrade:owner==='player'?game.precisionLast?.grade:null,timingAccuracy:owner==='player'?game.precisionLast?.accuracy:0,timingBias:sideBias,directTarget:null,directCenter:Infinity};game.projectiles.push(p);
@@ -3086,6 +3091,16 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   return predict(ang,pow,wind,owner,count,0,game.windLift||0,true);
  }
  function stableAimPoint(path){return path.impact||path.edgeExit||path[path.length-1]||null;}
+ function duelAimFeedback(path,contact){
+  if(game.mode!=='duel')return {kind:'none',distance:Infinity};
+  const tx=1018,ty=terrainY(tx)-29;
+  let distance=Infinity;
+  // Proximity is only a hint. The true collision result decides whether the
+  // green contact cue may appear, so no near miss is called a guaranteed hit.
+  for(let i=0;i<path.length;i+=2){const pt=path[i],d=Math.hypot(pt.x-tx,pt.y-ty);if(d<distance)distance=d;}
+  const hit=contact.impact?.kind==='foe';
+  return {kind:hit?'hit':distance<88?'near':'none',distance};
+ }
  function chargeSweepRate(){
   if(game.mode!=='duel')return 1;
   // The old fixed 80% sweep in 1.35 s skipped over an enemy's narrow aiming
@@ -3143,6 +3158,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function newGame(mode,stage=0){
   game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(mode==='duel'?-4.2:-3.3,mode==='duel'?4.2:3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);if(mode==='duel'&&Math.abs(game.wind)<1.15)game.wind=game.wind<0?-1.15:1.15;game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargeSweepTime=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:Infinity;game.playerHp=DUEL_MAX_HP;game.aiHp=DUEL_MAX_HP;game.duelVolleyDamage={player:0,ai:0};game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
+  game.aimCue={kind:'none',distance:Infinity};game.lastAimCueAt=-5;game.closestApproach=null;$('fire').classList.toggle('target-window',false);
   game.hudHealth={player:DUEL_MAX_HP,ai:DUEL_MAX_HP};game.hudHitPulse={player:0,ai:0};game.hudHitDelay={player:0,ai:0};game.hudDamage={player:null,ai:null};game.hudDrawn={player:false,ai:false};game.hudPlacement={player:null,ai:null};game.duelHitMotion={player:null,ai:null};game.duelHitBursts=[];game.weaponAftershocks=[];game.shotHighlights={direct:false,critical:false};game.windGuide=null;
   game.windLift=rnd(-1.9,1.9);game.shotInfluences=null;
   game.precisionActive=false;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionLast=null;game.hitEmphasis=[];$('precisionPanel').hidden=true;$('aimTelemetry').hidden=false;
@@ -3172,7 +3188,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   if(!chargeAllowed())return false;
   if(canResumeAimFromReview())completeReview();
   if(game.phase!=='aim')return false;
-  game.chargeActive=true;game.chargeElapsed=0;game.chargeSweepTime=0;game.chargeStartPower=game.power;game.chargedPower=20;
+  game.chargeActive=true;game.chargeElapsed=0;game.chargeSweepTime=0;game.chargeStartPower=game.power;game.chargedPower=20;game.aimCue={kind:'none',distance:Infinity};
   game.chargeAimX=null;game.chargeFocusX=null;game.chargeReveal=1;game.panX=null;
   game.chargeAnchorPx=null;
   $('chargeGauge').hidden=false;$('chargeFill').style.width='20%';
@@ -3182,7 +3198,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function releaseFireCharge(){
   if(!game.chargeActive)return false;
-  game.chargeActive=false;game.chargeAnchorPx=null;game.chargeReveal=1;
+  game.chargeActive=false;game.chargeAnchorPx=null;game.chargeReveal=1;$('fire').classList.toggle('target-window',false);
   $('chargeGauge').hidden=true;$('fire').classList.toggle('charging',false);
   // Quick taps reuse the last selected power. A deliberate hold selects a new strength.
   game.power=game.chargeElapsed<.22?game.chargeStartPower:game.chargedPower;
@@ -3190,7 +3206,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   beginPrecision();return true;
  }
  function cancelFireCharge(){
-  game.chargeActive=false;activeFirePointer=null;game.chargeAimX=null;game.chargeFocusX=null;game.chargeSweepTime=0;game.chargeAnchorPx=null;game.chargeReveal=1;$('chargeGauge').hidden=true;
+  game.chargeActive=false;activeFirePointer=null;game.chargeAimX=null;game.chargeFocusX=null;game.chargeSweepTime=0;game.chargeAnchorPx=null;game.chargeReveal=1;game.aimCue={kind:'none',distance:Infinity};$('fire').classList.toggle('target-window',false);$('chargeGauge').hidden=true;
   if(game.actorAnim.player.kind==='charge')actorMotion('player','idle',.01);
   $('fire').classList.toggle('charging',false);$('fireLabel').textContent='발사!';
  }
@@ -3323,7 +3339,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   $('nextBtn').hidden=game.mode!=='adventure'||!won||game.stage===stageSet.length-1;
   playSound(won?'win':'lose');updateHud();
  }
- const soundShapes={fire:{freq:290,end:95,duration:.18,volume:.10,type:'triangle'},blast:{freq:125,end:40,duration:.28,volume:.14,type:'sawtooth'},precision:{freq:640,end:1020,duration:.23,volume:.09,type:'sine'},critical:{freq:190,end:62,duration:.39,volume:.17,type:'sawtooth'},wood:{freq:410,end:125,duration:.13,volume:.054,type:'triangle'},stone:{freq:185,end:52,duration:.22,volume:.065,type:'sawtooth'},iron:{freq:710,end:230,duration:.36,volume:.042,type:'sine'},win:{freq:560,end:880,duration:.32,volume:.10,type:'sine'},lose:{freq:270,end:130,duration:.38,volume:.09,type:'triangle'},ui:{freq:470,end:600,duration:.09,volume:.06,type:'sine'}};
+ const soundShapes={fire:{freq:290,end:95,duration:.18,volume:.10,type:'triangle'},blast:{freq:125,end:40,duration:.28,volume:.14,type:'sawtooth'},precision:{freq:640,end:1020,duration:.23,volume:.09,type:'sine'},lock:{freq:720,end:880,duration:.09,volume:.025,type:'sine'},critical:{freq:190,end:62,duration:.39,volume:.17,type:'sawtooth'},wood:{freq:410,end:125,duration:.13,volume:.054,type:'triangle'},stone:{freq:185,end:52,duration:.22,volume:.065,type:'sawtooth'},iron:{freq:710,end:230,duration:.36,volume:.042,type:'sine'},win:{freq:560,end:880,duration:.32,volume:.10,type:'sine'},lose:{freq:270,end:130,duration:.38,volume:.09,type:'triangle'},ui:{freq:470,end:600,duration:.09,volume:.06,type:'sine'}};
  function playSound(kind){if(!game.sound)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ac=game.audio||(game.audio=new AC());if(ac.state==='suspended')ac.resume();const now=ac.currentTime,material=['wood','stone','iron'].includes(kind);if(material){game.lastMaterialSoundAt??={};if(now-(game.lastMaterialSoundAt[kind]??-1)<.085)return;game.lastMaterialSoundAt[kind]=now;}const osc=ac.createOscillator(),gain=ac.createGain(),s=soundShapes[kind]||soundShapes.ui;osc.type=s.type;osc.frequency.setValueAtTime(s.freq,now);osc.frequency.exponentialRampToValueAtTime(s.end,now+s.duration);gain.gain.setValueAtTime(.001,now);gain.gain.exponentialRampToValueAtTime(s.volume,now+.018);gain.gain.exponentialRampToValueAtTime(.001,now+s.duration);osc.connect(gain);gain.connect(ac.destination);osc.start(now);osc.stop(now+s.duration+.02);if(kind==='iron'){const ring=ac.createOscillator(),tail=ac.createGain();ring.type='sine';ring.frequency.setValueAtTime(1170,now);ring.frequency.exponentialRampToValueAtTime(820,now+.28);tail.gain.setValueAtTime(.001,now);tail.gain.exponentialRampToValueAtTime(.021,now+.016);tail.gain.exponentialRampToValueAtTime(.001,now+.31);ring.connect(tail);tail.connect(ac.destination);ring.start(now);ring.stop(now+.33);}}catch(_){/* Audio is optional; the game always remains playable. */}}
  function useAbility(){
   const h=heroSet[game.hero],reason=abilityUnavailableReason();
@@ -3543,13 +3559,21 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    const highlight=game.shotHighlights;
    title=enemyDamage?`${highlight.critical?'치명타! ':highlight.direct?'정타! ':''}상대 ${enemyDamage} 피해!`:allyDamage?`아군이 ${allyDamage} 피해!`:'착탄 위치 확인';
    if(damaged)detail='머리 위 HP 게이지의 피해 잔상을 확인하고 다음 포격을 준비하세요';
+   else if(game.turn==='player'&&game.closestApproach?.distance<90){
+    // A real in-flight nearest pass is more truthful than comparing the
+    // terrain landing x with the enemy (a high arc may fly right above it).
+    const miss=Math.round(game.closestApproach.distance);
+    title=miss<47?'아슬아슬! 거의 맞았어!':'근접 포격! 조금만 더!';
+    detail=`상대와 최단 ${miss} 거리 · 각도나 파워를 살짝 조절하세요`;
+   }
    else if(game.turn==='player'&&game.lastImpact){
     const miss=Math.round(Math.abs(1018-game.lastImpact.x));
     detail=`목표에서 ${miss}만큼 ${game.lastImpact.x<1018?'왼쪽':'오른쪽'} · 바람과 각도를 보정하세요`;
    }else detail='상대의 착탄 위치를 확인하고 반격을 준비하세요';
    if(game.turn==='player'&&game.shotInfluences){
     const effect=game.shotInfluences,arrow=value=>`${value>=0?'→':'←'}${Math.abs(value)}`;
-    detail=`바람 ${arrow(effect.wind)} · 게이지 ${arrow(effect.timing)}${damaged?' · 체력 게이지 감소':''}`;
+    const prefix=!damaged&&game.closestApproach?.distance<90?`최단 ${Math.round(game.closestApproach.distance)} · `:'';
+    detail=`${prefix}바람 ${arrow(effect.wind)} · 게이지 ${arrow(effect.timing)}${damaged?' · 체력 게이지 감소':''}`;
    }
    game.reviewNext=game.playerHp<=0||game.aiHp<=0?(game.aiHp<=0&&game.playerHp>0?'win':'lose'):game.turn==='player'?'aiWait':'aim';
   }
@@ -3558,7 +3582,8 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   // Brief enough to avoid waiting through three full count beats; the result
   // ribbon still remains tappable and winning/losing reviews linger a little.
   const finalShot=game.reviewNext==='win'||game.reviewNext==='lose';
-  game.reviewTimer=finalShot?2.05:game.mode==='duel'?1.65:1.85;
+  const impactfulReview=game.mode==='duel'?(enemyDamage+allyDamage)>0:(knocked>0||structure>0);
+  game.reviewTimer=finalShot?2.05:game.mode==='duel'?(impactfulReview?1.55:1.05):(impactfulReview?1.65:1.25);
   game.phase='review';game.phaseTime=0;game.panX=null;
   $('reviewTitle').textContent=title;$('reviewDetail').textContent=detail;
   $('reviewContinue').textContent=game.reviewNext==='win'?'승리 결과 보기':game.reviewNext==='lose'?'도전 결과 보기':game.reviewNext==='aiWait'?'상대 차례로':game.mode==='duel'?'내 차례로':'다음 발사';
@@ -3583,7 +3608,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   game.reviewFocusX=null;game.overview=false;$('overview').textContent='전장 보기';
   game.phaseTime=0;
   if(next==='aiWait'){
-   game.turn='ai';game.phase='aiWait';game.aiTimer=game.difficulty==='hard'?.85:game.difficulty==='easy'?1.65:1.25;
+   game.turn='ai';game.phase='aiWait';game.aiTimer=game.difficulty==='hard'?.7:game.difficulty==='easy'?1.35:1;
    rollNextWind();
    game.message='상대가 조준 중입니다';game.messageTime=1.4;
   }else{
@@ -3665,6 +3690,10 @@ body,button,input,select{font-family:var(--ct-ui-font)}
     if(f.y>H+70)defeatFoe(f);}
   for(const p of game.projectiles){if(!p.active)continue;const subdt=dt/3;for(let i=0;i<3&&p.active;i++){
     p.age+=subdt;const gust=windAcceleration(game.wind,game.windLift||0,p.age);p.vx+=gust.x*subdt;p.vy+=(G+gust.y)*subdt;p.x+=p.vx*subdt;p.y+=p.vy*subdt;
+    if(game.mode==='duel'&&p.owner==='player'&&game.closestApproach){
+     const d=Math.hypot(p.x-1018,p.y-(terrainY(1018)-29));
+     if(d<game.closestApproach.distance)game.closestApproach={distance:d,x:p.x,y:p.y};
+    }
     if(p.age>.12&&p.weapon==='split'&&!p.split&&p.vy>22){splitProjectile(p);break;}
     if(p.x<-50||p.x>W+50||p.y>H+100||p.age>10){game.lastImpact={x:clamp(p.x,0,W),y:clamp(p.y,0,H)};p.active=false;break;}
     if(p.age>.13&&p.y+p.r>=terrainY(p.x)){p.active=false;applyExplosion(p);break;}
@@ -4315,6 +4344,14 @@ const materialCells={
   // marker. A graze must not teleport the range reticle or the camera.
   const dots=game.mode==='duel'?stableAimPath(a,p,game.wind):contacts;
   const steadyTarget=stableAimPoint(dots),actualHit=contacts.impact;
+  const previousCue=game.aimCue?.kind||'none';
+  const cue=duelAimFeedback(dots,contacts);
+  game.aimCue=cue;
+  const chargeCue=game.chargeActive&&game.mode==='duel';
+  $('fire').classList.toggle('target-window',chargeCue&&cue.kind==='hit');
+  if(chargeCue&&cue.kind==='hit'&&previousCue!=='hit'&&game.clock-(game.lastAimCueAt??-5)>.6){
+   game.lastAimCueAt=game.clock;playSound('lock');
+  }
   if(game.chargeActive)game.chargeAimX=steadyTarget?steadyTarget.x:null;
   game.chargeReveal=1;
   if(game.chargeActive)game.chargeFocusX=game.chargeAimX;
@@ -4362,6 +4399,17 @@ const materialCells={
    ctx.beginPath();ctx.arc(actualHit.x,actualHit.y,3,0,Math.PI*2);ctx.fillStyle='#eaffdf';ctx.fill();
    ctx.font='800 11px "Malgun Gothic",system-ui,sans-serif';ctx.textAlign='center';ctx.fillStyle='#d8ffe8';
    ctx.shadowColor='#16363b';ctx.shadowBlur=4;ctx.fillText('적중 예상',actualHit.x,actualHit.y-20,70);ctx.restore();
+  }
+  if(chargeCue&&cue.kind==='near'&&!game.overview){
+   // A minimal canvas cue appears only while fine tuning, near the *enemy*.
+   // It never alters the physical shell, the power dial or its exact hitbox.
+   const tx=1018,ty=terrainY(tx)-29;
+   ctx.save();ctx.globalAlpha=.65+.15*Math.sin(game.clock*4);ctx.lineWidth=2;
+   ctx.strokeStyle='#ffe2a6';ctx.setLineDash?.([3,7]);
+   ctx.beginPath();ctx.arc(tx,ty,39,0,Math.PI*2);ctx.stroke();ctx.setLineDash?.([]);
+   ctx.font='800 11px "Malgun Gothic",system-ui,sans-serif';ctx.textAlign='center';
+   ctx.fillStyle='#fff1cb';ctx.shadowColor='#25374c';ctx.shadowBlur=3;
+   ctx.fillText('근접 · 미세 조준',tx,ty-52,105);ctx.restore();
   }
   if(!hit||hit.y<20||hit.y>H-14)return;
   const target=hit.kind==='foe',color=target?'#93f1c7':hit.kind==='block'?'#ffe1a6':'#e6f2f1';

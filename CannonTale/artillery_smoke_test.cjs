@@ -62,6 +62,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v54MuzzleForTest=(hero,owner)=>{newGame("duel",0);game[owner==="ai"?"aiHero":"hero"]=hero;launch(owner,45,80,"normal");const initial={...game.muzzle},firstKick=game.recoil[owner];step(1/60);const projectile=game.projectiles.at(-1),bridge=game.muzzle?muzzleBridge(game.muzzle):null;drawMuzzleFollowthrough(game.muzzle);return{initial,after:game.muzzle?{...game.muzzle}:null,firstKick,secondKick:game.recoil[owner],bridge,projectile:projectile?{x:projectile.x,y:projectile.y}:null,hp:[game.playerHp,game.aiHp]};}; window.__v54HudClampForTest=(owner,px,width=320)=>{newGame("duel",0);const savedWidth=cv.clientWidth;cv.clientWidth=width;game.scale=.6;const x=owner==="player"?190:1018,anchor=duelHudAnchor(x,owner);game.camera=anchor.x-px/game.scale;drawDuelHealthHud(x,owner);const result={placement:game.hudPlacement[owner],visible:game.hudDrawn[owner],width};cv.clientWidth=savedWidth;return result;}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v55AimProbeForTest=(angle,power,wind=0)=>{newGame("duel",0);game.wind=wind;game.windLift=0;game.angle=angle;game.power=power;game.chargedPower=power;const path=predict(angle,power,wind,"player",640),stable=stableAimPath(angle,power,wind,"player",640),steady=stableAimPoint(stable);game.chargeActive=true;drawTrajectory();return{angle,power,kind:path.impact?.kind||"none",contact:path.impact?{...path.impact}:null,steady,chargeX:game.chargeAimX,edge:stable.edgeExit||null};}; window.__v55AimSweepForTest=()=>{newGame("duel",0);game.wind=0;game.windLift=0;let hit=null,miss=null;for(let a=18;a<=80;a+=2)for(let p=40;p<=100;p+=2){const path=predict(a,p,0,"player",640),kind=path.impact?.kind||"none";if(kind==="foe"&&!hit)hit={angle:a,power:p};if(kind!=="foe"&&!miss)miss={angle:a,power:p};if(hit&&miss)return{hit,miss};}return{hit,miss};}; window.__v55ChargeRateForTest=(angle,power,mode="duel")=>{newGame(mode,0);game.angle=angle;game.wind=0;game.windLift=0;game.chargedPower=power;return chargeSweepRate();}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v56CueForTest=(angle,power)=>{newGame("duel",0);game.wind=0;game.windLift=0;game.angle=angle;game.power=power;game.chargedPower=power;game.chargeActive=true;drawTrajectory();return{cue:game.aimCue,marked:$("fire").classList.contains("target-window"),contact:predict(angle,power,0,"player").impact?.kind||"none"};}; window.__v56ReviewForTest=(distance,damage=0)=>{newGame("duel",0);game.phase="flying";game.turn="player";game.shotInfluences=null;game.shotBaseline={foes:0,blockHp:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP};game.closestApproach={distance,x:1000,y:200};game.lastImpact={x:790,y:terrainY(790)-10};game.aiHp-=damage;finishFlight();return{title:game.reviewInfo.title,detail:game.reviewInfo.detail,time:game.reviewTimer};}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -215,7 +217,8 @@ assert(html.includes('.app:has(#menu:not([hidden])) .top'),'Top HUD must disappe
 assert(html.includes('menu-logo-main')&&html.includes('캐논테일'),'New illustrated game title must remain visible');
 assert(html.includes('background-image:var(--stage-art)'),'Reuse existing project scenery atlases for home background');
 assert(html.includes('grid-template-areas:"title" "art" "mode"'),'Mobile home must arrange illustrated content into a single viewport');
-assert(html.includes("game.reviewTimer=finalShot?2.05:game.mode==='duel'?1.65:1.85"),'Post-impact countdown must be brief while final outcomes linger');
+assert(html.includes("game.reviewTimer=finalShot?2.05:game.mode==='duel'?(impactfulReview?1.55:1.05):(impactfulReview?1.65:1.25)"),'Misses must finish quickly while consequential impacts remain readable');
+assert(html.includes('charging.target-window #chargeFill')&&html.includes("playSound('lock')"),'A genuine charge-window contact should produce restrained sight and optional sound cues');
 assert(html.includes('v1.8 combat HUD'),'Combat controls should share fantasy illustration styling');
 assert(html.includes('v1.9 selected-hero information'),'Hero choices need visible real skill descriptions');
 assert(html.includes('v1.9 -- end-of-battle'),'Battle outcome art must use existing illustrations');
@@ -1151,6 +1154,20 @@ const aimingNearRate=window.__v55ChargeRateForTest(aimSweep.hit.angle,aimSweep.h
 const aimingFarRate=window.__v55ChargeRateForTest(aimSweep.hit.angle,20);
 assert(aimingNearRate>=.42&&aimingNearRate<aimingFarRate,'Power charging must slow in the enemy aim window, without slowing distant sweeping');
 assert.equal(window.__v55ChargeRateForTest(aimSweep.hit.angle,aimSweep.hit.power,'adventure'),1,'Adventure charge timing must remain unchanged');
+const cueHit=window.__v56CueForTest(aimSweep.hit.angle,aimSweep.hit.power);
+assert.equal(cueHit.contact,'foe','A highlighted target window requires a true enemy collision');
+assert.equal(cueHit.cue.kind,'hit','Accurate player trajectories must display the mint contact cue');
+assert.equal(cueHit.marked,true,'Only a real predicted contact should change the in-button charge fill');
+const cueMiss=window.__v56CueForTest(aimSweep.miss.angle,aimSweep.miss.power);
+assert.notEqual(cueMiss.cue.kind,'hit','Close but missed trajectories must never claim a guaranteed hit');
+assert.equal(cueMiss.marked,false,'Mere proximity may not paint a valid enemy hit window');
+const nearReview=window.__v56ReviewForTest(36);
+assert(nearReview.title.includes('아슬아슬')&&nearReview.detail.includes('최단 36'),'Close misses should report real flight proximity, not terrain landing x');
+assert.equal(nearReview.time,1.05,'Missed duel shots should return control promptly');
+const farReview=window.__v56ReviewForTest(280);
+assert(!farReview.title.includes('아슬아슬'),'A distant miss must never receive near-hit praise');
+const damageReview=window.__v56ReviewForTest(18,32);
+assert(damageReview.title.includes('32 피해')&&damageReview.time===1.55,'Real hits must retain a readable damage report');
 const fullRange=window.__v49ReachSweepForTest();
 assert.equal(fullRange.length,18,'Range coverage must test both combatants and all nine horizontal/vertical wind combinations');
 for(const run of fullRange){
