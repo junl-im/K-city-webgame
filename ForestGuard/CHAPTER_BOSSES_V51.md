@@ -1,6 +1,6 @@
 # 라니 수비대 v5.1 — 장별 보스 원화·패턴과 제1장 재검토
 
-기준 브랜치: `codex/forestguard-v508-attack-release`. 다른 게임 폴더·저장 데이터 키는 변경하지 않음.
+개발 계승: `codex/forestguard-v508-attack-release`; 실제 반영 기준: 2026-11-06 최신 `main`. 다른 게임 폴더·저장 데이터 키는 변경하지 않음.
 
 ## 확정 적용
 

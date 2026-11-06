@@ -2314,6 +2314,33 @@
   if((location.hostname==='127.0.0.1'||location.hostname==='localhost')&&new URLSearchParams(location.search).has('fgqa')){
     window.__ForestGuardQA={
       finish(win){if(battle&&!battle.ended)battle.finish(!!win);},
+      async openChapterBossForQA(id){
+        if(id!==7&&id!==11)return false;
+        const unlocked=state.unlocked;
+        try{
+          state.unlocked=12;
+          await startStage(id);
+          return true;
+        }finally{state.unlocked=unlocked;}
+      },
+      chapterBossPaintingQA(){
+        if(!battle||battle.ended||![7,11].includes(battle.stage.id))return null;
+        const sheet=chapterBossBitmaps[battle.stage.id];
+        return {stage:battle.stage.id,loaded:!!sheet,
+          dimensions:sheet?[sheet.naturalWidth,sheet.naturalHeight]:null,
+          attackFrames:Array.from({length:6},(_,i)=>battle.textures.exists('motion-boss-attack-'+i)),
+          hurtFrames:Array.from({length:6},(_,i)=>battle.textures.exists('motion-boss-hurt-'+i))};
+      },
+      previewChapterBossForQA(){
+        if(!battle||battle.ended||![7,11].includes(battle.stage.id))return null;
+        battle.spawnEnemy('boss');
+        const e=battle.enemies[battle.enemies.length-1];
+        e.baseX=210;e.x=210;e.y=255;e.spd=0;e.spr.setPosition(210,255);
+        battle.syncBattleOverlay();
+        return {portrait:document.getElementById('boss-portrait').className,
+          background:getComputedStyle(document.getElementById('boss-portrait')).backgroundImage,
+          bossTitle:document.getElementById('boss-title').textContent};
+      },
       showEliteIntro(type='shroom'){
         if(!battle||battle.ended)return false;
         battle.lastEliteCinematicWave=-1;

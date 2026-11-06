@@ -743,6 +743,29 @@ try{
   assert.equal(await failedPage.locator('#modal-layer').isHidden(),true,'WebP fallback must allow combat without a failure modal');
   assert.equal(await failedPage.locator('#menu').isHidden(),true,'Illustrated fallback must enter the battlefield');
   await failedCtx.close();
+  // Stage 2/3 bosses use independent 2×2 paintings (not the default root giant).
+  // The local-only QA hook never changes a saved public unlock progression.
+  const bossCtx=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true});
+  const bossPage=await bossCtx.newPage();
+  const bossErrors=[];bossPage.on('pageerror',error=>bossErrors.push(error.message));
+  await bossPage.goto(origin+'?fgqa=1',{waitUntil:'domcontentloaded'});
+  for(const [stage,asset,title] of [
+    [7,'chapter2-masked-mole-v51.webp','가면 두더지'],
+    [11,'chapter3-black-bell-v51.webp','검은 종의 주인']
+  ]){
+    await bossPage.evaluate(id=>window.__ForestGuardQA.openChapterBossForQA(id),stage);
+    await bossPage.waitForFunction(id=>window.__ForestGuardQA.chapterBossPaintingQA()?.stage===id,stage,{timeout:30000});
+    const painting=await bossPage.evaluate(()=>window.__ForestGuardQA.chapterBossPaintingQA());
+    assert.ok(painting.loaded&&painting.attackFrames.every(Boolean)&&painting.hurtFrames.every(Boolean),
+      title+' must load six separate painted action/impact poses: '+JSON.stringify(painting));
+    const result=await bossPage.evaluate(()=>window.__ForestGuardQA.previewChapterBossForQA());
+    assert.ok(result.background.includes(asset)&&result.bossTitle===title,
+      title+' upper HUD must use its matching painted portrait: '+JSON.stringify(result));
+    await bossPage.waitForTimeout(450);
+    await bossPage.screenshot({path:new URL('../test-output/chapter-boss-'+stage+'-390.png',import.meta.url).pathname});
+  }
+  assert.deepEqual(bossErrors,[],'New chapter boss browser exceptions');
+  await bossCtx.close();
 }finally{await browser.close();}
 console.log('ForestGuard Chromium mobile viewport QA PASS');
 console.log(JSON.stringify(reports,null,2));
