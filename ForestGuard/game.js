@@ -875,18 +875,21 @@
     const applyFourPoseSheet=(type,sheet)=>{
       if(!sheet)return;
       const cw=sheet.naturalWidth/2,ch=sheet.naturalHeight/2;
+      // 224px preserves the illustrated antlers/roots in the 216px cinematic;
+      // compact fallback monsters still keep their existing 128px textures.
+      const paintedFrameSize=224;
       const poses={idle:[0,0,0,0],run:[0,1,0,1],attack:[0,1,2,2,3,0],
         hurt:[0,3,3,1,0,0],death:[0,3,3,3,3,3],victory:[0,1,0,1]};
       for(const [motion,sequence] of Object.entries(poses))for(const [frame,pose] of sequence.entries()){
         const key='motion-'+type+'-'+motion+'-'+frame;
         if(scene.textures.exists(key))scene.textures.remove(key);
-        createCanvasTexture(scene,key,128,128,c=>{
-          const fit=Math.min(122/cw,122/ch),w=cw*fit,h=ch*fit;
+        createCanvasTexture(scene,key,paintedFrameSize,paintedFrameSize,c=>{
+          const fit=Math.min((paintedFrameSize-8)/cw,(paintedFrameSize-8)/ch),w=cw*fit,h=ch*fit;
           const push=motion==='attack'&&frame>=2&&frame<=3?2:0;
           c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
           c.drawImage(sheet,(pose%2)*cw,Math.floor(pose/2)*ch,cw,ch,
-            (128-w)/2,(128-h)/2-push,w,h);
-          V.cleanEnemyFrame(c,128,128);
+            (paintedFrameSize-w)/2,(paintedFrameSize-h)/2-push,w,h);
+          V.cleanEnemyFrame(c,paintedFrameSize,paintedFrameSize);
         });
       }
     };
@@ -2380,8 +2383,10 @@
       chapterBossPaintingQA(){
         if(!battle||battle.ended||![3,7,11].includes(battle.stage.id))return null;
         const sheet=chapterBossBitmaps[battle.stage.id];
+        const frame=battle.textures.get('motion-boss-attack-0').getSourceImage();
         return {stage:battle.stage.id,loaded:!!sheet,
           dimensions:sheet?[sheet.naturalWidth,sheet.naturalHeight]:null,
+          frameSize:[frame.width,frame.height],
           attackFrames:Array.from({length:6},(_,i)=>battle.textures.exists('motion-boss-attack-'+i)),
           hurtFrames:Array.from({length:6},(_,i)=>battle.textures.exists('motion-boss-hurt-'+i))};
       },
@@ -2399,11 +2404,12 @@
         if(!battle||battle.ended||battle.stage.id!==0)return null;
         const loaded=!!forestSentinelBitmap;
         const frames=Array.from({length:6},(_,i)=>battle.textures.exists('motion-guardian-attack-'+i));
+        const frame=battle.textures.get('motion-guardian-attack-0').getSourceImage();
         battle.spawnEnemy('guardian');
         const e=battle.enemies[battle.enemies.length-1];
         e.x=210;e.y=245;e.spd=0;e.spr.setPosition(210,245);
         battle.syncBattleOverlay();
-        return {loaded,frames,portrait:document.getElementById('boss-portrait').className,
+        return {loaded,frames,frameSize:[frame.width,frame.height],portrait:document.getElementById('boss-portrait').className,
           background:getComputedStyle(document.getElementById('boss-portrait')).backgroundImage,
           title:document.getElementById('boss-title').textContent};
       },

@@ -752,7 +752,7 @@ try{
   await bossPage.evaluate(()=>window.__ForestGuardQA.openChapterBossForQA(0));
   await bossPage.locator('#game-root canvas').waitFor({state:'attached',timeout:30000});
   const sentinel=await bossPage.evaluate(()=>window.__ForestGuardQA.chapterOneSentinelQA());
-  assert.ok(sentinel?.loaded&&sentinel.frames.every(Boolean)&&
+  assert.ok(sentinel?.loaded&&sentinel.frames.every(Boolean)&&sentinel.frameSize.every(v=>v===224)&&
     sentinel.background.includes('chapter1-forest-sentinel-v52.webp')&&
     sentinel.portrait.includes('chapter-sentinel')&&sentinel.title==='숲길 파수꾼',
   'Chapter 1 sentinel must retain its six painted actions and matching HUD: '+JSON.stringify(sentinel));
@@ -766,7 +766,8 @@ try{
     await bossPage.evaluate(id=>window.__ForestGuardQA.openChapterBossForQA(id),stage);
     await bossPage.waitForFunction(id=>window.__ForestGuardQA.chapterBossPaintingQA()?.stage===id,stage,{timeout:30000});
     const painting=await bossPage.evaluate(()=>window.__ForestGuardQA.chapterBossPaintingQA());
-    assert.ok(painting.loaded&&painting.attackFrames.every(Boolean)&&painting.hurtFrames.every(Boolean),
+    assert.ok(painting.loaded&&painting.frameSize.every(v=>v===224)&&
+      painting.attackFrames.every(Boolean)&&painting.hurtFrames.every(Boolean),
       title+' must load six separate painted action/impact poses: '+JSON.stringify(painting));
     const result=await bossPage.evaluate(()=>window.__ForestGuardQA.previewChapterBossForQA());
     assert.ok(result.background.includes(asset)&&result.bossTitle===title,

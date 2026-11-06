@@ -35,6 +35,7 @@ for(const name of ['chapter1-root-giant-v52.webp','chapter1-forest-sentinel-v52.
   assert.ok(chapter51.includes(name),'Chapter 1 portrait must use the original painted artwork');
 }
 assert.match(js,/applyFourPoseSheet\('guardian',forestSentinelBitmap\)/);
+assert.match(js,/const paintedFrameSize=224/);
 assert.match(js,/rootCrownCharge\(e\)/);
 assert.match(js,/sendForestSpear\(e\)/);
 assert.doesNotMatch(chapter51,/<svg|data:image\/svg\+xml|\.svg(?:["'(])/i);
