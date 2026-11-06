@@ -29,6 +29,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v43GradeForTest=precisionGrade; window.__v43DirectForTest=(accuracy)=>{newGame("duel",0);applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:accuracy>=.9?8:20,timingAccuracy:accuracy,hero:game.hero});return {damage:100-game.aiHp,emphasis:game.hitEmphasis.at(-1)?.text,pulse:game.hudHitPulse.ai,hpTrailer:game.hudHealth.ai};}; window.__v43WindForTest=()=>{newGame("duel",0);const changes=[];for(let i=0;i<15;i++){const old=game.wind;rollNextWind();changes.push(Math.abs(game.wind-old));}return changes;}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v44WindGuideForTest=(wind)=>{newGame("duel",0);game.wind=wind;game.angle=43;game.power=80;updateHud();return {guide:game.windGuide,label:$("windDrift").textContent,hidden:$("windDrift").hidden};}; window.__v44HealthForTest=()=>({hold:game.hudHitDelay.ai,shown:game.hudHealth.ai,actual:game.aiHp}); window.__v44ReviewForTest=(critical=false)=>{newGame("duel",0);game.phase="flying";game.phaseTime=2;game.shotBaseline={foes:0,blockHp:0,playerHp:100,aiHp:100};if(critical){applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:8,timingAccuracy:1,hero:game.hero});}else{game.lastImpact={x:800,y:terrainY(800)-10};}game.projectiles=[];finishFlight();return {title:game.reviewInfo.title,detail:game.reviewInfo.detail};}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__setDeathAgeForTest=(age)=>{const f=game.foes[0];f.alive=false;f.kind=0;f.deathTimer=3.8-age;f.hitAnim=0;f.attackAnim=0;}; window.__restoreFoeForTest=()=>{const f=game.foes[0];f.alive=true;f.deathTimer=0;}; window.__artilleryLoadoutDebug=');
 // In the six-pose atlas probe, select the settled death frame after the brief
 // hurt-to-prone transition rather than at the exact moment of defeat.
@@ -38,6 +40,7 @@ assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
 assert(html.includes('grid-template-areas:"weapons actions"!important'),'The freed angle column must compact the desktop dock');
 assert(html.includes('id="aimTelemetry"')&&html.includes('id="windVector"'),'Angle telemetry and live wind indicator must remain readable above the battlefield');
+assert(html.includes('id="windDrift"')&&html.includes('v4.4: wind compensation stays tiny'),'Wind compensation should live in the compact in-field telemetry, not in a new dock row');
 assert(html.includes('id="precisionPanel"')&&html.includes('id="precisionHit"'),'A standalone precision challenge must appear near the ammunition dock');
 const precisionFrame=fs.readFileSync(__dirname+'/art/precision_timing_v43.webp');
 assert.equal(precisionFrame.toString('ascii',0,4),'RIFF','Precision gauge frame must be a real original WebP bitmap');
@@ -944,6 +947,22 @@ assert.equal(criticalDirect.emphasis,'치명타!','A critical impact must show i
 assert(criticalDirect.pulse>ordinaryDirect.pulse,'Critical damage should make the head-mounted HP gauge recoil harder');
 assert(criticalDirect.hpTrailer>100-criticalDirect.damage,'A hit must leave trailing HP to visibly drain over subsequent frames');
 assert(window.__v43WindForTest().every(delta=>delta>=.749),'Each deathmatch turn must noticeably change wind');
+const calmGuide=window.__v44WindGuideForTest(0);
+const gustGuide=window.__v44WindGuideForTest(4.2);
+assert(calmGuide.guide&&Math.abs(calmGuide.guide.drift)<=1&&calmGuide.hidden,'No-wind aiming must not clutter the view with a false drift indicator');
+assert(gustGuide.guide&&Math.abs(gustGuide.guide.drift)>=20&&!gustGuide.hidden,'Strong wind must reveal a measurable no-wind versus actual-impact offset');
+assert(gustGuide.label.includes(gustGuide.guide.drift>=0?'→':'←'),'Wind compensation arrow must match actual projectile displacement');
+window.__v43DirectForTest(1);
+const justHit=window.__v44HealthForTest();
+assert(justHit.hold>.2&&justHit.shown>justHit.actual,'Critical damage must retain a readable HP afterimage before draining');
+frames(11);
+assert.equal(window.__v44HealthForTest().shown,justHit.shown,'HP afterimage must hold briefly instead of vanishing on the first few frames');
+frames(65);
+assert(window.__v44HealthForTest().shown<justHit.shown-5,'HP afterimage must drain smoothly after the dramatic impact hold');
+const missReview=window.__v44ReviewForTest(false);
+assert(missReview.detail.includes('218')&&missReview.detail.includes('왼쪽'),'A missed duel shot must teach the player how far and which way it missed');
+const criticalReview=window.__v44ReviewForTest(true);
+assert(criticalReview.title.includes('치명타!')&&criticalReview.title.includes('피해!'),'The review ribbon must carry forward a successful critical hit');
 el('homeBtn').click();el('duelBtn').click();el('fire').click();
 assert.equal(state().phase,'timing');
 handlers.popstate();

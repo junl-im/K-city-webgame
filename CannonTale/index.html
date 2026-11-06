@@ -2598,6 +2598,12 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  #controls #fire{height:clamp(41px,12vh,54px)!important;width:clamp(45px,6vw,59px)!important}
  .precision-panel{width:min(48vw,310px)}
 }
+/* v4.4: wind compensation stays tiny and in-field; no new frame or dock row. */
+.aim-telemetry .wind-drift{font-size:.85em;color:#f9d594;white-space:nowrap}
+.aim-telemetry .wind-drift[hidden]{display:none!important}
+#windChip.wind-high .wind-vector{animation:windGust44 1.2s ease-in-out infinite alternate}
+@keyframes windGust44{from{transform:translateX(-2px);filter:drop-shadow(0 0 2px #ffb657)}to{transform:translateX(2px);filter:drop-shadow(0 0 6px #ffbe62)}}
+@media(prefers-reduced-motion:reduce){#windChip.wind-high .wind-vector{animation:none}}
 </style>
 </head>
 <body>
@@ -2636,7 +2642,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   <div id="bossBanner" class="boss-banner" hidden>요새 대장 출현</div>
   <div id="enemyEntrance" class="enemy-entrance" hidden aria-hidden="true"><span class="enemy-entrance-figure"></span><span class="enemy-entrance-copy"><small>FOREST ENCOUNTER</small><strong id="enemyEntranceName"></strong></span></div>
   <div id="hint" class="corner-hint" hidden role="status" aria-live="polite"></div>
-  <div id="aimTelemetry" class="aim-telemetry" hidden aria-label="현재 조준 정보"><span>각도 <strong id="angleValue">43°</strong></span><small>예상 <output id="distanceValue">—</output></small></div>
+  <div id="aimTelemetry" class="aim-telemetry" hidden aria-label="현재 조준 정보"><span>각도 <strong id="angleValue">43°</strong></span><small>예상 <output id="distanceValue">—</output></small><small id="windDrift" class="wind-drift" hidden>풍압 → 0</small></div>
   <div id="precisionPanel" class="precision-panel" hidden role="group" aria-label="정밀 발사 타이밍 게임"><span class="precision-head" id="precisionHeadline">중앙에 맞춰 발사!</span><button id="precisionHit" class="precision-hit" type="button" aria-label="움직이는 바늘이 중앙일 때 탭해 발사"><span class="precision-meter" aria-hidden="true"><span class="precision-center"></span><span class="precision-needle" id="precisionNeedle"></span></span></button><small class="precision-foot" id="precisionFoot">중앙 정타 · 근접 안정 · 외곽 거리 손실</small></div>
   <div class="status-row"><div id="leftStatus" class="status" hidden></div><div id="rightStatus" class="status" hidden></div></div>
 <div id="reviewCountdown" class="review-countdown" hidden aria-hidden="true">5</div>
@@ -2877,7 +2883,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;$('menu').dataset.stage=String(chosen);const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];const def=stageSet[chosen];$('stageShotPreview').textContent=`탄약 ${def.shots}발 · 목표 ${def.foes.length}명`;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;refreshIllustratedSelects();}
  function refreshMenu(){refreshHeroPreview();const cleared=progress.best.filter(Boolean).length;$('progressSummary').textContent=cleared?`최고 등급 합계 ${progress.best.reduce((a,b)=>a+b,0)} / 12 · 승리 ${progress.wins}회`:'모험 기록 · 아직 첫 승리 전';$('progressTier').textContent=`완료 ${cleared} / 4`;refreshStageMap();}
- const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:100,aiHp:100,turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,chargeFocusX:null,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,precisionActive:false,precisionElapsed:0,precisionNeedle:0,precisionCamera:0,precisionLast:null,hitEmphasis:[],chainHits:0,crushHits:0,weaponFractures:0};
+ const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:100,aiHp:100,turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,chargeFocusX:null,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,shotHighlights:{direct:false,critical:false},windGuide:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,precisionActive:false,precisionElapsed:0,precisionNeedle:0,precisionCamera:0,precisionLast:null,hitEmphasis:[],chainHits:0,crushHits:0,weaponFractures:0};
  // Six authored motion phases per hero (procedural transforms of the existing PNG/WebP art).
  // They are NOT six separately painted sprite frames.
  const heroMotionKeys={
@@ -2992,7 +2998,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  function launch(owner,ang,power,weapon,initial) {
   const o=origin(owner),dir=owner==='ai'?-1:1,v=initial||powerVelocity(ang,power,dir);
   game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,b)=>a+Math.max(0,b.hp),0),blockCounts:['wood','stone','iron'].map(t=>game.blocks.filter(b=>b.type===t).length),playerHp:game.playerHp,aiHp:game.aiHp};
-  game.lastImpact=null;game.reviewFocusX=null;game.reviewInfo=null;$('reviewCountdown').hidden=true;game.panX=null;game.overview=false;$('overview').textContent='전장 보기';$('shotReview').hidden=true;
+  game.lastImpact=null;game.shotHighlights={direct:false,critical:false};game.reviewFocusX=null;game.reviewInfo=null;$('reviewCountdown').hidden=true;game.panX=null;game.overview=false;$('overview').textContent='전장 보기';$('shotReview').hidden=true;
   const socket=muzzleFor(owner,ang),muzzleX=socket.x,muzzleY=socket.y;
    const p={x:muzzleX,y:muzzleY,vx:v.vx,vy:v.vy,r:weapon==='bomb'?13:10,weapon,owner,hero:owner==='ai'?game.aiHero:game.hero,age:0,split:false,trail:[],active:true,pierce:owner==='player'&&game.abilityArmed?2:0,hitBlocks:[],hitFoes:[],timingGrade:owner==='player'?game.precisionLast?.grade:null,timingAccuracy:owner==='player'?game.precisionLast?.accuracy:0,directTarget:null,directCenter:Infinity};game.projectiles.push(p);
   if(owner==='player')game.abilityArmed=false;else game.aiAngle=ang;
@@ -3057,7 +3063,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function newGame(mode,stage=0){
   game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:Infinity;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
-  game.hudHealth={player:100,ai:100};game.hudHitPulse={player:0,ai:0};game.hudDrawn={player:false,ai:false};
+  game.hudHealth={player:100,ai:100};game.hudHitPulse={player:0,ai:0};game.hudHitDelay={player:0,ai:0};game.hudDrawn={player:false,ai:false};game.shotHighlights={direct:false,critical:false};game.windGuide=null;
   game.precisionActive=false;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionLast=null;game.hitEmphasis=[];$('precisionPanel').hidden=true;$('aimTelemetry').hidden=false;
   // Every duel is hero-versus-hero. The opponent is different from the selected player.
   const challengers=['fox','bear','rabbit','cat'].filter(hero=>hero!==game.hero);
@@ -3159,6 +3165,14 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   const o=origin(),path=predict(game.angle,game.power,game.wind,'player',900);
   const impact=path.impact||path[path.length-1];
   $('distanceValue').textContent=impact?String(Math.max(0,Math.round(Math.abs(impact.x-o.x)))):'—';
+  // Same angle and power, with wind disabled: the difference is a readable
+  // aim correction, not an invented physics stat. Cache for canvas rendering.
+  const calmPath=predict(game.angle,game.power,0,'player',900);
+  const calmImpact=calmPath.impact||calmPath[calmPath.length-1];
+  const drift=impact&&calmImpact?Math.round(impact.x-calmImpact.x):0;
+  game.windGuide=impact&&calmImpact?{windy:{x:impact.x,y:impact.y},calm:{x:calmImpact.x,y:calmImpact.y},drift}:null;
+  $('windDrift').hidden=!game.windGuide||Math.abs(drift)<20||game.turn!=='player';
+  $('windDrift').textContent=`풍압 ${drift>=0?'→':'←'} ${Math.abs(drift)}`;
   if(!game.chargeActive)$('fireLabel').textContent=game.phase==='flying'?'발사 중':game.phase==='timing'?'정밀 발사':game.phase==='review'?'다음 발사':'발사!';
   $('fire').classList.toggle('recent-shot',game.phase==='flying'&&game.phaseTime<.7);
   const allow=(game.phase==='aim'&&game.turn==='player')||canResumeAimFromReview(),timing=game.phase==='timing'&&game.turn==='player';$('fire').disabled=!(allow||timing);
@@ -3331,6 +3345,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  function applyExplosion(p){
   game.lastImpact={x:clamp(p.x,0,W),y:clamp(p.y,0,H)};
   const direct=!!p.directTarget,critical=direct&&p.owner==='player'&&(p.timingAccuracy>=.9||p.directCenter<=11),bonus=critical?1.38:direct?1.16:1;
+  game.shotHighlights.direct ||=direct;game.shotHighlights.critical ||=critical;
   const big=p.weapon==='bomb',radius=big?105:p.weapon==='split'?55:62,damage=(big?105:p.weapon==='split'?46:72)*(p.guided?1.08:1)*bonus;
   game.shake=Math.max(game.shake,critical?25:direct?17:big?19:11);game.hitStop=Math.max(game.hitStop,critical?.095:direct?.062:big?.051:.034);game.flash=critical?.28:big?.2:.12;game.rings.push({x:p.x,y:p.y,r:9,max:radius*(critical?1.6:1.14),life:critical?.68:.48,total:critical?.68:.48,color:critical?'#baffea':big?'#ffdfab':'#fff7d7'});game.blastCores.push({x:p.x,y:p.y,hero:p.hero||'fox',weapon:p.weapon||'normal',life:big?.65:.46,total:big?.65:.46,radius:big?69:41,seed:rnd(0,6.3)});game.blastCores=game.blastCores.slice(-12);crater(p.x,p.y,big?49:27);spawnSparks(p.x,p.y,critical?75:direct?48:big?56:32,critical?'#baffdf':big?'#ffb966':'#fff0be',critical?1.6:big?1.3:1);for(let i=0;i<(big?14:8);i++){const px=p.x+rnd(-26,26);game.particles.push({x:px,y:p.y+rnd(-8,8),vx:rnd(-85,85),vy:rnd(-125,-25),life:rnd(.45,.92),max:.92,r:rnd(6,15),color:i%2?'#b88f7388':'#eee0c288'});}
   if(direct){game.hitEmphasis.push({x:p.x,y:p.y-56,text:critical?'치명타!':'정타!',life:critical?1.2:.95,total:critical?1.2:.95,critical});game.hitEmphasis=game.hitEmphasis.slice(-8);if(critical)playSound('critical');}
@@ -3355,6 +3370,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
     const cy=terrainY(c.x)-29,dist=Math.hypot(p.x-c.x,p.y-cy);
     if(dist<radius+30){const val=Math.max(12,Math.round((1-dist/(radius+30))*(big?69:55)*bonus));if(c.owner==='player')game.playerHp-=val;else game.aiHp-=val;
      game.hudHitPulse[c.owner]=critical?.9:direct?.72:.55;
+     game.hudHitDelay[c.owner]=critical?.27:direct?.22:.15;
      spawnCombatPopup(c.owner,'-'+val,c.owner===p.directTarget?(critical?'critical':'direct'):big?'blast':'normal');
      actorMotion(c.owner,'hit',.52);skillEffect('hit',c.x,cy,.45);spawnSparks(c.x,cy,12,'#fdd2a8',.8);}
    }
@@ -3396,8 +3412,13 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    game.reviewNext=game.foes.every(f=>!f.alive)?'win':game.shots>=game.maxShots?'lose':'aim';
   }else{
    const damaged=enemyDamage||allyDamage;
-   title=enemyDamage?`상대에게 ${enemyDamage} 피해!`:allyDamage?`아군이 ${allyDamage} 피해!`:'착탄 위치 확인';
-   detail=damaged?'머리 위 HP 표시를 확인하고 다음 포격을 준비하세요':'무제한 데스매치! 착탄점을 확인하고 다시 조준하세요';
+   const highlight=game.shotHighlights;
+   title=enemyDamage?`${highlight.critical?'치명타! ':highlight.direct?'정타! ':''}상대 ${enemyDamage} 피해!`:allyDamage?`아군이 ${allyDamage} 피해!`:'착탄 위치 확인';
+   if(damaged)detail='머리 위 HP 게이지의 피해 잔상을 확인하고 다음 포격을 준비하세요';
+   else if(game.turn==='player'&&game.lastImpact){
+    const miss=Math.round(Math.abs(1018-game.lastImpact.x));
+    detail=`목표에서 ${miss}만큼 ${game.lastImpact.x<1018?'왼쪽':'오른쪽'} · 바람과 각도를 보정하세요`;
+   }else detail='상대의 착탄 위치를 확인하고 반격을 준비하세요';
    game.reviewNext=game.playerHp<=0||game.aiHp<=0?(game.aiHp<=0&&game.playerHp>0?'win':'lose'):game.turn==='player'?'aiWait':'aim';
   }
   game.reviewFocusX=game.lastImpact?.x??(game.mode==='adventure'?850:game.turn==='player'?1018:190);
@@ -3444,7 +3465,10 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   if(game.mode==='duel'&&game.hudHealth){
    for(const side of ['player','ai']){
     const actual=clamp(side==='player'?game.playerHp:game.aiHp,0,100),shown=game.hudHealth[side];
-    game.hudHealth[side]=Math.abs(actual-shown)<.15?actual:shown+(actual-shown)*Math.min(1,dt*3.8);
+    game.hudHitDelay[side]=Math.max(0,game.hudHitDelay[side]-dt);
+    // Hold the pale trailing segment for a beat before it drains. Players can
+    // read the damage amount without a bulky framed HP panel.
+    if(game.hudHitDelay[side]===0)game.hudHealth[side]=Math.abs(actual-shown)<.15?actual:shown+(actual-shown)*Math.min(1,dt*2.45);
     game.hudHitPulse[side]=Math.max(0,game.hudHitPulse[side]-dt);
    }
   }
@@ -4061,6 +4085,21 @@ const materialCells={
    ctx.strokeStyle='#f4e6b9b0';ctx.lineWidth=3.9;ctx.stroke();
    ctx.setLineDash?.([]);ctx.restore();
    for(let i=16;i<dots.length;i+=24){const pt=dots[i];ellipse(pt.x,pt.y,2.3,2.3,'#f2e8c5a5');}
+  }
+  // Small unframed no-wind reference. The real wind-affected impact remains
+  // the brighter, labelled target; do not cover it with a second HUD panel.
+  const guide=game.windGuide;
+  if(!game.chargeActive&&!game.overview&&guide&&Math.abs(guide.drift)>=35){
+   const calm=guide.calm,actual=guide.windy;
+   const visible=calm.x>=game.camera-18&&calm.x<=game.camera+cv.clientWidth/game.scale+18;
+   if(visible&&calm.y>30&&calm.y<H-20){
+    ctx.save();ctx.globalAlpha=.63;ctx.strokeStyle='#c8e9f0';ctx.lineWidth=2;ctx.setLineDash?.([3,7]);
+    ctx.beginPath();ctx.arc(calm.x,calm.y,11,0,Math.PI*2);ctx.stroke();
+    if(Math.abs(guide.drift)<235&&Math.hypot(actual.x-calm.x,actual.y-calm.y)>35){
+     ctx.beginPath();ctx.moveTo(calm.x,calm.y);ctx.lineTo(actual.x,actual.y);ctx.stroke();
+    }
+    ctx.setLineDash?.([]);ctx.textAlign='center';ctx.font='850 11px system-ui,sans-serif';ctx.fillStyle='#effafa';ctx.shadowColor='#14303b';ctx.shadowBlur=3;ctx.fillText('무풍',calm.x,calm.y+26);ctx.restore();
+   }
   }
   const hit=dots.impact;
   if(!hit||hit.y<20||hit.y>H-14)return;
