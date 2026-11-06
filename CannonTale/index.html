@@ -3030,13 +3030,15 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   return out;
  }
  function chooseAiShot(){
-  const o=origin('ai'),target=origin('player'),hard=game.difficulty==='hard',easy=game.difficulty==='easy';
+  const target={x:190,y:terrainY(190)-29},hard=game.difficulty==='hard',easy=game.difficulty==='easy';
   const plans=hard?['bomb','normal','split','bomb','normal']:easy?['normal','normal','bomb','normal','split']:['normal','bomb','normal','split'];
   const weapon=game.playerHp<=38&&!easy?'bomb':plans[game.aiShots%plans.length];
-  const tactic=weapon==='bomb'?'폭발 범위 공격':weapon==='split'?'공중 분열 압박':game.aiShots%2?'고각 정밀 포격':'탄도 정밀 포격';
-  // Solve the same wind-affected ballistic path used for actual projectiles.
-  // Track closest approach, not only the landing point, so direct hits remain viable.
-  let best={score:Infinity,angle:45,power:74};
+  // Different attack intentions must select different *trajectories*, not just
+  // change the on-screen tactic label. Every candidate uses the real wind model.
+  const styles=['low','high','wind','mid','high','low'];
+  const wanted=styles[game.aiShots%styles.length];
+  const bands={low:[18,43],mid:[43,66],high:[66,88]};
+  let best={score:Infinity,angle:45,power:74},preferred=null;
   for(let a=18;a<=87;a+=3){for(let p=35;p<=100;p+=3){
    const socket=muzzleFor('ai',a);
    let x=socket.x,y=socket.y,v=powerVelocity(a,p,-1),vx=v.vx,vy=v.vy,near=1e6;
@@ -3044,13 +3046,22 @@ body,button,input,select{font-family:var(--ct-ui-font)}
     near=Math.min(near,Math.hypot(x-target.x,y-target.y));
     if(y>=terrainY(x)||x<0||x>W)break;
    }
-   const score=near+(tactic==='고각 정밀 포격'?Math.abs(a-65)*.12:0);
-   if(score<best.score)best={score,angle:a,power:p};
+   const candidate={score:near,angle:a,power:p};
+   if(near<best.score)best=candidate;
+   const [lo,hi]=bands[wanted==='wind'?(game.wind>=0?'high':'low'):wanted];
+   if(a>=lo&&a<hi&&(!preferred||near<preferred.score))preferred=candidate;
   }}
+  // Don't deliberately waste an AI turn if a special arc cannot land nearby.
+  // Hard opponents tolerate much less deviation from a reliable solution.
+  const allowed=hard?24:easy?66:44;
+  const shot=preferred&&preferred.score<=Math.max(allowed,best.score+allowed*.55)?preferred:best;
+  const arc=shot.angle<43?'저각 직사':shot.angle>=66?'고각 곡사':'중각 포격';
+  const tactic=weapon==='split'?`${arc} · 분열 압박`:weapon==='bomb'?`${arc} · 폭발 견제`:
+   wanted==='wind'&&Math.abs(game.wind)>=1.3?`${arc} · 풍향 보정`:`${arc} · 정밀 조준`;
   const err=easy?{angle:5.5,power:8}:hard?{angle:.55,power:1.25}:{angle:2,power:3.25};
   game.aiShots++;game.lastAiWeapon=weapon;game.aiTactic=tactic;
-  return{angle:clamp(best.angle+rnd(-err.angle,err.angle),8,88),
-   power:clamp(best.power+rnd(-err.power,err.power),25,100),weapon,tactic};
+  return{angle:clamp(shot.angle+rnd(-err.angle,err.angle),8,88),
+   power:clamp(shot.power+rnd(-err.power,err.power),25,100),weapon,tactic};
  }
  function buildAdventure(stage) {
   const def=stageSet[stage%stageSet.length];
@@ -3063,7 +3074,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function newGame(mode,stage=0){
   game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:Infinity;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
-  game.hudHealth={player:100,ai:100};game.hudHitPulse={player:0,ai:0};game.hudHitDelay={player:0,ai:0};game.hudDrawn={player:false,ai:false};game.shotHighlights={direct:false,critical:false};game.windGuide=null;
+  game.hudHealth={player:100,ai:100};game.hudHitPulse={player:0,ai:0};game.hudHitDelay={player:0,ai:0};game.hudDrawn={player:false,ai:false};game.duelHitMotion={player:null,ai:null};game.shotHighlights={direct:false,critical:false};game.windGuide=null;
   game.precisionActive=false;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionLast=null;game.hitEmphasis=[];$('precisionPanel').hidden=true;$('aimTelemetry').hidden=false;
   // Every duel is hero-versus-hero. The opponent is different from the selected player.
   const challengers=['fox','bear','rabbit','cat'].filter(hero=>hero!==game.hero);
@@ -3085,7 +3096,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  function canResumeAimFromReview(){
   return game.mode==='adventure'&&game.phase==='review'&&game.reviewNext==='aim'&&game.turn==='player'&&game.projectiles.length===0;
  }
- let suppressNextFireClick=false;
+ let suppressNextFireClick=false,activeFirePointer=null;
  function chargeAllowed(){return (game.phase==='aim'&&game.turn==='player')||canResumeAimFromReview();}
  function beginFireCharge(){
   if(!chargeAllowed())return false;
@@ -3109,7 +3120,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   beginPrecision();return true;
  }
  function cancelFireCharge(){
-  game.chargeActive=false;game.chargeAimX=null;game.chargeFocusX=null;game.chargeAnchorPx=null;game.chargeReveal=1;$('chargeGauge').hidden=true;
+  game.chargeActive=false;activeFirePointer=null;game.chargeAimX=null;game.chargeFocusX=null;game.chargeAnchorPx=null;game.chargeReveal=1;$('chargeGauge').hidden=true;
   if(game.actorAnim.player.kind==='charge')actorMotion('player','idle',.01);
   $('fire').classList.toggle('charging',false);$('fireLabel').textContent='발사!';
  }
@@ -3371,6 +3382,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
     if(dist<radius+30){const val=Math.max(12,Math.round((1-dist/(radius+30))*(big?69:55)*bonus));if(c.owner==='player')game.playerHp-=val;else game.aiHp-=val;
      game.hudHitPulse[c.owner]=critical?.9:direct?.72:.55;
      game.hudHitDelay[c.owner]=critical?.27:direct?.22:.15;
+     game.duelHitMotion[c.owner]={life:critical?.67:direct?.51:.38,total:critical?.67:direct?.51:.38,strength:critical?19:direct?13:8,direction:c.x<p.x?-1:1};
      spawnCombatPopup(c.owner,'-'+val,c.owner===p.directTarget?(critical?'critical':'direct'):big?'blast':'normal');
      actorMotion(c.owner,'hit',.52);skillEffect('hit',c.x,cy,.45);spawnSparks(c.x,cy,12,'#fdd2a8',.8);}
    }
@@ -3464,6 +3476,10 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   game.clock+=dt;game.phaseTime+=dt;
   if(game.mode==='duel'&&game.hudHealth){
    for(const side of ['player','ai']){
+    if(game.duelHitMotion?.[side]){
+     game.duelHitMotion[side].life=Math.max(0,game.duelHitMotion[side].life-dt);
+     if(game.duelHitMotion[side].life===0)game.duelHitMotion[side]=null;
+    }
     const actual=clamp(side==='player'?game.playerHp:game.aiHp,0,100),shown=game.hudHealth[side];
     game.hudHitDelay[side]=Math.max(0,game.hudHitDelay[side]-dt);
     // Hold the pale trailing segment for a beat before it drains. Players can
@@ -3696,12 +3712,21 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function duelActor(x,dir,own){
   const owner=own?'player':'ai',hero=duelHero(owner);
-  if(hero==='bear'){cannon(x,terrainY(x)-26,dir,own);return;}
+  const hit=game.duelHitMotion?.[owner];
+  ctx.save();
+  if(hit){
+   const t=1-hit.life/hit.total,fade=1-t;
+   // A short illustrated recoil, with the biggest jolt reserved for a critical.
+   ctx.translate(hit.direction*hit.strength*Math.sin(t*Math.PI*2.5)*fade,
+    -Math.sin(t*Math.PI)*hit.strength*.58);
+  }
+  if(hero==='bear'){cannon(x,terrainY(x)-26,dir,own);ctx.restore();return;}
   // Fox, rabbit and cat hold the slingshot, split-launcher and staff already painted in their atlas.
   if(!illustratedCharacter(hero,x,terrainY(x)-20,.72,dir,owner)){
    // Keep an actor visible even if an optional bitmap has not arrived yet.
    ctx.save();ctx.translate(x,terrainY(x)-55);ellipse(0,0,22,28,own?'#d98d54':'#7189a0');ctx.restore();
   }
+  ctx.restore();
  }
  function duelHudAnchor(x,owner){
   const hero=owner==='player'?game.hero:game.aiHero,dir=owner==='player'?1:-1;
@@ -4369,8 +4394,8 @@ const materialCells={
  function draw(){resize();const dpr=Math.min(2,devicePixelRatio||1),s=game.scale;if(!s)return;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#8bbeb8';ctx.fillRect(0,0,cv.width,cv.height);ctx.setTransform(dpr*s,0,0,dpr*s,-game.camera*dpr*s,game.topPad*dpr);ctx.save();if(game.shake>1){ctx.translate(rnd(-game.shake,game.shake),rnd(-game.shake*.6,game.shake*.6));}backdrop();if(game.mode!=='menu'){ground();drawTrajectory();if(game.mode==='adventure'){drawBlocks();drawCollapseGhosts();drawFoes();slingshot();}else{duelActor(190,1,true);duelActor(1018,-1,false);drawDuelHealthHud(190,'player');drawDuelHealthHud(1018,'ai');}drawChargeReadiness();drawDebris();drawProjectiles();drawParticles();drawImpactMotes();drawSkillEffects();drawImpact();drawMessage();}else{ctx.save();fox(170,450,2);bear(1008,452,2);ctx.restore();}if(game.flash>0){ctx.fillStyle=`rgba(255,245,210,${game.flash*1.4})`;ctx.fillRect(game.camera,0,cv.clientWidth/s,H);}ctx.restore();}
  let prev=0,acc=0;function frame(t){if(!prev)prev=t;acc+=Math.min(.075,(t-prev)/1000);prev=t;let runs=0;while(acc>=STEP&&runs++<6){step(STEP);acc-=STEP;}draw();requestAnimationFrame(frame);}
  function pointerToWorld(e){const r=cv.getBoundingClientRect();return{x:game.camera+(e.clientX-r.left)/game.scale,y:(e.clientY-r.top-game.topPad)/game.scale};}
- cv.addEventListener('pointerdown',e=>{if(game.phase==='flying'){if(game.hero==='rabbit'&&game.turn==='player'&&!game.abilityUsed){useAbility();return;}const active=game.projectiles.find(p=>p.weapon==='split'&&!p.split);if(active){splitProjectile(active);return;}}if(game.mode==='menu'||game.phase==='result'||game.phase==='timing'||game.overview)return;const p=pointerToWorld(e),o=origin();if(game.mode==='adventure'&&game.phase==='aim'&&Math.hypot(p.x-o.x,p.y-o.y)<110){game.drag={x:p.x,y:p.y};cv.setPointerCapture(e.pointerId);}else{game.pan={startX:e.clientX,startY:e.clientY,startAngle:game.angle,startCamera:game.camera,kind:null};cv.setPointerCapture(e.pointerId);}});
- cv.addEventListener('pointermove',e=>{if(game.drag){const p=pointerToWorld(e),o=origin();game.drag={x:clamp(p.x,o.x-120,o.x-7),y:clamp(p.y,o.y-95,o.y+35)};}else if(game.pan){
+ cv.addEventListener('pointerdown',e=>{if(game.drag||game.pan)return;if(game.phase==='flying'){if(game.hero==='rabbit'&&game.turn==='player'&&!game.abilityUsed){useAbility();return;}const active=game.projectiles.find(p=>p.weapon==='split'&&!p.split);if(active){splitProjectile(active);return;}}if(game.mode==='menu'||game.phase==='result'||game.phase==='timing'||game.overview)return;const p=pointerToWorld(e),o=origin();if(game.mode==='adventure'&&game.phase==='aim'&&Math.hypot(p.x-o.x,p.y-o.y)<110){game.drag={x:p.x,y:p.y,pointerId:e.pointerId};cv.setPointerCapture(e.pointerId);}else{game.pan={startX:e.clientX,startY:e.clientY,startAngle:game.angle,startCamera:game.camera,kind:null,pointerId:e.pointerId};cv.setPointerCapture(e.pointerId);}});
+ cv.addEventListener('pointermove',e=>{if(game.drag&&game.drag.pointerId===e.pointerId){const p=pointerToWorld(e),o=origin();game.drag={x:clamp(p.x,o.x-120,o.x-7),y:clamp(p.y,o.y-95,o.y+35),pointerId:e.pointerId};}else if(game.pan&&game.pan.pointerId===e.pointerId){
    const dx=e.clientX-game.pan.startX,dy=e.clientY-game.pan.startY;
    if(!game.pan.kind&&Math.max(Math.abs(dx),Math.abs(dy))>9){
     game.pan.kind=(game.phase==='aim'&&game.turn==='player'&&Math.abs(dy)>Math.abs(dx)*1.12)?'angle':'pan';
@@ -4382,20 +4407,23 @@ const materialCells={
     game.panX=clamp(game.pan.startCamera-dx/game.scale,0,Math.max(0,W-visible));
    }
   }});
- cv.addEventListener('pointerup',()=>{game.pan=null;if(!game.drag)return;const o=origin();const dx=clamp(o.x-game.drag.x,7,120),dy=clamp(o.y-game.drag.y,-35,95);game.drag=null;const a=clamp(Math.atan2(dy,dx)*180/Math.PI,8,88),pow=clamp(Math.hypot(dx,dy)/125*100,20,100);game.angle=a;game.power=pow;angleEl.value=a;powerEl.value=pow;beginPrecision();});
- cv.addEventListener('pointercancel',()=>{game.drag=null;game.pan=null;});
+ cv.addEventListener('pointerup',e=>{if(game.pan?.pointerId===e.pointerId)game.pan=null;if(!game.drag||game.drag.pointerId!==e.pointerId)return;const o=origin();const dx=clamp(o.x-game.drag.x,7,120),dy=clamp(o.y-game.drag.y,-35,95);game.drag=null;const a=clamp(Math.atan2(dy,dx)*180/Math.PI,8,88),pow=clamp(Math.hypot(dx,dy)/125*100,20,100);game.angle=a;game.power=pow;angleEl.value=a;powerEl.value=pow;beginPrecision();});
+ cv.addEventListener('pointercancel',e=>{if(game.drag?.pointerId===e.pointerId)game.drag=null;if(game.pan?.pointerId===e.pointerId)game.pan=null;});
  angleEl.addEventListener('input',()=>{if(canResumeAimFromReview())completeReview();if(game.phase!=='aim')return;game.angle=Number(angleEl.value);updateHud();});powerEl.addEventListener('input',()=>{if(canResumeAimFromReview())completeReview();if(game.phase!=='aim')return;game.power=Number(powerEl.value);updateHud();});
  document.querySelectorAll('[data-weapon]').forEach(b=>b.addEventListener('click',()=>{if(canResumeAimFromReview())completeReview();if(game.phase==='aim')chooseWeapon(b.dataset.weapon);}));
  $('fire').addEventListener('pointerdown',e=>{
   if(e.button!==undefined&&e.button!==0)return;
+  if(activeFirePointer!==null)return;
   suppressNextFireClick=false;
   if(game.phase==='timing'){if(lockPrecision())suppressNextFireClick=true;return;}
-  if(beginFireCharge())$('fire').setPointerCapture?.(e.pointerId);
+  if(beginFireCharge()){activeFirePointer=e.pointerId;$('fire').setPointerCapture?.(e.pointerId);}
  });
- $('fire').addEventListener('pointerup',()=>{
+ $('fire').addEventListener('pointerup',e=>{
+  if(activeFirePointer!==null&&activeFirePointer!==e.pointerId)return;
+  activeFirePointer=null;
   if(releaseFireCharge())suppressNextFireClick=true;
  });
- $('fire').addEventListener('pointercancel',()=>{cancelFireCharge();suppressNextFireClick=true;});
+ $('fire').addEventListener('pointercancel',e=>{if(activeFirePointer!==null&&activeFirePointer!==e.pointerId)return;cancelFireCharge();suppressNextFireClick=true;});
  $('fire').addEventListener('click',()=>{
   if(suppressNextFireClick){suppressNextFireClick=false;return;}
   firePlayer(); // keyboard accessibility and older browsers without Pointer Events

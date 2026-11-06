@@ -35,6 +35,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 // In the six-pose atlas probe, select the settled death frame after the brief
 // hurt-to-prone transition rather than at the exact moment of defeat.
 script=script.replace('f.deathTimer=frame===5?3.8:0;','f.deathTimer=frame===5?3.59:0;');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v45AiCycleForTest=(difficulty,wind)=>{newGame("duel",0);game.difficulty=difficulty;game.wind=wind;return Array.from({length:8},()=>chooseAiShot());}; window.__v45CriticalRecoilForTest=()=>{newGame("duel",0);applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:8,timingAccuracy:1,hero:game.hero});return game.duelHitMotion.ai?{...game.duelHitMotion.ai}:null;}; window.__v45RecoilLifeForTest=()=>game.duelHitMotion.ai?.life||0; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -415,6 +417,10 @@ assert(popupAfter.y<popupBefore.y+32,'Damage must stay near the moving enemy');
 assert(/^\d+$/.test(el('distanceValue').textContent),'Small in-field predicted distance must update as a number');
 const oldAngle=Number(el('angle').value);
 el('field').dispatch('pointerdown',{pointerId:12,clientX:650,clientY:290});
+el('field').dispatch('pointerdown',{pointerId:13,clientX:650,clientY:290});
+el('field').dispatch('pointermove',{pointerId:13,clientX:655,clientY:110});
+el('field').dispatch('pointerup',{pointerId:13,clientX:655,clientY:110});
+assert.equal(Number(el('angle').value),oldAngle,'Second touch must not hijack the active battlefield aiming gesture');
 el('field').dispatch('pointermove',{pointerId:12,clientX:655,clientY:210});
 el('field').dispatch('pointerup',{pointerId:12,clientX:655,clientY:210});
 assert(Number(el('angle').value)>oldAngle,'Upward dragging on battlefield must increase angle');
@@ -492,6 +498,9 @@ el('adventureBtn').click();frames(3);
 el('field').clientWidth=390;el('field').clientHeight=355;frames(3);
 const chargeStartScale=state().scale;
 el('fire').dispatch('pointerdown',{pointerId:7,button:0});
+el('fire').dispatch('pointerdown',{pointerId:8,button:0});
+el('fire').dispatch('pointerup',{pointerId:8});
+assert.equal(state().chargeActive,true,'A second finger must not release the charging finger');
 assert.equal(el('chargeGauge').hidden,false,'Hold should reveal illustrated charge meter');
 assert.equal(state().heroMotionFrame,-1,'Holding FIRE must put hero into charge pose');
 frames(12);
@@ -963,6 +972,15 @@ const missReview=window.__v44ReviewForTest(false);
 assert(missReview.detail.includes('218')&&missReview.detail.includes('왼쪽'),'A missed duel shot must teach the player how far and which way it missed');
 const criticalReview=window.__v44ReviewForTest(true);
 assert(criticalReview.title.includes('치명타!')&&criticalReview.title.includes('피해!'),'The review ribbon must carry forward a successful critical hit');
+const aiCycle=window.__v45AiCycleForTest('normal',3.7);
+assert(new Set(aiCycle.map(s=>s.weapon)).size>=3,'Duel AI must still rotate through all three weapons');
+assert(new Set(aiCycle.map(s=>s.tactic)).size>=3,'Duel AI must actually present multiple tactical attacks');
+assert(new Set(aiCycle.map(s=>s.angle<43?'low':s.angle>=66?'high':'mid')).size>=2,'AI tactics must switch the real shot arc, not only the text or ammo');
+assert(aiCycle.every(s=>s.angle>=8&&s.angle<=88&&s.power>=25&&s.power<=100),'Tactical shots must obey playable angle and power bounds');
+const recoil=window.__v45CriticalRecoilForTest();
+assert(recoil?.strength>=19&&recoil.life>.6,'Critical damage must physically recoil the character, not just flash its HP bar');
+frames(45);
+assert.equal(window.__v45RecoilLifeForTest(),0,'The character must recover from recoil instead of remaining permanently displaced');
 for(const [hero,clearance] of [['fox',116],['bear',83],['rabbit',132],['cat',109]]){
  const anchor=window.__v44HeroHudForTest(hero);
  assert.equal(anchor.clearance,clearance,`Hero ${hero} HP bar must use artwork-calibrated head clearance`);
