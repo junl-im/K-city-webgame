@@ -272,7 +272,10 @@ jobs:
     name: Publish actual GitHub Pages website
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Large multi-game Pages artifacts may finish syncing shortly after the
+    # action's default 10-minute deadline. Keep the actual publish budget in
+    # step with its explicit timeout without changing site contents.
+    timeout-minutes: 25
     environment:
       name: github-pages
       url: ${{ steps.publish.outputs.page_url }}
@@ -282,3 +285,5 @@ jobs:
       - name: Deploy website to GitHub Pages
         id: publish
         uses: actions/deploy-pages@v4
+        with:
+          timeout: 1200000
