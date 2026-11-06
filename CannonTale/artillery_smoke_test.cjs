@@ -58,6 +58,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v52WeaponForTest=(weapon,owner="player")=>{newGame("duel",0);const target=owner==="player"?"ai":"player",x=target==="ai"?1018:190;applyExplosion({x,y:terrainY(x)-29,vx:owner==="player"?280:-280,weapon,owner,directTarget:target,directCenter:24,timingAccuracy:.5,hero:duelHero(owner)});drawWeaponAftershocks();return{weapon,target,echo:{...game.weaponAftershocks.at(-1)},recoil:{...game.duelHitMotion[target]},hp:game[target+"Hp"]};}; window.__v52EchoCountForTest=()=>game.weaponAftershocks.length; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v53HeroShotForTest=(hero,owner)=>{newGame("duel",0);game[owner==="ai"?"aiHero":"hero"]=hero;const aim=muzzleFor(owner,45);launch(owner,45,80,"normal");const p=game.projectiles.at(-1),a=game.actorAnim[owner],style=heroFiringStyles[hero],initial=heroFiringPose(owner,hero);a.life=a.total*.5;const mid=heroFiringPose(owner,hero);return{hero,owner,kick:game.recoil[owner],duration:a.total,initial,mid,spawn:{x:p.x,y:p.y},aim,frames:6,hp:[game.playerHp,game.aiHp]};}; window.__v53HeroHitForTest=(hero,target)=>{newGame("duel",0);game[target==="ai"?"aiHero":"hero"]=hero;const owner=target==="ai"?"player":"ai",x=target==="ai"?1018:190;applyExplosion({x,y:terrainY(x)-29,weapon:"normal",vx:owner==="player"?280:-280,owner,directTarget:target,directCenter:24,timingAccuracy:.5,hero:duelHero(owner)});return{hero,target,style:{...heroHitStyles[hero]},recoil:{...game.duelHitMotion[target]},hp:game[target+"Hp"]};}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v54MuzzleForTest=(hero,owner)=>{newGame("duel",0);game[owner==="ai"?"aiHero":"hero"]=hero;launch(owner,45,80,"normal");const initial={...game.muzzle},firstKick=game.recoil[owner];step(1/60);const projectile=game.projectiles.at(-1),bridge=game.muzzle?muzzleBridge(game.muzzle):null;drawMuzzleFollowthrough(game.muzzle);return{initial,after:game.muzzle?{...game.muzzle}:null,firstKick,secondKick:game.recoil[owner],bridge,projectile:projectile?{x:projectile.x,y:projectile.y}:null,hp:[game.playerHp,game.aiHp]};}; window.__v54HudClampForTest=(owner,px,width=320)=>{newGame("duel",0);const savedWidth=cv.clientWidth;cv.clientWidth=width;game.scale=.6;const x=owner==="player"?190:1018,anchor=duelHudAnchor(x,owner);game.camera=anchor.x-px/game.scale;drawDuelHealthHud(x,owner);const result={placement:game.hudPlacement[owner],visible:game.hudDrawn[owner],width};cv.clientWidth=savedWidth;return result;}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -1109,6 +1111,28 @@ for(const owner of ['player','ai']){
   assert(hit.recoil.strength>=14&&hit.recoil.total>=.58,'The distinctive hit pose must preserve normal projectile knockback');
   assert(hit.hp<420&&hit.hp>0,'Hero-specific hit recovery must preserve long-form battle balance');
  }
+}
+for(const owner of ['player','ai']){
+ const launches=['fox','bear','rabbit','cat'].map(hero=>window.__v54MuzzleForTest(hero,owner));
+ assert.equal(new Set(launches.map(s=>s.initial.total)).size,4,'Each hero must have its own muzzle follow-through lifetime');
+ for(const result of launches){
+  assert.equal(result.initial.owner,owner,'The muzzle effect must remember which side fired');
+  assert(result.after.life<result.initial.life&&result.after.life>0,'The muzzle flash must decay after the real shell leaves');
+  assert(result.secondKick<result.firstKick,'Every weapon must recover from its firing kick');
+  assert(result.bridge&&result.projectile,'A newly fired shell must have a live muzzle-to-projectile trail');
+  assert.equal(result.bridge.toX,result.projectile.x,'The transient flight bridge must end on the real projectile x-coordinate');
+  assert.equal(result.bridge.toY,result.projectile.y,'The transient flight bridge must end on the real projectile y-coordinate');
+  assert.deepEqual(result.hp,[420,420],'Muzzle artwork cannot modify damage or duel durability');
+ }
+ assert(launches.find(s=>s.initial.hero==='bear').initial.total>launches.find(s=>s.initial.hero==='fox').initial.total,'Heavy cannon smoke should outlast a quick slingshot snap');
+ for(const px of [5,315]){
+  const hud=window.__v54HudClampForTest(owner,px);
+  assert(hud.visible,'A hero within the camera viewport still needs a visible health HUD');
+  assert(hud.placement.screenCenter>=hud.placement.margin-.001,'A mobile HUD cannot overflow the left screen edge');
+  assert(hud.placement.screenCenter<=hud.width-hud.placement.margin+.001,'A mobile HUD cannot overflow the right screen edge');
+ }
+ const hidden=window.__v54HudClampForTest(owner,-20);
+ assert(!hidden.visible&&hidden.placement===null,'Offscreen opponents must not leave a detached HUD at the screen edge');
 }
 const fullRange=window.__v49ReachSweepForTest();
 assert.equal(fullRange.length,18,'Range coverage must test both combatants and all nine horizontal/vertical wind combinations');
