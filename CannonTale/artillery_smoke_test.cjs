@@ -44,6 +44,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v46CompassForTest=()=>{newGame("duel",0);return [[-3,-1.1],[3,-1.1],[-3,1.1],[3,1.1]].map(([wind,lift])=>{game.wind=wind;game.windLift=lift;updateHud();return $("windVector").textContent;});}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v47VolleysForTest=(owner,weapon="bomb",fragments=1)=>{newGame("duel",0);const target=owner==="player"?"ai":"player",x=target==="ai"?1018:190,hp=[];for(let i=0;i<6;i++){launch(owner,45,80,weapon);game.projectiles=[];for(let j=0;j<fragments;j++)applyExplosion({x,y:terrainY(x)-29,weapon,owner,directTarget:target,directCenter:5,timingAccuracy:1,hero:game.hero});hp.push(game[target==="ai"?"aiHp":"playerHp"]);}return{hp,max:DUEL_MAX_HP,cap:DUEL_VOLLEY_LIMIT,otherHp:game[owner==="player"?"playerHp":"aiHp"]};}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v48PercentHudForTest=(owner,portion)=>{newGame("duel",0);game.camera=owner==="ai"?800:0;game.scale=1;const hp=Math.round(DUEL_MAX_HP*portion);game[owner==="player"?"playerHp":"aiHp"]=hp;game.hudHealth[owner]=hp;drawDuelHealthHud(owner==="player"?190:1018,owner);return game.hudDrawn[owner];}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -283,7 +285,8 @@ function testDrawImage(...args){
  if(args[0]?.id==='heroImpactStagesArtwork')paintedImpactStageCells.add(`${Math.round(args[2]/240)},${Math.round(args[1]/240)}`);
 }
 const noOpKeys=new Set(['clearRect','save','restore','translate','setTransform','beginPath','moveTo','lineTo','fill','ellipse','arc','roundRect','fillText','strokeText','closePath','scale','rotate','rect','clip','bezierCurveTo','quadraticCurveTo']);
-const ctx=new Proxy({}, {get:(obj,key)=>key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?testDrawImage:key==='stroke'?()=>{if(obj.strokeStyle==='#f4e6b9b0'&&obj.lineWidth>=3&&obj.lineWidth<=5)mediumTrajectoryStrokes++;if(['#ffcb79','#58616d','#c1a3f2','#91f7e4'].includes(obj.strokeStyle))flightRibbonColors.add(obj.strokeStyle);}:noOpKeys.has(key)?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
+let hudTextCapture=null;
+const ctx=new Proxy({}, {get:(obj,key)=>key==='fillText'?((label,x,y)=>{if(hudTextCapture)hudTextCapture.push({label:String(label),x,y,align:obj.textAlign,fill:obj.fillStyle});}):key==='createLinearGradient'?()=>({addColorStop:noOp}):key==='measureText'?text=>({width:String(text).length*11}):key==='drawImage'?testDrawImage:key==='stroke'?()=>{if(obj.strokeStyle==='#f4e6b9b0'&&obj.lineWidth>=3&&obj.lineWidth<=5)mediumTrajectoryStrokes++;if(['#ffcb79','#58616d','#c1a3f2','#91f7e4'].includes(obj.strokeStyle))flightRibbonColors.add(obj.strokeStyle);}:noOpKeys.has(key)?noOp:obj[key],set:(obj,k,v)=>(obj[k]=v,true)});
 ctx.fillRect=noOp;
 const previewCtx=new Proxy(ctx,{get:(obj,key)=>key==='drawImage'?(...args)=>previewDraws.push(args):key==='clearRect'?noOp:obj[key]});
 function el(id){if(!elements.has(id)){const listeners={},classes=new Set(),item={id,hidden:false,disabled:false,style:{},value:'',textContent:'',dataset:{},clientWidth:id==='field'?1280:id==='heroPreviewCanvas'?210:0,clientHeight:id==='field'?620:id==='heroPreviewCanvas'?120:0,width:0,height:0,tagName:'DIV',classList:{toggle(cls,force){if(force===undefined)force=!classes.has(cls);if(force)classes.add(cls);else classes.delete(cls);return !!force;},contains(cls){return classes.has(cls);}},addEventListener(type,fn){listeners[type]=fn;},dispatch(type,event={}){listeners[type]?.({target:item,...event});},click(){this.dispatch('click');},getContext:()=>id==='heroPreviewCanvas'?previewCtx:id.startsWith('heroBadge')?new Proxy(ctx,{get:(obj,key)=>key==='drawImage'?(...args)=>badgeDraws.push({id,args}):obj[key]}):ctx,getBoundingClientRect(){return{left:0,top:0,width:this.clientWidth,height:this.clientHeight};},setPointerCapture:noOp};elements.set(id,item);}return elements.get(id);}
@@ -1022,6 +1025,17 @@ for(const [hero,clearance] of [['fox',116],['bear',83],['rabbit',132],['cat',109
  const anchor=window.__v44HeroHudForTest(hero);
  assert.equal(anchor.clearance,clearance,`Hero ${hero} HP bar must use artwork-calibrated head clearance`);
  assert.equal(anchor.x,hero==='bear'?114:190,`Hero ${hero} HP bar must stay tied to its on-field head`);
+}
+for(const [owner,portion,expected] of [['player',1,'100%'],['player',.5,'50%'],['player',0,'0%'],['ai',1,'100%'],['ai',.2,'20%'],['ai',0,'0%']]){
+ hudTextCapture=[];
+ const visible=window.__v48PercentHudForTest(owner,portion),labels=hudTextCapture;
+ hudTextCapture=null;
+ const label=labels.find(entry=>entry.label===expected);
+ assert(visible&&label,`The on-field ${owner} HUD must show ${expected}, not a raw HP number`);
+ assert(Math.abs(label.y)<=2,`${owner} percentage must sit beside the slim gauge, not above it`);
+ assert(owner==='player'?label.x>=48&&label.align==='left':label.x<=-48&&label.align==='right',`${owner} percentage must face inward and avoid the viewport edge`);
+ assert(!labels.some(entry=>/^\d+$/.test(entry.label)),`${owner} HUD must not draw raw 420-based HP totals`);
+ if(portion<=.25)assert.equal(label.fill,'#ffe1a3','Low health should use a shared warm warning color');
 }
 el('homeBtn').click();el('duelBtn').click();el('fire').click();
 assert.equal(state().phase,'timing');

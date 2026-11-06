@@ -3784,10 +3784,6 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   // About 82 CSS pixels in normal combat, smaller still in full-battle overview.
   const uiScale=clamp(1/Math.max(.001,game.scale),.55,2.35);
   ctx.save();ctx.translate(anchor.x,anchor.y);ctx.scale(uiScale,uiScale);
-  ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='900 10px "Malgun Gothic",system-ui,sans-serif';
-  ctx.shadowColor='#12202a';ctx.shadowBlur=3;ctx.fillStyle='#fff5d9';
-  ctx.fillText(`${Math.ceil(hp)}`,0,-11,33);
-  ctx.shadowBlur=0;
   // No plaque, decorative frame or extra button border: just a slim, soft HP gauge.
   roundRect(-41,-3,82,7,3.5,'#11242fba');
   if(shown>hp+.5){
@@ -3804,6 +3800,15 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    ctx.shadowBlur=0;
   }
   if(pulse>0){ctx.globalAlpha=Math.min(.6,pulse*.8);roundRect(-41,-3,82,7,3.5,'#fff6da');ctx.globalAlpha=Math.min(.8,pulse);ctx.strokeStyle=ally?'#b8fff2':'#ffdfb4';ctx.lineWidth=1.8;ctx.beginPath();ctx.roundRect(-45-pulse*3,-7-pulse*2,90+pulse*6,15+pulse*4,7);ctx.stroke();}
+  // The compact percentage flanks the bar, never floats above the character.
+  // Rival labels face inward so the far-right enemy stays readable near the viewport edge.
+  const percent=`${Math.ceil(hp/DUEL_MAX_HP*100)}%`;
+  ctx.globalAlpha=1;ctx.textAlign=ally?'left':'right';ctx.textBaseline='middle';
+  ctx.font='900 11px "Malgun Gothic",system-ui,sans-serif';
+  ctx.shadowColor='#11262e';ctx.shadowBlur=3.5;
+  ctx.fillStyle=hp<=DUEL_MAX_HP*.25?'#ffe1a3':ally?'#d2fff0':'#ffe0cd';
+  ctx.fillText(percent,ally?49:-49,.5,39);
+  ctx.shadowBlur=0;
   ctx.restore();
  }
  function slingshot(){const o=origin();if(spriteReady(game.hero)){
