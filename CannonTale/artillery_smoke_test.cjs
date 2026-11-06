@@ -52,6 +52,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v49ShotVelocityForTest=(mode,power)=>{newGame(mode,0);const v=powerVelocity(45,power);return Math.hypot(v.vx,v.vy);}; window.__v49EdgeExitForTest=()=>{newGame("duel",0);const out=predict(18,100,4.8,"player",900,0,0,true);return{exit:out.edgeExit,groundImpact:out.impact?.kind||null,lastX:out.at(-1)?.x};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v50HudHitForTest=(owner,center=true,fragments=1)=>{newGame("duel",0);const target=owner==="player"?"ai":"player",x=target==="ai"?1018:190;for(let i=0;i<fragments;i++)applyExplosion({x,y:terrainY(x)-29,weapon:fragments>1?"split":"normal",owner,directTarget:target,directCenter:center?5:24,timingAccuracy:owner==="player"?(center?1:.5):undefined,hero:duelHero(owner)});game.camera=target==="ai"?800:0;game.scale=1;drawDuelHealthHud(x,target);return{owner,target,hp:game[target+"Hp"],damage:game.hudDamage[target]?{...game.hudDamage[target]}:null,pulse:game.hudHitPulse[target],hold:game.hudHitDelay[target]};}; window.__v50HudImpactStateForTest=(owner)=>({damage:game.hudDamage[owner],painted:game.hudHealth[owner]}); window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v51ImpactForTest=(owner,offset=0,vx=0)=>{newGame("duel",0);const target=owner==="player"?"ai":"player",x=target==="ai"?1018:190;applyExplosion({x:x-offset,y:terrainY(x)-29,vx,weapon:"normal",owner,directTarget:target,directCenter:24,timingAccuracy:.5,hero:duelHero(owner)});return{target,motion:{...game.duelHitMotion[target]},bursts:game.duelHitBursts.map(b=>({...b})),hp:game[target+"Hp"]};}; window.__v51BurstsForTest=()=>game.duelHitBursts.length; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -1058,6 +1060,18 @@ for(const owner of ['player','ai']){
  const fragments=window.__v50HudHitForTest(owner,true,5);
  assert(fragments.damage.loss===420-fragments.hp&&fragments.damage.loss<=100,'Multi-fragment damage must merge into one exact percentage badge and respect volley cap');
 }
+const leftToRight=window.__v51ImpactForTest('player',0,310);
+assert.equal(leftToRight.motion.direction,1,'Centered player hit must push the opposing hero to the right, following incoming velocity');
+assert(leftToRight.bursts.some(b=>b.direction===1&&b.life>0&&b.x===1018),'Rightward hit must create a short-lived directional contact burst beside the correct target');
+const rightToLeft=window.__v51ImpactForTest('ai',0,-310);
+assert.equal(rightToLeft.motion.direction,-1,'Centered AI hit must push the player left, never reuse the player projectile direction');
+assert(rightToLeft.bursts.some(b=>b.direction===-1&&b.life>0&&b.x===190),'Leftward AI hit must render the reversed contact burst at the player');
+assert.equal(window.__v51ImpactForTest('player',14,-310).motion.direction,1,'A detonation left of the target pushes right regardless of projectile velocity');
+assert.equal(window.__v51ImpactForTest('ai',-14,310).motion.direction,-1,'A detonation right of the target pushes left regardless of projectile velocity');
+const severe=window.__v51ImpactForTest('player',0,310);
+assert(severe.motion.strength>=14&&severe.motion.total>=.58,'Directionally correct on-hit compression must last long enough to be visible');
+frames(56);
+assert.equal(window.__v51BurstsForTest(),0,'Contact arcs and dust must automatically disappear after the target settles');
 const fullRange=window.__v49ReachSweepForTest();
 assert.equal(fullRange.length,18,'Range coverage must test both combatants and all nine horizontal/vertical wind combinations');
 for(const run of fullRange){
