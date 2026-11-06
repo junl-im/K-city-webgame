@@ -2963,7 +2963,14 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    }
   }
  });}
- function powerVelocity(ang,power,dir=1) {const speed=190+power*5.45,rad=ang*Math.PI/180;return {vx:Math.cos(rad)*speed*dir,vy:-Math.sin(rad)*speed};}
+ function powerVelocity(ang,power,dir=1) {
+  // High-power duel shots need enough headroom to aim at the far terrain edge,
+  // even under the strongest opposing gust + downdraft. Keep adventure puzzle
+  // velocities unchanged, and retain the same wind forces for both combatants.
+  const speed=190+power*5.45+(game.mode==='duel'?Math.max(0,power-80)*10.6:0);
+  const rad=ang*Math.PI/180;
+  return {vx:Math.cos(rad)*speed*dir,vy:-Math.sin(rad)*speed};
+ }
  function windAcceleration(wind,lift,flightAge){
   // The same gust curve feeds aiming, AI planning and live projectile physics.
   // Horizontal crosswind dominates; rising/falling air changes hang time too.
@@ -3026,7 +3033,15 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    const gust=windAcceleration(wind,lift,(i+1)*dt);
    vx+=gust.x*dt;vy+=(G+gust.y)*dt;x+=vx*dt;y+=vy*dt;
    out.push({x,y});
-   if(x<0||x>W||y>H+40)break;
+   if(x<0||x>W){
+    // A powerful tailwind can carry the shot beyond the visible world before
+    // landing. Keep the unbounded point for drift calculations, but expose the
+    // exact boundary crossing for the aiming preview instead of a cut-off line.
+    const previous=out[out.length-2]||socket,edgeX=x<0?0:W;
+    const fraction=clamp((edgeX-previous.x)/(x-previous.x),0,1);
+    out.edgeExit={x:edgeX,y:previous.y+(y-previous.y)*fraction};break;
+   }
+   if(y>H+40)break;
    if(y+r>=terrainY(x)){out.impact={x,y:terrainY(x)-r,kind:'terrain'};break;}
    if(game.mode==='adventure'&&!ignoreTargets){
     const b=game.blocks.find(b=>{const dx=x-b.body.position.x,dy=y-b.body.position.y,a=-b.body.angle,c=Math.cos(a),si=Math.sin(a),px=dx*c-dy*si,py=dx*si+dy*c,qx=clamp(px,-b.w/2,b.w/2),qy=clamp(py,-b.h/2,b.h/2);return(px-qx)**2+(py-qy)**2<r*r;});
@@ -4172,6 +4187,15 @@ const materialCells={
    }
   }
   const hit=dots.impact;
+  if(!hit&&dots.edgeExit){
+   // Mark where the shot leaves the map; do not pretend it landed on terrain.
+   const edge=dots.edgeExit,atRight=edge.x===W,x=atRight?W-17:17,y=clamp(edge.y,54,H-65);
+   ctx.save();ctx.textAlign=atRight?'right':'left';ctx.textBaseline='middle';
+   ctx.strokeStyle='#fbe3a9';ctx.lineWidth=2.7;ctx.shadowColor='#172e3e';ctx.shadowBlur=4;
+   ctx.beginPath();ctx.arc(x,y,10,-.7*Math.PI,.7*Math.PI);ctx.stroke();
+   ctx.font='850 11px "Malgun Gothic",system-ui,sans-serif';ctx.fillStyle='#fff3c8';
+   ctx.fillText('맵 끝 통과',atRight?x-16:x+16,y-17,84);ctx.restore();
+  }
   if(!hit||hit.y<20||hit.y>H-14)return;
   const target=hit.kind==='foe',color=target?'#93f1c7':hit.kind==='block'?'#ffe1a6':'#e6f2f1';
   ctx.save();ctx.beginPath();ctx.arc(hit.x,hit.y,18+Math.sin(game.clock*4)*2,0,Math.PI*2);

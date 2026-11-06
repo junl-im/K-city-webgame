@@ -46,6 +46,10 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v47VolleysForTest=(owner,weapon="bomb",fragments=1)=>{newGame("duel",0);const target=owner==="player"?"ai":"player",x=target==="ai"?1018:190,hp=[];for(let i=0;i<6;i++){launch(owner,45,80,weapon);game.projectiles=[];for(let j=0;j<fragments;j++)applyExplosion({x,y:terrainY(x)-29,weapon,owner,directTarget:target,directCenter:5,timingAccuracy:1,hero:game.hero});hp.push(game[target==="ai"?"aiHp":"playerHp"]);}return{hp,max:DUEL_MAX_HP,cap:DUEL_VOLLEY_LIMIT,otherHp:game[owner==="player"?"playerHp":"aiHp"]};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v48PercentHudForTest=(owner,portion)=>{newGame("duel",0);game.camera=owner==="ai"?800:0;game.scale=1;const hp=Math.round(DUEL_MAX_HP*portion);game[owner==="player"?"playerHp":"aiHp"]=hp;game.hudHealth[owner]=hp;drawDuelHealthHud(owner==="player"?190:1018,owner);return game.hudDrawn[owner];}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v49ReachSweepForTest=()=>{newGame("duel",0);const result=[];for(const owner of ["player","ai"])for(const wind of [-4.8,0,4.8])for(const lift of [-1.8,0,1.8]){let farthest=owner==="player"?0:1200,closestGround=Infinity,groundX=null,groundAngle=null,groundPower=null,exitCount=0;const farSide=owner==="player"?1200:0;for(let angle=8;angle<=88;angle+=2)for(let power=80;power<=100;power+=2){const dots=predict(angle,power,wind,owner,900,0,lift,true),last=dots.impact||dots.at(-1);if(last&&(owner==="player"?last.x>farthest:last.x<farthest))farthest=last.x;if(dots.edgeExit)exitCount++;if(dots.impact?.kind==="terrain"&&Math.abs(dots.impact.x-farSide)<closestGround){closestGround=Math.abs(dots.impact.x-farSide);groundX=dots.impact.x;groundAngle=angle;groundPower=power;}}result.push({owner,wind,lift,farthest,closestGround,groundX,groundAngle,groundPower,exitCount});}return result;}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v49ShotVelocityForTest=(mode,power)=>{newGame(mode,0);const v=powerVelocity(45,power);return Math.hypot(v.vx,v.vy);}; window.__v49EdgeExitForTest=()=>{newGame("duel",0);const out=predict(18,100,4.8,"player",900,0,0,true);return{exit:out.edgeExit,groundImpact:out.impact?.kind||null,lastX:out.at(-1)?.x};}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -1037,6 +1041,20 @@ for(const [owner,portion,expected] of [['player',1,'100%'],['player',.5,'50%'],[
  assert(!labels.some(entry=>/^\d+$/.test(entry.label)),`${owner} HUD must not draw raw 420-based HP totals`);
  if(portion<=.25)assert.equal(label.fill,'#ffe1a3','Low health should use a shared warm warning color');
 }
+const fullRange=window.__v49ReachSweepForTest();
+assert.equal(fullRange.length,18,'Range coverage must test both combatants and all nine horizontal/vertical wind combinations');
+for(const run of fullRange){
+ assert(run.closestGround<=12,`Even at ${run.wind}/${run.lift} wind, ${run.owner} must be able to aim onto terrain within 12 units of the far edge: ${JSON.stringify(run)}`);
+ assert(run.groundPower>=80&&run.groundPower<=100&&run.groundAngle>=8&&run.groundAngle<=88,'Edge-reaching aim must use the normal playable angle/power limits');
+ assert(run.exitCount>0,'High-power aim must also recognize projectiles crossing the map boundary');
+}
+assert.equal(Math.round(window.__v49ShotVelocityForTest('adventure',100)),735,'Adventure puzzle shot velocity must remain unchanged');
+assert.equal(Math.round(window.__v49ShotVelocityForTest('duel',80)),626,'Mid-power duel aiming must keep the existing strong-wind feel');
+assert(window.__v49ShotVelocityForTest('duel',100)>940,'Full duel charge must reach even the far edge under an opposing gust');
+const edgePreview=window.__v49EdgeExitForTest();
+assert.equal(edgePreview.exit?.x,1200,'Overshooting trajectories must report their exact map boundary crossing');
+assert(edgePreview.lastX>1200&&edgePreview.groundImpact===null,'Boundary crossing must not be misreported as a terrain hit');
+assert(html.includes("ctx.fillText('맵 끝 통과'"),'The pre-aim trajectory must visibly identify a shot that continues beyond the map');
 el('homeBtn').click();el('duelBtn').click();el('fire').click();
 assert.equal(state().phase,'timing');
 handlers.popstate();
