@@ -3079,6 +3079,23 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   }
   return out;
  }
+ // Collision detection is deliberately discontinuous: one pixel can switch a
+ // shell from hitting an enemy to landing far behind it. Never use that abrupt
+ // first-contact point as the moving aim-camera anchor or range cursor.
+ function stableAimPath(ang,pow,wind,owner='player',count=640){
+  return predict(ang,pow,wind,owner,count,0,game.windLift||0,true);
+ }
+ function stableAimPoint(path){return path.impact||path.edgeExit||path[path.length-1]||null;}
+ function chargeSweepRate(){
+  if(game.mode!=='duel')return 1;
+  // The old fixed 80% sweep in 1.35 s skipped over an enemy's narrow aiming
+  // window at high power. Slow the *selection dial*, never the actual shell.
+  const path=stableAimPath(game.angle,game.chargedPower,game.wind,'player',640);
+  const tx=1018,ty=terrainY(tx)-29;
+  let near=Infinity;
+  for(const pt of path){const distance=Math.hypot(pt.x-tx,pt.y-ty);if(distance<near)near=distance;}
+  return clamp(.42+near/210,.42,1);
+ }
  function chooseAiShot(){
   const target={x:190,y:terrainY(190)-29},hard=game.difficulty==='hard',easy=game.difficulty==='easy';
   const windReading=hard?.95:easy?.64:.80;
@@ -3125,7 +3142,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   for(const f of game.foes){const body=M.Bodies.circle(f.x,f.y,f.r,{friction:.82,frictionStatic:1,restitution:.07,density:.0011,sleepThreshold:55,label:'foe'});body.plugin.foe=f;f.body=body;M.Composite.add(game.engine.world,body);}
  }
  function newGame(mode,stage=0){
-  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(mode==='duel'?-4.2:-3.3,mode==='duel'?4.2:3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);if(mode==='duel'&&Math.abs(game.wind)<1.15)game.wind=game.wind<0?-1.15:1.15;game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:Infinity;game.playerHp=DUEL_MAX_HP;game.aiHp=DUEL_MAX_HP;game.duelVolleyDamage={player:0,ai:0};game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
+  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(mode==='duel'?-4.2:-3.3,mode==='duel'?4.2:3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);if(mode==='duel'&&Math.abs(game.wind)<1.15)game.wind=game.wind<0?-1.15:1.15;game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargeSweepTime=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:Infinity;game.playerHp=DUEL_MAX_HP;game.aiHp=DUEL_MAX_HP;game.duelVolleyDamage={player:0,ai:0};game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
   game.hudHealth={player:DUEL_MAX_HP,ai:DUEL_MAX_HP};game.hudHitPulse={player:0,ai:0};game.hudHitDelay={player:0,ai:0};game.hudDamage={player:null,ai:null};game.hudDrawn={player:false,ai:false};game.hudPlacement={player:null,ai:null};game.duelHitMotion={player:null,ai:null};game.duelHitBursts=[];game.weaponAftershocks=[];game.shotHighlights={direct:false,critical:false};game.windGuide=null;
   game.windLift=rnd(-1.9,1.9);game.shotInfluences=null;
   game.precisionActive=false;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionLast=null;game.hitEmphasis=[];$('precisionPanel').hidden=true;$('aimTelemetry').hidden=false;
@@ -3155,7 +3172,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   if(!chargeAllowed())return false;
   if(canResumeAimFromReview())completeReview();
   if(game.phase!=='aim')return false;
-  game.chargeActive=true;game.chargeElapsed=0;game.chargeStartPower=game.power;game.chargedPower=20;
+  game.chargeActive=true;game.chargeElapsed=0;game.chargeSweepTime=0;game.chargeStartPower=game.power;game.chargedPower=20;
   game.chargeAimX=null;game.chargeFocusX=null;game.chargeReveal=1;game.panX=null;
   game.chargeAnchorPx=null;
   $('chargeGauge').hidden=false;$('chargeFill').style.width='20%';
@@ -3173,7 +3190,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   beginPrecision();return true;
  }
  function cancelFireCharge(){
-  game.chargeActive=false;activeFirePointer=null;game.chargeAimX=null;game.chargeFocusX=null;game.chargeAnchorPx=null;game.chargeReveal=1;$('chargeGauge').hidden=true;
+  game.chargeActive=false;activeFirePointer=null;game.chargeAimX=null;game.chargeFocusX=null;game.chargeSweepTime=0;game.chargeAnchorPx=null;game.chargeReveal=1;$('chargeGauge').hidden=true;
   if(game.actorAnim.player.kind==='charge')actorMotion('player','idle',.01);
   $('fire').classList.toggle('charging',false);$('fireLabel').textContent='발사!';
  }
@@ -3234,8 +3251,8 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   $('windChip').classList.toggle('wind-high',windValue>=2.65);$('windChip').classList.toggle('wind-mid',windValue>=1.1&&windValue<2.65);
   $('windChip').setAttribute?.('aria-label',`바람 ${game.wind>=0?'오른쪽':'왼쪽'} ${lift<-.65?'상승':lift>.65?'하강':'수평'} ${windValue.toFixed(1)} ${windWord}`);
   $('angleValue').textContent=Math.round(game.angle)+'°';$('powerValue').textContent=Math.round(game.power)+'%';
-  const o=origin(),path=predict(game.angle,game.power,game.wind,'player',900);
-  const impact=path.impact||path[path.length-1];
+  const o=origin(),path=stableAimPath(game.angle,game.power,game.wind,'player',900);
+  const impact=stableAimPoint(path);
   $('distanceValue').textContent=impact?String(Math.max(0,Math.round(Math.abs(impact.x-o.x)))):'—';
   // Same angle and power, with wind disabled: the difference is a readable
   // aim correction, not an invented physics stat. Cache for canvas rendering.
@@ -3615,7 +3632,8 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   if(game.hintTime>0){game.hintTime=Math.max(0,game.hintTime-dt);if(game.hintTime===0)$('hint').hidden=true;}
   if(game.chargeActive){
    game.chargeElapsed+=dt;
-   const t=(game.chargeElapsed/1.35)%2;
+   game.chargeSweepTime=(game.chargeSweepTime||0)+dt*chargeSweepRate();
+   const t=(game.chargeSweepTime/1.35)%2;
    game.chargedPower=Math.round(20+80*(1-Math.abs(t-1)));
    game.power=game.chargedPower;
    $('chargeFill').style.width=game.chargedPower+'%';
@@ -4292,8 +4310,12 @@ const materialCells={
   if(!['aim','timing'].includes(game.phase)||game.turn!=='player')return;
   let a=game.angle,p=game.chargeActive?game.chargedPower:game.power;
   if(game.drag){const o=origin(),dx=clamp(o.x-game.drag.x,7,105),dy=clamp(o.y-game.drag.y,-35,95);a=clamp(Math.atan2(dy,dx)*180/Math.PI,15,82);p=clamp(Math.hypot(dx,dy)/125*100,20,100);}
-  const dots=predict(a,p,game.wind,'player');
-  if(game.chargeActive){const target=dots.impact||dots[dots.length-1];game.chargeAimX=target?target.x:null;}
+  const contacts=predict(a,p,game.wind,'player');
+  // Duel preview: a continuous range trace plus a separate, honest first-hit
+  // marker. A graze must not teleport the range reticle or the camera.
+  const dots=game.mode==='duel'?stableAimPath(a,p,game.wind):contacts;
+  const steadyTarget=stableAimPoint(dots),actualHit=contacts.impact;
+  if(game.chargeActive)game.chargeAimX=steadyTarget?steadyTarget.x:null;
   game.chargeReveal=1;
   if(game.chargeActive)game.chargeFocusX=game.chargeAimX;
   // Medium-contrast trajectory: readable without hiding the stage artwork.
@@ -4323,7 +4345,7 @@ const materialCells={
    }
   }
   const hit=dots.impact;
-  if(!hit&&dots.edgeExit){
+  if(!hit&&dots.edgeExit&&actualHit?.kind!=='foe'){
    // Mark where the shot leaves the map; do not pretend it landed on terrain.
    const edge=dots.edgeExit,atRight=edge.x===W,x=atRight?W-17:17,y=clamp(edge.y,54,H-65);
    ctx.save();ctx.textAlign=atRight?'right':'left';ctx.textBaseline='middle';
@@ -4332,12 +4354,21 @@ const materialCells={
    ctx.font='850 11px "Malgun Gothic",system-ui,sans-serif';ctx.fillStyle='#fff3c8';
    ctx.fillText('맵 끝 통과',atRight?x-16:x+16,y-17,84);ctx.restore();
   }
+  // A second, smaller green mark stays on the actual enemy hitbox. Its fixed
+  // meaning is distinct from the continuous projected landing-range cursor.
+  if(game.mode==='duel'&&actualHit?.kind==='foe'){
+   ctx.save();ctx.strokeStyle='#9df2c9';ctx.lineWidth=3;
+   ctx.beginPath();ctx.arc(actualHit.x,actualHit.y,12,0,Math.PI*2);ctx.stroke();
+   ctx.beginPath();ctx.arc(actualHit.x,actualHit.y,3,0,Math.PI*2);ctx.fillStyle='#eaffdf';ctx.fill();
+   ctx.font='800 11px "Malgun Gothic",system-ui,sans-serif';ctx.textAlign='center';ctx.fillStyle='#d8ffe8';
+   ctx.shadowColor='#16363b';ctx.shadowBlur=4;ctx.fillText('적중 예상',actualHit.x,actualHit.y-20,70);ctx.restore();
+  }
   if(!hit||hit.y<20||hit.y>H-14)return;
   const target=hit.kind==='foe',color=target?'#93f1c7':hit.kind==='block'?'#ffe1a6':'#e6f2f1';
   ctx.save();ctx.beginPath();ctx.arc(hit.x,hit.y,18+Math.sin(game.clock*4)*2,0,Math.PI*2);
   ctx.strokeStyle='#263d50ba';ctx.lineWidth=5.5;ctx.stroke();ctx.strokeStyle=color;ctx.lineWidth=2.7;ctx.stroke();
   ctx.beginPath();ctx.arc(hit.x,hit.y,4.5,0,Math.PI*2);ctx.fillStyle='#fffbe2';ctx.fill();
-  const label=target?'적중 예상':hit.kind==='block'?'구조물 충돌':'착탄 지점';
+  const label=target?'적중 예상':hit.kind==='block'?'구조물 충돌':game.mode==='duel'?'조준 사거리':'착탄 지점';
   const lx=clamp(hit.x,58,W-58),ly=clamp(hit.y-30,36,H-38);
   roundRect(lx-46,ly-17,92,26,13,'#1c3f4abb');ctx.fillStyle=color;ctx.font='800 13px system-ui, sans-serif';ctx.textAlign='center';ctx.fillText(label,lx,ly+1);ctx.restore();
  }
@@ -4637,7 +4668,7 @@ const materialCells={
   // Softer original-style tracking: a distant impact cannot whip the screen
   // to a new position within a handful of frames.
   const shift=(targetCamera-game.camera)*(chargeFocus?.10:.12);
-  game.camera+=chargeFocus?clamp(shift,-20,20):clamp(shift,-32,32);
+  game.camera+=chargeFocus?clamp(shift,-11,11):clamp(shift,-32,32);
  }
  function drawChargeReadiness(){
   if(!game.chargeActive||game.phase!=='aim'||game.turn!=='player')return;

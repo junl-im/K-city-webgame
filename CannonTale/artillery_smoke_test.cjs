@@ -60,6 +60,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v53HeroShotForTest=(hero,owner)=>{newGame("duel",0);game[owner==="ai"?"aiHero":"hero"]=hero;const aim=muzzleFor(owner,45);launch(owner,45,80,"normal");const p=game.projectiles.at(-1),a=game.actorAnim[owner],style=heroFiringStyles[hero],initial=heroFiringPose(owner,hero);a.life=a.total*.5;const mid=heroFiringPose(owner,hero);return{hero,owner,kick:game.recoil[owner],duration:a.total,initial,mid,spawn:{x:p.x,y:p.y},aim,frames:6,hp:[game.playerHp,game.aiHp]};}; window.__v53HeroHitForTest=(hero,target)=>{newGame("duel",0);game[target==="ai"?"aiHero":"hero"]=hero;const owner=target==="ai"?"player":"ai",x=target==="ai"?1018:190;applyExplosion({x,y:terrainY(x)-29,weapon:"normal",vx:owner==="player"?280:-280,owner,directTarget:target,directCenter:24,timingAccuracy:.5,hero:duelHero(owner)});return{hero,target,style:{...heroHitStyles[hero]},recoil:{...game.duelHitMotion[target]},hp:game[target+"Hp"]};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v54MuzzleForTest=(hero,owner)=>{newGame("duel",0);game[owner==="ai"?"aiHero":"hero"]=hero;launch(owner,45,80,"normal");const initial={...game.muzzle},firstKick=game.recoil[owner];step(1/60);const projectile=game.projectiles.at(-1),bridge=game.muzzle?muzzleBridge(game.muzzle):null;drawMuzzleFollowthrough(game.muzzle);return{initial,after:game.muzzle?{...game.muzzle}:null,firstKick,secondKick:game.recoil[owner],bridge,projectile:projectile?{x:projectile.x,y:projectile.y}:null,hp:[game.playerHp,game.aiHp]};}; window.__v54HudClampForTest=(owner,px,width=320)=>{newGame("duel",0);const savedWidth=cv.clientWidth;cv.clientWidth=width;game.scale=.6;const x=owner==="player"?190:1018,anchor=duelHudAnchor(x,owner);game.camera=anchor.x-px/game.scale;drawDuelHealthHud(x,owner);const result={placement:game.hudPlacement[owner],visible:game.hudDrawn[owner],width};cv.clientWidth=savedWidth;return result;}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v55AimProbeForTest=(angle,power,wind=0)=>{newGame("duel",0);game.wind=wind;game.windLift=0;game.angle=angle;game.power=power;game.chargedPower=power;const path=predict(angle,power,wind,"player",640),stable=stableAimPath(angle,power,wind,"player",640),steady=stableAimPoint(stable);game.chargeActive=true;drawTrajectory();return{angle,power,kind:path.impact?.kind||"none",contact:path.impact?{...path.impact}:null,steady,chargeX:game.chargeAimX,edge:stable.edgeExit||null};}; window.__v55AimSweepForTest=()=>{newGame("duel",0);game.wind=0;game.windLift=0;let hit=null,miss=null;for(let a=18;a<=80;a+=2)for(let p=40;p<=100;p+=2){const path=predict(a,p,0,"player",640),kind=path.impact?.kind||"none";if(kind==="foe"&&!hit)hit={angle:a,power:p};if(kind!=="foe"&&!miss)miss={angle:a,power:p};if(hit&&miss)return{hit,miss};}return{hit,miss};}; window.__v55ChargeRateForTest=(angle,power,mode="duel")=>{newGame(mode,0);game.angle=angle;game.wind=0;game.windLift=0;game.chargedPower=power;return chargeSweepRate();}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -541,7 +543,7 @@ assert.equal(state().chargeZoom,1,'Charging camera must never zoom out after res
 assert.equal(state().scale,chargeStartScale,'Long hold must retain the original combat zoom level');
 assert.equal(state().chargeReveal,1,'The original full trajectory dots must remain visible during charging');
 assert(heldCamera.cameraX>earlyCamera.cameraX+15,'Charging should pan the camera toward the predicted impact instead of shrinking the entire field');
-assert(html.includes('chargeFocus?clamp(shift,-20,20):clamp(shift,-32,32)'),'Aimpoint and return transitions should both have a speed cap');
+assert(html.includes('chargeFocus?clamp(shift,-11,11):clamp(shift,-32,32)'),'Aimpoint and return transitions should both have a speed cap');
 assert(Number(el('fireLabel').textContent.replace(/[^0-9]/g,''))>20,'Charge should rise while holding');
 el('fire').dispatch('pointerup',{pointerId:7});
 assert.equal(state().shots,0,'Releasing a charged button should open the timing challenge');
@@ -1134,6 +1136,21 @@ for(const owner of ['player','ai']){
  const hidden=window.__v54HudClampForTest(owner,-20);
  assert(!hidden.visible&&hidden.placement===null,'Offscreen opponents must not leave a detached HUD at the screen edge');
 }
+const aimSweep=window.__v55AimSweepForTest();
+const aimHit=aimSweep.hit?window.__v55AimProbeForTest(aimSweep.hit.angle,aimSweep.hit.power):null;
+const aimMiss=aimSweep.miss?window.__v55AimProbeForTest(aimSweep.miss.angle,aimSweep.miss.power):null;
+assert(aimHit&&aimMiss,'The aim regression sweep must cover both a target hit and an unobstructed miss');
+for(const aim of [aimHit,aimMiss]){
+ assert(Number.isFinite(aim.chargeX),'The charged aimpoint must remain finite');
+ assert.equal(aim.chargeX,aim.steady.x,'The camera/aim marker must follow collision-independent range, not first-enemy contact');
+ assert(aim.steady.kind!=='foe','The stable aim trace must never terminate early at the enemy hitbox');
+}
+assert(aimHit.contact?.kind==='foe'&&aimHit.steady.kind!=='foe','Physical enemy contact and continuous landing forecast must remain separate predictions');
+assert(html.includes('clamp(shift,-11,11)'),'Charging camera must limit frame-to-frame jumps while the forecast runs past a target');
+const aimingNearRate=window.__v55ChargeRateForTest(aimSweep.hit.angle,aimSweep.hit.power);
+const aimingFarRate=window.__v55ChargeRateForTest(aimSweep.hit.angle,20);
+assert(aimingNearRate>=.42&&aimingNearRate<aimingFarRate,'Power charging must slow in the enemy aim window, without slowing distant sweeping');
+assert.equal(window.__v55ChargeRateForTest(aimSweep.hit.angle,aimSweep.hit.power,'adventure'),1,'Adventure charge timing must remain unchanged');
 const fullRange=window.__v49ReachSweepForTest();
 assert.equal(fullRange.length,18,'Range coverage must test both combatants and all nine horizontal/vertical wind combinations');
 for(const run of fullRange){
