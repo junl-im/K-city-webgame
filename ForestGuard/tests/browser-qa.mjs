@@ -189,6 +189,23 @@ try{
     assert.equal(await page.locator('#stage-grid .stage-tile:visible').count(),4,
       'Chapter view must show four illustrated stages, not twelve plain text rows');
     assert.equal(await page.locator('#stage-grid .stage-tile-art:visible').count(),4);
+    const stageType=await page.evaluate(()=>{
+      const textNodes=[...document.querySelectorAll('#stage-grid .stage-tile:not([hidden])')]
+        .flatMap(tile=>[...tile.querySelectorAll('.stage-list-name,.stage-tile-summary,.tiny')]
+          .map(el=>({tile:tile.getBoundingClientRect().toJSON(),box:el.getBoundingClientRect().toJSON(),
+            text:el.textContent,overflow:getComputedStyle(el).overflowX})));
+      const footer=document.querySelector('#stage-select-panel .stage-choice-description').getBoundingClientRect();
+      const enter=document.querySelector('#stage-enter-btn').getBoundingClientRect();
+      return {textNodes,footer:footer.toJSON(),enter:enter.toJSON(),
+        enterAlignment:getComputedStyle(document.querySelector('#stage-enter-btn')).justifyContent};
+    });
+    assert.ok(stageType.textNodes.every(({tile,box,overflow})=>
+      box.width>0&&box.left>=tile.left-1&&box.right<=tile.right-1&&
+      box.top>=tile.top-1&&box.bottom<=tile.bottom+1&&overflow==='hidden'),
+      'Stage names and captions must remain within their illustrated wooden/stone cards: '+JSON.stringify(stageType.textNodes));
+    assert.ok(stageType.footer.width>0&&stageType.footer.right<stageType.enter.left+1,
+      'Stage footer description must stay to the left of its illustrated enter button');
+    assert.equal(stageType.enterAlignment,'center','Departure text must be centered on its illustrated button');
     const ascent=await page.evaluate(()=>{
       const pins=[...document.querySelectorAll('#stage-map-pins .stage-path-pin')];
       const first=pins.find(pin=>pin.getAttribute('aria-label').startsWith('1-1 '));
@@ -257,6 +274,15 @@ try{
         'Thorn must visibly distinguish idle, sprint, horn attack and hurt');
       assert.ok(thorn.transparentCorners&&thorn.frames.every(([w,h])=>w>=128&&h>=128),
         'Thorn poses must be square, cut out and alpha transparent: '+JSON.stringify(thorn));
+      const runner=await page.evaluate(()=>window.__ForestGuardQA.runnerPaintingQA());
+      assert.ok(runner&&runner.loaded&&runner.allLoaded,
+        'Chapter 1 mushroom runner needs its own decoded four-pose artwork: '+JSON.stringify(runner));
+      assert.ok(runner.sourceSize[0]>=1000&&runner.sourceSize[1]>=1000,
+        'Mushroom runner needs detailed original 2×2 artwork');
+      assert.equal(runner.uniqueActionPoses,4,
+        'Runner must visibly distinguish ready, sprint, reaching attack and recoil');
+      assert.ok(runner.transparentCorners&&runner.frames.every(([w,h])=>w>=128&&h>=128),
+        'Runner poses must be alpha cutouts and preserve transparent corners: '+JSON.stringify(runner));
       const alphas=await page.evaluate(()=>window.__ForestGuardQA.monsterCutoutAlpha());
       assert.ok(alphas&&Object.keys(alphas).length===10,'All ten monster textures must exist');
       assert.ok(Object.entries(alphas).every(([,corners])=>corners.every(value=>value===0)),

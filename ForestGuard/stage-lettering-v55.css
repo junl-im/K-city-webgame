@@ -1,0 +1,94 @@
+/* ForestGuard v5.5 — hand-lettered captions stay inside each original painted prop.
+ * No SVG, extra decorative borders, overflow or additional screen scrolling. */
+#stage-select-panel .stage-select-header>div,
+#stage-select-panel .stage-choice-description{
+  min-width:0!important;
+}
+#stage-select-panel .stage-select-header strong{
+  font-family:var(--fg-action-font)!important;
+  letter-spacing:-.045em!important;
+  line-height:1.05!important;
+  white-space:nowrap!important;
+}
+#stage-select-panel .stage-select-header span{
+  font-family:var(--fg-story-font)!important;
+  letter-spacing:-.015em!important;
+  white-space:nowrap!important;
+}
+#stage-select-panel .stage-chapter-tab{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  box-sizing:border-box!important;
+  min-width:0!important;overflow:hidden!important;
+  text-align:center!important;
+  padding:4px 9px!important;
+  font-family:var(--fg-action-font)!important;
+  font-weight:850!important;
+  letter-spacing:-.04em!important;
+  line-height:1!important;
+}
+#stage-select-panel .stage-tile{
+  box-sizing:border-box!important;
+  grid-template-rows:minmax(0,1fr) auto auto!important;
+  align-items:center!important;
+  column-gap:clamp(3px,1.1vw,7px)!important;
+}
+#stage-select-panel .stage-tile .stage-list-name{
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;line-clamp:2!important;
+  min-width:0!important;width:100%!important;max-width:100%!important;
+  max-height:2.35em!important;overflow:hidden!important;
+  word-break:keep-all!important;overflow-wrap:anywhere!important;
+  font-family:var(--fg-action-font)!important;
+  font-size:clamp(10px,2.8vw,13px)!important;
+  font-weight:850!important;letter-spacing:-.055em!important;
+  line-height:1.17!important;text-align:left!important;
+}
+#stage-select-panel .stage-tile .stage-tile-summary,
+#stage-select-panel .stage-tile .tiny{
+  box-sizing:border-box!important;
+  display:block!important;min-width:0!important;width:100%!important;
+  max-width:100%!important;overflow:hidden!important;
+  text-overflow:ellipsis!important;white-space:nowrap!important;
+  line-height:1.15!important;text-align:left!important;
+  letter-spacing:-.035em!important;
+}
+#stage-select-panel .stage-tile .stage-tile-summary{
+  font-size:clamp(8px,2.2vw,10px)!important;
+  font-weight:700!important;
+}
+#stage-select-panel .stage-tile .tiny{
+  font-family:var(--fg-story-font)!important;
+  font-size:clamp(8px,2.1vw,10px)!important;
+  font-weight:800!important;
+}
+#stage-select-panel .stage-choice-description{
+  display:flex!important;flex-direction:column!important;
+  justify-content:center!important;gap:2px!important;
+  overflow:hidden!important;
+}
+#stage-select-panel .stage-choice-description>span,
+#stage-select-panel .stage-choice-description strong,
+#stage-select-panel .stage-choice-description small{
+  display:block!important;min-width:0!important;max-width:100%!important;
+  overflow:hidden!important;white-space:nowrap!important;
+  text-overflow:ellipsis!important;line-height:1.16!important;
+  letter-spacing:-.035em!important;
+}
+#stage-select-panel #stage-enter-btn{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  box-sizing:border-box!important;
+  min-width:0!important;
+  padding:5px 14px!important;
+  line-height:1!important;
+  text-align:center!important;text-indent:0!important;
+  font-family:var(--fg-action-font)!important;
+  font-weight:850!important;letter-spacing:.015em!important;
+}
+@media(max-width:360px){
+  #stage-select-panel .stage-chapter-tab{padding:3px 5px!important}
+  #stage-select-panel .stage-tile .stage-list-name{font-size:10px!important}
+  #stage-select-panel .stage-tile .stage-tile-summary{font-size:8px!important}
+  #stage-select-panel .stage-choice-description{gap:1px!important}
+  #stage-select-panel #stage-enter-btn{padding-inline:9px!important}
+}
