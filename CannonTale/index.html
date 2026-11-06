@@ -2698,7 +2698,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   <div id="exitConfirm" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="exitTitle">
    <section class="panel exit-panel"><span class="eyebrow">ONE MORE ADVENTURE?</span><h2 id="exitTitle">모험을 마칠까요?</h2><p>여정은 이곳에 남아 있어요. 다음에 돌아오면 이어서 도전할 수 있어요.</p><div class="panel-actions"><button id="exitStayBtn" class="paper-btn" type="button">계속 놀기</button><button id="exitLeaveBtn" class="paper-btn light" type="button">나가기</button></div></section>
   </div>
-  <aside class="help" id="help" hidden><button id="closeHelp" class="tiny" type="button">닫기</button><h2>조작 안내</h2><p><b>전장을 위아래로 드래그</b>해 각도를 조절하세요. 화면 왼쪽 위에서 현재 각도와 예상 거리를 볼 수 있습니다. <b>발사 버튼을 길게 눌러 파워를 모으고 손을 떼면</b> 정밀 타이밍 게이지가 떠요. 바늘이 초록색 중앙에 올 때 <b>게이지나 발사 버튼을 다시 눌러</b> 발사하세요. 모험의 새총을 당겨도 같은 순서입니다.</p><p>여우·토끼의 특수기는 <b>포탄 비행 중</b>, 곰·고양이의 특수기는 <b>발사 전</b> 사용합니다. 특수기는 플레이어 발사 한 번당 1회 가능해요. 단축키는 <b>Q</b>입니다.</p><p>바람 방향과 세기를 읽으세요. 강풍에서는 표적이 더 크게 어긋납니다. 폭탄탄은 넓은 폭발, 분열탄은 다중 타격, <b>정타와 크리티컬은 추가 타격 효과</b>가 발생합니다. <b>전장 보기</b>로 지형을 확인할 수 있어요.</p></aside>
+ <aside class="help" id="help" hidden><button id="closeHelp" class="tiny" type="button">닫기</button><h2>조작 안내</h2><p><b>전장을 위아래로 드래그</b>해 각도를 조절하세요. 화면 왼쪽 위에서 현재 각도와 예상 거리를 볼 수 있습니다. <b>발사 버튼을 길게 눌러 파워를 모으고 손을 떼면</b> 정밀 타이밍 게이지가 떠요. 바늘이 초록색 중앙에 올 때 <b>게이지나 발사 버튼을 다시 눌러</b> 발사하세요. 모험의 새총을 당겨도 같은 순서입니다.</p><p>여우·토끼의 특수기는 <b>포탄 비행 중</b>, 곰·고양이의 특수기는 <b>발사 전</b> 사용합니다. 특수기는 플레이어 발사 한 번당 1회 가능해요. 단축키는 <b>Q</b>입니다.</p><p>바람 방향과 세기를 읽으세요. 강풍에서는 표적이 크게 어긋나며 바늘의 좌우 위치도 실제 탄도를 바꿉니다. 결투는 양쪽 모두 <b>내구도 420</b>으로 시작해 여러 발의 정타를 주고받는 장기전입니다. 폭탄탄은 넓은 폭발, 분열탄은 다중 타격이며 한 번 발사한 분열탄의 피해에는 합산 상한이 있습니다. <b>전장 보기</b>로 지형을 확인할 수 있어요.</p></aside>
  </main>
  <footer class="controls" id="controls" hidden>
   <div class="weapon-group"><span class="weapon-label">포탄 선택</span><div class="weapons"><button type="button" data-weapon="normal" class="weapon selected">일반탄</button><button type="button" data-weapon="bomb" class="weapon">폭탄탄</button><button type="button" data-weapon="split" class="weapon">분열탄</button></div></div>
@@ -2710,7 +2710,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 <script>
 "use strict";
 (() => {
- const W=1200,H=640,G=465,STEP=1/60,WIND_FORCE=37,WIND_LIFT_FORCE=30,TIMING_STEER_FORCE=110;
+ const W=1200,H=640,G=465,STEP=1/60,WIND_FORCE=46,WIND_LIFT_FORCE=38,TIMING_STEER_FORCE=136,DUEL_MAX_HP=420,DUEL_VOLLEY_LIMIT=100;
  const $=id=>document.getElementById(id);
  const cv=$('field'),ctx=cv.getContext('2d',{alpha:false});
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -2883,7 +2883,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;$('menu').dataset.stage=String(chosen);const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];const def=stageSet[chosen];$('stageShotPreview').textContent=`탄약 ${def.shots}발 · 목표 ${def.foes.length}명`;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;refreshIllustratedSelects();}
  function refreshMenu(){refreshHeroPreview();const cleared=progress.best.filter(Boolean).length;$('progressSummary').textContent=cleared?`최고 등급 합계 ${progress.best.reduce((a,b)=>a+b,0)} / 12 · 승리 ${progress.wins}회`:'모험 기록 · 아직 첫 승리 전';$('progressTier').textContent=`완료 ${cleared} / 4`;refreshStageMap();}
- const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:100,aiHp:100,turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,chargeFocusX:null,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,shotHighlights:{direct:false,critical:false},windGuide:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,precisionActive:false,precisionElapsed:0,precisionNeedle:0,precisionCamera:0,precisionLast:null,hitEmphasis:[],chainHits:0,crushHits:0,weaponFractures:0};
+ const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP,duelVolleyDamage:{player:0,ai:0},turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,chargeFocusX:null,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,shotHighlights:{direct:false,critical:false},windGuide:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,precisionActive:false,precisionElapsed:0,precisionNeedle:0,precisionCamera:0,precisionLast:null,hitEmphasis:[],chainHits:0,crushHits:0,weaponFractures:0};
  // Six authored motion phases per hero (procedural transforms of the existing PNG/WebP art).
  // They are NOT six separately painted sprite frames.
  const heroMotionKeys={
@@ -3004,6 +3004,8 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function launch(owner,ang,power,weapon,initial,sideBias=0) {
   const o=origin(owner),dir=owner==='ai'?-1:1,v={...(initial||powerVelocity(ang,power,dir))};
+  // One cannon firing, including all split fragments, counts as one duel volley.
+  game.duelVolleyDamage={player:0,ai:0};
   v.vx+=timingSideSpeed(sideBias);
   game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,b)=>a+Math.max(0,b.hp),0),blockCounts:['wood','stone','iron'].map(t=>game.blocks.filter(b=>b.type===t).length),playerHp:game.playerHp,aiHp:game.aiHp};
   game.lastImpact=null;game.shotHighlights={direct:false,critical:false};game.reviewFocusX=null;game.reviewInfo=null;$('reviewCountdown').hidden=true;game.panX=null;game.overview=false;$('overview').textContent='전장 보기';$('shotReview').hidden=true;
@@ -3042,7 +3044,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   const target={x:190,y:terrainY(190)-29},hard=game.difficulty==='hard',easy=game.difficulty==='easy';
   const windReading=hard?.95:easy?.64:.80;
   const plans=hard?['bomb','normal','split','bomb','normal']:easy?['normal','normal','bomb','normal','split']:['normal','bomb','normal','split'];
-  const weapon=game.playerHp<=38&&!easy?'bomb':plans[game.aiShots%plans.length];
+  const weapon=game.playerHp<=DUEL_MAX_HP*.38&&!easy?'bomb':plans[game.aiShots%plans.length];
   // Different attack intentions must select different *trajectories*, not just
   // change the on-screen tactic label. Every candidate uses the real wind model.
   const styles=['low','high','wind','mid','high','low'];
@@ -3084,9 +3086,9 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   for(const f of game.foes){const body=M.Bodies.circle(f.x,f.y,f.r,{friction:.82,frictionStatic:1,restitution:.07,density:.0011,sleepThreshold:55,label:'foe'});body.plugin.foe=f;f.body=body;M.Composite.add(game.engine.world,body);}
  }
  function newGame(mode,stage=0){
-  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(-3.3,3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:Infinity;game.playerHp=100;game.aiHp=100;game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
-  game.hudHealth={player:100,ai:100};game.hudHitPulse={player:0,ai:0};game.hudHitDelay={player:0,ai:0};game.hudDrawn={player:false,ai:false};game.duelHitMotion={player:null,ai:null};game.shotHighlights={direct:false,critical:false};game.windGuide=null;
-  game.windLift=rnd(-1.65,1.65);game.shotInfluences=null;
+  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(mode==='duel'?-4.2:-3.3,mode==='duel'?4.2:3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);if(mode==='duel'&&Math.abs(game.wind)<1.15)game.wind=game.wind<0?-1.15:1.15;game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:Infinity;game.playerHp=DUEL_MAX_HP;game.aiHp=DUEL_MAX_HP;game.duelVolleyDamage={player:0,ai:0};game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
+  game.hudHealth={player:DUEL_MAX_HP,ai:DUEL_MAX_HP};game.hudHitPulse={player:0,ai:0};game.hudHitDelay={player:0,ai:0};game.hudDrawn={player:false,ai:false};game.duelHitMotion={player:null,ai:null};game.shotHighlights={direct:false,critical:false};game.windGuide=null;
+  game.windLift=rnd(-1.9,1.9);game.shotInfluences=null;
   game.precisionActive=false;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionLast=null;game.hitEmphasis=[];$('precisionPanel').hidden=true;$('aimTelemetry').hidden=false;
   // Every duel is hero-versus-hero. The opponent is different from the selected player.
   const challengers=['fox','bear','rabbit','cat'].filter(hero=>hero!==game.hero);
@@ -3401,7 +3403,12 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   if(game.mode==='duel'){
    for(const c of [{owner:'player',x:190},{owner:'ai',x:1018}]){
     const cy=terrainY(c.x)-29,dist=Math.hypot(p.x-c.x,p.y-cy);
-    if(dist<radius+30){const val=Math.max(12,Math.round((1-dist/(radius+30))*(big?69:55)*bonus));if(c.owner==='player')game.playerHp-=val;else game.aiHp-=val;
+    if(dist<radius+30){const potential=Math.max(12,Math.round((1-dist/(radius+30))*(big?69:55)*bonus));
+     // One firing may create many fragments, but cannot bypass five-hits durability.
+     const remaining=Math.max(0,DUEL_VOLLEY_LIMIT-game.duelVolleyDamage[c.owner]);
+     const val=Math.min(potential,remaining);if(val<=0)continue;
+     game.duelVolleyDamage[c.owner]+=val;
+     if(c.owner==='player')game.playerHp=Math.max(0,game.playerHp-val);else game.aiHp=Math.max(0,game.aiHp-val);
      game.hudHitPulse[c.owner]=critical?.9:direct?.72:.55;
      game.hudHitDelay[c.owner]=critical?.27:direct?.22:.15;
      game.duelHitMotion[c.owner]={life:critical?.67:direct?.51:.38,total:critical?.67:direct?.51:.38,strength:critical?19:direct?13:8,direction:c.x<p.x?-1:1};
@@ -3473,12 +3480,12 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  function rollNextWind(){
   const previous=game.wind;
   if(game.mode==='adventure'){game.wind=clamp(previous+rnd(-1.15,1.15),-4.8,4.8);game.windLift=clamp((game.windLift||0)+rnd(-.65,.65),-1.85,1.85);return;}
-  let next=rnd(-4.4,4.4);
-  // Every duel turn brings a noticeable wind change, even near clamp boundaries.
-  for(let attempt=0;attempt<9&&Math.abs(next-previous)<1.05;attempt++)next=rnd(-4.4,4.4);
-  if(Math.abs(next-previous)<1.05)next=previous>=0?-2.2:2.2;
+  let next=rnd(-4.8,4.8);
+  // Each duel turn must have a real gust, distinctly different from the prior turn.
+  for(let attempt=0;attempt<14&&(Math.abs(next-previous)<1.5||Math.abs(next)<1.1);attempt++)next=rnd(-4.8,4.8);
+  if(Math.abs(next-previous)<1.5||Math.abs(next)<1.1)next=previous>=0?-2.6:2.6;
   game.wind=next;
-  game.windLift=rnd(-1.85,1.85);
+  game.windLift=rnd(-2,2);
  }
  function completeReview(){
   if(game.phase==='result'){$('reviewCountdown').hidden=true;$('shotReview').hidden=true;$('result').hidden=false;return;}
@@ -3507,7 +3514,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
      game.duelHitMotion[side].life=Math.max(0,game.duelHitMotion[side].life-dt);
      if(game.duelHitMotion[side].life===0)game.duelHitMotion[side]=null;
     }
-    const actual=clamp(side==='player'?game.playerHp:game.aiHp,0,100),shown=game.hudHealth[side];
+    const actual=clamp(side==='player'?game.playerHp:game.aiHp,0,DUEL_MAX_HP),shown=game.hudHealth[side];
     game.hudHitDelay[side]=Math.max(0,game.hudHitDelay[side]-dt);
     // Hold the pale trailing segment for a beat before it drains. Players can
     // read the damage amount without a bulky framed HP panel.
@@ -3772,7 +3779,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   const anchor=duelHudAnchor(x,owner),screenX=(anchor.x-game.camera)*game.scale,visible=screenX>=0&&screenX<=cv.clientWidth;
   game.hudDrawn[owner]=visible;
   if(!visible)return;
-  const hp=clamp(owner==='player'?game.playerHp:game.aiHp,0,100),shown=clamp(game.hudHealth[owner],0,100);
+  const hp=clamp(owner==='player'?game.playerHp:game.aiHp,0,DUEL_MAX_HP),shown=clamp(game.hudHealth[owner],0,DUEL_MAX_HP);
   const ally=owner==='player',pulse=game.hudHitPulse[owner]||0;
   // About 82 CSS pixels in normal combat, smaller still in full-battle overview.
   const uiScale=clamp(1/Math.max(.001,game.scale),.55,2.35);
@@ -3786,14 +3793,14 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   if(shown>hp+.5){
    // The golden afterimage visibly drains toward the new health value.
    ctx.shadowColor='#fff8ba';ctx.shadowBlur=4+pulse*8;
-   roundRect(-41+82*hp/100,-3,Math.max(0,82*(shown-hp)/100),7,2,'#ffe0a9');ctx.shadowBlur=0;
+   roundRect(-41+82*hp/DUEL_MAX_HP,-3,Math.max(0,82*(shown-hp)/DUEL_MAX_HP),7,2,'#ffe0a9');ctx.shadowBlur=0;
   }
   if(hp>0){
    const health=ctx.createLinearGradient(0,-3,0,4);
    if(ally){health.addColorStop(0,'#c0ffe8');health.addColorStop(.42,'#59e7bd');health.addColorStop(1,'#209f9b');}
    else{health.addColorStop(0,'#ffe6a5');health.addColorStop(.42,'#ff9b6b');health.addColorStop(1,'#db5359');}
    ctx.shadowColor=ally?'#46ffe2':'#ffad79';ctx.shadowBlur=2.5+pulse*5;
-   roundRect(-41,-3,Math.max(1,82*hp/100),7,3.5,health);
+   roundRect(-41,-3,Math.max(1,82*hp/DUEL_MAX_HP),7,3.5,health);
    ctx.shadowBlur=0;
   }
   if(pulse>0){ctx.globalAlpha=Math.min(.6,pulse*.8);roundRect(-41,-3,82,7,3.5,'#fff6da');ctx.globalAlpha=Math.min(.8,pulse);ctx.strokeStyle=ally?'#b8fff2':'#ffdfb4';ctx.lineWidth=1.8;ctx.beginPath();ctx.roundRect(-45-pulse*3,-7-pulse*2,90+pulse*6,15+pulse*4,7);ctx.stroke();}

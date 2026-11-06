@@ -27,9 +27,9 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__gradeStarsForTest=earnedStars; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
- ' window.__v43GradeForTest=precisionGrade; window.__v43DirectForTest=(accuracy)=>{newGame("duel",0);applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:accuracy>=.9?8:20,timingAccuracy:accuracy,hero:game.hero});return {damage:100-game.aiHp,emphasis:game.hitEmphasis.at(-1)?.text,pulse:game.hudHitPulse.ai,hpTrailer:game.hudHealth.ai};}; window.__v43WindForTest=()=>{newGame("duel",0);const changes=[];for(let i=0;i<15;i++){const old=game.wind;rollNextWind();changes.push(Math.abs(game.wind-old));}return changes;}; window.__artilleryLoadoutDebug=');
+ ' window.__v43GradeForTest=precisionGrade; window.__v43DirectForTest=(accuracy)=>{newGame("duel",0);applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:accuracy>=.9?8:20,timingAccuracy:accuracy,hero:game.hero});return {damage:DUEL_MAX_HP-game.aiHp,maxHp:DUEL_MAX_HP,emphasis:game.hitEmphasis.at(-1)?.text,pulse:game.hudHitPulse.ai,hpTrailer:game.hudHealth.ai};}; window.__v43WindForTest=()=>{newGame("duel",0);const changes=[];for(let i=0;i<15;i++){const old=game.wind;rollNextWind();changes.push(Math.abs(game.wind-old));}return changes;}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
- ' window.__v44WindGuideForTest=(wind)=>{newGame("duel",0);game.wind=wind;game.angle=43;game.power=80;updateHud();return {guide:game.windGuide,label:$("windDrift").textContent,hidden:$("windDrift").hidden};}; window.__v44HealthForTest=()=>({hold:game.hudHitDelay.ai,shown:game.hudHealth.ai,actual:game.aiHp}); window.__v44ReviewForTest=(critical=false)=>{newGame("duel",0);game.phase="flying";game.phaseTime=2;game.shotBaseline={foes:0,blockHp:0,playerHp:100,aiHp:100};if(critical){applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:8,timingAccuracy:1,hero:game.hero});}else{game.lastImpact={x:800,y:terrainY(800)-10};}game.projectiles=[];finishFlight();return {title:game.reviewInfo.title,detail:game.reviewInfo.detail};}; window.__v44HeroHudForTest=(hero)=>{const original=game.hero;game.hero=hero;const anchor=duelHudAnchor(190,"player");game.hero=original;return {x:anchor.x,clearance:terrainY(190)-anchor.y};}; window.__artilleryLoadoutDebug=');
+ ' window.__v44WindGuideForTest=(wind)=>{newGame("duel",0);game.wind=wind;game.angle=43;game.power=80;updateHud();return {guide:game.windGuide,label:$("windDrift").textContent,hidden:$("windDrift").hidden};}; window.__v44HealthForTest=()=>({hold:game.hudHitDelay.ai,shown:game.hudHealth.ai,actual:game.aiHp}); window.__v44ReviewForTest=(critical=false)=>{newGame("duel",0);game.phase="flying";game.phaseTime=2;game.shotBaseline={foes:0,blockHp:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP};if(critical){applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:8,timingAccuracy:1,hero:game.hero});}else{game.lastImpact={x:800,y:terrainY(800)-10};}game.projectiles=[];finishFlight();return {title:game.reviewInfo.title,detail:game.reviewInfo.detail};}; window.__v44HeroHudForTest=(hero)=>{const original=game.hero;game.hero=hero;const anchor=duelHudAnchor(190,"player");game.hero=original;return {x:anchor.x,clearance:terrainY(190)-anchor.y};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__setDeathAgeForTest=(age)=>{const f=game.foes[0];f.alive=false;f.kind=0;f.deathTimer=3.8-age;f.hitAnim=0;f.attackAnim=0;}; window.__restoreFoeForTest=()=>{const f=game.foes[0];f.alive=true;f.deathTimer=0;}; window.__artilleryLoadoutDebug=');
 // In the six-pose atlas probe, select the settled death frame after the brief
@@ -42,6 +42,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v46WindSweepForTest=()=>{newGame("duel",0);game.angle=43;game.power=76;return [[0,0],[-4,0],[4,0],[0,-1.8],[0,1.8],[-4,-1.8],[4,1.8]].map(([wind,lift])=>{const line=predict(43,76,wind,"player",900,0,lift,true),p=line.impact||line.at(-1);return{wind,lift,x:p.x,y:p.y};});}; window.__v46NeedleForTest=(needle,wind=0,lift=0)=>{newGame("duel",0);game.wind=wind;game.windLift=lift;game.angle=43;game.power=76;beginPrecision();game.precisionNeedle=needle;lockPrecision();const line=predict(43,game.precisionLast.adjusted,wind,"player",900,game.precisionLast.sideBias,lift,true),p=line.impact||line.at(-1);return{grade:game.precisionLast.grade,x:p.x,steer:game.precisionLast.sideBias,initialVx:game.projectiles[0].vx,windInfluence:game.shotInfluences.wind,timingInfluence:game.shotInfluences.timing};}; window.__v46AiForceForTest=(wind,lift)=>{newGame("duel",0);game.wind=wind;game.windLift=lift;game.difficulty="normal";const shot=chooseAiShot();launch("ai",shot.angle,shot.power,shot.weapon,undefined,shot.timingBias);const p=game.projectiles[0],before=p.vx;step(1/60);return{wind,lift,before,after:p.vx,bias:p.timingBias};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v46CompassForTest=()=>{newGame("duel",0);return [[-3,-1.1],[3,-1.1],[-3,1.1],[3,1.1]].map(([wind,lift])=>{game.wind=wind;game.windLift=lift;updateHud();return $("windVector").textContent;});}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v47VolleysForTest=(owner,weapon="bomb",fragments=1)=>{newGame("duel",0);const target=owner==="player"?"ai":"player",x=target==="ai"?1018:190,hp=[];for(let i=0;i<6;i++){launch(owner,45,80,weapon);game.projectiles=[];for(let j=0;j<fragments;j++)applyExplosion({x,y:terrainY(x)-29,weapon,owner,directTarget:target,directCenter:5,timingAccuracy:1,hero:game.hero});hp.push(game[target==="ai"?"aiHp":"playerHp"]);}return{hp,max:DUEL_MAX_HP,cap:DUEL_VOLLEY_LIMIT,otherHp:game[owner==="player"?"playerHp":"aiHp"]};}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -962,7 +964,7 @@ assert(criticalDirect.damage>ordinaryDirect.damage,'A critical center hit must d
 assert.equal(ordinaryDirect.emphasis,'정타!','Direct hit must display a special on-target celebration');
 assert.equal(criticalDirect.emphasis,'치명타!','A critical impact must show its own bold text effect');
 assert(criticalDirect.pulse>ordinaryDirect.pulse,'Critical damage should make the head-mounted HP gauge recoil harder');
-assert(criticalDirect.hpTrailer>100-criticalDirect.damage,'A hit must leave trailing HP to visibly drain over subsequent frames');
+assert(criticalDirect.hpTrailer>criticalDirect.maxHp-criticalDirect.damage,'A hit must leave trailing HP to visibly drain over subsequent frames');
 assert(window.__v43WindForTest().every(delta=>delta>=.749),'Each deathmatch turn must noticeably change wind');
 const calmGuide=window.__v44WindGuideForTest(0);
 const gustGuide=window.__v44WindGuideForTest(4.2);
@@ -972,6 +974,7 @@ assert(gustGuide.label.includes(gustGuide.guide.drift>=0?'→':'←'),'Wind comp
 const windSweep=window.__v46WindSweepForTest();
 const [still,headwind,tailwind,rising,falling,diagonalUp,diagonalDown]=windSweep;
 assert(headwind.x<still.x-90&&tailwind.x>still.x+90,'Strong opposite crosswinds must change the ground landing by visibly large distances');
+assert(headwind.x<still.x-250&&tailwind.x>1200,'Strong gusts must pull a headwind shot hundreds of pixels short or carry a tailwind shot beyond the map: '+JSON.stringify(windSweep));
 assert(Math.abs(rising.x-falling.x)>45,'Updraft and downdraft must change hang time and horizontal landing, not just the icon');
 assert(diagonalUp.x<headwind.x+120&&diagonalDown.x>tailwind.x-120,'Diagonal wind must preserve its horizontal push while adding vertical effects');
 assert.deepEqual(window.__v46CompassForTest(),['↖','↗','↙','↘'],'The wind gauge must show all four diagonal directions correctly');
@@ -984,6 +987,16 @@ const aiCrosswind=window.__v46AiForceForTest(-4.2,1.2);
 assert(aiCrosswind.after<aiCrosswind.before-1&&Math.abs(aiCrosswind.bias)<=1,'The AI projectile must feel the same strong wind physics and its own timing uncertainty');
 const aiReverseWind=window.__v46AiForceForTest(4.2,-1.2);
 assert(aiReverseWind.after>aiReverseWind.before+1&&Math.abs(aiReverseWind.bias)<=1,'The AI must also be pushed the opposite way by reversed diagonal wind');
+for(const owner of ['player','ai']){
+ const single=window.__v47VolleysForTest(owner,'bomb');
+ assert.equal(single.max,420,'Both duel sides must share the same enlarged maximum durability');
+ assert(single.hp.slice(0,4).every(v=>v>0),'Even four centered explosive direct hits may not end a duel');
+ assert(single.hp[4]<single.hp[3]&&single.hp[5]<=single.hp[4]&&single.hp[5]===0,'Five to six centered explosive shots must be decisive: '+JSON.stringify(single));
+ assert.equal(single.otherHp,single.max,'Damage must only affect the struck side');
+ const split=window.__v47VolleysForTest(owner,'split',5);
+ assert(split.hp.slice(0,4).every(v=>v>0),'Five fragment explosions from one shot count as one bounded volley, for either side');
+ assert(split.hp.every((hp,i)=>i===0||split.hp[i-1]-hp<=split.cap),'One split volley must respect the damage cap');
+}
 window.__v43DirectForTest(1);
 const justHit=window.__v44HealthForTest();
 assert(justHit.hold>.2&&justHit.shown>justHit.actual,'Critical damage must retain a readable HP afterimage before draining');
@@ -996,9 +1009,10 @@ assert(missReview.detail.includes('218')&&missReview.detail.includes('왼쪽'),'
 const criticalReview=window.__v44ReviewForTest(true);
 assert(criticalReview.title.includes('치명타!')&&criticalReview.title.includes('피해!'),'The review ribbon must carry forward a successful critical hit');
 const aiCycle=window.__v45AiCycleForTest('normal',3.7);
+const aiReverseCycle=window.__v45AiCycleForTest('normal',-3.7);
 assert(new Set(aiCycle.map(s=>s.weapon)).size>=3,'Duel AI must still rotate through all three weapons');
 assert(new Set(aiCycle.map(s=>s.tactic)).size>=3,'Duel AI must actually present multiple tactical attacks');
-assert(new Set(aiCycle.map(s=>s.angle<43?'low':s.angle>=66?'high':'mid')).size>=2,'AI tactics must switch the real shot arc, not only the text or ammo');
+assert(new Set([...aiCycle,...aiReverseCycle].map(s=>s.angle<43?'low':s.angle>=66?'high':'mid')).size>=2,'AI tactics must switch actual arcs as wind directions change, while avoiding futile high shots in extreme gusts');
 assert(aiCycle.every(s=>s.angle>=8&&s.angle<=88&&s.power>=25&&s.power<=100),'Tactical shots must obey playable angle and power bounds');
 const recoil=window.__v45CriticalRecoilForTest();
 assert(recoil?.strength>=19&&recoil.life>.6,'Critical damage must physically recoil the character, not just flash its HP bar');
