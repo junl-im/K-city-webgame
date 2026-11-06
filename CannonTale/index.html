@@ -2892,6 +2892,28 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   rabbit:[[0,0,0,1,1],[-3,0,-.07,.98,1.04],[-5,2,-.16,.95,1.08],[-9,-4,.08,1.10,.91],[-3,-2,.04,1.05,.96],[0,0,0,1,1]],
   cat:[[0,0,0,1,1],[-1,0,-.08,.98,1.02],[-3,1,-.17,.96,1.04],[-5,-4,-.27,1.07,.94],[-2,-3,-.12,1.03,.98],[0,0,0,1,1]]
  };
+ // Distinct firing silhouettes: the authored six-frame artwork stays untouched,
+ // while each weapon carries its own weight, hop and recovery cadence.
+ const heroFiringStyles={
+  fox:{kick:17,duration:.43,slide:5,hop:3,tilt:-.045,wave:0},
+  bear:{kick:34,duration:.67,slide:3,hop:1,tilt:.019,wave:0},
+  rabbit:{kick:22,duration:.55,slide:5,hop:10,tilt:-.06,wave:.65},
+  cat:{kick:12,duration:.61,slide:2,hop:7,tilt:.085,wave:.95}
+ };
+ const heroHitStyles={
+  fox:{slide:1.16,lift:.9,tilt:.12,squash:.76,wobble:.012},
+  bear:{slide:.7,lift:.35,tilt:.035,squash:1.45,wobble:0},
+  rabbit:{slide:.93,lift:1.65,tilt:.065,squash:.8,wobble:.04},
+  cat:{slide:.84,lift:1.18,tilt:.105,squash:.62,wobble:.075}
+ };
+ function heroFiringPose(owner,hero){
+  const anim=game.actorAnim[owner],style=heroFiringStyles[hero]||heroFiringStyles.fox;
+  if(!anim||anim.kind!=='attack'||anim.life<=0)return {dx:0,dy:0,rotation:0};
+  const t=clamp(1-anim.life/anim.total,0,1),fade=Math.pow(1-t,1.4);
+  const snap=Math.sin(Math.PI*(.3+.7*t))*fade;
+  return {dx:-style.slide*snap,dy:-style.hop*Math.sin(Math.PI*t)*fade+style.wave*Math.sin(t*Math.PI*3)*fade,
+   rotation:style.tilt*snap+style.wave*.018*Math.sin(t*Math.PI*3)*fade};
+ }
  function actorPoseFrame(owner,hero){
   if(owner==='player'&&game.chargeActive){
    const p=clamp(game.chargedPower/100,0,1),sway=Math.sin(game.chargeElapsed*6)*.7;
@@ -3019,7 +3041,8 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   const socket=muzzleFor(owner,ang),muzzleX=socket.x,muzzleY=socket.y;
    const p={x:muzzleX,y:muzzleY,vx:v.vx,vy:v.vy,r:weapon==='bomb'?13:10,weapon,owner,hero:owner==='ai'?game.aiHero:game.hero,age:0,split:false,trail:[],active:true,pierce:owner==='player'&&game.abilityArmed?2:0,hitBlocks:[],hitFoes:[],timingGrade:owner==='player'?game.precisionLast?.grade:null,timingAccuracy:owner==='player'?game.precisionLast?.accuracy:0,timingBias:sideBias,directTarget:null,directCenter:Infinity};game.projectiles.push(p);
   if(owner==='player')game.abilityArmed=false;else game.aiAngle=ang;
-  game.recoil[owner]=23;actorMotion(owner,'attack',.48);game.muzzle={x:muzzleX,y:muzzleY,dir,hero:owner==='ai'?game.aiHero:game.hero,weapon,life:.3,total:.3};spawnSparks(game.muzzle.x,game.muzzle.y,13,'#ffe8aa',.42);game.shake=Math.max(game.shake,weapon==='bomb'?4.5:2.7);playSound('fire');
+  const firingHero=duelHero(owner),firingStyle=heroFiringStyles[firingHero]||heroFiringStyles.fox;
+  game.recoil[owner]=firingStyle.kick;actorMotion(owner,'attack',firingStyle.duration);game.muzzle={x:muzzleX,y:muzzleY,dir,hero:firingHero,weapon,life:.3,total:.3};spawnSparks(game.muzzle.x,game.muzzle.y,13,'#ffe8aa',.42);game.shake=Math.max(game.shake,weapon==='bomb'?4.5:2.7);playSound('fire');
   if(owner==='player') {game.shots++;game.phase='flying';game.phaseTime=0;game.message='발사!';game.messageTime=.65;game.hintTime=0;$('hint').hidden=true;}
   else {game.phase='flying';game.phaseTime=0;game.message='적의 포격!';game.messageTime=1;}
   updateHud();
@@ -3709,10 +3732,13 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  function drawHeroAttackFrame(which,x,y,scale,dir,side){
   const anim=game.actorAnim[side],img=paintedAttackAtlases[which];
   if(anim?.kind!=='attack'||anim.life<=0||!img?.complete||img.naturalWidth<3||img.naturalHeight<2)return false;
-  const frame=Math.min(5,Math.floor(clamp(1-anim.life/anim.total,0,.999)*6));
+  // Always play all six painted poses within the first 0.45 s, even when a
+  // heavy weapon's recoil takes longer to settle after the final pose.
+  const frame=Math.min(5,Math.floor(clamp((anim.total-anim.life)/Math.min(anim.total,.45),0,.999)*6));
   const tileW=img.naturalWidth/3,tileH=img.naturalHeight/2,size=({fox:176,bear:188,rabbit:190,cat:187}[which]||176)*scale;
-  const recoil=game.recoil[side]||0;
-  ctx.save();ctx.translate(x+(side==='player'?-recoil*.45:recoil*.45),y);
+  const recoil=game.recoil[side]||0,pose=heroFiringPose(side,which);
+  ctx.save();ctx.translate(x-dir*recoil*.38+dir*pose.dx,y+pose.dy);
+  ctx.rotate(dir*pose.rotation);
   // Bear/cat art faces left in its original sheet; fox/rabbit faces right.
   ctx.scale(dir*({fox:1,bear:-1,rabbit:1,cat:-1}[which]||1),1);
   // Six independently painted poses per hero; no procedural limb stretching or duplicate held weapon.
@@ -3724,9 +3750,9 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   if(drawHeroAttackFrame(which,x,y,scale,dir,side))return true;
   const img=which==='rabbit'||which==='cat'?rosterAtlas:atlas,half=img.naturalWidth/2,w=162*scale,h=w*img.naturalHeight/half;const recoil=game.recoil[side]||0,a=game.actorAnim[side]||{kind:'idle',life:0,total:1},phase=1-a.life/a.total,pulse=Math.sin(Math.PI*phase),motion=a.life>0?pulse:0;const kick={fox:6,bear:13,rabbit:8,cat:5}[which]||7,staged=actorPoseFrame(side,which);
  const sx=a.kind==='attack'||(side==='player'&&game.chargeActive)?staged.sx:a.kind==='hit'?1-.09*motion:a.kind==='victory'?1+.05*motion:1,
- sy=a.kind==='attack'||(side==='player'&&game.chargeActive)?staged.sy:a.kind==='hit'?1+.085*motion:a.kind==='victory'?1+.07*motion:1;ctx.save();ctx.translate(x+(side==='player'?-recoil:recoil)+(side==='player'?1:-1)*staged.dx+(a.kind==='hit'?rnd(-3,3)*motion:0),
- y+staged.dy+Math.sin(game.clock*2.7+(side==='player'?0:1.2))*1.1+(a.kind==='victory'?-19*motion:0));
- ctx.rotate(a.kind==='attack'||(side==='player'&&game.chargeActive)?staged.angle:a.kind==='hit'?.15*motion:0);// The right-hand cells (bear and cat) face left in their unflipped source art.
+ sy=a.kind==='attack'||(side==='player'&&game.chargeActive)?staged.sy:a.kind==='hit'?1+.085*motion:a.kind==='victory'?1+.07*motion:1,firing=heroFiringPose(side,which);ctx.save();ctx.translate(x+(side==='player'?-recoil:recoil)+(side==='player'?1:-1)*(staged.dx+firing.dx)+(a.kind==='hit'?rnd(-3,3)*motion:0),
+ y+staged.dy+firing.dy+Math.sin(game.clock*2.7+(side==='player'?0:1.2))*1.1+(a.kind==='victory'?-19*motion:0));
+ ctx.rotate(a.kind==='attack'||(side==='player'&&game.chargeActive)?staged.angle+firing.rotation:a.kind==='hit'?.15*motion:0);// The right-hand cells (bear and cat) face left in their unflipped source art.
  ctx.scale(dir*({fox:1,bear:-1,rabbit:1,cat:-1}[which]||1)*sx,sy);ctx.globalAlpha=a.kind==='hit'&&a.life>0?.75:1;ctx.drawImage(img,which==='fox'||which==='rabbit'?0:half,0,half,img.naturalHeight,-w*.52,24*scale-h,w,h);ctx.restore();return true;}
  function fox(x,y,scale=1,dir=1){if(illustratedCharacter('fox',x,y,scale,dir))return;ctx.save();ctx.translate(x,y);ctx.scale(scale*dir,scale);ellipse(0,23,25,10,'#334b5580');ellipse(0,0,24,28,'#d77e51');ctx.beginPath();ctx.moveTo(-23,-16);ctx.lineTo(-19,-42);ctx.lineTo(-4,-20);ctx.moveTo(10,-23);ctx.lineTo(24,-43);ctx.lineTo(23,-10);ctx.closePath();ctx.fillStyle='#d77e51';ctx.fill();ellipse(0,6,17,17,'#fff0d6');ellipse(-9,-5,3,5,'#2c3644');ellipse(10,-5,3,5,'#2c3644');ellipse(1,7,4,3,'#3d3b45');ellipse(26,19,12,7,'#cf714e');ctx.fillStyle='#fbe6d1';ctx.beginPath();ctx.moveTo(29,20);ctx.lineTo(41,14);ctx.lineTo(39,23);ctx.fill();ctx.restore();}
  function bear(x,y,scale=1){if(illustratedCharacter('bear',x,y,scale,-1,'ai'))return;ctx.save();ctx.translate(x,y);ellipse(0,23,24,9,'#2b344d66');ellipse(-17,-20,10,10,'#6d708d');ellipse(17,-20,10,10,'#6d708d');ellipse(0,0,25*scale,27*scale,'#777a99');ellipse(0,11,17,15,'#d8cbb8');ellipse(-9,-5,3,4,'#293044');ellipse(10,-5,3,4,'#293044');ellipse(0,7,5,3,'#423c4d');ctx.restore();}
@@ -3838,14 +3864,14 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   const hit=game.duelHitMotion?.[owner];
   ctx.save();
   if(hit){
-   const t=1-hit.life/hit.total,fade=1-t;
+   const t=1-hit.life/hit.total,fade=1-t,style=heroHitStyles[hero]||heroHitStyles.fox;
    // The hero is shoved *away* from the actual impact, tilts and compresses,
-   // then comes home on one damped arc instead of oscillating in place.
+   // then returns in its own weapon-weighted rhythm, not a shared rubber bounce.
    const shove=Math.sin((.06+t*.94)*Math.PI)*Math.pow(fade,.83);
-   ctx.translate(hit.direction*hit.strength*shove,-Math.sin(t*Math.PI)*hit.strength*.5);
-   ctx.rotate(hit.direction*(hero==='bear'?.042:.09)*Math.sin(t*Math.PI)*fade);
+   ctx.translate(hit.direction*hit.strength*shove*style.slide,-Math.sin(t*Math.PI)*hit.strength*.5*style.lift);
+   ctx.rotate(hit.direction*(style.tilt*Math.sin(t*Math.PI)+style.wobble*Math.sin(2*Math.PI*t))*fade);
    const compress=Math.sin(t*Math.PI)*fade;
-   ctx.scale(1+.05*compress,1-.065*compress);
+   ctx.scale(1+.05*compress*style.squash,1-.065*compress*style.squash);
   }
   if(hero==='bear'){cannon(x,terrainY(x)-26,dir,own);ctx.restore();return;}
   // Fox, rabbit and cat hold the slingshot, split-launcher and staff already painted in their atlas.

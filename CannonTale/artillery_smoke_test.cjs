@@ -56,6 +56,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v51ImpactForTest=(owner,offset=0,vx=0)=>{newGame("duel",0);const target=owner==="player"?"ai":"player",x=target==="ai"?1018:190;applyExplosion({x:x-offset,y:terrainY(x)-29,vx,weapon:"normal",owner,directTarget:target,directCenter:24,timingAccuracy:.5,hero:duelHero(owner)});return{target,motion:{...game.duelHitMotion[target]},bursts:game.duelHitBursts.map(b=>({...b})),hp:game[target+"Hp"]};}; window.__v51BurstsForTest=()=>game.duelHitBursts.length; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v52WeaponForTest=(weapon,owner="player")=>{newGame("duel",0);const target=owner==="player"?"ai":"player",x=target==="ai"?1018:190;applyExplosion({x,y:terrainY(x)-29,vx:owner==="player"?280:-280,weapon,owner,directTarget:target,directCenter:24,timingAccuracy:.5,hero:duelHero(owner)});drawWeaponAftershocks();return{weapon,target,echo:{...game.weaponAftershocks.at(-1)},recoil:{...game.duelHitMotion[target]},hp:game[target+"Hp"]};}; window.__v52EchoCountForTest=()=>game.weaponAftershocks.length; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v53HeroShotForTest=(hero,owner)=>{newGame("duel",0);game[owner==="ai"?"aiHero":"hero"]=hero;const aim=muzzleFor(owner,45);launch(owner,45,80,"normal");const p=game.projectiles.at(-1),a=game.actorAnim[owner],style=heroFiringStyles[hero],initial=heroFiringPose(owner,hero);a.life=a.total*.5;const mid=heroFiringPose(owner,hero);return{hero,owner,kick:game.recoil[owner],duration:a.total,initial,mid,spawn:{x:p.x,y:p.y},aim,frames:6,hp:[game.playerHp,game.aiHp]};}; window.__v53HeroHitForTest=(hero,target)=>{newGame("duel",0);game[target==="ai"?"aiHero":"hero"]=hero;const owner=target==="ai"?"player":"ai",x=target==="ai"?1018:190;applyExplosion({x,y:terrainY(x)-29,weapon:"normal",vx:owner==="player"?280:-280,owner,directTarget:target,directCenter:24,timingAccuracy:.5,hero:duelHero(owner)});return{hero,target,style:{...heroHitStyles[hero]},recoil:{...game.duelHitMotion[target]},hp:game[target+"Hp"]};}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -1087,6 +1089,26 @@ for(const owner of ['player','ai']){
  assert([normal,bomb,split].every(s=>s.hp>0),'Ammo differentiation must preserve the five-shot duel durability');
  frames(72);
  assert.equal(window.__v52EchoCountForTest(),0,'Projectile-specific sparks, smoke and split echoes must completely expire');
+}
+for(const owner of ['player','ai']){
+ const shots=['fox','bear','rabbit','cat'].map(hero=>window.__v53HeroShotForTest(hero,owner));
+ assert.equal(new Set(shots.map(s=>s.kick)).size,4,`Each ${owner} hero's firing kick must reflect its own weapon`);
+ assert.equal(new Set(shots.map(s=>s.duration)).size,4,`Each ${owner} hero must have a distinct recoil recovery duration`);
+ for(const shot of shots){
+  assert.equal(shot.spawn.x,shot.aim.x,`${shot.hero} ${owner} projectile must still spawn from its true muzzle`);
+  assert.equal(shot.spawn.y,shot.aim.y,`${shot.hero} ${owner} projectile height must remain aligned`);
+  assert(shot.mid.dy<0,`${shot.hero} ${owner} must have a painted-hero recovery lift`);
+  assert.deepEqual(shot.hp,[420,420],'Firing animation cannot accidentally change duel durability');
+ }
+ assert(shots.find(s=>s.hero==='bear').kick>shots.find(s=>s.hero==='fox').kick,'Cannon recoil must feel heavier than the slingshot');
+ assert(shots.find(s=>s.hero==='rabbit').mid.dy<shots.find(s=>s.hero==='fox').mid.dy,'The rabbit must visibly hop higher than the fox');
+ const hits=['fox','bear','rabbit','cat'].map(hero=>window.__v53HeroHitForTest(hero,owner));
+ assert.equal(new Set(hits.map(s=>s.style.tilt)).size,4,`Each ${owner} hero needs its own on-hit tilt`);
+ assert.equal(new Set(hits.map(s=>s.style.lift)).size,4,`Each ${owner} hero needs its own on-hit lift`);
+ for(const hit of hits){
+  assert(hit.recoil.strength>=14&&hit.recoil.total>=.58,'The distinctive hit pose must preserve normal projectile knockback');
+  assert(hit.hp<420&&hit.hp>0,'Hero-specific hit recovery must preserve long-form battle balance');
+ }
 }
 const fullRange=window.__v49ReachSweepForTest();
 assert.equal(fullRange.length,18,'Range coverage must test both combatants and all nine horizontal/vertical wind combinations');
