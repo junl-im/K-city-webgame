@@ -4144,3 +4144,14 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
  position:absolute;width:1px;height:1px;padding:0;overflow:hidden;
  clip-path:inset(50%);white-space:nowrap;
 }
+
+/* A small, readable mission plaque leaves the playing field unobstructed. */
+@media (max-width:650px) {
+ .scene--game .mission-status-row {grid-template-columns:clamp(112px,34vw,140px) minmax(0,1fr);}
+ .scene--game .mission-status-row .mission-panel {padding:5px 6px 7px;}
+ .scene--game .mission-status-row .mission-panel__title {font-size:clamp(11px,3vw,13px);line-height:1.2;}
+ .scene--game .mission-status-row .mission-panel__reward strong {font-size:clamp(13px,3.7vw,16px);line-height:1.15;}
+ .scene--game .mission-status-row .mission-mini {width:clamp(25px,7.2vw,31px);}
+ .scene--game .mission-status-row .mission-panel:focus-visible {outline-offset:2px;}
+ .scene--game .game-message {background:rgba(12,48,34,.92);color:#fff4d1;text-shadow:0 1px 2px #071a12;}
+}
