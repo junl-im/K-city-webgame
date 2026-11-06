@@ -743,13 +743,23 @@ try{
   assert.equal(await failedPage.locator('#modal-layer').isHidden(),true,'WebP fallback must allow combat without a failure modal');
   assert.equal(await failedPage.locator('#menu').isHidden(),true,'Illustrated fallback must enter the battlefield');
   await failedCtx.close();
-  // Stage 2/3 bosses use independent 2×2 paintings (not the default root giant).
+  // Chapter 1 sentinel and every chapter boss have independent 2×2 paintings.
   // The local-only QA hook never changes a saved public unlock progression.
   const bossCtx=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true});
   const bossPage=await bossCtx.newPage();
   const bossErrors=[];bossPage.on('pageerror',error=>bossErrors.push(error.message));
   await bossPage.goto(origin+'?fgqa=1',{waitUntil:'domcontentloaded'});
+  await bossPage.evaluate(()=>window.__ForestGuardQA.openChapterBossForQA(0));
+  await bossPage.locator('#game-root canvas').waitFor({state:'attached',timeout:30000});
+  const sentinel=await bossPage.evaluate(()=>window.__ForestGuardQA.chapterOneSentinelQA());
+  assert.ok(sentinel?.loaded&&sentinel.frames.every(Boolean)&&
+    sentinel.background.includes('chapter1-forest-sentinel-v52.webp')&&
+    sentinel.portrait.includes('chapter-sentinel')&&sentinel.title==='숲길 파수꾼',
+  'Chapter 1 sentinel must retain its six painted actions and matching HUD: '+JSON.stringify(sentinel));
+  await bossPage.waitForTimeout(400);
+  await bossPage.screenshot({path:new URL('../test-output/chapter-sentinel-0-390.png',import.meta.url).pathname});
   for(const [stage,asset,title] of [
+    [3,'chapter1-root-giant-v52.webp','뿌리 거인'],
     [7,'chapter2-masked-mole-v51.webp','가면 두더지'],
     [11,'chapter3-black-bell-v51.webp','검은 종의 주인']
   ]){

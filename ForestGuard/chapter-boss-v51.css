@@ -1,4 +1,18 @@
 /* Chapter boss cutouts are original painted WebP sprites, not CSS shapes/SVG. */
+#game-screen .boss-portrait.boss.chapter-root{
+  background-image:url('./art/chapter1-root-giant-v52.webp')!important;
+  background-size:200% 200%!important;
+  background-position:0% 0%!important;
+  background-repeat:no-repeat!important;
+  filter:drop-shadow(0 2px 3px #223514bd);
+}
+#game-screen .boss-portrait.guardian.chapter-sentinel{
+  background-image:url('./art/chapter1-forest-sentinel-v52.webp')!important;
+  background-size:200% 200%!important;
+  background-position:0% 0%!important;
+  background-repeat:no-repeat!important;
+  filter:drop-shadow(0 2px 3px #27311abe);
+}
 #game-screen .boss-portrait.boss.chapter-mole{
   background-image:url('./art/chapter2-masked-mole-v51.webp')!important;
   background-size:200% 200%!important;
@@ -18,4 +32,10 @@
 }
 #game-screen .arena-wrap:has(.chapter-mole) #boss-bar{
   background:linear-gradient(90deg,#95643f,#d4a06c 60%,#f6dcab);
+}
+#game-screen .arena-wrap:has(.chapter-root) #boss-bar{
+  background:linear-gradient(90deg,#567d37,#a1c46e 60%,#dfdea2);
+}
+#game-screen .arena-wrap:has(.chapter-sentinel) #boss-bar{
+  background:linear-gradient(90deg,#657d47,#b1b66a 60%,#e4d5a2);
 }
