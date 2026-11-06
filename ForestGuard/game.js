@@ -30,6 +30,12 @@
     ['마지막 밤',12,'brute','혼합 공격','적들이 한꺼번에 숲으로 밀려들어요.'],
     ['검은 종의 주인',12,'boss','최종 보스','숲을 어둡게 만든 검은 종의 주인을 만나세요.']
   ].map((s,i) => ({id:i,chapter:Math.floor(i/4)+1,name:s[0],waves:s[1],elite:s[2],gimmick:s[3],story:s[4]}));
+  // Each chapter climax uses its own original 2×2 painted pose sheet.
+  const CHAPTER_BOSS_ART=Object.freeze({
+    3:{file:'chapter1-root-giant-v52.webp',name:'뿌리 거인'},
+    7:{file:'chapter2-masked-mole-v51.webp',name:'가면 두더지'},
+    11:{file:'chapter3-black-bell-v51.webp',name:'검은 종의 주인'}
+  });
   // Percent coordinates for the original continuous illustrated forest trail.
   // Bottom camp -> moonlit summit; no SVG path or tile boundaries.
   const STAGE_SPOTS = [[22,91],[48,83],[29,76],[55,68],[34,60],[61,53],[39,45],[70,38],[49,31],[76,24],[60,16],[81,9]];
@@ -42,7 +48,7 @@
     thorn:{name:'가시 딱정벌레',trait:'작고 빠른 돌파형',counter:'서리 · 연사',detail:'무리 속에서 빠르게 전진해요.'},
     crystal:{name:'수정갑각수',trait:'단단한 수정 껍질',counter:'관통 · 마법',detail:'일반 물리 공격의 일부를 견뎌요.'},
     shroom:{name:'버섯 거한',trait:'3공세마다 나타나는 정예',counter:'집중 공격 · 화상',detail:'큰 몸집으로 전열을 압박해요.'},
-    guardian:{name:'숲의 수호자',trait:'일반 스테이지 중간보스',counter:'일제사격으로 충격파 저지',detail:'전투 한복판에 나타나 성벽에 충격파를 가해요.'},
+    guardian:{name:'숲길 파수꾼',trait:'일반 스테이지 중간보스',counter:'일제사격으로 충격파 저지',detail:'전투 한복판에 나타나 성벽에 충격파를 가해요.'},
     spore:{name:'포자 딱정벌레',trait:'버섯 장갑 · 근처 적 가속',counter:'집중 사격 · 불꽃',detail:'체력이 줄면 주변 몬스터를 한 번 재촉해요.'},
     imp:{name:'이끼 숲 임프',trait:'고속 회피 정찰병',counter:'서리 · 선두 우선',detail:'화살 사이를 빠르게 비집고 뛰어와요.'}
   };
@@ -141,6 +147,8 @@
   let monsterBitmap = null, monsterHurtBitmap = null, fortBitmap = null, mushroomAttackBitmap = null, rampartBitmap = null, rearBitmap = null;
   let elementSpellBitmap = null, foxAttackBitmap = null; // Original raster illustrations, never SVG.
   const heroAttackBitmaps = {bear:null,rabbit:null,cat:null,megafox:null}; // v4.4 illustrated rear-view sheets
+  const chapterBossBitmaps={3:null,7:null,11:null};
+  let forestSentinelBitmap=null; // Chapter 1 has its own midboss instead of a reused silhouette.
   const ART_VERSION = '20261031r';
   // Mobile connections may exceed the old eight-second cutoff during decoding.
   async function loadIllustration(url,assign,required=false){
@@ -196,7 +204,12 @@
     ]);
     const biome=Math.floor(stageIndex/4);
     if(!biomeLoading[biome])biomeLoading[biome]=loadIllustration('./art/'+biomeFiles[biome]+'?v=20261031i',art=>{biomeBitmaps[biome]=art;},true);
-    await Promise.all([atlasPromise,biomeLoading[biome]]);
+    const chapterArt=CHAPTER_BOSS_ART[stageIndex];
+    const bossLoad=chapterArt&&!chapterBossBitmaps[stageIndex]?
+      loadIllustration('./art/'+chapterArt.file+'?v=20261106v52',art=>{chapterBossBitmaps[stageIndex]=art;}):Promise.resolve(true);
+    const sentinelLoad=stageIndex<4&&!forestSentinelBitmap?
+      loadIllustration('./art/chapter1-forest-sentinel-v52.webp?v=20261106v52',art=>{forestSentinelBitmap=art;}):Promise.resolve(true);
+    await Promise.all([atlasPromise,biomeLoading[biome],bossLoad,sentinelLoad]);
     // Keep an illustrated battle playable when a high-resolution regional PNG times out.
     // Never substitute a CSS rectangle or sacrifice the rear-view hero silhouette.
     const ready=!!(atlasBitmap&&rearBitmap&&monsterBitmap&&rampartBitmap&&(biomeBitmaps[biome]||fieldBitmap));
@@ -633,6 +646,20 @@
       glow.addColorStop(1,'rgba(240,110,48,0)');
       ctx.fillStyle=glow;ctx.fillRect(0,0,72,72);
     });
+    // Hand-inked root projectile: painted Canvas, never a CSS shape or SVG.
+    createCanvasTexture(scene,'boss-root-spear',56,154,c=>{
+      c.lineJoin='round';c.lineCap='round';
+      c.beginPath();c.moveTo(28,150);c.bezierCurveTo(8,108,15,73,25,37);
+      c.bezierCurveTo(30,18,30,7,28,3);c.bezierCurveTo(39,36,45,85,31,129);
+      c.closePath();c.fillStyle='#635039';c.fill();c.strokeStyle='#c5aa71';c.lineWidth=2;c.stroke();
+      for(const [x,y,endX,endY] of [[23,86,3,62],[34,105,53,78],[26,59,7,39]]){
+        c.beginPath();c.moveTo(x,y);c.quadraticCurveTo(endX+4,endY+14,endX,endY);
+        c.strokeStyle='#967b4e';c.lineWidth=5;c.stroke();
+        c.strokeStyle='#c5ab77';c.lineWidth=1.5;c.stroke();
+      }
+      c.beginPath();c.moveTo(25,54);c.bezierCurveTo(34,71,25,91,34,108);
+      c.strokeStyle='#b4d37e';c.lineWidth=2;c.stroke();
+    });
     // Strip only opaque gray backing connected to atlas cell edges. This
     // leaves enclosed armor/stone details intact, with a feathered outline.
     const isolateEnemyBackdrop=(c,w,h)=>{
@@ -843,6 +870,31 @@
         V.cleanEnemyFrame(c,128,128);
       });
     }
+    // 2×2 original paintings become complete timed action sequences. In other
+    // chapters, the existing midboss painter remains untouched as fallback.
+    const applyFourPoseSheet=(type,sheet)=>{
+      if(!sheet)return;
+      const cw=sheet.naturalWidth/2,ch=sheet.naturalHeight/2;
+      // 224px preserves the illustrated antlers/roots in the 216px cinematic;
+      // compact fallback monsters still keep their existing 128px textures.
+      const paintedFrameSize=224;
+      const poses={idle:[0,0,0,0],run:[0,1,0,1],attack:[0,1,2,2,3,0],
+        hurt:[0,3,3,1,0,0],death:[0,3,3,3,3,3],victory:[0,1,0,1]};
+      for(const [motion,sequence] of Object.entries(poses))for(const [frame,pose] of sequence.entries()){
+        const key='motion-'+type+'-'+motion+'-'+frame;
+        if(scene.textures.exists(key))scene.textures.remove(key);
+        createCanvasTexture(scene,key,paintedFrameSize,paintedFrameSize,c=>{
+          const fit=Math.min((paintedFrameSize-8)/cw,(paintedFrameSize-8)/ch),w=cw*fit,h=ch*fit;
+          const push=motion==='attack'&&frame>=2&&frame<=3?2:0;
+          c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
+          c.drawImage(sheet,(pose%2)*cw,Math.floor(pose/2)*ch,cw,ch,
+            (paintedFrameSize-w)/2,(paintedFrameSize-h)/2-push,w,h);
+          V.cleanEnemyFrame(c,paintedFrameSize,paintedFrameSize);
+        });
+      }
+    };
+    applyFourPoseSheet('boss',chapterBossBitmaps[scene.stage.id]);
+    if(scene.stage.id<4)applyFourPoseSheet('guardian',forestSentinelBitmap);
   }
   class WaveDirector {
     // Adapted wave lifecycle from rupertgermann/tower-defence (MIT); custom fixed-wall rules.
@@ -866,7 +918,7 @@
       this.scene.waveStartHP=this.scene.hp;
       renderHUD();
       const hazard=this.scene.stage.id===6&&this.current%3===0?'포자 군단 급습!':this.scene.stage.id===10&&this.current%4===0?'달빛 아래 대공세!':null;
-      showBanner(this.isMidBoss()?'중간보스 · 숲의 수호자 접근!':this.isEliteWave()?'정예 · 버섯 거한 등장!':hazard||(this.isBoss()?'우두머리가 다가온다!':'제 '+this.current+'차 · '+this.themeLabel));
+      showBanner(this.isMidBoss()?'중간보스 · 숲길 파수꾼 접근!':this.isEliteWave()?'정예 · 버섯 거한 등장!':hazard||(this.isBoss()?(CHAPTER_BOSS_ART[this.scene.stage.id]?.name||'뿌리 거인')+' 등장!':'제 '+this.current+'차 · '+this.themeLabel));
     }
     isBoss(){return this.current===this.scene.stage.waves && this.scene.stage.id%4===3;}
     isMidBoss(){return this.current===Math.max(4,Math.ceil(this.scene.stage.waves*.55));}
@@ -921,6 +973,12 @@
           type=pick(repeat?last:null);
         }
         plan.push(type);
+      }
+      if(id===0){
+        // First playable stage is a tutorial arc, not an RNG difficulty spike:
+        // sprouts → two spaced runners → a thorn scout → midboss → finale.
+        if(this.current===2){plan.fill('sprout');for(const position of [2,5])if(position<plan.length)plan[position]='runner';}
+        if(this.current===3&&!plan.includes('thorn'))plan[Math.floor(plan.length*.7)]='thorn';
       }
       // Keep one stage-signature enemy in the middle of developed waves.
       if(this.current>=3&&normalCount>=6&&!plan.includes(signatures[id])){
@@ -1047,7 +1105,8 @@
       const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
       const hue=e.type==='shroom'?0xe4a55e:e.type==='guardian'?0xd1bd7e:0xb191eb;
       const caption=e.type==='shroom'?'정예 출현 · 버섯 거한':
-        e.type==='guardian'?'중간보스 출현 · 숲의 수호자':'보스 출현 · 전투 경계';
+        e.type==='guardian'?'중간보스 출현 · 숲길 파수꾼':
+          '보스 출현 · '+(CHAPTER_BOSS_ART[this.stage.id]?.name||'뿌리 거인');
       const dusk=this.add.image(210,277,'cinematic-vignette').setDepth(8);
       const aura=this.add.ellipse(210,340,220,38,hue,.24).setDepth(8.5);
       const hero=this.add.image(210,258,'motion-'+e.type+'-attack-0')
@@ -1111,6 +1170,7 @@
         motionBaseScale:spr.scaleX,lastAttackCue:null,
         armor:type==='crystal'?.34:type==='shroom'?.12:this.stage.id===9?(type==='runner'?0:.3):(type==='brute'?.18:0),
         abilityCooldown:type==='guardian'?4100:type==='shroom'?7700:5400,warning:0,hidden:0,untargetable:false,surge:0,
+        burrowActive:false,enraged:false,
         tellRing:null,tellBack:null,tellFill:null,guarding:false,hasDashed:false,hasRallied:false,hasSpores:false,crystalShatterUntil:0};
       enemy.baseArmor=enemy.armor;
       spr.setInteractive({useHandCursor:true}).on('pointerdown',()=>{
@@ -1403,6 +1463,7 @@
         if(this.focusReticle){this.focusReticle.destroy();this.focusReticle=null;}
       }
       this.clearBossWarning(e);
+      if(e.burrowMarker){e.burrowMarker.destroy();e.burrowMarker=null;}
       if(['guardian','shroom','boss'].includes(e.type))this.syncBattleOverlay();
       if(e.nameLabel)e.nameLabel.destroy();
       e.life.destroy();e.lifeBg.destroy();
@@ -1454,10 +1515,11 @@
     startBossWarning(e){
       this.clearBossWarning(e);
       const color=e.type==='shroom'?0xf5a658:e.type==='guardian'?0xffdd83:this.stage.id===11?0xce77ff:this.stage.id===7?0xffc46b:0xff8068;
-      e.tellRing=this.add.ellipse(e.x,e.y+23,e.type==='shroom'?165:e.type==='guardian'?145:112,35,color,.21).setStrokeStyle(3,color,.9).setDepth(5);
+      const warningWidth=e.type==='shroom'?180:e.type==='guardian'?155:this.stage.id===11?210:this.stage.id===7?166:125;
+      e.tellRing=this.add.ellipse(e.x,e.y+23,warningWidth,35,color,.21).setStrokeStyle(3,color,.9).setDepth(5);
       // Ground zone warns of boss attack; no duplicate bar above the head.
       e.tellBack=null;e.tellFill=null;
-      e.tellZone=this.add.ellipse(e.x,(e.y+540)/2,e.type==='shroom'?180:e.type==='guardian'?155:110,Math.max(40,540-e.y),color,.075)
+      e.tellZone=this.add.ellipse(e.x,(e.y+540)/2,warningWidth,Math.max(40,540-e.y),color,.075)
         .setStrokeStyle(2,color,.45).setDepth(3);
     }
     drawFortHUD(){
@@ -1474,18 +1536,23 @@
       $('arena-wrap').classList.toggle('has-boss',!!target);
       if(target){
         const kind=target.type;
-        const title=kind==='boss'?this.stage.id===3?'뿌리 거인':this.stage.id===7?'가면 두더지':'검은 종의 주인':ENEMY_INTEL[kind].name;
+        const title=kind==='boss'?CHAPTER_BOSS_ART[this.stage.id]?.name||'뿌리 거인':ENEMY_INTEL[kind].name;
         $('boss-title').textContent=title;
         $('boss-role').textContent=kind==='boss'?'최종 보스':kind==='guardian'?'중간보스':'정예';
-        $('boss-portrait').className='boss-portrait '+kind;
+        const artClass=kind==='guardian'&&this.stage.chapter===1?' chapter-sentinel':
+          kind==='boss'&&this.stage.id===3?' chapter-root':
+            kind==='boss'&&this.stage.id===7?' chapter-mole':
+              kind==='boss'&&this.stage.id===11?' chapter-bell':'';
+        $('boss-portrait').className='boss-portrait '+kind+artClass;
         const max=Math.max(1,target.maxHP),hp=Math.max(0,target.hp);
         $('boss-bar').style.width=(Math.min(100,hp/max*100))+'%';
         $('boss-meter').setAttribute('aria-valuemax',String(max));
         $('boss-meter').setAttribute('aria-valuenow',String(Math.ceil(hp)));
         $('boss-meter').setAttribute('aria-label',title+' 체력');
         $('boss-hp-text').textContent=Math.ceil(hp)+' / '+Math.ceil(max);
-        $('boss-warning-note').textContent=target.warning>0?'공격 예고! 일제사격으로 저지':
-          target.untargetable?'잠복 중 · 잠시 표적 불가':'몬스터를 터치하면 집중 사격';
+        $('boss-warning-note').textContent=target.warning>0?
+          (this.stage.id===3&&kind==='boss'?'뿌리창 공격 예고 · 일제사격으로 저지':this.stage.id===7&&kind==='boss'?'굴착 예고 · 일제사격으로 저지':this.stage.id===11&&kind==='boss'?'종소리 예고 · 일제사격으로 저지':'공격 예고! 일제사격으로 저지'):
+          target.untargetable?'잠복 중 · 출현 위치를 주시하세요':target.enraged?'격노 상태 · 공격 간격 단축':'몬스터를 터치하면 집중 사격';
       }
       const cue=$('terrain-indicator');
       const active=this.terrainConfig&&this.gameClock<this.terrainCueUntil;
@@ -1580,19 +1647,116 @@
           }});
       }
     }
+    startMoleBurrow(e){
+      // Dig to the opposite lane. Show the exit BEFORE the mole emerges, so
+      // players can track the move and plan their next manual focus.
+      const exitX=e.baseX<210?320:100;
+      e.burrowActive=true;e.hidden=1250;e.untargetable=true;
+      e.spr.setAlpha(.14);e.life.setAlpha(0);e.lifeBg.setAlpha(0);
+      e.baseX=exitX;e.x=exitX;
+      e.burrowMarker=this.add.ellipse(exitX,e.y+23,90,29,0xd6a16c,.26)
+        .setStrokeStyle(3,0xffdba3,.85).setDepth(4);
+      for(let n=0;n<4;n++){
+        const dust=this.add.image(exitX+(n-1.5)*21,e.y+13,'shard-stone')
+          .setDisplaySize(13,16).setAlpha(.8).setDepth(5);
+        this.tweens.add({targets:dust,y:e.y-20-n*5,x:exitX+(n-1.5)*36,
+          alpha:0,angle:n%2?80:-80,duration:480,onComplete:()=>dust.destroy()});
+      }
+      showBanner('가면 두더지 · 굴착 중! 출현 지점을 주시하세요');
+    }
+    finishMoleBurrow(e){
+      e.burrowActive=false;
+      if(e.burrowMarker){e.burrowMarker.destroy();e.burrowMarker=null;}
+      if(this.ended||!this.enemies.includes(e))return;
+      V.trigger(e.spr,'attack',this.gameClock+V.duration('boss','attack'),this.gameClock);
+      const impact=this.add.ellipse(e.x,e.y+24,78,26,0xffd39c,.48)
+        .setStrokeStyle(3,0xf6b66b,.95).setDepth(5);
+      this.tweens.add({targets:impact,scaleX:2.5,scaleY:2.2,alpha:0,
+        duration:560,onComplete:()=>impact.destroy()});
+      const damage=e.enraged?65:38;
+      this.hp=Math.max(0,this.hp-damage);renderHUD();
+      this.cameras.main.shake(115,.002);
+      showBanner('가면 두더지 · 지하 진동! 성벽 -'+damage);
+      if(this.hp<=0)this.finish(false);
+    }
+    ringBlackBell(e){
+      // Three purple sound waves travel from the illustrated bell toward the
+      // wall. The actual damage lands with the visible final wave, not early.
+      const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      const damage=this.synergies.has('fortress')?40:e.enraged?125:90;
+      for(let i=0;i<3;i++){
+        const wave=this.add.ellipse(e.x,e.y+22,90+i*26,24+i*8,0x9f65dc,.16)
+          .setStrokeStyle(3,0xd9aaff,.78).setDepth(6);
+        this.tweens.add({targets:wave,x:210,y:536,scaleX:1.5+i*.3,scaleY:1.3,
+          alpha:0,duration:reduced?180:450+i*100,ease:'Sine.easeIn',onComplete:()=>{
+            wave.destroy();if(i!==2||this.ended)return;
+            this.hp=Math.max(0,this.hp-damage);renderHUD();
+            if(!reduced)this.cameras.main.shake(150,.003);
+            showBanner('검은 종 · 공명 충격! 성벽 -'+damage);
+            if(this.hp<=0)this.finish(false);
+          }});
+      }
+    }
+    sendForestSpear(e){
+      // Chapter 1 sentinel: a single visible spear travels to the rampart
+      // before its one strike lands. The warning can be interrupted beforehand.
+      const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      const spear=this.add.image(e.x,e.y+21,'boss-root-spear')
+        .setDisplaySize(30,96).setAngle(180).setAlpha(.93).setDepth(6);
+      this.tweens.add({targets:spear,x:210,y:536,alpha:.48,
+        duration:reduced?180:430,ease:'Sine.easeIn',onComplete:()=>{
+          spear.destroy();if(this.ended)return;
+          this.hp=Math.max(0,this.hp-45);renderHUD();
+          if(!reduced)this.cameras.main.shake(95,.0016);
+          showBanner('숲길 파수꾼 · 가시창 충격! 성벽 -45');
+          if(this.hp<=0)this.finish(false);
+        }});
+    }
+    rootCrownCharge(e){
+      // Three staggered woody spears follow the giant's painted root slam.
+      // Only the final impact damages the wall, never three unavoidable hits.
+      const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      const damage=this.synergies.has('fortress')?32:e.enraged?75:55;
+      e.surge=1100;
+      for(let i=0;i<3;i++){
+        const spear=this.add.image(e.x+(i-1)*16,e.y+23,'boss-root-spear')
+          .setDisplaySize(32+(i===1?7:0),104).setAlpha(.88).setDepth(6);
+        this.tweens.add({targets:spear,x:210+(i-1)*57,y:528,alpha:.38,
+          duration:reduced?180:440+i*120,ease:'Sine.easeIn',onComplete:()=>{
+            spear.destroy();if(i!==2||this.ended)return;
+            this.hp=Math.max(0,this.hp-damage);renderHUD();
+            if(!reduced)this.cameras.main.shake(145,.0024);
+            showBanner('뿌리 거인 · 뿌리창 폭발! 성벽 -'+damage);
+            if(this.hp<=0)this.finish(false);
+          }});
+      }
+    }
     updateBosses(dt){
       for(const e of this.enemies){
         if(e.type!=='boss'&&e.type!=='guardian'&&e.type!=='shroom')continue;
+        if(e.type==='boss'&&!e.enraged&&e.hp<=e.maxHP*.5){
+          e.enraged=true;e.abilityCooldown=Math.min(e.abilityCooldown,2800);
+          const aura=this.add.ellipse(e.x,e.y+15,118,42,this.stage.id===11?0x9b6bd5:0xd7ab69,.38).setDepth(3);
+          this.tweens.add({targets:aura,alpha:0,scale:1.8,duration:650,onComplete:()=>aura.destroy()});
+          showBanner((CHAPTER_BOSS_ART[this.stage.id]?.name||'뿌리 거인')+' · 격노! 공격 속도가 빨라집니다');
+        }
         if(e.hidden>0){
           e.hidden=Math.max(0,e.hidden-dt);
-          if(e.hidden===0){e.untargetable=false;e.spr.alpha=1;e.life.alpha=1;e.lifeBg.alpha=1;}
+          if(e.burrowMarker)e.burrowMarker.setPosition(e.x,e.y+23)
+            .setAlpha(.28+Math.sin(this.gameClock/110)*.14);
+          if(e.hidden===0){
+            e.untargetable=false;e.spr.alpha=1;e.life.alpha=1;e.lifeBg.alpha=1;
+            if(e.burrowActive)this.finishMoleBurrow(e);
+          }
         }
         if(e.warning>0){
           e.warning-=dt;
           if(e.tellRing){
             e.tellRing.setPosition(e.x,e.y+23).setAlpha(.55+Math.sin(this.gameClock/120)*.25);
             if(e.tellBack)e.tellBack.setPosition(e.x,e.y-56);
-            if(e.tellZone)e.tellZone.setPosition(e.x,(e.y+540)/2).setDisplaySize(e.type==='shroom'?180:e.type==='guardian'?155:110,Math.max(40,540-e.y));
+            if(e.tellZone)e.tellZone.setPosition(e.x,(e.y+540)/2).setDisplaySize(
+              e.type==='shroom'?180:e.type==='guardian'?155:this.stage.id===11?210:this.stage.id===7?166:125,
+              Math.max(40,540-e.y));
             const remaining=Math.max(0,e.warning/1250);
             if(e.tellFill)e.tellFill.setPosition(e.x-47+47*remaining,e.y-56).setDisplaySize(94*remaining,6);
           }
@@ -1601,32 +1765,27 @@
             V.trigger(e.spr,'attack',this.gameClock+V.duration(e.type,'attack'),this.gameClock);
             if(e.type==='shroom'){this.sporeVolley(e);e.abilityCooldown=7800;}
             if(e.type==='guardian'){
-              e.surge=1250;this.hp=Math.max(0,this.hp-45);renderHUD();
-              this.cameras.main.shake(95,.0016);
-              showBanner('숲 수호자 · 진동 충격! 성벽 -45');
-              if(this.hp<=0){this.finish(false);return;}
+              e.surge=1250;
+              if(this.stage.chapter===1)this.sendForestSpear(e);
+              else{
+                this.hp=Math.max(0,this.hp-45);renderHUD();
+                this.cameras.main.shake(95,.0016);
+                showBanner('숲 수호자 · 진동 충격! 성벽 -45');
+                if(this.hp<=0){this.finish(false);return;}
+              }
             }
-            if(e.type==='boss'&&this.stage.id===3){e.surge=1750;showBanner('뿌리 거인 · 돌진!');}
-            if(e.type==='boss'&&this.stage.id===7){
-              e.hidden=1450;e.untargetable=true;e.spr.alpha=.23;e.life.alpha=0;e.lifeBg.alpha=0;
-              e.x=e.x<210?316:104;e.baseX=e.x;e.spr.x=e.x;e.life.x=e.x;e.lifeBg.x=e.x;
-              showBanner('가면 두더지 · 잠복!');
-            }
-            if(e.type==='boss'&&this.stage.id===11){
-              const damage=this.synergies.has('fortress')?40:90;
-              this.hp=Math.max(0,this.hp-damage);renderHUD();
-              this.cameras.main.shake(150,.003);showBanner('검은 종 · 성벽 충격!');
-              if(this.hp<=0){this.finish(false);return;}
-            }
+            if(e.type==='boss'&&this.stage.id===3)this.rootCrownCharge(e);
+            if(e.type==='boss'&&this.stage.id===7)this.startMoleBurrow(e);
+            if(e.type==='boss'&&this.stage.id===11)this.ringBlackBell(e);
           }
         }else if(!e.untargetable&&e.y>105){
           e.abilityCooldown-=dt;
           if(e.abilityCooldown<=0){
             // The warning is the held anticipation, not a premature strike.
             V.trigger(e.spr,'idle',this.gameClock+1250,this.gameClock);
-            e.warning=1250;e.abilityCooldown=6900;
+            e.warning=1250;e.abilityCooldown=e.enraged?4800:6900;
             e.spr.setTint(0xff9b60);this.startBossWarning(e);
-            const title=e.type==='shroom'?'버섯 거한 · 포자탄 경고':e.type==='guardian'?'숲의 수호자 · 충격파 예고':this.stage.id===3?'뿌리 돌진 예고':this.stage.id===7?'잠복 이동 예고':'검은 종 진동 예고';
+            const title=e.type==='shroom'?'버섯 거한 · 포자탄 경고':e.type==='guardian'&&this.stage.chapter===1?'숲길 파수꾼 · 가시창 예고':e.type==='guardian'?'숲길 파수꾼 · 충격파 예고':this.stage.id===3?'뿌리창 세 갈래 예고':this.stage.id===7?'갈퀴 굴착 예고':'검은 종 공명 예고';
             showBanner(title+' · 일제사격으로 저지!');
           }
         }
@@ -2142,7 +2301,7 @@
     const scout=$('wave-scout'),next=battle.wave.current+1;
     const mid=Math.max(4,Math.ceil(battle.stage.waves*.55));
     const warning=battle.wave.isMidBoss()?'중간보스 출현 중':battle.wave.isEliteWave()?'정예 몬스터 출현 중':
-      next===mid?'다음 공세 · 숲의 수호자':
+      next===mid?'다음 공세 · 숲길 파수꾼':
       next===battle.stage.waves&&battle.stage.id%4!==3?'최종 공세 · 버섯 거한':
       next<=battle.stage.waves&&next>=3&&next%3===0?'다음 공세 · 버섯 거한':null;
     scout.hidden=!warning;scout.textContent=warning||'';
@@ -2212,6 +2371,48 @@
   if((location.hostname==='127.0.0.1'||location.hostname==='localhost')&&new URLSearchParams(location.search).has('fgqa')){
     window.__ForestGuardQA={
       finish(win){if(battle&&!battle.ended)battle.finish(!!win);},
+      async openChapterBossForQA(id){
+        if(![0,3,7,11].includes(id))return false;
+        const unlocked=state.unlocked;
+        try{
+          state.unlocked=12;
+          await startStage(id);
+          return true;
+        }finally{state.unlocked=unlocked;}
+      },
+      chapterBossPaintingQA(){
+        if(!battle||battle.ended||![3,7,11].includes(battle.stage.id))return null;
+        const sheet=chapterBossBitmaps[battle.stage.id];
+        const frame=battle.textures.get('motion-boss-attack-0').getSourceImage();
+        return {stage:battle.stage.id,loaded:!!sheet,
+          dimensions:sheet?[sheet.naturalWidth,sheet.naturalHeight]:null,
+          frameSize:[frame.width,frame.height],
+          attackFrames:Array.from({length:6},(_,i)=>battle.textures.exists('motion-boss-attack-'+i)),
+          hurtFrames:Array.from({length:6},(_,i)=>battle.textures.exists('motion-boss-hurt-'+i))};
+      },
+      previewChapterBossForQA(){
+        if(!battle||battle.ended||![3,7,11].includes(battle.stage.id))return null;
+        battle.spawnEnemy('boss');
+        const e=battle.enemies[battle.enemies.length-1];
+        e.baseX=210;e.x=210;e.y=255;e.spd=0;e.spr.setPosition(210,255);
+        battle.syncBattleOverlay();
+        return {portrait:document.getElementById('boss-portrait').className,
+          background:getComputedStyle(document.getElementById('boss-portrait')).backgroundImage,
+          bossTitle:document.getElementById('boss-title').textContent};
+      },
+      chapterOneSentinelQA(){
+        if(!battle||battle.ended||battle.stage.id!==0)return null;
+        const loaded=!!forestSentinelBitmap;
+        const frames=Array.from({length:6},(_,i)=>battle.textures.exists('motion-guardian-attack-'+i));
+        const frame=battle.textures.get('motion-guardian-attack-0').getSourceImage();
+        battle.spawnEnemy('guardian');
+        const e=battle.enemies[battle.enemies.length-1];
+        e.x=210;e.y=245;e.spd=0;e.spr.setPosition(210,245);
+        battle.syncBattleOverlay();
+        return {loaded,frames,frameSize:[frame.width,frame.height],portrait:document.getElementById('boss-portrait').className,
+          background:getComputedStyle(document.getElementById('boss-portrait')).backgroundImage,
+          title:document.getElementById('boss-title').textContent};
+      },
       showEliteIntro(type='shroom'){
         if(!battle||battle.ended)return false;
         battle.lastEliteCinematicWave=-1;
@@ -2240,9 +2441,10 @@
           items:Object.fromEntries(kinds.map(type=>{
             const key='motion-'+type+'-hurt-2',texture=battle.textures.get(key);
             const canvas=texture.getSourceImage(),ctx=canvas.getContext('2d',{willReadFrequently:true});
-            const samples=[[0,0],[127,0],[0,127],[127,127]].map(([x,y])=>
+            const w=canvas.width,h=canvas.height;
+            const samples=[[0,0],[w-1,0],[0,h-1],[w-1,h-1]].map(([x,y])=>
               ctx.getImageData(x,y,1,1).data[3]);
-            const image=ctx.getImageData(0,0,128,128).data;
+            const image=ctx.getImageData(0,0,w,h).data;
             let opaque=0;
             for(let i=3;i<image.length;i+=4)if(image[i]>128)opaque++;
             return [type,{transparentCorners:samples.every(alpha=>alpha===0),opaquePixels:opaque}];

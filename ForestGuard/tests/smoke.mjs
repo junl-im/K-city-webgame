@@ -12,9 +12,36 @@ const result48=read('result-continuity-v48.css');
 const choice49=read('choice-polish-v49.css');
 const type491=read('legibility-v491.css');
 const choice50=read('forest-choice-v50.css');
+const chapter51=read('chapter-boss-v51.css');
+assert.match(html,/chapter-boss-v51\.css\?v=20261106v52/);
+assert.match(js,/CHAPTER_BOSS_ART=Object\.freeze/);
+assert.match(js,/startMoleBurrow\(e\)/);
+assert.match(js,/finishMoleBurrow\(e\)/);
+assert.match(js,/ringBlackBell\(e\)/);
+for(const name of ['chapter2-masked-mole-v51.webp','chapter3-black-bell-v51.webp']){
+  const bytes=readFileSync(new URL('art/'+name,root));
+  assert.ok(bytes.length>100_000&&bytes.length<1_000_000,name+' must be a compact original boss sheet');
+  assert.equal(bytes.toString('ascii',0,4),'RIFF');
+  assert.equal(bytes.toString('ascii',8,12),'WEBP');
+  assert.equal(bytes.readUInt32LE(4),bytes.length-8);
+  assert.ok(chapter51.includes(name),'Boss portrait should use the actual chapter painting');
+}
+for(const name of ['chapter1-root-giant-v52.webp','chapter1-forest-sentinel-v52.webp']){
+  const bytes=readFileSync(new URL('art/'+name,root));
+  assert.ok(bytes.length>100_000&&bytes.length<900_000,name+' must contain its detailed original 2×2 painting');
+  assert.equal(bytes.toString('ascii',0,4),'RIFF');
+  assert.equal(bytes.toString('ascii',8,12),'WEBP');
+  assert.equal(bytes.readUInt32LE(4),bytes.length-8);
+  assert.ok(chapter51.includes(name),'Chapter 1 portrait must use the original painted artwork');
+}
+assert.match(js,/applyFourPoseSheet\('guardian',forestSentinelBitmap\)/);
+assert.match(js,/const paintedFrameSize=224/);
+assert.match(js,/rootCrownCharge\(e\)/);
+assert.match(js,/sendForestSpear\(e\)/);
+assert.doesNotMatch(chapter51,/<svg|data:image\/svg\+xml|\.svg(?:["'(])/i);
 assert.match(html,/forest-choice-v50\.css\?v=20261105v507/);
 assert.match(html,/result-continuity-v48\.css\?v=20261105v506/);
-assert.match(html,/game\.js\?v=20261105v508/);
+assert.match(html,/game\.js\?v=20261106v52/);
 assert.match(html,/visuals\.js\?v=20261105v505/);
 assert.match(visuals,/const ATTACK_PERSONALITY=\{/);
 assert.match(js,/motionBaseScale:spr\.scaleX/);
@@ -100,6 +127,11 @@ assert.match(pagesWorkflow,/test -s MagicGarden\/dist\/ForestGuard\/legibility-v
   'GitHub Pages must verify the lettering stylesheet exists in the published artifact');
 assert.match(pagesWorkflow,/cp ForestGuard\/index\.html[^\n]*ForestGuard\/forest-choice-v50\.css[^\n]*MagicGarden\/dist\/ForestGuard\//);
 assert.match(pagesWorkflow,/cp ForestGuard\/art\/\{forest-choice-card,recruit-bear-cutout,recruit-rabbit-cutout,recruit-cat-cutout\}-v50\.webp/);
+assert.match(pagesWorkflow,/cp ForestGuard\/chapter-boss-v51\.css/);
+assert.match(pagesWorkflow,/cp ForestGuard\/art\/chapter\{2-masked-mole,3-black-bell\}-v51\.webp/);
+assert.match(pagesWorkflow,/cp ForestGuard\/art\/chapter1-\{root-giant,forest-sentinel\}-v52\.webp/);
+assert.match(pagesWorkflow,/test -s MagicGarden\/dist\/ForestGuard\/art\/chapter1-root-giant-v52\.webp/);
+assert.match(pagesWorkflow,/test -s MagicGarden\/dist\/ForestGuard\/art\/chapter1-forest-sentinel-v52\.webp/);
 assert.match(pagesWorkflow,/MagicGarden\/dist\/ForestGuard\/art\/\$asset-v50\.webp/);
 assert.match(html,/choice-polish-v49\.css\?v=20261104v49/);
 assert.match(choice49,/recruit-badge-line/);
@@ -372,7 +404,7 @@ assert.match(js,/hasDashed/);
 assert.match(js,/hasRallied/);
 assert.match(js,/guarding\?Math\.min\(\.55/);
 assert.match(css,/\.hero-slot\.empty\{border:0!important/);
-assert.match(html,/game\.js\?v=20261105v508/);
+assert.match(html,/game\.js\?v=20261106v52/);
 assert.match(html,/visuals\.js\?v=20261105v505/);
 assert.match(visuals,/frameTotal\(id,state\)/);
 assert.match(visuals,/drawHeroWeapon\(c,id,frame\)/);
@@ -504,7 +536,7 @@ for(const system of ['SYNERGY_RECIPES','completeEvolution','evolutionPath','acti
 assert.match(visuals,/roots:4,pierce:5,ward:13,hunter:14/);
 assert.doesNotMatch(html+css+js+visuals,/<svg\b|data:image\/svg\+xml|\.svg(?:["'(])/i);
 assert.doesNotMatch(js,/eval\s*\(/);
-for (const file of ['balance-matrix','terrain-matrix','boss-volley','growth-auto','range-cinematic','five-unit-roster','hero-motion']) {
+for (const file of ['balance-matrix','terrain-matrix','boss-volley','chapter-boss-v51','chapter1-v52','growth-auto','range-cinematic','five-unit-roster','hero-motion']) {
   console.log(execFileSync(process.execPath,[fileURLToPath(new URL(`tests/${file}.mjs`,root))],{encoding:'utf8'}).trim());
 }
 assert.match(js,/function makeResultPresentation\(win,stage,hp,maxHP,coins,party,streak\)/);

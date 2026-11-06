@@ -49,13 +49,16 @@ for(const variant of variants){
 }
 assert.equal(warningMessages.length,6);
 const hudSnippet=snippet('    syncBattleOverlay(){','    terrainVisual(');
+const chapterBossMatch=src.match(/const CHAPTER_BOSS_ART=Object\.freeze\((\{[\s\S]*?\})\);/);
+assert.ok(chapterBossMatch,'Stage boss metadata required by the live HUD');
 const dom=new Map(), box=key=>{
   if(!dom.has(key))dom.set(key,{hidden:true,className:'',textContent:'',
     style:{},attrs:{},setAttribute(key,value){this.attrs[key]=value},
     classList:{states:{},toggle(key,on){this.states[key]=on}}});
   return dom.get(key);
 };
-const BossHud=new Function('$','return class HudTest {'+hudSnippet+'}')(box);
+const BossHud=new Function('$','ENEMY_INTEL','const CHAPTER_BOSS_ART='+chapterBossMatch[1]+';return class HudTest {'+hudSnippet+'}')(
+  box,{guardian:{name:'숲길 파수꾼'},shroom:{name:'버섯 거한'}});
 const view=Object.create(BossHud.prototype);
 Object.assign(view,{stage:{id:3},enemies:[],terrainConfig:null,gameClock:0,terrainCueUntil:0});
 view.syncBattleOverlay();assert.equal(box('boss-hud').hidden,true);
