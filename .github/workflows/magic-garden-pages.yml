@@ -145,6 +145,9 @@ jobs:
           test -s ForestGuard/choice-polish-v49.css
           test -s ForestGuard/legibility-v491.css
           test -s ForestGuard/forest-choice-v50.css
+          test -s ForestGuard/chapter-boss-v51.css
+          test -s ForestGuard/art/chapter2-masked-mole-v51.webp
+          test -s ForestGuard/art/chapter3-black-bell-v51.webp
           for asset in forest-choice-card recruit-bear-cutout recruit-rabbit-cutout recruit-cat-cutout; do test -s "ForestGuard/art/$asset-v50.webp"; done
           test -s ForestGuard/art/hero-station-v14.webp
           test -s ForestGuard/art/fort-hud-v14.webp
@@ -159,6 +162,7 @@ jobs:
           for asset in gold emerald stone sapphire parchment crimson; do test -s "ForestGuard/art/btn-$asset-v33.webp"; done
           mkdir -p MagicGarden/dist/ForestGuard/art
           cp ForestGuard/index.html ForestGuard/element-spells-v38.css ForestGuard/style.css ForestGuard/screen-rebuild-v26.css ForestGuard/combat-feedback-v27.css ForestGuard/illustrated-v31.css ForestGuard/button-system-v33.css ForestGuard/illustration-continuity-v34.css ForestGuard/scene-v35.css ForestGuard/chapter-ascent-v36.css ForestGuard/modal-simplify-v45.css ForestGuard/modal-composition-v47.css ForestGuard/result-continuity-v48.css ForestGuard/choice-polish-v49.css ForestGuard/legibility-v491.css ForestGuard/forest-choice-v50.css ForestGuard/scene-v35.js ForestGuard/visuals.js ForestGuard/game.js MagicGarden/dist/ForestGuard/
+          cp ForestGuard/chapter-boss-v51.css MagicGarden/dist/ForestGuard/
           test -s MagicGarden/dist/ForestGuard/screen-rebuild-v26.css
           test -s MagicGarden/dist/ForestGuard/combat-feedback-v27.css
           test -s MagicGarden/dist/ForestGuard/illustrated-v31.css
@@ -180,6 +184,10 @@ jobs:
           cp ForestGuard/art/rani-{bear,rabbit,cat,megafox}-attack-v44.webp MagicGarden/dist/ForestGuard/art/
           cp ForestGuard/art/forest-monsters-hurt-clean-v49.webp MagicGarden/dist/ForestGuard/art/
           cp ForestGuard/art/{forest-choice-card,recruit-bear-cutout,recruit-rabbit-cutout,recruit-cat-cutout}-v50.webp MagicGarden/dist/ForestGuard/art/
+          cp ForestGuard/art/chapter{2-masked-mole,3-black-bell}-v51.webp MagicGarden/dist/ForestGuard/art/
+          test -s MagicGarden/dist/ForestGuard/chapter-boss-v51.css
+          test -s MagicGarden/dist/ForestGuard/art/chapter2-masked-mole-v51.webp
+          test -s MagicGarden/dist/ForestGuard/art/chapter3-black-bell-v51.webp
           for asset in forest-choice-card recruit-bear-cutout recruit-rabbit-cutout recruit-cat-cutout; do test -s "MagicGarden/dist/ForestGuard/art/$asset-v50.webp"; done
           test -s MagicGarden/dist/ForestGuard/element-spells-v38.css
           test -s MagicGarden/dist/ForestGuard/art/rani-element-spells-v38.png
