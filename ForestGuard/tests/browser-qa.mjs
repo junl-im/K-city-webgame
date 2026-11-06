@@ -5,7 +5,7 @@ import {chromium} from 'playwright';
 const origin='http://127.0.0.1:8765/ForestGuard/';
 const sizes=[
   {width:320,height:568},{width:360,height:740},{width:390,height:844},
-  {width:430,height:932},{width:1365,height:768}
+  {width:430,height:932},{width:488,height:734},{width:1365,height:768}
 ];
 mkdirSync(new URL('../test-output/',import.meta.url),{recursive:true});
 // CI software renderer: prevent headless SwiftShader framebuffer attachment errors.
@@ -107,6 +107,35 @@ try{
     assert.ok(homeFlow.footerBottom<=size.height+2&&
       homeFlow.mask==='none'&&homeFlow.artSrc.includes('rani-title-v31.webp'),
       'Transparent hand-painted title and footer must fit without clipping');
+    const homeLettering=await page.evaluate(()=>{
+      const start=document.querySelector('#start-btn');
+      const label=document.createRange();label.selectNodeContents(start.firstChild);
+      const button=start.getBoundingClientRect(),ink=label.getBoundingClientRect();
+      const board=document.querySelector('.home-stage-spot').getBoundingClientRect();
+      const copy=document.querySelector('.home-stage-copy').getBoundingClientRect();
+      const action=document.querySelector('#stage-list-btn').getBoundingClientRect();
+      const title=document.querySelector('.home-stage-copy strong').getBoundingClientRect();
+      const story=document.querySelector('.home-stage-copy span').getBoundingClientRect();
+      return {startCenter:(button.left+button.right)/2,labelCenter:(ink.left+ink.right)/2,
+        board:{left:board.left,right:board.right,top:board.top,bottom:board.bottom},
+        copy:{left:copy.left,right:copy.right,top:copy.top,bottom:copy.bottom},
+        action:{left:action.left,right:action.right,top:action.top,bottom:action.bottom},
+        titleRight:title.right,storyRight:story.right,
+        font:getComputedStyle(start).fontFamily};
+    });
+    assert.ok(Math.abs(homeLettering.startCenter-homeLettering.labelCenter)<=3.5,
+      'Start lettering must be centered independently of its painted play icon: '+JSON.stringify(homeLettering));
+    assert.ok(homeLettering.copy.left>=homeLettering.board.left+9&&
+      homeLettering.copy.right+4<=homeLettering.action.left&&
+      homeLettering.action.right<=homeLettering.board.right-8&&
+      homeLettering.copy.top>=homeLettering.board.top+5&&
+      homeLettering.copy.bottom<=homeLettering.board.bottom-5&&
+      homeLettering.action.top>=homeLettering.board.top+5&&
+      homeLettering.action.bottom<=homeLettering.board.bottom-5,
+      'Quest title, description and stage button must stay within separate wooden sign areas: '+JSON.stringify(homeLettering));
+    assert.ok(homeLettering.titleRight<=homeLettering.copy.right+.5&&
+      homeLettering.storyRight<=homeLettering.copy.right+.5,
+      'Quest lettering must never push into the action illustration');
     const missionType=await page.evaluate(()=>{
       const copy=document.getElementById('home-stage-story');
       const board=document.querySelector('.home-stage-spot');

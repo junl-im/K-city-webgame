@@ -166,6 +166,8 @@ jobs:
           mkdir -p MagicGarden/dist/ForestGuard/art
           cp ForestGuard/index.html ForestGuard/element-spells-v38.css ForestGuard/style.css ForestGuard/screen-rebuild-v26.css ForestGuard/combat-feedback-v27.css ForestGuard/illustrated-v31.css ForestGuard/button-system-v33.css ForestGuard/illustration-continuity-v34.css ForestGuard/scene-v35.css ForestGuard/chapter-ascent-v36.css ForestGuard/modal-simplify-v45.css ForestGuard/modal-composition-v47.css ForestGuard/result-continuity-v48.css ForestGuard/choice-polish-v49.css ForestGuard/legibility-v491.css ForestGuard/forest-choice-v50.css ForestGuard/scene-v35.js ForestGuard/visuals.js ForestGuard/game.js MagicGarden/dist/ForestGuard/
           cp ForestGuard/chapter-boss-v51.css MagicGarden/dist/ForestGuard/
+          cp ForestGuard/home-lettering-v54.css MagicGarden/dist/ForestGuard/
+          test -s MagicGarden/dist/ForestGuard/home-lettering-v54.css
           test -s MagicGarden/dist/ForestGuard/screen-rebuild-v26.css
           test -s MagicGarden/dist/ForestGuard/combat-feedback-v27.css
           test -s MagicGarden/dist/ForestGuard/illustrated-v31.css
