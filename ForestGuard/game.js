@@ -2441,9 +2441,10 @@
           items:Object.fromEntries(kinds.map(type=>{
             const key='motion-'+type+'-hurt-2',texture=battle.textures.get(key);
             const canvas=texture.getSourceImage(),ctx=canvas.getContext('2d',{willReadFrequently:true});
-            const samples=[[0,0],[127,0],[0,127],[127,127]].map(([x,y])=>
+            const w=canvas.width,h=canvas.height;
+            const samples=[[0,0],[w-1,0],[0,h-1],[w-1,h-1]].map(([x,y])=>
               ctx.getImageData(x,y,1,1).data[3]);
-            const image=ctx.getImageData(0,0,128,128).data;
+            const image=ctx.getImageData(0,0,w,h).data;
             let opaque=0;
             for(let i=3;i<image.length;i+=4)if(image[i]>128)opaque++;
             return [type,{transparentCorners:samples.every(alpha=>alpha===0),opaquePixels:opaque}];
