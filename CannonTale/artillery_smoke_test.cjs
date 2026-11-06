@@ -54,6 +54,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v50HudHitForTest=(owner,center=true,fragments=1)=>{newGame("duel",0);const target=owner==="player"?"ai":"player",x=target==="ai"?1018:190;for(let i=0;i<fragments;i++)applyExplosion({x,y:terrainY(x)-29,weapon:fragments>1?"split":"normal",owner,directTarget:target,directCenter:center?5:24,timingAccuracy:owner==="player"?(center?1:.5):undefined,hero:duelHero(owner)});game.camera=target==="ai"?800:0;game.scale=1;drawDuelHealthHud(x,target);return{owner,target,hp:game[target+"Hp"],damage:game.hudDamage[target]?{...game.hudDamage[target]}:null,pulse:game.hudHitPulse[target],hold:game.hudHitDelay[target]};}; window.__v50HudImpactStateForTest=(owner)=>({damage:game.hudDamage[owner],painted:game.hudHealth[owner]}); window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v51ImpactForTest=(owner,offset=0,vx=0)=>{newGame("duel",0);const target=owner==="player"?"ai":"player",x=target==="ai"?1018:190;applyExplosion({x:x-offset,y:terrainY(x)-29,vx,weapon:"normal",owner,directTarget:target,directCenter:24,timingAccuracy:.5,hero:duelHero(owner)});return{target,motion:{...game.duelHitMotion[target]},bursts:game.duelHitBursts.map(b=>({...b})),hp:game[target+"Hp"]};}; window.__v51BurstsForTest=()=>game.duelHitBursts.length; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v52WeaponForTest=(weapon,owner="player")=>{newGame("duel",0);const target=owner==="player"?"ai":"player",x=target==="ai"?1018:190;applyExplosion({x,y:terrainY(x)-29,vx:owner==="player"?280:-280,weapon,owner,directTarget:target,directCenter:24,timingAccuracy:.5,hero:duelHero(owner)});drawWeaponAftershocks();return{weapon,target,echo:{...game.weaponAftershocks.at(-1)},recoil:{...game.duelHitMotion[target]},hp:game[target+"Hp"]};}; window.__v52EchoCountForTest=()=>game.weaponAftershocks.length; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -1072,6 +1074,20 @@ const severe=window.__v51ImpactForTest('player',0,310);
 assert(severe.motion.strength>=14&&severe.motion.total>=.58,'Directionally correct on-hit compression must last long enough to be visible');
 frames(56);
 assert.equal(window.__v51BurstsForTest(),0,'Contact arcs and dust must automatically disappear after the target settles');
+for(const owner of ['player','ai']){
+ const normal=window.__v52WeaponForTest('normal',owner);
+ const bomb=window.__v52WeaponForTest('bomb',owner);
+ const split=window.__v52WeaponForTest('split',owner);
+ assert.equal(normal.echo.weapon,'normal','Normal ammunition must keep the brief, sharp strike accent');
+ assert.equal(bomb.echo.weapon,'bomb','Explosive ammunition must keep its unique smoke and pressure-ring accent');
+ assert.equal(split.echo.weapon,'split','Split ammunition must keep its three-part violet echo');
+ assert(bomb.echo.total>split.echo.total&&split.echo.total>normal.echo.total,`Ammo-specific impact lifetimes must be distinct for ${owner}`);
+ assert(bomb.recoil.strength>normal.recoil.strength&&normal.recoil.strength>split.recoil.strength,`Bomb knockback must feel heavier than regular or split shells for ${owner}`);
+ assert(bomb.recoil.total>normal.recoil.total&&normal.recoil.total>split.recoil.total,`Character impact poses must reflect different ammo weights for ${owner}`);
+ assert([normal,bomb,split].every(s=>s.hp>0),'Ammo differentiation must preserve the five-shot duel durability');
+ frames(72);
+ assert.equal(window.__v52EchoCountForTest(),0,'Projectile-specific sparks, smoke and split echoes must completely expire');
+}
 const fullRange=window.__v49ReachSweepForTest();
 assert.equal(fullRange.length,18,'Range coverage must test both combatants and all nine horizontal/vertical wind combinations');
 for(const run of fullRange){
