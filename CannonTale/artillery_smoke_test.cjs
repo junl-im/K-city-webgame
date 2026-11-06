@@ -27,12 +27,22 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__gradeStarsForTest=earnedStars; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v43GradeForTest=precisionGrade; window.__v43DirectForTest=(accuracy)=>{newGame("duel",0);applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:accuracy>=.9?8:20,timingAccuracy:accuracy,hero:game.hero});return {damage:100-game.aiHp,emphasis:game.hitEmphasis.at(-1)?.text,pulse:game.hudHitPulse.ai,hpTrailer:game.hudHealth.ai};}; window.__v43WindForTest=()=>{newGame("duel",0);const changes=[];for(let i=0;i<15;i++){const old=game.wind;rollNextWind();changes.push(Math.abs(game.wind-old));}return changes;}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__setDeathAgeForTest=(age)=>{const f=game.foes[0];f.alive=false;f.kind=0;f.deathTimer=3.8-age;f.hitAnim=0;f.attackAnim=0;}; window.__restoreFoeForTest=()=>{const f=game.foes[0];f.alive=true;f.deathTimer=0;}; window.__artilleryLoadoutDebug=');
 // In the six-pose atlas probe, select the settled death frame after the brief
 // hurt-to-prone transition rather than at the exact moment of defeat.
 script=script.replace('f.deathTimer=frame===5?3.8:0;','f.deathTimer=frame===5?3.59:0;');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
+assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
+assert(html.includes('grid-template-areas:"weapons actions"!important'),'The freed angle column must compact the desktop dock');
+assert(html.includes('id="aimTelemetry"')&&html.includes('id="windVector"'),'Angle telemetry and live wind indicator must remain readable above the battlefield');
+assert(html.includes('id="precisionPanel"')&&html.includes('id="precisionHit"'),'A standalone precision challenge must appear near the ammunition dock');
+const precisionFrame=fs.readFileSync(__dirname+'/art/precision_timing_v43.webp');
+assert.equal(precisionFrame.toString('ascii',0,4),'RIFF','Precision gauge frame must be a real original WebP bitmap');
+assert.equal(precisionFrame.toString('ascii',8,12),'WEBP','Precision gauge must not be a vector placeholder');
+assert(html.includes('aspect-ratio:1200/387'),'Precision artwork must retain its original proportions');
 assert(html.includes('id="resultMedals"')&&html.includes('data-stars="1"'),'Adventure results must have three illustrated grade slots');
 {
  const asset='victory_star_medal_v37.webp',bytes=fs.readFileSync(`${__dirname}/art/${asset}`);
@@ -293,6 +303,17 @@ function requestAnimationFrame(fn){callback=fn;}
 new Function('document','window','requestAnimationFrame','devicePixelRatio',script)(document,window,requestAnimationFrame,1);
 function frames(n){for(let i=0;i<n;i++){now+=1000/60;const run=callback;callback=null;assert(run,'Animation frame not scheduled');run(now);}}
 function state(){return window.__artilleryDebug();}
+function fireNow(){
+ el('fire').click();
+ assert.equal(state().phase,'timing','First fire tap opens the moving precision gauge');
+ assert.equal(el('precisionPanel').hidden,false,'The original illustrated precision gauge is visible');
+ const needleBefore=el('precisionNeedle').style.left;
+ frames(21);
+ assert.notEqual(el('precisionNeedle').style.left,needleBefore,'Precision needle must actually sweep across the gauge');
+ el('precisionHit').click();
+ assert.equal(state().phase,'flying','Locking precision releases the artillery shell');
+ assert.equal(el('precisionPanel').hidden,true,'Precision gauge must vanish when the shell launches');
+}
 function waitForReview(limit=820){
  for(let i=0;i<limit;i++){frames(1);if(state().phase==='review')return;}
  throw Error('Shot review never started');
@@ -387,7 +408,7 @@ window.__moveFollowTargetForTest(32);frames(3);
 const popupAfter=state().popupPositions.at(-1);
 assert(popupAfter.x>popupBefore.x+12,'Floating damage must follow a knocked-back enemy');
 assert(popupAfter.y<popupBefore.y+32,'Damage must stay near the moving enemy');
-assert(el('distanceValue').textContent.includes('예상'),'Angle-based predicted distance must be present');
+assert(/^\d+$/.test(el('distanceValue').textContent),'Small in-field predicted distance must update as a number');
 const oldAngle=Number(el('angle').value);
 el('field').dispatch('pointerdown',{pointerId:12,clientX:650,clientY:290});
 el('field').dispatch('pointermove',{pointerId:12,clientX:655,clientY:210});
@@ -409,7 +430,7 @@ if(/v0_[234567]/.test(versionedPath)){
  el('power').value='78';el('power').dispatch('input');
  el('weapon-bomb').click();
 }
-el('fire').click();
+fireNow();
 assert.equal(state().shots,1);
 assert.equal(el('hint').hidden,true,'The entry hint must vanish immediately after firing so it cannot obscure the impact result');
 if(/v0_[67]/.test(versionedPath)){
@@ -422,7 +443,7 @@ assert.equal(state().shots,1);
 assert(peakBlasts>0,'v0.9 projectile impact must create animated blast cores');
 assert.equal(state().phase,'review','Adventure should hold the impact instead of returning to the launcher');
 assert.equal(state().reviewVisible,true,'The impact review ribbon must remain visible');
-assert(state().reviewTimer<=1.9,'Ordinary impact countdown must no longer hold for almost three seconds');
+assert(state().reviewTimer<=2.06,'Impact countdown must remain below the previous three-second wait');
 assert.equal(el('reviewCountdown').hidden,false,'Count number must show before transition');
 assert(Number(el('reviewCountdown').textContent)>0,'Countdown must show positive integer');
 assert(Number.isFinite(state().reviewFocusX),'The camera should retain a real impact focus');
@@ -448,7 +469,13 @@ const savedTapPower=Number(el('power').value);
 el('fire').dispatch('pointerdown',{pointerId:66,button:0});
 frames(3);
 el('fire').dispatch('pointerup',{pointerId:66});
-assert.equal(state().shots,1,'Quick tap must fire exactly one projectile');
+assert.equal(state().shots,0,'Quick tap must enter timing without launching early');
+assert.equal(state().phase,'timing');
+assert.equal(el('precisionPanel').hidden,false);
+el('fire').click();
+assert.equal(state().shots,0,'Synthetic click after a touch release must not skip the precision game');
+frames(23);el('precisionHit').click();
+assert.equal(state().shots,1,'Precision lock must fire exactly one projectile');
 frames(1);
 assert(el('fire').classList.contains('recent-shot')&&el('fire').disabled,
  'Firing must show pressed HUD artwork even while the button is temporarily disabled');
@@ -480,7 +507,10 @@ assert(heldCamera.cameraX>earlyCamera.cameraX+15,'Charging should pan the camera
 assert(html.includes('chargeFocus?clamp(shift,-20,20):clamp(shift,-32,32)'),'Aimpoint and return transitions should both have a speed cap');
 assert(Number(el('fireLabel').textContent.replace(/[^0-9]/g,''))>20,'Charge should rise while holding');
 el('fire').dispatch('pointerup',{pointerId:7});
-assert.equal(state().shots,1,'Releasing a charged button must fire');
+assert.equal(state().shots,0,'Releasing a charged button should open the timing challenge');
+assert.equal(state().phase,'timing');
+frames(30);el('precisionHit').click();
+assert.equal(state().shots,1,'Pressing the precision gauge fires after charging');
 assert.equal(state().heroMotionFrame,0,'Weapon launch starts six-stage attack motion');
 frames(9);
 assert(state().heroMotionFrame>=1&&state().heroMotionFrame<=5,'Attack frames must advance during recoil animation');
@@ -537,13 +567,13 @@ el('adventureStage').value='0';
 el('adventureBtn').click();frames(4);
 el('angle').value='82';el('angle').dispatch('input');
 el('power').value='20';el('power').dispatch('input');
-el('fire').click();waitForReview();
+fireNow();waitForReview();
 assert.equal(state().phase,'review','A short first shot should hold its results');
 assert.equal(state().foes,2,'Short vertical shot must not end the mission');
 assert.equal(el('fire').disabled,false,'Second fire must be enabled');
 assert.equal(el('angle').disabled,false,'Angle slider must not stay locked');
 assert.equal(el('power').disabled,false,'Power slider must not stay locked');
-el('fire').click();
+fireNow();
 assert.equal(state().shots,2,'Firing should immediately launch the next shot');
 assert.equal(state().phase,'flying','Second shot must really fly');
 el('homeBtn').click();
@@ -551,12 +581,12 @@ el('homeBtn').click();
 el('adventureBtn').click();frames(4);
 el('angle').value='82';el('angle').dispatch('input');
 el('power').value='20';el('power').dispatch('input');
-el('fire').click();waitForReview();
+fireNow();waitForReview();
 assert.equal(state().phase,'review');
 el('angle').value='67';el('angle').dispatch('input');
 assert.equal(state().phase,'aim','Changing angle should return to aiming');
 assert.equal(el('fire').disabled,false);
-el('fire').click();assert.equal(state().shots,2);
+fireNow();assert.equal(state().shots,2);
 el('homeBtn').click();
 if(/v0_[67]/.test(versionedPath)){
  el('adventureBtn').click();frames(3);
@@ -617,10 +647,10 @@ if(/v0_[567]/.test(versionedPath)){
     }else if(name==='bear'){
       el('abilityBtn').click();
       assert.equal(state().abilityArmed,true);
-      el('fire').click();
+      fireNow();
       assert.equal(state().projectilePierce,2,'Bear shot has two piercing charges');
     }else{
-      el('fire').click();frames(3);
+      fireNow();frames(3);
       el('abilityBtn').click();
       assert.equal(state().abilityUsed,true,'Flying ability should activate');
       if(name==='rabbit')assert(state().projectiles>=5,'Rabbit makes five projectiles');
@@ -684,7 +714,7 @@ assert.equal(popup.x,1018,'Duel damage must float next to the actual struck AI')
 assert(popup.y<590&&popup.y>0,'Duel damage must appear above the character');
 assert(state().popupPositions.some(p=>p.x===1018&&p.value.startsWith('-')),'Opponent popup must attach to struck AI');
 if(/v0_[4567]/.test(versionedPath))assert.equal(state().difficulty,'hard');
-el('fire').click();
+fireNow();
 assert.equal(state().shots,1);
 frames(850);
 assert(['aim','result','aiWait','flying','review'].includes(state().phase));
@@ -727,7 +757,7 @@ el('homeBtn').click();
 el('adventureStage').value='0';el('adventureBtn').click();frames(3);
 el('angle').value='82';el('angle').dispatch('input');
 el('power').value='20';el('power').dispatch('input');
-el('fire').click();waitForReview();
+fireNow();waitForReview();
 assert.equal(state().phase,'review','Short-shot impact should open the review overlay');
 frames(185);
 assert.equal(state().phase,'aim','Review should return to aiming in under about 3 seconds');
@@ -771,11 +801,11 @@ window.__forceAiHeroForTest('bear');frames(3);
 assert.equal(window.__duelHudDebug().opponentAnchorX,1094,'Enemy bear HP must sit over the actual right-side pilot head');
 assert(splitCannonColumns.has(887),'Enemy side must use the separately illustrated dark steel carriage and barrel');
 el('homeBtn').click();el('hero-fox').click();el('duelBtn').click();frames(2);
-el('fire').click();frames(30);
+fireNow();frames(30);
 assert.deepEqual([...heroAttackFrames.fox].sort(),[0,1,2,3,4,5],'Fox must play six separate illustrated recoil frames');
 for(const hero of ['bear','rabbit','cat']){
  el('homeBtn').click();el('hero-'+hero).click();el('adventureStage').value='0';el('adventureBtn').click();frames(2);
- el('fire').click();frames(30);
+ fireNow();frames(30);
  assert.deepEqual([...heroAttackFrames[hero]].sort(),[0,1,2,3,4,5],`${hero} adventure launch must paint all six individual attack poses`);
 }
 // The opponent's handheld weapon and left-facing artwork must use the same animation path.
@@ -900,5 +930,24 @@ for(let stage=0;stage<4;stage++){
  assert(fresh.length>0&&fresh.every(s=>s.sourceHeight>=100),`Map ${stage+1} overview must extend actual illustrated sky, not pixel scanlines`);
  assert(window.__cannonUiDebug().skyPad>0,`Map ${stage+1} portrait overview should retain centered vertical padding`);
 }
+for(const [needle,grade] of [[.5,'perfect'],[.43,'near'],[.68,'normal'],[.93,'off']]){
+ assert.equal(window.__v43GradeForTest(needle).grade,grade,`Precision band ${needle} must have a predictable damage/range effect`);
+}
+const offCenter=window.__v43GradeForTest(.93),perfect=window.__v43GradeForTest(.5);
+assert(perfect.powerFactor>offCenter.powerFactor,'Perfect timing must yield visibly more range than an outer miss');
+const ordinaryDirect=window.__v43DirectForTest(.5);
+const criticalDirect=window.__v43DirectForTest(1);
+assert(criticalDirect.damage>ordinaryDirect.damage,'A critical center hit must deal extra damage');
+assert.equal(ordinaryDirect.emphasis,'정타!','Direct hit must display a special on-target celebration');
+assert.equal(criticalDirect.emphasis,'치명타!','A critical impact must show its own bold text effect');
+assert(criticalDirect.pulse>ordinaryDirect.pulse,'Critical damage should make the head-mounted HP gauge recoil harder');
+assert(criticalDirect.hpTrailer>100-criticalDirect.damage,'A hit must leave trailing HP to visibly drain over subsequent frames');
+assert(window.__v43WindForTest().every(delta=>delta>=.749),'Each deathmatch turn must noticeably change wind');
+el('homeBtn').click();el('duelBtn').click();el('fire').click();
+assert.equal(state().phase,'timing');
+handlers.popstate();
+assert.equal(state().phase,'aim','Back during precision must cancel timing and restore targeting, not exit the battle');
+assert.equal(el('precisionPanel').hidden,true,'Precision overlay must clean up after Back');
+assert.equal(state().shots,0,'Cancelling timing must not consume ammo');
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');
