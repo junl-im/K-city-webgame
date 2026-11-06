@@ -681,6 +681,10 @@
         createCanvasTexture(scene,key,192,192,c=>{
           c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
           c.drawImage(sentinelVfxBitmap,col*frameW,row*frameH,frameW,frameH,0,0,192,192);
+          // Generated semitransparent foliage may touch an atlas seam at
+          // alpha=1. Erase only the outer pixel to avoid a visible square edge.
+          c.clearRect(0,0,192,1);c.clearRect(0,191,192,1);
+          c.clearRect(0,0,1,192);c.clearRect(191,0,1,192);
         });
       }
     }
