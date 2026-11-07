@@ -3042,12 +3042,19 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   return 190+power*5.45+(game.mode==='duel'?Math.max(0,power-80)*10.6:0);
  }
  function powerAtEvenRangeProgress(progress){
-  // The physical projectile speed remains unchanged, including the extra
-  // high-power thrust. Sweep its ideal no-wind RANGE (proportional to v²),
-  // not raw power, so the cursor cannot suddenly accelerate near 80%.
-  const low=projectileSpeed(20),high=projectileSpeed(100),target=Math.sqrt(low*low+(high*high-low*low)*clamp(progress,0,1));
-  const hinge=projectileSpeed(80);
-  return clamp(target<=hinge?20+(target-low)/5.45:80+(target-hinge)/(5.45+10.6),20,100);
+  // Travel at a constant WORLD-RANGE rate, rather than approximating range
+  // with v². Muzzle/target height differences made that approximation subtly
+  // accelerate at an enemy, even after the terrain-contact jump was removed.
+  // This inverse lookup changes only the timing input, never shell physics.
+  const first=duelRawRangeX(game.angle,20),last=duelRawRangeX(game.angle,100);
+  const target=first+(last-first)*clamp(progress,0,1);
+  let low=20,high=100;
+  for(let i=0;i<17;i++){
+   const middle=(low+high)*.5;
+   if(duelRawRangeX(game.angle,middle)<target)low=middle;
+   else high=middle;
+  }
+  return (low+high)*.5;
  }
  function powerVelocity(ang,power,dir=1) {
   // High-power duel shots need enough headroom to aim at the far terrain edge,
@@ -3152,7 +3159,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   return predict(ang,pow,0,owner,count,0,0,true);
  }
  function stableAimPoint(path){return path.impact||path.edgeExit||path[path.length-1]||null;}
- function duelRangeReferencePoint(ang,pow){
+ function duelRawRangeX(ang,pow){
   // The FIRST terrain contact is not continuous: on crossing a ridge it can
   // jump dozens of pixels within one charge frame. That is real collision
   // physics, but unsuitable for a reaction/timing cursor. Use the unimpeded
@@ -3162,8 +3169,21 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   const muzzle=muzzleFor('player',ang),v=powerVelocity(ang,pow),targetY=terrainY(1018)-29;
   const discriminant=Math.max(0,v.vy*v.vy+2*G*(targetY-muzzle.y));
   const descendingTime=Math.max(0,(-v.vy+Math.sqrt(discriminant))/G);
-  const x=clamp(muzzle.x+v.vx*descendingTime,0,W);
+  return muzzle.x+v.vx*descendingTime;
+ }
+ function duelRangeReferencePoint(ang,pow){
+  const x=clamp(duelRawRangeX(ang,pow),0,W);
   return {x,y:clamp(terrainY(x)-29,35,H-42),kind:'range-reference'};
+ }
+ function duelChargeCamera(rangeX,angle,startCamera,visible){
+  // During the timing sweep the same world-range fraction pans the stage.
+  // Ordinary eased tracking stopped at the far map edge and caused a sudden
+  // apparent speed-up of the reticle on portrait screens.
+  const edge=Math.max(0,W-visible);
+  const from=duelRangeReferencePoint(angle,20).x,to=duelRangeReferencePoint(angle,100).x;
+  const progress=clamp((rangeX-from)/Math.max(1,to-from),0,1);
+  const initial=clamp(startCamera,0,edge);
+  return initial+(edge-initial)*progress;
  }
  function duelAimFeedback(path,contact){
   if(game.mode!=='duel')return {kind:'none',distance:Infinity};
@@ -3293,7 +3313,7 @@ function advanceChargePower(dt){
   if(!chargeAllowed())return false;
   if(canResumeAimFromReview())completeReview();
   if(game.phase!=='aim')return false;
-  game.chargeActive=true;game.chargeElapsed=0;game.chargeSweepTime=0;game.chargeDirection=1;game.chargeStartPower=game.power;game.chargedPower=20;clearChargeConfirmation();game.aimCue={kind:'none',distance:Infinity};
+  game.chargeActive=true;game.chargeElapsed=0;game.chargeSweepTime=0;game.chargeDirection=1;game.chargeStartPower=game.power;game.chargedPower=20;game.chargeCameraStart=game.camera;clearChargeConfirmation();game.aimCue={kind:'none',distance:Infinity};
   game.chargeAimX=null;game.chargeFocusX=null;game.chargeReveal=1;game.panX=null;
   game.chargeAnchorPx=null;
   $('chargeGauge').hidden=false;$('chargeFill').style.width='20%';
@@ -3339,6 +3359,8 @@ function advanceChargePower(dt){
   game.reaimCount++;
   cancelPrecision();game.phase='aim';game.phaseTime=0;game.precisionCamera=game.camera;
   game.message=`재조준 ${game.reaimCount}/3 · 각도와 파워를 다시 정하세요`;game.messageTime=1.15;
+  const muzzle=muzzleFor('player',game.angle);
+  game.rings.push({x:muzzle.x,y:muzzle.y,r:5,max:25,life:.27,total:.27,color:'#f3d19c'});
   updateHud();return true;
  }
  function beginPrecision(){
@@ -4877,6 +4899,10 @@ const materialCells={
   const impactCenter=game.reviewFocusX*.78+movingCenter*.22;
   // Track the predicted landing point as before, without camera pullback.
   const chargeFocus=game.chargeActive&&game.phase==='aim'&&Number.isFinite(game.chargeAimX);
+  if(chargeFocus&&game.mode==='duel'){
+   game.camera=duelChargeCamera(game.chargeAimX,game.angle,game.chargeCameraStart??game.camera,visible);
+   return;
+  }
   const focus=active?active.x-visible*.43
     :game.precisionActive?game.precisionCamera
     :chargeFocus?game.chargeAimX-visible*.46
@@ -5018,6 +5044,7 @@ const materialCells={
  // Separate compact camera debug view for portrait tracking regression tests.
  window.__duelHudDebug=()=>({visible:{...game.hudDrawn},paintedHp:{...game.hudHealth},heroScreenX:(duelHudAnchor(190,'player').x-game.camera)*game.scale,opponentScreenX:(duelHudAnchor(1018,'ai').x-game.camera)*game.scale,heroAnchorX:duelHudAnchor(190,'player').x,opponentAnchorX:duelHudAnchor(1018,'ai').x,viewportWidth:cv.clientWidth});
  window.__cannonUiDebug=()=>({abilityReason:abilityUnavailableReason(),message:game.message,messageTime:game.messageTime,overview:game.overview,skyPad:game.topPad});
+ window.__v64RangeXForTest=(angle,power)=>duelRawRangeX(angle,power);
  window.__chargeCameraDebug=()=>({heroX:(origin().x-game.camera)*game.scale,aimX:game.chargeAimX,aimScreenX:game.chargeAimX===null?null:(game.chargeAimX-game.camera)*game.scale,glintX:game.chargeFocusX,glintScreenX:game.chargeFocusX===null?null:(game.chargeFocusX-game.camera)*game.scale,zoom:game.chargeZoom,power:game.chargedPower,cameraX:game.camera,width:cv.clientWidth});
  $('adventureStage').value=String(progress.lastStage);$('duelDifficulty').value=progress.difficulty;document.querySelectorAll('[data-hero]').forEach(b=>{const chosen=b.dataset.hero===selectedHero;b.classList.toggle('selected',chosen);b.setAttribute?.('aria-pressed',String(chosen));});refreshMenu();
  requestAnimationFrame(frame);

@@ -32,8 +32,8 @@ function run(angle,wind){
  game.chargeSweepTime=0;game.chargeConfirmTime=0;game.chargeConfirmImpact=null;
  let evenRangeSteps=0,fractional=false,reversed=false,hitFrames=0;
  let peakPower=20;
- const speedLow=projectileSpeed(20),speedHigh=projectileSpeed(100);
- const nominalRange=(power)=>(projectileSpeed(power)**2-speedLow**2)/(speedHigh**2-speedLow**2);
+ const rangeLow=duelRawRangeX(angle,20),rangeHigh=duelRawRangeX(angle,100);
+ const nominalRange=(power)=>(duelRawRangeX(angle,power)-rangeLow)/(rangeHigh-rangeLow);
  const expected=1/(1.35*60);
  for(let i=0;i<500;i++){
   const before=game.chargedPower;
@@ -49,8 +49,8 @@ function run(angle,wind){
   if(game.chargeDirection<0)reversed=true;
   if(duelHitAtChargePower(after))hitFrames++;
   if(directionBefore===game.chargeDirection&&after>20.001&&after<99.999){
-   assert(Math.abs(Math.abs(nominalRange(after)-nominalRange(before))-expected)<.000001,
-    'The aim-range sweep must NOT slow or jump across the high-power hinge or enemy');
+   assert(Math.abs(Math.abs(nominalRange(after)-nominalRange(before))-expected)<.0002,
+    'Actual windless range must travel uniformly across the high-power hinge and enemy');
    evenRangeSteps++;
   }
  }
@@ -66,13 +66,25 @@ function findHit(wind,from=20,to=76){
  }
  return null;
 }
-({run,findHit,probe:(angle,power,wind=0)=>{game.angle=angle;game.wind=wind;game.chargedPower=power;game.chargeDirection=1;return{rate:chargeSweepRate(),x:aimX(power),next:aimX(power+1)};}, sweepPoints:(angle)=>{game.angle=angle;game.chargeSweepTime=0;game.chargedPower=20;const points=[];for(let i=0;i<=81;i++){points.push({p:game.chargedPower,x:aimX(game.chargedPower),contactX:stableAimPoint(stableAimPath(game.angle,game.chargedPower,0)).x});advanceChargePower(1/60);}return points;}, windCheck:(angle,power)=>{game.angle=angle;game.wind=-4.2;const a=aimX(power);game.wind=4.2;const b=aimX(power);const windy=predict(angle,power,4.2,'player',900,0,0,true),calm=predict(angle,power,0,'player',900,0,0,true);return{a,b,windy:(windy.impact||windy.at(-1)).x,calm:(calm.impact||calm.at(-1)).x};}})
+({run,findHit,probe:(angle,power,wind=0)=>{game.angle=angle;game.wind=wind;game.chargedPower=power;game.chargeDirection=1;return{rate:chargeSweepRate(),x:aimX(power),next:aimX(power+1)};}, sweepPoints:(angle)=>{game.angle=angle;game.chargeSweepTime=0;game.chargedPower=20;const points=[];for(let i=0;i<=81;i++){points.push({p:game.chargedPower,x:aimX(game.chargedPower),rawX:duelRawRangeX(angle,game.chargedPower),contactX:stableAimPoint(stableAimPath(game.angle,game.chargedPower,0)).x});advanceChargePower(1/60);}return points;}, screenX:(rangeX,angle,startCamera,screenWidth,screenHeight)=>{const scale=screenHeight/H,visible=screenWidth/scale;return(rangeX-duelChargeCamera(rangeX,angle,startCamera,visible))*scale;}, windCheck:(angle,power)=>{game.angle=angle;game.wind=-4.2;const a=aimX(power);game.wind=4.2;const b=aimX(power);const windy=predict(angle,power,4.2,'player',900,0,0,true),calm=predict(angle,power,0,'player',900,0,0,true);return{a,b,windy:(windy.impact||windy.at(-1)).x,calm:(calm.impact||calm.at(-1)).x};}})
 `;
-const {run,findHit,probe,sweepPoints,windCheck}=vm.runInNewContext(source,{assert}, {timeout:10000});
+const {run,findHit,probe,sweepPoints,screenX,windCheck}=vm.runInNewContext(source,{assert}, {timeout:10000});
 for(const angle of [20,30,42,52,65]){
  const pts=sweepPoints(angle),deltas=pts.slice(1).map((pt,i)=>pt.x-pts[i].x);
+ const beforeEdge=pts.filter(p=>p.x<1198);
+ const rangeDeltas=beforeEdge.slice(1).map((pt,i)=>pt.rawX-beforeEdge[i].rawX);
+ const avg=rangeDeltas.reduce((sum,n)=>sum+n,0)/rangeDeltas.length;
+ assert(Math.max(...rangeDeltas)-Math.min(...rangeDeltas)<avg*.02,
+  'Visible world-space aiming speed must remain constant near the enemy');
+ for(const [width,height,startCamera] of [[390,355,0],[844,390,125]]){
+  const screens=beforeEdge.map(p=>screenX(p.x,angle,startCamera,width,height));
+  const steps=screens.slice(1).map((x,i)=>x-screens[i]);
+  const mean=steps.reduce((sum,n)=>sum+n,0)/steps.length;
+  assert(Math.max(...steps)-Math.min(...steps)<Math.abs(mean)*.025,
+   `Camera edge must not create a last-second reticle speed spike at ${width}x${height}`);
+ }
  const terrainDeltas=pts.slice(1).map((pt,i)=>pt.contactX-pts[i].contactX);
- console.log('reticle pacing',angle,JSON.stringify({smoothMax:Math.max(...deltas),terrainMax:Math.max(...terrainDeltas),first:pts[0].x,last:pts.at(-1).x}));
+ console.log('reticle pacing',angle,JSON.stringify({smoothMax:Math.max(...deltas),rangeVariation:Math.max(...rangeDeltas)-Math.min(...rangeDeltas),terrainMax:Math.max(...terrainDeltas),first:pts[0].x,last:pts.at(-1).x}));
  assert(deltas.every(x=>x>=-1e-6),'The duel range cursor must never jump backwards');
  assert(Math.max(...deltas)<26,'The duel range cursor should not whip past an enemy or ridge');
 }

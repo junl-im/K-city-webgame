@@ -1169,15 +1169,15 @@ for(const aim of [aimHit,aimMiss]){
  assert.equal(aim.steady.kind,'range-reference','The sight ruler must stay independent of the foe and the first terrain collision');
 }
 assert(aimHit.contact?.kind==='foe'&&aimHit.steady.kind==='range-reference','Physical enemy contact and continuous range forecast must remain separate predictions');
-assert(html.includes('clamp(shift,-11,11)'),'Charging camera must limit frame-to-frame jumps while the forecast runs past a target');
+assert(html.includes('duelChargeCamera(game.chargeAimX,game.angle'),'Charging camera must track the same uninterrupted neutral-range fraction');
 const aimingNearRate=window.__v55ChargeRateForTest(aimSweep.hit.angle,aimSweep.hit.power);
 const aimingFarRate=window.__v55ChargeRateForTest(aimSweep.hit.angle,20);
 assert.equal(aimingNearRate,1,'An enemy must not slow the timing gauge');
 assert.equal(aimingFarRate,1,'The original sweep rate must apply at all distances');
 assert.equal(window.__v55ChargeRateForTest(aimSweep.hit.angle,aimSweep.hit.power,'adventure'),1,'Adventure charge timing must remain unchanged');
 const preciseCharge=window.__v57ChargeForTest(aimSweep.hit.angle,20);
-const rangeStartSpeed=window.__v49ShotVelocityForTest('duel',20),rangeEndSpeed=window.__v49ShotVelocityForTest('duel',100),rangeStepSpeed=window.__v49ShotVelocityForTest('duel',preciseCharge.afterPower);
-assert(Math.abs((rangeStepSpeed**2-rangeStartSpeed**2)/(rangeEndSpeed**2-rangeStartSpeed**2)-(1/60)/1.35)<.000001,'Duel charging must sweep ideal neutral range at a constant tempo through the 80% power hinge');
+const rangeStartX=window.__v64RangeXForTest(aimSweep.hit.angle,20),rangeEndX=window.__v64RangeXForTest(aimSweep.hit.angle,100),rangeStepX=window.__v64RangeXForTest(aimSweep.hit.angle,preciseCharge.afterPower);
+assert(Math.abs((rangeStepX-rangeStartX)/(rangeEndX-rangeStartX)-(1/60)/1.35)<.0002,'Duel charging must sweep actual neutral range at a constant tempo through the 80% power hinge');
 assert(preciseCharge.afterPower!==Math.round(preciseCharge.afterPower),'Duel charge must retain fractional power instead of 1% cursor jumps');
 assert.equal(window.__v57ChargeForTest(aimSweep.hit.angle,50,'adventure').rate,1,'Adventures keep the original charging rate');
 const targetConfirm=window.__v60ConfirmForTest(aimSweep.hit.angle,aimSweep.hit.power);
