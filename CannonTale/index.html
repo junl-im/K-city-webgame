@@ -2668,6 +2668,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 .precision-panel.locked-perfect .precision-head,.precision-panel.locked-perfect .precision-foot{color:#baffda}
 .precision-panel.locked-near .precision-head{color:#d9ffcb}
 .precision-panel.locked-normal .precision-head{color:#ffe0a1}
+.precision-panel.locked-off .precision-head{color:#ffc2aa}
 /* v6.14: real, tap-accessible angle and range adjustment for small screens.
    These compact brass/wood keys sit in the sky, never in the firing dock. */
 .aim-telemetry .aim-power-status{color:#ffe1aa;white-space:nowrap}
@@ -2682,7 +2683,6 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 .app:has(#help:not([hidden])) .aim-adjust,.app:has(#exitConfirm:not([hidden])) .aim-adjust{display:none!important}
 @media(orientation:portrait) and (max-width:600px){.aim-adjust{top:29px;left:8px;gap:3px}.aim-adjust button{min-width:62px;min-height:30px;padding:3px 6px;font-size:11px}.aim-telemetry .aim-power-status{font-size:10px}}
 @media(orientation:landscape) and (max-height:550px){.aim-adjust{top:27px}.aim-adjust button{min-height:27px;padding:2px 7px}}
-.precision-panel.locked-off .precision-head{color:#ffc2aa}
 </style>
 </head>
 <body>
@@ -3508,6 +3508,7 @@ function advanceChargePower(dt){
   $('windVector').textContent=direction;$('windStrength').textContent=windValue.toFixed(1);$('windWord').textContent=windWord;
   $('windChip').classList.toggle('wind-high',windValue>=2.65);$('windChip').classList.toggle('wind-mid',windValue>=1.1&&windValue<2.65);
   $('windChip').setAttribute?.('aria-label',`바람 ${game.wind>=0?'오른쪽':'왼쪽'} ${lift<-.65?'상승':lift>.65?'하강':'수평'} ${windValue.toFixed(1)} ${windWord}`);
+  $('angleValue').textContent=Math.round(game.angle)+'°';$('powerValue').textContent=Math.round(game.power)+'%';
   $('aimPowerValue').textContent=`파워 ${Math.round(game.power)}%`;
   const canAdjust=game.mode==='duel'&&game.phase==='aim'&&game.turn==='player'&&!game.chargeActive;
   $('aimAdjust').hidden=!canAdjust||game.overview;
@@ -3515,7 +3516,6 @@ function advanceChargePower(dt){
    const [kind,sign]=button.dataset.aimStep.split(':'),value=kind==='angle'?game.angle:game.power;
    button.disabled=!canAdjust||(Number(sign)<0?value<= (kind==='angle'?8:20):value>= (kind==='angle'?88:100));
   }
-  $('angleValue').textContent=Math.round(game.angle)+'°';$('powerValue').textContent=Math.round(game.power)+'%';
   const o=origin(),path=stableAimPath(game.angle,game.power,0,'player',900);
   const impact=game.mode==='duel'?duelRangeReferencePoint(game.angle,game.power):stableAimPoint(path);
   $('distanceValue').textContent=impact?.overrange?`추가 ${Math.round(impact.overrangeProgress*100)}%`:impact?String(Math.max(0,Math.round(Math.abs(impact.x-o.x)))):'—';
@@ -3545,6 +3545,7 @@ function advanceChargePower(dt){
   abilityButton.textContent=`${game.abilityUsed?'사용 완료':'특수기'} · ${h.ability}`;
   abilityButton.title=reason||`${h.ability} 사용 가능`;
   abilityButton.setAttribute?.('aria-label',reason?`${h.ability} · ${reason}`:`${h.ability} 사용 가능`);
+ }
  function nudgeAim(kind,direction){
   // These independent tap controls make the full range accessible even if a
   // mobile long-press gets released early. Never modify wind or projectile G.
@@ -3559,7 +3560,6 @@ function advanceChargePower(dt){
   const visible=cv.clientWidth/Math.max(.001,game.scale),point=duelRangeReferencePoint(game.angle,game.power);
   game.panX=clamp(point.x-visible*.47,0,Math.max(0,W-visible));
   updateHud();return true;
- }
  }
  function abilityUnavailableReason(){
   if(game.mode==='menu'||game.phase==='result')return '전투 중에만 특수기를 사용할 수 있어요.';
@@ -5178,8 +5178,8 @@ const materialCells={
   }});
  cv.addEventListener('pointerup',e=>{if(game.pan?.pointerId===e.pointerId)game.pan=null;if(!game.drag||game.drag.pointerId!==e.pointerId)return;const o=origin();const dx=clamp(o.x-game.drag.x,7,120),dy=clamp(o.y-game.drag.y,-35,95);game.drag=null;const a=clamp(Math.atan2(dy,dx)*180/Math.PI,8,88),pow=clamp(Math.hypot(dx,dy)/125*100,20,100);game.angle=a;game.power=pow;angleEl.value=a;powerEl.value=pow;beginPrecision();});
  cv.addEventListener('pointercancel',e=>{if(game.drag?.pointerId===e.pointerId)game.drag=null;if(game.pan?.pointerId===e.pointerId)game.pan=null;});
- document.querySelectorAll('[data-aim-step]').forEach(button=>button.addEventListener('click',()=>{const [kind,sign]=button.dataset.aimStep.split(':');if(nudgeAim(kind,Number(sign)))playSound('ui');}));
  angleEl.addEventListener('input',()=>{if(canResumeAimFromReview())completeReview();if(game.phase!=='aim')return;game.angle=Number(angleEl.value);updateHud();});powerEl.addEventListener('input',()=>{if(canResumeAimFromReview())completeReview();if(game.phase!=='aim')return;game.power=Number(powerEl.value);updateHud();});
+ document.querySelectorAll('[data-aim-step]').forEach(button=>button.addEventListener('click',()=>{const [kind,sign]=button.dataset.aimStep.split(':');if(nudgeAim(kind,Number(sign)))playSound('ui');}));
  document.querySelectorAll('[data-weapon]').forEach(b=>b.addEventListener('click',()=>{if(canResumeAimFromReview())completeReview();if(game.phase==='aim')chooseWeapon(b.dataset.weapon);}));
  $('fire').addEventListener('pointerdown',e=>{
   if(e.button!==undefined&&e.button!==0)return;
