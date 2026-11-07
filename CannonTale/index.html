@@ -2699,7 +2699,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   <div id="enemyEntrance" class="enemy-entrance" hidden aria-hidden="true"><span class="enemy-entrance-figure"></span><span class="enemy-entrance-copy"><small>FOREST ENCOUNTER</small><strong id="enemyEntranceName"></strong></span></div>
   <div id="hint" class="corner-hint" hidden role="status" aria-live="polite"></div>
   <div id="aimTelemetry" class="aim-telemetry" hidden aria-label="현재 조준 정보"><span>각도 <strong id="angleValue">43°</strong></span><small>예상 <output id="distanceValue">—</output></small><small id="windDrift" class="wind-drift" hidden>풍압 → 0</small></div>
-  <div id="precisionPanel" class="precision-panel" hidden role="group" aria-label="정밀 발사 타이밍 게임"><span class="precision-head" id="precisionHeadline">중앙에 맞춰 발사!</span><div class="precision-actions"><button id="precisionHit" class="precision-hit" type="button" aria-label="움직이는 바늘이 중앙일 때 탭해 발사"><span class="precision-meter" aria-hidden="true"><span class="precision-center"></span><span class="precision-needle" id="precisionNeedle"></span></span></button><button id="precisionCancel" class="precision-cancel" type="button" aria-label="게이지 취소하고 재조준, 한 발당 최대 세 번"><span class="precision-cancel-label">재조준</span><span class="precision-cancel-count" id="precisionCancelCount">3/3</span></button></div><small class="precision-foot" id="precisionFoot">중앙 정타 · 근접 안정 · 외곽 거리 손실</small></div>
+  <div id="precisionPanel" class="precision-panel" hidden role="group" aria-label="정밀 발사 타이밍 게임"><span class="precision-head" id="precisionHeadline">중앙에 맞춰 발사!</span><div class="precision-actions"><button id="precisionHit" class="precision-hit" type="button" aria-label="움직이는 바늘이 중앙일 때 탭해 발사"><span class="precision-meter" aria-hidden="true"><span class="precision-center" id="precisionCenter"></span><span class="precision-needle" id="precisionNeedle"></span></span></button><button id="precisionCancel" class="precision-cancel" type="button" aria-label="게이지 취소하고 재조준, 한 발당 최대 세 번"><span class="precision-cancel-label">재조준</span><span class="precision-cancel-count" id="precisionCancelCount">3/3</span></button></div><small class="precision-foot" id="precisionFoot">중앙 정타 · 근접 안정 · 외곽 거리 손실</small></div>
   <div class="status-row"><div id="leftStatus" class="status" hidden></div><div id="rightStatus" class="status" hidden></div></div>
 <div id="reviewCountdown" class="review-countdown" hidden aria-hidden="true">5</div>
 <div id="shotReview" class="shot-review" hidden role="status" aria-live="polite"><div class="review-copy"><span class="review-kicker">방금 포격의 결과</span><strong id="reviewTitle">착탄 확인</strong><small id="reviewDetail">전장에 남은 결과를 확인해 보세요</small></div><button id="reviewContinue" class="review-continue" type="button">다음 발사</button></div>
@@ -3284,7 +3284,7 @@ function advanceChargePower(dt){
   game.aimCue={kind:'none',distance:Infinity};game.lastAimCueAt=-5;game.closestApproach=null;game.lastPlayerVolleyDamage=0;game.chargeConfirmTime=0;game.chargeConfirmImpact=null;$('fire').classList.toggle('target-window',false);$('fire').classList.toggle('hit-hold',false);
   game.hudHealth={player:DUEL_MAX_HP,ai:DUEL_MAX_HP};game.hudHitPulse={player:0,ai:0};game.hudHitDelay={player:0,ai:0};game.hudDamage={player:null,ai:null};game.hudDrawn={player:false,ai:false};game.hudPlacement={player:null,ai:null};game.duelHitMotion={player:null,ai:null};game.duelHitBursts=[];game.weaponAftershocks=[];game.shotHighlights={direct:false,critical:false};game.windGuide=null;
   game.windLift=rnd(-1.9,1.9);game.shotInfluences=null;
-  game.precisionActive=false;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionLast=null;game.precisionBand='';game.precisionBurst=null;game.hitEmphasis=[];$('precisionPanel').hidden=true;$('aimTelemetry').hidden=false;
+  game.precisionActive=false;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionLast=null;game.precisionBand='';game.precisionBurst=null;game.precisionSlowFrames=0;game.precisionPerfectHalf=.02;game.hitEmphasis=[];$('precisionPanel').hidden=true;$('aimTelemetry').hidden=false;
   // Every duel is hero-versus-hero. The opponent is different from the selected player.
   const challengers=['fox','bear','rabbit','cat'].filter(hero=>hero!==game.hero);
   game.aiHero=mode==='duel'?challengers[Math.floor(Math.random()*challengers.length)]:'bear';
@@ -3373,12 +3373,12 @@ function advanceChargePower(dt){
  function beginPrecision(){
   if(canResumeAimFromReview())completeReview();
   if(game.phase!=='aim'||game.turn!=='player')return false;
-  game.precisionActive=true;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionBand='';
+  game.precisionActive=true;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionBand='';game.precisionSlowFrames=0;game.precisionPerfectHalf=.02;
   game.precisionCamera=game.camera;game.phase='timing';game.phaseTime=0;
   $('precisionPanel').hidden=false;$('precisionHeadline').textContent='중앙에 맞춰 발사!';
   $('precisionFoot').textContent='중앙을 노려요 · 바람은 실탄에만';
   $('precisionCancelCount').textContent=(3-game.reaimCount)+'/3';
-  $('precisionNeedle').style.left='0%';
+  $('precisionNeedle').style.left='0%';$('precisionCenter').style.left='48%';$('precisionCenter').style.width='4%';
   // The illustrated timing panel already explains the action; avoid a second
   // large ground toast that obscures the target during a precision attempt.
   game.message='';game.messageTime=0;
@@ -3386,7 +3386,7 @@ function advanceChargePower(dt){
  }
  function precisionGrade(position){
   const error=Math.abs(position-.5);
-  if(error<=.02+1e-8)return{grade:'perfect',label:'완벽한 타이밍!',powerFactor:1.04,accuracy:1};
+  if(error<=(game.precisionActive?game.precisionPerfectHalf||.02:.02)+1e-8)return{grade:'perfect',label:'완벽한 타이밍!',powerFactor:1.04,accuracy:1};
   if(error<=.09)return{grade:'near',label:'정밀 발사!',powerFactor:1,accuracy:.84};
   if(error<=.20)return{grade:'normal',label:'편향 발사',powerFactor:.94,accuracy:.62};
   return{grade:'off',label:'크게 빗나간 발사!',powerFactor:.82,accuracy:.22};
@@ -3806,6 +3806,16 @@ function advanceChargePower(dt){
  function advanceAimTiming(dt){
   if(dt<=0)return;
   if(game.precisionActive){
+   // A 4%-wide perfect band can fall *between* every displayed sample on a
+   // 10-20 FPS phone. Three genuinely slow visible frames earn a visibly
+   // wider reaction window, without ever changing the needle sweep speed.
+   game.precisionSlowFrames=clamp((game.precisionSlowFrames||0)+(dt>.045?1:-1),0,3);
+   const half=game.precisionSlowFrames>=3?.05:.02;
+   if(half!==game.precisionPerfectHalf){
+    game.precisionPerfectHalf=half;
+    $('precisionCenter').style.left=(50-half*100).toFixed(1)+'%';
+    $('precisionCenter').style.width=(200*half).toFixed(1)+'%';
+   }
    game.precisionElapsed+=dt;
    const sweep=(game.precisionElapsed/1.13)%2;
    game.precisionNeedle=sweep<=1?sweep:2-sweep;

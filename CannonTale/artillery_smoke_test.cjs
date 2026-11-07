@@ -78,6 +78,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v65PrecisionForTest=(needle)=>{newGame("duel",0);beginPrecision();step(1/60);const guide=$("precisionFoot").textContent;game.precisionNeedle=needle;lockPrecision();const pulse={...game.precisionBurst},power=game.precisionLast.adjusted,sideBias=game.precisionLast.sideBias;drawPrecisionBurst();step(1/60);const faded=game.precisionBurst?.life;for(let i=0;i<45;i++)step(1/60);return{guide,pulse,faded,cleared:game.precisionBurst===null,power,sideBias,shots:game.shots};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v66StartPaceForTest=(kind)=>{newGame("duel",0);game.angle=43;game.wind=0;game.windLift=0;if(kind==="charge")beginFireCharge();else{beginPrecision();if(kind==="confirm"){game.chargeConfirmTime=1;game.chargeConfirmImpact={x:1018,y:360};$("chargeGauge").hidden=false;}}}; window.__v66PaceForTest=()=>({charge:game.chargeElapsed,range:duelRangeReferencePoint(game.angle,game.chargedPower).x,precision:game.precisionElapsed,needle:game.precisionNeedle,confirm:game.chargeConfirmTime,phase:game.phase,shots:game.shots,used:game.reaimCount}); window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v67PerfectWindowForTest=()=>({half:game.precisionPerfectHalf,slow:game.precisionSlowFrames,width:$("precisionCenter").style.width,grade:precisionGrade(.545).grade,needle:game.precisionNeedle}); window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -1235,6 +1237,16 @@ for(const fps of [60,30,10]){
  const precision=window.__v66PaceForTest();framePacing.precision.push(precision);
  assert(Math.abs(precision.precision-.9)<.004,`Precision at ${fps} FPS must advance by actual displayed time`);
  assert(precision.phase==='timing'&&precision.shots===0,'Precision timing must remain interactive at low FPS');
+ const windowState=window.__v67PerfectWindowForTest();
+ assert.equal(windowState.half,fps===10?.05:.02,'Only sustained slow frames may widen the visible perfect-timing window');
+ assert.equal(windowState.width,fps===10?'10.0%':'4%','The painted perfect zone must match the hit judgment');
+ assert.equal(windowState.grade,fps===10?'perfect':'near','Low-FPS fairness must affect judgment, never needle movement');
+ if(fps===10){
+  framesAtFps(60,.1);
+  const recovered=window.__v67PerfectWindowForTest();
+  assert.equal(recovered.half,.02,'Recovering frame rate must restore the original precision challenge');
+  assert.equal(recovered.width,'4.0%','Visible perfect zone must shrink with recovered timing');
+ }
  window.__v66StartPaceForTest('confirm');framesAtFps(fps,.9);
  const confirmation=window.__v66PaceForTest();framePacing.confirm.push(confirmation);
  assert(Math.abs(confirmation.confirm-.1)<.004,`The highlighted target hold at ${fps} FPS must last one real second`);
