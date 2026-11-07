@@ -451,7 +451,7 @@ function recoilTable(root, kind, delay) {
   }, delay);
 }
 
-export function animateResolvedTurn({ root, result, player, handRect, deckRect, cardHTML, sound, playedMatchId, onCollect }) {
+export function animateResolvedTurn({ root, result, player, handRect, deckRect, cardHTML, sound, playedMatchId, onLand, onCollect }) {
   const cue = turnCue(result);
   if (!cue || !root) return 0;
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -460,6 +460,7 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
   const target = sceneTarget(root, cue, pairings.playedFloorId);
   if (reduced || !target || typeof Element.prototype.animate !== 'function') {
     sound(cue.soundKind || cue.impact);
+    onLand?.();
     return 0;
   }
   const playingHand = cue.played && root.querySelector(`.my-hand [data-card="${cue.played}"]`);
@@ -515,6 +516,7 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
   if (['bomb','sweep'].includes(cue.visualKind)) recoilTable(root,cue.visualKind,TURN_STAGES.collect+16);
   cheerOnSpecial(root,player,cue.visualKind,TURN_STAGES.collect+20);
   setTimeout(() => sound(hasPlayedMatch ? 'pair' : 'land'), TURN_STAGES.land + 20);
+  if (onLand) setTimeout(onLand, TURN_STAGES.land + 20);
   if (cue.drawn) setTimeout(() => sound('flip'), TURN_STAGES.flip + 10);
   if (cue.soundKind) setTimeout(() => sound(cue.soundKind), TURN_STAGES.collect + 30);
   if (onCollect) setTimeout(onCollect, TURN_STAGES.collect);

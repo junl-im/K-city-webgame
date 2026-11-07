@@ -31,6 +31,16 @@ describe('고와 박 정산', () => {
     expect(result.baks).toEqual([]);
   });
 
+  it('피박은 승자 피 10 이상, 패자 피 1~7이며 쌍피도 두 장으로 계산한다', () => {
+    const junk=['m01-03','m01-04','m02-03','m02-04','m03-03','m03-04','m04-03','m04-04','m05-03','m05-04'];
+    const pi=(winner:string[],loser:string[])=>calculateSettlement({winnerScore:score(winner),loserScore:score(loser),winnerGoCount:0}).baks.some(b=>b.code==='pi-bak');
+    expect(pi(junk,['m06-01'])).toBe(false); // 피 0, 다른 패는 있음
+    expect(pi(junk,['m06-03'])).toBe(true);
+    expect(pi(junk,['m06-03','m06-04','m07-03','m07-04','m08-03','m11-02'])).toBe(true); // 5 + 쌍피
+    expect(pi(junk,['m06-03','m06-04','m07-03','m07-04','m08-03','m08-04','m11-02'])).toBe(false); // 6 + 쌍피
+    expect(pi(junk.slice(0,9),['m06-03'])).toBe(false);
+  });
+
   it('패자가 획득한 패가 없으면 점수는 유지하고 게임머니 지급만 면제한다', () => {
     const result = calculateSettlement({
       winnerScore: score(['m01-02', 'm02-02', 'm03-02']),

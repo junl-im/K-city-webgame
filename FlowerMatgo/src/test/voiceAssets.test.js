@@ -7,7 +7,7 @@ import { voiceAssetName } from '../voicePlayer.js';
 describe('실제 게임 음성 파일', () => {
   it('선공·특수 상황·정산에서 선택되는 모든 음원이 존재한다', () => {
     const cues = new Set([
-      'start','stop','shake','double','hurry','decide','chongtong','chodan_alert','hongdan_alert','cheongdan_alert','godori_alert',
+      'start','stop','shake','double','hurry','decide','chongtong','chodan_alert','hongdan_alert','cheongdan_alert','godori_alert','dealer_confirm','missed_match','no_match',
       openingVoice('human','playing'),openingVoice('computer','playing'),
       ...Array.from({length:11},(_,index)=>goVoice(index+1)),
       ...turnVoices({openingPpeok:{},specialEvents:[{kind:'ppeok'}]}),
