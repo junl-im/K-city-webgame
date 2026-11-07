@@ -74,6 +74,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v61NearForTest=()=>{newGame("duel",0);game.wind=0;game.windLift=0;for(let angle=18;angle<=80;angle+=2)for(let power=40;power<=100;power+=2){const contacts=predict(angle,power,0,"player");if(contacts.impact?.kind==="foe")continue;const cue=duelAimFeedback(stableAimPath(angle,power,0),contacts);if(cue.kind!=="near")continue;game.angle=angle;beginFireCharge();game.chargeElapsed=.5;game.chargedPower=power;releaseFireCharge();return{angle,power,phase:game.phase,near:$("precisionPanel").classList.contains("charge-near"),falseHit:$("precisionPanel").classList.contains("charge-confirm"),hidden:$("chargeGauge").hidden,headline:$("precisionHeadline").textContent};}return null;}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v62ReaimForTest=(mode)=>{newGame(mode,0);const observations=[];for(let i=0;i<3;i++){beginPrecision();const before={phase:game.phase,remaining:$("precisionCancelCount").textContent,shots:game.shots,disabled:$("precisionCancel").disabled};$("precisionCancel").click();observations.push({before,after:{phase:game.phase,used:game.reaimCount,shots:game.shots}});}beginPrecision();const blocked={remaining:$("precisionCancelCount").textContent,disabled:$("precisionCancel").disabled,phase:game.phase};$("precisionCancel").click();const still={phase:game.phase,used:game.reaimCount,shots:game.shots};game.precisionNeedle=.5;lockPrecision();return{observations,blocked,still,afterFire:{used:game.reaimCount,shots:game.shots,phase:game.phase}};}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v65PrecisionForTest=(needle)=>{newGame("duel",0);beginPrecision();step(1/60);const guide=$("precisionFoot").textContent;game.precisionNeedle=needle;lockPrecision();const pulse={...game.precisionBurst},power=game.precisionLast.adjusted,sideBias=game.precisionLast.sideBias;drawPrecisionBurst();step(1/60);const faded=game.precisionBurst?.life;for(let i=0;i<45;i++)step(1/60);return{guide,pulse,faded,cleared:game.precisionBurst===null,power,sideBias,shots:game.shots};}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -82,6 +84,7 @@ assert(html.includes('id="aimTelemetry"')&&html.includes('id="windVector"'),'Ang
 assert(html.includes('id="windDrift"')&&html.includes('v4.4: wind compensation stays tiny'),'Wind compensation should live in the compact in-field telemetry, not in a new dock row');
 assert(html.includes('id="precisionPanel"')&&html.includes('id="precisionHit"')&&html.includes('id="precisionCancel"'),'The illustrated precision challenge must contain a distinct re-aim action');
 assert(html.includes('.precision-panel{left:50%;width:min(260px,calc(100% - 28px))}'),'Portrait precision + re-aim controls must fit inside a narrow phone screen');
+assert(html.includes('.precision-foot{display:block;box-sizing:border-box;width:100%'),'Changing gauge hints need a strictly bounded mobile text area');
 assert(html.includes('function duelRangeReferencePoint('),'Duel aim must have a collision-independent continuous range ruler');
 const precisionFrame=fs.readFileSync(__dirname+'/art/precision_timing_v43.webp');
 assert.equal(precisionFrame.toString('ascii',0,4),'RIFF','Precision gauge frame must be a real original WebP bitmap');
@@ -1206,6 +1209,16 @@ for(const mode of ['adventure','duel']){
  }
  assert(checks.blocked.disabled&&checks.blocked.remaining==='0/3'&&checks.still.phase==='timing'&&checks.still.used===3,'After three cancellations the final timing attempt must be mandatory');
  assert(checks.afterFire.used===0&&checks.afterFire.shots===1&&checks.afterFire.phase==='flying','Only firing resets the three re-aim chances for the next shell');
+}
+for(const [needle,grade,label] of [[.5,'perfect','완벽!'],[.55,'near','정밀!'],[.64,'normal','편향'],[.72,'off','아쉬움']]){
+ const result=window.__v65PrecisionForTest(needle);
+ assert(result.guide.includes('편향'),'The live gauge must communicate the needle side within its compact text area');
+ assert.equal(result.pulse.grade,grade,'A timed release should create a matching illustrated recoil accent');
+ assert.equal(result.pulse.text,label,'The timed recoil accent needs a readable Korean grade label');
+ assert(result.faded<result.pulse.life&&result.faded>0,'The timing imprint must fade after launch');
+ assert(result.cleared,'The timing imprint must self-remove after a short beat');
+ assert.equal(result.shots,1,'Cosmetic timing feedback must not fire more than one projectile');
+ assert(Number.isFinite(result.power)&&Number.isFinite(result.sideBias),'Timing power and lateral influence must remain physically calculated');
 }
 window.__v58StartDuelForTest();
 const holdButton=el('fire');
