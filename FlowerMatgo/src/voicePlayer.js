@@ -27,12 +27,17 @@ export function createVoicePlayer({getEnabled,getVolume,AudioClass = globalThis.
       if (!unlocked || !getEnabled()) return;
       if (urgent && (active || queue.length)) return;
       if (replacePending) queue = [];
+      const incoming=[];
       for (const id of ids.filter(Boolean)) {
         const t = now();
         if (!force && last.has(id) && t - last.get(id) < 600) continue;
-        last.set(id,t); queue.push({id,expiresAt:replacePending ? Infinity : t + 4500});
+        last.set(id,t); incoming.push({id,expiresAt:t + 2500});
       }
-      queue = queue.slice(-8); next();
+      if (!incoming.length) return;
+      // Keep the line already speaking and only the newest waiting line.
+      if (active) queue=[incoming.at(-1)];
+      else queue=incoming.length>1?[incoming[0],incoming.at(-1)]:incoming;
+      next();
     },
     volumeChanged() { if (audio) audio.volume = Math.max(0,Math.min(1,Number(getVolume()) || 0)); },
     clear,

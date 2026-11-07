@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { automaticSpecial } from '../autoSpecial.js';
+import { automaticMove, automaticSpecial } from '../autoSpecial.js';
 import { createInitialGame, declareShake, playBomb } from '../engine/gameState';
 
 function game(hand: string[],floor: string[]) {
@@ -31,5 +31,24 @@ describe('자동 치기 특수 선택',()=>{
     const state=game(['m01-01','m01-02','m01-03'],['m01-04']);
     expect(automaticSpecial(state,2)).toBeNull();
     state.currentPlayer='computer';expect(automaticSpecial(state)).toBeNull();
+  });
+  it('일반 자동 수는 바닥에서 먹을 수 있는 패를 우선한다',()=>{
+    const state=game(['m01-01','m02-01'],['m02-02']);
+    expect(automaticMove(state)).toMatchObject({kind:'card',cardId:'m02-01'});
+  });
+  it('보너스패도 실제로 낼 수 있는 유효한 패로 다룬다',()=>{
+    const state=game(['m01-01','bonus-pee-1'],['m03-02']);
+    expect(automaticMove(state)).toMatchObject({kind:'card',cardId:'bonus-pee-1'});
+  });
+  it('흔든 월의 패만 낼 때는 다른 월의 짝을 고르지 않는다',()=>{
+    const state=game(['m01-01','m01-02','m01-03','m02-01'],['m02-02']);
+    state.humanPendingShakeMonth=1;
+    const move=automaticMove(state,1);
+    expect(move?.kind).toBe('card');
+    if(move?.kind==='card') expect(move.cardId.startsWith('m01-')).toBe(true);
+  });
+  it('손패가 없고 폭탄 빈 차례가 남으면 뒤집기를 선택한다',()=>{
+    const state=game([],['m02-02']);state.humanBombSkips=1;
+    expect(automaticMove(state)).toEqual({kind:'flip-only'});
   });
 });
