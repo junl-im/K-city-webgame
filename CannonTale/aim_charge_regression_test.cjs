@@ -71,18 +71,22 @@ function findHit(wind,from=20,to=76){
 const {run,findHit,probe,sweepPoints,screenX,windCheck}=vm.runInNewContext(source,{assert}, {timeout:10000});
 for(const angle of [20,30,42,52,65]){
  const pts=sweepPoints(angle),deltas=pts.slice(1).map((pt,i)=>pt.x-pts[i].x);
- const beforeEdge=pts.filter(p=>p.x<1198);
- const rangeDeltas=beforeEdge.slice(1).map((pt,i)=>pt.rawX-beforeEdge[i].rawX);
+ // Keep the whole physical 20-100% power sweep, while the visible cursor only
+ // visits the enemy camp and its small rear safety margin (world x=1100).
+ const beforeBackline=pts.filter(p=>p.x<1099);
+ const rangeDeltas=beforeBackline.slice(1).map((pt,i)=>pt.rawX-beforeBackline[i].rawX);
  const avg=rangeDeltas.reduce((sum,n)=>sum+n,0)/rangeDeltas.length;
  assert(Math.max(...rangeDeltas)-Math.min(...rangeDeltas)<avg*.02,
-  'Visible world-space aiming speed must remain constant near the enemy');
+  'Visible world-space aiming speed must stay constant through the enemy camp');
  for(const [width,height,startCamera] of [[390,355,0],[844,390,125]]){
-  const screens=beforeEdge.map(p=>screenX(p.x,angle,startCamera,width,height));
+  const screens=beforeBackline.map(p=>screenX(p.x,angle,startCamera,width,height));
   const steps=screens.slice(1).map((x,i)=>x-screens[i]);
   const mean=steps.reduce((sum,n)=>sum+n,0)/steps.length;
   assert(Math.max(...steps)-Math.min(...steps)<Math.abs(mean)*.025,
-   `Camera edge must not create a last-second reticle speed spike at ${width}x${height}`);
+   `Camera must keep the reticle evenly paced until the rear camp at ${width}x${height}`);
  }
+ assert.equal(Math.max(...pts.map(p=>p.x)),1100,'Sight must stop a short distance behind the opponent, before the world edge');
+ assert(pts.some(p=>p.rawX>1200&&p.x===1100),'Extra real power must remain accessible without moving the sight into empty terrain');
  const terrainDeltas=pts.slice(1).map((pt,i)=>pt.contactX-pts[i].contactX);
  console.log('reticle pacing',angle,JSON.stringify({smoothMax:Math.max(...deltas),rangeVariation:Math.max(...rangeDeltas)-Math.min(...rangeDeltas),terrainMax:Math.max(...terrainDeltas),first:pts[0].x,last:pts.at(-1).x}));
  assert(deltas.every(x=>x>=-1e-6),'The duel range cursor must never jump backwards');
