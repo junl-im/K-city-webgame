@@ -29,7 +29,7 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v43GradeForTest=precisionGrade; window.__v43DirectForTest=(accuracy)=>{newGame("duel",0);applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:accuracy>=.9?8:20,timingAccuracy:accuracy,hero:game.hero});return {damage:DUEL_MAX_HP-game.aiHp,maxHp:DUEL_MAX_HP,emphasis:game.hitEmphasis.at(-1)?.text,pulse:game.hudHitPulse.ai,hpTrailer:game.hudHealth.ai};}; window.__v43WindForTest=()=>{newGame("duel",0);const changes=[];for(let i=0;i<15;i++){const old=game.wind;rollNextWind();changes.push(Math.abs(game.wind-old));}return changes;}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
- ' window.__v44WindGuideForTest=(wind)=>{newGame("duel",0);game.wind=wind;game.angle=43;game.power=80;updateHud();return {guide:game.windGuide,label:$("windDrift").textContent,hidden:$("windDrift").hidden};}; window.__v44HealthForTest=()=>({hold:game.hudHitDelay.ai,shown:game.hudHealth.ai,actual:game.aiHp}); window.__v44ReviewForTest=(critical=false)=>{newGame("duel",0);game.phase="flying";game.phaseTime=2;game.shotBaseline={foes:0,blockHp:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP};if(critical){applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:8,timingAccuracy:1,hero:game.hero});}else{game.lastImpact={x:800,y:terrainY(800)-10};}game.projectiles=[];finishFlight();return {title:game.reviewInfo.title,detail:game.reviewInfo.detail};}; window.__v44HeroHudForTest=(hero)=>{const original=game.hero;game.hero=hero;const anchor=duelHudAnchor(190,"player");game.hero=original;return {x:anchor.x,clearance:terrainY(190)-anchor.y};}; window.__artilleryLoadoutDebug=');
+ ' window.__v44WindGuideForTest=(wind)=>{newGame("duel",0);game.wind=wind;game.windLift=0;game.angle=43;game.power=76;updateHud();const neutral=stableAimPoint(stableAimPath(43,76,wind)).x,windy=predict(43,76,wind,"player",900,0,0,true);return{neutral,actual:(windy.impact||windy.at(-1)).x,arrow:game.windSymbol,guide:game.windGuide,hidden:$("windDrift").hidden};}; window.__v44HealthForTest=()=>({hold:game.hudHitDelay.ai,shown:game.hudHealth.ai,actual:game.aiHp}); window.__v44ReviewForTest=(critical=false)=>{newGame("duel",0);game.phase="flying";game.phaseTime=2;game.shotBaseline={foes:0,blockHp:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP};if(critical){applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:8,timingAccuracy:1,hero:game.hero});}else{game.lastImpact={x:800,y:terrainY(800)-10};}game.projectiles=[];finishFlight();return {title:game.reviewInfo.title,detail:game.reviewInfo.detail};}; window.__v44HeroHudForTest=(hero)=>{const original=game.hero;game.hero=hero;const anchor=duelHudAnchor(190,"player");game.hero=original;return {x:anchor.x,clearance:terrainY(190)-anchor.y};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__setDeathAgeForTest=(age)=>{const f=game.foes[0];f.alive=false;f.kind=0;f.deathTimer=3.8-age;f.hitAnim=0;f.attackAnim=0;}; window.__restoreFoeForTest=()=>{const f=game.foes[0];f.alive=true;f.deathTimer=0;}; window.__artilleryLoadoutDebug=');
 // In the six-pose atlas probe, select the settled death frame after the brief
@@ -72,16 +72,21 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v60ConfirmForTest=(angle,power)=>{newGame("duel",0);game.angle=angle;game.wind=0;game.windLift=0;beginFireCharge();let passedHit=false,stalled=false,previous=20;for(let i=0;i<160;i++){advanceChargePower(1/60);const current=game.chargedPower;if(duelHitAtChargePower(current)){passedHit=true;if(Math.abs(current-previous)<.001)stalled=true;}previous=current;}const activeBeforeRelease=game.chargeActive,phaseBeforeRelease=game.phase;game.chargeElapsed=.5;game.chargedPower=power;releaseFireCharge();const initial={time:game.chargeConfirmTime,impact:game.chargeConfirmImpact,visible:!$("chargeGauge").hidden,phase:game.phase,needle:game.precisionNeedle,action:$("precisionPanel").classList.contains("charge-confirm")};for(let i=0;i<30;i++)step(1/60);const middle={time:game.chargeConfirmTime,visible:!$("chargeGauge").hidden,needle:game.precisionNeedle,phase:game.phase};for(let i=0;i<32;i++)step(1/60);const expired={time:game.chargeConfirmTime,hidden:$("chargeGauge").hidden,action:$("precisionPanel").classList.contains("charge-confirm"),phase:game.phase};return{passedHit,stalled,activeBeforeRelease,phaseBeforeRelease,initial,middle,expired};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v61NearForTest=()=>{newGame("duel",0);game.wind=0;game.windLift=0;for(let angle=18;angle<=80;angle+=2)for(let power=40;power<=100;power+=2){const contacts=predict(angle,power,0,"player");if(contacts.impact?.kind==="foe")continue;const cue=duelAimFeedback(stableAimPath(angle,power,0),contacts);if(cue.kind!=="near")continue;game.angle=angle;beginFireCharge();game.chargeElapsed=.5;game.chargedPower=power;releaseFireCharge();return{angle,power,phase:game.phase,near:$("precisionPanel").classList.contains("charge-near"),falseHit:$("precisionPanel").classList.contains("charge-confirm"),hidden:$("chargeGauge").hidden,headline:$("precisionHeadline").textContent};}return null;}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v62ReaimForTest=(mode)=>{newGame(mode,0);const observations=[];for(let i=0;i<3;i++){beginPrecision();const before={phase:game.phase,remaining:$("precisionCancelCount").textContent,shots:game.shots,disabled:$("precisionCancel").disabled};$("precisionCancel").click();observations.push({before,after:{phase:game.phase,used:game.reaimCount,shots:game.shots}});}beginPrecision();const blocked={remaining:$("precisionCancelCount").textContent,disabled:$("precisionCancel").disabled,phase:game.phase};$("precisionCancel").click();const still={phase:game.phase,used:game.reaimCount,shots:game.shots};game.precisionNeedle=.5;lockPrecision();return{observations,blocked,still,afterFire:{used:game.reaimCount,shots:game.shots,phase:game.phase}};}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
 assert(html.includes('grid-template-areas:"weapons actions"!important'),'The freed angle column must compact the desktop dock');
 assert(html.includes('id="aimTelemetry"')&&html.includes('id="windVector"'),'Angle telemetry and live wind indicator must remain readable above the battlefield');
 assert(html.includes('id="windDrift"')&&html.includes('v4.4: wind compensation stays tiny'),'Wind compensation should live in the compact in-field telemetry, not in a new dock row');
-assert(html.includes('id="precisionPanel"')&&html.includes('id="precisionHit"'),'A standalone precision challenge must appear near the ammunition dock');
+assert(html.includes('id="precisionPanel"')&&html.includes('id="precisionHit"')&&html.includes('id="precisionCancel"'),'The illustrated precision challenge must contain a distinct re-aim action');
 const precisionFrame=fs.readFileSync(__dirname+'/art/precision_timing_v43.webp');
 assert.equal(precisionFrame.toString('ascii',0,4),'RIFF','Precision gauge frame must be a real original WebP bitmap');
 assert.equal(precisionFrame.toString('ascii',8,12),'WEBP','Precision gauge must not be a vector placeholder');
+const cancelFrame=fs.readFileSync(__dirname+'/art/precision_reaim_v62.webp');
+assert.equal(cancelFrame.toString('ascii',0,4),'RIFF','Re-aim icon must be an original bitmap');
+assert.equal(cancelFrame.toString('ascii',8,12),'WEBP','Re-aim icon must use WebP, not SVG');
 assert(html.includes('aspect-ratio:1200/387'),'Precision artwork must retain its original proportions');
 assert(html.includes('id="resultMedals"')&&html.includes('data-stars="1"'),'Adventure results must have three illustrated grade slots');
 {
@@ -1002,9 +1007,10 @@ assert(criticalDirect.hpTrailer>criticalDirect.maxHp-criticalDirect.damage,'A hi
 assert(window.__v43WindForTest().every(delta=>delta>=.749),'Each deathmatch turn must noticeably change wind');
 const calmGuide=window.__v44WindGuideForTest(0);
 const gustGuide=window.__v44WindGuideForTest(4.2);
-assert(calmGuide.guide&&Math.abs(calmGuide.guide.drift)<=1&&calmGuide.hidden,'No-wind aiming must not clutter the view with a false drift indicator');
-assert(gustGuide.guide&&Math.abs(gustGuide.guide.drift)>=20&&!gustGuide.hidden,'Strong wind must reveal a measurable no-wind versus actual-impact offset');
-assert(gustGuide.label.includes(gustGuide.guide.drift>=0?'→':'←'),'Wind compensation arrow must match actual projectile displacement');
+assert.equal(calmGuide.neutral,gustGuide.neutral,'Aiming range must remain identical in calm wind and a strong gust');
+assert(gustGuide.actual>calmGuide.actual+90,'Wind must alter actual projectile flight even though the reticle is fixed');
+assert(!calmGuide.guide&&!gustGuide.guide&&calmGuide.hidden&&gustGuide.hidden,'No wind-shifted ghost reticle may appear beside the fixed aim marker');
+assert.equal(gustGuide.arrow,'→','The separate light wind symbol must display the true direction');
 const windSweep=window.__v46WindSweepForTest();
 const [still,headwind,tailwind,rising,falling,diagonalUp,diagonalDown]=windSweep;
 assert(headwind.x<still.x-90&&tailwind.x>still.x+90,'Strong opposite crosswinds must change the ground landing by visibly large distances');
@@ -1168,7 +1174,8 @@ assert.equal(aimingNearRate,1,'An enemy must not slow the timing gauge');
 assert.equal(aimingFarRate,1,'The original sweep rate must apply at all distances');
 assert.equal(window.__v55ChargeRateForTest(aimSweep.hit.angle,aimSweep.hit.power,'adventure'),1,'Adventure charge timing must remain unchanged');
 const preciseCharge=window.__v57ChargeForTest(aimSweep.hit.angle,20);
-assert(Math.abs((preciseCharge.afterPower-20)-(80/1.35)/60)<.000001,'Duel charging must use the original constant-speed timing sweep');
+const rangeStartSpeed=window.__v49ShotVelocityForTest('duel',20),rangeEndSpeed=window.__v49ShotVelocityForTest('duel',100),rangeStepSpeed=window.__v49ShotVelocityForTest('duel',preciseCharge.afterPower);
+assert(Math.abs((rangeStepSpeed**2-rangeStartSpeed**2)/(rangeEndSpeed**2-rangeStartSpeed**2)-(1/60)/1.35)<.000001,'Duel charging must sweep ideal neutral range at a constant tempo through the 80% power hinge');
 assert(preciseCharge.afterPower!==Math.round(preciseCharge.afterPower),'Duel charge must retain fractional power instead of 1% cursor jumps');
 assert.equal(window.__v57ChargeForTest(aimSweep.hit.angle,50,'adventure').rate,1,'Adventures keep the original charging rate');
 const targetConfirm=window.__v60ConfirmForTest(aimSweep.hit.angle,aimSweep.hit.power);
@@ -1187,6 +1194,17 @@ const nearRelease=window.__v61NearForTest();
 assert(nearRelease&&nearRelease.phase==='timing','A geometrically near miss needs a playable precision action');
 assert(nearRelease.near&&!nearRelease.falseHit&&nearRelease.hidden,'Amber near-miss feedback cannot masquerade as confirmed contact');
 assert(nearRelease.headline.includes('근접'),'Near-miss guidance must clearly distinguish proximity from true collision');
+for(const mode of ['adventure','duel']){
+ const checks=window.__v62ReaimForTest(mode);
+ for(const [index,attempt] of checks.observations.entries()){
+  assert.equal(attempt.before.phase,'timing',`Re-aim attempt ${index+1} must start in the timing phase`);
+  assert.equal(attempt.before.remaining,`${3-index}/3`,'Each retry must decrement the remaining quota');
+  assert(!attempt.before.disabled&&attempt.after.phase==='aim'&&attempt.after.used===index+1,'The illustrated cancel button must return to manual aiming');
+  assert.equal(attempt.after.shots,0,'Cancelling must never consume ammunition or a duel volley');
+ }
+ assert(checks.blocked.disabled&&checks.blocked.remaining==='0/3'&&checks.still.phase==='timing'&&checks.still.used===3,'After three cancellations the final timing attempt must be mandatory');
+ assert(checks.afterFire.used===0&&checks.afterFire.shots===1&&checks.afterFire.phase==='flying','Only firing resets the three re-aim chances for the next shell');
+}
 window.__v58StartDuelForTest();
 const holdButton=el('fire');
 let preventedNativeHold=false;

@@ -2630,11 +2630,31 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 .precision-panel.charge-near .precision-head{color:#ffe3a4;text-shadow:0 2px 3px #162b36}
 .precision-panel.charge-near .precision-foot{color:#f2dfb0}
 #controls #fire.charging.hit-hold #fireLabel{min-width:0!important;max-width:82%!important;white-space:nowrap}
+/* v6.2: shortened illustrated precision ruler + dedicated three-use re-aim medallion. */
+.precision-actions{width:100%;display:grid;grid-template-columns:minmax(0,1fr) clamp(46px,16%,66px);align-items:center;column-gap:2px}
+.precision-actions .precision-hit{min-width:0;width:100%;transition:filter .12s ease,transform .1s ease}
+.precision-actions .precision-hit:active{transform:scale(.987);filter:brightness(1.2)}
+.precision-cancel{position:relative;display:block;width:100%;height:clamp(53px,6vw,73px);padding:0;border:0!important;box-shadow:none!important;border-radius:0!important;background:transparent url('art/precision_reaim_v62.webp') center 42%/100% auto no-repeat;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:filter .15s ease,transform .12s ease}
+.precision-cancel:hover:not(:disabled){filter:brightness(1.12)}
+.precision-cancel:active:not(:disabled){transform:scale(.92) rotate(-9deg)}
+.precision-cancel:disabled{opacity:.55;filter:grayscale(.78) brightness(.78);cursor:default}
+.precision-cancel:focus-visible{outline:2px dotted #fff0c2;outline-offset:1px}
+.precision-cancel-label{position:absolute;bottom:-3px;left:0;width:100%;text-align:center;color:#fff1c8;font:950 clamp(9px,.85vw,11px) var(--ct-ui-font);white-space:nowrap;text-shadow:0 2px 3px #271c15,0 0 5px #271c15;pointer-events:none}
+.precision-cancel-count{position:absolute;top:-4px;right:-1px;color:#ffdf9c;background:#352e2dcd;border-radius:9px;padding:0 3px;font:900 clamp(9px,.8vw,11px) var(--ct-ui-font);font-variant-numeric:tabular-nums;pointer-events:none}
+.precision-meter::after{content:'';position:absolute;top:-2px;bottom:-2px;left:0;width:13%;border-radius:8px;background:linear-gradient(90deg,transparent,#f6fff0a8,transparent);animation:precisionAmberSweep62 1.4s linear infinite;pointer-events:none}
+.precision-needle{animation:precisionNeedleFlicker62 .24s ease-in-out infinite alternate}
+.precision-panel.perfect .precision-center{background:#d5fff0;box-shadow:0 0 9px #bcffe8,0 0 18px #8affd4;animation:precisionPerfectSurge62 .22s ease-in-out infinite alternate}
+@keyframes precisionAmberSweep62{from{left:0;opacity:.15}45%{opacity:.6}to{left:87%;opacity:.15}}
+@keyframes precisionNeedleFlicker62{from{box-shadow:0 0 2px #142b38,0 0 5px #fff3bc}to{box-shadow:0 0 3px #142b38,0 0 12px #fff6d4}}
+@keyframes precisionPerfectSurge62{from{transform:scaleY(.9)}to{transform:scaleY(1.28)}}
+@media(orientation:portrait) and (max-width:780px){.precision-actions{grid-template-columns:minmax(0,1fr) 51px}.precision-cancel{height:55px}.precision-cancel-label{font-size:9px}.precision-cancel-count{font-size:9px}}
+@media(orientation:landscape) and (max-height:550px){.precision-actions{grid-template-columns:minmax(0,1fr) 47px}.precision-cancel{height:53px}.precision-cancel-label{font-size:9px}}
 @keyframes chargeHitShimmer59{from{filter:brightness(.94)}to{filter:brightness(1.23)}}
 @keyframes chargeHitBeat59{from{transform:translateX(-50%) scale(.97)}to{transform:translateX(-50%) scale(1.06)}}
 @keyframes chargeConfirmSweep60{from{left:0;opacity:.2}50%{opacity:.8}to{left:83%;opacity:.2}}
 @keyframes precisionCenterBeat60{from{background:#b6ffeea8;box-shadow:0 0 4px #adffdcaa}to{background:#e9fff4;box-shadow:0 0 13px #a9ffdf}}
 @media(prefers-reduced-motion:reduce){#controls #fire.charging.hit-hold #chargeFill,#controls #fire.charging.hit-hold #fireLabel,#controls #fire.hit-hold #chargeGauge::after,.precision-panel.charge-confirm .precision-center{animation:none}}
+@media(prefers-reduced-motion:reduce){.precision-meter::after,.precision-needle,.precision-panel.perfect .precision-center{animation:none}}
 </style>
 </head>
 <body>
@@ -2674,7 +2694,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   <div id="enemyEntrance" class="enemy-entrance" hidden aria-hidden="true"><span class="enemy-entrance-figure"></span><span class="enemy-entrance-copy"><small>FOREST ENCOUNTER</small><strong id="enemyEntranceName"></strong></span></div>
   <div id="hint" class="corner-hint" hidden role="status" aria-live="polite"></div>
   <div id="aimTelemetry" class="aim-telemetry" hidden aria-label="현재 조준 정보"><span>각도 <strong id="angleValue">43°</strong></span><small>예상 <output id="distanceValue">—</output></small><small id="windDrift" class="wind-drift" hidden>풍압 → 0</small></div>
-  <div id="precisionPanel" class="precision-panel" hidden role="group" aria-label="정밀 발사 타이밍 게임"><span class="precision-head" id="precisionHeadline">중앙에 맞춰 발사!</span><button id="precisionHit" class="precision-hit" type="button" aria-label="움직이는 바늘이 중앙일 때 탭해 발사"><span class="precision-meter" aria-hidden="true"><span class="precision-center"></span><span class="precision-needle" id="precisionNeedle"></span></span></button><small class="precision-foot" id="precisionFoot">중앙 정타 · 근접 안정 · 외곽 거리 손실</small></div>
+  <div id="precisionPanel" class="precision-panel" hidden role="group" aria-label="정밀 발사 타이밍 게임"><span class="precision-head" id="precisionHeadline">중앙에 맞춰 발사!</span><div class="precision-actions"><button id="precisionHit" class="precision-hit" type="button" aria-label="움직이는 바늘이 중앙일 때 탭해 발사"><span class="precision-meter" aria-hidden="true"><span class="precision-center"></span><span class="precision-needle" id="precisionNeedle"></span></span></button><button id="precisionCancel" class="precision-cancel" type="button" aria-label="게이지 취소하고 재조준, 한 발당 최대 세 번"><span class="precision-cancel-label">재조준</span><span class="precision-cancel-count" id="precisionCancelCount">3/3</span></button></div><small class="precision-foot" id="precisionFoot">중앙 정타 · 근접 안정 · 외곽 거리 손실</small></div>
   <div class="status-row"><div id="leftStatus" class="status" hidden></div><div id="rightStatus" class="status" hidden></div></div>
 <div id="reviewCountdown" class="review-countdown" hidden aria-hidden="true">5</div>
 <div id="shotReview" class="shot-review" hidden role="status" aria-live="polite"><div class="review-copy"><span class="review-kicker">방금 포격의 결과</span><strong id="reviewTitle">착탄 확인</strong><small id="reviewDetail">전장에 남은 결과를 확인해 보세요</small></div><button id="reviewContinue" class="review-continue" type="button">다음 발사</button></div>
@@ -2914,7 +2934,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;$('menu').dataset.stage=String(chosen);const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];const def=stageSet[chosen];$('stageShotPreview').textContent=`탄약 ${def.shots}발 · 목표 ${def.foes.length}명`;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;refreshIllustratedSelects();}
  function refreshMenu(){refreshHeroPreview();const cleared=progress.best.filter(Boolean).length;$('progressSummary').textContent=cleared?`최고 등급 합계 ${progress.best.reduce((a,b)=>a+b,0)} / 12 · 승리 ${progress.wins}회`:'모험 기록 · 아직 첫 승리 전';$('progressTier').textContent=`완료 ${cleared} / 4`;refreshStageMap();}
- const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP,duelVolleyDamage:{player:0,ai:0},turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,chargeFocusX:null,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,shotHighlights:{direct:false,critical:false},windGuide:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,chargeConfirmTime:0,chargeConfirmImpact:null,precisionActive:false,precisionElapsed:0,precisionNeedle:0,precisionCamera:0,precisionLast:null,hitEmphasis:[],chainHits:0,crushHits:0,weaponFractures:0};
+ const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,reaimCount:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP,duelVolleyDamage:{player:0,ai:0},turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,chargeFocusX:null,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,shotHighlights:{direct:false,critical:false},windGuide:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,chargeConfirmTime:0,chargeConfirmImpact:null,precisionActive:false,precisionElapsed:0,precisionNeedle:0,precisionCamera:0,precisionLast:null,hitEmphasis:[],chainHits:0,crushHits:0,weaponFractures:0};
  game.hudPlacement={player:null,ai:null};
  // Six authored motion phases per hero (procedural transforms of the existing PNG/WebP art).
  // They are NOT six separately painted sprite frames.
@@ -3017,11 +3037,22 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    }
   }
  });}
+ function projectileSpeed(power){
+  return 190+power*5.45+(game.mode==='duel'?Math.max(0,power-80)*10.6:0);
+ }
+ function powerAtEvenRangeProgress(progress){
+  // The physical projectile speed remains unchanged, including the extra
+  // high-power thrust. Sweep its ideal no-wind RANGE (proportional to v²),
+  // not raw power, so the cursor cannot suddenly accelerate near 80%.
+  const low=projectileSpeed(20),high=projectileSpeed(100),target=Math.sqrt(low*low+(high*high-low*low)*clamp(progress,0,1));
+  const hinge=projectileSpeed(80);
+  return clamp(target<=hinge?20+(target-low)/5.45:80+(target-hinge)/(5.45+10.6),20,100);
+ }
  function powerVelocity(ang,power,dir=1) {
   // High-power duel shots need enough headroom to aim at the far terrain edge,
   // even under the strongest opposing gust + downdraft. Keep adventure puzzle
   // velocities unchanged, and retain the same wind forces for both combatants.
-  const speed=190+power*5.45+(game.mode==='duel'?Math.max(0,power-80)*10.6:0);
+  const speed=projectileSpeed(power);
   const rad=ang*Math.PI/180;
   return {vx:Math.cos(rad)*speed*dir,vy:-Math.sin(rad)*speed};
  }
@@ -3076,7 +3107,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   if(owner==='player')game.abilityArmed=false;else game.aiAngle=ang;
   const firingHero=duelHero(owner),firingStyle=heroFiringStyles[firingHero]||heroFiringStyles.fox;
   game.recoil[owner]=firingStyle.kick;actorMotion(owner,'attack',firingStyle.duration);game.muzzle={x:muzzleX,y:muzzleY,dir,owner,hero:firingHero,weapon,life:firingStyle.muzzleTime,total:firingStyle.muzzleTime};spawnSparks(game.muzzle.x,game.muzzle.y,13,'#ffe8aa',.42);game.shake=Math.max(game.shake,weapon==='bomb'?4.5:2.7);playSound('fire');
-  if(owner==='player') {game.shots++;game.phase='flying';game.phaseTime=0;game.message='발사!';game.messageTime=.65;game.hintTime=0;$('hint').hidden=true;}
+  if(owner==='player') {game.shots++;game.reaimCount=0;game.phase='flying';game.phaseTime=0;game.message='발사!';game.messageTime=.65;game.hintTime=0;$('hint').hidden=true;}
   else {game.phase='flying';game.phaseTime=0;game.message='적의 포격!';game.messageTime=1;}
   updateHud();
  }
@@ -3115,7 +3146,9 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  // shell from hitting an enemy to landing far behind it. Never use that abrupt
  // first-contact point as the moving aim-camera anchor or range cursor.
  function stableAimPath(ang,pow,wind,owner='player',count=640){
-  return predict(ang,pow,wind,owner,count,0,game.windLift||0,true);
+  // Preview is intentionally wind-neutral. Wind + timing are only resolved
+  // when the shell actually flies; changing gusts never drag the reticle.
+  return predict(ang,pow,0,owner,count,0,0,true);
  }
  function stableAimPoint(path){return path.impact||path.edgeExit||path[path.length-1]||null;}
  function duelAimFeedback(path,contact){
@@ -3135,19 +3168,19 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function chargeSweepRate(){return chargeSweepMetrics().rate;}
  function duelHitAtChargePower(power){
-  const path=predict(game.angle,power,game.wind,'player',640);
+  const path=predict(game.angle,power,0,'player',640,0,0);
   return path.impact?.kind==='foe'?path.impact:null;
  }
 function advanceChargePower(dt){
  if(game.mode==='duel'){
-  // Uniform 20->100->20 sweep (1.35 seconds per direction). Do not stop,
-  // sample extra collision paths or slow down when the trajectory hits a foe.
-  // The player's RELEASE is the timing decision; only then check collision.
-  const span=80,halfCycle=1.35,cycle=halfCycle*2;
+  // Uniform neutral-range progress from 20->100->20 (1.35s per direction).
+  // Never stop, sample extra collisions or adjust by distance to an enemy.
+  // The fixed inverse v² mapping removes the old >80% cursor speed jump.
+  const halfCycle=1.35,cycle=halfCycle*2;
   game.chargeSweepTime=(game.chargeSweepTime||0)+Math.max(0,dt);
   const time=game.chargeSweepTime%cycle;
   game.chargeDirection=time<halfCycle?1:-1;
-  game.chargedPower=20+span*(time<=halfCycle?time/halfCycle:(cycle-time)/halfCycle);
+  game.chargedPower=powerAtEvenRangeProgress(time<=halfCycle?time/halfCycle:(cycle-time)/halfCycle);
  }else{
   // Preserve the original adventure-puzzle sweep duration and bounce.
   game.chargeSweepTime=(game.chargeSweepTime||0)+dt;
@@ -3207,7 +3240,7 @@ function advanceChargePower(dt){
   for(const f of game.foes){const body=M.Bodies.circle(f.x,f.y,f.r,{friction:.82,frictionStatic:1,restitution:.07,density:.0011,sleepThreshold:55,label:'foe'});body.plugin.foe=f;f.body=body;M.Composite.add(game.engine.world,body);}
  }
  function newGame(mode,stage=0){
-  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(mode==='duel'?-4.2:-3.3,mode==='duel'?4.2:3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);if(mode==='duel'&&Math.abs(game.wind)<1.15)game.wind=game.wind<0?-1.15:1.15;game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargeSweepTime=0;game.chargeDirection=1;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:Infinity;game.playerHp=DUEL_MAX_HP;game.aiHp=DUEL_MAX_HP;game.duelVolleyDamage={player:0,ai:0};game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
+  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(mode==='duel'?-4.2:-3.3,mode==='duel'?4.2:3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);if(mode==='duel'&&Math.abs(game.wind)<1.15)game.wind=game.wind<0?-1.15:1.15;game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.reaimCount=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargeSweepTime=0;game.chargeDirection=1;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:Infinity;game.playerHp=DUEL_MAX_HP;game.aiHp=DUEL_MAX_HP;game.duelVolleyDamage={player:0,ai:0};game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
   game.aimCue={kind:'none',distance:Infinity};game.lastAimCueAt=-5;game.closestApproach=null;game.lastPlayerVolleyDamage=0;game.chargeConfirmTime=0;game.chargeConfirmImpact=null;$('fire').classList.toggle('target-window',false);$('fire').classList.toggle('hit-hold',false);
   game.hudHealth={player:DUEL_MAX_HP,ai:DUEL_MAX_HP};game.hudHitPulse={player:0,ai:0};game.hudHitDelay={player:0,ai:0};game.hudDamage={player:null,ai:null};game.hudDrawn={player:false,ai:false};game.hudPlacement={player:null,ai:null};game.duelHitMotion={player:null,ai:null};game.duelHitBursts=[];game.weaponAftershocks=[];game.shotHighlights={direct:false,critical:false};game.windGuide=null;
   game.windLift=rnd(-1.9,1.9);game.shotInfluences=null;
@@ -3262,9 +3295,9 @@ function advanceChargePower(dt){
   game.chargedPower=game.power;powerEl.value=game.power;
   // Only a RELEASE at a true predicted collision earns a visual confirmation.
   // The aiming sweep itself never freezes or grants a one-second rescue window.
-  const contact=game.mode==='duel'?predict(game.angle,game.power,game.wind,'player'):null;
+  const contact=game.mode==='duel'?predict(game.angle,game.power,0,'player',640,0,0):null;
   const hit=contact?.impact?.kind==='foe'?contact.impact:null;
-  const near=!hit&&game.mode==='duel'&&duelAimFeedback(stableAimPath(game.angle,game.power,game.wind),contact).kind==='near';
+  const near=!hit&&game.mode==='duel'&&duelAimFeedback(stableAimPath(game.angle,game.power,0),contact).kind==='near';
   game.chargeConfirmTime=hit?1:0;
   game.chargeConfirmImpact=hit?{x:hit.x,y:hit.y}:null;
   $('chargeFill').style.width=game.power+'%';
@@ -3274,7 +3307,7 @@ function advanceChargePower(dt){
   beginPrecision();
   $('precisionPanel').classList.toggle('charge-confirm',!!hit);
   $('precisionPanel').classList.toggle('charge-near',!!near);
-  if(hit){$('precisionHeadline').textContent='정타 잠금! 중앙에서 탭!';playSound('lock');}
+  if(hit){$('precisionHeadline').textContent='기준 조준 정타! 중앙에서 탭!';playSound('lock');}
   else if(near){$('precisionHeadline').textContent='근접 조준! 중앙 타이밍!';$('precisionFoot').textContent='적중 보장 아님 · 중앙으로 오차 줄이기';}
   return true;
  }
@@ -3288,9 +3321,10 @@ function advanceChargePower(dt){
   $('precisionPanel').classList.toggle('perfect',false);
  }
  function returnToAimFromPrecision(){
-  if(game.phase!=='timing')return false;
+  if(game.phase!=='timing'||game.reaimCount>=3)return false;
+  game.reaimCount++;
   cancelPrecision();game.phase='aim';game.phaseTime=0;game.precisionCamera=game.camera;
-  game.message='조준 복귀! 각도를 다시 조절하세요';game.messageTime=1.15;
+  game.message=`재조준 ${game.reaimCount}/3 · 각도와 파워를 다시 정하세요`;game.messageTime=1.15;
   updateHud();return true;
  }
  function beginPrecision(){
@@ -3299,7 +3333,8 @@ function advanceChargePower(dt){
   game.precisionActive=true;game.precisionElapsed=0;game.precisionNeedle=0;
   game.precisionCamera=game.camera;game.phase='timing';game.phaseTime=0;
   $('precisionPanel').hidden=false;$('precisionHeadline').textContent='중앙에 맞춰 발사!';
-  $('precisionFoot').textContent='청록 정타 · 연두 근접 · 빨강 거리 손실';
+  $('precisionFoot').textContent='중앙 타이밍 · 실제 궤도는 바람 영향';
+  $('precisionCancelCount').textContent=(3-game.reaimCount)+'/3';
   $('precisionNeedle').style.left='0%';
   // The illustrated timing panel already explains the action; avoid a second
   // large ground toast that obscures the target during a precision attempt.
@@ -3329,32 +3364,36 @@ function advanceChargePower(dt){
   launch('player',game.angle,adjusted,game.weapon,undefined,signedOffset);
   const lean=signedOffset<-.04?'← 왼쪽':signedOffset>.04?'오른쪽 →':'중앙';
   game.message=`${grade.label} · 게이지 ${lean}`;game.messageTime=1.15;
-  if(grade.grade==='perfect'){spawnSparks(origin().x,origin().y-30,13,'#aaffdc',.38);playSound('precision');}
+  if(grade.grade==='perfect'||grade.grade==='near'){
+   const o=origin(),perfect=grade.grade==='perfect';
+   spawnSparks(o.x+18,o.y-30,perfect?22:10,perfect?'#aaffdc':'#fff1bd',perfect?.62:.35);
+   game.rings.push({x:o.x+18,y:o.y-30,r:5,max:perfect?43:27,life:perfect?.36:.23,total:perfect?.36:.23,color:perfect?'#b7ffe2':'#ffe5ab'});
+   if(perfect){game.shake=Math.max(game.shake,4.4);game.flash=Math.max(game.flash,.048);playSound('precision');}
+  }
   return true;
  }
  function updateHud(){
   const lift=game.windLift||0,windValue=Math.hypot(game.wind,lift*.85),windWord=windValue>=2.65?'강풍':windValue>=1.1?'보통':'약풍';
   const vertical=Math.abs(lift)>.65,side=Math.abs(game.wind)>.45;
   const direction=vertical?(side?(game.wind>=0?(lift<0?'↗':'↘'):(lift<0?'↖':'↙')):(lift<0?'↑':'↓')):(game.wind>=0?'→':'←');
+  game.windSymbol=direction;
   $('windVector').textContent=direction;$('windStrength').textContent=windValue.toFixed(1);$('windWord').textContent=windWord;
   $('windChip').classList.toggle('wind-high',windValue>=2.65);$('windChip').classList.toggle('wind-mid',windValue>=1.1&&windValue<2.65);
   $('windChip').setAttribute?.('aria-label',`바람 ${game.wind>=0?'오른쪽':'왼쪽'} ${lift<-.65?'상승':lift>.65?'하강':'수평'} ${windValue.toFixed(1)} ${windWord}`);
   $('angleValue').textContent=Math.round(game.angle)+'°';$('powerValue').textContent=Math.round(game.power)+'%';
-  const o=origin(),path=stableAimPath(game.angle,game.power,game.wind,'player',900);
+  const o=origin(),path=stableAimPath(game.angle,game.power,0,'player',900);
   const impact=stableAimPoint(path);
   $('distanceValue').textContent=impact?String(Math.max(0,Math.round(Math.abs(impact.x-o.x)))):'—';
-  // Same angle and power, with wind disabled: the difference is a readable
-  // aim correction, not an invented physics stat. Cache for canvas rendering.
-  const landing=predict(game.angle,game.power,game.wind,'player',900,0,game.windLift,true);
-  const landingImpact=landing.impact||landing[landing.length-1];
-  const calmPath=predict(game.angle,game.power,0,'player',900,0,0,true);
-  const calmImpact=calmPath.impact||calmPath[calmPath.length-1];
-  const drift=landingImpact&&calmImpact?Math.round(landingImpact.x-calmImpact.x):0;
-  game.windGuide=landingImpact&&calmImpact?{windy:{x:landingImpact.x,y:landingImpact.y},calm:{x:calmImpact.x,y:calmImpact.y},drift}:null;
-  $('windDrift').hidden=!game.windGuide||Math.abs(drift)<20||game.turn!=='player';
-  $('windDrift').textContent=`풍압 ${drift>=0?'→':'←'} ${Math.abs(drift)}`;
+  // Do not project a wind-shifted aim marker or show a fake correction target.
+  // The small wind arrow is drawn beside the neutral cursor; the actual wind
+  // shift is calculated only when the projectile is launched.
+  game.windGuide=null;$('windDrift').hidden=true;
   if(!game.chargeActive)$('fireLabel').textContent=game.chargeConfirmTime>0?'정타!':game.phase==='flying'?'발사 중':game.phase==='timing'?'정밀 발사':game.phase==='review'?'다음 발사':'발사!';
   $('fire').classList.toggle('recent-shot',game.phase==='flying'&&game.phaseTime<.7);
+  const remaining=3-game.reaimCount;
+  $('precisionCancelCount').textContent=remaining+'/3';
+  $('precisionCancel').disabled=game.phase!=='timing'||remaining<=0;
+  $('precisionCancel').setAttribute?.('aria-label',remaining?`재조준, 남은 기회 ${remaining}회`:'재조준 기회 모두 사용');
   const allow=(game.phase==='aim'&&game.turn==='player')||canResumeAimFromReview(),timing=game.phase==='timing'&&game.turn==='player';$('fire').disabled=!(allow||timing);
   document.querySelectorAll('[data-weapon]').forEach(b=>b.disabled=!allow);
   angleEl.disabled=!allow;powerEl.disabled=!allow;
@@ -3363,7 +3402,7 @@ function advanceChargePower(dt){
   const boss=game.foes.find(f=>f.boss&&f.alive);
   $('rightStatus').textContent=game.mode==='adventure'?`남은 목표 ${game.foes.filter(f=>f.alive).length}마리${boss?' · 대장 '+Math.max(0,Math.ceil(boss.hp))+' HP':''}`:'';
   $('bossBanner').hidden=game.mode!=='adventure'||!boss;
-  $('aimHelp').textContent='전장 위·아래로 각도 조절 · 파워 후 중앙 타이밍 맞추기';
+  $('aimHelp').textContent='조준은 무풍 기준 · 실제 탄도는 바람과 정밀 게이지에 따라 변화';
   const h=heroSet[game.hero],reason=abilityUnavailableReason(),abilityButton=$('abilityBtn');
   // Do not native-disable this button: tapping a dormant skill must explain its timing.
   abilityButton.disabled=game.mode==='menu';abilityButton.classList.toggle('ability-unavailable',!!reason);
@@ -3737,7 +3776,7 @@ function advanceChargePower(dt){
    $('precisionNeedle').style.left=(game.precisionNeedle*100).toFixed(2)+'%';
    $('precisionPanel').classList.toggle('perfect',Math.abs(game.precisionNeedle-.5)<=.02);
    if(Math.floor(game.precisionElapsed*10)!==Math.floor((game.precisionElapsed-dt)*10)){
-    $('precisionFoot').textContent=game.precisionNeedle<.44?'← 왼쪽 편향 · 사거리 변화':game.precisionNeedle>.56?'오른쪽 편향 → · 사거리 변화':'중앙 정타 · 좁은 완벽 판정';
+    $('precisionFoot').textContent=game.precisionNeedle<.44?'← 왼쪽 편향 · 탄도 변화':game.precisionNeedle>.56?'오른쪽 편향 → · 탄도 변화':'중앙 타이밍 · 바람은 별도 적용';
    }
   }
   for(const hit of game.hitEmphasis)hit.life-=dt;
@@ -4433,10 +4472,10 @@ const materialCells={
   if(!['aim','timing'].includes(game.phase)||game.turn!=='player')return;
   let a=game.angle,p=game.chargeActive?game.chargedPower:game.power;
   if(game.drag){const o=origin(),dx=clamp(o.x-game.drag.x,7,105),dy=clamp(o.y-game.drag.y,-35,95);a=clamp(Math.atan2(dy,dx)*180/Math.PI,15,82);p=clamp(Math.hypot(dx,dy)/125*100,20,100);}
-  const contacts=predict(a,p,game.wind,'player');
+  const contacts=predict(a,p,0,'player',640,0,0);
   // Duel preview: a continuous range trace plus a separate, honest first-hit
   // marker. A graze must not teleport the range reticle or the camera.
-  const dots=game.mode==='duel'?stableAimPath(a,p,game.wind):contacts;
+  const dots=game.mode==='duel'?stableAimPath(a,p,0):contacts;
   const steadyTarget=stableAimPoint(dots),actualHit=contacts.impact;
   const previousCue=game.aimCue?.kind||'none';
   const cue=duelAimFeedback(dots,contacts);
@@ -4460,19 +4499,14 @@ const materialCells={
    ctx.setLineDash?.([]);ctx.restore();
    for(let i=16;i<dots.length;i+=24){const pt=dots[i];ellipse(pt.x,pt.y,2.3,2.3,'#f2e8c5a5');}
   }
-  // Small unframed no-wind reference. The real wind-affected impact remains
-  // the brighter, labelled target; do not cover it with a second HUD panel.
-  const guide=game.windGuide;
-  if(!game.chargeActive&&!game.overview&&guide&&Math.abs(guide.drift)>=35){
-   const calm=guide.calm,actual=guide.windy;
-   const visible=calm.x>=game.camera-18&&calm.x<=game.camera+cv.clientWidth/game.scale+18;
-   if(visible&&calm.y>30&&calm.y<H-20){
-    ctx.save();ctx.globalAlpha=.63;ctx.strokeStyle='#c8e9f0';ctx.lineWidth=2;ctx.setLineDash?.([3,7]);
-    ctx.beginPath();ctx.arc(calm.x,calm.y,11,0,Math.PI*2);ctx.stroke();
-    if(Math.abs(guide.drift)<235&&Math.hypot(actual.x-calm.x,actual.y-calm.y)>35){
-     ctx.beginPath();ctx.moveTo(calm.x,calm.y);ctx.lineTo(actual.x,actual.y);ctx.stroke();
-    }
-    ctx.setLineDash?.([]);ctx.textAlign='center';ctx.font='850 11px system-ui,sans-serif';ctx.fillStyle='#effafa';ctx.shadowColor='#14303b';ctx.shadowBlur=3;ctx.fillText('무풍',calm.x,calm.y+26);ctx.restore();
+  // One light wind-direction label, attached to the unchanged neutral-range
+  // marker. No ghost landing point: wind changes ONLY real projectile flight.
+  if(!game.overview&&steadyTarget){
+   const visible=steadyTarget.x>=game.camera&&steadyTarget.x<=game.camera+cv.clientWidth/game.scale;
+   if(visible){
+    const wx=clamp(steadyTarget.x,game.camera+39,game.camera+cv.clientWidth/game.scale-39),wy=clamp(steadyTarget.y-64,44,H-96);
+    ctx.save();ctx.globalAlpha=.71;ctx.font='800 11px "Malgun Gothic",system-ui,sans-serif';ctx.textAlign='center';ctx.fillStyle='#e8f8e2';ctx.shadowColor='#1b3441';ctx.shadowBlur=4;
+    ctx.fillText(`바람 ${game.windSymbol||'→'}`,wx,wy,78);ctx.restore();
    }
   }
   const hit=dots.impact;
@@ -4492,7 +4526,7 @@ const materialCells={
    ctx.beginPath();ctx.arc(actualHit.x,actualHit.y,12,0,Math.PI*2);ctx.stroke();
    ctx.beginPath();ctx.arc(actualHit.x,actualHit.y,3,0,Math.PI*2);ctx.fillStyle='#eaffdf';ctx.fill();
    ctx.font='800 11px "Malgun Gothic",system-ui,sans-serif';ctx.textAlign='center';ctx.fillStyle='#d8ffe8';
-   ctx.shadowColor='#16363b';ctx.shadowBlur=4;ctx.fillText('적중 예상',actualHit.x,actualHit.y-20,70);ctx.restore();
+   ctx.shadowColor='#16363b';ctx.shadowBlur=4;ctx.fillText('무풍 기준',actualHit.x,actualHit.y-20,70);ctx.restore();
   }
   if(chargeCue&&cue.kind==='near'&&!game.overview){
    // A minimal canvas cue appears only while fine tuning, near the *enemy*.
@@ -4510,7 +4544,7 @@ const materialCells={
   ctx.save();ctx.beginPath();ctx.arc(hit.x,hit.y,18+Math.sin(game.clock*4)*2,0,Math.PI*2);
   ctx.strokeStyle='#263d50ba';ctx.lineWidth=5.5;ctx.stroke();ctx.strokeStyle=color;ctx.lineWidth=2.7;ctx.stroke();
   ctx.beginPath();ctx.arc(hit.x,hit.y,4.5,0,Math.PI*2);ctx.fillStyle='#fffbe2';ctx.fill();
-  const label=target?'적중 예상':hit.kind==='block'?'구조물 충돌':game.mode==='duel'?'조준 사거리':'착탄 지점';
+  const label=target?'조준 정타':hit.kind==='block'?'기준 충돌':game.mode==='duel'?'조준 사거리':'기준 착탄';
   const lx=clamp(hit.x,58,W-58),ly=clamp(hit.y-30,36,H-38);
   roundRect(lx-46,ly-17,92,26,13,'#1c3f4abb');ctx.fillStyle=color;ctx.font='800 13px system-ui, sans-serif';ctx.textAlign='center';ctx.fillText(label,lx,ly+1);ctx.restore();
  }
@@ -4903,6 +4937,7 @@ const materialCells={
   firePlayer(); // keyboard accessibility and older browsers without Pointer Events
  });
  $('precisionHit').addEventListener('click',()=>{lockPrecision();});
+ $('precisionCancel').addEventListener('click',()=>{if(returnToAimFromPrecision())playSound('ui');});
  $('reviewContinue').addEventListener('click',completeReview);
  $('inspectResultBtn').addEventListener('click',()=>{if(game.phase!=='result')return;$('result').hidden=true;$('reviewTitle').textContent=game.reviewInfo?.title||'전투 종료';$('reviewDetail').textContent='전장의 최종 파괴 상태를 직접 살펴보세요';$('reviewContinue').textContent='결과 다시 보기';$('shotReview').hidden=false;});
  $('abilityBtn').addEventListener('click',()=>{if(canResumeAimFromReview()&&heroSet[game.hero].timing==='aim')completeReview();useAbility();});
