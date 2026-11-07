@@ -2,6 +2,7 @@ import { existsSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { goVoice, openingVoice, roundVoices, turnVoices } from '../voiceEvents.js';
+import { voiceAssetName } from '../voicePlayer.js';
 
 describe('실제 게임 음성 파일', () => {
   it('선공·특수 상황·정산에서 선택되는 모든 음원이 존재한다', () => {
@@ -18,7 +19,7 @@ describe('실제 게임 음성 파일', () => {
       ...roundVoices({phase:'round-ended',roundResult:'nagari'})
     ]);
     for (const id of cues) {
-      const filename=id==='start'?'start-v5':id;
+      const filename=voiceAssetName(id);
       const file=fileURLToPath(new URL(`../../public/assets/rani-voice-v3/${filename}.mp3`,import.meta.url));
       expect(existsSync(file),`${id} 음원 누락`).toBe(true);
       expect(statSync(file).size,`${id} 음원 비어 있음`).toBeGreaterThan(1000);

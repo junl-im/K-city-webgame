@@ -1,3 +1,7 @@
+// Version only revised clips so old browser caches cannot hide an audio fix.
+const VOICE_FILES = Object.freeze({start:'start-v5',first_human:'first_human-v2',first_computer:'first_computer-v2',double:'double-v2',mission:'mission-v2',win:'win-v2'});
+export function voiceAssetName(id) { return VOICE_FILES[id] || id; }
+
 // One short clip at a time; stale callouts are discarded as the game advances.
 export function createVoicePlayer({getEnabled,getVolume,AudioClass = globalThis.Audio,now = () => Date.now()}) {
   let unlocked = false, audio = null, active = false, queue = [], last = new Map(), generation = 0;
@@ -11,7 +15,7 @@ export function createVoicePlayer({getEnabled,getVolume,AudioClass = globalThis.
     const current = ++generation;
     audio.onended = audio.onerror = () => { if (current !== generation) return; active = false; next(); };
     audio.volume = Math.max(0,Math.min(1,Number(getVolume()) || 0));
-    const filename = item.id === 'start' ? 'start-v5' : item.id;
+    const filename = voiceAssetName(item.id);
     audio.src = `${import.meta.env.BASE_URL}assets/rani-voice-v3/${filename}.mp3`;
     active = true;
     try { Promise.resolve(audio.play()).catch(() => { if (current === generation) { active = false; queue = []; } }); }
