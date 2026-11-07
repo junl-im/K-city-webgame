@@ -19,6 +19,16 @@ export function cardSoundProfile(kind) {
   return CARD_SOUND_PROFILES[kind] ?? CARD_SOUND_PROFILES.land;
 }
 
+// Extra tonal accents add impact without replacing the card's natural snap.
+const IMPACT_ACCENTS = Object.freeze({
+  pair: [[0, 760, 350, .045, .085]],
+  jjok: [[0, 1040, 520, .045, .085]],
+  ttadak: [[0, 800, 380, .04, .075], [.085, 960, 440, .04, .075]],
+  bomb: [[0, 180, 55, .075, .20], [.055, 130, 48, .045, .15]],
+  sweep: [[0, 620, 920, .035, .12], [.075, 850, 1180, .03, .12]]
+});
+export function impactAccents(kind) { return IMPACT_ACCENTS[kind] ?? []; }
+
 // Short original note patterns complement card impacts without external samples.
 export const GAME_CUE_NOTES = Object.freeze({
   start: Object.freeze([392,494,587]),

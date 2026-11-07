@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CARD_SOUND_PROFILES, cardSoundProfile } from '../cardSoundDesign.js';
+import { CARD_SOUND_PROFILES, cardSoundProfile, impactAccents } from '../cardSoundDesign.js';
 
 describe('패 충돌·뒤집기·획득 소리 구분', () => {
   it('짝패 타격음은 일반 바닥 착지보다 두껍고 밝게 표현한다', () => {
@@ -25,5 +25,12 @@ describe('패 충돌·뒤집기·획득 소리 구분', () => {
     expect(cardSoundProfile('bright').frequency).toBeGreaterThan(cardSoundProfile('double').frequency);
     expect(cardSoundProfile('bomb').bass).toBeLessThan(cardSoundProfile('sweep').bass);
     expect(cardSoundProfile('ppeok').frequency).toBeLessThan(cardSoundProfile('pair').frequency);
+  });
+  it('쪽은 짧게, 따닥과 폭탄은 서로 다른 연속 타격을 낸다', () => {
+    expect(impactAccents('jjok')).toHaveLength(1);
+    expect(impactAccents('ttadak')).toHaveLength(2);
+    expect(impactAccents('bomb')).toHaveLength(2);
+    expect(impactAccents('bomb')[0][1]).toBeLessThan(impactAccents('jjok')[0][1]);
+    expect(impactAccents('land')).toEqual([]);
   });
 });
