@@ -10,7 +10,7 @@ function take(from,to){
  return html.slice(a,b);
 }
 const source=`
- const W=1200,H=640,G=465,WIND_FORCE=46,WIND_LIFT_FORCE=38,TIMING_STEER_FORCE=136,DUEL_SIGHT_POWER=82,DUEL_WIND_FORCE=22,DUEL_MAX_HP=420;
+ const W=1200,H=640,G=465,WIND_FORCE=46,WIND_LIFT_FORCE=38,TIMING_STEER_FORCE=136,DUEL_SIGHT_POWER=81.7,DUEL_WIND_FORCE=22,DUEL_MAX_HP=420;
  const clamp=(n,a,b)=>Math.max(a,Math.min(n,b));
  let seed=1;
  const rnd=(a,b)=>{seed=(seed*1664525+1013904223)>>>0;return a+(b-a)*seed/4294967296;};
