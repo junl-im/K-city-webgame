@@ -2763,7 +2763,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   <div id="exitConfirm" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="exitTitle">
    <section class="panel exit-panel"><span class="eyebrow">ONE MORE ADVENTURE?</span><h2 id="exitTitle">모험을 마칠까요?</h2><p>여정은 이곳에 남아 있어요. 다음에 돌아오면 이어서 도전할 수 있어요.</p><div class="panel-actions"><button id="exitStayBtn" class="paper-btn" type="button">계속 놀기</button><button id="exitLeaveBtn" class="paper-btn light" type="button">나가기</button></div></section>
   </div>
- <aside class="help" id="help" hidden><button id="closeHelp" class="tiny" type="button">닫기</button><h2>조작 안내</h2><p><b>전장을 위아래로 드래그</b>해 각도를 조절하세요. 화면 왼쪽 위에서 현재 각도와 예상 거리를 볼 수 있습니다. <b>발사 버튼을 길게 누르면 파워가 일정한 속도로 왕복</b>해요. 손을 떼면 정밀 게이지가 움직이고, 바늘이 중앙에 올 때 <b>게이지나 발사 버튼을 다시 눌러</b> 확정하세요. <b>확정된 바늘과 전장 화면이 1.5초 유지</b>된 뒤 포탄이 발사됩니다. 모험의 새총을 당겨도 같은 순서입니다.</p><p>여우·토끼의 특수기는 <b>포탄 비행 중</b>, 곰·고양이의 특수기는 <b>발사 전</b> 사용합니다. 특수기는 플레이어 발사 한 번당 1회 가능해요. 단축키는 <b>Q</b>입니다.</p><p>바람 방향과 세기를 읽으세요. 강풍에서는 표적이 크게 어긋나며 바늘의 좌우 위치도 실제 탄도를 바꿉니다. 결투는 양쪽 모두 <b>내구도 420</b>으로 시작합니다. <b>일반탄</b>은 정밀 단일 타격, <b>폭탄탄</b>은 넓은 범위·구조물 파괴, <b>분열탄</b>은 다중 타격에 유리하지만 한 포격의 보스 집중 피해에는 상한이 있습니다. <b>전장 보기</b>로 지형을 확인할 수 있어요.</p></aside>
+ <aside class="help" id="help" hidden><button id="closeHelp" class="tiny" type="button">닫기</button><h2>조작 안내</h2><p><b>전장을 위아래로 드래그</b>해 각도를 조절하세요. 화면 왼쪽 위에서 현재 각도와 예상 거리를 볼 수 있습니다. <b>발사 버튼을 길게 누르면 파워가 일정한 속도로 왕복</b>해요. 손을 떼면 정밀 게이지가 움직이고, 바늘이 중앙에 올 때 <b>게이지나 발사 버튼을 다시 눌러</b> 확정하세요. <b>확정된 바늘과 전장 화면이 1.5초 유지</b>된 뒤 포탄이 발사됩니다. 모험의 새총을 당겨도 같은 순서입니다. 결투에서 조준점이 상대 진영 뒤에 닿으면 더 멀리 가지 않고, <b>추가 사거리 비율이 작은 원형 게이지에 표시</b>됩니다. 이는 무풍 기준 파워 표시이며 실제 착탄점은 바람에 따라 달라집니다.</p><p>여우·토끼의 특수기는 <b>포탄 비행 중</b>, 곰·고양이의 특수기는 <b>발사 전</b> 사용합니다. 특수기는 플레이어 발사 한 번당 1회 가능해요. 단축키는 <b>Q</b>입니다.</p><p>바람 방향과 세기를 읽으세요. 강풍에서는 표적이 크게 어긋나며 바늘의 좌우 위치도 실제 탄도를 바꿉니다. 결투는 양쪽 모두 <b>내구도 420</b>으로 시작합니다. <b>일반탄</b>은 정밀 단일 타격, <b>폭탄탄</b>은 넓은 범위·구조물 파괴, <b>분열탄</b>은 다중 타격에 유리하지만 한 포격의 보스 집중 피해에는 상한이 있습니다. <b>전장 보기</b>로 지형을 확인할 수 있어요.</p></aside>
  </main>
  <footer class="controls" id="controls" hidden>
   <div class="weapon-group"><span class="weapon-label">포탄 선택</span><div class="weapons"><button type="button" data-weapon="normal" class="weapon selected" title="정밀 단일 타격" aria-label="일반탄, 정밀 단일 타격에 강함">일반탄</button><button type="button" data-weapon="bomb" class="weapon" title="넓은 범위와 구조물 공격" aria-label="폭탄탄, 넓은 범위와 구조물 공격에 강함">폭탄탄</button><button type="button" data-weapon="split" class="weapon" title="다중 타격, 보스 집중 피해 제한" aria-label="분열탄, 다중 타격에 강하고 보스 집중 피해는 제한됨">분열탄</button></div></div>
@@ -3196,7 +3196,10 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  const DUEL_AIM_BACKLINE_X=1100;
  function duelRangeReferencePoint(ang,pow){
   const rawX=duelRawRangeX(ang,pow),x=clamp(rawX,0,DUEL_AIM_BACKLINE_X);
-  return {x,y:clamp(terrainY(x)-29,35,H-42),kind:'range-reference',overrange:rawX>DUEL_AIM_BACKLINE_X};
+  const extraRange=Math.max(0,rawX-DUEL_AIM_BACKLINE_X);
+  const maximumExtra=Math.max(1,duelRawRangeX(ang,100)-DUEL_AIM_BACKLINE_X);
+  return {x,y:clamp(terrainY(x)-29,35,H-42),kind:'range-reference',
+   overrange:extraRange>0,extraRange,overrangeProgress:clamp(extraRange/maximumExtra,0,1)};
  }
  function duelChargeCamera(rangeX,angle,startCamera,visible){
   // During the timing sweep the same world-range fraction pans the stage.
@@ -3483,7 +3486,7 @@ function advanceChargePower(dt){
   $('angleValue').textContent=Math.round(game.angle)+'°';$('powerValue').textContent=Math.round(game.power)+'%';
   const o=origin(),path=stableAimPath(game.angle,game.power,0,'player',900);
   const impact=game.mode==='duel'?duelRangeReferencePoint(game.angle,game.power):stableAimPoint(path);
-  $('distanceValue').textContent=impact?.overrange?'진영 밖':impact?String(Math.max(0,Math.round(Math.abs(impact.x-o.x)))):'—';
+  $('distanceValue').textContent=impact?.overrange?`추가 ${Math.round(impact.overrangeProgress*100)}%`:impact?String(Math.max(0,Math.round(Math.abs(impact.x-o.x)))):'—';
   // Do not project a wind-shifted aim marker or show a fake correction target.
   // The small wind arrow is drawn beside the neutral cursor; the actual wind
   // shift is calculated only when the projectile is launched.
@@ -4707,10 +4710,20 @@ const materialCells={
   }
   if(!hit||hit.y<20||hit.y>H-14)return;
   const target=hit.kind==='foe',overrange=game.mode==='duel'&&!!hit.overrange,color=overrange?'#ffd393':target?'#93f1c7':hit.kind==='block'?'#ffe1a6':'#e6f2f1';
+  if(overrange){
+   // Power still rises beyond the opponent's rear line. A subtle second ring
+   // advances with that hidden neutral range so the capped sight never looks
+   // stuck; it is NOT an indicator of the windy live shell landing position.
+   const fraction=hit.overrangeProgress;
+   ctx.save();ctx.globalAlpha=.7;ctx.lineCap='round';ctx.lineWidth=2.5;
+   ctx.strokeStyle='#2b4652b5';ctx.beginPath();ctx.arc(hit.x,hit.y,26,-Math.PI/2,Math.PI*1.5);ctx.stroke();
+   ctx.strokeStyle='#ffd393';ctx.beginPath();ctx.arc(hit.x,hit.y,26,-Math.PI/2,-Math.PI/2+Math.PI*2*fraction);ctx.stroke();
+   ctx.restore();
+  }
   ctx.save();ctx.beginPath();ctx.arc(hit.x,hit.y,18+Math.sin(game.clock*4)*2,0,Math.PI*2);
   ctx.strokeStyle='#263d50ba';ctx.lineWidth=5.5;ctx.stroke();ctx.strokeStyle=color;ctx.lineWidth=2.7;ctx.stroke();
   ctx.beginPath();ctx.arc(hit.x,hit.y,4.5,0,Math.PI*2);ctx.fillStyle='#fffbe2';ctx.fill();
-  const label=overrange?'추가 사거리':target?'조준 정타':hit.kind==='block'?'기준 충돌':game.mode==='duel'?'기준 사거리':'기준 착탄';
+  const label=overrange?`추가 ${Math.round(hit.overrangeProgress*100)}%`:target?'조준 정타':hit.kind==='block'?'기준 충돌':game.mode==='duel'?'기준 사거리':'기준 착탄';
   const lx=clamp(hit.x,58,W-58),ly=clamp(hit.y-30,36,H-38);
   roundRect(lx-46,ly-17,92,26,13,'#1c3f4abb');ctx.fillStyle=color;ctx.font='800 13px system-ui, sans-serif';ctx.textAlign='center';ctx.fillText(label,lx,ly+1);ctx.restore();
  }
