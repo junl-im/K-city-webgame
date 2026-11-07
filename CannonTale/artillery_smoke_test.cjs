@@ -85,6 +85,10 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v69BalanceForTest=()=>{const duel={};for(const weapon of ["normal","bomb","split"]){newGame("duel",0);applyExplosion({x:1018,y:terrainY(1018)-29,weapon,owner:"player",directTarget:"ai",directCenter:5,timingAccuracy:1,hero:game.hero});duel[weapon]=DUEL_MAX_HP-game.aiHp;}const adventure={};for(const weapon of ["normal","bomb"]){newGame("adventure",3);const boss=game.foes.find(f=>f.boss),offset=weapon==="bomb"?34:31;applyExplosion({x:boss.x-offset,y:boss.y,weapon,owner:"player",directTarget:boss,directCenter:offset,timingAccuracy:.84,hero:game.hero});adventure[weapon]=boss.maxHp-boss.hp;}newGame("adventure",3);const boss=game.foes.find(f=>f.boss);for(let i=0;i<5;i++)applyExplosion({x:boss.x,y:boss.y,weapon:"split",owner:"player",directTarget:boss,directCenter:0,timingAccuracy:1,hero:game.hero});const bossCap={damage:boss.maxHp-boss.hp,alive:boss.alive};launch("player",45,72,"split");applyExplosion({x:boss.x,y:boss.y,weapon:"split",owner:"player",directTarget:boss,directCenter:0,timingAccuracy:1,hero:game.hero});bossCap.secondShotKills=!boss.alive;newGame("duel",0);launch("player",45,76,"split");const parent=game.projectiles[0];parent.timingGrade="perfect";parent.timingAccuracy=1;parent.timingBias=.22;parent.guided=true;splitProjectile(parent,5);const fragments=game.projectiles.filter(p=>p.active).map(p=>({grade:p.timingGrade,accuracy:p.timingAccuracy,bias:p.timingBias,guided:p.guided}));return{duel,adventure,bossCap,fragments};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v69DuelEdgeForTest=()=>{const result={};for(const weapon of ["normal","bomb"]){newGame("duel",0);applyExplosion({x:1018-32,y:terrainY(1018)-29,weapon,owner:"player",directTarget:"ai",directCenter:32,timingAccuracy:1,hero:game.hero});result[weapon]=DUEL_MAX_HP-game.aiHp;}return result;}; window.__artilleryLoadoutDebug=');
+// v6.10: the final impact must remain framed while the projectile-free flight
+// settles, and AI planning must share the real wind/terrain collision model.
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v610FlightCameraForTest=()=>{const field=$("field"),oldW=field.clientWidth,oldH=field.clientHeight;field.clientWidth=390;field.clientHeight=355;newGame("duel",0);launch("player",45,76,"normal");game.projectiles=[];game.lastImpact={x:1040,y:terrainY(1040)-10};game.phaseTime=.72;game.camera=250;resize();const cameraAfterImpact=game.camera;step(.016);const settleAt=game.flightSettledAt;for(let i=0;i<30;i++){step(1/60);resize();}const mid={phase:game.phase,camera:game.camera,waited:game.phaseTime-settleAt};for(let i=0;i<16;i++){step(1/60);resize();}const end={phase:game.phase,reviewFocusX:game.reviewFocusX,waited:game.phaseTime-settleAt};field.clientWidth=oldW;field.clientHeight=oldH;resize();return{cameraAfterImpact,settleAt,mid,end};}; window.__v610AiModelForTest=(wind,lift,angle,power)=>{newGame("duel",0);game.wind=wind;game.windLift=lift;const target={x:190,y:terrainY(190)-29};const actual=aiShotApproach(angle,power,wind,lift,target);const path=predict(angle,power,wind,"ai",640,0,lift);const reference=path.impact?.kind==="foe"?0:Math.min(...path.map(pt=>Math.hypot(pt.x-target.x,pt.y-target.y)));const shot=chooseAiShot();return{actual,reference,shot};}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -1382,5 +1386,18 @@ assert(balance.bossCap.secondShotKills,'A later split volley must be allowed to 
 assert.equal(balance.fragments.length,5,'Rabbit skill must spawn all five fragments');
 assert(balance.fragments.every(f=>f.grade==='perfect'&&f.accuracy===1&&f.bias===.22&&f.guided),
  'Split fragments must inherit the parent shell precision and guidance effects');
+const cameraHold=window.__v610FlightCameraForTest();
+assert(cameraHold.cameraAfterImpact>250,'After shell impact the view must continue tracking the landing site, not return to the hero');
+assert(cameraHold.settleAt>.7&&cameraHold.mid.waited<.6&&cameraHold.mid.phase==='flying',
+ 'The impact needs a real post-landing hold before opening the results');
+assert.equal(cameraHold.end.phase,'review','The impact hold must always advance to review without stalling');
+assert.equal(cameraHold.end.reviewFocusX,1040,'The review must retain the exact last impact location');
+for(const [wind,lift,angle,power] of [[-4.4,1.6,25,82],[4.4,-1.6,69,95],[0,0,42,70]]){
+ const model=window.__v610AiModelForTest(wind,lift,angle,power);
+ assert(Math.abs(model.actual-model.reference)<1e-6,
+  `AI search must use the same trajectory and terrain collision as real prediction: ${wind}/${lift}`);
+ assert(model.shot.angle>=8&&model.shot.angle<=88&&model.shot.power>=25&&model.shot.power<=100,
+  'AI shot still obeys legitimate player trajectory limits');
+}
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');
