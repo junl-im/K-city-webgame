@@ -3722,7 +3722,7 @@ function advanceChargePower(dt){
   if(game.mode==='duel'){
    for(const c of [{owner:'player',x:190},{owner:'ai',x:1018}]){
     const cy=terrainY(c.x)-29,dist=Math.hypot(p.x-c.x,p.y-cy);
-    if(dist<radius+30){const duelBase=p.weapon==='normal'?72:p.weapon==='bomb'?62:40;
+    if(dist<radius+30){const duelBase=p.weapon==='normal'?78:p.weapon==='bomb'?62:40;
      const potential=Math.max(12,Math.round((1-dist/(radius+30))*duelBase*bonus));
      // One firing may create many fragments, but cannot bypass five-hits durability.
      const remaining=Math.max(0,DUEL_VOLLEY_LIMIT-game.duelVolleyDamage[c.owner]);
