@@ -13,6 +13,12 @@ export function goVoice(count) {
   return n <= 10 ? `go${n}` : 'go_more';
 }
 
+// A recovered old decision can resolve to automatic stop instead of a go.
+export function resolvedGoDecision(before, after, player) {
+  const key = player === 'computer' ? 'computerGoCount' : 'humanGoCount';
+  return (after?.[key] ?? 0) > (before?.[key] ?? 0) ? 'go' : 'stop';
+}
+
 export function turnVoices(result, actor = 'human', combos = []) {
   if (!result) return [];
   const cues = [];

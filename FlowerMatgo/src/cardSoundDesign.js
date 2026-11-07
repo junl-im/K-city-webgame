@@ -1,6 +1,7 @@
 // Short locally synthesized sounds. No sampled assets, external downloads or
 // voice clips; the profile follows what the player can actually see.
 export const CARD_SOUND_PROFILES = Object.freeze({
+  shuffle: Object.freeze({ duration: .21, frequency: 1650, noiseGain: .10, bass: 150 }),
   land: Object.freeze({ duration: .09, frequency: 1220, noiseGain: .13, bass: 165 }),
   pair: Object.freeze({ duration: .12, frequency: 1940, noiseGain: .17, bass: 225 }),
   jjok: Object.freeze({ duration: .11, frequency: 2120, noiseGain: .14, bass: 245 }),
