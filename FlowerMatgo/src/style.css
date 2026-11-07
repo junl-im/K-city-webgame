@@ -3921,8 +3921,8 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .scene--game .mission-panel__reward small {display:block;color:#684b2a;font-size:10px;font-weight:950;line-height:1;white-space:nowrap;}
 @media(max-width:650px){.scene--game .central-event {padding:25px 15%;font-size:clamp(15px,4.7vw,19px);}.scene--game .event-plaque {min-height:27px;padding:7px 18px;font-size:clamp(9px,2.8vw,12px);}.scene--game .opponent-set-warning {font-size:8px;padding:1px 3px;}.scene--game .mission-panel__content {gap:1px;}.scene--game .mission-panel__cards {gap:1px;}.scene--game .mission-status-row .mission-mini {width:clamp(13px,4vw,17px);}.scene--game .mission-panel__reward small {font-size:8px;}}
 /* Reveal and deal now complete briskly without skipping either animation. */
-.scene--opening .opening-deal__card {animation-duration:.32s;animation-delay:calc(var(--deal-i) * .07s);}
-.scene--opening .opening-deal__hand--human .opening-deal__card {animation-delay:calc(.12s + var(--deal-i) * .07s);}
+.scene--opening .opening-deal__card {animation-duration:.24s;animation-delay:calc(var(--deal-i) * .035s);}
+.scene--opening .opening-deal__hand--human .opening-deal__card {animation-delay:calc(.06s + var(--deal-i) * .035s);}
 /* Coordinate the main game frames with the new floral plaque. */
 .scene--game .center-status,.scene--game .turn-clock,.scene--game .player-status>div,.scene--game .game-wallet {border-color:#e0bb80;box-shadow:inset 0 1px #fff5d888,0 2px 5px #173b3440;}
 .scene--game .collection-group {border-color:#e2c28c78;}

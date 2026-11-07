@@ -1,5 +1,6 @@
 import { DEFAULT_MATGO_RULES, type GameRuleSettings } from './settings';
 import type { BakCode, CapturedScore, RoundSettlement } from './types';
+import { isPiBak } from './piBak';
 
 export interface SettlementOptions {
   winnerScore: CapturedScore;
@@ -35,7 +36,7 @@ export function calculateSettlement(options: SettlementOptions): RoundSettlement
   const bakCodes: BakCode[] = [];
 
   if (!options.suppressMultipliers) {
-    if (options.winnerScore.junkCount >= settings.junkStart && options.loserScore.junkCount >= 1 && options.loserScore.junkCount <= 7) bakCodes.push('pi-bak');
+    if (isPiBak(options.winnerScore.junkCount,options.loserScore.junkCount,settings.junkStart)) bakCodes.push('pi-bak');
     if (options.winnerScore.brightCount === 5 || (options.winnerScore.brightCount >= 3 && options.loserScore.brightCount === 0)) bakCodes.push('gwang-bak');
     if (options.winnerScore.animalCount >= 7) bakCodes.push('meong-bak');
     if ((options.loserGoCount ?? 0) > 0) bakCodes.push('go-bak');

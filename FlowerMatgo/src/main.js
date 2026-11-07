@@ -1,4 +1,5 @@
 import { handHint } from './handHint.js';
+import { humanPlayComment } from './playComment.js';
 import './style.css';
 import {
   createInitialGame, chooseGo, chooseStop, chooseChongtong,
@@ -929,7 +930,10 @@ function commitGame(next, result=null, motion=null, motionVoicePlayed=false) {
     // engine state now. Reloading during the flight must never replay a turn.
     save();
     let wait = 0;
-    try { wait = animateResolvedTurn({root:ROOT, result, cardHTML:id=>card(id), sound:cardSound, ...motion, onCollect:()=>{
+    try { wait = animateResolvedTurn({root:ROOT, result, cardHTML:id=>card(id), sound:cardSound, ...motion, onLand:()=>{
+      if (!turnTransition || pendingResolvedCheckpoint?.game !== next || document.hidden || app.screen !== 'game') return;
+      if (motion.playComment) { gameCueSound(motion.playComment);voicePlayer.enqueue([motion.playComment]); }
+    }, onCollect:()=>{
       if (!turnTransition || pendingResolvedCheckpoint?.game !== next || document.hidden || app.screen !== 'game') return;
       voicePlayer.enqueue(turnVoices(result,app.game?.currentPlayer));motionVoicePlayed=true;
     }}); }
@@ -1079,6 +1083,8 @@ function pickOpeningDealer(index) {
   try {
     opening = revealDealerCards(opening,index);
     cardSound('flip');
+    gameCueSound('dealer');
+    voicePlayer.enqueue(['dealer_confirm']);
     render();
     openingTimer = setTimeout(advanceOpening,OPENING_REVEAL_MS);
   } catch(error) { console.error('Dealer selection failed:',error); }
@@ -1134,7 +1140,7 @@ function humanPlay(id, matchId, skipTriple=false, drawnMatchId=undefined, automa
   ROOT.querySelector('.modal-shade--decision')?.remove();
   const handRect = motionOrigin(ROOT.querySelector(`.my-hand [data-card="${id}"]`));
   const deckRect = motionOrigin(ROOT.querySelector('.deck-pile .hwatu'));
-  try { const result=playTurn(g,'human',id,{playedMatchId:matchId,drawnMatchId});commitGame(result.state,result,{player:'human',handRect,deckRect,playedMatchId:matchId}); }
+  try { const result=playTurn(g,'human',id,{playedMatchId:matchId,drawnMatchId});commitGame(result.state,result,{player:'human',handRect,deckRect,playedMatchId:matchId,playComment:humanPlayComment(g,id)}); }
   catch(err) { console.error(err);effects(err.message || '다른 패를 골라줘');render(); }
 }
 function mutate(action, value, cardId) {

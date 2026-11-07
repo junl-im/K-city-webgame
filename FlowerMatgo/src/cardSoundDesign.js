@@ -33,6 +33,9 @@ export function impactAccents(kind) { return IMPACT_ACCENTS[kind] ?? []; }
 // Short original note patterns complement card impacts without external samples.
 export const GAME_CUE_NOTES = Object.freeze({
   start: Object.freeze([392,494,587]),
+  dealer: Object.freeze([660,880,1047]),
+  missed_match: Object.freeze([510,380]),
+  no_match: Object.freeze([390,490]),
   go: Object.freeze([494,659]),
   stop: Object.freeze([523,392]),
   mission: Object.freeze([523,659,784]),
