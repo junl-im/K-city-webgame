@@ -80,6 +80,9 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v66StartPaceForTest=(kind)=>{newGame("duel",0);game.angle=43;game.wind=0;game.windLift=0;if(kind==="charge")beginFireCharge();else{beginPrecision();if(kind==="confirm"){game.chargeConfirmTime=1;game.chargeConfirmImpact={x:1018,y:360};$("chargeGauge").hidden=false;}}}; window.__v66PaceForTest=()=>({charge:game.chargeElapsed,range:duelRangeReferencePoint(game.angle,game.chargedPower).x,precision:game.precisionElapsed,needle:game.precisionNeedle,confirm:game.chargeConfirmTime,phase:game.phase,shots:game.shots,used:game.reaimCount}); window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v67PerfectWindowForTest=()=>({half:game.precisionPerfectHalf,slow:game.precisionSlowFrames,width:$("precisionCenter").style.width,grade:precisionGrade(.545).grade,needle:game.precisionNeedle}); window.__artilleryLoadoutDebug=');
+// v6.9: run the actual explosion, boss, fragment and reward functions.
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v69BalanceForTest=()=>{const duel={};for(const weapon of ["normal","bomb","split"]){newGame("duel",0);applyExplosion({x:1018,y:terrainY(1018)-29,weapon,owner:"player",directTarget:"ai",directCenter:5,timingAccuracy:1,hero:game.hero});duel[weapon]=DUEL_MAX_HP-game.aiHp;}const adventure={};for(const weapon of ["normal","bomb"]){newGame("adventure",3);const boss=game.foes.find(f=>f.boss),offset=weapon==="bomb"?34:31;applyExplosion({x:boss.x-offset,y:boss.y,weapon,owner:"player",directTarget:boss,directCenter:offset,timingAccuracy:.84,hero:game.hero});adventure[weapon]=boss.maxHp-boss.hp;}newGame("adventure",3);const boss=game.foes.find(f=>f.boss);for(let i=0;i<5;i++)applyExplosion({x:boss.x,y:boss.y,weapon:"split",owner:"player",directTarget:boss,directCenter:0,timingAccuracy:1,hero:game.hero});const bossCap={damage:boss.maxHp-boss.hp,alive:boss.alive};launch("player",45,72,"split");applyExplosion({x:boss.x,y:boss.y,weapon:"split",owner:"player",directTarget:boss,directCenter:0,timingAccuracy:1,hero:game.hero});bossCap.secondShotKills=!boss.alive;newGame("duel",0);launch("player",45,76,"split");const parent=game.projectiles[0];parent.timingGrade="perfect";parent.timingAccuracy=1;parent.timingBias=.22;parent.guided=true;splitProjectile(parent,5);const fragments=game.projectiles.filter(p=>p.active).map(p=>({grade:p.timingGrade,accuracy:p.timingAccuracy,bias:p.timingBias,guided:p.guided}));return{duel,adventure,bossCap,fragments};}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -748,6 +751,8 @@ if(/v0_[67]/.test(versionedPath)){
  assert.equal(window.__gradeStarsForTest(2,4),3,'Two-shot clear earns three painted medals');
  assert.equal(window.__gradeStarsForTest(3,4),2,'Three of four shells earns two painted medals');
  assert.equal(window.__gradeStarsForTest(3,3),1,'Last-shell clear earns one painted medal');
+assert.deepEqual([1,2,3].map(n=>window.__gradeStarsForTest(n,3)),[3,2,1],
+ 'The three-shell tutorial must offer every medal tier');
  assert.equal(JSON.parse(saved.get('wind-artillery-progress-v06')).hero,'cat','Hero choice must persist');
  assert.deepEqual(state().savedBest.slice(0,2),[3,2],'Prior progress must not be lost');
  el('adventureStage').value='2';el('adventureBtn').click();frames(3);
@@ -1361,5 +1366,16 @@ assert.equal(state().phase,'timingResult');
 handlers.popstate();frames(120);
 assert.equal(state().mode,'menu','Back during a committed result hold returns to menu');
 assert.equal(state().shots,0,'Leaving during result hold must cancel the queued shot');
+const balance=window.__v69BalanceForTest();
+assert(balance.duel.normal>balance.duel.bomb&&balance.duel.bomb>balance.duel.split,
+ 'A single direct duel hit should favor precision normal over splash bomb over fragment');
+assert(balance.adventure.normal>balance.adventure.bomb,
+ 'Normal should outdamage bomb on one confirmed boss contact, while bomb retains a wider radius');
+assert(balance.bossCap.alive&&balance.bossCap.damage<=125.01&&balance.bossCap.damage>=124.99,
+ 'Five overlapping rabbit fragments must not one-shot the boss in one volley');
+assert(balance.bossCap.secondShotKills,'A later split volley must be allowed to finish the weakened boss');
+assert.equal(balance.fragments.length,5,'Rabbit skill must spawn all five fragments');
+assert(balance.fragments.every(f=>f.grade==='perfect'&&f.accuracy===1&&f.bias===.22&&f.guided),
+ 'Split fragments must inherit the parent shell precision and guidance effects');
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');
