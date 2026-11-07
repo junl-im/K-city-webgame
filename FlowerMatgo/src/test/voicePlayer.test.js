@@ -34,6 +34,15 @@ describe('game voice playback',()=>{
   p.unlock();p.enqueue(['first_human']);
   expect(FakeAudio.instances[0].src).toContain('/first_human-v2.mp3');
  });
+ it('uses the revised time warning and does not interrupt a current line',()=>{
+  FakeAudio.instances=[];
+  const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.8,AudioClass:FakeAudio});
+  p.unlock();p.enqueue(['hurry'],{urgent:true});const audio=FakeAudio.instances[0];
+  expect(audio.src).toContain('/hurry-v2.mp3');
+  p.clear();p.enqueue(['jjok']);p.enqueue(['hurry'],{urgent:true});
+  expect(audio.pause).toHaveBeenCalledTimes(1);audio.onended();
+  expect(audio.play).toHaveBeenCalledTimes(2);
+ });
  it('plays the complete revised first-ppeok clip before a later reaction',()=>{
   FakeAudio.instances=[];
   const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.8,AudioClass:FakeAudio});
