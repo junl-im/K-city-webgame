@@ -18,9 +18,13 @@ const clamp=(n,a,b)=>Math.max(a,Math.min(n,b));
 const game={mode:'duel',hero:'fox',aiHero:'bear',angle:43,wind:0,windLift:0,
  chargedPower:20,chargeDirection:1,chargeSweepTime:0,
  chargeConfirmTime:0,chargeConfirmImpact:null,phase:'aim',terrain:null,blocks:[],foes:[]};
+const angleEl={value:43},powerEl={value:72},cv={clientWidth:390};
+let hudUpdates=0;
+function updateHud(){hudUpdates++;}
 ${take('function terrainY(','function powerVelocity(')}
 ${take('function projectileSpeed(','function launch(')}
 ${take('function predict(','function chooseAiShot(')}
+${take(' function nudgeAim(', ' function abilityUnavailableReason(')}
 game.terrain=initialTerrain('duel');
 function aimX(power){return duelRangeReferencePoint(game.angle,power).x;}
 function minToEnemy(power){
@@ -66,9 +70,31 @@ function findHit(wind,from=20,to=76){
  }
  return null;
 }
-({run,findHit,probe:(angle,power,wind=0)=>{game.angle=angle;game.wind=wind;game.chargedPower=power;game.chargeDirection=1;return{rate:chargeSweepRate(),x:aimX(power),next:aimX(power+1)};}, sweepPoints:(angle)=>{game.angle=angle;game.chargeSweepTime=0;game.chargedPower=20;const points=[];for(let i=0;i<=81;i++){const sight=duelRangeReferencePoint(angle,game.chargedPower);points.push({p:game.chargedPower,x:sight.x,rawX:duelRawRangeX(angle,game.chargedPower),overrange:sight.overrange,extraRange:sight.extraRange,progress:sight.overrangeProgress,contactX:stableAimPoint(stableAimPath(game.angle,game.chargedPower,0)).x});advanceChargePower(1/60);}return points;}, screenX:(rangeX,angle,startCamera,screenWidth,screenHeight)=>{const scale=screenHeight/H,visible=screenWidth/scale;return(rangeX-duelChargeCamera(rangeX,angle,startCamera,visible))*scale;}, windCheck:(angle,power)=>{game.angle=angle;game.wind=-4.2;const a=aimX(power);game.wind=4.2;const b=aimX(power);const windy=predict(angle,power,4.2,'player',900,0,0,true),calm=predict(angle,power,0,'player',900,0,0,true);return{a,b,windy:(windy.impact||windy.at(-1)).x,calm:(calm.impact||calm.at(-1)).x};}})
+function manualReach(){
+ game.mode='duel';game.turn='player';game.phase='aim';game.chargeActive=false;game.overview=false;
+ game.scale=.64;game.angle=40;game.power=54;game.panX=null;game.wind=3.8;
+ const before=duelRangeReferencePoint(game.angle,game.power).x;
+ for(let i=0;i<12;i++)assert(nudgeAim('range',1),'Distance plus must remain available on touch');
+ const after=duelRangeReferencePoint(game.angle,game.power).x;
+ assert.equal(game.power,100,'The manual distance controls must actually reach maximum power');
+ assert.equal(after,1100,'The marker must reach the enemy rear camp');
+ assert(game.panX>0,'The camera must follow the manually adjusted target');
+ const windBefore=game.wind;
+ nudgeAim('angle',1);assert.equal(game.angle,42,'Angle plus must change actual trajectory elevation');
+ nudgeAim('angle',-1);assert.equal(game.angle,40);
+ for(let i=0;i<22;i++)nudgeAim('range',-1);
+ assert.equal(game.power,20,'Manual distance must also reach minimum without crossing it');
+ assert.equal(game.wind,windBefore,'Reference distance and angle controls must never alter wind');
+ game.phase='timing';assert.equal(nudgeAim('range',1),false,'No range changes during timing result');
+ game.phase='aim';game.chargeActive=true;assert.equal(nudgeAim('range',1),false,'Manual keys must not interfere with a held charge');
+ return {angle:40,startX:Math.round(before),maxX:after,maxPower:100,cameraMoved:true};
+}
+({run,findHit,manualReach,probe:(angle,power,wind=0)=>{game.angle=angle;game.wind=wind;game.chargedPower=power;game.chargeDirection=1;return{rate:chargeSweepRate(),x:aimX(power),next:aimX(power+1)};}, sweepPoints:(angle)=>{game.angle=angle;game.chargeSweepTime=0;game.chargedPower=20;const points=[];for(let i=0;i<=81;i++){const sight=duelRangeReferencePoint(angle,game.chargedPower);points.push({p:game.chargedPower,x:sight.x,rawX:duelRawRangeX(angle,game.chargedPower),overrange:sight.overrange,extraRange:sight.extraRange,progress:sight.overrangeProgress,contactX:stableAimPoint(stableAimPath(game.angle,game.chargedPower,0)).x});advanceChargePower(1/60);}return points;}, screenX:(rangeX,angle,startCamera,screenWidth,screenHeight)=>{const scale=screenHeight/H,visible=screenWidth/scale;return(rangeX-duelChargeCamera(rangeX,angle,startCamera,visible))*scale;}, windCheck:(angle,power)=>{game.angle=angle;game.wind=-4.2;const a=aimX(power);game.wind=4.2;const b=aimX(power);const windy=predict(angle,power,4.2,'player',900,0,0,true),calm=predict(angle,power,0,'player',900,0,0,true);return{a,b,windy:(windy.impact||windy.at(-1)).x,calm:(calm.impact||calm.at(-1)).x};}})
 `;
-const {run,findHit,probe,sweepPoints,screenX,windCheck}=vm.runInNewContext(source,{assert}, {timeout:10000});
+const {run,findHit,manualReach,probe,sweepPoints,screenX,windCheck}=vm.runInNewContext(source,{assert}, {timeout:10000});
+assert(html.includes('id="aimAdjust"')&&html.includes('data-aim-step="range:1"')&&html.includes('id="aimPowerValue"'),
+ 'The mobile duel screen must visibly expose manual range and current power');
+console.log('manual distance recovery',JSON.stringify(manualReach()));
 for(const angle of [20,30,42,52,65]){
  const pts=sweepPoints(angle),deltas=pts.slice(1).map((pt,i)=>pt.x-pts[i].x);
  // Keep the whole physical 20-100% power sweep, while the visible cursor only
