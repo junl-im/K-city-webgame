@@ -3190,9 +3190,13 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   const descendingTime=Math.max(0,(-v.vy+Math.sqrt(discriminant))/G);
   return muzzle.x+v.vx*descendingTime;
  }
+ // The opponent is stationed at x=1018. Keep the visible aiming instrument
+ // inside their rear camp instead of sweeping far into empty terrain. Reserve
+ // power beyond this line for severe headwind; NEVER clamp the real projectile.
+ const DUEL_AIM_BACKLINE_X=1100;
  function duelRangeReferencePoint(ang,pow){
-  const x=clamp(duelRawRangeX(ang,pow),0,W);
-  return {x,y:clamp(terrainY(x)-29,35,H-42),kind:'range-reference'};
+  const rawX=duelRawRangeX(ang,pow),x=clamp(rawX,0,DUEL_AIM_BACKLINE_X);
+  return {x,y:clamp(terrainY(x)-29,35,H-42),kind:'range-reference',overrange:rawX>DUEL_AIM_BACKLINE_X};
  }
  function duelChargeCamera(rangeX,angle,startCamera,visible){
   // During the timing sweep the same world-range fraction pans the stage.
@@ -3479,7 +3483,7 @@ function advanceChargePower(dt){
   $('angleValue').textContent=Math.round(game.angle)+'°';$('powerValue').textContent=Math.round(game.power)+'%';
   const o=origin(),path=stableAimPath(game.angle,game.power,0,'player',900);
   const impact=game.mode==='duel'?duelRangeReferencePoint(game.angle,game.power):stableAimPoint(path);
-  $('distanceValue').textContent=impact?String(Math.max(0,Math.round(Math.abs(impact.x-o.x)))):'—';
+  $('distanceValue').textContent=impact?.overrange?'진영 밖':impact?String(Math.max(0,Math.round(Math.abs(impact.x-o.x)))):'—';
   // Do not project a wind-shifted aim marker or show a fake correction target.
   // The small wind arrow is drawn beside the neutral cursor; the actual wind
   // shift is calculated only when the projectile is launched.
@@ -4629,6 +4633,9 @@ const materialCells={
   // marker. A graze must not teleport the range reticle or the camera.
   const dots=game.mode==='duel'?stableAimPath(a,p,0):contacts;
   const steadyTarget=game.mode==='duel'?duelRangeReferencePoint(a,p):stableAimPoint(dots),actualHit=contacts.impact;
+  // The illustrated guide ends at the rear camp; the real flight can still
+  // extend beyond it, including when the player compensates for headwind.
+  const paintedDots=game.mode==='duel'?dots.filter(point=>point.x<=DUEL_AIM_BACKLINE_X):dots;
   const previousCue=game.aimCue?.kind||'none';
   const cue=duelAimFeedback(dots,contacts);
   game.aimCue=cue;
@@ -4641,15 +4648,15 @@ const materialCells={
   game.chargeReveal=1;
   if(game.chargeActive)game.chargeFocusX=game.chargeAimX;
   // Medium-contrast trajectory: readable without hiding the stage artwork.
-  if(dots.length>2){
+  if(paintedDots.length>2){
    ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.setLineDash?.([2.5,13]);
-   ctx.beginPath();ctx.moveTo(dots[0].x,dots[0].y);
-   for(let i=3;i<dots.length;i+=3)ctx.lineTo(dots[i].x,dots[i].y);
-   const last=dots[dots.length-1];ctx.lineTo(last.x,last.y);
+   ctx.beginPath();ctx.moveTo(paintedDots[0].x,paintedDots[0].y);
+   for(let i=3;i<paintedDots.length;i+=3)ctx.lineTo(paintedDots[i].x,paintedDots[i].y);
+   const last=paintedDots[paintedDots.length-1];ctx.lineTo(last.x,last.y);
    ctx.strokeStyle='#263e51aa';ctx.lineWidth=7;ctx.stroke();
    ctx.strokeStyle='#f4e6b9b0';ctx.lineWidth=3.9;ctx.stroke();
    ctx.setLineDash?.([]);ctx.restore();
-   for(let i=16;i<dots.length;i+=24){const pt=dots[i];ellipse(pt.x,pt.y,2.3,2.3,'#f2e8c5a5');}
+   for(let i=16;i<paintedDots.length;i+=24){const pt=paintedDots[i];ellipse(pt.x,pt.y,2.3,2.3,'#f2e8c5a5');}
   }
   // One light wind-direction label, attached to the unchanged neutral-range
   // marker. No ghost landing point: wind changes ONLY real projectile flight.
@@ -4699,11 +4706,11 @@ const materialCells={
    ctx.fillText('근접 · 미세 조준',tx,ty-52,105);ctx.restore();
   }
   if(!hit||hit.y<20||hit.y>H-14)return;
-  const target=hit.kind==='foe',color=target?'#93f1c7':hit.kind==='block'?'#ffe1a6':'#e6f2f1';
+  const target=hit.kind==='foe',overrange=game.mode==='duel'&&!!hit.overrange,color=overrange?'#ffd393':target?'#93f1c7':hit.kind==='block'?'#ffe1a6':'#e6f2f1';
   ctx.save();ctx.beginPath();ctx.arc(hit.x,hit.y,18+Math.sin(game.clock*4)*2,0,Math.PI*2);
   ctx.strokeStyle='#263d50ba';ctx.lineWidth=5.5;ctx.stroke();ctx.strokeStyle=color;ctx.lineWidth=2.7;ctx.stroke();
   ctx.beginPath();ctx.arc(hit.x,hit.y,4.5,0,Math.PI*2);ctx.fillStyle='#fffbe2';ctx.fill();
-  const label=target?'조준 정타':hit.kind==='block'?'기준 충돌':game.mode==='duel'?'기준 사거리':'기준 착탄';
+  const label=overrange?'추가 사거리':target?'조준 정타':hit.kind==='block'?'기준 충돌':game.mode==='duel'?'기준 사거리':'기준 착탄';
   const lx=clamp(hit.x,58,W-58),ly=clamp(hit.y-30,36,H-38);
   roundRect(lx-46,ly-17,92,26,13,'#1c3f4abb');ctx.fillStyle=color;ctx.font='800 13px system-ui, sans-serif';ctx.textAlign='center';ctx.fillText(label,lx,ly+1);ctx.restore();
  }
