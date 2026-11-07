@@ -3397,13 +3397,17 @@ button:disabled { cursor: not-allowed; opacity:.48; }
 .scene--game .my-hand .hwatu--match-hint:not(.hwatu--departing),
 .scene--game .my-hand .hwatu--match-idle:not(.hwatu--departing) {z-index:auto;}
 /* A pile is one wrapping unit: its three real cards stay together on narrow boards. */
-.scene--game .floor-area .floor-pile {display:inline-flex;align-items:center;flex:none;isolation:isolate;padding:6px 2px 0;}
+.scene--game .floor-area .floor-pile {display:inline-grid;grid-template-columns:minmax(0,1fr);align-items:center;flex:none;isolation:isolate;padding:7px 5px;}
+.scene--game .floor-area .floor-pile .hwatu {grid-area:1 / 1;margin:0;}
 .scene--game .floor-area .floor-pile .hwatu--pile-2,
 .scene--game .floor-area .floor-pile .hwatu--pile-3,
 .scene--game .floor-area .floor-pile .hwatu--pile-4,
-.scene--game .floor-area .floor-pile .hwatu--pile-5 {margin-left:clamp(-36px,-5vw,-22px);}
-.scene--game .floor-area .floor-pile .hwatu--pile-4 {transform:translateY(-4px) rotate(3deg);z-index:3;}
-.scene--game .floor-area .floor-pile .hwatu--pile-5 {transform:translateY(-7px) rotate(-3deg);z-index:4;}
+.scene--game .floor-area .floor-pile .hwatu--pile-5 {margin-left:0;}
+.scene--game .floor-area .floor-pile .hwatu--pile-1 {transform:translate(-4px,4px) rotate(-5deg);z-index:0;}
+.scene--game .floor-area .floor-pile .hwatu--pile-2 {transform:translate(4px,1px) rotate(5deg);z-index:1;}
+.scene--game .floor-area .floor-pile .hwatu--pile-3 {transform:translate(0,-3px) rotate(-2deg);z-index:2;}
+.scene--game .floor-area .floor-pile .hwatu--pile-4 {transform:translate(3px,-4px) rotate(3deg);z-index:3;}
+.scene--game .floor-area .floor-pile .hwatu--pile-5 {transform:translate(-2px,-6px) rotate(-3deg);z-index:4;}
 .turn-deck-flip__spin {animation-duration:.30s;}
 /* Keep the entire portrait-oriented back artwork visible, including during a flip. */
 .hwatu--back .hwatu__face {background-color:#aa1015;background-size:contain;background-repeat:no-repeat;}

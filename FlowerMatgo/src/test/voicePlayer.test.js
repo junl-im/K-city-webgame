@@ -43,6 +43,12 @@ describe('game voice playback',()=>{
   expect(audio.pause).toHaveBeenCalledTimes(1);audio.onended();
   expect(audio.play).toHaveBeenCalledTimes(2);
  });
+ it('uses the updated captured-ppeok voice for both kinds of ppeok capture',()=>{
+  FakeAudio.instances=[];
+  const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.8,AudioClass:FakeAudio});
+  p.unlock();p.enqueue(['ppeok_take']);
+  expect(FakeAudio.instances[0].src).toContain('/ppeok_take-v2.mp3');
+ });
  it('plays the complete revised first-ppeok clip before a later reaction',()=>{
   FakeAudio.instances=[];
   const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.8,AudioClass:FakeAudio});
