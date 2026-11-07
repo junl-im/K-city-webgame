@@ -620,11 +620,11 @@ function gameOverlay(g) {
 }
 function choiceTimer() { return `<p class="decision-timer" role="timer" aria-label="선택 남은 시간">남은 시간 <strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초 · 시간 종료 시 자동 선택, 자동 ON</p>`; }
 function helpOverlay() {
-  return `<div class="modal-shade"><div class="modal-box help-box"><h2>🎴 라니맞고, 이렇게 즐겨!</h2>
+  return `<div class="modal-shade"><section class="modal-box help-box" role="dialog" aria-modal="true" aria-labelledby="help-title"><div class="help-heading"><h2 id="help-title">🎴 라니맞고, 이렇게 즐겨!</h2><button class="gallery-close" type="button" data-action="close" aria-label="게임 방법 닫기">✕</button></div>
     <ol><li>첫 판에는 패를 섞고 한 장씩 뽑아 선을 정해. 다음 판은 전 판 승자가 먼저 쳐.</li><li>내 손패를 눌러 바닥에 같은 무늬가 있으면 먹어.</li><li>패가 바닥에 착지하면 더미 한 장을 뒤집고 먹은 패를 가져와.</li><li>내 차례와 고/스톱 선택은 20초! 시간이 끝나면 자동으로 진행돼.</li><li><b>자동 ON</b>이면 내 패도 자동으로 내고, OFF면 직접 골라.</li><li><b>내가 먹은 패</b>는 손패 바로 위에 실제 화투 그림으로 쌓여. 종류를 누르면 모두 크게 펼쳐 보여!</li><li>광·열끗·띠·피를 모아 7점부터 고 또는 스톱!</li><li>고는 더 높은 점수를 노리고, 스톱은 지금 점수로 승리해.</li></ol>
     <p>쌍피·광박·피박·고박·흔들기·폭탄·뻑도 적용돼. 난이도는 AI가 선택하는 수의 수준을 바꾸며 패 분배는 동일한 규칙으로 섞어.</p>
     <div class="help-mini">놀이머니는 전부 무료이고, 현금으로 교환할 수 없어. 현재 기기에만 저장돼.</div>
-    ${btn('알겠어!','close','btn--primary btn--wide')}</div></div>`;
+    ${btn('알겠어!','close','btn--primary btn--wide')}</section></div>`;
 }
 function cardbookOverlay() {
   const months = Array.from({length:12},(_,i)=>i+1);
