@@ -1207,6 +1207,13 @@ for(const aim of [aimHit,aimMiss]){
  assert.equal(aim.steady.kind,'range-reference','The sight ruler must stay independent of the foe and the first terrain collision');
 }
 assert(aimHit.contact?.kind==='foe'&&aimHit.steady.kind==='range-reference','Physical enemy contact and continuous range forecast must remain separate predictions');
+const reservedRange=window.__v55AimProbeForTest(42,100,-4.4);
+assert.equal(reservedRange.steady.x,1100,'The visible sight must stop at the enemy rear line, not the distant map boundary');
+assert.equal(reservedRange.chargeX,1100,'Charging camera and reticle must agree on the shortened visible range');
+assert.equal(reservedRange.steady.overrange,true,'Extra long-range power needs an honest overrange indication');
+assert(window.__v64RangeXForTest(42,100)>1200,'Visible sight limits must NOT shorten actual artillery power or counterwind reach');
+assert(html.includes('const paintedDots=game.mode===\'duel\'?dots.filter(point=>point.x<=DUEL_AIM_BACKLINE_X):dots'),
+ 'Visible dotted aiming guide must stop at the same rear line as the sight');
 assert(html.includes('duelChargeCamera(game.chargeAimX,game.angle'),'Charging camera must track the same uninterrupted neutral-range fraction');
 const aimingNearRate=window.__v55ChargeRateForTest(aimSweep.hit.angle,aimSweep.hit.power);
 const aimingFarRate=window.__v55ChargeRateForTest(aimSweep.hit.angle,20);
