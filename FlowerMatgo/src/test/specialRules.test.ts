@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { applyBonusPeeCapture, evaluateChongtong, findBombOptions, findShakeOptions, isThreePpeok, stealPeeByValue, stealPeeCards, stealPeeForBonus } from '../engine/rules/specialRules';
 
 describe('맞고 특수 규칙', () => {
+  it('보너스 피 뺏기는 일반 피를 먼저 고르고 전환된 국진만 쌍피로 취급한다', () => {
+    expect(applyBonusPeeCapture([],['m09-01','m01-03'],'bonus-pee-1',true).stolenCardId).toBe('m01-03');
+    expect(applyBonusPeeCapture([],['m09-01'],'bonus-pee-1',true).stolenCardId).toBe('m09-01');
+    expect(applyBonusPeeCapture([],['m09-01'],'bonus-pee-1',false).stolenCardId).toBeNull();
+  });
   it('손패 2장과 바닥 2장으로 두장폭탄을 허용한다', () => {
     const options = findBombOptions(['m01-01', 'm01-02'], ['m01-03', 'm01-04']);
     expect(options[0]?.kind).toBe('two-card-bomb');

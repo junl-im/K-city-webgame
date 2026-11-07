@@ -168,6 +168,33 @@ describe('기본 맞고 진행 상태', () => {
     expect(isValidGameState(result.state)).toBe(true);
   });
 
+  it.each(['human','computer'] as const)('%s의 보너스는 상대의 쌍피로 전환한 국진을 가져오고 설정도 옮긴다', actor => {
+    const game=createArrangedGame({
+      humanHand:['m01-01'],computerHand:['m02-01'],floorCards:['m01-02'],floorSize:1,
+      drawFirst:['bonus-pee-1','m03-01'],
+      ...(actor==='human'?{computerCaptured:['m09-01']}:{humanCaptured:['m09-01']})
+    });
+    game.currentPlayer=actor;
+    game.mission=null;
+    if(actor==='human') game.computerGookjinAsDoubleJunk=true;
+    else game.humanGookjinAsDoubleJunk=true;
+    const result=playTurn(game,actor,actor==='human'?'m01-01':'m02-01');
+    expect(result.bonusStolenPee).toEqual(['m09-01']);
+    expect(actor==='human'?result.state.humanCaptured:result.state.computerCaptured).toContain('m09-01');
+    expect(result.state.humanGookjinAsDoubleJunk).toBe(actor==='human');
+    expect(result.state.computerGookjinAsDoubleJunk).toBe(actor==='computer');
+    expect(isValidGameState(result.state)).toBe(true);
+  });
+
+  it('열끗으로 쓰는 국진은 보너스패로 빼앗지 않는다', () => {
+    const game=createArrangedGame({humanHand:['m01-01'],floorCards:['m01-02'],floorSize:1,
+      drawFirst:['bonus-pee-1','m03-01'],computerCaptured:['m09-01']});
+    game.mission=null;
+    const result=playTurn(game,'human','m01-01');
+    expect(result.bonusStolenPee).toEqual([]);
+    expect(result.state.computerCaptured).toContain('m09-01');
+  });
+
   it('낸 패와 뒤집은 패가 같은 월로 겹치면 뻑으로 바닥에 세 장을 남긴다', () => {
     const game = createForcedPpeokGame();
     const result = playTurn(game, 'human', 'm01-01');

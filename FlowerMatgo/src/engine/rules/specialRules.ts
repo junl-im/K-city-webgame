@@ -116,9 +116,9 @@ export function stealPeeByValue(opponentCaptured: string[], targetValue: number,
   return { stolenCardIds, remaining };
 }
 
-export function applyBonusPeeCapture(actorCaptured: string[], opponentCaptured: string[], bonusCardId: string) {
+export function applyBonusPeeCapture(actorCaptured: string[], opponentCaptured: string[], bonusCardId: string, gookjinAsDoubleJunk = false) {
   if (!getCard(bonusCardId)?.tags.includes('bonus-pee')) throw new Error('보너스피가 아닌 패입니다.');
-  const stolen = stealPeeForBonus(opponentCaptured);
+  const stolen = stealPeeForBonus(opponentCaptured, gookjinAsDoubleJunk);
   return {
     actorCaptured: [...actorCaptured, bonusCardId, ...(stolen.stolenCardId ? [stolen.stolenCardId] : [])],
     opponentCaptured: stolen.remaining,
