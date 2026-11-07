@@ -2763,10 +2763,10 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   <div id="exitConfirm" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="exitTitle">
    <section class="panel exit-panel"><span class="eyebrow">ONE MORE ADVENTURE?</span><h2 id="exitTitle">모험을 마칠까요?</h2><p>여정은 이곳에 남아 있어요. 다음에 돌아오면 이어서 도전할 수 있어요.</p><div class="panel-actions"><button id="exitStayBtn" class="paper-btn" type="button">계속 놀기</button><button id="exitLeaveBtn" class="paper-btn light" type="button">나가기</button></div></section>
   </div>
- <aside class="help" id="help" hidden><button id="closeHelp" class="tiny" type="button">닫기</button><h2>조작 안내</h2><p><b>전장을 위아래로 드래그</b>해 각도를 조절하세요. 화면 왼쪽 위에서 현재 각도와 예상 거리를 볼 수 있습니다. <b>발사 버튼을 길게 누르면 파워가 일정한 속도로 왕복</b>해요. 적중 타이밍에 손을 떼면 선택한 파워가 <b>약 1초간 반짝이며 표시</b>되고 정밀 게이지가 바로 움직입니다. 바늘이 초록색 중앙에 올 때 <b>게이지나 발사 버튼을 다시 눌러</b> 발사하세요. 모험의 새총을 당겨도 같은 순서입니다.</p><p>여우·토끼의 특수기는 <b>포탄 비행 중</b>, 곰·고양이의 특수기는 <b>발사 전</b> 사용합니다. 특수기는 플레이어 발사 한 번당 1회 가능해요. 단축키는 <b>Q</b>입니다.</p><p>바람 방향과 세기를 읽으세요. 강풍에서는 표적이 크게 어긋나며 바늘의 좌우 위치도 실제 탄도를 바꿉니다. 결투는 양쪽 모두 <b>내구도 420</b>으로 시작해 여러 발의 정타를 주고받는 장기전입니다. 폭탄탄은 넓은 폭발, 분열탄은 다중 타격이며 한 번 발사한 분열탄의 피해에는 합산 상한이 있습니다. <b>전장 보기</b>로 지형을 확인할 수 있어요.</p></aside>
+ <aside class="help" id="help" hidden><button id="closeHelp" class="tiny" type="button">닫기</button><h2>조작 안내</h2><p><b>전장을 위아래로 드래그</b>해 각도를 조절하세요. 화면 왼쪽 위에서 현재 각도와 예상 거리를 볼 수 있습니다. <b>발사 버튼을 길게 누르면 파워가 일정한 속도로 왕복</b>해요. 손을 떼면 정밀 게이지가 움직이고, 바늘이 중앙에 올 때 <b>게이지나 발사 버튼을 다시 눌러</b> 확정하세요. <b>확정된 바늘과 전장 화면이 1.5초 유지</b>된 뒤 포탄이 발사됩니다. 모험의 새총을 당겨도 같은 순서입니다.</p><p>여우·토끼의 특수기는 <b>포탄 비행 중</b>, 곰·고양이의 특수기는 <b>발사 전</b> 사용합니다. 특수기는 플레이어 발사 한 번당 1회 가능해요. 단축키는 <b>Q</b>입니다.</p><p>바람 방향과 세기를 읽으세요. 강풍에서는 표적이 크게 어긋나며 바늘의 좌우 위치도 실제 탄도를 바꿉니다. 결투는 양쪽 모두 <b>내구도 420</b>으로 시작합니다. <b>일반탄</b>은 정밀 단일 타격, <b>폭탄탄</b>은 넓은 범위·구조물 파괴, <b>분열탄</b>은 다중 타격에 유리하지만 한 포격의 보스 집중 피해에는 상한이 있습니다. <b>전장 보기</b>로 지형을 확인할 수 있어요.</p></aside>
  </main>
  <footer class="controls" id="controls" hidden>
-  <div class="weapon-group"><span class="weapon-label">포탄 선택</span><div class="weapons"><button type="button" data-weapon="normal" class="weapon selected">일반탄</button><button type="button" data-weapon="bomb" class="weapon">폭탄탄</button><button type="button" data-weapon="split" class="weapon">분열탄</button></div></div>
+  <div class="weapon-group"><span class="weapon-label">포탄 선택</span><div class="weapons"><button type="button" data-weapon="normal" class="weapon selected" title="정밀 단일 타격" aria-label="일반탄, 정밀 단일 타격에 강함">일반탄</button><button type="button" data-weapon="bomb" class="weapon" title="넓은 범위와 구조물 공격" aria-label="폭탄탄, 넓은 범위와 구조물 공격에 강함">폭탄탄</button><button type="button" data-weapon="split" class="weapon" title="다중 타격, 보스 집중 피해 제한" aria-label="분열탄, 다중 타격에 강하고 보스 집중 피해는 제한됨">분열탄</button></div></div>
   <div class="aim" hidden><span class="aim-label" id="aimHelp">전장에서 위아래 드래그로 각도 조절</span><input id="angle" type="range" min="8" max="88" value="43" hidden aria-label="키보드 보조 각도 입력"><input id="power" type="range" min="20" max="100" step="0.01" value="72" hidden aria-label="보조 파워 입력"><span id="powerValue" class="number" hidden>72%</span></div>
   <div class="action-col"><button id="overview" type="button" class="view-btn">전장 보기</button><button id="abilityBtn" type="button" class="ability-btn" disabled>특수기 · 탄도 보정</button><button id="fire" type="button" class="fire" aria-label="길게 눌러 일정하게 왕복하는 파워를 선택하고 손을 뗀 뒤 정밀 게이지에서 다시 탭해 발사"><span id="fireLabel">발사!</span><span id="chargeGauge" class="charge-gauge" hidden><span id="chargeFill"></span></span></button></div>
  </footer>
@@ -2949,6 +2949,9 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;$('menu').dataset.stage=String(chosen);const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];const def=stageSet[chosen];$('stageShotPreview').textContent=`탄약 ${def.shots}발 · 목표 ${def.foes.length}명`;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;refreshIllustratedSelects();}
  function refreshMenu(){refreshHeroPreview();const cleared=progress.best.filter(Boolean).length;$('progressSummary').textContent=cleared?`최고 등급 합계 ${progress.best.reduce((a,b)=>a+b,0)} / 12 · 승리 ${progress.wins}회`:'모험 기록 · 아직 첫 승리 전';$('progressTier').textContent=`완료 ${cleared} / 4`;refreshStageMap();}
  const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,reaimCount:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP,duelVolleyDamage:{player:0,ai:0},turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,chargeFocusX:null,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:false,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,shotBaseline:null,shotHighlights:{direct:false,critical:false},windGuide:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,chargeConfirmTime:0,chargeConfirmImpact:null,precisionActive:false,precisionElapsed:0,precisionNeedle:0,precisionCamera:0,precisionHoldTime:0,precisionPendingShot:null,precisionLast:null,hitEmphasis:[],chainHits:0,crushHits:0,weaponFractures:0};
+ // Tracks one split volley per target. A boss resists repeated fragment overlap,
+ // but separate shots and ordinary multi-target splash remain fully effective.
+ game.splitVolleyDamage=new Map();
  game.hudPlacement={player:null,ai:null};
  game.precisionBurst=null;
  game.precisionBand='';
@@ -3121,6 +3124,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   const o=origin(owner),dir=owner==='ai'?-1:1,v={...(initial||powerVelocity(ang,power,dir))};
   // One cannon firing, including all split fragments, counts as one duel volley.
   game.duelVolleyDamage={player:0,ai:0};
+  game.splitVolleyDamage.clear();
   v.vx+=timingSideSpeed(sideBias);
   game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,b)=>a+Math.max(0,b.hp),0),blockCounts:['wood','stone','iron'].map(t=>game.blocks.filter(b=>b.type===t).length),playerHp:game.playerHp,aiHp:game.aiHp};
   game.closestApproach={distance:Infinity,x:null,y:null};
@@ -3290,7 +3294,7 @@ function advanceChargePower(dt){
  }
  function newGame(mode,stage=0){
   game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(mode==='duel'?-4.2:-3.3,mode==='duel'?4.2:3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);if(mode==='duel'&&Math.abs(game.wind)<1.15)game.wind=game.wind<0?-1.15:1.15;game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.reaimCount=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargeSweepTime=0;game.chargeDirection=1;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:Infinity;game.playerHp=DUEL_MAX_HP;game.aiHp=DUEL_MAX_HP;game.duelVolleyDamage={player:0,ai:0};game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.shotBaseline=null;
-  game.aimCue={kind:'none',distance:Infinity};game.lastAimCueAt=-5;game.closestApproach=null;game.lastPlayerVolleyDamage=0;game.chargeConfirmTime=0;game.chargeConfirmImpact=null;$('fire').classList.toggle('target-window',false);$('fire').classList.toggle('hit-hold',false);
+  game.aimCue={kind:'none',distance:Infinity};game.lastAimCueAt=-5;game.closestApproach=null;game.lastPlayerVolleyDamage=0;game.splitVolleyDamage.clear();game.chargeConfirmTime=0;game.chargeConfirmImpact=null;$('fire').classList.toggle('target-window',false);$('fire').classList.toggle('hit-hold',false);
   game.hudHealth={player:DUEL_MAX_HP,ai:DUEL_MAX_HP};game.hudHitPulse={player:0,ai:0};game.hudHitDelay={player:0,ai:0};game.hudDamage={player:null,ai:null};game.hudDrawn={player:false,ai:false};game.hudPlacement={player:null,ai:null};game.duelHitMotion={player:null,ai:null};game.duelHitBursts=[];game.weaponAftershocks=[];game.shotHighlights={direct:false,critical:false};game.windGuide=null;
   game.windLift=rnd(-1.9,1.9);game.shotInfluences=null;
   game.precisionActive=false;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionHoldTime=0;game.precisionPendingShot=null;game.precisionLast=null;game.precisionBand='';game.precisionBurst=null;game.precisionSlowFrames=0;game.precisionPerfectHalf=.02;game.hitEmphasis=[];$('precisionPanel').hidden=true;$('precisionHit').disabled=false;$('precisionPanel').classList.toggle('locked',false);for(const grade of ['perfect','near','normal','off'])$('precisionPanel').classList.toggle('locked-'+grade,false);$('aimTelemetry').hidden=false;
@@ -3510,7 +3514,11 @@ function advanceChargePower(dt){
   }
   return '';
  }
- function earnedStars(shots,maxShots){return shots<=2?3:shots<maxShots?2:1;}
+ function earnedStars(shots,maxShots){
+  // The three-shot tutorial must have a reachable two-star outcome.
+  if(maxShots===3)return shots<=1?3:shots===2?2:1;
+  return shots<=2?3:shots<maxShots?2:1;
+ }
  function showResult(won){
   $('reviewCountdown').hidden=true;$('shotReview').hidden=true;$('enemyEntrance').hidden=true;
   game.introLife=0;game.phase='result';game.phaseTime=0;game.drag=null;
@@ -3668,7 +3676,9 @@ function advanceChargePower(dt){
   // same ballistic collision rule; only human shots additionally use timing.
   const direct=!!p.directTarget,critical=direct&&(p.timingAccuracy>=.9||p.directCenter<=11),bonus=critical?1.38:direct?1.16:1;
   game.shotHighlights.direct ||=direct;game.shotHighlights.critical ||=critical;
-  const big=p.weapon==='bomb',radius=big?105:p.weapon==='split'?55:62,damage=(big?105:p.weapon==='split'?46:72)*(p.guided?1.08:1)*bonus;
+  // Normal: precision single-target; bomb: wide structure splash;
+  // split: light overlapping projectiles with a separate boss limit.
+  const big=p.weapon==='bomb',radius=big?105:p.weapon==='split'?55:62,damage=(big?98:p.weapon==='split'?46:72)*(p.guided?1.08:1)*bonus;
   const impactWeapon=['bomb','split'].includes(p.weapon)?p.weapon:'normal';
   const afterlife=impactWeapon==='bomb'?1.16:impactWeapon==='split'?.68:.46;
   game.weaponAftershocks.push({x:p.x,y:p.y,weapon:impactWeapon,life:afterlife,total:afterlife,
@@ -3691,11 +3701,29 @@ function advanceChargePower(dt){
   if(b.hp<=0){b.dead=true;M.Composite.remove(game.engine.world,b.body);}
  }
  game.blocks=game.blocks.filter(b=>!b.dead);
-  for(const f of game.foes){if(!f.alive)continue;const dist=Math.hypot(p.x-f.x,p.y-f.y);if(dist<radius+f.r){const dealt=Math.max(12,(1-dist/(radius+f.r))*damage*1.45);f.hp-=dealt;foeHitReaction(f,dealt,p.x);spawnCombatPopup(f,'-'+Math.round(dealt),f===p.directTarget?(critical?'critical':'direct'):big?'blast':'normal');M.Sleeping.set(f.body,false);M.Body.setVelocity(f.body,{x:f.body.velocity.x+(f.x-p.x)/(dist||1)*4,y:-6});if(f.hp<=0)defeatFoe(f);}}
+  for(const f of game.foes){
+   if(!f.alive)continue;
+   const dist=Math.hypot(p.x-f.x,p.y-f.y);
+   if(dist>=radius+f.r)continue;
+   const directNormal=p.weapon==='normal'&&p.directTarget===f;
+   const raw=Math.max(12,(1-dist/(radius+f.r))*damage*1.45*(directNormal?1.7:1));
+   const used=game.splitVolleyDamage.get(f)||0;
+   // A five-part rabbit burst must not erase a 160-HP boss in one tap.
+   const remaining=game.mode==='adventure'&&p.weapon==='split'&&f.boss?Math.max(0,125-used):Infinity;
+   const dealt=Math.min(raw,remaining);
+   if(dealt<=0)continue;
+   if(remaining!==Infinity)game.splitVolleyDamage.set(f,used+dealt);
+   f.hp-=dealt;foeHitReaction(f,dealt,p.x);
+   spawnCombatPopup(f,'-'+Math.round(dealt),f===p.directTarget?(critical?'critical':'direct'):big?'blast':'normal');
+   M.Sleeping.set(f.body,false);
+   M.Body.setVelocity(f.body,{x:f.body.velocity.x+(f.x-p.x)/(dist||1)*4,y:-6});
+   if(f.hp<=0)defeatFoe(f);
+  }
   if(game.mode==='duel'){
    for(const c of [{owner:'player',x:190},{owner:'ai',x:1018}]){
     const cy=terrainY(c.x)-29,dist=Math.hypot(p.x-c.x,p.y-cy);
-    if(dist<radius+30){const potential=Math.max(12,Math.round((1-dist/(radius+30))*(big?69:55)*bonus));
+    if(dist<radius+30){const duelBase=p.weapon==='normal'?72:p.weapon==='bomb'?62:40;
+     const potential=Math.max(12,Math.round((1-dist/(radius+30))*duelBase*bonus));
      // One firing may create many fragments, but cannot bypass five-hits durability.
      const remaining=Math.max(0,DUEL_VOLLEY_LIMIT-game.duelVolleyDamage[c.owner]);
      const val=Math.min(potential,remaining);if(val<=0)continue;
@@ -3727,7 +3755,7 @@ function advanceChargePower(dt){
   const heading=Math.atan2(p.vy,p.vx),vel=Math.hypot(p.vx,p.vy)*.88;
   for(let i=0;i<count;i++){
    const delta=(i-(count-1)/2)*(count===5?.2:.23),a=heading+delta;
-   game.projectiles.push({x:p.x,y:p.y,vx:Math.cos(a)*vel,vy:Math.sin(a)*vel,r:7,weapon:'split',owner:p.owner,hero:p.hero||'rabbit',age:1,split:true,trail:[],active:true,pierce:0,hitBlocks:[],hitFoes:[]});
+   game.projectiles.push({x:p.x,y:p.y,vx:Math.cos(a)*vel,vy:Math.sin(a)*vel,r:7,weapon:'split',owner:p.owner,hero:p.hero||'rabbit',age:1,split:true,trail:[],active:true,pierce:0,hitBlocks:[],hitFoes:[],timingGrade:p.timingGrade,timingAccuracy:p.timingAccuracy,timingBias:p.timingBias,guided:p.guided});
   }
   // Give the airborne branch its own small, illustrated-in-Canvas burst.
   // It lasts only a third of a second, so it cannot obscure the enemies.
