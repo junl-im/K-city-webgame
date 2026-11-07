@@ -20,7 +20,7 @@ describe('실제 게임 음성 파일', () => {
     ]);
     for (const id of cues) {
       const filename=voiceAssetName(id);
-      const file=fileURLToPath(new URL(`../../public/assets/rani-voice-v3/${filename}.mp3`,import.meta.url));
+      const file=fileURLToPath(new URL(`../../public/assets/rani-voice-v4/${filename}.mp3`,import.meta.url));
       expect(existsSync(file),`${id} 음원 누락`).toBe(true);
       expect(statSync(file).size,`${id} 음원 비어 있음`).toBeGreaterThan(1000);
       if (id==='start') expect(statSync(file).size,'시작 대사 세 구간 확인').toBeGreaterThan(30000);

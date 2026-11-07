@@ -11,8 +11,8 @@ describe('game voice playback',()=>{
   const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.6,AudioClass:FakeAudio,now:()=>t});
   p.enqueue(['jjok']);expect(FakeAudio.instances).toHaveLength(0);
   p.unlock();p.enqueue(['jjok','sweep']);const audio=FakeAudio.instances[0];
-  expect(audio.src).toContain('/rani-voice-v3/jjok.mp3');expect(audio.volume).toBe(.6);expect(audio.play).toHaveBeenCalledTimes(1);
-  p.enqueue(['jjok']);audio.onended();expect(audio.src).toContain('/rani-voice-v3/sweep.mp3');expect(audio.play).toHaveBeenCalledTimes(2);
+  expect(audio.src).toContain('/rani-voice-v4/jjok.mp3');expect(audio.volume).toBe(.6);expect(audio.play).toHaveBeenCalledTimes(1);
+  p.enqueue(['jjok']);audio.onended();expect(audio.src).toContain('/rani-voice-v4/sweep.mp3');expect(audio.play).toHaveBeenCalledTimes(2);
   t+=9000;audio.onended();expect(audio.play).toHaveBeenCalledTimes(2);
  });
  it('cancels queued speech and does not play while voice is disabled',()=>{

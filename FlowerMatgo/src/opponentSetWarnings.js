@@ -28,3 +28,6 @@ export function newlyAvailableSetWarnings(previous, next) {
     ).map(warning=>({...warning,player}));
   });
 }
+export function newlyAvailableOpponentWarnings(previous,next) {
+  return newlyAvailableSetWarnings(previous,next).filter(warning=>warning.player==='computer');
+}
