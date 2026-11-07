@@ -18,9 +18,10 @@ export function createVoicePlayer({getEnabled,getVolume,AudioClass = globalThis.
   }
   return {
     unlock() { unlocked = true; },
-    enqueue(ids, {urgent = false, force = false} = {}) {
+    enqueue(ids, {urgent = false, force = false, replacePending = false} = {}) {
       if (!unlocked || !getEnabled()) return;
       if (urgent && (active || queue.length)) return;
+      if (replacePending) queue = [];
       for (const id of ids.filter(Boolean)) {
         const t = now();
         if (!force && last.has(id) && t - last.get(id) < 1800) continue;

@@ -27,4 +27,12 @@ describe('game voice playback',()=>{
   p.unlock();p.enqueue(['start']);const audio=FakeAudio.instances[0];
   p.clear();p.enqueue(['start'],{force:true});expect(audio.play).toHaveBeenCalledTimes(2);
  });
+ it('keeps the current callout but replaces old queued cues with round results',()=>{
+  FakeAudio.instances=[];
+  const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.8,AudioClass:FakeAudio});
+  p.unlock();p.enqueue(['jjok','take','bonus']);const audio=FakeAudio.instances[0];
+  p.enqueue(['gobak','win'],{replacePending:true});audio.onended();
+  expect(audio.src).toContain('/gobak.mp3');audio.onended();
+  expect(audio.src).toContain('/win.mp3');expect(audio.play).toHaveBeenCalledTimes(3);
+ });
 });

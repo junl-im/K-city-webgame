@@ -14,6 +14,7 @@ describe('game voice cues',()=>{
   expect([goVoice(1),goVoice(7),goVoice(11),goVoice(0)]).toEqual(['go1','go7','go_more',null]);
   expect(roundVoices({phase:'round-ended',winner:'human',settlement:{baks:[{code:'pi-bak'},{code:'gwang-bak'}]}})).toEqual(['pibak','gwangbak','win']);
   expect(roundVoices({phase:'round-ended',winner:'computer',settlement:{baks:[{code:'meong-bak'}]}})).toEqual(['meongtta','lose']);
+  expect(roundVoices({phase:'round-ended',winner:'human',settlement:{baks:[{code:'go-bak'}]}})).toEqual(['gobak','win']);
   expect(roundVoices({phase:'round-ended',roundResult:'nagari'})).toEqual(['nagari']);
  });
 });

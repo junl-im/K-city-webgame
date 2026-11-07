@@ -89,6 +89,7 @@ function loadSave() {
 let app = loadSave();
 const voicePlayer = createVoicePlayer({getEnabled:()=>app.voice, getVolume:()=>app.voiceVolume});
 let overlay = null;
+let audioSettingsReturn = null;
 let galleryOwner = 'human';
 let galleryType = null;
 let selectedMatch = null;
@@ -654,8 +655,8 @@ function audioSettingsOverlay() {
   return `<div class="modal-shade"><section class="modal-box audio-settings" role="dialog" aria-modal="true" aria-labelledby="audio-settings-title">
     <div class="help-heading"><h2 id="audio-settings-title">소리 설정</h2><button class="gallery-close" type="button" data-action="close" aria-label="소리 설정 닫기">✕</button></div>
     <p>효과음과 AI 합성 음성을 따로 조절해요.</p>
-    <div class="audio-setting"><button type="button" class="audio-toggle" data-action="sound" aria-pressed="${app.sound}">효과음 ${app.sound?'켜짐':'꺼짐'}</button><label>효과음 크기 <input type="range" min="0" max="100" value="${Math.round(app.soundVolume*100)}" data-volume="soundVolume" aria-label="효과음 크기"></label></div>
-    <div class="audio-setting"><button type="button" class="audio-toggle" data-action="voice" aria-pressed="${app.voice}">음성 ${app.voice?'켜짐':'꺼짐'}</button><label>음성 크기 <input type="range" min="0" max="100" value="${Math.round(app.voiceVolume*100)}" data-volume="voiceVolume" aria-label="음성 크기"></label></div>
+    <div class="audio-setting"><button type="button" class="audio-toggle" data-action="sound" aria-pressed="${app.sound}">효과음 ${app.sound?'켜짐':'꺼짐'}</button><label><span class="audio-volume-label">효과음 크기 <output data-volume-output="soundVolume">${Math.round(app.soundVolume*100)}%</output></span><input type="range" min="0" max="100" value="${Math.round(app.soundVolume*100)}" data-volume="soundVolume" aria-label="효과음 크기"></label></div>
+    <div class="audio-setting"><button type="button" class="audio-toggle" data-action="voice" aria-pressed="${app.voice}">음성 ${app.voice?'켜짐':'꺼짐'}</button><label><span class="audio-volume-label">음성 크기 <output data-volume-output="voiceVolume">${Math.round(app.voiceVolume*100)}%</output></span><input type="range" min="0" max="100" value="${Math.round(app.voiceVolume*100)}" data-volume="voiceVolume" aria-label="음성 크기"></label></div>
     <div class="audio-previews"><button type="button" class="btn btn--quiet" data-action="sound-preview" ${app.sound?'':'disabled'}>효과음 듣기</button><button type="button" class="btn btn--quiet" data-action="voice-preview" ${app.voice?'':'disabled'}>음성 듣기</button></div>
     ${btn('완료','close','btn--primary btn--wide')}
   </section></div>`;
@@ -831,7 +832,7 @@ function finishRound() {
   const g = app.game;
   if (!g || app.pendingGookjinChoice || g.phase!=='round-ended' || app.settledUuid===g.gameUuid) return;
   gameCueSound(g.roundResult==='nagari'?'nagari':g.winner==='human'?'win':'lose');
-  voicePlayer.enqueue(roundVoices(g));
+  voicePlayer.enqueue(roundVoices(g),{replacePending:true});
   app.settledUuid = g.gameUuid;
   app.stats.rounds++;
   if (g.roundResult === 'nagari') {
@@ -1024,11 +1025,12 @@ function finishOpening() {
   app.game = createInitialGame(seed,app.difficulty,app.stake,winner,roundMultiplier);
   if (app.game.mission) app.game.mission.enabled = true;
   if (app.doubleStake) app.doubleStake.gameUuid = app.game.gameUuid;
-  if (!rematch && app.game.phase !== 'round-ended') {
+  if (!rematch && app.game.phase === 'playing') {
     app.game.lastAction = `${winner === 'human' ? '내가' : '상대가'} 선 뽑기에서 이겨 먼저 칩니다.`;
   }
   app.screen = 'game';
   app.settledUuid = null;
+  if (app.game.phase === 'awaiting-chongtong') voicePlayer.enqueue(['chongtong']);
   // The opening deal can itself end in nagari. Settle it before showing the
   // result, just as for a round that ends during play.
   finishRound();save();render();announceTurn(app.game);queueAI();
@@ -1154,7 +1156,7 @@ function mutate(action, value, cardId) {
       app.wallet+=EMERGENCY_RECHARGE;
       save();effects('긴급 '+kr(EMERGENCY_RECHARGE)+'냥 충전!','win');render();return;
     case 'help': overlay='help';render();return;
-    case 'audio-settings': overlay='audio-settings';render();return;
+    case 'audio-settings': audioSettingsReturn=overlay==='help'?'help':null;overlay='audio-settings';render();return;
     case 'cardbook': overlay='cardbook';render();return;
     case 'mission': if (missionView(app.game)) {overlay='mission';render();} return;
     case 'captures': {
@@ -1164,7 +1166,7 @@ function mutate(action, value, cardId) {
       galleryType=['bright','animal','ribbon','junk'].includes(type) ? type : null;
       overlay='captures';render();return;
     }
-    case 'close': overlay=null;render();queueAI();return;
+    case 'close': overlay=overlay==='audio-settings'?audioSettingsReturn:null;audioSettingsReturn=null;render();queueAI();return;
     case 'sound': app.sound=!app.sound;save();render();return;
     case 'voice': app.voice=!app.voice;if(!app.voice)voicePlayer.clear();save();render();return;
     case 'sound-preview': cardSound('pair');return;
@@ -1237,6 +1239,8 @@ document.addEventListener('input',e=>{
   const key=e.target?.dataset?.volume;
   if (!['soundVolume','voiceVolume'].includes(key) || !ROOT.contains(e.target)) return;
   app[key]=Math.max(0,Math.min(1,Number(e.target.value)/100));
+  const output=ROOT.querySelector(`[data-volume-output="${key}"]`);
+  if(output) output.textContent=`${Math.round(app[key]*100)}%`;
   if (key==='voiceVolume') voicePlayer.volumeChanged();
   save();
 });
