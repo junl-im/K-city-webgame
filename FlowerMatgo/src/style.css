@@ -4155,3 +4155,37 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
  .scene--game .mission-status-row .mission-panel:focus-visible {outline-offset:2px;}
  .scene--game .game-message {background:rgba(12,48,34,.92);color:#fff4d1;text-shadow:0 1px 2px #071a12;}
 }
+
+/* Shake and bomb share the illustrated decision buttons and keep their labels intact. */
+.scene--game .triple-choice .choice-actions .decision-option {
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ min-width:0;min-height:66px;padding:9px 12px;gap:3px;
+ border:0;border-radius:0;box-shadow:none;
+ background:transparent url('/assets/rani-button-jade-v1.png') center/100% 100% no-repeat;
+ color:#fff7e5;text-shadow:0 2px 3px #071f12;
+}
+.scene--game .triple-choice .choice-actions .decision-option--go {
+ background-image:url('/assets/rani-button-red-v1.png');
+}
+.scene--game .triple-choice .decision-option strong {
+ font-size:clamp(20px,5vw,27px);line-height:1.1;white-space:nowrap;color:inherit;
+}
+.scene--game .triple-choice .decision-option small {
+ font-size:clamp(10px,2.5vw,12px);line-height:1.2;white-space:nowrap;color:inherit;
+}
+.scene--game .triple-choice .decision-option:focus-visible {outline:3px solid #ffe29a;outline-offset:3px;}
+
+/* The double-pi cue uses the same light paper and dark lettering as other captures. */
+.turn-impact--double .turn-impact__text {
+ background:#f5eacf url('/assets/flower-handpainted-paper-v17.webp') center/cover;
+ border-color:#e1c9a8;color:#523827;text-shadow:none;width:max-content;white-space:nowrap;
+}
+
+/* The empty-hand message spans the whole hand, instead of one narrow grid cell. */
+.scene--game .my-hand .no-cards {
+ grid-column:1 / -1;align-self:center;justify-self:center;
+ max-width:100%;padding:8px 12px;border-radius:10px;
+ background:rgba(7,44,31,.78);color:#fff3d4;
+ font-size:clamp(12px,3.5vw,15px);line-height:1.35;text-align:center;
+ word-break:keep-all;white-space:normal;
+}
