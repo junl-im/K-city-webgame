@@ -18,12 +18,12 @@ export function createVoicePlayer({getEnabled,getVolume,AudioClass = globalThis.
   }
   return {
     unlock() { unlocked = true; },
-    enqueue(ids, {urgent = false} = {}) {
+    enqueue(ids, {urgent = false, force = false} = {}) {
       if (!unlocked || !getEnabled()) return;
       if (urgent && (active || queue.length)) return;
       for (const id of ids.filter(Boolean)) {
         const t = now();
-        if (last.has(id) && t - last.get(id) < 1800) continue;
+        if (!force && last.has(id) && t - last.get(id) < 1800) continue;
         last.set(id,t); queue.push({id,time:t});
       }
       queue = queue.slice(-8); next();

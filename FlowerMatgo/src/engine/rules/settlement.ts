@@ -16,7 +16,7 @@ export interface SettlementOptions {
 }
 
 const BAK_LABELS: Record<BakCode, string> = {
-  'pi-bak': '피박', 'gwang-bak': '광박', 'meong-bak': '멍박', 'go-bak': '고박'
+  'pi-bak': '피박', 'gwang-bak': '광박', 'meong-bak': '멍따', 'go-bak': '고박'
 };
 
 export function calculateGoMultiplier(goCount: number): number {
