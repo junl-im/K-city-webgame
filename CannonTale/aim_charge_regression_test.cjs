@@ -66,7 +66,7 @@ function findHit(wind,from=20,to=76){
  }
  return null;
 }
-({run,findHit,probe:(angle,power,wind=0)=>{game.angle=angle;game.wind=wind;game.chargedPower=power;game.chargeDirection=1;return{rate:chargeSweepRate(),x:aimX(power),next:aimX(power+1)};}, sweepPoints:(angle)=>{game.angle=angle;game.chargeSweepTime=0;game.chargedPower=20;const points=[];for(let i=0;i<=81;i++){points.push({p:game.chargedPower,x:aimX(game.chargedPower),rawX:duelRawRangeX(angle,game.chargedPower),contactX:stableAimPoint(stableAimPath(game.angle,game.chargedPower,0)).x});advanceChargePower(1/60);}return points;}, screenX:(rangeX,angle,startCamera,screenWidth,screenHeight)=>{const scale=screenHeight/H,visible=screenWidth/scale;return(rangeX-duelChargeCamera(rangeX,angle,startCamera,visible))*scale;}, windCheck:(angle,power)=>{game.angle=angle;game.wind=-4.2;const a=aimX(power);game.wind=4.2;const b=aimX(power);const windy=predict(angle,power,4.2,'player',900,0,0,true),calm=predict(angle,power,0,'player',900,0,0,true);return{a,b,windy:(windy.impact||windy.at(-1)).x,calm:(calm.impact||calm.at(-1)).x};}})
+({run,findHit,probe:(angle,power,wind=0)=>{game.angle=angle;game.wind=wind;game.chargedPower=power;game.chargeDirection=1;return{rate:chargeSweepRate(),x:aimX(power),next:aimX(power+1)};}, sweepPoints:(angle)=>{game.angle=angle;game.chargeSweepTime=0;game.chargedPower=20;const points=[];for(let i=0;i<=81;i++){const sight=duelRangeReferencePoint(angle,game.chargedPower);points.push({p:game.chargedPower,x:sight.x,rawX:duelRawRangeX(angle,game.chargedPower),overrange:sight.overrange,extraRange:sight.extraRange,progress:sight.overrangeProgress,contactX:stableAimPoint(stableAimPath(game.angle,game.chargedPower,0)).x});advanceChargePower(1/60);}return points;}, screenX:(rangeX,angle,startCamera,screenWidth,screenHeight)=>{const scale=screenHeight/H,visible=screenWidth/scale;return(rangeX-duelChargeCamera(rangeX,angle,startCamera,visible))*scale;}, windCheck:(angle,power)=>{game.angle=angle;game.wind=-4.2;const a=aimX(power);game.wind=4.2;const b=aimX(power);const windy=predict(angle,power,4.2,'player',900,0,0,true),calm=predict(angle,power,0,'player',900,0,0,true);return{a,b,windy:(windy.impact||windy.at(-1)).x,calm:(calm.impact||calm.at(-1)).x};}})
 `;
 const {run,findHit,probe,sweepPoints,screenX,windCheck}=vm.runInNewContext(source,{assert}, {timeout:10000});
 for(const angle of [20,30,42,52,65]){
@@ -87,6 +87,14 @@ for(const angle of [20,30,42,52,65]){
  }
  assert.equal(Math.max(...pts.map(p=>p.x)),1100,'Sight must stop a short distance behind the opponent, before the world edge');
  assert(pts.some(p=>p.rawX>1200&&p.x===1100),'Extra real power must remain accessible without moving the sight into empty terrain');
+ const pinned=pts.filter(p=>p.overrange);
+ assert(pinned.length>2,'Sufficient extra-range frames must be available for headwind compensation');
+ assert(pinned.every(p=>p.x===1100&&p.progress>=0&&p.progress<=1&&p.extraRange>0),
+  'Pinned sight must report a finite excess-range dial without moving beyond the camp');
+ assert(pinned.slice(1).every((p,i)=>p.progress>pinned[i].progress),
+  'The extra-range dial must keep advancing while the visible sight is pinned');
+ assert(Math.abs(pinned.at(-1).progress-1)<.0001,
+  'Full power must complete the compact excess-range dial at 100%');
  const terrainDeltas=pts.slice(1).map((pt,i)=>pt.contactX-pts[i].contactX);
  console.log('reticle pacing',angle,JSON.stringify({smoothMax:Math.max(...deltas),rangeVariation:Math.max(...rangeDeltas)-Math.min(...rangeDeltas),terrainMax:Math.max(...terrainDeltas),first:pts[0].x,last:pts.at(-1).x}));
  assert(deltas.every(x=>x>=-1e-6),'The duel range cursor must never jump backwards');
