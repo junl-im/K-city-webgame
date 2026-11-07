@@ -66,6 +66,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v56CueForTest=(angle,power)=>{newGame("duel",0);game.wind=0;game.windLift=0;game.angle=angle;game.power=power;game.chargedPower=power;game.chargeActive=true;drawTrajectory();return{cue:game.aimCue,marked:$("fire").classList.contains("target-window"),contact:predict(angle,power,0,"player").impact?.kind||"none"};}; window.__v56ReviewForTest=(distance,damage=0)=>{newGame("duel",0);game.phase="flying";game.turn="player";game.shotInfluences=null;game.shotBaseline={foes:0,blockHp:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP};game.closestApproach={distance,x:1000,y:200};game.lastImpact={x:790,y:terrainY(790)-10};game.aiHp-=damage;finishFlight();return{title:game.reviewInfo.title,detail:game.reviewInfo.detail,time:game.reviewTimer};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v57ChargeForTest=(angle,power,mode="duel")=>{newGame(mode,0);game.angle=angle;game.wind=0;game.windLift=0;game.chargedPower=power;game.chargeDirection=1;const before=stableAimPoint(stableAimPath(angle,power,0)).x,rate=chargeSweepRate(),afterPower=advanceChargePower(1/60),after=stableAimPoint(stableAimPath(angle,afterPower,0)).x;return{rate,before,after,beforePower:power,afterPower,step:Math.abs(after-before)};}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v58AdvanceHoldForTest=(frames)=>{for(let i=0;i<frames;i++){game.chargeElapsed+=1/60;advanceChargePower(1/60);}return{power:game.chargedPower,direction:game.chargeDirection,active:game.chargeActive,phase:game.phase};}; window.__v58StartDuelForTest=()=>newGame("duel",0); window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -1160,6 +1162,27 @@ const preciseCharge=window.__v57ChargeForTest(aimSweep.hit.angle,aimSweep.hit.po
 assert(preciseCharge.step<12,'A duel aim reticle must not whip across the enemy in one frame');
 assert(preciseCharge.afterPower!==Math.round(preciseCharge.afterPower),'Duel charge must retain fractional power instead of 1% cursor jumps');
 assert.equal(window.__v57ChargeForTest(aimSweep.hit.angle,50,'adventure').rate,1,'Adventures keep the original charging rate');
+window.__v58StartDuelForTest();
+const holdButton=el('fire');
+let preventedNativeHold=false;
+holdButton.dispatch('pointerdown',{pointerId:471,button:0,cancelable:true,preventDefault:()=>{preventedNativeHold=true;}});
+assert(preventedNativeHold&&state().chargeActive,'Touch charge must suppress native long-press behavior');
+const heldPastMax=window.__v58AdvanceHoldForTest(240);
+assert(heldPastMax.active&&heldPastMax.phase==='aim'&&heldPastMax.direction<0,'The charge must reverse at maximum and keep holding, without entering precision timing');
+holdButton.dispatch('pointerup',{pointerId:999});
+assert(state().chargeActive&&state().phase==='aim','An unrelated pointer release must not end the player hold');
+holdButton.dispatch('contextmenu',{preventDefault:()=>{preventedNativeHold=true;}});
+assert(state().chargeActive,'A native context-menu attempt must not release a held shot');
+holdButton.dispatch('pointercancel',{pointerId:471});
+assert(!state().chargeActive&&state().phase==='aim','A cancelled mobile touch must not unexpectedly advance into the timing gauge');
+holdButton.dispatch('pointerdown',{pointerId:472,button:0,cancelable:true,preventDefault:()=>{}});
+assert(state().chargeActive,'After a cancelled touch, the fire button must accept another hold');
+holdButton.dispatch('lostpointercapture',{pointerId:472});
+assert(!state().chargeActive&&state().phase==='aim','Lost pointer capture must cancel the hold, never finish a shot');
+holdButton.dispatch('pointerdown',{pointerId:473,button:0,cancelable:true,preventDefault:()=>{}});
+assert(state().chargeActive,'The player must be able to restart charging after lost pointer capture');
+holdButton.dispatch('pointerup',{pointerId:473});
+assert.equal(state().phase,'timing','Only the matching physical release enters the precision gauge');
 const cueHit=window.__v56CueForTest(aimSweep.hit.angle,aimSweep.hit.power);
 assert.equal(cueHit.contact,'foe','A highlighted target window requires a true enemy collision');
 assert.equal(cueHit.cue.kind,'hit','Accurate player trajectories must display the mint contact cue');

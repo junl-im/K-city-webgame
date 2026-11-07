@@ -3121,7 +3121,9 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   const slope=next&&Math.abs(nextPower-game.chargedPower)>.0001?
    Math.abs(next.x-cursor.x)/Math.abs(nextPower-game.chargedPower):0;
   const nearFactor=clamp((near-36)/220,0,1);
-  const aimUnitsPerSecond=115+1200*nearFactor;
+  // v5.7's 115 units/s made a valid hit window last several seconds: it felt
+  // stuck. Keep a useful short precision window without stalling the sweep.
+  const aimUnitsPerSecond=320+1500*nearFactor;
   return {rate:clamp(aimUnitsPerSecond/(Math.max(slope,1)*(80/1.35)),.001,1),
    maxWorldSpeed:aimUnitsPerSecond,cursorX:cursor.x};
  }
@@ -4818,16 +4820,22 @@ const materialCells={
  $('fire').addEventListener('pointerdown',e=>{
   if(e.button!==undefined&&e.button!==0)return;
   if(activeFirePointer!==null)return;
+  // On mobile a prolonged press can trigger native text selection/context
+  // actions, which in turn may end pointer capture while the finger is down.
+  if(e.cancelable)e.preventDefault();
   suppressNextFireClick=false;
   if(game.phase==='timing'){if(lockPrecision())suppressNextFireClick=true;return;}
   if(beginFireCharge()){activeFirePointer=e.pointerId;$('fire').setPointerCapture?.(e.pointerId);}
  });
  $('fire').addEventListener('pointerup',e=>{
-  if(activeFirePointer!==null&&activeFirePointer!==e.pointerId)return;
+  // Never advance a charging shot on an unrelated/synthetic pointerup.
+  if(activeFirePointer===null||activeFirePointer!==e.pointerId)return;
   activeFirePointer=null;
   if(releaseFireCharge())suppressNextFireClick=true;
  });
  $('fire').addEventListener('pointercancel',e=>{if(activeFirePointer!==null&&activeFirePointer!==e.pointerId)return;cancelFireCharge();suppressNextFireClick=true;});
+ $('fire').addEventListener('lostpointercapture',e=>{if(game.chargeActive&&activeFirePointer===e.pointerId){cancelFireCharge();suppressNextFireClick=true;}});
+ $('fire').addEventListener('contextmenu',e=>{e.preventDefault();});
  $('fire').addEventListener('click',()=>{
   if(suppressNextFireClick){suppressNextFireClick=false;return;}
   firePlayer(); // keyboard accessibility and older browsers without Pointer Events

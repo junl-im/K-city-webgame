@@ -28,7 +28,7 @@ function minToEnemy(power){
 }
 function run(angle,wind){
  game.angle=angle;game.wind=wind;game.chargedPower=20;game.chargeDirection=1;game.chargeSweepTime=0;
- let nearSteps=[],farSteps=[],fractional=false,hitFrames=0,nearFrames=0,peakPower=20,reversed=false;
+ let nearSteps=[],farSteps=[],fractional=false,hitFrames=0,nearFrames=0,peakPower=20,reversed=false,framesToMax=0,firstHitFrame=-1;
  let lastX=aimX(game.chargedPower);
  for(let i=0;i<2200;i++){
   const before=game.chargedPower,proximity=minToEnemy(before),rate=chargeSweepRate();
@@ -37,14 +37,14 @@ function run(angle,wind){
   if(proximity<90){nearSteps.push({jump,rate,before,after,proximity});nearFrames++;}
   if(proximity>260&&game.chargeDirection===1)farSteps.push({jump,rate});
   if(Math.abs(after-Math.round(after))>.03)fractional=true;
-  if(predict(angle,after,wind,'player').impact?.kind==='foe')hitFrames++;
+  if(predict(angle,after,wind,'player').impact?.kind==='foe'){hitFrames++;if(firstHitFrame<0)firstHitFrame=i;}
   if(after>peakPower)peakPower=after;
-  if(game.chargeDirection<0){reversed=true;break;}
+  if(game.chargeDirection<0){reversed=true;framesToMax=i+1;break;}
   assert(after>=20&&after<=100,'The dial must stay in its usable 20..100 range');
   assert(Number.isFinite(jump)&&Number.isFinite(rate),'No aim sample can become NaN');
   lastX=x;
  }
- return {angle,wind,nearSteps,farSteps,fractional,hitFrames,nearFrames,peakPower,reversed};
+ return {angle,wind,nearSteps,farSteps,fractional,hitFrames,nearFrames,peakPower,reversed,framesToMax,firstHitFrame};
 }
 function findHit(wind,from=20,to=76){
  game.wind=wind;
@@ -70,13 +70,14 @@ for(const wind of [-3.5,0,3.5]){
  const peak=Math.max(...samples.nearSteps.map(x=>x.jump));
  const mean=samples.nearSteps.reduce((n,x)=>n+x.jump,0)/samples.nearSteps.length;
  assert(peak<12,`Aim marker cannot jump farther than 12 world units near enemy: ${peak}, wind=${wind}`);
- assert(mean<3,`Aim marker should travel ~2 world units per frame near enemy: ${mean}, wind=${wind}`);
+ assert(mean>=2&&mean<7,`Aim marker should move at a usable 2..7 world units/frame near enemy: ${mean}, wind=${wind}`);
  assert(samples.hitFrames>3,`A hittable arc must remain in the firing window for several frames: ${samples.hitFrames}`);
+ assert(samples.nearFrames<130,`Aiming must not crawl for multiple seconds beside the enemy: ${samples.nearFrames} frames`);
  assert(samples.reversed&&samples.peakPower>99.5,`The gauge must reach max and reverse direction: ${JSON.stringify({angle:hit.angle,wind,peak:samples.peakPower,reversed:samples.reversed,near:samples.nearFrames})}`);
  const near=probe(hit.angle,hit.power,wind);
  const far=probe(hit.angle,20,wind);
  assert(near.rate<far.rate,'Enemy proximity should slow the dial more than its initial power');
- report.push({wind,hit,peakNearJump:+peak.toFixed(2),meanNearJump:+mean.toFixed(2),nearFrames:samples.nearFrames,hitFrames:samples.hitFrames,farRate:+far.rate.toFixed(3),nearRate:+near.rate.toFixed(3)});
+ report.push({wind,hit,peakNearJump:+peak.toFixed(2),meanNearJump:+mean.toFixed(2),nearFrames:samples.nearFrames,hitFrames:samples.hitFrames,framesToMax:samples.framesToMax,firstHitFrame:samples.firstHitFrame,farRate:+far.rate.toFixed(3),nearRate:+near.rate.toFixed(3)});
  }
 }
 console.log('CannonTale aim charge regression OK:',JSON.stringify(report));
