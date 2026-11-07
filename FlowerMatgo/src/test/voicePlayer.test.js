@@ -25,7 +25,7 @@ describe('game voice playback',()=>{
   FakeAudio.instances=[];
   const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.8,AudioClass:FakeAudio,now:()=>10000});
   p.unlock();p.enqueue(['start']);const audio=FakeAudio.instances[0];
-  expect(audio.src).toContain('/start-v4.mp3');
+  expect(audio.src).toContain('/start-v5.mp3');
   p.clear();p.enqueue(['start'],{force:true});expect(audio.play).toHaveBeenCalledTimes(2);
  });
  it('keeps the current callout but replaces old queued cues with round results',()=>{
