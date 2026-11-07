@@ -14,7 +14,7 @@ import { getCard, HWATU_CARDS } from './engine/cards';
 import { ALLOWED_STAKES, STAKES, canUseStake, normalizeStake } from './stakeRules.js';
 import { captureDisplayCount, groupedCaptures } from './capturedCards.js';
 import { currentBakWarnings } from './bakWarnings.js';
-import { setWarnings, newlyAvailableSetWarnings } from './opponentSetWarnings.js';
+import { setWarnings, newlyAvailableOpponentWarnings } from './opponentSetWarnings.js';
 import { missionView } from './missionView.js';
 import { doubleOffer } from './doubleStake.js';
 import { floorDensity } from './floorLayout.js';
@@ -418,7 +418,7 @@ function capturedRack(g, who='human') {
   const asDoubleJunk=human?g.humanGookjinAsDoubleJunk:g.computerGookjinAsDoubleJunk;
   const score=scoreOf(g,who);
   const warnings=currentBakWarnings(score,scoreOf(g,human?'computer':'human'),cards.length,g.pointValue);
-  const rackSetWarnings=setWarnings(g,who);
+  const rackSetWarnings=human ? [] : setWarnings(g,who);
   return `<div class="collection-rack ${human?'collection-rack--human':'collection-rack--opponent'}" aria-label="${human?'내가':'상대가'} 먹은 실제 화투패">
     <div class="collection-groups">${groupedCaptures(g,who).map(group => `
       <button class="collection-group" type="button" data-capture-type="${group.id}" data-empty="${group.cards.length===0}" data-action="captures" data-value="${who}:${group.id}" aria-label="${human?'내':'상대'}가 먹은 ${group.name} 카드 ${group.cards.length}장${group.id==='junk'?` · 점수 계산 ${captureDisplayCount(group,score)}장`:''} 전체 보기">
@@ -956,7 +956,7 @@ function commitGame(next, result=null, motion=null, motionVoicePlayed=false) {
   const completedSets = previous ? ['human','computer'].flatMap(player =>
     newlyCompletedCombos(scoreOf(previous,player),scoreOf(next,player))
       .map(combo => ({player,combo}))) : [];
-  const setAlerts=newlyAvailableSetWarnings(previous,next);
+  const setAlerts=newlyAvailableOpponentWarnings(previous,next);
   app.game = next;
   // A bonus card keeps the same turn number. Give the replacement move a
   // fresh clock so a timeout cannot leave automatic play stuck on that turn.
