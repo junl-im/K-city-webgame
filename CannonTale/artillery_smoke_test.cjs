@@ -1211,6 +1211,10 @@ const reservedRange=window.__v55AimProbeForTest(42,100,-4.4);
 assert.equal(reservedRange.steady.x,1100,'The visible sight must stop at the enemy rear line, not the distant map boundary');
 assert.equal(reservedRange.chargeX,1100,'Charging camera and reticle must agree on the shortened visible range');
 assert.equal(reservedRange.steady.overrange,true,'Extra long-range power needs an honest overrange indication');
+assert.equal(reservedRange.steady.overrangeProgress,1,'At full power the rear-line excess-range ring must be complete');
+assert(reservedRange.steady.extraRange>0,'Full power must still carry range beyond the capped sight');
+assert(html.includes('const label=overrange?`추가 ${Math.round(hit.overrangeProgress*100)}%`'),
+ 'The visible overrange dial must show changing extra-range progress rather than a stuck reticle');
 assert(window.__v64RangeXForTest(42,100)>1200,'Visible sight limits must NOT shorten actual artillery power or counterwind reach');
 assert(html.includes('const paintedDots=game.mode===\'duel\'?dots.filter(point=>point.x<=DUEL_AIM_BACKLINE_X):dots'),
  'Visible dotted aiming guide must stop at the same rear line as the sight');
