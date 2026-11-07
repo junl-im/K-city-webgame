@@ -5039,7 +5039,12 @@ const materialCells={
   if(game.overview){game.camera=-(visible-W)/2;return;}
   if(game.phase==='timingResult'){game.camera=clamp(game.precisionCamera,0,edge);return;}
   const waitingForAi=game.mode==='duel'&&game.turn==='ai'&&game.phase==='aiWait';
-  const defaultCam=waitingForAi?clamp(1018-visible*.76,0,edge):game.mode==='duel'?clamp(190-visible*.24,0,edge):clamp(145-visible*.25,0,edge);
+  // Duel opens with the angle-only sight in frame, including the rearward
+  // headwind compensation area. A wide viewport still keeps the shooter near
+  // its left edge, while portrait naturally focuses the target-side terrain.
+  const defaultCam=waitingForAi?clamp(1018-visible*.76,0,edge):
+   game.mode==='duel'?clamp(duelRangeReferencePoint(game.angle).x-visible*.90,0,edge):
+   clamp(145-visible*.25,0,edge);
   const active=game.projectiles.find(p=>p.active);
   const impactHold=game.reviewFocusX!==null&&(game.phase==='review'||game.phase==='result');
   const flightImpactHold=game.phase==='flying'&&game.projectiles.length===0&&game.lastImpact!==null;
@@ -5170,7 +5175,15 @@ const materialCells={
  $('closeStageMap').addEventListener('click',()=>{$('stageMap').hidden=true;});
  document.querySelectorAll('[data-stage]').forEach(b=>b.addEventListener('click',()=>{const stage=clamp(Number(b.dataset.stage)||0,0,3);$('adventureStage').value=String(stage);progress.lastStage=stage;saveProgress();refreshStageMap();$('stageMap').hidden=true;}));
  $('duelDifficulty').addEventListener('change',()=>{progress.difficulty=$('duelDifficulty').value;saveProgress();refreshIllustratedSelects();});
- $('overview').addEventListener('click',()=>{if(game.phase==='timingResult')return;game.overview=!game.overview;$('overview').textContent=game.overview?'조준 화면':'전장 보기';updateHud();resize();});
+ $('overview').addEventListener('click',()=>{
+  if(game.phase==='timingResult')return;
+  game.overview=!game.overview;$('overview').textContent=game.overview?'조준 화면':'전장 보기';updateHud();resize();
+  if(!game.overview&&game.mode==='duel'&&game.phase==='aim'&&game.turn==='player'){
+   // Leaving the full map should never traverse an empty middle corridor.
+   const visible=cv.clientWidth/Math.max(.001,game.scale);
+   game.camera=clamp(duelRangeReferencePoint(game.angle).x-visible*.90,0,Math.max(0,W-visible));
+  }
+ });
  $('adventureBtn').addEventListener('click',()=>newGame('adventure',Number($('adventureStage').value)||0));$('duelBtn').addEventListener('click',()=>newGame('duel',0));
  $('soundBtn').addEventListener('click',()=>{game.sound=!game.sound;$('soundBtn').textContent=game.sound?'소리 켬':'소리 끔';$('soundBtn').setAttribute?.('aria-pressed',String(game.sound));playSound('ui');});
  function handleBackIntent(){
