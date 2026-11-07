@@ -17,7 +17,9 @@ export function turnVoices(result, actor = 'human', combos = []) {
     if (SPECIAL[event.kind]) cues.push(SPECIAL[event.kind]);
   }
   if (result.ppeok && !result.openingPpeok && !cues.includes('ppeok')) cues.push('ppeok');
-  if (result.bonusCards?.length) cues.push('bonus');
+  // A bonus card can also take pi. In that case describe the actual transfer
+  // instead of making a pi-steal sound like an unrelated bonus announcement.
+  if (result.bonusCards?.length && !result.stolenPee?.length) cues.push('bonus');
   if (result.stolenPee?.length) cues.push(actor === 'computer' ? 'give' : 'take');
   if (result.missionCompleted) cues.push('mission');
   const transfer = result.missionTransfer;
