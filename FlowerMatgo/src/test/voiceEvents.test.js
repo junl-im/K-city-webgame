@@ -21,10 +21,10 @@ describe('game voice cues',()=>{
   expect(turnVoices({missionTransfer:{to:'human',cardIds:[]}},'human')).toEqual([]);
   expect(turnVoices({bonusCards:['bonus'],stolenPee:['pi']},'human')).toEqual(['take']);
   expect(turnVoices({bonusCards:['bonus'],stolenPee:['pi']},'computer')).toEqual(['give']);
-  expect(turnVoices({bonusCards:['bonus'],stolenPee:[]},'human')).toEqual(['bonus']);
+  expect(turnVoices({bonusCards:['bonus'],stolenPee:[]},'human')).toEqual([]);
  });
  it('maps combos, bonus, go counts and actual settlement baks',()=>{
-  expect(turnVoices({bonusCards:['bonus-pee-1']},'human',[{label:'청단'},{label:'고도리'}])).toEqual(['bonus','cheongdan','godori']);
+  expect(turnVoices({bonusCards:['bonus-pee-1']},'human',[{label:'청단'},{label:'고도리'}])).toEqual(['cheongdan','godori']);
   expect([goVoice(1),goVoice(7),goVoice(11),goVoice(0)]).toEqual(['go1','go7','go_more',null]);
   expect(roundVoices({phase:'round-ended',winner:'human',settlement:{baks:[{code:'pi-bak'},{code:'gwang-bak'}]}})).toEqual(['pibak','gwangbak','win']);
   expect(roundVoices({phase:'round-ended',winner:'computer',settlement:{baks:[{code:'meong-bak'}]}})).toEqual(['meongtta','lose']);
