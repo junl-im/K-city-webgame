@@ -4228,3 +4228,11 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 @media (max-width:360px) {
  .scene--game .modal-box--match .decision-timer {font-size:10px!important;padding:4px 7px;}
 }
+
+/* Opponent names stay readable beside the score on narrow screens. */
+@media (max-width:650px) {
+ .scene--game .hud-text b {
+  max-width:120px;font-size:clamp(13px,3.6vw,15px);line-height:1.2;
+  color:#594334;text-shadow:0 1px 0 #fff5dc;
+ }
+}
