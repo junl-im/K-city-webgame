@@ -83,6 +83,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 // v6.9: run the actual explosion, boss, fragment and reward functions.
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v69BalanceForTest=()=>{const duel={};for(const weapon of ["normal","bomb","split"]){newGame("duel",0);applyExplosion({x:1018,y:terrainY(1018)-29,weapon,owner:"player",directTarget:"ai",directCenter:5,timingAccuracy:1,hero:game.hero});duel[weapon]=DUEL_MAX_HP-game.aiHp;}const adventure={};for(const weapon of ["normal","bomb"]){newGame("adventure",3);const boss=game.foes.find(f=>f.boss),offset=weapon==="bomb"?34:31;applyExplosion({x:boss.x-offset,y:boss.y,weapon,owner:"player",directTarget:boss,directCenter:offset,timingAccuracy:.84,hero:game.hero});adventure[weapon]=boss.maxHp-boss.hp;}newGame("adventure",3);const boss=game.foes.find(f=>f.boss);for(let i=0;i<5;i++)applyExplosion({x:boss.x,y:boss.y,weapon:"split",owner:"player",directTarget:boss,directCenter:0,timingAccuracy:1,hero:game.hero});const bossCap={damage:boss.maxHp-boss.hp,alive:boss.alive};launch("player",45,72,"split");applyExplosion({x:boss.x,y:boss.y,weapon:"split",owner:"player",directTarget:boss,directCenter:0,timingAccuracy:1,hero:game.hero});bossCap.secondShotKills=!boss.alive;newGame("duel",0);launch("player",45,76,"split");const parent=game.projectiles[0];parent.timingGrade="perfect";parent.timingAccuracy=1;parent.timingBias=.22;parent.guided=true;splitProjectile(parent,5);const fragments=game.projectiles.filter(p=>p.active).map(p=>({grade:p.timingGrade,accuracy:p.timingAccuracy,bias:p.timingBias,guided:p.guided}));return{duel,adventure,bossCap,fragments};}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v69DuelEdgeForTest=()=>{const result={};for(const weapon of ["normal","bomb"]){newGame("duel",0);applyExplosion({x:1018-32,y:terrainY(1018)-29,weapon,owner:"player",directTarget:"ai",directCenter:32,timingAccuracy:1,hero:game.hero});result[weapon]=DUEL_MAX_HP-game.aiHp;}return result;}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -1369,6 +1371,9 @@ assert.equal(state().shots,0,'Leaving during result hold must cancel the queued 
 const balance=window.__v69BalanceForTest();
 assert(balance.duel.normal>balance.duel.bomb&&balance.duel.bomb>balance.duel.split,
  'A single direct duel hit should favor precision normal over splash bomb over fragment');
+const edgeDamage=window.__v69DuelEdgeForTest();
+assert(edgeDamage.normal>edgeDamage.bomb,
+ 'Normal direct-hit advantage must persist near the actual collision-radius edge');
 assert(balance.adventure.normal>balance.adventure.bomb,
  'Normal should outdamage bomb on one confirmed boss contact, while bomb retains a wider radius');
 assert(balance.bossCap.alive&&balance.bossCap.damage<=125.01&&balance.bossCap.damage>=124.99,
