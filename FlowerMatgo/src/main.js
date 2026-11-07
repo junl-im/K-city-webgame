@@ -5,13 +5,14 @@ import {
   playTurn, playBomb, playFlipOnlyTurn, declareShake,
   getMatchingFloorCards, getDrawFloorChoice, getFlipOnlyDrawChoice, isValidGameState, nextRoundMultiplier, scoreFor, setMissionEnabled
 } from './engine/gameState';
-import { chooseAiCard, chooseAiMove, chooseAiGoStop, chooseAiChongtong } from './engine/ai/strategy';
+import { chooseAiMove, chooseAiGoStop, chooseAiChongtong } from './engine/ai/strategy';
 import { findBombOptions, findShakeOptions } from './engine/rules/specialRules';
+import { automaticSpecial } from './autoSpecial.js';
 import { getCard, HWATU_CARDS } from './engine/cards';
 import { ALLOWED_STAKES, STAKES, canUseStake, normalizeStake } from './stakeRules.js';
 import { captureDisplayCount, groupedCaptures } from './capturedCards.js';
 import { currentBakWarnings } from './bakWarnings.js';
-import { opponentSetWarnings } from './opponentSetWarnings.js';
+import { setWarnings, newlyAvailableSetWarnings } from './opponentSetWarnings.js';
 import { missionView } from './missionView.js';
 import { doubleOffer } from './doubleStake.js';
 import { floorDensity } from './floorLayout.js';
@@ -415,11 +416,11 @@ function capturedRack(g, who='human') {
   const asDoubleJunk=human?g.humanGookjinAsDoubleJunk:g.computerGookjinAsDoubleJunk;
   const score=scoreOf(g,who);
   const warnings=currentBakWarnings(score,scoreOf(g,human?'computer':'human'),cards.length,g.pointValue);
-  const setWarnings=human ? [] : opponentSetWarnings(g);
+  const rackSetWarnings=setWarnings(g,who);
   return `<div class="collection-rack ${human?'collection-rack--human':'collection-rack--opponent'}" aria-label="${human?'내가':'상대가'} 먹은 실제 화투패">
     <div class="collection-groups">${groupedCaptures(g,who).map(group => `
       <button class="collection-group" type="button" data-capture-type="${group.id}" data-empty="${group.cards.length===0}" data-action="captures" data-value="${who}:${group.id}" aria-label="${human?'내':'상대'}가 먹은 ${group.name} 카드 ${group.cards.length}장${group.id==='junk'?` · 점수 계산 ${captureDisplayCount(group,score)}장`:''} 전체 보기">
-        ${warnings.includes(group.id==='junk'?'피박 주의':group.id==='bright'?'광박 주의':'') ? `<span class="rack-warning" role="status">${group.id==='junk'?'피박 주의':'광박 주의'}</span>` : ''}${setWarnings.some(w=>w.group===group.id) ? `<span class="opponent-set-warning" role="status">${setWarnings.filter(w=>w.group===group.id).map(w=>w.label.replace(' 비상','')).join('·')} 비상</span>` : ''}<span class="collection-preview">${group.cards.length ? group.cards.map((id,index)=>`<span class="capture-stack-card">${card(id,{tiny:true,gookjinAsDoubleJunk:asDoubleJunk})}${group.id==='junk' && index===group.cards.length-1 ? `<span class="capture-pi-count" aria-label="피 ${score.junkCount}장">${score.junkCount}</span>` : ''}</span>`).join('') : ''}
+        ${warnings.includes(group.id==='junk'?'피박 주의':group.id==='bright'?'광박 주의':'') ? `<span class="rack-warning" role="status">${group.id==='junk'?'피박 주의':'광박 주의'}</span>` : ''}${rackSetWarnings.some(w=>w.group===group.id) ? `<span class="opponent-set-warning" role="status">${rackSetWarnings.filter(w=>w.group===group.id).map(w=>w.label.replace(' 비상','')).join('·')} 비상</span>` : ''}<span class="collection-preview">${group.cards.length ? group.cards.map((id,index)=>`<span class="capture-stack-card">${card(id,{tiny:true,gookjinAsDoubleJunk:asDoubleJunk})}${group.id==='junk' && index===group.cards.length-1 ? `<span class="capture-pi-count" aria-label="피 ${score.junkCount}장">${score.junkCount}</span>` : ''}</span>`).join('') : ''}
           </span>
       </button>`).join('')}</div>
   </div>`;
@@ -797,6 +798,11 @@ function autoTakeTurn(forced = false) {
   if (app.pendingDrawChoice) {mutate('draw-choice',undefined,randomItem(app.pendingDrawChoice.candidateIds));return;}
   if (selectedMatch) { humanPlay(selectedMatch.cardId,randomItem(selectedMatch.matches),true,undefined,true); return; }
   if (selectedTriple) {
+    if (selectedTriple.mode==='choice') {
+      const special=automaticSpecial(g,selectedTriple.month);
+      if (special?.kind==='bomb') { mutate('triple-bomb');return; }
+      if (special?.kind==='shake') { mutate('triple-shake');return; }
+    }
     const ids=g.humanHand.filter(id=>getCard(id)?.month===selectedTriple.month);
     const id=randomItem(ids);selectedTriple=null;
     if (id) {const matches=getMatchingFloorCards(g.floorCards,id);humanPlay(id,matches.length===2?randomItem(matches):undefined,true,undefined,true);}
@@ -806,6 +812,8 @@ function autoTakeTurn(forced = false) {
   if (g.phase === 'awaiting-chongtong') { mutate('chongtong-stop'); return; }
   if (g.phase !== 'playing' || g.currentPlayer !== 'human') return;
   try {
+    const special=automaticSpecial(g);
+    if (special) { mutate(special.kind,String(special.month)); return; }
     if (forced) {
       const available=g.humanHand.filter(id=>!g.humanPendingShakeMonth || getCard(id)?.month===g.humanPendingShakeMonth);
       const id=randomItem(available);
@@ -818,14 +826,8 @@ function autoTakeTurn(forced = false) {
     const move = chooseAiMove(structuredClone(g), 'human', 'normal').move;
     if (!move) return;
     if (move.kind === 'flip-only') { mutate('flip','auto'); return; }
-    // Shaking and bombs are explicit player choices, never silently declared
-    // by the countdown or auto-play (including a four-card shake/bomb).
     if (move.kind === 'shake' || move.kind === 'bomb') {
-      const id = chooseAiCard(structuredClone(g), 'human', 'normal');
-      if (id) {
-        const matches = getMatchingFloorCards(g.floorCards,id);
-        humanPlay(id, matches.length === 2 ? matches[0] : undefined,true,undefined,true);
-      }
+      mutate(move.kind,String(move.month));
       return;
     }
     const matches = getMatchingFloorCards(g.floorCards,move.cardId);
@@ -952,6 +954,7 @@ function commitGame(next, result=null, motion=null, motionVoicePlayed=false) {
   const completedSets = previous ? ['human','computer'].flatMap(player =>
     newlyCompletedCombos(scoreOf(previous,player),scoreOf(next,player))
       .map(combo => ({player,combo}))) : [];
+  const setAlerts=newlyAvailableSetWarnings(previous,next);
   app.game = next;
   // A bonus card keeps the same turn number. Give the replacement move a
   // fresh clock so a timeout cannot leave automatic play stuck on that turn.
@@ -962,10 +965,12 @@ function commitGame(next, result=null, motion=null, motionVoicePlayed=false) {
   const specialText = eventAnnouncement(result, previous?.currentPlayer);
   const missionText = result?.missionCards?.length ? `${previous?.currentPlayer==='computer'?'상대 ':''}${result.missionEffect ? '미션 완료 · '+(piTransferAnnouncement(result) || result.missionEffect) : result.missionRequired > 1 ? '미션패 획득' : '미션패 ×'+(result.missionMultiplier || 1)}` : null;
   const openingPpeokText = result?.openingPpeok ? `${result.openingPpeok.player === 'human' ? '첫뻑 +' : '상대 첫뻑 −'}${kr(result.openingPpeok.amount)}냥` : null;
-  const eventText = [specialText, openingPpeokText, missionText].filter(Boolean).join(' · ');
+  const setAlertText=setAlerts.map(alert=>`${alert.player==='computer'?'상대 ':''}${alert.label}!`).join(' · ');
+  const eventText = [specialText, openingPpeokText, missionText, setAlertText].filter(Boolean).join(' · ');
   if (result?.missionCompleted) gameCueSound('mission');
   else if (result?.bonusCards?.length) gameCueSound('bonus');
   voicePlayer.enqueue(turnVoices(motionVoicePlayed?{}:result,previous?.currentPlayer,completedSets.map(item=>item.combo)));
+  voicePlayer.enqueue(setAlerts.map(alert=>`${alert.tag}_alert`));
   if (previous?.phase !== 'awaiting-go-stop' && next.phase === 'awaiting-go-stop' && next.pendingDecision === 'human') voicePlayer.enqueue(['decide']);
   finishRound();
   if (eventText) effects(eventText, 'special', 'event-list', !!motion);
