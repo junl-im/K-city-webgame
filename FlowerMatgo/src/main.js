@@ -6,9 +6,10 @@ import {
   playTurn, playBomb, playFlipOnlyTurn, declareShake,
   getMatchingFloorCards, getDrawFloorChoice, getFlipOnlyDrawChoice, isValidGameState, nextRoundMultiplier, scoreFor, setMissionEnabled
 } from './engine/gameState';
-import { chooseAiMove, chooseAiGoStop, chooseAiChongtong } from './engine/ai/strategy';
+import { chooseAiMove, chooseAiGoStop, chooseAiChongtong, chooseAiGookjinAsDoubleJunk } from './engine/ai/strategy';
+import { chooseAiFloorMatch } from './engine/ai/evaluator';
 import { findBombOptions, findShakeOptions } from './engine/rules/specialRules';
-import { automaticSpecial } from './autoSpecial.js';
+import { automaticMove, automaticSpecial } from './autoSpecial.js';
 import { getCard, HWATU_CARDS } from './engine/cards';
 import { ALLOWED_STAKES, STAKES, canUseStake, normalizeStake } from './stakeRules.js';
 import { captureDisplayCount, groupedCaptures } from './capturedCards.js';
@@ -241,12 +242,12 @@ function announceTurn(game, delay = 120) {
     if (flash && ['event-list','go','shake'].includes(flashKind)) { announceTurn(game, 300); return; }
     const scene = ROOT.querySelector('.scene--game');
     if (!scene) return;
-    scene.querySelector('.turn-notice')?.remove();
+    ROOT.querySelector('.turn-notice')?.remove();
     const notice = document.createElement('div');
-    notice.className = 'central-event turn-notice';
+    notice.className = 'central-event turn-notice game-foreground-event';
     notice.setAttribute('role','status');
     notice.textContent = player === 'human' ? '내 차례!' : '상대 차례!';
-    scene.appendChild(notice);
+    ROOT.appendChild(notice);
     setTimeout(() => notice.remove(), 1350);
   }, delay);
 }
@@ -705,6 +706,13 @@ function render() {
   if (overlay==='exit') html += exitOverlay();
   ROOT.removeAttribute('data-card-art');
   ROOT.innerHTML = html;
+  // The board is an isolated stacking context while flying cards are siblings
+  // of it. Promote announcements above flights; decision dialogs take priority.
+  const announcement=ROOT.querySelector('.scene--game > .central-event');
+  if (announcement) {
+    if (ROOT.querySelector('.modal-shade')) announcement.remove();
+    else { announcement.classList.add('game-foreground-event');ROOT.appendChild(announcement); }
+  }
   const hand=ROOT.querySelector('.my-hand');
   if (hand && previousGame && previousGame===app.game?.gameUuid) {
     hand.scrollLeft=previousScroll;
@@ -793,20 +801,19 @@ function syncTurnClock() {
 function autoTakeTurn(forced = false) {
   const g = app.game;
   if ((!forced && !app.autoMode) || !clockKey || turnTransition || (overlay && overlay!=='gookjin-choice') || decisionReview || document.hidden) return;
-  const randomItem = list => list[Math.floor(Math.random()*list.length)];
+  const bestMatch = list => chooseAiFloorMatch(list,g.computerCaptured) || list[0];
   if (forced && !app.autoMode) {app.autoMode=true;save();}
-  if (app.pendingGookjinChoice || overlay==='gookjin-choice') {mutate('gookjin-set',randomItem(['animal','junk']));return;}
-  if (app.pendingDrawChoice) {mutate('draw-choice',undefined,randomItem(app.pendingDrawChoice.candidateIds));return;}
-  if (selectedMatch) { humanPlay(selectedMatch.cardId,randomItem(selectedMatch.matches),true,undefined,true); return; }
+  if (app.pendingGookjinChoice || overlay==='gookjin-choice') {mutate('gookjin-set',chooseAiGookjinAsDoubleJunk(g.humanCaptured)?'junk':'animal');return;}
+  if (app.pendingDrawChoice) {mutate('draw-choice',undefined,bestMatch(app.pendingDrawChoice.candidateIds));return;}
+  if (selectedMatch) { humanPlay(selectedMatch.cardId,bestMatch(selectedMatch.matches),true,undefined,true); return; }
   if (selectedTriple) {
     if (selectedTriple.mode==='choice') {
       const special=automaticSpecial(g,selectedTriple.month);
       if (special?.kind==='bomb') { mutate('triple-bomb');return; }
       if (special?.kind==='shake') { mutate('triple-shake');return; }
     }
-    const ids=g.humanHand.filter(id=>getCard(id)?.month===selectedTriple.month);
-    const id=randomItem(ids);selectedTriple=null;
-    if (id) {const matches=getMatchingFloorCards(g.floorCards,id);humanPlay(id,matches.length===2?randomItem(matches):undefined,true,undefined,true);}
+    const move=automaticMove(g,selectedTriple.month);selectedTriple=null;
+    if (move?.kind==='card') {const matches=getMatchingFloorCards(g.floorCards,move.cardId);humanPlay(move.cardId,move.playedMatchId || (matches.length===2?bestMatch(matches):undefined),true,undefined,true);}
     return;
   }
   if (g.phase === 'awaiting-go-stop') { mutate('stop'); return; }
@@ -815,16 +822,7 @@ function autoTakeTurn(forced = false) {
   try {
     const special=automaticSpecial(g);
     if (special) { mutate(special.kind,String(special.month)); return; }
-    if (forced) {
-      const available=g.humanHand.filter(id=>!g.humanPendingShakeMonth || getCard(id)?.month===g.humanPendingShakeMonth);
-      const id=randomItem(available);
-      if (id) {const matches=getMatchingFloorCards(g.floorCards,id);humanPlay(id,matches.length===2?randomItem(matches):undefined,true,undefined,true);}
-      else if (g.humanBombSkips>0) mutate('flip','auto');
-      return;
-    }
-    // The selector may advance its private random seed: never mutate the live
-    // game state while merely choosing a timed/automatic move.
-    const move = chooseAiMove(structuredClone(g), 'human', 'normal').move;
+    const move = automaticMove(g);
     if (!move) return;
     if (move.kind === 'flip-only') { mutate('flip','auto'); return; }
     if (move.kind === 'shake' || move.kind === 'bomb') {
@@ -832,7 +830,7 @@ function autoTakeTurn(forced = false) {
       return;
     }
     const matches = getMatchingFloorCards(g.floorCards,move.cardId);
-    humanPlay(move.cardId,move.playedMatchId || (matches.length===2 ? matches[0] : undefined),true,undefined,true);
+    humanPlay(move.cardId,move.playedMatchId || (matches.length===2 ? bestMatch(matches) : undefined),true,undefined,true);
   } catch (error) {
     console.error('Automatic turn failed:',error);
     effects('다시 패를 선택해 줘');

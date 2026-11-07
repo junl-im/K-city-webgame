@@ -4259,6 +4259,14 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .audio-setting label {display:grid;gap:5px;color:#4c624b;font-size:12px;font-weight:800;}
 .audio-volume-label {display:flex;justify-content:space-between;align-items:center;gap:8px;}
 .audio-volume-label output {font-variant-numeric:tabular-nums;color:#8a5636;}
+
+/* Announcements live beside the isolated board, above flying-card sprites. */
+#app > .game-foreground-event {z-index:80;width:min(94vw,720px);min-height:0;padding:12px 16px;background:radial-gradient(ellipse,#172d22e8 0%,#172d22bd 40%,transparent 73%);color:#ffdb69;font-family:'Rani Jua','Malgun Gothic',sans-serif;font-size:clamp(34px,11vw,76px);font-weight:400;letter-spacing:.01em;line-height:1.13;overflow-wrap:anywhere;word-break:keep-all;text-shadow:0 2px 0 #793011,2px 3px 0 #4b210c,-2px -1px 0 #4b210c,0 5px 10px #0009;filter:none;pointer-events:none;}
+#app > .game-foreground-event:not(.turn-notice) {animation-duration:2.4s;}
+#app > .game-foreground-event.turn-notice {font-size:clamp(27px,8vw,56px);color:#ffec9b;}
+#app > .game-foreground-event.central-event--high-go {font-size:clamp(42px,14vw,96px);color:#ffe17c;animation-name:rani-high-go-call;animation-duration:3.1s;text-shadow:0 3px 0 #8e2b11,3px 5px 0 #4a190c,-3px -1px 0 #4a190c,0 0 16px #ffad47a8,0 6px 13px #000b;}
+@media(max-width:650px){#app > .game-foreground-event {padding:12px;font-size:clamp(30px,9vw,55px);}}
+@media(prefers-reduced-motion:reduce){#app > .game-foreground-event {animation:none;}}
 .audio-setting input {width:100%;accent-color:#368557;}
 .audio-toggle {min-height:42px;padding:7px 10px;border:1px solid #c5a77c;border-radius:10px;background:#e7edda;color:#27543d;font-weight:900;white-space:nowrap;}
 .audio-toggle[aria-pressed="false"] {background:#e8e2d5;color:#6d6455;}

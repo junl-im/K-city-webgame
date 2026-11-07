@@ -34,12 +34,24 @@ describe('game voice playback',()=>{
   p.unlock();p.enqueue(['first_human']);
   expect(FakeAudio.instances[0].src).toContain('/first_human-v2.mp3');
  });
- it('keeps the current callout but replaces old queued cues with round results',()=>{
+ it('keeps the current callout and only the latest waiting result',()=>{
   FakeAudio.instances=[];let time=1000;
   const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.8,AudioClass:FakeAudio,now:()=>time});
   p.unlock();p.enqueue(['jjok','take','bonus']);const audio=FakeAudio.instances[0];
-  p.enqueue(['gobak','win'],{replacePending:true});time+=5000;audio.onended();
-  expect(audio.src).toContain('/gobak.mp3');audio.onended();
-  expect(audio.src).toContain('/win-v2.mp3');expect(audio.play).toHaveBeenCalledTimes(3);
+  p.enqueue(['gobak','win'],{replacePending:true});time+=200;audio.onended();
+  expect(audio.src).toContain('/win-v2.mp3');expect(audio.play).toHaveBeenCalledTimes(2);
+ });
+ it('replaces an older waiting cue when a newer event arrives',()=>{
+  FakeAudio.instances=[];let time=1000;
+  const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.8,AudioClass:FakeAudio,now:()=>time});
+  p.unlock();p.enqueue(['jjok']);const audio=FakeAudio.instances[0];
+  p.enqueue(['take']);time+=700;p.enqueue(['sweep']);audio.onended();
+  expect(audio.src).toContain('/sweep.mp3');expect(audio.play).toHaveBeenCalledTimes(2);
+ });
+ it('drops a waiting cue that is already too old',()=>{
+  FakeAudio.instances=[];let time=1000;
+  const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.8,AudioClass:FakeAudio,now:()=>time});
+  p.unlock();p.enqueue(['jjok']);const audio=FakeAudio.instances[0];p.enqueue(['sweep']);time+=2600;audio.onended();
+  expect(audio.play).toHaveBeenCalledTimes(1);
  });
 });
