@@ -1253,6 +1253,8 @@ const beforeHidden=window.__v66PaceForTest().precision;
 document.hidden=true;framesAtFps(10,1);
 document.hidden=false;framesAtFps(10,.1);
 assert.equal(window.__v66PaceForTest().precision,beforeHidden,'Switching back from a hidden phone tab must not skip the reaction window');
+now+=8000;framesAtFps(10,.1);
+assert.equal(window.__v66PaceForTest().precision,beforeHidden,'A suspended background animation loop must resume without a sudden needle jump');
 el('precisionCancel').click();
 assert.equal(window.__v66PaceForTest().phase,'aim','Re-aim must remain operable after low-FPS timing and tab return');
 assert.equal(window.__v66PaceForTest().shots,0,'Re-aim after a stutter must never consume a shell');
