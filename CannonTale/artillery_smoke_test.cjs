@@ -1183,6 +1183,8 @@ holdButton.dispatch('pointerdown',{pointerId:473,button:0,cancelable:true,preven
 assert(state().chargeActive,'The player must be able to restart charging after lost pointer capture');
 holdButton.dispatch('pointerup',{pointerId:473});
 assert.equal(state().phase,'timing','Only the matching physical release enters the precision gauge');
+holdButton.click();
+assert.equal(state().phase,'timing','The browser click following pointerup must be consumed without a second launch');
 const cueHit=window.__v56CueForTest(aimSweep.hit.angle,aimSweep.hit.power);
 assert.equal(cueHit.contact,'foe','A highlighted target window requires a true enemy collision');
 assert.equal(cueHit.cue.kind,'hit','Accurate player trajectories must display the mint contact cue');
