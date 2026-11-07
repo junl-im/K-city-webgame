@@ -18,3 +18,17 @@ export const CARD_SOUND_PROFILES = Object.freeze({
 export function cardSoundProfile(kind) {
   return CARD_SOUND_PROFILES[kind] ?? CARD_SOUND_PROFILES.land;
 }
+
+// Short original note patterns complement card impacts without external samples.
+export const GAME_CUE_NOTES = Object.freeze({
+  start: Object.freeze([392,494,587]),
+  go: Object.freeze([494,659]),
+  stop: Object.freeze([523,392]),
+  mission: Object.freeze([523,659,784]),
+  bonus: Object.freeze([660,880]),
+  hurry: Object.freeze([440,440]),
+  win: Object.freeze([523,659,784,1047]),
+  lose: Object.freeze([440,349,294]),
+  nagari: Object.freeze([392,349,392]),
+  double: Object.freeze([392,523,659,784]),
+});

@@ -21,7 +21,9 @@ import { hwatuFamily, spokenActionText, spokenCardName } from './cardNames.js';
 import { animateResolvedTurn, motionOrigin } from './turnPresentation.js';
 import { eventAnnouncement, piTransferAnnouncement } from './specialPresentation.js';
 import { SPECIAL_FLASH_MS, specialMoment } from './specialMoment.js';
-import { cardSoundProfile } from './cardSoundDesign.js';
+import { cardSoundProfile, GAME_CUE_NOTES } from './cardSoundDesign.js';
+import { goVoice, turnVoices, roundVoices } from './voiceEvents.js';
+import { createVoicePlayer } from './voicePlayer.js';
 import { newlyCompletedCombos } from './scoreCombos.js';
 import { HUMAN_TURN_MS, HUMAN_TURN_SECONDS, humanTurnSignature, humanChoiceSignature, secondsLeft, shouldRestartClockAfterTurn } from './turnTiming.js';
 import { canEmergencyRecharge, EMERGENCY_RECHARGE, hasEnoughForTable } from './rechargePolicy.js';
@@ -44,7 +46,7 @@ const safe = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 const defaultSave = () => ({
   screen: 'home', difficulty: 'normal', stake: 100, wallet: BASE_WALLET,
   stats: {wins:0, losses:0, draws:0, high:0, rounds:0},
-  game: null, settledUuid: null, nextMultiplier: 1, doubleStake: null, sound: true, autoMode: false, missionsEnabled: true, pendingGookjinChoice: false, pendingDrawChoice: null
+  game: null, settledUuid: null, nextMultiplier: 1, doubleStake: null, sound: true, voice: true, soundVolume: 0.8, voiceVolume: 0.85, autoMode: false, missionsEnabled: true, pendingGookjinChoice: false, pendingDrawChoice: null
 });
 
 function loadSave() {
@@ -53,6 +55,8 @@ function loadSave() {
     const raw = JSON.parse(localStorage.getItem(SAVE_KEY));
     if (!raw || typeof raw !== 'object') return base;
     const save = { ...base, ...raw, stats: { ...base.stats, ...(raw.stats || {}) } };
+    if (typeof raw.voice !== 'boolean') save.voice = raw.sound !== false;
+    for (const key of ['soundVolume','voiceVolume']) save[key] = Number.isFinite(save[key]) ? Math.max(0,Math.min(1,save[key])) : base[key];
     if (!DIFFICULTIES.some(d => d.id === save.difficulty)) save.difficulty = 'normal';
     // Remove the legacy artwork selection from old saves. The original-style
     // mascot atlas is now the only face artwork, regardless of saved settings.
@@ -83,6 +87,7 @@ function loadSave() {
   }
 }
 let app = loadSave();
+const voicePlayer = createVoicePlayer({getEnabled:()=>app.voice, getVolume:()=>app.voiceVolume});
 let overlay = null;
 let galleryOwner = 'human';
 let galleryType = null;
@@ -104,6 +109,7 @@ let clockKey = null;
 let clockDeadline = 0;
 let clockRemaining = HUMAN_TURN_MS;
 let clockPaused = false;
+let warnedClockKey = null;
 let expiredKey = null;
 let opening = null;
 let openingTimer = null;
@@ -117,7 +123,7 @@ function save() {
   catch { /* Private browsing may reject storage. In-memory play still works. */ }
 }
 function tone(kind = 'tap') {
-  if (!app.sound) return;
+  if (!app.sound || app.soundVolume <= 0) return;
   try {
     audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -128,16 +134,32 @@ function tone(kind = 'tap') {
     osc.frequency.setValueAtTime(kind === 'win' ? 660 : kind === 'special' ? 490 : 360, t);
     osc.frequency.exponentialRampToValueAtTime(kind === 'win' ? 900 : 190, t + .13);
     gain.gain.setValueAtTime(.0001, t);
-    gain.gain.exponentialRampToValueAtTime(.07, t + .012);
+    gain.gain.exponentialRampToValueAtTime(Math.max(.0001,.07 * app.soundVolume), t + .012);
     gain.gain.exponentialRampToValueAtTime(.0001, t + .22);
     osc.connect(gain); gain.connect(audioCtx.destination);
     osc.start(t); osc.stop(t + .24);
   } catch { /* Silent fallback. */ }
 }
+function gameCueSound(kind) {
+  const notes = GAME_CUE_NOTES[kind];
+  if (!app.sound || app.soundVolume <= 0 || !notes) return;
+  try {
+    audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const start = audioCtx.currentTime;
+    notes.forEach((frequency,index) => {
+      const at = start + index * .095, oscillator = audioCtx.createOscillator(), gain = audioCtx.createGain();
+      oscillator.type = 'sine';oscillator.frequency.setValueAtTime(frequency,at);
+      gain.gain.setValueAtTime(.0001,at);gain.gain.exponentialRampToValueAtTime(Math.max(.0001,.035*app.soundVolume),at+.012);
+      gain.gain.exponentialRampToValueAtTime(.0001,at+.13);
+      oscillator.connect(gain);gain.connect(audioCtx.destination);oscillator.start(at);oscillator.stop(at+.14);
+    });
+  } catch { /* The game remains usable without audio. */ }
+}
 // The short filtered-noise crackle supplies the familiar weight of cards
 // meeting a wooden table, without external audio files or download latency.
 function cardSound(kind = 'land') {
-  if (!app.sound) return;
+  if (!app.sound || app.soundVolume <= 0) return;
   try {
     audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -155,7 +177,7 @@ function cardSound(kind = 'land') {
     filter.Q.value = .82;
     const snap = audioCtx.createGain();
     snap.gain.setValueAtTime(.0001, t);
-    snap.gain.exponentialRampToValueAtTime(profile.noiseGain, t + .006);
+    snap.gain.exponentialRampToValueAtTime(Math.max(.0001,profile.noiseGain * app.soundVolume), t + .006);
     snap.gain.exponentialRampToValueAtTime(.0001, t + length);
     noise.connect(filter); filter.connect(snap); snap.connect(audioCtx.destination);
     noise.start(t); noise.stop(t + length);
@@ -164,7 +186,7 @@ function cardSound(kind = 'land') {
     bass.type = 'sine';
     bass.frequency.setValueAtTime(profile.bass, t);
     bass.frequency.exponentialRampToValueAtTime(92, t + .075);
-    body.gain.setValueAtTime(.035, t);
+    body.gain.setValueAtTime(Math.max(.0001,.035 * app.soundVolume), t);
     body.gain.exponentialRampToValueAtTime(.0001, t + .09);
     bass.connect(body); body.connect(audioCtx.destination);
     bass.start(t); bass.stop(t + .10);
@@ -180,7 +202,7 @@ function cardSound(kind = 'land') {
         tick.frequency.setValueAtTime(300, t + delay);
         tick.frequency.exponentialRampToValueAtTime(135, t + delay + .07);
         tickGain.gain.setValueAtTime(.0001, t + delay);
-        tickGain.gain.exponentialRampToValueAtTime(kind === 'bomb' ? .037 : .028, t + delay + .007);
+        tickGain.gain.exponentialRampToValueAtTime(Math.max(.0001,(kind === 'bomb' ? .037 : .028) * app.soundVolume), t + delay + .007);
         tickGain.gain.exponentialRampToValueAtTime(.0001, t + delay + .075);
         tick.connect(tickGain); tickGain.connect(audioCtx.destination);
         tick.start(t + delay); tick.stop(t + delay + .08);
@@ -336,7 +358,7 @@ function home() {
         ${portrait('bear','hero-bear')}${portrait('fox','hero-fox')}${portrait('cat','hero-cat')}
       </div>
     </section>
-    <footer class="home-footer bottom-safe"><button data-action="sound" class="text-button sound-control" type="button">${uiIcon('bell')} ${app.sound?'효과음 켜짐':'효과음 꺼짐'}</button></footer>
+    <footer class="home-footer bottom-safe"><button data-action="audio-settings" class="text-button sound-control" type="button">${uiIcon('bell')} 소리 설정</button></footer>
   </main>`;
 }
 
@@ -624,7 +646,18 @@ function helpOverlay() {
     <ol><li>첫 판에는 패를 섞고 한 장씩 뽑아 선을 정해. 다음 판은 전 판 승자가 먼저 쳐.</li><li>내 손패를 눌러 바닥에 같은 무늬가 있으면 먹어.</li><li>패가 바닥에 착지하면 더미 한 장을 뒤집고 먹은 패를 가져와.</li><li>내 차례와 고/스톱 선택은 20초! 시간이 끝나면 자동으로 진행돼.</li><li><b>자동 ON</b>이면 내 패도 자동으로 내고, OFF면 직접 골라.</li><li><b>내가 먹은 패</b>는 손패 바로 위에 실제 화투 그림으로 쌓여. 종류를 누르면 모두 크게 펼쳐 보여!</li><li>광·열끗·띠·피를 모아 7점부터 고 또는 스톱!</li><li>고는 더 높은 점수를 노리고, 스톱은 지금 점수로 승리해.</li></ol>
     <p>쌍피·광박·피박·고박·흔들기·폭탄·뻑도 적용돼. 난이도는 AI가 선택하는 수의 수준을 바꾸며 패 분배는 동일한 규칙으로 섞어.</p>
     <div class="help-mini">놀이머니는 전부 무료이고, 현금으로 교환할 수 없어. 현재 기기에만 저장돼.</div>
+    <button type="button" class="btn btn--quiet btn--wide" data-action="audio-settings">소리 설정</button>
     ${btn('알겠어!','close','btn--primary btn--wide')}</section></div>`;
+}
+function audioSettingsOverlay() {
+  return `<div class="modal-shade"><section class="modal-box audio-settings" role="dialog" aria-modal="true" aria-labelledby="audio-settings-title">
+    <div class="help-heading"><h2 id="audio-settings-title">소리 설정</h2><button class="gallery-close" type="button" data-action="close" aria-label="소리 설정 닫기">✕</button></div>
+    <p>효과음과 AI 합성 음성을 따로 조절해요.</p>
+    <div class="audio-setting"><button type="button" class="audio-toggle" data-action="sound" aria-pressed="${app.sound}">효과음 ${app.sound?'켜짐':'꺼짐'}</button><label>효과음 크기 <input type="range" min="0" max="100" value="${Math.round(app.soundVolume*100)}" data-volume="soundVolume" aria-label="효과음 크기"></label></div>
+    <div class="audio-setting"><button type="button" class="audio-toggle" data-action="voice" aria-pressed="${app.voice}">음성 ${app.voice?'켜짐':'꺼짐'}</button><label>음성 크기 <input type="range" min="0" max="100" value="${Math.round(app.voiceVolume*100)}" data-volume="voiceVolume" aria-label="음성 크기"></label></div>
+    <button type="button" class="btn btn--quiet btn--wide" data-action="voice-preview" ${app.voice?'':'disabled'}>음성 미리 듣기</button>
+    ${btn('완료','close','btn--primary btn--wide')}
+  </section></div>`;
 }
 function cardbookOverlay() {
   const months = Array.from({length:12},(_,i)=>i+1);
@@ -653,6 +686,7 @@ function render() {
   const focusedCard=previousHand?.contains(document.activeElement) ? document.activeElement.dataset.card : null;
   let html = app.screen==='opening' && opening ? openingScreen() : app.screen==='select' ? selectScreen() : app.screen==='game' && app.game ? gameScreen() : home();
   if (overlay==='help') html += helpOverlay();
+  if (overlay==='audio-settings') html += audioSettingsOverlay();
   if (overlay==='cardbook' && app.screen!=='game') html += cardbookOverlay();
   if (overlay==='exit') html += exitOverlay();
   ROOT.removeAttribute('data-card-art');
@@ -685,6 +719,11 @@ function updateClockFace() {
   for (const time of times) time.textContent = String(secondsLeft(left));
   if (countdown) { const n=secondsLeft(left), number=countdown.querySelector('strong'), value=String(n);countdown.hidden=clockPaused || n<1 || n>5;if(number.textContent!==value){number.textContent=value;if(!countdown.hidden && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) number.animate?.([{transform:'scale(.82)',opacity:.72},{transform:'scale(1.08)',opacity:1,offset:.55},{transform:'scale(1)',opacity:1}],{duration:240,easing:'ease-out'});} }
   const urgent = !clockPaused && left > 0 && left <= 5000;
+  if (urgent && !app.autoMode && !document.hidden && warnedClockKey !== clockKey) {
+    warnedClockKey = clockKey;
+    gameCueSound('hurry');
+    voicePlayer.enqueue(['hurry'],{urgent:true});
+  }
   ROOT.querySelectorAll('.turn-clock').forEach(clock => clock.classList.toggle('is-urgent',urgent));
   if (countdown) countdown.classList.toggle('is-final', urgent && left <= 3000);
   if (fill) { fill.parentElement?.classList.toggle('is-urgent', urgent);fill.style.width = `${Math.max(0, Math.min(100, left / HUMAN_TURN_MS * 100))}%`; }
@@ -693,6 +732,7 @@ function syncTurnClock() {
   const key = humanChoiceSignature(app.screen,app.game,{gookjin:app.pendingGookjinChoice || overlay==='gookjin-choice',draw:app.pendingDrawChoice,triple:selectedTriple,match:selectedMatch});
   if (key !== clockKey) {
     clockKey = key;
+    warnedClockKey = null;
     clockRemaining = HUMAN_TURN_MS;
     clockDeadline = performance.now() + HUMAN_TURN_MS;
     clockPaused = false;
@@ -789,6 +829,8 @@ function autoTakeTurn(forced = false) {
 function finishRound() {
   const g = app.game;
   if (!g || app.pendingGookjinChoice || g.phase!=='round-ended' || app.settledUuid===g.gameUuid) return;
+  gameCueSound(g.roundResult==='nagari'?'nagari':g.winner==='human'?'win':'lose');
+  voicePlayer.enqueue(roundVoices(g));
   app.settledUuid = g.gameUuid;
   app.stats.rounds++;
   if (g.roundResult === 'nagari') {
@@ -906,6 +948,10 @@ function commitGame(next, result=null, motion=null) {
   const missionText = result?.missionCards?.length ? `${previous?.currentPlayer==='computer'?'상대 ':''}${result.missionEffect ? '미션 완료 · '+(piTransferAnnouncement(result) || result.missionEffect) : result.missionRequired > 1 ? '미션패 획득' : '미션패 ×'+(result.missionMultiplier || 1)}` : null;
   const openingPpeokText = result?.openingPpeok ? `${result.openingPpeok.player === 'human' ? '첫뻑 +' : '상대 첫뻑 −'}${kr(result.openingPpeok.amount)}냥` : null;
   const eventText = [specialText, openingPpeokText, missionText].filter(Boolean).join(' · ');
+  if (result?.missionCompleted) gameCueSound('mission');
+  else if (result?.bonusCards?.length) gameCueSound('bonus');
+  voicePlayer.enqueue(turnVoices(result,previous?.currentPlayer,completedSets.map(item=>item.combo)));
+  if (previous?.phase !== 'awaiting-go-stop' && next.phase === 'awaiting-go-stop' && next.pendingDecision === 'human') voicePlayer.enqueue(['decide']);
   finishRound();
   if (eventText) effects(eventText, 'special', 'event-list', !!motion);
   save(); render();
@@ -933,6 +979,8 @@ function runAI() {
       const c=chooseAiGoStop(g,'computer',app.difficulty);
       next=c==='go'?chooseGo(g,'computer'):chooseStop(g,'computer');
       effects(c==='go'?`상대 ${next.computerGoCount}고!`:'상대 스톱!', 'special', c==='go'?'go':'special');
+      gameCueSound(c==='go'?'go':'stop');
+      voicePlayer.enqueue([c==='go'?goVoice(next.computerGoCount):'stop']);
     } else if (g.phase==='awaiting-chongtong' && g.pendingDecision==='computer') {
       next=chooseChongtong(g,'computer',chooseAiChongtong(g,app.difficulty));
     } else if (g.phase==='playing' && g.currentPlayer==='computer') {
@@ -945,6 +993,7 @@ function runAI() {
       else if (move.kind==='shake') {
         const staged=declareShake(g,'computer',move.month);
         effects('상대 흔들기!', 'special', 'shake');
+        voicePlayer.enqueue(['shake']);
         const target=staged.computerHand.find(id=>getCard(id)?.month===move.month);
         if (target) result=playTurn(staged,'computer',target);
         else return;
@@ -1020,6 +1069,9 @@ function startNew(rematch = false, roundMultiplier = app.nextMultiplier) {
     overlay=null; effects(canEmergencyRecharge(app.wallet)?'오링! 긴급 충전을 이용해줘!':'더 낮은 판을 선택해줘!');
     app.screen='select'; render(); return;
   }
+  voicePlayer.clear();
+  gameCueSound(app.doubleStake && !app.doubleStake.gameUuid ? 'double' : 'start');
+  voicePlayer.enqueue(app.doubleStake && !app.doubleStake.gameUuid ? ['double','start'] : ['start']);
   const seed=crypto.getRandomValues(new Uint32Array(1))[0] || Date.now();
   const previousRival = Number.isInteger(app.rivalIndex) ? app.rivalIndex : -1;
   app.rivalIndex = (seed % (RIVALS.length - 1) + (previousRival < 0 ? 0 : previousRival + 1)) % RIVALS.length;
@@ -1080,7 +1132,7 @@ function mutate(action, value, cardId) {
     case 'exit-leave': overlay=null;save();if (flowerHadPrevious && history.length>2) history.go(-2);else location.assign('https://meta-deee1.web.app/ai-cleaner/');return;
     case 'decision-review': if (app.game?.phase==='awaiting-go-stop' && app.game.pendingDecision==='human') { decisionReview=true; render(); } return;
     case 'decision-return': decisionReview=false; render(); return;
-    case 'home': clearOpening();clearTimeout(aiTimer); overlay=null; selectedMatch=null;selectedTriple=null;decisionReview=false;app.screen='home';save();render();return;
+    case 'home': voicePlayer.clear();clearOpening();clearTimeout(aiTimer); overlay=null; selectedMatch=null;selectedTriple=null;decisionReview=false;app.screen='home';save();render();return;
     case 'opening-home': if (app.doubleStake && !app.doubleStake.gameUuid) { app.wallet+=app.doubleStake.amount;app.doubleStake=null; } clearOpening();overlay=null;app.screen='home';save();render();return;
     case 'opening-skip': advanceOpening();return;
     case 'pick-dealer': pickOpeningDealer(Number(value));return;
@@ -1101,6 +1153,7 @@ function mutate(action, value, cardId) {
       app.wallet+=EMERGENCY_RECHARGE;
       save();effects('긴급 '+kr(EMERGENCY_RECHARGE)+'냥 충전!','win');render();return;
     case 'help': overlay='help';render();return;
+    case 'audio-settings': overlay='audio-settings';render();return;
     case 'cardbook': overlay='cardbook';render();return;
     case 'mission': if (missionView(app.game)) {overlay='mission';render();} return;
     case 'captures': {
@@ -1112,6 +1165,8 @@ function mutate(action, value, cardId) {
     }
     case 'close': overlay=null;render();queueAI();return;
     case 'sound': app.sound=!app.sound;save();render();return;
+    case 'voice': app.voice=!app.voice;if(!app.voice)voicePlayer.clear();save();render();return;
+    case 'voice-preview': voicePlayer.enqueue(['start']);return;
     case 'play': humanPlay(cardId);return;
     case 'pickmatch': if (selectedMatch) humanPlay(selectedMatch.cardId,cardId,true);return;
     case 'cancelmatch': selectedMatch=null;render();return;
@@ -1119,7 +1174,7 @@ function mutate(action, value, cardId) {
     case 'triple-ordinary': { const id=selectedTriple?.initial; selectedTriple=null;if(id)humanPlay(id,undefined,true);return; }
     case 'triple-shake': {
       if (!selectedTriple || selectedTriple.mode!=='choice') return;
-      try { const next=declareShake(app.game,'human',selectedTriple.month); selectedTriple={...selectedTriple,mode:'shake'}; effects('흔들기!', 'special', 'shake');commitGame(next); }
+      try { const next=declareShake(app.game,'human',selectedTriple.month); selectedTriple={...selectedTriple,mode:'shake'}; effects('흔들기!', 'special', 'shake');voicePlayer.enqueue(['shake']);commitGame(next); }
       catch(err) { effects(err.message||'흔들 수 없어요');render(); }
       return;
     }
@@ -1145,12 +1200,12 @@ function mutate(action, value, cardId) {
   if (!g || app.screen!=='game') return;
   try {
     let next=g, result=null;
-    if (action==='go') { next=chooseGo(g,'human');effects(`${next.humanGoCount}고!`, 'special', 'go'); }
+    if (action==='go') { next=chooseGo(g,'human');effects(`${next.humanGoCount}고!`, 'special', 'go');gameCueSound('go');voicePlayer.enqueue([goVoice(next.humanGoCount)]); }
     else if (action==='stop') next=chooseStop(g,'human');
     else if (action==='chongtong-go') next=chooseChongtong(g,'human','continue');
     else if (action==='chongtong-stop') next=chooseChongtong(g,'human','stop');
     else if (action==='bomb') { result=playBomb(g,'human',Number(value));next=result.state; }
-    else if (action==='shake') { next=declareShake(g,'human',Number(value));selectedTriple={month:Number(value),mode:'shake'};effects('흔들기!', 'special', 'shake'); }
+    else if (action==='shake') { next=declareShake(g,'human',Number(value));selectedTriple={month:Number(value),mode:'shake'};effects('흔들기!', 'special', 'shake');voicePlayer.enqueue(['shake']); }
     else if (action==='flip') {
       if (!value) {
         const drawChoice=getFlipOnlyDrawChoice(g);
@@ -1159,6 +1214,7 @@ function mutate(action, value, cardId) {
       result=playFlipOnlyTurn(g,'human',value==='auto'?undefined:value || undefined);next=result.state;
     }
     else return;
+    if (action==='stop') {gameCueSound('stop');voicePlayer.enqueue(['stop']);}
     const handCard=result?.playedCardId && ROOT.querySelector(`.my-hand [data-card="${result.playedCardId}"]`);
     const handRect=motionOrigin(handCard || ROOT.querySelector('.my-hand .hwatu'));
     const deckRect=motionOrigin(ROOT.querySelector('.deck-pile .hwatu'));
@@ -1167,12 +1223,20 @@ function mutate(action, value, cardId) {
 }
 import { setGookjinChoice } from './engine/gameState';
 
-document.addEventListener('visibilitychange', syncTurnClock);
+document.addEventListener('visibilitychange', ()=>{if(document.hidden)voicePlayer.clear();syncTurnClock();});
 window.addEventListener('resize',syncHandScrollHint);
 document.addEventListener('click',e=>{
   const target=e.target.closest('[data-action]');
   if (!target || !ROOT.contains(target)) return;
+  voicePlayer.unlock();
   mutate(target.dataset.action,target.dataset.value,target.dataset.card);
+});
+document.addEventListener('input',e=>{
+  const key=e.target?.dataset?.volume;
+  if (!['soundVolume','voiceVolume'].includes(key) || !ROOT.contains(e.target)) return;
+  app[key]=Math.max(0,Math.min(1,Number(e.target.value)/100));
+  if (key==='voiceVolume') voicePlayer.volumeChanged();
+  save();
 });
 // A finger resting on one of the overlapping hand cards previews the actual
 // matching floor card(s). This is visual feedback only: releasing the finger
