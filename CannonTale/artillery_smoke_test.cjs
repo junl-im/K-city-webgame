@@ -76,6 +76,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v62ReaimForTest=(mode)=>{newGame(mode,0);const observations=[];for(let i=0;i<3;i++){beginPrecision();const before={phase:game.phase,remaining:$("precisionCancelCount").textContent,shots:game.shots,disabled:$("precisionCancel").disabled};$("precisionCancel").click();observations.push({before,after:{phase:game.phase,used:game.reaimCount,shots:game.shots}});}beginPrecision();const blocked={remaining:$("precisionCancelCount").textContent,disabled:$("precisionCancel").disabled,phase:game.phase};$("precisionCancel").click();const still={phase:game.phase,used:game.reaimCount,shots:game.shots};game.precisionNeedle=.5;lockPrecision();return{observations,blocked,still,afterFire:{used:game.reaimCount,shots:game.shots,phase:game.phase}};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v65PrecisionForTest=(needle)=>{newGame("duel",0);beginPrecision();step(1/60);const guide=$("precisionFoot").textContent;game.precisionNeedle=needle;lockPrecision();const pulse={...game.precisionBurst},power=game.precisionLast.adjusted,sideBias=game.precisionLast.sideBias;drawPrecisionBurst();step(1/60);const faded=game.precisionBurst?.life;for(let i=0;i<45;i++)step(1/60);return{guide,pulse,faded,cleared:game.precisionBurst===null,power,sideBias,shots:game.shots};}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v66StartPaceForTest=(kind)=>{newGame("duel",0);game.angle=43;game.wind=0;game.windLift=0;if(kind==="charge")beginFireCharge();else{beginPrecision();if(kind==="confirm"){game.chargeConfirmTime=1;game.chargeConfirmImpact={x:1018,y:360};$("chargeGauge").hidden=false;}}}; window.__v66PaceForTest=()=>({charge:game.chargeElapsed,range:duelRangeReferencePoint(game.angle,game.chargedPower).x,precision:game.precisionElapsed,needle:game.precisionNeedle,confirm:game.chargeConfirmTime,phase:game.phase,shots:game.shots,used:game.reaimCount}); window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -354,6 +356,7 @@ let callback=null,now=0;
 function requestAnimationFrame(fn){callback=fn;}
 new Function('document','window','requestAnimationFrame','devicePixelRatio',script)(document,window,requestAnimationFrame,1);
 function frames(n){for(let i=0;i<n;i++){now+=1000/60;const run=callback;callback=null;assert(run,'Animation frame not scheduled');run(now);}}
+function framesAtFps(fps,seconds){for(let i=0;i<Math.round(fps*seconds);i++){now+=1000/fps;const run=callback;callback=null;assert(run,'Animation frame not scheduled');run(now);}}
 function state(){return window.__artilleryDebug();}
 function fireNow(){
  el('fire').click();
@@ -1220,6 +1223,39 @@ for(const [needle,grade,label] of [[.5,'perfect','완벽!'],[.55,'near','정밀!
  assert.equal(result.shots,1,'Cosmetic timing feedback must not fire more than one projectile');
  assert(Number.isFinite(result.power)&&Number.isFinite(result.sideBias),'Timing power and lateral influence must remain physically calculated');
 }
+// A capped fixed-step physics loop may not slow either reaction challenge.
+// Check equal *wall-clock* intervals across smooth, midrange, and 10 FPS.
+const framePacing={charge:[],precision:[],confirm:[]};
+for(const fps of [60,30,10]){
+ window.__v66StartPaceForTest('charge');framesAtFps(fps,.9);
+ const charge=window.__v66PaceForTest();framePacing.charge.push(charge);
+ assert(Math.abs(charge.charge-.9)<.004,`Charge at ${fps} FPS must advance by actual displayed time`);
+ assert(charge.phase==='aim'&&charge.shots===0,'A slow device must not auto-fire or auto-open the precision gauge');
+ window.__v66StartPaceForTest('precision');framesAtFps(fps,.9);
+ const precision=window.__v66PaceForTest();framePacing.precision.push(precision);
+ assert(Math.abs(precision.precision-.9)<.004,`Precision at ${fps} FPS must advance by actual displayed time`);
+ assert(precision.phase==='timing'&&precision.shots===0,'Precision timing must remain interactive at low FPS');
+ window.__v66StartPaceForTest('confirm');framesAtFps(fps,.9);
+ const confirmation=window.__v66PaceForTest();framePacing.confirm.push(confirmation);
+ assert(Math.abs(confirmation.confirm-.1)<.004,`The highlighted target hold at ${fps} FPS must last one real second`);
+ framesAtFps(fps,.2);
+ assert.equal(window.__v66PaceForTest().confirm,0,'The target highlight must clear without stopping the precision needle');
+}
+for(const kind of ['charge','precision','confirm']){
+ const baseline=framePacing[kind][0];
+ for(const [i,sample] of framePacing[kind].entries()){
+  if(kind==='charge')assert(Math.abs(sample.range-baseline.range)<.02,`Neutral aim cursor position must match at ${[60,30,10][i]} FPS`);
+  else if(kind==='precision')assert(Math.abs(sample.needle-baseline.needle)<.002,'Precision needle tempo must not depend on physics catch-up');
+ }
+}
+window.__v66StartPaceForTest('precision');framesAtFps(10,.3);
+const beforeHidden=window.__v66PaceForTest().precision;
+document.hidden=true;framesAtFps(10,1);
+document.hidden=false;framesAtFps(10,.1);
+assert.equal(window.__v66PaceForTest().precision,beforeHidden,'Switching back from a hidden phone tab must not skip the reaction window');
+el('precisionCancel').click();
+assert.equal(window.__v66PaceForTest().phase,'aim','Re-aim must remain operable after low-FPS timing and tab return');
+assert.equal(window.__v66PaceForTest().shots,0,'Re-aim after a stutter must never consume a shell');
 window.__v58StartDuelForTest();
 const holdButton=el('fire');
 let preventedNativeHold=false;

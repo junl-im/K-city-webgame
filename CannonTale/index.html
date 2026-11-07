@@ -3799,7 +3799,41 @@ function advanceChargePower(dt){
   }
   updateHud();
  }
- function step(dt){
+ // Reaction-based aiming belongs to real elapsed display time, not the capped
+ // physics catch-up loop. At 10 FPS the old 75ms physics cap made a 100ms
+ // frame move the reticle/needle only 75ms, slowing the timing challenge.
+ // Direct step() callers still advance the controls for deterministic tests.
+ function advanceAimTiming(dt){
+  if(dt<=0)return;
+  if(game.precisionActive){
+   game.precisionElapsed+=dt;
+   const sweep=(game.precisionElapsed/1.13)%2;
+   game.precisionNeedle=sweep<=1?sweep:2-sweep;
+   $('precisionNeedle').style.left=(game.precisionNeedle*100).toFixed(2)+'%';
+   $('precisionPanel').classList.toggle('perfect',Math.abs(game.precisionNeedle-.5)<=.02);
+   const band=game.precisionNeedle<.44?'left':game.precisionNeedle>.56?'right':'center';
+   if(band!==game.precisionBand){
+    game.precisionBand=band;
+    $('precisionFoot').textContent={left:'← 왼쪽 편향 · 실탄 오차',center:'중앙 타이밍 · 바람은 실탄에만',right:'오른쪽 편향 → · 실탄 오차'}[band];
+   }
+  }
+  if(game.chargeActive){
+   const before=game.chargeElapsed;
+   game.chargeElapsed+=dt;
+   advanceChargePower(dt);
+   game.power=game.chargedPower;
+   $('chargeFill').style.width=game.chargedPower+'%';
+   $('fireLabel').textContent='파워 '+Math.round(game.chargedPower)+'%';
+   if(Math.floor(game.chargeElapsed*10)!==Math.floor(before*10))updateHud();
+  }
+  if(game.chargeConfirmTime>0){
+   game.chargeConfirmTime=Math.max(0,game.chargeConfirmTime-dt);
+   if(game.chargeConfirmTime===0){clearChargeConfirmation();if(game.phase==='timing')$('fireLabel').textContent='정밀 발사';}
+   else $('fireLabel').textContent='정타!';
+  }
+ }
+ function step(dt,processAimTiming=true){
+  if(processAimTiming)advanceAimTiming(dt);
   game.clock+=dt;game.phaseTime+=dt;
   if(game.mode==='duel'&&game.hudHealth){
    for(const burst of game.duelHitBursts)burst.life=Math.max(0,burst.life-dt);
@@ -3821,37 +3855,12 @@ function advanceChargePower(dt){
     }
    }
   }
-  if(game.precisionActive){
-   game.precisionElapsed+=dt;
-   const sweep=(game.precisionElapsed/1.13)%2;
-   game.precisionNeedle=sweep<=1?sweep:2-sweep;
-   $('precisionNeedle').style.left=(game.precisionNeedle*100).toFixed(2)+'%';
-   $('precisionPanel').classList.toggle('perfect',Math.abs(game.precisionNeedle-.5)<=.02);
-   const band=game.precisionNeedle<.44?'left':game.precisionNeedle>.56?'right':'center';
-   if(band!==game.precisionBand){
-    game.precisionBand=band;
-    $('precisionFoot').textContent={left:'← 왼쪽 편향 · 실탄 오차',center:'중앙 타이밍 · 바람은 실탄에만',right:'오른쪽 편향 → · 실탄 오차'}[band];
-   }
-  }
   if(game.precisionBurst){game.precisionBurst.life=Math.max(0,game.precisionBurst.life-dt);if(game.precisionBurst.life===0)game.precisionBurst=null;}
   for(const hit of game.hitEmphasis)hit.life-=dt;
   game.hitEmphasis=game.hitEmphasis.filter(hit=>hit.life>0);
   for(const echo of game.weaponAftershocks||[])echo.life=Math.max(0,echo.life-dt);
   game.weaponAftershocks=game.weaponAftershocks?.filter(echo=>echo.life>0)||[];
   if(game.hintTime>0){game.hintTime=Math.max(0,game.hintTime-dt);if(game.hintTime===0)$('hint').hidden=true;}
-  if(game.chargeActive){
-   game.chargeElapsed+=dt;
-   advanceChargePower(dt);
-   game.power=game.chargedPower;
-   $('chargeFill').style.width=game.chargedPower+'%';
-   $('fireLabel').textContent='파워 '+Math.round(game.chargedPower)+'%';
-   if(Math.floor(game.chargeElapsed*10)!==Math.floor((game.chargeElapsed-dt)*10))updateHud();
-  }
-  if(game.chargeConfirmTime>0){
-   game.chargeConfirmTime=Math.max(0,game.chargeConfirmTime-dt);
-   if(game.chargeConfirmTime===0){clearChargeConfirmation();if(game.phase==='timing')$('fireLabel').textContent='정밀 발사';}
-   else $('fireLabel').textContent='정타!';
-  }
   if(game.introLife>0){game.introLife=Math.max(0,game.introLife-dt);if(game.introLife===0)$('enemyEntrance').hidden=true;}game.shake*=.82;game.flash=Math.max(0,game.flash-dt);game.messageTime=Math.max(0,game.messageTime-dt);for(const owner of ['player','ai']){const hero=duelHero(owner),style=heroFiringStyles[hero]||heroFiringStyles.fox;game.recoil[owner]*=Math.pow(style.recoilDecay,dt*60);}for(const f of game.foes){if(f.deathTimer>0)f.deathTimer=Math.max(0,f.deathTimer-dt);}for(const e of game.blastCores)e.life-=dt;game.blastCores=game.blastCores.filter(e=>e.life>0);for(const a of Object.values(game.actorAnim))a.life=Math.max(0,a.life-dt);for(const e of game.skillEffects)e.life-=dt;game.skillEffects=game.skillEffects.filter(e=>e.life>0);if(game.muzzle){game.muzzle.life-=dt;if(game.muzzle.life<=0)game.muzzle=null;}
   if(game.mode==='menu'||game.phase==='result')return;
   if(game.phase==='review'&&Number.isFinite(game.reviewTimer)){
@@ -4980,7 +4989,17 @@ const materialCells={
   }
  }
  function draw(){resize();const dpr=Math.min(2,devicePixelRatio||1),s=game.scale;if(!s)return;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#8bbeb8';ctx.fillRect(0,0,cv.width,cv.height);ctx.setTransform(dpr*s,0,0,dpr*s,-game.camera*dpr*s,game.topPad*dpr);ctx.save();if(game.shake>1){ctx.translate(rnd(-game.shake,game.shake),rnd(-game.shake*.6,game.shake*.6));}backdrop();if(game.mode!=='menu'){ground();drawTrajectory();if(game.mode==='adventure'){drawBlocks();drawCollapseGhosts();drawFoes();slingshot();}else{drawDuelHitBursts();duelActor(190,1,true);duelActor(1018,-1,false);drawDuelHealthHud(190,'player');drawDuelHealthHud(1018,'ai');}drawChargeReadiness();drawDebris();drawProjectiles();drawParticles();drawImpactMotes();drawSkillEffects();drawImpact();drawPrecisionBurst();drawMessage();}else{ctx.save();fox(170,450,2);bear(1008,452,2);ctx.restore();}if(game.flash>0){ctx.fillStyle=`rgba(255,245,210,${game.flash*1.4})`;ctx.fillRect(game.camera,0,cv.clientWidth/s,H);}ctx.restore();}
- let prev=0,acc=0;function frame(t){if(!prev)prev=t;acc+=Math.min(.075,(t-prev)/1000);prev=t;let runs=0;while(acc>=STEP&&runs++<6){step(STEP);acc-=STEP;}draw();requestAnimationFrame(frame);}
+ let prev=null,acc=0;function frame(t){
+  if(document.hidden){prev=null;acc=0;requestAnimationFrame(frame);return;}
+  const elapsed=prev===null?0:clamp((t-prev)/1000,0,.2);
+  prev=t;
+  // One wall-clock update per visible frame: no double-counting during
+  // multiple 60 Hz physics steps and no near-target or low-FPS slow motion.
+  advanceAimTiming(elapsed);
+  acc+=Math.min(.075,elapsed);
+  let runs=0;while(acc>=STEP&&runs++<6){step(STEP,false);acc-=STEP;}
+  draw();requestAnimationFrame(frame);
+ }
  function pointerToWorld(e){const r=cv.getBoundingClientRect();return{x:game.camera+(e.clientX-r.left)/game.scale,y:(e.clientY-r.top-game.topPad)/game.scale};}
  cv.addEventListener('pointerdown',e=>{if(game.drag||game.pan)return;if(game.phase==='flying'){if(game.hero==='rabbit'&&game.turn==='player'&&!game.abilityUsed){useAbility();return;}const active=game.projectiles.find(p=>p.weapon==='split'&&!p.split);if(active){splitProjectile(active);return;}}if(game.mode==='menu'||game.phase==='result'||game.phase==='timing'||game.overview)return;const p=pointerToWorld(e),o=origin();if(game.mode==='adventure'&&game.phase==='aim'&&Math.hypot(p.x-o.x,p.y-o.y)<110){game.drag={x:p.x,y:p.y,pointerId:e.pointerId};cv.setPointerCapture(e.pointerId);}else{game.pan={startX:e.clientX,startY:e.clientY,startAngle:game.angle,startCamera:game.camera,kind:null,pointerId:e.pointerId};cv.setPointerCapture(e.pointerId);}});
  cv.addEventListener('pointermove',e=>{if(game.drag&&game.drag.pointerId===e.pointerId){const p=pointerToWorld(e),o=origin();game.drag={x:clamp(p.x,o.x-120,o.x-7),y:clamp(p.y,o.y-95,o.y+35),pointerId:e.pointerId};}else if(game.pan&&game.pan.pointerId===e.pointerId){
