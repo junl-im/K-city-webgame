@@ -3385,7 +3385,7 @@ function advanceChargePower(dt){
   if(canResumeAimFromReview())completeReview();
   if(game.phase!=='aim'||game.turn!=='player')return false;
   game.precisionHoldTime=0;game.precisionPendingShot=null;$('precisionHit').disabled=false;
-  $('precisionPanel').classList.toggle('locked',false);
+  $('precisionPanel').classList.toggle('locked',false);$('precisionPanel').classList.toggle('perfect',false);
   for(const grade of ['perfect','near','normal','off'])$('precisionPanel').classList.toggle('locked-'+grade,false);
   game.precisionActive=true;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionBand='';game.precisionSlowFrames=0;game.precisionPerfectHalf=.02;
   game.precisionCamera=game.camera;game.phase='timing';game.phaseTime=0;
