@@ -64,6 +64,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v55AimProbeForTest=(angle,power,wind=0)=>{newGame("duel",0);game.wind=wind;game.windLift=0;game.angle=angle;game.power=power;game.chargedPower=power;const path=predict(angle,power,wind,"player",640),stable=stableAimPath(angle,power,wind,"player",640),steady=stableAimPoint(stable);game.chargeActive=true;drawTrajectory();return{angle,power,kind:path.impact?.kind||"none",contact:path.impact?{...path.impact}:null,steady,chargeX:game.chargeAimX,edge:stable.edgeExit||null};}; window.__v55AimSweepForTest=()=>{newGame("duel",0);game.wind=0;game.windLift=0;let hit=null,miss=null;for(let a=18;a<=80;a+=2)for(let p=40;p<=100;p+=2){const path=predict(a,p,0,"player",640),kind=path.impact?.kind||"none";if(kind==="foe"&&!hit)hit={angle:a,power:p};if(kind!=="foe"&&!miss)miss={angle:a,power:p};if(hit&&miss)return{hit,miss};}return{hit,miss};}; window.__v55ChargeRateForTest=(angle,power,mode="duel")=>{newGame(mode,0);game.angle=angle;game.wind=0;game.windLift=0;game.chargedPower=power;return chargeSweepRate();}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v56CueForTest=(angle,power)=>{newGame("duel",0);game.wind=0;game.windLift=0;game.angle=angle;game.power=power;game.chargedPower=power;game.chargeActive=true;drawTrajectory();return{cue:game.aimCue,marked:$("fire").classList.contains("target-window"),contact:predict(angle,power,0,"player").impact?.kind||"none"};}; window.__v56ReviewForTest=(distance,damage=0)=>{newGame("duel",0);game.phase="flying";game.turn="player";game.shotInfluences=null;game.shotBaseline={foes:0,blockHp:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP};game.closestApproach={distance,x:1000,y:200};game.lastImpact={x:790,y:terrainY(790)-10};game.aiHp-=damage;finishFlight();return{title:game.reviewInfo.title,detail:game.reviewInfo.detail,time:game.reviewTimer};}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v57ChargeForTest=(angle,power,mode="duel")=>{newGame(mode,0);game.angle=angle;game.wind=0;game.windLift=0;game.chargedPower=power;game.chargeDirection=1;const before=stableAimPoint(stableAimPath(angle,power,0)).x,rate=chargeSweepRate(),afterPower=advanceChargePower(1/60),after=stableAimPoint(stableAimPath(angle,afterPower,0)).x;return{rate,before,after,beforePower:power,afterPower,step:Math.abs(after-before)};}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -1152,8 +1154,12 @@ assert(aimHit.contact?.kind==='foe'&&aimHit.steady.kind!=='foe','Physical enemy 
 assert(html.includes('clamp(shift,-11,11)'),'Charging camera must limit frame-to-frame jumps while the forecast runs past a target');
 const aimingNearRate=window.__v55ChargeRateForTest(aimSweep.hit.angle,aimSweep.hit.power);
 const aimingFarRate=window.__v55ChargeRateForTest(aimSweep.hit.angle,20);
-assert(aimingNearRate>=.42&&aimingNearRate<aimingFarRate,'Power charging must slow in the enemy aim window, without slowing distant sweeping');
+assert(aimingNearRate>0&&aimingNearRate<aimingFarRate,'Power charging must follow reticle speed at enemy proximity, without slowing distant sweeping');
 assert.equal(window.__v55ChargeRateForTest(aimSweep.hit.angle,aimSweep.hit.power,'adventure'),1,'Adventure charge timing must remain unchanged');
+const preciseCharge=window.__v57ChargeForTest(aimSweep.hit.angle,aimSweep.hit.power);
+assert(preciseCharge.step<12,'A duel aim reticle must not whip across the enemy in one frame');
+assert(preciseCharge.afterPower!==Math.round(preciseCharge.afterPower),'Duel charge must retain fractional power instead of 1% cursor jumps');
+assert.equal(window.__v57ChargeForTest(aimSweep.hit.angle,50,'adventure').rate,1,'Adventures keep the original charging rate');
 const cueHit=window.__v56CueForTest(aimSweep.hit.angle,aimSweep.hit.power);
 assert.equal(cueHit.contact,'foe','A highlighted target window requires a true enemy collision');
 assert.equal(cueHit.cue.kind,'hit','Accurate player trajectories must display the mint contact cue');
