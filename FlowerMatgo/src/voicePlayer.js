@@ -1,5 +1,5 @@
 // Version only revised clips so old browser caches cannot hide an audio fix.
-const VOICE_FILES = Object.freeze({start:'start-v5',first_human:'first_human-v2',first_computer:'first_computer-v2',double:'double-v2',mission:'mission-v2',win:'win-v2',take:'take-v2',give:'give-v2',bonus_reveal:'bonus-reveal',chodan_alert:'chodan_alert-v2',hongdan_alert:'hongdan_alert-v2',cheongdan_alert:'cheongdan_alert-v2',godori_alert:'godori_alert-v2',dealer_confirm:'dealer_confirm-v2',missed_match:'missed_match-v2',no_match:'no_match-v2'});
+const VOICE_FILES = Object.freeze({start:'start-v5',first_human:'first_human-v2',first_computer:'first_computer-v2',first_ppeok:'first_ppeok-v2',double:'double-v2',mission:'mission-v2',win:'win-v2',take:'take-v2',give:'give-v2',bonus_reveal:'bonus-reveal',chodan_alert:'chodan_alert-v2',hongdan_alert:'hongdan_alert-v2',cheongdan_alert:'cheongdan_alert-v2',godori_alert:'godori_alert-v2',dealer_confirm:'dealer_confirm-v2',missed_match:'missed_match-v2',no_match:'no_match-v2'});
 export function voiceAssetName(id) { return VOICE_FILES[id] || id; }
 
 // One short clip at a time; stale callouts are discarded as the game advances.

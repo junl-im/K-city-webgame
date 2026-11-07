@@ -24,6 +24,7 @@ describe('실제 게임 음성 파일', () => {
       expect(existsSync(file),`${id} 음원 누락`).toBe(true);
       expect(statSync(file).size,`${id} 음원 비어 있음`).toBeGreaterThan(1000);
       if (id==='start') expect(statSync(file).size,'시작 대사 세 구간 확인').toBeGreaterThan(30000);
+      if (id==='first_ppeok') expect(statSync(file).size,'첫뻑 대사의 두 발음 구간 확인').toBeGreaterThan(12000);
     }
   });
 });
