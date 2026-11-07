@@ -24,8 +24,10 @@ export function drawnBonusCards(result) {
 }
 export function bonusDrawTimeline(result) {
   const cards=drawnBonusCards(result);
-  const steps=cards.map((id,index)=>({id,draw:TURN_STAGES.draw+index*BONUS_DRAW_CYCLE_MS,flip:TURN_STAGES.flip+index*BONUS_DRAW_CYCLE_MS,move:TURN_STAGES.flip+index*BONUS_DRAW_CYCLE_MS+BONUS_FLIP_MS+BONUS_FACE_HOLD_MS}));
-  const offset=steps.length*BONUS_DRAW_CYCLE_MS;
+  const interval=(TURN_STAGES.flip-TURN_STAGES.draw)+BONUS_FLIP_MS+BONUS_FACE_HOLD_MS;
+  const move=TURN_STAGES.flip+Math.max(0,cards.length-1)*interval+BONUS_FLIP_MS+BONUS_FACE_HOLD_MS;
+  const steps=cards.map((id,index)=>({id,draw:TURN_STAGES.draw+index*interval,flip:TURN_STAGES.flip+index*interval,move}));
+  const offset=steps.length ? move+BONUS_COLLECT_MS-TURN_STAGES.draw : 0;
   return {steps,offset,finalDraw:TURN_STAGES.draw+offset,complete:TURN_PRESENTATION_MS+offset};
 }
 export function bonusRevealRect(bounds, viewportWidth, viewportHeight) {
@@ -345,7 +347,7 @@ function showBonusLabel(root,target,player,stolen,hold) {
   label.style.top=`${Math.max(24,target.top-10)}px`;
   root.appendChild(label);setTimeout(()=>label.remove(),hold);
 }
-function animateBonusDraws(root,result,player,deck,target,cardHTML,sound,timeline,reduced=false,onBonus) {
+function animateBonusDraws(root,result,player,deck,target,cardHTML,sound,timeline,reduced=false,onBonus,onBonusReveal) {
   const destination=bonusRack(root,player);
   const rival=bonusRack(root,player==='human'?'computer':'human');
   const stolen=result.bonusStolenPee || [];
@@ -357,20 +359,31 @@ function animateBonusDraws(root,result,player,deck,target,cardHTML,sound,timelin
       if(deckCount && Number.isFinite(initialCount))deckCount.textContent=String(Math.max(0,initialCount-index-1));
       if(!reduced && deck)spawnFlight(root,step.id,deck,target,0,cardHTML,false,true);
     },step.draw);
-    if (!reduced) spawnFlip(root,step.id,target,step.flip,cardHTML,BONUS_FLIP_MS+BONUS_FACE_HOLD_MS,true);
+    if (!reduced) spawnFlip(root,step.id,target,step.flip,cardHTML,step.move-step.flip+80,true);
     setTimeout(()=>{
       if(!root.querySelector('.scene--game.is-resolving'))return;
       if(reduced){
         const face=document.createElement('div');face.className='turn-bonus-static';face.dataset.bonusCard=step.id;
         face.style.cssText=`left:${target.left}px;top:${target.top}px;width:${target.width}px;height:${target.height}px`;
-        face.innerHTML=cardHTML(step.id);root.appendChild(face);setTimeout(()=>face.remove(),BONUS_FLIP_MS+BONUS_FACE_HOLD_MS);
+        face.innerHTML=cardHTML(step.id);root.appendChild(face);setTimeout(()=>face.remove(),step.move-step.flip+80);
+      }
+      if(index>0){
+        const faces=[...root.querySelectorAll('[data-bonus-card]')];
+        faces.forEach((face,i)=>{
+          const offset=(i-(faces.length-1)/2)*target.width*.68;
+          face.style.left=`${target.left+offset}px`;
+          face.style.transform=`rotate(${(i-(faces.length-1)/2)*14}deg)`;
+        });
       }
       showBonusLabel(root,target,player,stolen[index],BONUS_FLIP_MS+BONUS_FACE_HOLD_MS);
+      onBonusReveal?.(step.id,index);
       sound('flip');
     },step.flip);
     setTimeout(()=>{
       if(!root.querySelector('.scene--game.is-resolving'))return;
-      moveBonusCard(root,step.id,target,destination,cardHTML,!reduced);
+      const face=[...root.querySelectorAll('[data-bonus-card]')].find(el=>el.dataset.bonusCard===step.id);
+      moveBonusCard(root,step.id,measure(face)||target,destination,cardHTML,!reduced);
+      face?.remove();
       const taken=stolen[index];
       if(taken){
         onBonus?.(taken);
@@ -554,7 +567,7 @@ function recoilTable(root, kind, delay) {
   }, delay);
 }
 
-export function animateResolvedTurn({ root, result, player, handRect, deckRect, cardHTML, sound, playedMatchId, onLand, onBonus, onCollect }) {
+export function animateResolvedTurn({ root, result, player, handRect, deckRect, cardHTML, sound, playedMatchId, onLand, onBonus, onBonusReveal, onCollect }) {
   const cue = turnCue(result);
   if (!cue || !root) return 0;
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -568,7 +581,7 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
     sound(cue.soundKind || cue.impact);
     onLand?.();
     if (timeline.steps.length && bonusTarget) {
-      animateBonusDraws(root,result,player,deck,bonusTarget,cardHTML,sound,timeline,true,onBonus);
+      animateBonusDraws(root,result,player,deck,bonusTarget,cardHTML,sound,timeline,true,onBonus,onBonusReveal);
       const complete=timeline.finalDraw+100;
       if(onCollect)setTimeout(onCollect,complete-25);
       return complete;
@@ -603,7 +616,7 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
   });
   if (playedFloorCard) spawnPairContact(root,playedFloorCard,target,TURN_STAGES.land);
   if (timeline.steps.length) {
-    animateBonusDraws(root,result,player,deck,bonusTarget,cardHTML,sound,timeline,false,onBonus);
+    animateBonusDraws(root,result,player,deck,bonusTarget,cardHTML,sound,timeline,false,onBonus,onBonusReveal);
   }
   spawnImpact(root, target, hasPlayedMatch ? '착!' : '탁!', TURN_STAGES.land);
   recoilTable(root,'land',TURN_STAGES.land+20);
