@@ -32,7 +32,7 @@ export function turnVoices(result, actor = 'human', combos = []) {
 export function roundVoices(game) {
   if (!game || game.phase !== 'round-ended') return [];
   if (game.roundResult === 'nagari') return ['nagari'];
-  const cues = (game.settlement?.baks || []).flatMap(bak => bak.code === 'pi-bak' ? ['pibak'] : bak.code === 'gwang-bak' ? ['gwangbak'] : bak.code === 'meong-bak' ? ['meongtta'] : []);
+  const cues = (game.settlement?.baks || []).flatMap(bak => bak.code === 'pi-bak' ? ['pibak'] : bak.code === 'gwang-bak' ? ['gwangbak'] : bak.code === 'meong-bak' ? ['meongtta'] : bak.code === 'go-bak' ? ['gobak'] : []);
   cues.push(game.winner === 'human' ? 'win' : 'lose');
   return cues;
 }
