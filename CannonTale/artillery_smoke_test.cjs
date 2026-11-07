@@ -68,6 +68,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v57ChargeForTest=(angle,power,mode="duel")=>{newGame(mode,0);game.angle=angle;game.wind=0;game.windLift=0;game.chargedPower=power;game.chargeDirection=1;const before=stableAimPoint(stableAimPath(angle,power,0)).x,rate=chargeSweepRate(),afterPower=advanceChargePower(1/60),after=stableAimPoint(stableAimPath(angle,afterPower,0)).x;return{rate,before,after,beforePower:power,afterPower,step:Math.abs(after-before)};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v58AdvanceHoldForTest=(frames)=>{for(let i=0;i<frames;i++){game.chargeElapsed+=1/60;advanceChargePower(1/60);}return{power:game.chargedPower,direction:game.chargeDirection,active:game.chargeActive,phase:game.phase};}; window.__v58StartDuelForTest=()=>newGame("duel",0); window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v59HitHoldForTest=(angle)=>{newGame("duel",0);game.angle=angle;game.wind=0;game.windLift=0;beginFireCharge();let hitPower=null,pausedFrames=0,hitKind=null,powerStayedFrozen=true;for(let i=0;i<240;i++){const wasHeld=game.chargeHitHold>0;advanceChargePower(1/60);if(hitPower===null&&game.chargeHitHold>0){hitPower=game.chargedPower;hitKind=duelHitAtChargePower(hitPower)?"foe":"miss";}if(wasHeld){pausedFrames++;if(game.chargedPower!==hitPower)powerStayedFrozen=false;if(game.chargeHitHold===0)break;}}return{hitPower,pausedFrames,hitKind,powerStayedFrozen,phase:game.phase,active:game.chargeActive,remaining:game.chargeHitHold};}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -1156,12 +1158,19 @@ assert(aimHit.contact?.kind==='foe'&&aimHit.steady.kind!=='foe','Physical enemy 
 assert(html.includes('clamp(shift,-11,11)'),'Charging camera must limit frame-to-frame jumps while the forecast runs past a target');
 const aimingNearRate=window.__v55ChargeRateForTest(aimSweep.hit.angle,aimSweep.hit.power);
 const aimingFarRate=window.__v55ChargeRateForTest(aimSweep.hit.angle,20);
-assert(aimingNearRate>0&&aimingNearRate<aimingFarRate,'Power charging must follow reticle speed at enemy proximity, without slowing distant sweeping');
+assert.equal(aimingNearRate,1,'An enemy must not slow the timing gauge');
+assert.equal(aimingFarRate,1,'The original sweep rate must apply at all distances');
 assert.equal(window.__v55ChargeRateForTest(aimSweep.hit.angle,aimSweep.hit.power,'adventure'),1,'Adventure charge timing must remain unchanged');
-const preciseCharge=window.__v57ChargeForTest(aimSweep.hit.angle,aimSweep.hit.power);
-assert(preciseCharge.step<12,'A duel aim reticle must not whip across the enemy in one frame');
+const preciseCharge=window.__v57ChargeForTest(aimSweep.hit.angle,20);
+assert(Math.abs((preciseCharge.afterPower-20)-(80/1.35)/60)<.000001,'Duel charging must use the original constant-speed timing sweep');
 assert(preciseCharge.afterPower!==Math.round(preciseCharge.afterPower),'Duel charge must retain fractional power instead of 1% cursor jumps');
 assert.equal(window.__v57ChargeForTest(aimSweep.hit.angle,50,'adventure').rate,1,'Adventures keep the original charging rate');
+const targetHold=window.__v59HitHoldForTest(aimSweep.hit.angle);
+assert.equal(targetHold.hitKind,'foe','The one-second window must only begin at a genuine enemy collision');
+assert(targetHold.pausedFrames>=59&&targetHold.pausedFrames<=61,'A genuine hit holds the selected power for roughly one second');
+assert(targetHold.powerStayedFrozen,'The gauge must retain its exact selected hit power during the window');
+assert.equal(targetHold.phase,'aim','One second passing must not automatically open the precision gauge');
+assert(targetHold.active,'The player must still be pressing the button after the hold ends');
 window.__v58StartDuelForTest();
 const holdButton=el('fire');
 let preventedNativeHold=false;
