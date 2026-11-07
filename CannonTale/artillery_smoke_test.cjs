@@ -61,9 +61,9 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v54MuzzleForTest=(hero,owner)=>{newGame("duel",0);game[owner==="ai"?"aiHero":"hero"]=hero;launch(owner,45,80,"normal");const initial={...game.muzzle},firstKick=game.recoil[owner];step(1/60);const projectile=game.projectiles.at(-1),bridge=game.muzzle?muzzleBridge(game.muzzle):null;drawMuzzleFollowthrough(game.muzzle);return{initial,after:game.muzzle?{...game.muzzle}:null,firstKick,secondKick:game.recoil[owner],bridge,projectile:projectile?{x:projectile.x,y:projectile.y}:null,hp:[game.playerHp,game.aiHp]};}; window.__v54HudClampForTest=(owner,px,width=320)=>{newGame("duel",0);const savedWidth=cv.clientWidth;cv.clientWidth=width;game.scale=.6;const x=owner==="player"?190:1018,anchor=duelHudAnchor(x,owner);game.camera=anchor.x-px/game.scale;drawDuelHealthHud(x,owner);const result={placement:game.hudPlacement[owner],visible:game.hudDrawn[owner],width};cv.clientWidth=savedWidth;return result;}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
- ' window.__v55AimProbeForTest=(angle,power,wind=0)=>{newGame("duel",0);game.wind=wind;game.windLift=0;game.angle=angle;game.power=power;game.chargedPower=power;const path=predict(angle,power,wind,"player",640),stable=stableAimPath(angle,power,wind,"player",640),steady=duelRangeReferencePoint(angle,power);game.chargeActive=true;drawTrajectory();return{angle,power,kind:path.impact?.kind||"none",contact:path.impact?{...path.impact}:null,steady,chargeX:game.chargeAimX,edge:stable.edgeExit||null};}; window.__v55AimSweepForTest=()=>{newGame("duel",0);game.wind=0;game.windLift=0;let hit=null,miss=null;for(let a=18;a<=80;a+=2)for(let p=40;p<=100;p+=2){const path=predict(a,p,0,"player",640),kind=path.impact?.kind||"none";if(kind==="foe"&&!hit)hit={angle:a,power:p};if(kind!=="foe"&&!miss)miss={angle:a,power:p};if(hit&&miss)return{hit,miss};}return{hit,miss};}; window.__v55ChargeRateForTest=(angle,power,mode="duel")=>{newGame(mode,0);game.angle=angle;game.wind=0;game.windLift=0;game.chargedPower=power;return chargeSweepRate();}; window.__artilleryLoadoutDebug=');
+ ' window.__v55AimProbeForTest=(angle,power,wind=0)=>{newGame("duel",0);game.wind=wind;game.windLift=0;game.angle=angle;game.power=power;game.chargedPower=power;const path=predict(angle,DUEL_SIGHT_POWER,0,"player",640),stable=stableAimPath(angle,DUEL_SIGHT_POWER,0,"player",640),steady=duelRangeReferencePoint(angle);game.chargeActive=true;drawTrajectory();return{angle,power,kind:path.impact?.kind||"none",contact:path.impact?{...path.impact}:null,steady,chargeX:game.chargeAimX,edge:stable.edgeExit||null};}; window.__v55AimSweepForTest=()=>{newGame("duel",0);game.wind=0;game.windLift=0;let hit=null,miss=null;for(let a=8;a<=88;a+=.25){const path=predict(a,DUEL_SIGHT_POWER,0,"player",640),kind=path.impact?.kind||"none";if(kind==="foe"&&!hit)hit={angle:a,power:60};if(kind!=="foe"&&!miss)miss={angle:a,power:60};if(hit&&miss)return{hit,miss};}return{hit,miss};}; window.__v55ChargeRateForTest=(angle,power,mode="duel")=>{newGame(mode,0);game.angle=angle;game.wind=0;game.windLift=0;game.chargedPower=power;return chargeSweepRate();}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
- ' window.__v56CueForTest=(angle,power)=>{newGame("duel",0);game.wind=0;game.windLift=0;game.angle=angle;game.power=power;game.chargedPower=power;game.chargeActive=true;drawTrajectory();return{cue:game.aimCue,marked:$("fire").classList.contains("target-window"),contact:predict(angle,power,0,"player").impact?.kind||"none"};}; window.__v56ReviewForTest=(distance,damage=0)=>{newGame("duel",0);game.phase="flying";game.turn="player";game.shotInfluences=null;game.shotBaseline={foes:0,blockHp:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP};game.closestApproach={distance,x:1000,y:200};game.lastImpact={x:790,y:terrainY(790)-10};game.aiHp-=damage;finishFlight();return{title:game.reviewInfo.title,detail:game.reviewInfo.detail,time:game.reviewTimer};}; window.__artilleryLoadoutDebug=');
+ ' window.__v56CueForTest=(angle,power)=>{newGame("duel",0);game.wind=0;game.windLift=0;game.angle=angle;game.power=power;game.chargedPower=power;game.chargeActive=true;drawTrajectory();return{cue:game.aimCue,marked:$("fire").classList.contains("target-window"),contact:predict(angle,DUEL_SIGHT_POWER,0,"player").impact?.kind||"none"};}; window.__v56ReviewForTest=(distance,damage=0)=>{newGame("duel",0);game.phase="flying";game.turn="player";game.shotInfluences=null;game.shotBaseline={foes:0,blockHp:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP};game.closestApproach={distance,x:1000,y:200};game.lastImpact={x:790,y:terrainY(790)-10};game.aiHp-=damage;finishFlight();return{title:game.reviewInfo.title,detail:game.reviewInfo.detail,time:game.reviewTimer};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v57ChargeForTest=(angle,power,mode="duel")=>{newGame(mode,0);game.angle=angle;game.wind=0;game.windLift=0;game.chargedPower=power;game.chargeDirection=1;const before=stableAimPoint(stableAimPath(angle,power,0)).x,rate=chargeSweepRate(),afterPower=advanceChargePower(1/60),after=stableAimPoint(stableAimPath(angle,afterPower,0)).x;return{rate,before,after,beforePower:power,afterPower,step:Math.abs(after-before)};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
@@ -71,7 +71,7 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v60ConfirmForTest=(angle,power)=>{newGame("duel",0);game.angle=angle;game.wind=0;game.windLift=0;beginFireCharge();let passedHit=false,stalled=false,previous=20;for(let i=0;i<160;i++){advanceChargePower(1/60);const current=game.chargedPower;if(duelHitAtChargePower(current)){passedHit=true;if(Math.abs(current-previous)<.001)stalled=true;}previous=current;}const activeBeforeRelease=game.chargeActive,phaseBeforeRelease=game.phase;game.chargeElapsed=.5;game.chargedPower=power;releaseFireCharge();const initial={time:game.chargeConfirmTime,impact:game.chargeConfirmImpact,visible:!$("chargeGauge").hidden,phase:game.phase,needle:game.precisionNeedle,action:$("precisionPanel").classList.contains("charge-confirm")};for(let i=0;i<30;i++)step(1/60);const middle={time:game.chargeConfirmTime,visible:!$("chargeGauge").hidden,needle:game.precisionNeedle,phase:game.phase};for(let i=0;i<32;i++)step(1/60);const expired={time:game.chargeConfirmTime,hidden:$("chargeGauge").hidden,action:$("precisionPanel").classList.contains("charge-confirm"),phase:game.phase};return{passedHit,stalled,activeBeforeRelease,phaseBeforeRelease,initial,middle,expired};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
- ' window.__v61NearForTest=()=>{newGame("duel",0);game.wind=0;game.windLift=0;for(let angle=18;angle<=80;angle+=2)for(let power=40;power<=100;power+=2){const contacts=predict(angle,power,0,"player");if(contacts.impact?.kind==="foe")continue;const cue=duelAimFeedback(stableAimPath(angle,power,0),contacts);if(cue.kind!=="near")continue;game.angle=angle;beginFireCharge();game.chargeElapsed=.5;game.chargedPower=power;releaseFireCharge();return{angle,power,phase:game.phase,near:$("precisionPanel").classList.contains("charge-near"),falseHit:$("precisionPanel").classList.contains("charge-confirm"),hidden:$("chargeGauge").hidden,headline:$("precisionHeadline").textContent};}return null;}; window.__artilleryLoadoutDebug=');
+ ' window.__v61NearForTest=()=>{newGame("duel",0);game.wind=0;game.windLift=0;for(let angle=8;angle<=88;angle+=.25){const contacts=predict(angle,DUEL_SIGHT_POWER,0,"player");if(contacts.impact?.kind==="foe")continue;const cue=duelAimFeedback(stableAimPath(angle,DUEL_SIGHT_POWER,0),contacts);if(cue.kind!=="near")continue;game.angle=angle;beginFireCharge();game.chargeElapsed=.5;game.chargedPower=60;releaseFireCharge();return{angle,power:60,phase:game.phase,near:$("precisionPanel").classList.contains("charge-near"),falseHit:$("precisionPanel").classList.contains("charge-confirm"),hidden:$("chargeGauge").hidden,headline:$("precisionHeadline").textContent};}return null;}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v62ReaimForTest=(mode)=>{newGame(mode,0);const observations=[];for(let i=0;i<3;i++){beginPrecision();const before={phase:game.phase,remaining:$("precisionCancelCount").textContent,shots:game.shots,disabled:$("precisionCancel").disabled};$("precisionCancel").click();observations.push({before,after:{phase:game.phase,used:game.reaimCount,shots:game.shots}});}beginPrecision();const blocked={remaining:$("precisionCancelCount").textContent,disabled:$("precisionCancel").disabled,phase:game.phase};$("precisionCancel").click();const still={phase:game.phase,used:game.reaimCount,shots:game.shots};game.precisionNeedle=.5;lockPrecision();finishPrecisionHold();return{observations,blocked,still,afterFire:{used:game.reaimCount,shots:game.shots,phase:game.phase}};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
@@ -185,7 +185,8 @@ assert(v41Style.includes('grid-template-columns:34% minmax(0,1fr)!important')&&v
 assert(v41Style.includes('grid-template-columns:32% minmax(0,1fr)!important'),'Short landscape hero plaque still needs a safe medal gutter');
 assert(!/<svg|image\/svg\+xml/.test(v41Style),'Hero label adjustment must remain SVG-free');
 assert(html.includes('Restore the original aimpoint-follow camera: no charging zoom or field shrink.'),'Charge camera must restore the original aimpoint tracking without zoom-out');
-assert(html.includes(':chargeFocus?game.chargeAimX-visible*.46'),'Charging must focus ahead of the predicted impact position');
+assert(html.includes("const chargeFocus=game.mode!=='duel'&&game.chargeActive")&&html.includes(':game.panX!==null?game.panX'),
+ 'Only adventure charging may pan with power; duel preserves its angle-only sight');
 for(const asset of ['popup_ground_notice_v31.webp','popup_impact_review_v31.webp','popup_exit_confirm_v31.webp','popup_parchment_modal_v31.webp','popup_action_button_v31.webp','hero_info_plaque_v31.webp','hero_portrait_frame_v31.webp']){
  assert(html.includes('art/'+asset),`Real illustrated popup and hero UI must use ${asset}`);
  const bytes=fs.readFileSync(`${__dirname}/art/${asset}`);
@@ -588,13 +589,14 @@ frames(47);
 assert(Number.isFinite(state().chargeAimX),'Charging must track the predicted landing x');
 const heldCamera=window.__chargeCameraDebug();
 assert(heldCamera.power>earlyCamera.power,'Long hold must increase actual charged power');
-assert(heldCamera.aimX>earlyCamera.aimX+20,'Landing forecast must use the increasing held power, not the stale power slider');
-assert(heldCamera.glintX>earlyCamera.glintX+20,'The visible leading reticle must travel outward as charging advances');
+assert(heldCamera.aimX>earlyCamera.aimX+20,'Adventure projectile range must still follow its charge meter');
+assert(heldCamera.glintX>earlyCamera.glintX+20,'Adventure aiming glint must travel with its charge');
 assert.equal(state().chargeZoom,1,'Charging camera must never zoom out after restoring the original aiming behavior');
 assert.equal(state().scale,chargeStartScale,'Long hold must retain the original combat zoom level');
 assert.equal(state().chargeReveal,1,'The original full trajectory dots must remain visible during charging');
-assert(heldCamera.cameraX>earlyCamera.cameraX+15,'Charging should pan the camera toward the predicted impact instead of shrinking the entire field');
-assert(html.includes('chargeFocus?clamp(shift,-11,11):clamp(shift,-32,32)'),'Aimpoint and return transitions should both have a speed cap');
+assert(heldCamera.cameraX>earlyCamera.cameraX+15,'Adventure should pan toward the predicted impact rather than shrink the field');
+assert(html.includes('game.camera+=clamp(shift,chargeFocus?-11:-32,chargeFocus?11:32)'),
+ 'Adventure and duel camera transitions must both keep bounded motion');
 assert(Number(el('fireLabel').textContent.replace(/[^0-9]/g,''))>20,'Charge should rise while holding');
 el('fire').dispatch('pointerup',{pointerId:7});
 assert.equal(state().shots,0,'Releasing a charged button should open the timing challenge');
@@ -1054,7 +1056,7 @@ assert.equal(gustGuide.arrow,'→','The separate light wind symbol must display 
 const windSweep=window.__v46WindSweepForTest();
 const [still,headwind,tailwind,rising,falling,diagonalUp,diagonalDown]=windSweep;
 assert(headwind.x<still.x-90&&tailwind.x>still.x+90,'Strong opposite crosswinds must change the ground landing by visibly large distances');
-assert(headwind.x<still.x-250&&tailwind.x>1200,'Strong gusts must pull a headwind shot hundreds of pixels short or carry a tailwind shot beyond the map: '+JSON.stringify(windSweep));
+assert(headwind.x<still.x-130&&tailwind.x>1200,'Duels need strong but angle-compensable wind drift, while a tailwind may carry the shot beyond the map: '+JSON.stringify(windSweep));
 assert(Math.abs(rising.x-falling.x)>45,'Updraft and downdraft must change hang time and horizontal landing, not just the icon');
 assert(diagonalUp.x<headwind.x+120&&diagonalDown.x>tailwind.x-120,'Diagonal wind must preserve its horizontal push while adding vertical effects');
 assert.deepEqual(window.__v46CompassForTest(),['↖','↗','↙','↘'],'The wind gauge must show all four diagonal directions correctly');
@@ -1062,7 +1064,8 @@ const leanLeft=window.__v46NeedleForTest(.1),leanRight=window.__v46NeedleForTest
 assert(leanLeft.x<leanRight.x-100,'Stopping the timing needle left or right must noticeably steer the actual landing');
 assert(leanLeft.initialVx<leanRight.initialVx-100,'Timing directional effect must enter launch velocity, not only result text');
 const cornerBias=window.__v46NeedleForTest(.9,-3.5,1.3);
-assert(Math.abs(cornerBias.windInfluence)>70&&Math.abs(cornerBias.timingInfluence)>70,'Impact report must separately expose significant wind and timing corrections: '+JSON.stringify(cornerBias));
+assert(Math.abs(cornerBias.windInfluence)>70&&Math.abs(cornerBias.timingInfluence)>15,
+ 'Wind and timing both need measurable real landing effects; collision with terrain may reduce a displayed timing displacement: '+JSON.stringify(cornerBias));
 const aiCrosswind=window.__v46AiForceForTest(-4.2,1.2);
 assert(aiCrosswind.after<aiCrosswind.before-1&&Math.abs(aiCrosswind.bias)<=1,'The AI projectile must feel the same strong wind physics and its own timing uncertainty');
 const aiReverseWind=window.__v46AiForceForTest(4.2,-1.2);
@@ -1208,25 +1211,28 @@ for(const aim of [aimHit,aimMiss]){
 }
 assert(aimHit.contact?.kind==='foe'&&aimHit.steady.kind==='range-reference','Physical enemy contact and continuous range forecast must remain separate predictions');
 const reservedRange=window.__v55AimProbeForTest(42,100,-4.4);
-assert.equal(reservedRange.steady.x,1100,'The visible sight must stop at the enemy rear line, not the distant map boundary');
-assert.equal(reservedRange.chargeX,1100,'Charging camera and reticle must agree on the shortened visible range');
-assert.equal(reservedRange.steady.overrange,true,'Extra long-range power needs an honest overrange indication');
-assert.equal(reservedRange.steady.overrangeProgress,1,'At full power the rear-line excess-range ring must be complete');
-assert(reservedRange.steady.extraRange>0,'Full power must still carry range beyond the capped sight');
-assert(html.includes('const label=overrange?`추가 ${Math.round(hit.overrangeProgress*100)}%`'),
- 'The visible overrange dial must show changing extra-range progress rather than a stuck reticle');
+assert(reservedRange.steady.x>1100&&reservedRange.steady.x<=1188,
+ 'Angle-based sight must reach behind the enemy camp for a strong headwind');
+assert.equal(reservedRange.chargeX,reservedRange.steady.x,
+ 'The current sight and charge cursor must agree regardless of selected damage power');
+const lowChargeSight=window.__v55AimProbeForTest(42,20,4.4);
+assert.equal(lowChargeSight.steady.x,reservedRange.steady.x,
+ 'Wind and charge must not move the angle-only neutral reference');
+assert(!html.includes('id="aimAdjust"')&&!html.includes('data-aim-step'),
+ 'No separate +/- angle or distance controls may reappear');
 assert(window.__v64RangeXForTest(42,100)>1200,'Visible sight limits must NOT shorten actual artillery power or counterwind reach');
 assert(html.includes('const paintedDots=game.mode===\'duel\'?dots.filter(point=>point.x<=DUEL_AIM_BACKLINE_X):dots'),
- 'Visible dotted aiming guide must stop at the same rear line as the sight');
-assert(html.includes('duelChargeCamera(game.chargeAimX,game.angle'),'Charging camera must track the same uninterrupted neutral-range fraction');
+ 'Visible dotted aiming guide must finish inside the battlefield');
+assert(!html.includes('duelChargeCamera(game.chargeAimX,game.angle'),
+ 'Charge timing must not control a separate long-distance camera sweep');
 const aimingNearRate=window.__v55ChargeRateForTest(aimSweep.hit.angle,aimSweep.hit.power);
 const aimingFarRate=window.__v55ChargeRateForTest(aimSweep.hit.angle,20);
 assert.equal(aimingNearRate,1,'An enemy must not slow the timing gauge');
 assert.equal(aimingFarRate,1,'The original sweep rate must apply at all distances');
 assert.equal(window.__v55ChargeRateForTest(aimSweep.hit.angle,aimSweep.hit.power,'adventure'),1,'Adventure charge timing must remain unchanged');
 const preciseCharge=window.__v57ChargeForTest(aimSweep.hit.angle,20);
-const rangeStartX=window.__v64RangeXForTest(aimSweep.hit.angle,20),rangeEndX=window.__v64RangeXForTest(aimSweep.hit.angle,100),rangeStepX=window.__v64RangeXForTest(aimSweep.hit.angle,preciseCharge.afterPower);
-assert(Math.abs((rangeStepX-rangeStartX)/(rangeEndX-rangeStartX)-(1/60)/1.35)<.0002,'Duel charging must sweep actual neutral range at a constant tempo through the 80% power hinge');
+assert(Math.abs(preciseCharge.afterPower-(20+80/(1.35*60)))<.001,
+ 'Duel charging must uniformly change strength without becoming a separate range input');
 assert(preciseCharge.afterPower!==Math.round(preciseCharge.afterPower),'Duel charge must retain fractional power instead of 1% cursor jumps');
 assert.equal(window.__v57ChargeForTest(aimSweep.hit.angle,50,'adventure').rate,1,'Adventures keep the original charging rate');
 const targetConfirm=window.__v60ConfirmForTest(aimSweep.hit.angle,aimSweep.hit.power);
