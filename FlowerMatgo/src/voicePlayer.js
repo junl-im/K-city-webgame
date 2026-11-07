@@ -11,7 +11,7 @@ export function createVoicePlayer({getEnabled,getVolume,AudioClass = globalThis.
     const current = ++generation;
     audio.onended = audio.onerror = () => { if (current !== generation) return; active = false; next(); };
     audio.volume = Math.max(0,Math.min(1,Number(getVolume()) || 0));
-    const filename = item.id === 'start' ? 'start-v4' : item.id;
+    const filename = item.id === 'start' ? 'start-v5' : item.id;
     audio.src = `${import.meta.env.BASE_URL}assets/rani-voice-v3/${filename}.mp3`;
     active = true;
     try { Promise.resolve(audio.play()).catch(() => { if (current === generation) { active = false; queue = []; } }); }
