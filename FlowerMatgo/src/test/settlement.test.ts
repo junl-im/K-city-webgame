@@ -21,6 +21,7 @@ describe('고와 박 정산', () => {
     const loser = score(['m06-03', 'm06-04']);
     const result = calculateSettlement({ winnerScore: winner, loserScore: loser, winnerGoCount: 0 });
     expect(result.baks.map(bak => bak.code)).toEqual(['pi-bak', 'gwang-bak', 'meong-bak']);
+    expect(result.baks.find(bak => bak.code === 'meong-bak')?.label).toBe('멍따');
     expect(result.bakMultiplier).toBe(8);
   });
 

@@ -628,6 +628,7 @@ function gameOverlay(g) {
       ${win ? `<div class="result-prize"><span>이번 판 획득${g.doublePayout ? '<br>더블 승리금 포함' : ''}</span><strong>+${kr(amount+(g.doublePayout || 0))} <small>냥</small></strong></div>` : ''}
       ${offer && canDouble ? `<div class="double-offer"><button type="button" class="double-offer__button" data-action="next-double" aria-describedby="double-offer-help"><span>묻고 더블로!</span><strong>×${offer.level}</strong></button><p id="double-offer-help">${kr(offer.amount)}냥 걸기 · 승리 시 ${kr(offer.amount*2)}냥 받기<br>패배 시 건 금액을 잃어요. 다음 판 정산은 별도예요.</p></div>` : offer ? `<p class="double-explanation">묻고 더블로 ×${offer.level}: 승리금을 걸고 남은 놀이머니가 부족해 선택할 수 없어요.</p>` : ''}
       ${!win ? `<div class="result-stats"><div><span>${nagari?'이번 판 결과':'정산 점수'}</span><strong>${nagari?'무승부':finalPoints==null?'—':finalPoints+'점'}</strong></div><div><span>${nagari?'다음 판 배수':'사용 놀이머니'}</span><strong>${nagari?'×'+app.nextMultiplier:'−'+kr(amount)+' 냥'}</strong></div></div>` : ''}
+      ${!nagari && g.settlement?.baks?.length ? `<div class="result-bonuses" aria-label="적용된 배수">${g.settlement.baks.map(bak=>`<span>${safe(bak.code==='meong-bak'?'멍따':bak.label)} <b>×${bak.multiplier}</b></span>`).join('')}</div>` : ''}
       ${!nagari && g.settlement?.steps?.length ? `<details class="settlement-details"><summary>정산 과정 보기 · 미션 ×${g.settlement.missionMultiplier || 1}</summary><ol>${g.settlement.steps.map(step=>`<li><span>${safe(step.label)}</span><strong>${safe(step.formula)} = ${kr(step.value)}점</strong></li>`).join('')}</ol>${g.settlement.paymentExemptReason ? `<p>${safe(g.settlement.paymentExemptReason)}</p>` : ''}</details>` : ''}
       <div class="result-wallet">보유 놀이머니 <b>✦ ${kr(app.wallet)}냥</b></div>
       ${nagari && app.doubleStake ? `<p class="double-explanation">걸어 둔 승리금 ${kr(app.doubleStake.amount)}냥은 다음 판으로 이어집니다.</p>` : ''}
@@ -655,7 +656,7 @@ function audioSettingsOverlay() {
     <p>효과음과 AI 합성 음성을 따로 조절해요.</p>
     <div class="audio-setting"><button type="button" class="audio-toggle" data-action="sound" aria-pressed="${app.sound}">효과음 ${app.sound?'켜짐':'꺼짐'}</button><label>효과음 크기 <input type="range" min="0" max="100" value="${Math.round(app.soundVolume*100)}" data-volume="soundVolume" aria-label="효과음 크기"></label></div>
     <div class="audio-setting"><button type="button" class="audio-toggle" data-action="voice" aria-pressed="${app.voice}">음성 ${app.voice?'켜짐':'꺼짐'}</button><label>음성 크기 <input type="range" min="0" max="100" value="${Math.round(app.voiceVolume*100)}" data-volume="voiceVolume" aria-label="음성 크기"></label></div>
-    <button type="button" class="btn btn--quiet btn--wide" data-action="voice-preview" ${app.voice?'':'disabled'}>음성 미리 듣기</button>
+    <div class="audio-previews"><button type="button" class="btn btn--quiet" data-action="sound-preview" ${app.sound?'':'disabled'}>효과음 듣기</button><button type="button" class="btn btn--quiet" data-action="voice-preview" ${app.voice?'':'disabled'}>음성 듣기</button></div>
     ${btn('완료','close','btn--primary btn--wide')}
   </section></div>`;
 }
@@ -1166,7 +1167,8 @@ function mutate(action, value, cardId) {
     case 'close': overlay=null;render();queueAI();return;
     case 'sound': app.sound=!app.sound;save();render();return;
     case 'voice': app.voice=!app.voice;if(!app.voice)voicePlayer.clear();save();render();return;
-    case 'voice-preview': voicePlayer.enqueue(['start']);return;
+    case 'sound-preview': cardSound('pair');return;
+    case 'voice-preview': voicePlayer.clear();voicePlayer.enqueue(['start'],{force:true});return;
     case 'play': humanPlay(cardId);return;
     case 'pickmatch': if (selectedMatch) humanPlay(selectedMatch.cardId,cardId,true);return;
     case 'cancelmatch': selectedMatch=null;render();return;

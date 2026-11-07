@@ -21,4 +21,10 @@ describe('game voice playback',()=>{
   const audio=FakeAudio.instances[0];p.clear();expect(audio.pause).toHaveBeenCalledOnce();expect(audio.onended).toBeNull();
   enabled=false;p.enqueue(['go3']);expect(audio.play).toHaveBeenCalledOnce();
  });
+ it('allows an explicit preview to replay immediately',()=>{
+  FakeAudio.instances=[];
+  const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.8,AudioClass:FakeAudio,now:()=>10000});
+  p.unlock();p.enqueue(['start']);const audio=FakeAudio.instances[0];
+  p.clear();p.enqueue(['start'],{force:true});expect(audio.play).toHaveBeenCalledTimes(2);
+ });
 });
