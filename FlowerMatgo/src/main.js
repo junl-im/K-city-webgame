@@ -21,7 +21,7 @@ import { floorDensity } from './floorLayout.js';
 import { settleOpeningPpeok } from './openingPpeok.js';
 import { artworkOrdinal, cardBookLabel, cardVisualDetails } from './cardDisplay.js';
 import { hwatuFamily, spokenActionText, spokenCardName } from './cardNames.js';
-import { animateResolvedTurn, motionOrigin } from './turnPresentation.js';
+import { animateResolvedTurn, motionOrigin, drawnBonusCards } from './turnPresentation.js';
 import { eventAnnouncement, piTransferAnnouncement } from './specialPresentation.js';
 import { SPECIAL_FLASH_MS, specialMoment } from './specialMoment.js';
 import { cardSoundProfile, impactAccents, GAME_CUE_NOTES } from './cardSoundDesign.js';
@@ -288,7 +288,7 @@ function card(id, options = {}) {
   const mark = `${visual.doubleJunkText ? `<span class="hwatu__double-mark" aria-hidden="true">${visual.doubleJunkText}</span>` : ''}${options.mission ? '<span class="mission-card-mark" aria-hidden="true">미션</span>' : ''}`;
   const classes = `hwatu hwatu--month-${String(month).padStart(2,'0')} hwatu--ordinal-${String(ordinal).padStart(2,'0')} ${small?'hwatu--small':''} ${options.tiny?'hwatu--tiny':''} ${bonus?'hwatu--bonus':''} ${options.pileIndex?'hwatu--pile-'+options.pileIndex:''} ${interactive?'hwatu--interactive':''} ${options.matchHint?(interactive?'hwatu--match-hint':'hwatu--match-idle'):''} ${options.quietHint?'hwatu--quiet-hint':''} ${options.bonusHint?'hwatu--bonus-hint':''} ${visual.gookjinConverted?'hwatu--converted':''}`;
   return `<${interactive ? 'button' : 'div'} class="${classes}" ${style} data-card="${safe(id)}" ${interactive ? `type="button" data-action="${options.action}" aria-label="${safe(aria)} ${['pickmatch','draw-choice'].includes(options.action)?'먹기':'내기'}"` : `role="img" aria-label="${safe(aria)}" title="${safe(aria)}"`}>
-    ${bonus ? `<span class="hwatu__face"></span><span class="hwatu__bonus-banner" aria-hidden="true">보너스</span><span class="hwatu__bonus-mark" aria-hidden="true">${safe(item.typeLabel)}</span>` : `<span class="hwatu__face"></span>${mark}${options.shakeHint ? '<span class="hwatu__shake-hint" aria-hidden="true"></span>' : ''}`}
+    ${bonus ? `<span class="hwatu__face"></span><span class="hwatu__bonus-mark" aria-hidden="true">${safe(item.typeLabel)}</span>` : `<span class="hwatu__face"></span>${mark}${options.shakeHint ? '<span class="hwatu__shake-hint" aria-hidden="true"></span>' : ''}`}
   </${interactive ? 'button' : 'div'}>`;
 }
 function cardBack(small = false) {
@@ -710,6 +710,7 @@ function render() {
   // of it. Promote announcements above flights; decision dialogs take priority.
   const announcement=ROOT.querySelector('.scene--game > .central-event');
   if (announcement) {
+    if (announcement.textContent.trim().length > 18) announcement.classList.add('central-event--long');
     if (ROOT.querySelector('.modal-shade')) announcement.remove();
     else { announcement.classList.add('game-foreground-event');ROOT.appendChild(announcement); }
   }
@@ -927,13 +928,20 @@ function commitGame(next, result=null, motion=null, motionVoicePlayed=false) {
     // Keep the old cards visible while they fly, but checkpoint the resolved
     // engine state now. Reloading during the flight must never replay a turn.
     save();
-    let wait = 0;
+    let wait = 0, bonusVoicePlayed=false;
     try { wait = animateResolvedTurn({root:ROOT, result, cardHTML:id=>card(id), sound:cardSound, ...motion, onLand:()=>{
       if (!turnTransition || pendingResolvedCheckpoint?.game !== next || document.hidden || app.screen !== 'game') return;
       if (motion.playComment) { gameCueSound(motion.playComment);voicePlayer.enqueue([motion.playComment]); }
+    }, onBonusReveal:(_id,index)=>{
+      if (!turnTransition || pendingResolvedCheckpoint?.game !== next || document.hidden || app.screen !== 'game') return;
+      if (motion.player==='human' && index===0) voicePlayer.enqueue(['bonus_reveal'],{replacePending:true});
+    }, onBonus:()=>{
+      if (!turnTransition || pendingResolvedCheckpoint?.game !== next || document.hidden || app.screen !== 'game') return;
+      voicePlayer.enqueue([motion.player==='human'?'take':'give']);bonusVoicePlayed=true;
     }, onCollect:()=>{
       if (!turnTransition || pendingResolvedCheckpoint?.game !== next || document.hidden || app.screen !== 'game') return;
-      voicePlayer.enqueue(turnVoices(result,app.game?.currentPlayer));motionVoicePlayed=true;
+      const voiceResult=bonusVoicePlayed ? {...result,stolenPee:(result.stolenPee || []).filter(id=>!(result.bonusStolenPee || []).includes(id))} : result;
+      voicePlayer.enqueue(turnVoices(voiceResult,app.game?.currentPlayer));motionVoicePlayed=true;
     }}); }
     catch(error) { console.error('Card animation failed; recovering turn:',error); }
     if (wait > 0) {
@@ -964,7 +972,7 @@ function commitGame(next, result=null, motion=null, motionVoicePlayed=false) {
     clockKey=null;expiredKey=null;
   }
   if (gotGookjin) app.pendingGookjinChoice = true;
-  const specialText = eventAnnouncement(result, previous?.currentPlayer);
+  const specialText = eventAnnouncement(result, previous?.currentPlayer, {omitBonusTransfer:motionVoicePlayed && drawnBonusCards(result).length>0});
   const missionText = result?.missionCards?.length ? `${previous?.currentPlayer==='computer'?'상대 ':''}${result.missionEffect ? '미션 완료 · '+(piTransferAnnouncement(result) || result.missionEffect) : result.missionRequired > 1 ? '미션패 획득' : '미션패 ×'+(result.missionMultiplier || 1)}` : null;
   const openingPpeokText = result?.openingPpeok ? `${result.openingPpeok.player === 'human' ? '첫뻑 +' : '상대 첫뻑 −'}${kr(result.openingPpeok.amount)}냥` : null;
   const setAlertText=setAlerts.map(alert=>`${alert.player==='computer'?'상대 ':''}${alert.label}!`).join(' · ');

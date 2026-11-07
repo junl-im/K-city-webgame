@@ -2,6 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { specialPresentation, eventAnnouncement } from '../specialPresentation.js';
 
 describe('특수 화투 효과 분류', () => {
+  it('보너스 연출에서 이미 보인 피 이동은 빼고 다른 피 이동과 특수 상황은 남긴다', () => {
+    const result={bonusStolenPee:['m01-03'],stolenPee:['m01-03','m02-03'],specialEvents:[{kind:'jjok',label:'쪽'}]};
+    expect(eventAnnouncement(result,'human',{omitBonusTransfer:true})).toBe('쪽! · 상대 피 1장 뺏기!');
+    expect(eventAnnouncement({...result,stolenPee:['m01-03'],specialEvents:[]},'human',{omitBonusTransfer:true})).toBeNull();
+    expect(eventAnnouncement(result,'human')).toBe('쪽! · 상대 피 2장 뺏기!');
+  });
   it('동시에 발생한 쪽과 싹쓸이를 빠짐없이 표시하고 상대를 구분한다', () => {
     const result={specialEvents:[{kind:'jjok',label:'쪽'},{kind:'sweep',label:'싹쓸이'}]};
     expect(eventAnnouncement(result)).toBe('쪽! · 싹쓸이!');

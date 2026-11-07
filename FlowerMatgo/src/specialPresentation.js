@@ -32,12 +32,13 @@ export function specialPresentation(result) {
 
 // Preserve every rule event in the visible status line, even when a stronger
 // simultaneous event is chosen as the animation/sound priority.
-export function eventAnnouncement(result, actor = 'human') {
+export function eventAnnouncement(result, actor = 'human', {omitBonusTransfer = false} = {}) {
   if (!result) return null;
   const events = Array.isArray(result.specialEvents) ? result.specialEvents : [];
   const labels = [...new Set(events.map(event => String(event.label || '').trim()).filter(Boolean))];
   if (!labels.length && result.ppeok) labels.push('뻑');
-  const stolen = Array.isArray(result.stolenPee) ? new Set(result.stolenPee).size : 0;
+  const bonus = new Set(omitBonusTransfer ? result.bonusStolenPee || [] : []);
+  const stolen = Array.isArray(result.stolenPee) ? new Set(result.stolenPee.filter(id=>!bonus.has(id))).size : 0;
   const text = labels.map(label => /[!?]$/.test(label) ? label : label + '!').join(' · ');
   const event = text && actor === 'computer' ? '상대 ' + text : text;
   const transfer = stolen ? (actor === 'computer' ? `내 피 ${stolen}장 뺏김!` : `상대 피 ${stolen}장 뺏기!`) : '';
