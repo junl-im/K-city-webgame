@@ -459,7 +459,7 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
   const pairings = resolveTurnLandings(cue.played, cue.drawn, floorIds, cue.capturedIds, { playedMatchId, ppeok:result.ppeok, bomb:cue.visualKind === 'bomb' });
   const target = sceneTarget(root, cue, pairings.playedFloorId);
   if (reduced || !target || typeof Element.prototype.animate !== 'function') {
-    sound(cue.impact);
+    sound(cue.soundKind || cue.impact);
     return 0;
   }
   const playingHand = cue.played && root.querySelector(`.my-hand [data-card="${cue.played}"]`);

@@ -1,7 +1,13 @@
 import {describe,it,expect} from 'vitest';
-import {goVoice,turnVoices,roundVoices} from '../voiceEvents.js';
+import {goVoice,openingVoice,turnVoices,roundVoices} from '../voiceEvents.js';
 
 describe('game voice cues',()=>{
+ it('announces the real first player but stays silent when the deal ended the round',()=>{
+  expect(openingVoice('human','playing')).toBe('first_human');
+  expect(openingVoice('computer','playing')).toBe('first_computer');
+  expect(openingVoice('human','round-ended')).toBeNull();
+  expect(openingVoice(null,'playing')).toBeNull();
+ });
  it('calls first ppeok once and keeps other simultaneous events',()=>{
   expect(turnVoices({openingPpeok:{player:'human'},ppeok:true,specialEvents:[{kind:'ppeok'},{kind:'sweep'}],stolenPee:['a']})).toEqual(['first_ppeok','sweep','take']);
  });

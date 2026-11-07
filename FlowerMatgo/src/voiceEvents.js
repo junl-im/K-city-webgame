@@ -2,6 +2,11 @@
 const SPECIAL = Object.freeze({bomb:'bomb',sweep:'sweep',ppeok:'ppeok','ppeok-capture':'ppeok_take','self-ppeok':'ppeok_take',jjok:'jjok',ttadak:'ttadak'});
 const COMBOS = Object.freeze({'청단':'cheongdan','홍단':'hongdan','초단':'chodan','고도리':'godori'});
 
+export function openingVoice(winner, phase) {
+  if (phase === 'round-ended') return null;
+  return winner === 'human' ? 'first_human' : winner === 'computer' ? 'first_computer' : null;
+}
+
 export function goVoice(count) {
   const n = Number(count);
   if (!Number.isInteger(n) || n < 1) return null;

@@ -21,8 +21,8 @@ import { hwatuFamily, spokenActionText, spokenCardName } from './cardNames.js';
 import { animateResolvedTurn, motionOrigin } from './turnPresentation.js';
 import { eventAnnouncement, piTransferAnnouncement } from './specialPresentation.js';
 import { SPECIAL_FLASH_MS, specialMoment } from './specialMoment.js';
-import { cardSoundProfile, GAME_CUE_NOTES } from './cardSoundDesign.js';
-import { goVoice, turnVoices, roundVoices } from './voiceEvents.js';
+import { cardSoundProfile, impactAccents, GAME_CUE_NOTES } from './cardSoundDesign.js';
+import { goVoice, openingVoice, turnVoices, roundVoices } from './voiceEvents.js';
 import { createVoicePlayer } from './voicePlayer.js';
 import { newlyCompletedCombos } from './scoreCombos.js';
 import { HUMAN_TURN_MS, HUMAN_TURN_SECONDS, humanTurnSignature, humanChoiceSignature, secondsLeft, shouldRestartClockAfterTurn } from './turnTiming.js';
@@ -191,6 +191,16 @@ function cardSound(kind = 'land') {
     body.gain.exponentialRampToValueAtTime(.0001, t + .09);
     bass.connect(body); body.connect(audioCtx.destination);
     bass.start(t); bass.stop(t + .10);
+    for (const [delay,frequency,endFrequency,volume,duration] of impactAccents(kind)) {
+      const at=t+delay, oscillator=audioCtx.createOscillator(), gain=audioCtx.createGain();
+      oscillator.type=kind==='bomb'?'sine':'triangle';
+      oscillator.frequency.setValueAtTime(frequency,at);
+      oscillator.frequency.exponentialRampToValueAtTime(endFrequency,at+duration);
+      gain.gain.setValueAtTime(.0001,at);
+      gain.gain.exponentialRampToValueAtTime(Math.max(.0001,volume*app.soundVolume),at+.006);
+      gain.gain.exponentialRampToValueAtTime(.0001,at+duration);
+      oscillator.connect(gain);gain.connect(audioCtx.destination);oscillator.start(at);oscillator.stop(at+duration+.01);
+    }
     if (['pair','jjok','ttadak','double','bomb','sweep'].includes(kind)) {
       // A bomb lands with two short answering taps, softer than the card snap.
       const delays = kind === 'bomb' ? [.055,.125]
@@ -1033,6 +1043,7 @@ function finishOpening() {
   }
   app.screen = 'game';
   app.settledUuid = null;
+  voicePlayer.enqueue([openingVoice(winner,app.game.phase)]);
   if (app.game.phase === 'awaiting-chongtong') voicePlayer.enqueue(['chongtong']);
   // The opening deal can itself end in nagari. Settle it before showing the
   // result, just as for a round that ends during play.

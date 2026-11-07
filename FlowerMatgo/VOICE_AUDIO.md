@@ -1,6 +1,6 @@
 # 라니맞고 음성·효과음
 
-라니맞고의 대사와 상황 연결은 이 게임을 위해 구성했습니다. `public/assets/rani-voice-v2/`의 짧은 MP3는 소리온 로컬 합성 경로로 제작한 게임 전용 음원입니다. 실제 성우 녹음이나 독점적으로 훈련한 캐릭터 목소리는 아닙니다.
+라니맞고의 대사와 상황 연결은 이 게임을 위해 구성했습니다. `public/assets/rani-voice-v3/`의 짧은 MP3는 소리온 로컬 합성 경로로 제작한 게임 전용 음원입니다. 실제 성우 녹음이나 독점적으로 훈련한 캐릭터 목소리는 아닙니다.
 
 - 합성 엔진: [Supertone Supertonic 3](https://huggingface.co/supertone-oss-archive/supertonic-3), 모델 리비전 `aafc6e32416a594460b32413efc49d7fe4ce6d46`, F1 프리셋(소리온 별하 경로), 한국어, 합성 속도 1.13. 앞뒤 무음 정리 후 재생속도 1.15배로 밝고 빠르게 편집했습니다.
 - 모델 라이선스: [BigScience Open RAIL-M](https://huggingface.co/supertone-oss-archive/supertonic-3/blob/aafc6e32416a594460b32413efc49d7fe4ce6d46/LICENSE). 모델 자체는 게임에 포함하지 않고 합성 결과만 배포합니다.
