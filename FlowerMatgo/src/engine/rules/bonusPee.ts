@@ -22,9 +22,15 @@ export const isBonusPee = (cardId: string | null | undefined): boolean =>
 
 export function captureBonusPee(state: GameState, player: PlayerId, cardId: string): BonusCaptureResult {
   const keys = captureKeys(player);
-  const captured = applyBonusPeeCapture(state[keys.actor], state[keys.opponent], cardId);
+  const opponentGookjin = player === 'human' ? 'computerGookjinAsDoubleJunk' : 'humanGookjinAsDoubleJunk';
+  const actorGookjin = player === 'human' ? 'humanGookjinAsDoubleJunk' : 'computerGookjinAsDoubleJunk';
+  const captured = applyBonusPeeCapture(state[keys.actor], state[keys.opponent], cardId, state[opponentGookjin]);
   state[keys.actor] = captured.actorCaptured;
   state[keys.opponent] = captured.opponentCaptured;
+  if (captured.stolenCardId === 'm09-01') {
+    state[opponentGookjin] = false;
+    state[actorGookjin] = true;
+  }
   return { cardId, stolenCardId: captured.stolenCardId };
 }
 
