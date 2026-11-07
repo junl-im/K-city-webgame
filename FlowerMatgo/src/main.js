@@ -22,7 +22,7 @@ import { animateResolvedTurn, motionOrigin } from './turnPresentation.js';
 import { eventAnnouncement, piTransferAnnouncement } from './specialPresentation.js';
 import { SPECIAL_FLASH_MS, specialMoment } from './specialMoment.js';
 import { cardSoundProfile, impactAccents, GAME_CUE_NOTES } from './cardSoundDesign.js';
-import { goVoice, openingVoice, turnVoices, roundVoices } from './voiceEvents.js';
+import { goVoice, openingVoice, resolvedGoDecision, turnVoices, roundVoices } from './voiceEvents.js';
 import { createVoicePlayer } from './voicePlayer.js';
 import { newlyCompletedCombos } from './scoreCombos.js';
 import { HUMAN_TURN_MS, HUMAN_TURN_SECONDS, humanTurnSignature, humanChoiceSignature, secondsLeft, shouldRestartClockAfterTurn } from './turnTiming.js';
@@ -854,11 +854,11 @@ function finishRound() {
       app.stats.wins++; app.wallet += money;
       if (app.doubleStake?.gameUuid === g.gameUuid) { g.doublePayout=app.doubleStake.amount * 2; g.doubleLevel=app.doubleStake.level || 2; app.wallet += g.doublePayout; app.doubleStake=null; }
       app.stats.high = Math.max(app.stats.high, g.settlement?.finalScore || 0);
-      effects('참 잘했어! 승리!', 'win');
+      effects('참 잘했어! 승리!', 'win', 'win', true);
     } else {
       app.stats.losses++; app.wallet = Math.max(0, app.wallet-money);
       if (app.doubleStake?.gameUuid === g.gameUuid) { g.doubleForfeit=app.doubleStake.amount; app.doubleStake=null; }
-      effects('다음 판은 꼭 이기자!', 'special');
+      effects('다음 판은 꼭 이기자!', 'special', 'special', true);
     }
     app.nextMultiplier=1;
   }
@@ -993,9 +993,10 @@ function runAI() {
     if (g.phase==='awaiting-go-stop' && g.pendingDecision==='computer') {
       const c=chooseAiGoStop(g,'computer',app.difficulty);
       next=c==='go'?chooseGo(g,'computer'):chooseStop(g,'computer');
-      effects(c==='go'?`상대 ${next.computerGoCount}고!`:'상대 스톱!', 'special', c==='go'?'go':'special');
-      gameCueSound(c==='go'?'go':'stop');
-      voicePlayer.enqueue([c==='go'?goVoice(next.computerGoCount):'stop']);
+      const resolved=c==='go'?resolvedGoDecision(g,next,'computer'):'stop';
+      effects(resolved==='go'?`상대 ${next.computerGoCount}고!`:'상대 스톱!', 'special', resolved==='go'?'go':'special', true);
+      gameCueSound(resolved);
+      voicePlayer.enqueue([resolved==='go'?goVoice(next.computerGoCount):'stop']);
     } else if (g.phase==='awaiting-chongtong' && g.pendingDecision==='computer') {
       next=chooseChongtong(g,'computer',chooseAiChongtong(g,app.difficulty));
     } else if (g.phase==='playing' && g.currentPlayer==='computer') {
@@ -1218,7 +1219,7 @@ function mutate(action, value, cardId) {
   if (!g || app.screen!=='game') return;
   try {
     let next=g, result=null;
-    if (action==='go') { next=chooseGo(g,'human');effects(`${next.humanGoCount}고!`, 'special', 'go');gameCueSound('go');voicePlayer.enqueue([goVoice(next.humanGoCount)]); }
+    if (action==='go') { next=chooseGo(g,'human');const resolved=resolvedGoDecision(g,next,'human');effects(resolved==='go'?`${next.humanGoCount}고!`:'스톱!', 'special', resolved==='go'?'go':'special', true);gameCueSound(resolved);voicePlayer.enqueue([resolved==='go'?goVoice(next.humanGoCount):'stop']); }
     else if (action==='stop') next=chooseStop(g,'human');
     else if (action==='chongtong-go') next=chooseChongtong(g,'human','continue');
     else if (action==='chongtong-stop') next=chooseChongtong(g,'human','stop');

@@ -12,6 +12,10 @@ describe('패 충돌·뒤집기·획득 소리 구분', () => {
     expect(cardSoundProfile('flip').frequency).toBeGreaterThan(cardSoundProfile('capture').frequency);
     expect(cardSoundProfile('capture').bass).toBeGreaterThan(cardSoundProfile('land').bass);
   });
+  it('패 섞기는 일반 착지와 다른 독립된 소리를 사용한다', () => {
+    expect(cardSoundProfile('shuffle')).not.toEqual(cardSoundProfile('land'));
+    expect(cardSoundProfile('shuffle').duration).toBeGreaterThan(cardSoundProfile('land').duration);
+  });
 
   it('예상치 못한 종류는 안전하게 일반 착지음으로 처리한다', () => {
     expect(cardSoundProfile('unknown')).toEqual(CARD_SOUND_PROFILES.land);

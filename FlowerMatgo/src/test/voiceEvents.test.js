@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {goVoice,openingVoice,turnVoices,roundVoices} from '../voiceEvents.js';
+import {goVoice,openingVoice,resolvedGoDecision,turnVoices,roundVoices} from '../voiceEvents.js';
 
 describe('game voice cues',()=>{
  it('announces the real first player but stays silent when the deal ended the round',()=>{
@@ -7,6 +7,11 @@ describe('game voice cues',()=>{
   expect(openingVoice('computer','playing')).toBe('first_computer');
   expect(openingVoice('human','round-ended')).toBeNull();
   expect(openingVoice(null,'playing')).toBeNull();
+ });
+ it('says stop when an old last-card go decision resolves to automatic stop',()=>{
+  expect(resolvedGoDecision({humanGoCount:1},{humanGoCount:1,phase:'round-ended'},'human')).toBe('stop');
+  expect(resolvedGoDecision({humanGoCount:1},{humanGoCount:2,phase:'playing'},'human')).toBe('go');
+  expect(resolvedGoDecision({computerGoCount:0},{computerGoCount:1},'computer')).toBe('go');
  });
  it('calls first ppeok once and keeps other simultaneous events',()=>{
   expect(turnVoices({openingPpeok:{player:'human'},ppeok:true,specialEvents:[{kind:'ppeok'},{kind:'sweep'}],stolenPee:['a']})).toEqual(['first_ppeok','sweep','take']);
