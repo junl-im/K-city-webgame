@@ -14,7 +14,7 @@ assert(!html.includes('id="aimAdjust"')&&!html.includes('data-aim-step'),
 assert(html.includes('id="angle"')&&html.includes('id="power"'),
  'Preserve accessible hidden range inputs for keyboard and prior saves');
 const source=`
-const W=1200,H=640,G=465,WIND_FORCE=46,WIND_LIFT_FORCE=38,TIMING_STEER_FORCE=136,DUEL_SIGHT_POWER=82,DUEL_WIND_FORCE=22;
+const W=1200,H=640,G=465,WIND_FORCE=46,WIND_LIFT_FORCE=38,TIMING_STEER_FORCE=136,DUEL_SIGHT_POWER=81.7,DUEL_WIND_FORCE=22;
 const clamp=(n,a,b)=>Math.max(a,Math.min(n,b));
 const game={mode:'duel',hero:'fox',aiHero:'bear',angle:43,wind:0,windLift:0,
  chargedPower:20,chargeDirection:1,chargeSweepTime:0,
