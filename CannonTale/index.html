@@ -2639,8 +2639,8 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 .precision-cancel:active:not(:disabled){transform:scale(.92) rotate(-9deg)}
 .precision-cancel:disabled{opacity:.55;filter:grayscale(.78) brightness(.78);cursor:default}
 .precision-cancel:focus-visible{outline:2px dotted #fff0c2;outline-offset:1px}
-.precision-cancel-label{position:absolute;bottom:-3px;left:0;width:100%;text-align:center;color:#fff1c8;font:950 clamp(9px,.85vw,11px) var(--ct-ui-font);white-space:nowrap;text-shadow:0 2px 3px #271c15,0 0 5px #271c15;pointer-events:none}
-.precision-cancel-count{position:absolute;top:-4px;right:-1px;color:#ffdf9c;background:#352e2dcd;border-radius:9px;padding:0 3px;font:900 clamp(9px,.8vw,11px) var(--ct-ui-font);font-variant-numeric:tabular-nums;pointer-events:none}
+.precision-cancel-label{position:absolute;bottom:0;left:0;width:100%;text-align:center;color:#fff1c8;font:950 clamp(9px,.85vw,11px) var(--ct-ui-font);white-space:nowrap;text-shadow:0 2px 3px #271c15,0 0 5px #271c15;pointer-events:none}
+.precision-cancel-count{position:absolute;top:2px;right:0;color:#ffdf9c;background:#352e2dcd;border-radius:9px;padding:0 3px;font:900 clamp(9px,.8vw,11px) var(--ct-ui-font);font-variant-numeric:tabular-nums;pointer-events:none}
 .precision-meter::after{content:'';position:absolute;top:-2px;bottom:-2px;left:0;width:13%;border-radius:8px;background:linear-gradient(90deg,transparent,#f6fff0a8,transparent);animation:precisionAmberSweep62 1.4s linear infinite;pointer-events:none}
 .precision-needle{animation:precisionNeedleFlicker62 .24s ease-in-out infinite alternate}
 .precision-panel.perfect .precision-center{background:#d5fff0;box-shadow:0 0 9px #bcffe8,0 0 18px #8affd4;animation:precisionPerfectSurge62 .22s ease-in-out infinite alternate}
@@ -2648,6 +2648,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 @keyframes precisionNeedleFlicker62{from{box-shadow:0 0 2px #142b38,0 0 5px #fff3bc}to{box-shadow:0 0 3px #142b38,0 0 12px #fff6d4}}
 @keyframes precisionPerfectSurge62{from{transform:scaleY(.9)}to{transform:scaleY(1.28)}}
 @media(orientation:portrait) and (max-width:780px){.precision-actions{grid-template-columns:minmax(0,1fr) 51px}.precision-cancel{height:55px}.precision-cancel-label{font-size:9px}.precision-cancel-count{font-size:9px}}
+@media(orientation:portrait) and (max-width:640px){.precision-panel{left:50%;width:min(260px,calc(100% - 28px))}}
 @media(orientation:landscape) and (max-height:550px){.precision-actions{grid-template-columns:minmax(0,1fr) 47px}.precision-cancel{height:53px}.precision-cancel-label{font-size:9px}}
 @keyframes chargeHitShimmer59{from{filter:brightness(.94)}to{filter:brightness(1.23)}}
 @keyframes chargeHitBeat59{from{transform:translateX(-50%) scale(.97)}to{transform:translateX(-50%) scale(1.06)}}
@@ -3151,6 +3152,19 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   return predict(ang,pow,0,owner,count,0,0,true);
  }
  function stableAimPoint(path){return path.impact||path.edgeExit||path[path.length-1]||null;}
+ function duelRangeReferencePoint(ang,pow){
+  // The FIRST terrain contact is not continuous: on crossing a ridge it can
+  // jump dozens of pixels within one charge frame. That is real collision
+  // physics, but unsuitable for a reaction/timing cursor. Use the unimpeded
+  // no-wind trajectory's descending intersection with the target-height plane
+  // for the RANGE ruler. The dotted trajectory and true foe-hit cue still use
+  // exact terrain/foe collisions, so this cursor is never a guaranteed hit.
+  const muzzle=muzzleFor('player',ang),v=powerVelocity(ang,pow),targetY=terrainY(1018)-29;
+  const discriminant=Math.max(0,v.vy*v.vy+2*G*(targetY-muzzle.y));
+  const descendingTime=Math.max(0,(-v.vy+Math.sqrt(discriminant))/G);
+  const x=clamp(muzzle.x+v.vx*descendingTime,0,W);
+  return {x,y:clamp(terrainY(x)-29,35,H-42),kind:'range-reference'};
+ }
  function duelAimFeedback(path,contact){
   if(game.mode!=='duel')return {kind:'none',distance:Infinity};
   const tx=1018,ty=terrainY(tx)-29;
@@ -3382,7 +3396,7 @@ function advanceChargePower(dt){
   $('windChip').setAttribute?.('aria-label',`바람 ${game.wind>=0?'오른쪽':'왼쪽'} ${lift<-.65?'상승':lift>.65?'하강':'수평'} ${windValue.toFixed(1)} ${windWord}`);
   $('angleValue').textContent=Math.round(game.angle)+'°';$('powerValue').textContent=Math.round(game.power)+'%';
   const o=origin(),path=stableAimPath(game.angle,game.power,0,'player',900);
-  const impact=stableAimPoint(path);
+  const impact=game.mode==='duel'?duelRangeReferencePoint(game.angle,game.power):stableAimPoint(path);
   $('distanceValue').textContent=impact?String(Math.max(0,Math.round(Math.abs(impact.x-o.x)))):'—';
   // Do not project a wind-shifted aim marker or show a fake correction target.
   // The small wind arrow is drawn beside the neutral cursor; the actual wind
@@ -4476,7 +4490,7 @@ const materialCells={
   // Duel preview: a continuous range trace plus a separate, honest first-hit
   // marker. A graze must not teleport the range reticle or the camera.
   const dots=game.mode==='duel'?stableAimPath(a,p,0):contacts;
-  const steadyTarget=stableAimPoint(dots),actualHit=contacts.impact;
+  const steadyTarget=game.mode==='duel'?duelRangeReferencePoint(a,p):stableAimPoint(dots),actualHit=contacts.impact;
   const previousCue=game.aimCue?.kind||'none';
   const cue=duelAimFeedback(dots,contacts);
   game.aimCue=cue;
@@ -4509,7 +4523,14 @@ const materialCells={
     ctx.fillText(`바람 ${game.windSymbol||'→'}`,wx,wy,78);ctx.restore();
    }
   }
-  const hit=dots.impact;
+  // The large travelling sight follows the uninterrupted neutral range ruler,
+  // while the small real contact mark below stays faithful to the terrain.
+  const hit=game.mode==='duel'?steadyTarget:dots.impact;
+  if(game.mode==='duel'&&dots.impact&&dots.impact.kind==='terrain'&&!game.overview){
+   const contact=dots.impact;
+   ctx.save();ctx.globalAlpha=.65;ctx.strokeStyle='#ffe5a2';ctx.lineWidth=1.6;
+   ctx.beginPath();ctx.arc(contact.x,contact.y,6,0,Math.PI*2);ctx.stroke();ctx.restore();
+  }
   if(!hit&&dots.edgeExit&&actualHit?.kind!=='foe'){
    // Mark where the shot leaves the map; do not pretend it landed on terrain.
    const edge=dots.edgeExit,atRight=edge.x===W,x=atRight?W-17:17,y=clamp(edge.y,54,H-65);
@@ -4544,7 +4565,7 @@ const materialCells={
   ctx.save();ctx.beginPath();ctx.arc(hit.x,hit.y,18+Math.sin(game.clock*4)*2,0,Math.PI*2);
   ctx.strokeStyle='#263d50ba';ctx.lineWidth=5.5;ctx.stroke();ctx.strokeStyle=color;ctx.lineWidth=2.7;ctx.stroke();
   ctx.beginPath();ctx.arc(hit.x,hit.y,4.5,0,Math.PI*2);ctx.fillStyle='#fffbe2';ctx.fill();
-  const label=target?'조준 정타':hit.kind==='block'?'기준 충돌':game.mode==='duel'?'조준 사거리':'기준 착탄';
+  const label=target?'조준 정타':hit.kind==='block'?'기준 충돌':game.mode==='duel'?'기준 사거리':'기준 착탄';
   const lx=clamp(hit.x,58,W-58),ly=clamp(hit.y-30,36,H-38);
   roundRect(lx-46,ly-17,92,26,13,'#1c3f4abb');ctx.fillStyle=color;ctx.font='800 13px system-ui, sans-serif';ctx.textAlign='center';ctx.fillText(label,lx,ly+1);ctx.restore();
  }

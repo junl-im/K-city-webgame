@@ -22,7 +22,7 @@ ${take('function terrainY(','function powerVelocity(')}
 ${take('function projectileSpeed(','function launch(')}
 ${take('function predict(','function chooseAiShot(')}
 game.terrain=initialTerrain('duel');
-function aimX(power){return stableAimPoint(stableAimPath(game.angle,power,game.wind)).x;}
+function aimX(power){return duelRangeReferencePoint(game.angle,power).x;}
 function minToEnemy(power){
  const path=stableAimPath(game.angle,power,game.wind),tx=1018,ty=terrainY(tx)-29;
  return Math.min(Math.abs(aimX(power)-tx),...path.map(p=>Math.hypot(p.x-tx,p.y-ty)));
@@ -66,9 +66,16 @@ function findHit(wind,from=20,to=76){
  }
  return null;
 }
-({run,findHit,probe:(angle,power,wind=0)=>{game.angle=angle;game.wind=wind;game.chargedPower=power;game.chargeDirection=1;return{rate:chargeSweepRate(),x:aimX(power),next:aimX(power+1)};}, windCheck:(angle,power)=>{game.angle=angle;game.wind=-4.2;const a=aimX(power);game.wind=4.2;const b=aimX(power);const windy=predict(angle,power,4.2,'player',900,0,0,true),calm=predict(angle,power,0,'player',900,0,0,true);return{a,b,windy:(windy.impact||windy.at(-1)).x,calm:(calm.impact||calm.at(-1)).x};}})
+({run,findHit,probe:(angle,power,wind=0)=>{game.angle=angle;game.wind=wind;game.chargedPower=power;game.chargeDirection=1;return{rate:chargeSweepRate(),x:aimX(power),next:aimX(power+1)};}, sweepPoints:(angle)=>{game.angle=angle;game.chargeSweepTime=0;game.chargedPower=20;const points=[];for(let i=0;i<=81;i++){points.push({p:game.chargedPower,x:aimX(game.chargedPower),contactX:stableAimPoint(stableAimPath(game.angle,game.chargedPower,0)).x});advanceChargePower(1/60);}return points;}, windCheck:(angle,power)=>{game.angle=angle;game.wind=-4.2;const a=aimX(power);game.wind=4.2;const b=aimX(power);const windy=predict(angle,power,4.2,'player',900,0,0,true),calm=predict(angle,power,0,'player',900,0,0,true);return{a,b,windy:(windy.impact||windy.at(-1)).x,calm:(calm.impact||calm.at(-1)).x};}})
 `;
-const {run,findHit,probe,windCheck}=vm.runInNewContext(source,{assert}, {timeout:10000});
+const {run,findHit,probe,sweepPoints,windCheck}=vm.runInNewContext(source,{assert}, {timeout:10000});
+for(const angle of [20,30,42,52,65]){
+ const pts=sweepPoints(angle),deltas=pts.slice(1).map((pt,i)=>pt.x-pts[i].x);
+ const terrainDeltas=pts.slice(1).map((pt,i)=>pt.contactX-pts[i].contactX);
+ console.log('reticle pacing',angle,JSON.stringify({smoothMax:Math.max(...deltas),terrainMax:Math.max(...terrainDeltas),first:pts[0].x,last:pts.at(-1).x}));
+ assert(deltas.every(x=>x>=-1e-6),'The duel range cursor must never jump backwards');
+ assert(Math.max(...deltas)<26,'The duel range cursor should not whip past an enemy or ridge');
+}
 const report=[];
 for(const wind of [-3.5,0,3.5]){
  const hits=[findHit(wind,20,40),findHit(wind,42,76)].filter(Boolean);
@@ -80,6 +87,7 @@ for(const wind of [-3.5,0,3.5]){
  assert(samples.hitFrames>=1,`The sweep should pass the foe at its normal speed: ${JSON.stringify(samples)}`);
  assert(samples.reversed&&samples.peakPower>99.5,`The gauge must reach max and reverse: ${JSON.stringify(samples)}`);
  const near=probe(hit.angle,hit.power,wind);
+ assert(Math.abs(near.x-1018)<65,'A true neutral direct hit must remain visually close to the continuous range cursor');
  const far=probe(hit.angle,20,wind);
  assert.equal(near.rate,1,'Enemy proximity must NOT slow the range sweep');
  assert.equal(far.rate,1,'Initial sweeping must use the same rate as enemy proximity');
