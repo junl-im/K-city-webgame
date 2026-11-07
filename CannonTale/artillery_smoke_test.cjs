@@ -39,7 +39,7 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v45AiCycleForTest=(difficulty,wind)=>{newGame("duel",0);game.difficulty=difficulty;game.wind=wind;return Array.from({length:8},()=>chooseAiShot());}; window.__v45CriticalRecoilForTest=()=>{newGame("duel",0);applyExplosion({x:1018,y:terrainY(1018)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:8,timingAccuracy:1,hero:game.hero});return game.duelHitMotion.ai?{...game.duelHitMotion.ai}:null;}; window.__v45RecoilLifeForTest=()=>game.duelHitMotion.ai?.life||0; window.__artilleryLoadoutDebug=');
 script=script.replace('game.wind=wind;game.angle=43;game.power=80;updateHud();', 'game.wind=wind;game.windLift=0;game.angle=43;game.power=80;updateHud();');
 script=script.replace(' window.__artilleryLoadoutDebug=',
- ' window.__v46WindSweepForTest=()=>{newGame("duel",0);game.angle=43;game.power=76;return [[0,0],[-4,0],[4,0],[0,-1.8],[0,1.8],[-4,-1.8],[4,1.8]].map(([wind,lift])=>{const line=predict(43,76,wind,"player",900,0,lift,true),p=line.impact||line.at(-1);return{wind,lift,x:p.x,y:p.y};});}; window.__v46NeedleForTest=(needle,wind=0,lift=0)=>{newGame("duel",0);game.wind=wind;game.windLift=lift;game.angle=43;game.power=76;beginPrecision();game.precisionNeedle=needle;lockPrecision();const line=predict(43,game.precisionLast.adjusted,wind,"player",900,game.precisionLast.sideBias,lift,true),p=line.impact||line.at(-1);return{grade:game.precisionLast.grade,x:p.x,steer:game.precisionLast.sideBias,initialVx:game.projectiles[0].vx,windInfluence:game.shotInfluences.wind,timingInfluence:game.shotInfluences.timing};}; window.__v46AiForceForTest=(wind,lift)=>{newGame("duel",0);game.wind=wind;game.windLift=lift;game.difficulty="normal";const shot=chooseAiShot();launch("ai",shot.angle,shot.power,shot.weapon,undefined,shot.timingBias);const p=game.projectiles[0],before=p.vx;step(1/60);return{wind,lift,before,after:p.vx,bias:p.timingBias};}; window.__artilleryLoadoutDebug=');
+ ' window.__v46WindSweepForTest=()=>{newGame("duel",0);game.angle=43;game.power=76;return [[0,0],[-4,0],[4,0],[0,-1.8],[0,1.8],[-4,-1.8],[4,1.8]].map(([wind,lift])=>{const line=predict(43,76,wind,"player",900,0,lift,true),p=line.impact||line.at(-1);return{wind,lift,x:p.x,y:p.y};});}; window.__v46NeedleForTest=(needle,wind=0,lift=0)=>{newGame("duel",0);game.wind=wind;game.windLift=lift;game.angle=43;game.power=76;beginPrecision();game.precisionNeedle=needle;lockPrecision();finishPrecisionHold();const line=predict(43,game.precisionLast.adjusted,wind,"player",900,game.precisionLast.sideBias,lift,true),p=line.impact||line.at(-1);return{grade:game.precisionLast.grade,x:p.x,steer:game.precisionLast.sideBias,initialVx:game.projectiles[0].vx,windInfluence:game.shotInfluences.wind,timingInfluence:game.shotInfluences.timing};}; window.__v46AiForceForTest=(wind,lift)=>{newGame("duel",0);game.wind=wind;game.windLift=lift;game.difficulty="normal";const shot=chooseAiShot();launch("ai",shot.angle,shot.power,shot.weapon,undefined,shot.timingBias);const p=game.projectiles[0],before=p.vx;step(1/60);return{wind,lift,before,after:p.vx,bias:p.timingBias};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v46CompassForTest=()=>{newGame("duel",0);return [[-3,-1.1],[3,-1.1],[-3,1.1],[3,1.1]].map(([wind,lift])=>{game.wind=wind;game.windLift=lift;updateHud();return $("windVector").textContent;});}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
@@ -73,9 +73,9 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v61NearForTest=()=>{newGame("duel",0);game.wind=0;game.windLift=0;for(let angle=18;angle<=80;angle+=2)for(let power=40;power<=100;power+=2){const contacts=predict(angle,power,0,"player");if(contacts.impact?.kind==="foe")continue;const cue=duelAimFeedback(stableAimPath(angle,power,0),contacts);if(cue.kind!=="near")continue;game.angle=angle;beginFireCharge();game.chargeElapsed=.5;game.chargedPower=power;releaseFireCharge();return{angle,power,phase:game.phase,near:$("precisionPanel").classList.contains("charge-near"),falseHit:$("precisionPanel").classList.contains("charge-confirm"),hidden:$("chargeGauge").hidden,headline:$("precisionHeadline").textContent};}return null;}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
- ' window.__v62ReaimForTest=(mode)=>{newGame(mode,0);const observations=[];for(let i=0;i<3;i++){beginPrecision();const before={phase:game.phase,remaining:$("precisionCancelCount").textContent,shots:game.shots,disabled:$("precisionCancel").disabled};$("precisionCancel").click();observations.push({before,after:{phase:game.phase,used:game.reaimCount,shots:game.shots}});}beginPrecision();const blocked={remaining:$("precisionCancelCount").textContent,disabled:$("precisionCancel").disabled,phase:game.phase};$("precisionCancel").click();const still={phase:game.phase,used:game.reaimCount,shots:game.shots};game.precisionNeedle=.5;lockPrecision();return{observations,blocked,still,afterFire:{used:game.reaimCount,shots:game.shots,phase:game.phase}};}; window.__artilleryLoadoutDebug=');
+ ' window.__v62ReaimForTest=(mode)=>{newGame(mode,0);const observations=[];for(let i=0;i<3;i++){beginPrecision();const before={phase:game.phase,remaining:$("precisionCancelCount").textContent,shots:game.shots,disabled:$("precisionCancel").disabled};$("precisionCancel").click();observations.push({before,after:{phase:game.phase,used:game.reaimCount,shots:game.shots}});}beginPrecision();const blocked={remaining:$("precisionCancelCount").textContent,disabled:$("precisionCancel").disabled,phase:game.phase};$("precisionCancel").click();const still={phase:game.phase,used:game.reaimCount,shots:game.shots};game.precisionNeedle=.5;lockPrecision();finishPrecisionHold();return{observations,blocked,still,afterFire:{used:game.reaimCount,shots:game.shots,phase:game.phase}};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
- ' window.__v65PrecisionForTest=(needle)=>{newGame("duel",0);beginPrecision();step(1/60);const guide=$("precisionFoot").textContent;game.precisionNeedle=needle;lockPrecision();const pulse={...game.precisionBurst},power=game.precisionLast.adjusted,sideBias=game.precisionLast.sideBias;drawPrecisionBurst();step(1/60);const faded=game.precisionBurst?.life;for(let i=0;i<45;i++)step(1/60);return{guide,pulse,faded,cleared:game.precisionBurst===null,power,sideBias,shots:game.shots};}; window.__artilleryLoadoutDebug=');
+ ' window.__v65PrecisionForTest=(needle)=>{newGame("duel",0);beginPrecision();step(1/60);const guide=$("precisionFoot").textContent;game.precisionNeedle=needle;lockPrecision();finishPrecisionHold();const pulse={...game.precisionBurst},power=game.precisionLast.adjusted,sideBias=game.precisionLast.sideBias;drawPrecisionBurst();step(1/60);const faded=game.precisionBurst?.life;for(let i=0;i<45;i++)step(1/60);return{guide,pulse,faded,cleared:game.precisionBurst===null,power,sideBias,shots:game.shots};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v66StartPaceForTest=(kind)=>{newGame("duel",0);game.angle=43;game.wind=0;game.windLift=0;if(kind==="charge")beginFireCharge();else{beginPrecision();if(kind==="confirm"){game.chargeConfirmTime=1;game.chargeConfirmImpact={x:1018,y:360};$("chargeGauge").hidden=false;}}}; window.__v66PaceForTest=()=>({charge:game.chargeElapsed,range:duelRangeReferencePoint(game.angle,game.chargedPower).x,precision:game.precisionElapsed,needle:game.precisionNeedle,confirm:game.chargeConfirmTime,phase:game.phase,shots:game.shots,used:game.reaimCount}); window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
@@ -361,6 +361,7 @@ function frames(n){for(let i=0;i<n;i++){now+=1000/60;const run=callback;callback
 function framesAtFps(fps,seconds){for(let i=0;i<Math.round(fps*seconds);i++){now+=1000/fps;const run=callback;callback=null;assert(run,'Animation frame not scheduled');run(now);}}
 function state(){return window.__artilleryDebug();}
 function fireNow(){
+ const previousShots=state().shots;
  el('fire').click();
  assert.equal(state().phase,'timing','First fire tap opens the moving precision gauge');
  assert.equal(el('precisionPanel').hidden,false,'The original illustrated precision gauge is visible');
@@ -369,8 +370,21 @@ function fireNow(){
  frames(21);
  assert.notEqual(el('precisionNeedle').style.left,needleBefore,'Precision needle must actually sweep across the gauge');
  el('precisionHit').click();
- assert.equal(state().phase,'flying','Locking precision releases the artillery shell');
- assert.equal(el('precisionPanel').hidden,true,'Precision gauge must vanish when the shell launches');
+ const lockedNeedle=el('precisionNeedle').style.left,lockedCamera=state().camera;
+ assert.equal(state().phase,'timingResult','Locking must first show the selected gauge result');
+ assert.equal(el('precisionPanel').hidden,false,'Locked precision gauge must remain visible');
+ assert.equal(state().shots,previousShots,'No shell launches before the timing result is shown');
+ el('precisionHit').click();el('fire').click();el('precisionCancel').click();el('overview').click();
+ assert.equal(state().phase,'timingResult','Extra taps cannot fire, re-aim, or change camera after locking');
+ assert(el('fire').disabled&&el('precisionCancel').disabled&&el('overview').disabled,'Result hold locks the other battlefield actions');
+ frames(72);
+ assert.equal(el('precisionNeedle').style.left,lockedNeedle,'The marked needle may not move during the 1.5-second result');
+ assert.equal(state().camera,lockedCamera,'Camera must stay on the aiming scene throughout the result hold');
+ assert.equal(state().phase,'timingResult','Result still holds after 1.2 seconds');
+ frames(20);
+ assert.equal(state().phase,'flying','The artillery shell launches after the 1.5-second result');
+ assert.equal(state().shots,previousShots+1,'Exactly one shell launches after the timing result');
+ assert.equal(el('precisionPanel').hidden,true,'Precision gauge closes only when the shell launches');
 }
 function waitForReview(limit=820){
  for(let i=0;i<limit;i++){frames(1);if(state().phase==='review')return;}
@@ -537,6 +551,8 @@ assert.equal(el('precisionPanel').hidden,false);
 el('fire').click();
 assert.equal(state().shots,0,'Synthetic click after a touch release must not skip the precision game');
 frames(23);el('precisionHit').click();
+assert.equal(state().phase,'timingResult','Quick tap should display the locked timing result first');
+frames(92);
 assert.equal(state().shots,1,'Precision lock must fire exactly one projectile');
 frames(1);
 assert(el('fire').classList.contains('recent-shot')&&el('fire').disabled,
@@ -575,6 +591,8 @@ el('fire').dispatch('pointerup',{pointerId:7});
 assert.equal(state().shots,0,'Releasing a charged button should open the timing challenge');
 assert.equal(state().phase,'timing');
 frames(30);el('precisionHit').click();
+assert.equal(state().phase,'timingResult','Charged shot must show its timing result before launch');
+frames(92);
 assert.equal(state().shots,1,'Pressing the precision gauge fires after charging');
 assert.equal(state().heroMotionFrame,0,'Weapon launch starts six-stage attack motion');
 frames(9);
@@ -712,6 +730,7 @@ if(/v0_[567]/.test(versionedPath)){
     }else if(name==='bear'){
       el('abilityBtn').click();
       assert.equal(state().abilityArmed,true);
+      assert(state().skillEffects>0,'Bear arming should show its visual effect before the timing hold');
       fireNow();
       assert.equal(state().projectilePierce,2,'Bear shot has two piercing charges');
     }else{
@@ -721,7 +740,7 @@ if(/v0_[567]/.test(versionedPath)){
       if(name==='rabbit')assert(state().projectiles>=5,'Rabbit makes five projectiles');
     }
     assert.equal(state().abilityCount,1);
-    if(/v0_[67]/.test(versionedPath))assert(state().skillEffects>0,'Ability must spawn a character-specific visual effect');
+    if(/v0_[67]/.test(versionedPath)&&name!=='bear')assert(state().skillEffects>0,'Ability must spawn a character-specific visual effect');
     el('homeBtn').click();
   }
 }
@@ -1327,5 +1346,20 @@ handlers.popstate();
 assert.equal(state().phase,'aim','Back during precision must cancel timing and restore targeting, not exit the battle');
 assert.equal(el('precisionPanel').hidden,true,'Precision overlay must clean up after Back');
 assert.equal(state().shots,0,'Cancelling timing must not consume ammo');
+el('precisionHit').click();
+assert.equal(state().phase,'aim','A stale gauge tap after Back cannot queue a shot');
+el('fire').click();framesAtFps(10,.3);el('precisionHit').click();
+assert.equal(state().phase,'timingResult','Low-FPS timing lock must enter the readable result phase');
+const slowCamera=state().camera;
+framesAtFps(10,1.1);
+assert.equal(state().phase,'timingResult','At 10 FPS the locked gauge stays visible for at least 1.1 seconds');
+assert.equal(state().camera,slowCamera,'The result camera is stable even on a slow phone');
+framesAtFps(10,.5);
+assert.equal(state().shots,1,'After 1.5 displayed seconds, low-FPS result launches once');
+el('homeBtn').click();el('duelBtn').click();el('fire').click();el('precisionHit').click();
+assert.equal(state().phase,'timingResult');
+handlers.popstate();frames(120);
+assert.equal(state().mode,'menu','Back during a committed result hold returns to menu');
+assert.equal(state().shots,0,'Leaving during result hold must cancel the queued shot');
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');
