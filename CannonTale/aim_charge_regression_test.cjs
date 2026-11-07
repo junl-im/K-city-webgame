@@ -16,8 +16,8 @@ const source=`
 const W=1200,H=640,G=465,WIND_FORCE=46,WIND_LIFT_FORCE=38,TIMING_STEER_FORCE=136;
 const clamp=(n,a,b)=>Math.max(a,Math.min(n,b));
 const game={mode:'duel',hero:'fox',aiHero:'bear',angle:43,wind:0,windLift:0,
- chargedPower:20,chargeDirection:1,chargeSweepTime:0,chargeHitHold:0,
- chargeHitArmed:true,chargeHeldImpact:null,phase:'aim',terrain:null,blocks:[],foes:[]};
+ chargedPower:20,chargeDirection:1,chargeSweepTime:0,
+ chargeConfirmTime:0,chargeConfirmImpact:null,phase:'aim',terrain:null,blocks:[],foes:[]};
 ${take('function terrainY(','function powerVelocity(')}
 ${take('function powerVelocity(','function launch(')}
 ${take('function predict(','function chooseAiShot(')}
@@ -29,38 +29,30 @@ function minToEnemy(power){
 }
 function run(angle,wind){
  game.angle=angle;game.wind=wind;game.chargedPower=20;game.chargeDirection=1;
- game.chargeSweepTime=0;game.chargeHitHold=0;game.chargeHitArmed=true;game.chargeHeldImpact=null;
- let uniformSteps=0,fractional=false,holdStarts=0,holdFrames=0,reversed=false;
- let firstHitPower=null,firstHitFrame=-1,peakPower=20;
+ game.chargeSweepTime=0;game.chargeConfirmTime=0;game.chargeConfirmImpact=null;
+ let uniformSteps=0,fractional=false,reversed=false,hitFrames=0;
+ let peakPower=20;
  const expected=(80/1.35)/60;
  for(let i=0;i<500;i++){
-  const before=game.chargedPower,holdingBefore=game.chargeHitHold;
+  const before=game.chargedPower;
   const directionBefore=game.chargeDirection;
   assert.equal(chargeSweepRate(),1,'The sweep rate must be uniformly 1');
   advanceChargePower(1/60);
   const after=game.chargedPower;
   assert(after>=20&&after<=100&&Number.isFinite(after),'The power sweep stays finite within bounds');
   assert.equal(game.phase,'aim','Charging must never automatically open precision timing');
+  assert.equal(game.chargeConfirmTime,0,'No hit confirmation may start BEFORE a player release');
   if(Math.abs(after-Math.round(after))>.03)fractional=true;
   if(after>peakPower)peakPower=after;
   if(game.chargeDirection<0)reversed=true;
-  if(holdingBefore>0){
-   holdFrames++;
-   assert.equal(after,before,'The selected hit power freezes for its full one-second window');
-  }
-  if(holdingBefore===0&&game.chargeHitHold>0){
-   holdStarts++;
-   assert(duelHitAtChargePower(after),'A hold requires a REAL shell-enemy collision, not proximity');
-   assert(game.chargeHeldImpact&&Number.isFinite(game.chargeHeldImpact.x),'A held hit needs a real world-space contact marker');
-   if(firstHitPower===null){firstHitPower=after;firstHitFrame=i;}
-  }
-  if(!holdingBefore&&!game.chargeHitHold&&directionBefore===game.chargeDirection){
+  if(duelHitAtChargePower(after))hitFrames++;
+  if(directionBefore===game.chargeDirection&&after>20.001&&after<99.999){
    assert(Math.abs(Math.abs(after-before)-expected)<.000001,
-    'Outside a one-second hit window the gauge moves at the SAME speed at every power');
+    'The gauge must NOT slow or freeze even while directly crossing the enemy');
    uniformSteps++;
   }
  }
- return {angle,wind,uniformSteps,fractional,holdStarts,holdFrames,reversed,peakPower,firstHitPower,firstHitFrame};
+ return {angle,wind,uniformSteps,fractional,reversed,peakPower,hitFrames};
 }
 function findHit(wind,from=20,to=76){
  game.wind=wind;
@@ -82,15 +74,14 @@ for(const wind of [-3.5,0,3.5]){
  for(const hit of hits){
  const samples=run(hit.angle,wind);
  assert(samples.fractional,'The sweep must use fractional power rather than 1% jumps');
- assert(samples.uniformSteps>120,`The sweep must stay fast outside real collisions: ${samples.uniformSteps}`);
- assert(samples.holdStarts>=1,`A hittable trajectory needs a one-second hold: ${JSON.stringify(samples)}`);
- assert(samples.holdFrames>=59,`A hit must remain available for roughly one second: ${samples.holdFrames}`);
+ assert(samples.uniformSteps>480,`The sweep must stay fast even across genuine collisions: ${samples.uniformSteps}`);
+ assert(samples.hitFrames>=1,`The sweep should pass the foe at its normal speed: ${JSON.stringify(samples)}`);
  assert(samples.reversed&&samples.peakPower>99.5,`The gauge must reach max and reverse: ${JSON.stringify(samples)}`);
  const near=probe(hit.angle,hit.power,wind);
  const far=probe(hit.angle,20,wind);
  assert.equal(near.rate,1,'Enemy proximity must NOT slow the gauge');
  assert.equal(far.rate,1,'Initial sweeping must use the same rate as enemy proximity');
- report.push({wind,hit,uniformSteps:samples.uniformSteps,holdStarts:samples.holdStarts,holdFrames:samples.holdFrames,firstHitFrame:samples.firstHitFrame,firstHitPower:+samples.firstHitPower.toFixed(3),farRate:far.rate,nearRate:near.rate});
+ report.push({wind,hit,uniformSteps:samples.uniformSteps,hitFrames:samples.hitFrames,farRate:far.rate,nearRate:near.rate});
  }
 }
 console.log('CannonTale aim charge regression OK:',JSON.stringify(report));
