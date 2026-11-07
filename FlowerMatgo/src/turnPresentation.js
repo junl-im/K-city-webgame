@@ -13,6 +13,29 @@ export const TURN_STAGES = Object.freeze({
   complete: 1820
 });
 export const TURN_PRESENTATION_MS = TURN_STAGES.complete;
+export const BONUS_FACE_HOLD_MS = 1000;
+export const BONUS_FLIP_MS = 245;
+export const BONUS_COLLECT_MS = 350;
+export const BONUS_DRAW_CYCLE_MS = (TURN_STAGES.flip - TURN_STAGES.draw) + BONUS_FLIP_MS + BONUS_FACE_HOLD_MS + BONUS_COLLECT_MS;
+
+// Hand-played bonus cards are not deck flips and must not be shown twice.
+export function drawnBonusCards(result) {
+  return (result?.bonusCards || []).filter(id=>id!==result.playedCardId && getCard(id)?.tags.includes('bonus-pee'));
+}
+export function bonusDrawTimeline(result) {
+  const cards=drawnBonusCards(result);
+  const steps=cards.map((id,index)=>({id,draw:TURN_STAGES.draw+index*BONUS_DRAW_CYCLE_MS,flip:TURN_STAGES.flip+index*BONUS_DRAW_CYCLE_MS,move:TURN_STAGES.flip+index*BONUS_DRAW_CYCLE_MS+BONUS_FLIP_MS+BONUS_FACE_HOLD_MS}));
+  const offset=steps.length*BONUS_DRAW_CYCLE_MS;
+  return {steps,offset,finalDraw:TURN_STAGES.draw+offset,complete:TURN_PRESENTATION_MS+offset};
+}
+export function bonusRevealRect(bounds, viewportWidth, viewportHeight) {
+  if (!bounds || bounds.width<=0 || bounds.height<=0) return null;
+  const width=Math.min(86,Math.max(54,bounds.width*.25),Math.max(36,viewportWidth-24));
+  const height=cardHeightForWidth(width);
+  const left=Math.max(12,Math.min(viewportWidth-width-12,bounds.left+bounds.width/2-width/2));
+  const top=Math.max(50,Math.min(viewportHeight-height-40,bounds.top+bounds.height*.43-height/2));
+  return {left,top,width,height};
+}
 export const CARD_ASPECT = Object.freeze({width:248,height:340});
 export const MAX_CAPTURE_SPRITES = 6;
 export const CAPTURE_STAGGER_MS = 38;
@@ -266,18 +289,98 @@ function spawnFlight(root, id, source, target, delay, cardHTML, opponent, isDraw
   setTimeout(() => ghost.remove(), isDraw ? duration + delay + 150 : retentionMs);
 }
 
-function spawnFlip(root, id, target, delay, cardHTML) {
+function spawnFlip(root, id, target, delay, cardHTML, retention = TURN_STAGES.collect - TURN_STAGES.flip + 30, bonus = false) {
   if (!id || !target) return;
   setTimeout(() => {
     if (!root.isConnected) return;
+    if (bonus && !root.querySelector('.scene--game.is-resolving')) return;
     const flip = document.createElement('div');
-    flip.className = 'turn-deck-flip';
+    flip.className = `turn-deck-flip${bonus?' turn-deck-flip--bonus':''}`;
     flip.setAttribute('aria-hidden', 'true');
     flip.style.cssText = `left:${target.left}px;top:${target.top}px;width:${target.width}px;height:${target.height}px`;
-    flip.innerHTML = `<span class="turn-deck-flip__spin"><span class="turn-deck-flip__side turn-deck-flip__side--back"><span class="hwatu hwatu--back"><span class="hwatu__face"></span></span></span><span class="turn-deck-flip__side turn-deck-flip__side--front">${cardHTML(id)}</span></span>`;
+    if (bonus) flip.dataset.bonusCard=id;
+    // Use a 2-D reveal for bonus cards: filters can flatten the regular 3-D
+    // flip and leave its back facing the viewer on some browsers.
+    flip.innerHTML = bonus ? cardHTML(id) : `<span class="turn-deck-flip__spin"><span class="turn-deck-flip__side turn-deck-flip__side--back"><span class="hwatu hwatu--back"><span class="hwatu__face"></span></span></span><span class="turn-deck-flip__side turn-deck-flip__side--front">${cardHTML(id)}</span></span>`;
     root.appendChild(flip);
-    setTimeout(() => flip.remove(), TURN_STAGES.collect - TURN_STAGES.flip + 30);
+    setTimeout(() => flip.remove(), retention);
   }, delay);
+}
+
+function bonusRack(root, player) {
+  const rack=root.querySelector(player==='human'?'.collection-rack--human':'.collection-rack--opponent');
+  return rack?.querySelector('[data-capture-type="junk"]') || rack;
+}
+function pinBonusCard(group,id,cardHTML) {
+  const preview=group?.querySelector('.collection-preview');
+  if (!preview?.isConnected) return;
+  const pending=document.createElement('span');
+  pending.className='capture-stack-card bonus-pending-card';
+  pending.setAttribute('aria-hidden','true');
+  pending.innerHTML=cardHTML(id);
+  preview.appendChild(pending);
+}
+function moveBonusCard(root,id,from,group,cardHTML,animate=true) {
+  const rect=measure(group);
+  if (!rect || !from) return;
+  const width=Math.min(40,Math.max(24,rect.width*.25));
+  const to={left:rect.left+rect.width/2-width/2,top:rect.top+rect.height/2-cardHeightForWidth(width)/2,width,height:cardHeightForWidth(width)};
+  if (!animate || typeof Element.prototype.animate !== 'function') { pinBonusCard(group,id,cardHTML);return; }
+  const ghost=document.createElement('div');
+  ghost.className='turn-flight turn-flight--collect turn-bonus-transfer';
+  ghost.dataset.bonusTransfer=id;
+  ghost.setAttribute('aria-hidden','true');
+  ghost.style.cssText=`left:${from.left}px;top:${from.top}px;width:${from.width}px;height:${from.height}px`;
+  ghost.innerHTML=cardHTML(id);root.appendChild(ghost);
+  const arrive=()=>{ghost.remove();if(root.querySelector('.scene--game.is-resolving'))pinBonusCard(group,id,cardHTML);};
+  ghost.animate(captureSweepFrames(from,to),{duration:BONUS_COLLECT_MS,easing:'cubic-bezier(.25,.4,.18,1)',fill:'forwards'}).finished.then(arrive).catch(()=>ghost.remove());
+  setTimeout(()=>ghost.remove(),BONUS_COLLECT_MS+120);
+}
+function showBonusLabel(root,target,player,stolen,hold) {
+  const label=document.createElement('div');
+  label.className='turn-bonus-label';label.setAttribute('role','status');
+  label.textContent=stolen?(player==='human'?'보너스! 상대 피 가져오기':'보너스! 내 피 뺏김'):'보너스패 획득!';
+  const margin=Math.min(130,Math.max(0,window.innerWidth/2-8));
+  label.style.left=`${Math.max(margin,Math.min(window.innerWidth-margin,target.left+target.width/2))}px`;
+  label.style.top=`${Math.max(24,target.top-10)}px`;
+  root.appendChild(label);setTimeout(()=>label.remove(),hold);
+}
+function animateBonusDraws(root,result,player,deck,target,cardHTML,sound,timeline,reduced=false,onBonus) {
+  const destination=bonusRack(root,player);
+  const rival=bonusRack(root,player==='human'?'computer':'human');
+  const stolen=result.bonusStolenPee || [];
+  const deckCount=root.querySelector('.deck-pile small b');
+  const initialCount=Number(deckCount?.textContent);
+  timeline.steps.forEach((step,index)=>{
+    setTimeout(()=>{
+      if(!root.querySelector('.scene--game.is-resolving'))return;
+      if(deckCount && Number.isFinite(initialCount))deckCount.textContent=String(Math.max(0,initialCount-index-1));
+      if(!reduced && deck)spawnFlight(root,step.id,deck,target,0,cardHTML,false,true);
+    },step.draw);
+    if (!reduced) spawnFlip(root,step.id,target,step.flip,cardHTML,BONUS_FLIP_MS+BONUS_FACE_HOLD_MS,true);
+    setTimeout(()=>{
+      if(!root.querySelector('.scene--game.is-resolving'))return;
+      if(reduced){
+        const face=document.createElement('div');face.className='turn-bonus-static';face.dataset.bonusCard=step.id;
+        face.style.cssText=`left:${target.left}px;top:${target.top}px;width:${target.width}px;height:${target.height}px`;
+        face.innerHTML=cardHTML(step.id);root.appendChild(face);setTimeout(()=>face.remove(),BONUS_FLIP_MS+BONUS_FACE_HOLD_MS);
+      }
+      showBonusLabel(root,target,player,stolen[index],BONUS_FLIP_MS+BONUS_FACE_HOLD_MS);
+      sound('flip');
+    },step.flip);
+    setTimeout(()=>{
+      if(!root.querySelector('.scene--game.is-resolving'))return;
+      moveBonusCard(root,step.id,target,destination,cardHTML,!reduced);
+      const taken=stolen[index];
+      if(taken){
+        onBonus?.(taken);
+        const node=[...(rival?.querySelectorAll('[data-card]') || [])].find(el=>el.dataset.card===taken);
+        const origin=measure(node || rival);node?.classList.add('hwatu--departing');
+        if(origin)moveBonusCard(root,taken,origin,destination,cardHTML,!reduced);
+      }
+      sound('capture');
+    },step.move);
+  });
 }
 
 // A single, tiny paper label acknowledges the entire bundle at the
@@ -451,16 +554,25 @@ function recoilTable(root, kind, delay) {
   }, delay);
 }
 
-export function animateResolvedTurn({ root, result, player, handRect, deckRect, cardHTML, sound, playedMatchId, onLand, onCollect }) {
+export function animateResolvedTurn({ root, result, player, handRect, deckRect, cardHTML, sound, playedMatchId, onLand, onBonus, onCollect }) {
   const cue = turnCue(result);
   if (!cue || !root) return 0;
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const floorIds = [...root.querySelectorAll('.floor-area [data-card]')].map(element => element.dataset.card);
   const pairings = resolveTurnLandings(cue.played, cue.drawn, floorIds, cue.capturedIds, { playedMatchId, ppeok:result.ppeok, bomb:cue.visualKind === 'bomb' });
   const target = sceneTarget(root, cue, pairings.playedFloorId);
+  const bonusTarget=bonusRevealRect(measure(root.querySelector('.floor-area') || root.querySelector('.field-row')),window.innerWidth,window.innerHeight) || target;
+  const timeline=bonusDrawTimeline(result);
+  const deck=deckRect || motionOrigin(root.querySelector('.deck-pile .hwatu'));
   if (reduced || !target || typeof Element.prototype.animate !== 'function') {
     sound(cue.soundKind || cue.impact);
     onLand?.();
+    if (timeline.steps.length && bonusTarget) {
+      animateBonusDraws(root,result,player,deck,bonusTarget,cardHTML,sound,timeline,true,onBonus);
+      const complete=timeline.finalDraw+100;
+      if(onCollect)setTimeout(onCollect,complete-25);
+      return complete;
+    }
     return 0;
   }
   const playingHand = cue.played && root.querySelector(`.my-hand [data-card="${cue.played}"]`);
@@ -476,7 +588,7 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
   const playedTarget = stackedLandingRect(target, hasPlayedMatch);
   const throwGap = bombThrows.length > 1
     ? Math.min(65, Math.floor((TURN_STAGES.draw - TURN_STAGES.land - 16) / (bombThrows.length - 1))) : 0;
-  spawnSpecialContacts(root, target, specialContactBeats(cue.visualKind, bombThrows.length, throwGap));
+  spawnSpecialContacts(root, target, specialContactBeats(cue.visualKind, bombThrows.length, throwGap).map(beat=>cue.visualKind==='bomb'?beat:{...beat,at:beat.at+timeline.offset}));
   bombThrows.forEach((id,index) => {
     const handCard = player === 'human' ? humanHand.find(element => element.dataset.card === id) : null;
     if (index && handCard) handCard.classList.add('hwatu--departing');
@@ -486,13 +598,24 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
       top:playedTarget.top - index * 3
     } : playedTarget;
     spawnFlight(root,id,source,landing,index*throwGap,cardHTML,
-      player === 'computer',false,playedGetsCaptured ? TURN_STAGES.collect - 10 : TURN_PRESENTATION_MS);
+      player === 'computer',false,(playedGetsCaptured ? TURN_STAGES.collect - 10 : TURN_PRESENTATION_MS)+timeline.offset);
     if (index) setTimeout(() => sound('pair'), TURN_STAGES.land + index*throwGap + 8);
   });
   if (playedFloorCard) spawnPairContact(root,playedFloorCard,target,TURN_STAGES.land);
+  if (timeline.steps.length) {
+    animateBonusDraws(root,result,player,deck,bonusTarget,cardHTML,sound,timeline,false,onBonus);
+  }
+  spawnImpact(root, target, hasPlayedMatch ? '착!' : '탁!', TURN_STAGES.land);
+  recoilTable(root,'land',TURN_STAGES.land+20);
+  setTimeout(() => sound(hasPlayedMatch ? 'pair' : 'land'), TURN_STAGES.land + 20);
+  if (onLand) setTimeout(onLand, TURN_STAGES.land + 20);
+  if (player === 'human' && navigator.vibrate) setTimeout(() => navigator.vibrate?.(hasPlayedMatch ? [12,25,13] : 12), TURN_STAGES.land + 15);
+
+  // Schedule the regular flip only after every bonus has reached its rack.
+  const finishTurn=()=>{
+  if (timeline.offset && !root.querySelector('.scene--game.is-resolving')) return;
   let drawnTarget = target;
   if (cue.drawn) {
-    const deck = deckRect || motionOrigin(root.querySelector('.deck-pile .hwatu'));
     const drawnFloorCard = pairings.drawnFloorId ? root.querySelector(`.floor-area [data-card="${pairings.drawnFloorId}"]`) : null;
     drawnTarget = drawnFloorCard
       ? stackedLandingRect(measure(drawnFloorCard),true)
@@ -501,6 +624,7 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
     // If the table is completely packed, skip the visual flip rather than
     // suggesting an incorrect pair. The rules result still commits normally.
     if (drawnTarget) {
+    if(timeline.offset) setTimeout(()=>{const count=root.querySelector('.deck-pile small b');if(count && result.state?.drawPile)count.textContent=String(result.state.drawPile.length);},TURN_STAGES.draw);
     pulseDeck(root,TURN_STAGES.draw-45);
     spawnFlight(root, cue.drawn, deck, drawnTarget, TURN_STAGES.draw, cardHTML, false, true);
     spawnFlip(root, cue.drawn, drawnTarget, TURN_STAGES.flip, cardHTML);
@@ -508,19 +632,19 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
     if (drawnFloorCard) spawnPairContact(root,drawnFloorCard,measure(drawnFloorCard),TURN_STAGES.flip+25,true);
     }
   }
-  spawnImpact(root, target, hasPlayedMatch ? '착!' : '탁!', TURN_STAGES.land);
-  recoilTable(root,'land',TURN_STAGES.land+20);
   if (cue.captures || cue.impact === 'special' || result.ppeok) {
     spawnImpact(root, target, eventAnnouncement(result, player) ? null : cue.text, TURN_STAGES.collect + 10, cue.visualKind);
   }
   if (['bomb','sweep'].includes(cue.visualKind)) recoilTable(root,cue.visualKind,TURN_STAGES.collect+16);
   cheerOnSpecial(root,player,cue.visualKind,TURN_STAGES.collect+20);
-  setTimeout(() => sound(hasPlayedMatch ? 'pair' : 'land'), TURN_STAGES.land + 20);
-  if (onLand) setTimeout(onLand, TURN_STAGES.land + 20);
   if (cue.drawn) setTimeout(() => sound('flip'), TURN_STAGES.flip + 10);
   if (cue.soundKind) setTimeout(() => sound(cue.soundKind), TURN_STAGES.collect + 30);
   if (onCollect) setTimeout(onCollect, TURN_STAGES.collect);
-  if (cue.capturedIds.length) spawnCaptureSweep(root, cue.capturedIds, target, drawnTarget, cue, player, result, cardHTML, sound);
+  const alreadyShown=timeline.steps.length && measure(bonusRack(root,player))
+    ? new Set([...timeline.steps.map(step=>step.id),...(result.bonusStolenPee || [])]) : new Set();
+  const remainingCaptured=cue.capturedIds.filter(id=>!alreadyShown.has(id));
+  if (cue.capturedIds.length && !alreadyShown.size) spawnCaptureSweep(root, cue.capturedIds, target, drawnTarget, cue, player, result, cardHTML, sound);
+  else if (remainingCaptured.length) spawnCaptureSweep(root, remainingCaptured, target, drawnTarget, cue, player, result, cardHTML, sound);
   else if (cue.impact === 'special' && !cue.soundKind) setTimeout(() => sound('special'), TURN_STAGES.collect + 10);
   if (cue.capturedIds.length) setTimeout(() => {
     if (!root.isConnected) return;
@@ -529,9 +653,10 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
     }
   },TURN_STAGES.collect);
   if (player === 'human' && navigator.vibrate) {
-    setTimeout(() => navigator.vibrate?.(hasPlayedMatch ? [12,25,13] : 12), TURN_STAGES.land + 15);
     const specialHaptic = {bomb:[24,35,28],ppeok:35,sweep:[9,18,9,18,16],bright:[8,24,8],double:[9,20,9],ttadak:[8,15,8]};
     if (cue.captures || cue.soundKind) setTimeout(()=>navigator.vibrate?.(specialHaptic[cue.visualKind] || [10,35,14]), TURN_STAGES.collect + 250);
   }
-  return TURN_PRESENTATION_MS;
+  };
+  if(timeline.offset)setTimeout(finishTurn,timeline.offset);else finishTurn();
+  return timeline.complete;
 }

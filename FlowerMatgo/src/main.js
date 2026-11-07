@@ -927,13 +927,17 @@ function commitGame(next, result=null, motion=null, motionVoicePlayed=false) {
     // Keep the old cards visible while they fly, but checkpoint the resolved
     // engine state now. Reloading during the flight must never replay a turn.
     save();
-    let wait = 0;
+    let wait = 0, bonusVoicePlayed=false;
     try { wait = animateResolvedTurn({root:ROOT, result, cardHTML:id=>card(id), sound:cardSound, ...motion, onLand:()=>{
       if (!turnTransition || pendingResolvedCheckpoint?.game !== next || document.hidden || app.screen !== 'game') return;
       if (motion.playComment) { gameCueSound(motion.playComment);voicePlayer.enqueue([motion.playComment]); }
+    }, onBonus:()=>{
+      if (!turnTransition || pendingResolvedCheckpoint?.game !== next || document.hidden || app.screen !== 'game') return;
+      voicePlayer.enqueue([motion.player==='human'?'take':'give']);bonusVoicePlayed=true;
     }, onCollect:()=>{
       if (!turnTransition || pendingResolvedCheckpoint?.game !== next || document.hidden || app.screen !== 'game') return;
-      voicePlayer.enqueue(turnVoices(result,app.game?.currentPlayer));motionVoicePlayed=true;
+      const voiceResult=bonusVoicePlayed ? {...result,stolenPee:(result.stolenPee || []).filter(id=>!(result.bonusStolenPee || []).includes(id))} : result;
+      voicePlayer.enqueue(turnVoices(voiceResult,app.game?.currentPlayer));motionVoicePlayed=true;
     }}); }
     catch(error) { console.error('Card animation failed; recovering turn:',error); }
     if (wait > 0) {
