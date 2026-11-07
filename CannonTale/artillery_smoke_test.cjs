@@ -831,10 +831,10 @@ assert.deepEqual(state().canvas,[360,640],'Portrait 360x640 canvas must match it
 assert(window.__duelHudDebug().visible.player&&window.__duelHudDebug().visible.ai,
  'Portrait overview should keep both small health gauges attached to their heroes');
 el('overview').click();frames(6);
-assert.equal(window.__duelHudDebug().visible.ai,false,
- 'A portrait camera focused on our hero must NOT show the offscreen opponent gauge');
-assert.equal(window.__duelHudDebug().visible.player,true,
- 'Our hero should retain its own slim gauge above its head');
+assert.equal(window.__duelHudDebug().visible.ai,true,
+ 'Returning to angle aiming should show the target-side opponent and health gauge');
+assert.equal(window.__duelHudDebug().visible.player,false,
+ 'A narrow portrait aiming view must not draw a detached gauge for the offscreen shooter');
 el('overview').click();frames(3);
 assert(overviewSkySources.some(s=>s.destinationHeight>50&&s.sourceHeight>=100),
  'Portrait overview must extend a substantial section of painted sky rather than stretching two pixels into stripes');
