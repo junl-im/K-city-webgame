@@ -180,12 +180,13 @@ function captureOrPlace(state: GameState, cardId: string, capturedKey: 'humanCap
   const ppeokPile = matches.length === 3
     ? knownPpeokPile ?? { month: card?.month ?? 0, owner: capturedKey === 'humanCaptured' ? 'computer' : 'human', cardIds: [...matches] }
     : null;
-  const selectedIds = new Set(selected);
+  const attachedBonus = ppeokPile?.bonusCardIds ?? [];
+  const selectedIds = new Set([...selected, ...attachedBonus]);
   state.floorCards = state.floorCards.filter(floorId => !selectedIds.has(floorId));
   if (ppeokPile) state.ppeokPiles = (state.ppeokPiles ?? []).filter(pile => pile !== knownPpeokPile);
-  state[capturedKey].push(...selected, cardId);
+  state[capturedKey].push(...selected, ...attachedBonus, cardId);
   const selectionNote = matches.length === 2 ? ' 두 장 중 한 장을 골라' : matches.length === 3 ? ' 세 장을 모두' : '';
-  return { captured: [...selected, cardId], ppeokPile, message: `${card?.month ?? '?'}월 패${selectionNote} 먹었습니다.` };
+  return { captured: [...selected, ...attachedBonus, cardId], ppeokPile, message: `${card?.month ?? '?'}월 패${selectionNote} 먹었습니다.` };
 }
 
 function stealPee(state: GameState, player: PlayerId, count: number): string[] {
@@ -426,16 +427,19 @@ export function playTurn(state: GameState, player: PlayerId, cardId: string, opt
   let actionMessage = '';
 
   if (isPpeok && drawnCardId) {
-    next.floorCards.push(cardId, drawnCardId);
+    const bonusIds = new Set(bonusDraw.bonusCards);
+    next[keys.captured] = next[keys.captured].filter(id => !bonusIds.has(id));
+    next.floorCards.push(cardId, drawnCardId, ...bonusDraw.bonusCards);
     next[keys.ppeok] += 1;
     if (next.turnNumber < 2) next[keys.openingPpeok] = (next[keys.openingPpeok] ?? 0) + 1;
     next.ppeokPiles = [...(next.ppeokPiles ?? []), {
       month: getCard(cardId)?.month ?? 0,
       owner: player,
-      cardIds: [initialMatches[0], cardId, drawnCardId]
+      cardIds: [initialMatches[0], cardId, drawnCardId],
+      ...(bonusDraw.bonusCards.length ? {bonusCardIds: [...bonusDraw.bonusCards]} : {})
     }];
     specialEvents.push({ kind: 'ppeok', label: '뻑', stolenPee: [] });
-    captured = [...bonusDraw.bonusCards, ...bonusDraw.stolenPee];
+    captured = [...bonusDraw.stolenPee];
     actionMessage = `${getCard(cardId)?.month ?? '?'}월 3장이 겹쳐 ${next[keys.ppeok]}번째 뻑입니다.`;
   } else {
     const played = captureOrPlace(next, cardId, keys.captured, options.playedMatchId);
@@ -467,7 +471,7 @@ export function playTurn(state: GameState, player: PlayerId, cardId: string, opt
 
   if (bonusDraw.bonusCards.length) {
     const stealMessage = bonusDraw.stolenPee.length ? ` 상대 피 ${bonusDraw.stolenPee.length}장을 가져왔습니다.` : '';
-    actionMessage = `뒤집기에서 보너스패 ${bonusDraw.bonusCards.length}장을 얻었습니다.${stealMessage} ${actionMessage}`;
+    actionMessage = `뒤집기에서 보너스패 ${bonusDraw.bonusCards.length}장${isPpeok ? '도 뻑에 함께 놓였습니다' : '을 얻었습니다'}.${stealMessage} ${actionMessage}`;
   }
 
   const mission = missionOutcome(next, player, captured);
