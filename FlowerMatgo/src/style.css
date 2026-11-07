@@ -4203,3 +4203,17 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
  .scene--select .stakes small {color:#52664d;}
  .scene--select .stake:focus-visible {outline:3px solid #9b612e;outline-offset:2px;}
 }
+
+/* Keep the deck count and turn status readable without enlarging the board controls. */
+@media (max-width:650px) {
+ .scene--game .deck-pile small {
+  font-size:10px;line-height:1.2;letter-spacing:-.03em;
+  background:#103e30;color:#fff7df;border-color:#e8d0a599;
+ }
+ .scene--game .deck-pile small b {font-size:11px;color:#ffe6a1;}
+ .scene--game .hand-workspace .turn-clock__time strong {font-size:22px;}
+ .scene--game .hand-workspace .turn-clock--waiting {
+  min-height:30px;line-height:1.2;font-size:10px;color:#604a35;
+ }
+ .scene--game .game-message {font-size:11px;line-height:1.3;}
+}
