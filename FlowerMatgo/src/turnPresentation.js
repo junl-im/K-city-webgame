@@ -318,6 +318,7 @@ function pinBonusCard(group,id,cardHTML) {
   if (!preview?.isConnected) return;
   const pending=document.createElement('span');
   pending.className='capture-stack-card bonus-pending-card';
+  pending.dataset.bonusPreview=id;
   pending.setAttribute('aria-hidden','true');
   pending.innerHTML=cardHTML(id);
   preview.appendChild(pending);
@@ -645,6 +646,15 @@ export function animateResolvedTurn({ root, result, player, handRect, deckRect, 
     if (drawnFloorCard) spawnPairContact(root,drawnFloorCard,measure(drawnFloorCard),TURN_STAGES.flip+25,true);
     }
   }
+  if (result.ppeok && timeline.steps.length) setTimeout(()=>{
+    if (!root.querySelector('.scene--game.is-resolving')) return;
+    for (const step of timeline.steps) {
+      const preview=[...root.querySelectorAll('[data-bonus-preview]')].find(el=>el.dataset.bonusPreview===step.id);
+      const origin=measure(preview);
+      if (origin) spawnFlight(root,step.id,origin,drawnTarget || target,0,cardHTML,false,false,TURN_STAGES.land+80);
+      preview?.remove();
+    }
+  },TURN_STAGES.flip+BONUS_FLIP_MS);
   if (cue.captures || cue.impact === 'special' || result.ppeok) {
     spawnImpact(root, target, eventAnnouncement(result, player) ? null : cue.text, TURN_STAGES.collect + 10, cue.visualKind);
   }

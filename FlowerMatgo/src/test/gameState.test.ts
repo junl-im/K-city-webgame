@@ -178,6 +178,52 @@ describe('기본 맞고 진행 상태', () => {
     expect(result.state.ppeokPiles).toEqual([expect.objectContaining({ month: 1, owner: 'human' })]);
   });
 
+  it.each(['human','computer'] as const)('%s이 연속 보너스 뒤 뻑을 내면 보너스도 묶이고 상대가 함께 회수한다', (actor) => {
+    const game = createArrangedGame({
+      humanHand: [actor === 'human' ? 'm01-01' : 'm01-04'],
+      computerHand: [actor === 'computer' ? 'm01-01' : 'm01-04'],
+      floorCards: ['m01-02'], floorSize: 1,
+      drawFirst: ['bonus-pee-1','bonus-double-pee-1','m01-03','m12-04'],
+      ...(actor === 'human' ? {computerCaptured:['m02-03','m03-03']} : {humanCaptured:['m02-03','m03-03']})
+    });
+    game.currentPlayer=actor;
+    game.mission=null;
+    const result=playTurn(game,actor,'m01-01');
+    const own=actor === 'human' ? 'humanCaptured' : 'computerCaptured';
+    expect(result.ppeok).toBe(true);
+    expect(result.state.floorCards).toEqual(expect.arrayContaining(['bonus-pee-1','bonus-double-pee-1','m01-01','m01-02','m01-03']));
+    expect(result.state.ppeokPiles?.[0].bonusCardIds).toEqual(['bonus-pee-1','bonus-double-pee-1']);
+    expect(result.state[own]).not.toContain('bonus-pee-1');
+    expect(result.captured).not.toContain('bonus-double-pee-1');
+    expect(result.bonusStolenPee).toHaveLength(2);
+    expect(isValidGameState(result.state)).toBe(true);
+
+    const rival=actor === 'human' ? 'computer' : 'human';
+    const recovered=playTurn(result.state,rival,'m01-04');
+    const rivalCaptured=rival === 'human' ? recovered.state.humanCaptured : recovered.state.computerCaptured;
+    expect(rivalCaptured).toEqual(expect.arrayContaining(['bonus-pee-1','bonus-double-pee-1','m01-01','m01-02','m01-03','m01-04']));
+    expect(recovered.state.floorCards).not.toContain('bonus-pee-1');
+    expect(recovered.state.ppeokPiles).toHaveLength(0);
+    expect(isValidGameState(recovered.state)).toBe(true);
+  });
+
+  it('빼앗을 피가 없어도 보너스는 뻑에 남고 자뻑으로 되찾으면 다시 점수에 포함된다', () => {
+    const game=createArrangedGame({humanHand:['m01-01','m01-04'],floorCards:['m01-02'],floorSize:1,
+      drawFirst:['bonus-pee-1','m01-03','m12-04']});
+    game.mission=null;
+    const result=playTurn(game,'human','m01-01');
+    expect(result.bonusStolenPee).toEqual([]);
+    expect(result.state.humanCaptured).not.toContain('bonus-pee-1');
+    expect(result.state.floorCards).toContain('bonus-pee-1');
+    const resumed=structuredClone(result.state);
+    resumed.currentPlayer='human';
+    const recovered=playTurn(resumed,'human','m01-04');
+    expect(recovered.specialEvents).toEqual(expect.arrayContaining([expect.objectContaining({kind:'self-ppeok'})]));
+    expect(recovered.state.humanCaptured).toContain('bonus-pee-1');
+    expect(recovered.state.floorCards).not.toContain('bonus-pee-1');
+    expect(isValidGameState(recovered.state)).toBe(true);
+  });
+
   it('상대가 만든 뻑을 먹으면 상대 피 한 장을 가져온다', () => {
     const game = createArrangedGame({
       humanHand: ['m01-01'], computerHand: ['m01-04'], floorCards: ['m01-02'], drawFirst: ['m01-03', 'm12-04'],

@@ -10,6 +10,7 @@ export interface PpeokPile {
   month: number;
   owner: PlayerId;
   cardIds: string[];
+  bonusCardIds?: string[];
 }
 
 export type TurnSpecialKind = 'ppeok' | 'ppeok-capture' | 'self-ppeok' | 'jjok' | 'ttadak' | 'sweep' | 'bomb';
