@@ -34,6 +34,15 @@ describe('game voice playback',()=>{
   p.unlock();p.enqueue(['first_human']);
   expect(FakeAudio.instances[0].src).toContain('/first_human-v2.mp3');
  });
+ it('plays the complete revised first-ppeok clip before a later reaction',()=>{
+  FakeAudio.instances=[];
+  const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.8,AudioClass:FakeAudio});
+  p.unlock();p.enqueue(['first_ppeok']);const audio=FakeAudio.instances[0];
+  expect(audio.src).toContain('/first_ppeok-v2.mp3');
+  p.enqueue(['take']);expect(audio.pause).not.toHaveBeenCalled();
+  expect(audio.play).toHaveBeenCalledTimes(1);audio.onended();
+  expect(audio.src).toContain('/take-v2.mp3');expect(audio.play).toHaveBeenCalledTimes(2);
+ });
  it('keeps the current callout and only the latest waiting result',()=>{
   FakeAudio.instances=[];let time=1000;
   const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.8,AudioClass:FakeAudio,now:()=>time});
