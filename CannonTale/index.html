@@ -3261,7 +3261,10 @@ function advanceChargePower(dt){
  }
  function chooseAiShot(){
   const target={x:190,y:terrainY(190)-29},hard=game.difficulty==='hard',easy=game.difficulty==='easy';
-  const windReading=hard?.95:easy?.64:.80;
+  // Hard opponents read gusts well, but not perfectly. Coupled with a tiny
+  // aim error, 95% wind-reading produced near-guaranteed direct hits, which
+  // punished players before they could learn the two-step timing challenge.
+  const windReading=hard?.91:easy?.64:.80;
   const plans=hard?['bomb','normal','split','bomb','normal']:easy?['normal','normal','bomb','normal','split']:['normal','bomb','normal','split'];
   // Normal/hard opponents react to the last *actual* player volley rather
   // than following a fixed weapon cycle regardless of how the duel is going.
@@ -3289,11 +3292,11 @@ function advanceChargePower(dt){
   const arc=shot.angle<43?'저각 직사':shot.angle>=66?'고각 곡사':'중각 포격';
   const tactic=countering?`${arc} · 반격 ${weapon==='bomb'?'폭발':'분열'}`:weapon==='split'?`${arc} · 분열 압박`:weapon==='bomb'?`${arc} · 폭발 견제`:
    wanted==='wind'&&Math.abs(game.wind)>=1.3?`${arc} · 풍향 보정`:`${arc} · 정밀 조준`;
-  const err=easy?{angle:5.5,power:8}:hard?{angle:.55,power:1.25}:{angle:2,power:3.25};
+  const err=easy?{angle:5.5,power:8}:hard?{angle:1.15,power:2.4}:{angle:2,power:3.25};
   game.aiShots++;game.lastAiWeapon=weapon;game.aiTactic=tactic;
   return{angle:clamp(shot.angle+rnd(-err.angle,err.angle),8,88),
    power:clamp(shot.power+rnd(-err.power,err.power),25,100),weapon,tactic,
-   timingBias:rnd(-1,1)*(hard?.16:easy?.52:.32)};
+   timingBias:rnd(-1,1)*(hard?.22:easy?.52:.32)};
  }
  function buildAdventure(stage) {
   const def=stageSet[stage%stageSet.length];
