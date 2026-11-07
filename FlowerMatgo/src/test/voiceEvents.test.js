@@ -8,6 +8,9 @@ describe('game voice cues',()=>{
  it('only announces real transfers and uses the human perspective',()=>{
   expect(turnVoices({stolenPee:['a'],missionCompleted:true,missionTransfer:{to:'computer',cardIds:['b']}},'computer')).toEqual(['give','mission']);
   expect(turnVoices({missionTransfer:{to:'human',cardIds:[]}},'human')).toEqual([]);
+  expect(turnVoices({bonusCards:['bonus'],stolenPee:['pi']},'human')).toEqual(['take']);
+  expect(turnVoices({bonusCards:['bonus'],stolenPee:['pi']},'computer')).toEqual(['give']);
+  expect(turnVoices({bonusCards:['bonus'],stolenPee:[]},'human')).toEqual(['bonus']);
  });
  it('maps combos, bonus, go counts and actual settlement baks',()=>{
   expect(turnVoices({bonusCards:['bonus-pee-1']},'human',[{label:'청단'},{label:'고도리'}])).toEqual(['bonus','cheongdan','godori']);

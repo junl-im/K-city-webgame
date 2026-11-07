@@ -11,8 +11,8 @@ describe('game voice playback',()=>{
   const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.6,AudioClass:FakeAudio,now:()=>t});
   p.enqueue(['jjok']);expect(FakeAudio.instances).toHaveLength(0);
   p.unlock();p.enqueue(['jjok','sweep']);const audio=FakeAudio.instances[0];
-  expect(audio.src).toContain('/rani-voice/jjok.mp3');expect(audio.volume).toBe(.6);expect(audio.play).toHaveBeenCalledTimes(1);
-  p.enqueue(['jjok']);audio.onended();expect(audio.src).toContain('/rani-voice/sweep.mp3');expect(audio.play).toHaveBeenCalledTimes(2);
+  expect(audio.src).toContain('/rani-voice-v2/jjok.mp3');expect(audio.volume).toBe(.6);expect(audio.play).toHaveBeenCalledTimes(1);
+  p.enqueue(['jjok']);audio.onended();expect(audio.src).toContain('/rani-voice-v2/sweep.mp3');expect(audio.play).toHaveBeenCalledTimes(2);
   t+=9000;audio.onended();expect(audio.play).toHaveBeenCalledTimes(2);
  });
  it('cancels queued speech and does not play while voice is disabled',()=>{
@@ -28,10 +28,10 @@ describe('game voice playback',()=>{
   p.clear();p.enqueue(['start'],{force:true});expect(audio.play).toHaveBeenCalledTimes(2);
  });
  it('keeps the current callout but replaces old queued cues with round results',()=>{
-  FakeAudio.instances=[];
-  const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.8,AudioClass:FakeAudio});
+  FakeAudio.instances=[];let time=1000;
+  const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.8,AudioClass:FakeAudio,now:()=>time});
   p.unlock();p.enqueue(['jjok','take','bonus']);const audio=FakeAudio.instances[0];
-  p.enqueue(['gobak','win'],{replacePending:true});audio.onended();
+  p.enqueue(['gobak','win'],{replacePending:true});time+=5000;audio.onended();
   expect(audio.src).toContain('/gobak.mp3');audio.onended();
   expect(audio.src).toContain('/win.mp3');expect(audio.play).toHaveBeenCalledTimes(3);
  });

@@ -897,7 +897,7 @@ function showScoreSet(player, combo) {
   ROOT.appendChild(label);
   setTimeout(() => label.remove(), 1320);
 }
-function commitGame(next, result=null, motion=null) {
+function commitGame(next, result=null, motion=null, motionVoicePlayed=false) {
   const gotGookjin = !!result && !app.game?.humanCaptured?.includes('m09-01') && next.humanCaptured.includes('m09-01');
   if (result) {
     const openingPpeok = settleOpeningPpeok(app, next);
@@ -917,14 +917,17 @@ function commitGame(next, result=null, motion=null) {
     // engine state now. Reloading during the flight must never replay a turn.
     save();
     let wait = 0;
-    try { wait = animateResolvedTurn({root:ROOT, result, cardHTML:id=>card(id), sound:cardSound, ...motion}); }
+    try { wait = animateResolvedTurn({root:ROOT, result, cardHTML:id=>card(id), sound:cardSound, ...motion, onCollect:()=>{
+      if (!turnTransition || pendingResolvedCheckpoint?.game !== next || document.hidden || app.screen !== 'game') return;
+      voicePlayer.enqueue(turnVoices(result,app.game?.currentPlayer));motionVoicePlayed=true;
+    }}); }
     catch(error) { console.error('Card animation failed; recovering turn:',error); }
     if (wait > 0) {
       turnTransitionTimer = setTimeout(() => {
         turnTransitionTimer = null;
         turnTransition = false;
         pendingResolvedCheckpoint = null;
-        commitGame(next,result);
+        commitGame(next,result,null,motionVoicePlayed);
       },wait);
       return;
     }
@@ -952,7 +955,7 @@ function commitGame(next, result=null, motion=null) {
   const eventText = [specialText, openingPpeokText, missionText].filter(Boolean).join(' · ');
   if (result?.missionCompleted) gameCueSound('mission');
   else if (result?.bonusCards?.length) gameCueSound('bonus');
-  voicePlayer.enqueue(turnVoices(result,previous?.currentPlayer,completedSets.map(item=>item.combo)));
+  voicePlayer.enqueue(turnVoices(motionVoicePlayed?{}:result,previous?.currentPlayer,completedSets.map(item=>item.combo)));
   if (previous?.phase !== 'awaiting-go-stop' && next.phase === 'awaiting-go-stop' && next.pendingDecision === 'human') voicePlayer.enqueue(['decide']);
   finishRound();
   if (eventText) effects(eventText, 'special', 'event-list', !!motion);
