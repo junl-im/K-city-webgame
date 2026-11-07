@@ -2669,20 +2669,9 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 .precision-panel.locked-near .precision-head{color:#d9ffcb}
 .precision-panel.locked-normal .precision-head{color:#ffe0a1}
 .precision-panel.locked-off .precision-head{color:#ffc2aa}
-/* v6.14: real, tap-accessible angle and range adjustment for small screens.
-   These compact brass/wood keys sit in the sky, never in the firing dock. */
+/* v6.15: the angle alone moves the neutral ballistic reticle. */
 .aim-telemetry .aim-power-status{color:#ffe1aa;white-space:nowrap}
-.aim-adjust{position:absolute;z-index:9;top:clamp(30px,5%,49px);left:clamp(7px,2vw,19px);display:flex;align-items:center;gap:4px;max-width:calc(100% - 14px);pointer-events:auto}
-.aim-adjust[hidden]{display:none!important}
-.aim-adjust button{display:flex;justify-content:center;align-items:center;gap:4px;min-width:58px;min-height:33px;padding:4px 8px;border:0!important;border-radius:7px;background:linear-gradient(165deg,#99744c,#644f38 58%,#443b30);box-shadow:inset 0 2px 1px #f3d59d8c,0 2px 3px #1c2927a3;color:#fff0c7;font:900 clamp(10px,.95vw,13px) var(--ct-ui-font);text-shadow:0 1px 2px #352a20;white-space:nowrap;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.aim-adjust button span{font-size:16px;line-height:1;color:#ffdc91}
-.aim-adjust button:active:not(:disabled){transform:translateY(1px);filter:brightness(1.13)}
-.aim-adjust button:focus-visible{outline:2px dotted #fff5c7;outline-offset:2px}
-.aim-adjust button:disabled{opacity:.4;cursor:default}
-.aim-adjust .aim-adjust-sep{width:6px;flex:none}
-.app:has(#help:not([hidden])) .aim-adjust,.app:has(#exitConfirm:not([hidden])) .aim-adjust{display:none!important}
-@media(orientation:portrait) and (max-width:600px){.aim-adjust{top:29px;left:8px;gap:3px}.aim-adjust button{min-width:62px;min-height:30px;padding:3px 6px;font-size:11px}.aim-telemetry .aim-power-status{font-size:10px}}
-@media(orientation:landscape) and (max-height:550px){.aim-adjust{top:27px}.aim-adjust button{min-height:27px;padding:2px 7px}}
+@media(orientation:portrait) and (max-width:600px){.aim-telemetry .aim-power-status{font-size:10px}}
 </style>
 </head>
 <body>
@@ -2721,8 +2710,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   <div id="bossBanner" class="boss-banner" hidden>요새 대장 출현</div>
   <div id="enemyEntrance" class="enemy-entrance" hidden aria-hidden="true"><span class="enemy-entrance-figure"></span><span class="enemy-entrance-copy"><small>FOREST ENCOUNTER</small><strong id="enemyEntranceName"></strong></span></div>
   <div id="hint" class="corner-hint" hidden role="status" aria-live="polite"></div>
-  <div id="aimTelemetry" class="aim-telemetry" hidden aria-label="현재 조준 정보"><span>각도 <strong id="angleValue">43°</strong></span><small>예상 <output id="distanceValue">—</output></small><small id="aimPowerValue" class="aim-power-status">파워 72%</small><small id="windDrift" class="wind-drift" hidden>풍압 → 0</small></div>
-  <div id="aimAdjust" class="aim-adjust" hidden role="group" aria-label="각도 및 기준 사거리 직접 조절"><button type="button" data-aim-step="angle:-1" aria-label="각도를 2도 낮추기">각도 <span>−</span></button><button type="button" data-aim-step="angle:1" aria-label="각도를 2도 높이기">각도 <span>+</span></button><span class="aim-adjust-sep" aria-hidden="true"></span><button type="button" data-aim-step="range:-1" aria-label="기준 사거리를 줄이기">거리 <span>−</span></button><button type="button" data-aim-step="range:1" aria-label="기준 사거리를 늘리기">거리 <span>+</span></button></div>
+  <div id="aimTelemetry" class="aim-telemetry" hidden aria-label="현재 조준 정보"><span>각도 <strong id="angleValue">43°</strong></span><small>무풍 사거리 <output id="distanceValue">—</output></small><small id="aimPowerValue" class="aim-power-status">장약 72%</small><small id="windDrift" class="wind-drift" hidden>풍압 → 0</small></div>
   <div id="precisionPanel" class="precision-panel" hidden role="group" aria-label="정밀 발사 타이밍 게임"><span class="precision-head" id="precisionHeadline">중앙에 맞춰 발사!</span><div class="precision-actions"><button id="precisionHit" class="precision-hit" type="button" aria-label="움직이는 바늘이 중앙일 때 탭해 발사"><span class="precision-meter" aria-hidden="true"><span class="precision-center" id="precisionCenter"></span><span class="precision-needle" id="precisionNeedle"></span></span></button><button id="precisionCancel" class="precision-cancel" type="button" aria-label="게이지 취소하고 재조준, 한 발당 최대 세 번"><span class="precision-cancel-label">재조준</span><span class="precision-cancel-count" id="precisionCancelCount">3/3</span></button></div><small class="precision-foot" id="precisionFoot">중앙 정타 · 근접 안정 · 외곽 거리 손실</small></div>
   <div class="status-row"><div id="leftStatus" class="status" hidden></div><div id="rightStatus" class="status" hidden></div></div>
 <div id="reviewCountdown" class="review-countdown" hidden aria-hidden="true">5</div>
@@ -2778,7 +2766,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   <div id="exitConfirm" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="exitTitle">
    <section class="panel exit-panel"><span class="eyebrow">ONE MORE ADVENTURE?</span><h2 id="exitTitle">모험을 마칠까요?</h2><p>여정은 이곳에 남아 있어요. 다음에 돌아오면 이어서 도전할 수 있어요.</p><div class="panel-actions"><button id="exitStayBtn" class="paper-btn" type="button">계속 놀기</button><button id="exitLeaveBtn" class="paper-btn light" type="button">나가기</button></div></section>
   </div>
- <aside class="help" id="help" hidden><button id="closeHelp" class="tiny" type="button">닫기</button><h2>조작 안내</h2><p><b>전장을 위아래로 드래그</b>해 각도를 조절하세요. 결투에서는 화면 왼쪽 위의 <b>각도 −/+ · 거리 −/+</b> 버튼으로 직접 미세 조절할 수도 있습니다. 거리 버튼은 포탄 파워를 4%씩 조절하며, 바로 위의 <b>파워 수치</b>에서 현재 값을 확인할 수 있습니다. <b>발사 버튼을 길게 누르면 파워가 20~100%를 일정한 시간으로 왕복</b>해요. 손을 떼면 정밀 게이지가 움직이고, 바늘이 중앙에 올 때 <b>게이지나 발사 버튼을 다시 눌러</b> 확정하세요. <b>확정된 바늘과 전장 화면이 1.5초 유지</b>된 뒤 포탄이 발사됩니다. 모험의 새총을 당겨도 같은 순서입니다. 결투에서 조준점이 상대 진영 뒤에 닿으면 더 멀리 가지 않고, <b>추가 사거리 비율이 작은 원형 게이지에 표시</b>됩니다. 이는 무풍 기준 파워 표시이며 실제 착탄점은 바람에 따라 달라집니다.</p><p>여우·토끼의 특수기는 <b>포탄 비행 중</b>, 곰·고양이의 특수기는 <b>발사 전</b> 사용합니다. 특수기는 플레이어 발사 한 번당 1회 가능해요. 단축키는 <b>Q</b>입니다.</p><p>바람 방향과 세기를 읽으세요. 강풍에서는 표적이 크게 어긋나며 바늘의 좌우 위치도 실제 탄도를 바꿉니다. 결투는 양쪽 모두 <b>내구도 420</b>으로 시작합니다. <b>일반탄</b>은 정밀 단일 타격, <b>폭탄탄</b>은 넓은 범위·구조물 파괴, <b>분열탄</b>은 다중 타격에 유리하지만 한 포격의 보스 집중 피해에는 상한이 있습니다. <b>전장 보기</b>로 지형을 확인할 수 있어요.</p></aside>
+ <aside class="help" id="help" hidden><button id="closeHelp" class="tiny" type="button">닫기</button><h2>조작 안내</h2><p><b>전장을 위아래로 드래그</b>해 발사 각도 하나로 사거리를 조절하세요. 낮은 각도에서는 가까이, 중간 각도에서는 멀리, 너무 높은 각도에서는 다시 가까이 날아갑니다. <b>무풍 사거리 조준점</b>은 바람이나 발사 게이지에 휘둘리지 않습니다. 왼쪽으로 바람이 강하게 불면 상대의 오른쪽을 겨누도록 각도를 조절하세요. <b>발사 버튼을 길게 누르면 장약 게이지가 20~100% 왕복</b>합니다. 손을 떼면 정밀 게이지가 움직이고, 바늘이 중앙에 올 때 <b>게이지나 발사 버튼을 다시 눌러</b> 확정하세요. 장약은 피해량과 탄속을, 정밀 게이지는 발사 방향과 피해량을 바꿉니다. <b>확정된 바늘과 전장 화면이 1.5초 유지</b>된 뒤 포탄이 발사됩니다.</p><p>여우·토끼의 특수기는 <b>포탄 비행 중</b>, 곰·고양이의 특수기는 <b>발사 전</b> 사용합니다. 특수기는 플레이어 발사 한 번당 1회 가능해요. 단축키는 <b>Q</b>입니다.</p><p>바람 방향과 세기를 읽으세요. 실제 탄도는 풍향과 정밀 바늘의 좌우 위치에 따라 변합니다. 결투는 양쪽 모두 <b>내구도 420</b>으로 시작합니다. <b>일반탄</b>은 정밀 단일 타격, <b>폭탄탄</b>은 넓은 범위·구조물 파괴, <b>분열탄</b>은 다중 타격에 유리하지만 한 포격의 보스 집중 피해에는 상한이 있습니다. <b>전장 보기</b>로 지형을 확인할 수 있어요.</p></aside>
  </main>
  <footer class="controls" id="controls" hidden>
   <div class="weapon-group"><span class="weapon-label">포탄 선택</span><div class="weapons"><button type="button" data-weapon="normal" class="weapon selected" title="정밀 단일 타격" aria-label="일반탄, 정밀 단일 타격에 강함">일반탄</button><button type="button" data-weapon="bomb" class="weapon" title="넓은 범위와 구조물 공격" aria-label="폭탄탄, 넓은 범위와 구조물 공격에 강함">폭탄탄</button><button type="button" data-weapon="split" class="weapon" title="다중 타격, 보스 집중 피해 제한" aria-label="분열탄, 다중 타격에 강하고 보스 집중 피해는 제한됨">분열탄</button></div></div>
@@ -2790,7 +2778,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 <script>
 "use strict";
 (() => {
- const W=1200,H=640,G=465,STEP=1/60,WIND_FORCE=46,WIND_LIFT_FORCE=38,TIMING_STEER_FORCE=136,DUEL_MAX_HP=420,DUEL_VOLLEY_LIMIT=100;
+ const W=1200,H=640,G=465,STEP=1/60,WIND_FORCE=46,WIND_LIFT_FORCE=38,TIMING_STEER_FORCE=136,DUEL_SIGHT_POWER=82,DUEL_WIND_FORCE=22,DUEL_MAX_HP=420,DUEL_VOLLEY_LIMIT=100;
  const $=id=>document.getElementById(id);
  const cv=$('field'),ctx=cv.getContext('2d',{alpha:false});
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -3074,20 +3062,16 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  function projectileSpeed(power){
   return 190+power*5.45+(game.mode==='duel'?Math.max(0,power-80)*10.6:0);
  }
- function powerAtEvenRangeProgress(progress){
-  // Travel at a constant WORLD-RANGE rate, rather than approximating range
-  // with v². Muzzle/target height differences made that approximation subtly
-  // accelerate at an enemy, even after the terrain-contact jump was removed.
-  // This inverse lookup changes only the timing input, never shell physics.
-  const first=duelRawRangeX(game.angle,20),last=duelRawRangeX(game.angle,100);
-  const target=first+(last-first)*clamp(progress,0,1);
-  let low=20,high=100;
-  for(let i=0;i<17;i++){
-   const middle=(low+high)*.5;
-   if(duelRawRangeX(game.angle,middle)<target)low=middle;
-   else high=middle;
-  }
-  return (low+high)*.5;
+ function duelMeterLaunchPower(chargePower,grade){
+  // One constant ballistic reference lets ANGLE set the aiming distance.
+  // The charge meter adds limited muzzle-speed variance and real damage,
+  // without becoming a second hidden range-control slider.
+  const factor=grade?.powerFactor??1;
+  return clamp(DUEL_SIGHT_POWER+(chargePower-60)*.095+(factor-1)*38,74,89);
+ }
+ function shotDamageScale(chargePower,accuracy){
+  // Deliberate, readable reward for charging and centering the second meter.
+  return clamp((.80+clamp(chargePower,20,100)*.0035)*(.78+clamp(accuracy,0,1)*.27),.55,1.26);
  }
  function powerVelocity(ang,power,dir=1) {
   // High-power duel shots need enough headroom to aim at the far terrain edge,
@@ -3098,12 +3082,14 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   return {vx:Math.cos(rad)*speed*dir,vy:-Math.sin(rad)*speed};
  }
  function windAcceleration(wind,lift,flightAge){
-  // The same gust curve feeds aiming, AI planning and live projectile physics.
-  // Horizontal crosswind dominates; rising/falling air changes hang time too.
-  return{x:wind*WIND_FORCE*(1+.3*Math.sin(flightAge*3.1+.7)),
+  // Strong duel crosswinds demand a visible angle correction, but cannot
+  // exceed the angle-only sight's rear-compensation reach at wind -4.
+  // Keep adventure puzzle wind tuning unchanged.
+  const horizontalForce=game.mode==='duel'?DUEL_WIND_FORCE:WIND_FORCE;
+  return{x:wind*horizontalForce*(1+.3*Math.sin(flightAge*3.1+.7)),
    y:lift*WIND_LIFT_FORCE*(1+.22*Math.cos(flightAge*2.6))};
  }
- function timingSideSpeed(bias,wind=game.wind){return clamp(bias,-1,1)*(TIMING_STEER_FORCE+Math.abs(wind)*10);}
+ function timingSideSpeed(bias,wind=game.wind){return clamp(bias,-1,1)*(game.mode==='duel'?72+Math.abs(wind)*4:TIMING_STEER_FORCE+Math.abs(wind)*10);}
  function origin(owner='player'){if(game.mode==='duel') {const x=owner==='player'?190:1018;return{x,y:terrainY(x)-32};}return{x:145,y:terrainY(145)-69};}
  // Independent character weapon sockets, defined in world units relative to the firing origin.
  const heroMuzzles={
@@ -3145,7 +3131,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   game.closestApproach={distance:Infinity,x:null,y:null};
   game.lastImpact=null;game.flightSettledAt=null;game.shotHighlights={direct:false,critical:false};game.reviewFocusX=null;game.reviewInfo=null;$('reviewCountdown').hidden=true;game.panX=null;game.overview=false;$('overview').textContent='전장 보기';$('shotReview').hidden=true;
   const socket=muzzleFor(owner,ang),muzzleX=socket.x,muzzleY=socket.y;
-   const p={x:muzzleX,y:muzzleY,vx:v.vx,vy:v.vy,r:weapon==='bomb'?13:10,weapon,owner,hero:owner==='ai'?game.aiHero:game.hero,age:0,split:false,trail:[],active:true,pierce:owner==='player'&&game.abilityArmed?2:0,hitBlocks:[],hitFoes:[],timingGrade:owner==='player'?game.precisionLast?.grade:null,timingAccuracy:owner==='player'?game.precisionLast?.accuracy:0,timingBias:sideBias,directTarget:null,directCenter:Infinity};game.projectiles.push(p);
+   const p={x:muzzleX,y:muzzleY,vx:v.vx,vy:v.vy,r:weapon==='bomb'?13:10,weapon,owner,hero:owner==='ai'?game.aiHero:game.hero,age:0,split:false,trail:[],active:true,pierce:owner==='player'&&game.abilityArmed?2:0,hitBlocks:[],hitFoes:[],timingGrade:owner==='player'?game.precisionLast?.grade:null,timingAccuracy:owner==='player'?game.precisionLast?.accuracy:0,timingBias:sideBias,damageScale:owner==='player'&&game.mode==='duel'?shotDamageScale(game.power,game.precisionLast?.accuracy??.6):1,directTarget:null,directCenter:Infinity};game.projectiles.push(p);
   if(owner==='player')game.abilityArmed=false;else game.aiAngle=ang;
   const firingHero=duelHero(owner),firingStyle=heroFiringStyles[firingHero]||heroFiringStyles.fox;
   game.recoil[owner]=firingStyle.kick;actorMotion(owner,'attack',firingStyle.duration);game.muzzle={x:muzzleX,y:muzzleY,dir,owner,hero:firingHero,weapon,life:firingStyle.muzzleTime,total:firingStyle.muzzleTime};spawnSparks(game.muzzle.x,game.muzzle.y,13,'#ffe8aa',.42);game.shake=Math.max(game.shake,weapon==='bomb'?4.5:2.7);playSound('fire');
@@ -3205,26 +3191,12 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   const descendingTime=Math.max(0,(-v.vy+Math.sqrt(discriminant))/G);
   return muzzle.x+v.vx*descendingTime;
  }
- // The opponent is stationed at x=1018. Keep the visible aiming instrument
- // inside their rear camp instead of sweeping far into empty terrain. Reserve
- // power beyond this line for severe headwind; NEVER clamp the real projectile.
- const DUEL_AIM_BACKLINE_X=1100;
- function duelRangeReferencePoint(ang,pow){
-  const rawX=duelRawRangeX(ang,pow),x=clamp(rawX,0,DUEL_AIM_BACKLINE_X);
-  const extraRange=Math.max(0,rawX-DUEL_AIM_BACKLINE_X);
-  const maximumExtra=Math.max(1,duelRawRangeX(ang,100)-DUEL_AIM_BACKLINE_X);
-  return {x,y:clamp(terrainY(x)-29,35,H-42),kind:'range-reference',
-   overrange:extraRange>0,extraRange,overrangeProgress:clamp(extraRange/maximumExtra,0,1)};
- }
- function duelChargeCamera(rangeX,angle,startCamera,visible){
-  // During the timing sweep the same world-range fraction pans the stage.
-  // Ordinary eased tracking stopped at the far map edge and caused a sudden
-  // apparent speed-up of the reticle on portrait screens.
-  const edge=Math.max(0,W-visible);
-  const from=duelRangeReferencePoint(angle,20).x,to=duelRangeReferencePoint(angle,100).x;
-  const progress=clamp((rangeX-from)/Math.max(1,to-from),0,1);
-  const initial=clamp(startCamera,0,edge);
-  return initial+(edge-initial)*progress;
+ // An angle-only, wind-neutral reference. The real shell can still differ
+ // because wind, launch charge, and precision timing change its flight.
+ const DUEL_AIM_BACKLINE_X=W-12;
+ function duelRangeReferencePoint(ang){
+  const rawX=duelRawRangeX(ang,DUEL_SIGHT_POWER),x=clamp(rawX,0,DUEL_AIM_BACKLINE_X);
+  return {x,y:clamp(terrainY(x)-29,35,H-42),kind:'range-reference',rawX};
  }
  function duelAimFeedback(path,contact){
   if(game.mode!=='duel')return {kind:'none',distance:Infinity};
@@ -3242,20 +3214,20 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   return {rate:1};
  }
  function chargeSweepRate(){return chargeSweepMetrics().rate;}
- function duelHitAtChargePower(power){
-  const path=predict(game.angle,power,0,'player',640,0,0);
+ function duelHitAtChargePower(_power){
+  const path=predict(game.angle,DUEL_SIGHT_POWER,0,'player',640,0,0);
   return path.impact?.kind==='foe'?path.impact:null;
  }
 function advanceChargePower(dt){
  if(game.mode==='duel'){
-  // Uniform neutral-range progress from 20->100->20 (1.35s per direction).
-  // Never stop, sample extra collisions or adjust by distance to an enemy.
-  // The fixed inverse v² mapping removes the old >80% cursor speed jump.
+  // The first meter is charge/damage, NOT the aiming range dial. Angle alone
+  // determines the steady neutral sight; sweeping never moves its position.
   const halfCycle=1.35,cycle=halfCycle*2;
   game.chargeSweepTime=(game.chargeSweepTime||0)+Math.max(0,dt);
   const time=game.chargeSweepTime%cycle;
   game.chargeDirection=time<halfCycle?1:-1;
-  game.chargedPower=powerAtEvenRangeProgress(time<=halfCycle?time/halfCycle:(cycle-time)/halfCycle);
+  const progress=time<=halfCycle?time/halfCycle:(cycle-time)/halfCycle;
+  game.chargedPower=20+80*clamp(progress,0,1);
  }else{
   // Preserve the original adventure-puzzle sweep duration and bounce.
   game.chargeSweepTime=(game.chargeSweepTime||0)+dt;
@@ -3342,7 +3314,7 @@ function advanceChargePower(dt){
   angleEl.value=game.angle;powerEl.value=game.power;chooseWeapon('normal');
   updateHud();resize();
  }
- function goHome(){cancelFireCharge();cancelPrecision();game.chargeZoom=1;game.chargeReveal=1;$('reviewCountdown').hidden=true;game.mode='menu';game.phase='menu';game.projectiles=[];game.particles=[];game.skillEffects=[];game.impactMotes=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.blastCores=[];game.drag=null;game.pan=null;game.panX=null;game.reviewFocusX=null;game.reviewInfo=null;game.reviewTimer=0;$('shotReview').hidden=true;$('menu').hidden=false;$('stageMap').hidden=true;$('result').hidden=true;$('exitConfirm').hidden=true;$('controls').hidden=true;$('hint').hidden=true;$('leftStatus').hidden=true;$('rightStatus').hidden=true;$('bossBanner').hidden=true;$('enemyEntrance').hidden=true;game.introLife=0;$('windVector').textContent='·';$('windStrength').textContent='0.0';$('windWord').textContent='잔잔';$('aimTelemetry').hidden=true;$('aimAdjust').hidden=true;$('modeChip').textContent='모드 선택';$('stageChip').textContent='첫 플레이를 시작해요';refreshMenu();resize();}
+ function goHome(){cancelFireCharge();cancelPrecision();game.chargeZoom=1;game.chargeReveal=1;$('reviewCountdown').hidden=true;game.mode='menu';game.phase='menu';game.projectiles=[];game.particles=[];game.skillEffects=[];game.impactMotes=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.blastCores=[];game.drag=null;game.pan=null;game.panX=null;game.reviewFocusX=null;game.reviewInfo=null;game.reviewTimer=0;$('shotReview').hidden=true;$('menu').hidden=false;$('stageMap').hidden=true;$('result').hidden=true;$('exitConfirm').hidden=true;$('controls').hidden=true;$('hint').hidden=true;$('leftStatus').hidden=true;$('rightStatus').hidden=true;$('bossBanner').hidden=true;$('enemyEntrance').hidden=true;game.introLife=0;$('windVector').textContent='·';$('windStrength').textContent='0.0';$('windWord').textContent='잔잔';$('aimTelemetry').hidden=true;$('modeChip').textContent='모드 선택';$('stageChip').textContent='첫 플레이를 시작해요';refreshMenu();resize();}
  function chooseWeapon(type){game.weapon=type;document.querySelectorAll('[data-weapon]').forEach(b=>b.classList.toggle('selected',b.dataset.weapon===type));updateHud();}
  // A shot-review should not lock the next round's controls if more ammo remains.
  function canResumeAimFromReview(){
@@ -3363,14 +3335,12 @@ function advanceChargePower(dt){
   if(canResumeAimFromReview())completeReview();
   if(game.phase!=='aim')return false;
   game.chargeActive=true;game.chargeElapsed=0;game.chargeSweepTime=0;game.chargeDirection=1;game.chargeStartPower=game.power;game.chargedPower=20;
-  // Every fresh sweep starts at our own cannon. A manual far-range adjustment
-  // must not leave the camera stuck next to the opposing cannon at 20% power.
-  const visible=cv.clientWidth/Math.max(.001,game.scale);
-  game.chargeCameraStart=game.mode==='duel'?clamp(190-visible*.24,0,Math.max(0,W-visible)):game.camera;
-  if(game.mode==='duel')game.camera=game.chargeCameraStart;
+  // Charging changes the shell's strength, never the neutral aimpoint or
+  // the camera. Preserve the enemy-side view chosen by the aiming angle.
+  game.chargeCameraStart=game.camera;
   clearChargeConfirmation();game.aimCue={kind:'none',distance:Infinity};
-  $('aimAdjust').hidden=true;
-  game.chargeAimX=null;game.chargeFocusX=null;game.chargeReveal=1;game.panX=null;
+  game.chargeAimX=null;game.chargeFocusX=null;game.chargeReveal=1;
+  if(game.mode!=='duel')game.panX=null;
   game.chargeAnchorPx=null;
   $('chargeGauge').hidden=false;$('chargeFill').style.width='20%';
   $('fireLabel').textContent='파워 20%';$('fire').classList.toggle('charging',true);$('fire').classList.toggle('hit-hold',false);
@@ -3385,9 +3355,10 @@ function advanceChargePower(dt){
   game.chargedPower=game.power;powerEl.value=game.power;
   // Only a RELEASE at a true predicted collision earns a visual confirmation.
   // The aiming sweep itself never freezes or grants a one-second rescue window.
-  const contact=game.mode==='duel'?predict(game.angle,game.power,0,'player',640,0,0):null;
+  const sightPower=game.mode==='duel'?DUEL_SIGHT_POWER:game.power;
+  const contact=game.mode==='duel'?predict(game.angle,sightPower,0,'player',640,0,0):null;
   const hit=contact?.impact?.kind==='foe'?contact.impact:null;
-  const near=!hit&&game.mode==='duel'&&duelAimFeedback(stableAimPath(game.angle,game.power,0),contact).kind==='near';
+  const near=!hit&&game.mode==='duel'&&duelAimFeedback(stableAimPath(game.angle,sightPower,0),contact).kind==='near';
   game.chargeConfirmTime=hit?1:0;
   game.chargeConfirmImpact=hit?{x:hit.x,y:hit.y}:null;
   $('chargeFill').style.width=game.power+'%';
@@ -3417,7 +3388,7 @@ function advanceChargePower(dt){
   if(game.phase!=='timing'||game.reaimCount>=3)return false;
   game.reaimCount++;
   cancelPrecision();game.phase='aim';game.phaseTime=0;game.precisionCamera=game.camera;game.precisionBurst=null;
-  game.message=`재조준 ${game.reaimCount}/3 · 각도와 파워를 다시 정하세요`;game.messageTime=1.15;
+  game.message=`재조준 ${game.reaimCount}/3 · 각도로 사거리를 다시 맞추세요`;game.messageTime=1.15;
   const muzzle=muzzleFor('player',game.angle);
   game.rings.push({x:muzzle.x,y:muzzle.y,r:5,max:25,life:.27,total:.27,color:'#f3d19c'});
   updateHud();return true;
@@ -3431,7 +3402,7 @@ function advanceChargePower(dt){
   game.precisionActive=true;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionBand='';game.precisionSlowFrames=0;game.precisionPerfectHalf=.02;
   game.precisionCamera=game.camera;game.phase='timing';game.phaseTime=0;
   $('precisionPanel').hidden=false;$('precisionHeadline').textContent='중앙에 맞춰 발사!';
-  $('precisionFoot').textContent='중앙을 노려요 · 바람은 실탄에만';
+  $('precisionFoot').textContent='중앙 정밀 · 좌우 편향 · 타격 강도 변화';
   $('precisionCancelCount').textContent=(3-game.reaimCount)+'/3';
   $('precisionNeedle').style.left='0%';$('precisionCenter').style.left='48%';$('precisionCenter').style.width='4%';
   // The illustrated timing panel already explains the action; avoid a second
@@ -3449,11 +3420,15 @@ function advanceChargePower(dt){
  function lockPrecision(){
   if(game.phase!=='timing'||!game.precisionActive)return false;
   const grade=precisionGrade(game.precisionNeedle),signedOffset=(game.precisionNeedle-.5)*2;
-  // Outer-band timing changes launch velocity, but never makes a shot impossible.
-  const adjusted=clamp(game.power*grade.powerFactor+signedOffset*(grade.grade==='off'?3:1.5),20,100);
+  // In duel, ANGLE establishes the neutral range; the charge and precision
+  // meters only perturb the real launch speed and horizontal steering.
+  // Adventure keeps its original raw 20..100 power-based trajectories.
+  const adjusted=game.mode==='duel'?duelMeterLaunchPower(game.power,grade):
+   clamp(game.power*grade.powerFactor+signedOffset*(grade.grade==='off'?3:1.5),20,100);
   const atX=path=>{const point=path.impact||path[path.length-1];return point?.x??0;};
-  const calm=atX(predict(game.angle,game.power,0,'player',900,0,0,true));
-  const windy=atX(predict(game.angle,game.power,game.wind,'player',900,0,game.windLift,true));
+  const referencePower=game.mode==='duel'?DUEL_SIGHT_POWER:game.power;
+  const calm=atX(predict(game.angle,referencePower,0,'player',900,0,0,true));
+  const windy=atX(predict(game.angle,referencePower,game.wind,'player',900,0,game.windLift,true));
   const timed=atX(predict(game.angle,adjusted,game.wind,'player',900,signedOffset,game.windLift,true));
   game.shotInfluences={calm,windy,timed,wind:Math.round(windy-calm),timing:Math.round(timed-windy)};
   game.precisionLast={...grade,adjusted,needle:game.precisionNeedle,sideBias:signedOffset};
@@ -3509,16 +3484,10 @@ function advanceChargePower(dt){
   $('windChip').classList.toggle('wind-high',windValue>=2.65);$('windChip').classList.toggle('wind-mid',windValue>=1.1&&windValue<2.65);
   $('windChip').setAttribute?.('aria-label',`바람 ${game.wind>=0?'오른쪽':'왼쪽'} ${lift<-.65?'상승':lift>.65?'하강':'수평'} ${windValue.toFixed(1)} ${windWord}`);
   $('angleValue').textContent=Math.round(game.angle)+'°';$('powerValue').textContent=Math.round(game.power)+'%';
-  $('aimPowerValue').textContent=`파워 ${Math.round(game.power)}%`;
-  const canAdjust=game.mode==='duel'&&game.phase==='aim'&&game.turn==='player'&&!game.chargeActive;
-  $('aimAdjust').hidden=!canAdjust||game.overview;
-  for(const button of document.querySelectorAll('[data-aim-step]')){
-   const [kind,sign]=button.dataset.aimStep.split(':'),value=kind==='angle'?game.angle:game.power;
-   button.disabled=!canAdjust||(Number(sign)<0?value<= (kind==='angle'?8:20):value>= (kind==='angle'?88:100));
-  }
-  const o=origin(),path=stableAimPath(game.angle,game.power,0,'player',900);
-  const impact=game.mode==='duel'?duelRangeReferencePoint(game.angle,game.power):stableAimPoint(path);
-  $('distanceValue').textContent=impact?.overrange?`추가 ${Math.round(impact.overrangeProgress*100)}%`:impact?String(Math.max(0,Math.round(Math.abs(impact.x-o.x)))):'—';
+  $('aimPowerValue').textContent=`장약 ${Math.round(game.power)}%`;
+  const o=origin(),path=stableAimPath(game.angle,game.mode==='duel'?DUEL_SIGHT_POWER:game.power,0,'player',900);
+  const impact=game.mode==='duel'?duelRangeReferencePoint(game.angle):stableAimPoint(path);
+  $('distanceValue').textContent=impact?String(Math.max(0,Math.round(Math.abs(impact.x-o.x)))):'—';
   // Do not project a wind-shifted aim marker or show a fake correction target.
   // The small wind arrow is drawn beside the neutral cursor; the actual wind
   // shift is calculated only when the projectile is launched.
@@ -3538,28 +3507,13 @@ function advanceChargePower(dt){
   const boss=game.foes.find(f=>f.boss&&f.alive);
   $('rightStatus').textContent=game.mode==='adventure'?`남은 목표 ${game.foes.filter(f=>f.alive).length}마리${boss?' · 대장 '+Math.max(0,Math.ceil(boss.hp))+' HP':''}`:'';
   $('bossBanner').hidden=game.mode!=='adventure'||!boss;
-  $('aimHelp').textContent='조준은 무풍 기준 · 실제 탄도는 바람과 정밀 게이지에 따라 변화';
+  $('aimHelp').textContent='각도만으로 사거리 결정 · 바람과 게이지는 실탄에 적용';
   const h=heroSet[game.hero],reason=abilityUnavailableReason(),abilityButton=$('abilityBtn');
   // Do not native-disable this button: tapping a dormant skill must explain its timing.
   abilityButton.disabled=game.mode==='menu';abilityButton.classList.toggle('ability-unavailable',!!reason);
   abilityButton.textContent=`${game.abilityUsed?'사용 완료':'특수기'} · ${h.ability}`;
   abilityButton.title=reason||`${h.ability} 사용 가능`;
   abilityButton.setAttribute?.('aria-label',reason?`${h.ability} · ${reason}`:`${h.ability} 사용 가능`);
- }
- function nudgeAim(kind,direction){
-  // These independent tap controls make the full range accessible even if a
-  // mobile long-press gets released early. Never modify wind or projectile G.
-  if(game.mode!=='duel'||game.phase!=='aim'||game.turn!=='player'||game.chargeActive||game.overview)return false;
-  if(kind==='angle'){
-   game.angle=clamp(Math.round(game.angle+2*direction),8,88);
-   angleEl.value=String(game.angle);
-  }else if(kind==='range'){
-   game.power=clamp(Math.round(game.power+4*direction),20,100);
-   powerEl.value=String(game.power);
-  }else return false;
-  const visible=cv.clientWidth/Math.max(.001,game.scale),point=duelRangeReferencePoint(game.angle,game.power);
-  game.panX=clamp(point.x-visible*.47,0,Math.max(0,W-visible));
-  updateHud();return true;
  }
  function abilityUnavailableReason(){
   if(game.mode==='menu'||game.phase==='result')return '전투 중에만 특수기를 사용할 수 있어요.';
@@ -3737,7 +3691,7 @@ function advanceChargePower(dt){
   game.shotHighlights.direct ||=direct;game.shotHighlights.critical ||=critical;
   // Normal: precision single-target; bomb: wide structure splash;
   // split: light overlapping projectiles with a separate boss limit.
-  const big=p.weapon==='bomb',radius=big?105:p.weapon==='split'?55:62,damage=(big?98:p.weapon==='split'?46:72)*(p.guided?1.08:1)*bonus;
+  const big=p.weapon==='bomb',radius=big?105:p.weapon==='split'?55:62,damage=(big?98:p.weapon==='split'?46:72)*(p.guided?1.08:1)*bonus*(p.damageScale||1);
   const impactWeapon=['bomb','split'].includes(p.weapon)?p.weapon:'normal';
   const afterlife=impactWeapon==='bomb'?1.16:impactWeapon==='split'?.68:.46;
   game.weaponAftershocks.push({x:p.x,y:p.y,weapon:impactWeapon,life:afterlife,total:afterlife,
@@ -3782,7 +3736,7 @@ function advanceChargePower(dt){
    for(const c of [{owner:'player',x:190},{owner:'ai',x:1018}]){
     const cy=terrainY(c.x)-29,dist=Math.hypot(p.x-c.x,p.y-cy);
     if(dist<radius+30){const duelBase=p.weapon==='normal'?78:p.weapon==='bomb'?62:40;
-     const potential=Math.max(12,Math.round((1-dist/(radius+30))*duelBase*bonus));
+     const potential=Math.max(12,Math.round((1-dist/(radius+30))*duelBase*bonus*(p.damageScale||1)));
      // One firing may create many fragments, but cannot bypass five-hits durability.
      const remaining=Math.max(0,DUEL_VOLLEY_LIMIT-game.duelVolleyDamage[c.owner]);
      const val=Math.min(potential,remaining);if(val<=0)continue;
@@ -3814,7 +3768,7 @@ function advanceChargePower(dt){
   const heading=Math.atan2(p.vy,p.vx),vel=Math.hypot(p.vx,p.vy)*.88;
   for(let i=0;i<count;i++){
    const delta=(i-(count-1)/2)*(count===5?.2:.23),a=heading+delta;
-   game.projectiles.push({x:p.x,y:p.y,vx:Math.cos(a)*vel,vy:Math.sin(a)*vel,r:7,weapon:'split',owner:p.owner,hero:p.hero||'rabbit',age:1,split:true,trail:[],active:true,pierce:0,hitBlocks:[],hitFoes:[],timingGrade:p.timingGrade,timingAccuracy:p.timingAccuracy,timingBias:p.timingBias,guided:p.guided});
+   game.projectiles.push({x:p.x,y:p.y,vx:Math.cos(a)*vel,vy:Math.sin(a)*vel,r:7,weapon:'split',owner:p.owner,hero:p.hero||'rabbit',age:1,split:true,trail:[],active:true,pierce:0,hitBlocks:[],hitFoes:[],timingGrade:p.timingGrade,timingAccuracy:p.timingAccuracy,timingBias:p.timingBias,damageScale:p.damageScale,guided:p.guided});
   }
   // Give the airborne branch its own small, illustrated-in-Canvas burst.
   // It lasts only a third of a second, so it cannot obscure the enemies.
@@ -4676,15 +4630,15 @@ const materialCells={
  }}
  function drawTrajectory(){
   if(!['aim','timing','timingResult'].includes(game.phase)||game.turn!=='player')return;
-  let a=game.angle,p=game.chargeActive?game.chargedPower:game.power;
+  let a=game.angle,p=game.mode==='duel'?DUEL_SIGHT_POWER:game.chargeActive?game.chargedPower:game.power;
   if(game.drag){const o=origin(),dx=clamp(o.x-game.drag.x,7,105),dy=clamp(o.y-game.drag.y,-35,95);a=clamp(Math.atan2(dy,dx)*180/Math.PI,15,82);p=clamp(Math.hypot(dx,dy)/125*100,20,100);}
   const contacts=predict(a,p,0,'player',640,0,0);
   // Duel preview: a continuous range trace plus a separate, honest first-hit
   // marker. A graze must not teleport the range reticle or the camera.
   const dots=game.mode==='duel'?stableAimPath(a,p,0):contacts;
-  const steadyTarget=game.mode==='duel'?duelRangeReferencePoint(a,p):stableAimPoint(dots),actualHit=contacts.impact;
-  // The illustrated guide ends at the rear camp; the real flight can still
-  // extend beyond it, including when the player compensates for headwind.
+  const steadyTarget=game.mode==='duel'?duelRangeReferencePoint(a):stableAimPoint(dots),actualHit=contacts.impact;
+  // The full angle-only arc remains visible almost to the battlefield edge;
+  // a headwind can require aiming behind the opponent's current position.
   const paintedDots=game.mode==='duel'?dots.filter(point=>point.x<=DUEL_AIM_BACKLINE_X):dots;
   const previousCue=game.aimCue?.kind||'none';
   const cue=duelAimFeedback(dots,contacts);
@@ -4756,21 +4710,11 @@ const materialCells={
    ctx.fillText('근접 · 미세 조준',tx,ty-52,105);ctx.restore();
   }
   if(!hit||hit.y<20||hit.y>H-14)return;
-  const target=hit.kind==='foe',overrange=game.mode==='duel'&&!!hit.overrange,color=overrange?'#ffd393':target?'#93f1c7':hit.kind==='block'?'#ffe1a6':'#e6f2f1';
-  if(overrange){
-   // Power still rises beyond the opponent's rear line. A subtle second ring
-   // advances with that hidden neutral range so the capped sight never looks
-   // stuck; it is NOT an indicator of the windy live shell landing position.
-   const fraction=hit.overrangeProgress;
-   ctx.save();ctx.globalAlpha=.7;ctx.lineCap='round';ctx.lineWidth=2.5;
-   ctx.strokeStyle='#2b4652b5';ctx.beginPath();ctx.arc(hit.x,hit.y,26,-Math.PI/2,Math.PI*1.5);ctx.stroke();
-   ctx.strokeStyle='#ffd393';ctx.beginPath();ctx.arc(hit.x,hit.y,26,-Math.PI/2,-Math.PI/2+Math.PI*2*fraction);ctx.stroke();
-   ctx.restore();
-  }
+  const target=hit.kind==='foe',color=target?'#93f1c7':hit.kind==='block'?'#ffe1a6':'#e6f2f1';
   ctx.save();ctx.beginPath();ctx.arc(hit.x,hit.y,18+Math.sin(game.clock*4)*2,0,Math.PI*2);
   ctx.strokeStyle='#263d50ba';ctx.lineWidth=5.5;ctx.stroke();ctx.strokeStyle=color;ctx.lineWidth=2.7;ctx.stroke();
   ctx.beginPath();ctx.arc(hit.x,hit.y,4.5,0,Math.PI*2);ctx.fillStyle='#fffbe2';ctx.fill();
-  const label=overrange?`추가 ${Math.round(hit.overrangeProgress*100)}%`:target?'조준 정타':hit.kind==='block'?'기준 충돌':game.mode==='duel'?'기준 사거리':'기준 착탄';
+  const label=target?'조준 정타':hit.kind==='block'?'기준 충돌':game.mode==='duel'?'무풍 사거리':'기준 착탄';
   const lx=clamp(hit.x,58,W-58),ly=clamp(hit.y-30,36,H-38);
   roundRect(lx-46,ly-17,92,26,13,'#1c3f4abb');ctx.fillStyle=color;ctx.font='800 13px system-ui, sans-serif';ctx.textAlign='center';ctx.fillText(label,lx,ly+1);ctx.restore();
  }
@@ -5102,12 +5046,8 @@ const materialCells={
   const nearby=impactHold?game.debris.filter(d=>d.life>0&&Math.abs(d.x-game.reviewFocusX)<145):[];
   const movingCenter=nearby.length?nearby.reduce((a,d)=>a+d.x,0)/nearby.length:game.reviewFocusX;
   const impactCenter=game.reviewFocusX*.78+movingCenter*.22;
-  // Track the predicted landing point as before, without camera pullback.
-  const chargeFocus=game.chargeActive&&game.phase==='aim'&&Number.isFinite(game.chargeAimX);
-  if(chargeFocus&&game.mode==='duel'){
-   game.camera=duelChargeCamera(game.chargeAimX,game.angle,game.chargeCameraStart??game.camera,visible);
-   return;
-  }
+  // A changing charge gauge must never pan the battlefield or drag the sight.
+  const chargeFocus=game.mode!=='duel'&&game.chargeActive&&game.phase==='aim'&&Number.isFinite(game.chargeAimX);
   const focus=active?active.x-visible*.43
     :flightImpactHold?game.lastImpact.x-visible*.43
     :game.precisionActive?game.precisionCamera
@@ -5117,8 +5057,8 @@ const materialCells={
   const targetCamera=clamp(focus,0,edge);
   // Softer original-style tracking: a distant impact cannot whip the screen
   // to a new position within a handful of frames.
-  const shift=(targetCamera-game.camera)*(chargeFocus?.10:.12);
-  game.camera+=chargeFocus?clamp(shift,-11,11):clamp(shift,-32,32);
+  const shift=(targetCamera-game.camera)*.12;
+  game.camera+=clamp(shift,chargeFocus?-11:-32,chargeFocus?11:32);
  }
  function drawChargeReadiness(){
   if(game.turn!=='player'||!(game.chargeActive&&game.phase==='aim'||game.chargeConfirmTime>0&&game.phase==='timing'))return;
@@ -5171,6 +5111,10 @@ const materialCells={
    }
    if(game.pan.kind==='angle'){
     game.angle=clamp(game.pan.startAngle-dy*.34,8,88);angleEl.value=String(game.angle);updateHud();
+    if(game.mode==='duel'){
+     const visible=cv.clientWidth/Math.max(.001,game.scale),reference=duelRangeReferencePoint(game.angle);
+     game.panX=clamp(reference.x-visible*.51,0,Math.max(0,W-visible));
+    }
    }else if(game.pan.kind==='pan'){
     const visible=cv.clientWidth/game.scale;
     game.panX=clamp(game.pan.startCamera-dx/game.scale,0,Math.max(0,W-visible));
@@ -5179,7 +5123,6 @@ const materialCells={
  cv.addEventListener('pointerup',e=>{if(game.pan?.pointerId===e.pointerId)game.pan=null;if(!game.drag||game.drag.pointerId!==e.pointerId)return;const o=origin();const dx=clamp(o.x-game.drag.x,7,120),dy=clamp(o.y-game.drag.y,-35,95);game.drag=null;const a=clamp(Math.atan2(dy,dx)*180/Math.PI,8,88),pow=clamp(Math.hypot(dx,dy)/125*100,20,100);game.angle=a;game.power=pow;angleEl.value=a;powerEl.value=pow;beginPrecision();});
  cv.addEventListener('pointercancel',e=>{if(game.drag?.pointerId===e.pointerId)game.drag=null;if(game.pan?.pointerId===e.pointerId)game.pan=null;});
  angleEl.addEventListener('input',()=>{if(canResumeAimFromReview())completeReview();if(game.phase!=='aim')return;game.angle=Number(angleEl.value);updateHud();});powerEl.addEventListener('input',()=>{if(canResumeAimFromReview())completeReview();if(game.phase!=='aim')return;game.power=Number(powerEl.value);updateHud();});
- document.querySelectorAll('[data-aim-step]').forEach(button=>button.addEventListener('click',()=>{const [kind,sign]=button.dataset.aimStep.split(':');if(nudgeAim(kind,Number(sign)))playSound('ui');}));
  document.querySelectorAll('[data-weapon]').forEach(b=>b.addEventListener('click',()=>{if(canResumeAimFromReview())completeReview();if(game.phase==='aim')chooseWeapon(b.dataset.weapon);}));
  $('fire').addEventListener('pointerdown',e=>{
   if(e.button!==undefined&&e.button!==0)return;
