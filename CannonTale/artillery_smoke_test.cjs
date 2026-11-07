@@ -19,7 +19,7 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__probeMaterialColumnForTest=(type,tier)=>drawPaintedColumn({w:26,h:108,type},tier); window.__probeCollapseForTest=()=>{const b=game.blocks.find(v=>v.type==="wood");const old=damageTier(b);b.hp=-1;markBlockImpact(b,old,95);b.dead=true;M.Composite.remove(game.engine.world,b.body);game.blocks=game.blocks.filter(v=>!v.dead);return game.collapseGhosts.length;}; window.__collapseGhostCountForTest=()=>game.collapseGhosts.length; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
- ' window.__groundToastForTest=()=>groundToastLayout(); window.__materialSoundForTest=()=>({wood:soundShapes.wood,stone:soundShapes.stone,iron:soundShapes.iron}); window.__triggerMaterialSoundForTest=(name)=>{const saved=game.sound;game.sound=true;playSound(name);game.sound=saved;}; window.__directionalImpactForTest=(offset)=>{const b=game.blocks.find(v=>v.type==="stone");if(!b)return null;const originalHp=b.hp;b.hp=b.maxHp*.42;markBlockImpact(b,0,34,b.body.position.x+offset);const result={side:b.impactSide,scar:b.hp<b.maxHp};b.hp=originalHp;return result;}; window.__artilleryLoadoutDebug=');
+ ' window.__combatToastForTest=()=>combatToastLayout(); window.__combatToastLinesForTest=(message,width)=>combatToastLines(ctx,message,width); window.__materialSoundForTest=()=>({wood:soundShapes.wood,stone:soundShapes.stone,iron:soundShapes.iron}); window.__triggerMaterialSoundForTest=(name)=>{const saved=game.sound;game.sound=true;playSound(name);game.sound=saved;}; window.__directionalImpactForTest=(offset)=>{const b=game.blocks.find(v=>v.type==="stone");if(!b)return null;const originalHp=b.hp;b.hp=b.maxHp*.42;markBlockImpact(b,0,34,b.body.position.x+offset);const result={side:b.impactSide,scar:b.hp<b.maxHp};b.hp=originalHp;return result;}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__fracturePartsForTest=(type,weapon="normal")=>{const b={w:28,h:104,type,impactSide:1,body:M.Bodies.rectangle(810,290,28,104)};spawnCollapseGhost(b,weapon);return {count:collapsePieces[type].length,total:game.collapseGhosts.at(-1).total};}; window.__weaponMaterialForTest=(type,weapon)=>materialWeaponFactor(type,weapon); window.__chainCollisionForTest=()=>{newGame("adventure",0);game.shots=1;const [a,b]=game.blocks;M.Body.setVelocity(a.body,{x:9,y:0});M.Body.setVelocity(b.body,{x:-9,y:0});const before=[a.hp,b.hp],initial=game.chainHits;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});const after=[a.hp,b.hp];M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});return {before,after,cooled:[a.hp,b.hp],count:game.chainHits-initial};}; window.__crushCollisionForTest=()=>{newGame("adventure",0);game.shots=1;const block=game.blocks[0],foe=game.foes[0];M.Body.setPosition(block.body,{x:foe.x,y:foe.y-64});M.Body.setVelocity(block.body,{x:0,y:10});const before=foe.hp;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:block.body,bodyB:foe.body}]});return {before,after:foe.hp,crushHits:game.crushHits,defeated:!foe.alive};}; window.__cleanupBrokenBlocksForTest=()=>{newGame("adventure",0);game.shots=1;const [a,b]=game.blocks;a.hp=1;M.Body.setVelocity(a.body,{x:9,y:0});M.Body.setVelocity(b.body,{x:-9,y:0});const before=game.blocks.length;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});const marked=a.dead;step(1/60);return {before,after:game.blocks.length,marked,ghosts:game.collapseGhosts.length};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
@@ -70,6 +70,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v58AdvanceHoldForTest=(frames)=>{for(let i=0;i<frames;i++){game.chargeElapsed+=1/60;advanceChargePower(1/60);}return{power:game.chargedPower,direction:game.chargeDirection,active:game.chargeActive,phase:game.phase};}; window.__v58StartDuelForTest=()=>newGame("duel",0); window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v60ConfirmForTest=(angle,power)=>{newGame("duel",0);game.angle=angle;game.wind=0;game.windLift=0;beginFireCharge();let passedHit=false,stalled=false,previous=20;for(let i=0;i<160;i++){advanceChargePower(1/60);const current=game.chargedPower;if(duelHitAtChargePower(current)){passedHit=true;if(Math.abs(current-previous)<.001)stalled=true;}previous=current;}const activeBeforeRelease=game.chargeActive,phaseBeforeRelease=game.phase;game.chargeElapsed=.5;game.chargedPower=power;releaseFireCharge();const initial={time:game.chargeConfirmTime,impact:game.chargeConfirmImpact,visible:!$("chargeGauge").hidden,phase:game.phase,needle:game.precisionNeedle,action:$("precisionPanel").classList.contains("charge-confirm")};for(let i=0;i<30;i++)step(1/60);const middle={time:game.chargeConfirmTime,visible:!$("chargeGauge").hidden,needle:game.precisionNeedle,phase:game.phase};for(let i=0;i<32;i++)step(1/60);const expired={time:game.chargeConfirmTime,hidden:$("chargeGauge").hidden,action:$("precisionPanel").classList.contains("charge-confirm"),phase:game.phase};return{passedHit,stalled,activeBeforeRelease,phaseBeforeRelease,initial,middle,expired};}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v61NearForTest=()=>{newGame("duel",0);game.wind=0;game.windLift=0;for(let angle=18;angle<=80;angle+=2)for(let power=40;power<=100;power+=2){const contacts=predict(angle,power,0,"player");if(contacts.impact?.kind==="foe")continue;const cue=duelAimFeedback(stableAimPath(angle,power,0),contacts);if(cue.kind!=="near")continue;game.angle=angle;beginFireCharge();game.chargeElapsed=.5;game.chargedPower=power;releaseFireCharge();return{angle,power,phase:game.phase,near:$("precisionPanel").classList.contains("charge-near"),falseHit:$("precisionPanel").classList.contains("charge-confirm"),hidden:$("chargeGauge").hidden,headline:$("precisionHeadline").textContent};}return null;}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -180,7 +182,7 @@ assert(html.includes('trigger.dataset.stageIndex='),'The selected stage emblem m
 assert(html.includes('id="customSelectLayer"')&&html.includes('function openIllustratedSelect(id)'),'Game must use interactive illustrated drop-downs rather than native select popups');
 assert(html.includes('select.dispatchEvent(new Event(\'change\''),'Illustrated drop-downs must propagate selection to original game state listeners');
 assert(html.includes('refreshIllustratedSelects();'),'Programmatic level changes must update the illustrated drop-down label');
-assert(html.includes('function groundToastLayout()'),'Transient gameplay toasts must share the lower-ground notification design');
+assert(html.includes('function combatToastLayout()'),'Transient gameplay notices must use the compact upper-sky design');
 assert(html.includes('function drawImpactScar(b,tier)'),'The hit side must leave a persistent directional crack on damaged structures');
 assert(html.includes('if(tier!==previousTier||b.hp<=0)playSound(b.type)'),'Material damage must trigger a distinct wood/stone/iron audio cue');
 assert(/#controls\.controls\{\s*width:100%;min-width:0;\s*grid-template-columns:minmax\(0,\.95fr\) minmax\(0,1\.25fr\) minmax\(0,1\.05fr\)/.test(html),'Desktop dock needs three explicitly flexible tracks; the former auto action track collapsed buttons');
@@ -790,14 +792,18 @@ el('overview').click();frames(3);
 assert(overviewSkySources.some(s=>s.destinationHeight>50&&s.sourceHeight>=100),
  'Portrait overview must extend a substantial section of painted sky rather than stretching two pixels into stripes');
 assert(overviewSkySources.every(s=>s.sourceHeight>2),'Overview sky must never stretch a one- or two-pixel-wide painted scanline');
-const portraitToast=window.__groundToastForTest();
-assert(portraitToast.y>=640*.77&&portraitToast.y<=594,'Portrait notification must sit below the horizon near the ground');
-assert(portraitToast.screenWidth<=360-1,'Portrait toast must fit inside the actual visible battlefield');
+const portraitToast=window.__combatToastForTest();
+assert(portraitToast.y>=640*.15&&portraitToast.y<=640*.30,'Portrait notification must stay in open sky, below the welcome folio when visible');
+assert(portraitToast.screenWidth<=360*.77,'Portrait notice must be narrow enough not to obscure the full battlefield');
+assert(portraitToast.screenFontSize>=10,'Portrait notice must remain readable after world scaling');
 el('field').clientWidth=844;el('field').clientHeight=390;frames(5);
 assert.deepEqual(state().canvas,[844,390],'Landscape 844x390 canvas must match its container');
-const landscapeToast=window.__groundToastForTest();
-assert(landscapeToast.y>=640*.77&&landscapeToast.y<=594,'Landscape notification must stay at ground level');
-assert(landscapeToast.fontSize>=portraitToast.fontSize,'Landscape toast can use larger type without hiding the target area');
+const landscapeToast=window.__combatToastForTest();
+assert(landscapeToast.y>=640*.15&&landscapeToast.y<=640*.30,'Landscape notification must remain above the fighters');
+assert(landscapeToast.screenWidth<=844*.77,'Landscape notice should keep generous transparent side margins');
+assert(landscapeToast.screenFontSize>=10,'Landscape notice must remain readable');
+const wrappedNotice=window.__combatToastLinesForTest('긴 전투 안내 문구도 두 줄 안에서 안전하게 정렬해야 합니다',115);
+assert(wrappedNotice.length<=2,'Battlefield notice must not spill into a third line');
 assert(html.includes('spawnCollapseFragments(b,direction,weapon)'),'Broken blocks should create large independent falling chunks biased by material, weapon and impact direction');
 assert(html.includes('drawFoeElementalAttack(f,attackSurge)'),'The four monsters should emit state-specific attack FX');
 assert(html.includes('shatteredDescription'),'The impact report should list material-specific destruction');
@@ -1177,6 +1183,10 @@ assert.equal(targetConfirm.expired.time,0,'The confirmation ends after about one
 assert(targetConfirm.expired.hidden&&!targetConfirm.expired.action&&targetConfirm.expired.phase==='timing','Only the confirmation artwork ends; the precision action remains playable');
 const missConfirm=window.__v60ConfirmForTest(aimSweep.miss.angle,aimSweep.miss.power);
 assert(!missConfirm.initial.impact&&!missConfirm.initial.visible&&!missConfirm.initial.action,'A near miss must never receive a false one-second hit confirmation');
+const nearRelease=window.__v61NearForTest();
+assert(nearRelease&&nearRelease.phase==='timing','A geometrically near miss needs a playable precision action');
+assert(nearRelease.near&&!nearRelease.falseHit&&nearRelease.hidden,'Amber near-miss feedback cannot masquerade as confirmed contact');
+assert(nearRelease.headline.includes('근접'),'Near-miss guidance must clearly distinguish proximity from true collision');
 window.__v58StartDuelForTest();
 const holdButton=el('fire');
 let preventedNativeHold=false;

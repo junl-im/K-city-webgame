@@ -2626,6 +2626,10 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 .precision-panel.charge-confirm .precision-center{
  animation:precisionCenterBeat60 .42s ease-in-out infinite alternate;
 }
+/* v6.1: reserve the cool success color for actual collision, amber for near misses. */
+.precision-panel.charge-near .precision-head{color:#ffe3a4;text-shadow:0 2px 3px #162b36}
+.precision-panel.charge-near .precision-foot{color:#f2dfb0}
+#controls #fire.charging.hit-hold #fireLabel{min-width:0!important;max-width:82%!important;white-space:nowrap}
 @keyframes chargeHitShimmer59{from{filter:brightness(.94)}to{filter:brightness(1.23)}}
 @keyframes chargeHitBeat59{from{transform:translateX(-50%) scale(.97)}to{transform:translateX(-50%) scale(1.06)}}
 @keyframes chargeConfirmSweep60{from{left:0;opacity:.2}50%{opacity:.8}to{left:83%;opacity:.2}}
@@ -3235,6 +3239,7 @@ function advanceChargePower(dt){
   $('fire').classList.toggle('charging',game.chargeActive);
   $('chargeGauge').hidden=!game.chargeActive;
   $('precisionPanel').classList.toggle('charge-confirm',false);
+  $('precisionPanel').classList.toggle('charge-near',false);
  }
  function chargeAllowed(){return (game.phase==='aim'&&game.turn==='player')||canResumeAimFromReview();}
  function beginFireCharge(){
@@ -3257,7 +3262,9 @@ function advanceChargePower(dt){
   game.chargedPower=game.power;powerEl.value=game.power;
   // Only a RELEASE at a true predicted collision earns a visual confirmation.
   // The aiming sweep itself never freezes or grants a one-second rescue window.
-  const hit=game.mode==='duel'?duelHitAtChargePower(game.power):null;
+  const contact=game.mode==='duel'?predict(game.angle,game.power,game.wind,'player'):null;
+  const hit=contact?.impact?.kind==='foe'?contact.impact:null;
+  const near=!hit&&game.mode==='duel'&&duelAimFeedback(stableAimPath(game.angle,game.power,game.wind),contact).kind==='near';
   game.chargeConfirmTime=hit?1:0;
   game.chargeConfirmImpact=hit?{x:hit.x,y:hit.y}:null;
   $('chargeFill').style.width=game.power+'%';
@@ -3266,7 +3273,9 @@ function advanceChargePower(dt){
   $('fire').classList.toggle('hit-hold',!!hit);
   beginPrecision();
   $('precisionPanel').classList.toggle('charge-confirm',!!hit);
+  $('precisionPanel').classList.toggle('charge-near',!!near);
   if(hit){$('precisionHeadline').textContent='정타 잠금! 중앙에서 탭!';playSound('lock');}
+  else if(near){$('precisionHeadline').textContent='근접 조준! 중앙 타이밍!';$('precisionFoot').textContent='적중 보장 아님 · 중앙으로 오차 줄이기';}
   return true;
  }
  function cancelFireCharge(){
@@ -3344,7 +3353,7 @@ function advanceChargePower(dt){
   game.windGuide=landingImpact&&calmImpact?{windy:{x:landingImpact.x,y:landingImpact.y},calm:{x:calmImpact.x,y:calmImpact.y},drift}:null;
   $('windDrift').hidden=!game.windGuide||Math.abs(drift)<20||game.turn!=='player';
   $('windDrift').textContent=`풍압 ${drift>=0?'→':'←'} ${Math.abs(drift)}`;
-  if(!game.chargeActive)$('fireLabel').textContent=game.chargeConfirmTime>0?'정타 '+game.chargeConfirmTime.toFixed(1)+'초':game.phase==='flying'?'발사 중':game.phase==='timing'?'정밀 발사':game.phase==='review'?'다음 발사':'발사!';
+  if(!game.chargeActive)$('fireLabel').textContent=game.chargeConfirmTime>0?'정타!':game.phase==='flying'?'발사 중':game.phase==='timing'?'정밀 발사':game.phase==='review'?'다음 발사':'발사!';
   $('fire').classList.toggle('recent-shot',game.phase==='flying'&&game.phaseTime<.7);
   const allow=(game.phase==='aim'&&game.turn==='player')||canResumeAimFromReview(),timing=game.phase==='timing'&&game.turn==='player';$('fire').disabled=!(allow||timing);
   document.querySelectorAll('[data-weapon]').forEach(b=>b.disabled=!allow);
@@ -3747,7 +3756,7 @@ function advanceChargePower(dt){
   if(game.chargeConfirmTime>0){
    game.chargeConfirmTime=Math.max(0,game.chargeConfirmTime-dt);
    if(game.chargeConfirmTime===0){clearChargeConfirmation();if(game.phase==='timing')$('fireLabel').textContent='정밀 발사';}
-   else $('fireLabel').textContent='정타 '+game.chargeConfirmTime.toFixed(1)+'초';
+   else $('fireLabel').textContent='정타!';
   }
   if(game.introLife>0){game.introLife=Math.max(0,game.introLife-dt);if(game.introLife===0)$('enemyEntrance').hidden=true;}game.shake*=.82;game.flash=Math.max(0,game.flash-dt);game.messageTime=Math.max(0,game.messageTime-dt);for(const owner of ['player','ai']){const hero=duelHero(owner),style=heroFiringStyles[hero]||heroFiringStyles.fox;game.recoil[owner]*=Math.pow(style.recoilDecay,dt*60);}for(const f of game.foes){if(f.deathTimer>0)f.deathTimer=Math.max(0,f.deathTimer-dt);}for(const e of game.blastCores)e.life-=dt;game.blastCores=game.blastCores.filter(e=>e.life>0);for(const a of Object.values(game.actorAnim))a.life=Math.max(0,a.life-dt);for(const e of game.skillEffects)e.life-=dt;game.skillEffects=game.skillEffects.filter(e=>e.life>0);if(game.muzzle){game.muzzle.life-=dt;if(game.muzzle.life<=0)game.muzzle=null;}
   if(game.mode==='menu'||game.phase==='result')return;
@@ -4743,19 +4752,40 @@ const materialCells={
   }
   ctx.restore();
  }
- function groundToastLayout(){
-  const visible=cv.clientWidth/Math.max(.001,game.scale),x=game.camera+visible/2;
-  const maxWidth=Math.max(70,visible-22),fontSize=clamp(visible/19,12,19);
-  const y=clamp(terrainY(x)+31,H*.77,H-46);
-  return{x,y,maxWidth,fontSize,screenWidth:maxWidth*game.scale};
+ function combatToastLayout(){
+  const scale=Math.max(.001,game.scale),visible=cv.clientWidth/scale;
+  const maxWidth=Math.min(visible*.76,430/scale);
+  // In-field notices belong in open sky, never across the two fighters or
+  // beneath the illustrated firing controls. The welcome folio takes priority.
+  const y=H*(!$('hint').hidden ? .29 : .16);
+  const fontSize=clamp(13/scale,12,70);
+  return{x:game.camera+visible/2,y,maxWidth,fontSize,screenWidth:maxWidth*scale,screenFontSize:fontSize*scale};
+ }
+ function combatToastLines(ctx,message,maxTextWidth){
+  const words=String(message).trim().split(/\s+/).filter(Boolean),lines=[];
+  let line='';
+  for(const word of words){
+   const next=line?line+' '+word:word;
+   if(line&&ctx.measureText(next).width>maxTextWidth){lines.push(line);line=word;}
+   else line=next;
+  }
+  if(line)lines.push(line);
+  if(lines.length>2)return [lines[0],lines.slice(1).join(' ')];
+  return lines.length?lines:[''];
  }
  function drawMessage(){
-  if(game.messageTime<=0)return;
-  const {x,y,maxWidth,fontSize}=groundToastLayout();
-  ctx.save();ctx.font=`900 ${fontSize}px system-ui, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-  const text=game.message,innerWidth=Math.min(maxWidth-24,ctx.measureText(text).width),boxWidth=innerWidth+24,boxHeight=fontSize+23;
-  roundRect(x-boxWidth/2,y-boxHeight/2,boxWidth,boxHeight,Math.min(14,boxHeight/2),'#3f342bdc','#f1d49a',1.3);
-  ctx.fillStyle='#fff1d1';ctx.fillText(text,x,y+1,Math.max(30,maxWidth-24));ctx.restore();
+  if(game.messageTime<=0||!$('shotReview').hidden)return;
+  const {x,y,maxWidth,fontSize}=combatToastLayout();
+  ctx.save();ctx.font=`850 ${fontSize}px "Malgun Gothic",system-ui,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  const textWidth=Math.max(65,maxWidth-28),lines=combatToastLines(ctx,game.message,textWidth);
+  const width=Math.min(textWidth,Math.max(...lines.map(line=>ctx.measureText(line).width)));
+  const boxWidth=Math.min(maxWidth,width+28),boxHeight=lines.length*(fontSize*1.18)+15;
+  const opacity=clamp(game.messageTime/.24,0,1);
+  ctx.globalAlpha=opacity;
+  roundRect(x-boxWidth/2,y-boxHeight/2,boxWidth,boxHeight,11,'#284857c9','#d5e1c69c',1);
+  ctx.fillStyle='#f6f5dc';
+  lines.forEach((line,i)=>ctx.fillText(line,x,y+(i-(lines.length-1)/2)*fontSize*1.18,Math.max(65,boxWidth-22)));
+  ctx.restore();
  }
  let lastMenuSize='';
  function fitMenuToViewport(){
