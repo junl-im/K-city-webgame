@@ -161,6 +161,14 @@ export function getFlipOnlyDrawChoice(state: GameState): DrawFloorChoice | null 
   return candidateIds.length === 2 ? { drawnCardId, candidateIds } : null;
 }
 
+export function getBombDrawChoice(state: GameState, player: PlayerId, month: number): DrawFloorChoice | null {
+  const hand = player === 'human' ? state.humanHand : state.computerHand;
+  const option = findBombOptions(hand, state.floorCards, DEFAULT_MATGO_RULES.allowTwoCardBomb).find(candidate=>candidate.month===month);
+  if (!option) return null;
+  const removed = new Set(option.floorCardIds);
+  return getFlipOnlyDrawChoice({...state, floorCards:state.floorCards.filter(id=>!removed.has(id))});
+}
+
 function matchingFloorCards(state: GameState, cardId: string): string[] {
   return getMatchingFloorCards(state.floorCards, cardId);
 }
@@ -493,7 +501,7 @@ export function playTurn(state: GameState, player: PlayerId, cardId: string, opt
   };
 }
 
-export function playBomb(state: GameState, player: PlayerId, month: number): TurnResult {
+export function playBomb(state: GameState, player: PlayerId, month: number, drawnMatchId?: string): TurnResult {
   if (state.phase !== 'playing' || state.currentPlayer !== player) throw new Error('지금 폭탄을 사용할 수 없습니다.');
   const keys = keysFor(player);
   const option = findBombOptions(state[keys.hand], state.floorCards, DEFAULT_MATGO_RULES.allowTwoCardBomb).find(candidate => candidate.month === month);
@@ -520,7 +528,7 @@ export function playBomb(state: GameState, player: PlayerId, month: number): Tur
   const specialEvents: TurnSpecialEvent[] = [makeSpecialEvent(next, player, 'bomb', bombLabel, isNuclearBomb ? 2 : 1)];
   const bonusDraw = drawThroughBonusPee(next, player);
   const drawnCardId = bonusDraw.drawnCardId;
-  const drawn = drawnCardId ? captureOrPlace(next, drawnCardId, keys.captured) : null;
+  const drawn = drawnCardId ? captureOrPlace(next, drawnCardId, keys.captured, drawnMatchId) : null;
   const drawnPpeok = ppeokCaptureEvent(next, player, drawn?.ppeokPile ?? null);
   if (drawnPpeok) specialEvents.push(drawnPpeok);
   if (!emptiesHand && next.floorCards.length === 0) specialEvents.push(makeSpecialEvent(next, player, 'sweep', '싹쓸이', 1));

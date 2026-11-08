@@ -27,6 +27,22 @@ describe('자동 치기 특수 선택',()=>{
     expect(automaticSpecial(next)).toBeNull();
     state.humanShakenMonths=[1];expect(automaticSpecial(state)).toBeNull();
   });
+  it('손패 두 장과 바닥 두 장이면 두장폭탄을 선택한다',()=>{
+    const state=game(['m01-01','m01-02','m02-01'],['m01-03','m01-04']);
+    expect(automaticSpecial(state)).toEqual({kind:'bomb',month:1});
+    const result=playBomb(state,'human',1);
+    expect(result.captured).toEqual(expect.arrayContaining(['m01-01','m01-02','m01-03','m01-04']));
+  });
+  it('흔들기만 가능한 월보다 당장 먹을 수 있는 다른 월을 우선한다',()=>{
+    const state=game(['m01-01','m01-02','m01-03','m02-01'],['m02-02']);
+    expect(automaticSpecial(state)).toBeNull();
+    expect(automaticMove(state)).toMatchObject({kind:'card',cardId:'m02-01'});
+  });
+  it('흔들기만 가능한 월보다 손의 보너스를 우선한다',()=>{
+    const state=game(['m01-01','m01-02','m01-03','bonus-pee-1'],['m03-01']);
+    expect(automaticSpecial(state)).toBeNull();
+    expect(automaticMove(state)).toMatchObject({kind:'card',cardId:'bonus-pee-1'});
+  });
   it('현재 선택한 월과 다른 월이나 상대 차례에는 끼어들지 않는다',()=>{
     const state=game(['m01-01','m01-02','m01-03'],['m01-04']);
     expect(automaticSpecial(state,2)).toBeNull();
