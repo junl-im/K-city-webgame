@@ -545,7 +545,7 @@ function gameScreen() {
       <div class="field-heading"><strong>바닥패 ${floor.length}장</strong><span>같은 무늬를 맞춰 획득!</span></div>
       <div class="field-row">
         <div class="deck-pile">${cardBack()}<small>남은 패 <b>${g.drawPile.length}</b></small></div>
-        <div class="floor-area" data-density="${floorDensity(floor.length)}" aria-label="바닥에 놓인 화투패">${floor.length ? floorGroups.map(group=>group.kind==='single' ? card(group.ids[0],{mission:isMission(group.ids[0])}) : `<span class="floor-pile" data-count="${group.ids.length}" aria-label="${group.kind==='ppeok'?'싼 패':'같은 월 패'} ${group.ids.length}장">${group.ids.map((cardId,index)=>card(cardId,{pileIndex:index+1,mission:isMission(cardId)})).join('')}<span class="floor-pile__count" aria-hidden="true">${group.ids.length}</span></span>`).join('') : '<div class="empty-floor">바닥패가 없어요 ✿</div>'}</div>
+        <div class="floor-area" data-density="${floorDensity(floor.length)}" aria-label="바닥에 놓인 화투패">${floor.length ? floorGroups.map(group=>group.kind==='single' ? card(group.ids[0],{mission:isMission(group.ids[0])}) : `<span class="floor-pile" aria-label="${group.kind==='ppeok'?'싼 패':'같은 월 패'} ${group.ids.length}장">${group.ids.map((cardId,index)=>card(cardId,{pileIndex:index+1,mission:isMission(cardId)})).join('')}</span>`).join('') : '<div class="empty-floor">바닥패가 없어요 ✿</div>'}</div>
       </div>
       <div class="game-message" aria-live="polite" title="${safe(spokenActionText(g.lastAction))}">${safe(spokenActionText(g.lastAction))}</div>
     </div>

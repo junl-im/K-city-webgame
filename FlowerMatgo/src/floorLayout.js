@@ -1,6 +1,6 @@
 import { getCard } from './engine/cards';
 
-// Group recorded ppeok piles and matching floor cards without changing
+// Group recorded ppeok piles and naturally dealt triples without changing
 // ownership or any rule-engine state. Preserve the floor order inside groups.
 export function groupFloorCards(floor, piles = []) {
   const cards = Array.isArray(floor) ? floor : [];
@@ -20,8 +20,8 @@ export function groupFloorCards(floor, piles = []) {
     const month = getCard(id)?.month;
     if (month) months.set(month,[...(months.get(month) || []),id]);
   }
-  for (const ids of months.values()) if (ids.length === 2 || ids.length === 3) {
-    const group = {ids, kind:ids.length === 2 ? 'pair' : 'triple'};
+  for (const ids of months.values()) if (ids.length === 3) {
+    const group = {ids, kind:'triple'};
     ids.forEach(id=>byCard.set(id,group));
   }
   const emitted = new Set();
