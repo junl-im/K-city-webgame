@@ -344,7 +344,7 @@ function el(id){if(!elements.has(id)){const listeners={},classes=new Set(),item=
 const weapons=['normal','bomb','split'].map(type=>{const b=el('weapon-'+type);b.dataset.weapon=type;return b;});
 const heroes=['fox','bear','rabbit','cat'].map(type=>{const b=el('hero-'+type);b.dataset.hero=type;return b;});
 const stages=[0,1,2,3].map(type=>{const b=el('stage-'+type);b.dataset.stage=String(type);return b;});
-for(const id of ['stageMap','result','help','exitConfirm','enemyEntrance','shotReview','customSelectLayer'])el(id).hidden=true;
+for(const id of ['stageMap','result','help','exitConfirm','enemyEntrance','shotReview','customSelectLayer','soundPanel','voiceCaption'])el(id).hidden=true;
 for(const id of ['materialArtwork','combatArtwork']){const art=el(id);art.complete=true;art.naturalWidth=id==='combatArtwork'?1262:1536;art.naturalHeight=id==='combatArtwork'?1246:1024;}
 {const art=el('materialColumnArtwork');art.complete=true;art.naturalWidth=1262;art.naturalHeight=1246;}
 {const art=el('duelCannonArtwork');art.complete=true;art.naturalWidth=1774;art.naturalHeight=887;}
@@ -722,9 +722,13 @@ if(/v0_[4567]/.test(versionedPath)){
  }
  el('duelDifficulty').value='hard';
  el('soundBtn').click();
+ assert.equal(el('soundPanel').hidden,false,'Audio settings should open without changing match state');
+ el('soundEffectsToggle').click();
  assert.equal(state().sound,true);
- el('soundBtn').click();
+ el('soundEffectsToggle').click();
  assert.equal(state().sound,false);
+ el('closeSoundPanel').click();
+ assert.equal(el('soundPanel').hidden,true,'Audio settings must close on a dedicated action');
 }
 if(/v0_[567]/.test(versionedPath)){
   for(const name of ['fox','bear','rabbit','cat']){
@@ -951,6 +955,37 @@ assert.deepEqual(playedMaterials.map(x=>x.type),['triangle','sawtooth','sine','s
 assert.equal(playedMaterials.at(-1).frequency,1170,'Steel must add a high-frequency ringing harmonic');
 window.__triggerMaterialSoundForTest('wood');
 assert.equal(playedMaterials.length,4,'Simultaneous duplicate timber impacts must be rate-limited');
+// v6.16: effect/noise layering, independent sound and voice controls,
+// localized speech, persistent settings and the compact Back-dismissible panel.
+let noiseStarts=0;
+window.AudioContext.prototype.sampleRate=8000;
+window.AudioContext.prototype.createBuffer=(channels,length)=>({getChannelData:()=>new Float32Array(length)});
+window.AudioContext.prototype.createBufferSource=()=>({buffer:null,connect:noOp,start(){noiseStarts++;},stop:noOp});
+window.AudioContext.prototype.createBiquadFilter=()=>({type:'',frequency:{setValueAtTime:noOp,exponentialRampToValueAtTime:noOp},Q:{value:0},connect:noOp});
+const spoken=[];
+window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};
+window.speechSynthesis={speaking:false,pending:false,cancel:noOp,getVoices:()=>[{lang:'ko-KR',name:'test-Korean'}],speak:u=>spoken.push({text:u.text,voice:u.voice?.lang,lang:u.lang,volume:u.volume})};
+el('soundBtn').click();
+assert.equal(window.__artilleryAudioDebug().panelOpen,true,'Sound menu must open from the single top control');
+el('soundEffectsToggle').click();
+assert.equal(window.__artilleryAudioDebug().effects,true,'Effects can be enabled independently');
+el('voiceToggle').click();
+assert.equal(window.__artilleryAudioDebug().voice,false,'Speech can be muted without muting effects');
+el('voiceToggle').click();
+el('effectVolume').dispatch('input',{target:{value:'35'}});
+el('voiceVolume').dispatch('input',{target:{value:'55'}});
+assert.equal(window.__artilleryAudioDebug().effectVolume,.35);
+assert.equal(window.__artilleryAudioDebug().voiceVolume,.55);
+assert(saved.get('cannontale-audio-v1').includes('"effectVolume":0.35'),'Audio mixer must persist independently of game progress');
+el('previewSound').click();
+assert(noiseStarts>0,'Preview must actually produce layered, noise-based cannon audio');
+assert(spoken.length>0&&spoken.at(-1).voice==='ko-KR'&&spoken.at(-1).lang==='ko-KR','Battle callout must select a Korean voice when available');
+assert(window.__artilleryAudioDebug().captionVisible&&window.__artilleryAudioDebug().lastCaption.length>0,'Spoken callout needs a brief accessible caption');
+handlers.popstate();
+assert.equal(window.__artilleryAudioDebug().panelOpen,false,'Browser Back closes sound settings before leaving');
+assert.equal(state().exitOpen,false,'Closing the mixer must not exit the game');
+el('soundBtn').click();el('soundEffectsToggle').click();el('closeSoundPanel').click();
+assert.equal(window.__artilleryAudioDebug().effects,false,'Muted audio must remain muted after closing the mixer');
 const columnImage=fs.readFileSync(__dirname+'/art/material_columns_v28.webp');
 assert.equal(columnImage.toString('ascii',0,4),'RIFF','The pillar damage atlas must be a WebP bitmap');
 assert.equal(columnImage.toString('ascii',8,12),'WEBP','The pillar damage atlas must retain its WebP signature');
