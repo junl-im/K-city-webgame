@@ -2672,7 +2672,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 /* v6.15: the angle alone moves the neutral ballistic reticle. */
 .aim-telemetry .aim-power-status{color:#ffe1aa;white-space:nowrap}
 @media(orientation:portrait) and (max-width:600px){.aim-telemetry .aim-power-status{font-size:10px}}
-/* v6.16: compact illustrated-game audio mixer. No SVG or external sound assets. */
+/* v6.17: independent audio channels, restrained positional cues and safe preview. */
 .sound-panel{position:absolute;z-index:24;top:56px;right:clamp(8px,12vw,150px);width:min(272px,calc(100vw - 20px));padding:13px;border-radius:17px;background:linear-gradient(155deg,#354d55f5,#223b47f9);box-shadow:0 10px 28px #12272d99,inset 0 1px #fff6cd25;color:#fff2d1;font-family:var(--ct-ui-font,system-ui);font-size:12px;touch-action:manipulation}
 .sound-panel[hidden],.voice-caption[hidden]{display:none!important}
 .sound-panel-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
@@ -2686,6 +2686,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
 .sound-panel label input::-webkit-slider-thumb{width:17px;height:17px;border:2px solid #fff4ce;background:#c98748}
 .sound-panel .sound-preview{width:100%;margin-top:8px;background:linear-gradient(#cb995b,#966744)}
 .sound-panel small{display:block;margin-top:7px;color:#c8d9d6;font-size:10px;line-height:1.35;word-break:keep-all}
+.sound-panel .audio-feedback{min-height:13px;margin-top:5px;color:#ffe3a2;font-size:10px}
 .voice-caption{position:absolute;z-index:3;left:50%;top:clamp(48px,11%,98px);transform:translateX(-50%);width:max-content;max-width:min(280px,80%);padding:5px 12px;border-radius:18px;background:#294452c9;color:#fff2d4;text-align:center;font-size:clamp(10px,1.2vw,13px);font-weight:900;line-height:1.4;text-shadow:0 1px 3px #152934;pointer-events:none;box-shadow:0 3px 12px #10243144}
 @media(orientation:portrait) and (max-width:600px){.sound-panel{top:47px;right:8px;max-height:calc(100dvh - 110px);overflow-y:auto}.voice-caption{top:72px}}
 @media(orientation:landscape) and (max-height:440px){.sound-panel{top:40px;max-height:calc(100dvh - 45px);overflow-y:auto}}
@@ -2705,10 +2706,11 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  </header>
  <section id="soundPanel" class="sound-panel" hidden aria-label="전투 효과음 및 음성 설정">
   <div class="sound-panel-header"><strong>전장 음향 조율</strong><button id="closeSoundPanel" type="button" aria-label="음향 설정 닫기">닫기</button></div>
-  <div class="sound-panel-switches"><button id="soundEffectsToggle" type="button" aria-pressed="false">효과음 끔</button><button id="voiceToggle" type="button" aria-pressed="true">전투 음성 켬</button></div>
+  <div class="sound-panel-switches"><button id="soundEffectsToggle" type="button" aria-pressed="false">효과음 끔</button><button id="voiceToggle" type="button" aria-pressed="false">전투 음성 끔</button></div>
   <label for="effectVolume">효과음 <input id="effectVolume" aria-label="효과음 크기" type="range" min="0" max="100" value="75"></label>
   <label for="voiceVolume">음성 <input id="voiceVolume" aria-label="음성 크기" type="range" min="0" max="100" value="75"></label>
   <button id="previewSound" class="sound-preview" type="button">포격·음성 미리 듣기</button>
+  <small id="audioFeedback" class="audio-feedback" role="status" aria-live="polite"></small>
   <small>기기의 한국어 음성 지원 여부에 따라 전투 대사가 달라질 수 있어요.</small>
  </section>
  <main class="battle-wrap" id="battleWrap">
@@ -2977,8 +2979,18 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  function refreshStageMap(){const chosen=Number($('adventureStage').value)||0;$('menu').dataset.stage=String(chosen);const details=['기본 바람','돌벽 파괴','강한 바람','요새 대장'];const def=stageSet[chosen];$('stageShotPreview').textContent=`탄약 ${def.shots}발 · 목표 ${def.foes.length}명`;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.stage)===chosen));for(let i=0;i<4;i++)$('stageGrade'+i).textContent=progress.best[i]?`최고 등급 ${progress.best[i]}/3 · ${details[i]}`:`기록 없음 · ${details[i]}`;refreshIllustratedSelects();}
  function refreshMenu(){refreshHeroPreview();const cleared=progress.best.filter(Boolean).length;$('progressSummary').textContent=cleared?`최고 등급 합계 ${progress.best.reduce((a,b)=>a+b,0)} / 12 · 승리 ${progress.wins}회`:'모험 기록 · 아직 첫 승리 전';$('progressTier').textContent=`완료 ${cleared} / 4`;refreshStageMap();}
- const audioSettingsKey='cannontale-audio-v1';
- function readAudioSettings(){try{const o=JSON.parse(window.localStorage?.getItem(audioSettingsKey)||'{}');return{effects:o.effects===true,voice:o.voice!==false,effectVolume:clamp(Number.isFinite(o.effectVolume)?o.effectVolume:.75,0,1),voiceVolume:clamp(Number.isFinite(o.voiceVolume)?o.voiceVolume:.75,0,1)};}catch(_){return{effects:false,voice:true,effectVolume:.75,voiceVolume:.75};}}
+ const audioSettingsKey='cannontale-audio-v2';
+ function readAudioSettings(){
+  try{
+   const newer=window.localStorage?.getItem(audioSettingsKey),old=window.localStorage?.getItem('cannontale-audio-v1');
+   const o=JSON.parse(newer||old||'{}'),migrating=!newer;
+   // v6.16 muted effects by default but stored voice=true even if speech could
+   // never play. Migrate that inactive legacy combination to an actually muted
+   // default so opening a battle cannot unexpectedly speak after the upgrade.
+   return{effects:o.effects===true,voice:migrating?o.effects===true&&o.voice!==false:o.voice===true,
+    effectVolume:clamp(Number.isFinite(o.effectVolume)?o.effectVolume:.75,0,1),voiceVolume:clamp(Number.isFinite(o.voiceVolume)?o.voiceVolume:.75,0,1)};
+  }catch(_){return{effects:false,voice:false,effectVolume:.75,voiceVolume:.75};}
+ }
  const savedAudio=readAudioSettings();
  const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,reaimCount:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP,duelVolleyDamage:{player:0,ai:0},turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,chargeFocusX:null,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:savedAudio.effects,voice:savedAudio.voice,effectVolume:savedAudio.effectVolume,voiceVolume:savedAudio.voiceVolume,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewLife:0,voiceCaptionTime:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,flightSettledAt:null,shotBaseline:null,shotHighlights:{direct:false,critical:false},windGuide:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,chargeConfirmTime:0,chargeConfirmImpact:null,precisionActive:false,precisionElapsed:0,precisionNeedle:0,precisionCamera:0,precisionHoldTime:0,precisionPendingShot:null,precisionLast:null,hitEmphasis:[],chainHits:0,crushHits:0,weaponFractures:0};
  // Tracks one split volley per target. A boss resists repeated fragment overlap,
@@ -3163,7 +3175,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    const p={x:muzzleX,y:muzzleY,vx:v.vx,vy:v.vy,r:weapon==='bomb'?13:10,weapon,owner,hero:owner==='ai'?game.aiHero:game.hero,age:0,split:false,trail:[],active:true,pierce:owner==='player'&&game.abilityArmed?2:0,hitBlocks:[],hitFoes:[],timingGrade:owner==='player'?game.precisionLast?.grade:null,timingAccuracy:owner==='player'?game.precisionLast?.accuracy:0,timingBias:sideBias,damageScale:owner==='player'&&game.mode==='duel'?shotDamageScale(game.power,game.precisionLast?.accuracy??.6):1,directTarget:null,directCenter:Infinity};game.projectiles.push(p);
   if(owner==='player')game.abilityArmed=false;else game.aiAngle=ang;
   const firingHero=duelHero(owner),firingStyle=heroFiringStyles[firingHero]||heroFiringStyles.fox;
-  game.recoil[owner]=firingStyle.kick;actorMotion(owner,'attack',firingStyle.duration);game.muzzle={x:muzzleX,y:muzzleY,dir,owner,hero:firingHero,weapon,life:firingStyle.muzzleTime,total:firingStyle.muzzleTime};spawnSparks(game.muzzle.x,game.muzzle.y,13,'#ffe8aa',.42);game.shake=Math.max(game.shake,weapon==='bomb'?4.5:2.7);playSound('fire',{weapon,hero:firingHero});playSound('flight',{weapon});
+  game.recoil[owner]=firingStyle.kick;actorMotion(owner,'attack',firingStyle.duration);game.muzzle={x:muzzleX,y:muzzleY,dir,owner,hero:firingHero,weapon,life:firingStyle.muzzleTime,total:firingStyle.muzzleTime};spawnSparks(game.muzzle.x,game.muzzle.y,13,'#ffe8aa',.42);game.shake=Math.max(game.shake,weapon==='bomb'?4.5:2.7);playSound('fire',{weapon,hero:firingHero,x:muzzleX});playSound('flight',{weapon,x:muzzleX});
   if(owner==='player') {game.shots++;game.reaimCount=0;game.phase='flying';game.phaseTime=0;game.message='발사!';game.messageTime=.65;game.hintTime=0;$('hint').hidden=true;}
   else {game.phase='flying';game.phaseTime=0;game.message='적의 포격!';game.messageTime=1;playBattleVoice('enemy','fox');}
   updateHud();
@@ -3602,66 +3614,83 @@ function advanceChargePower(dt){
   gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(Math.max(.001,volume),start+.012);gain.gain.exponentialRampToValueAtTime(.001,start+duration);
   osc.connect(gain);gain.connect(destination);osc.start(start);osc.stop(start+duration+.025);
  }
- function audioNoise(ac,start,duration,{low=200,high=2400,volume=.075,filter='bandpass'}={}){
+ function audioNoise(ac,start,duration,{low=200,high=2400,volume=.075,filter='bandpass',destination=ac.destination}={}){
   if(!ac.createBufferSource||!ac.createBuffer||!ac.createBiquadFilter)return;
   if(!ac._cannonNoise){const length=Math.ceil(ac.sampleRate*.75),buf=ac.createBuffer(1,length,ac.sampleRate),data=buf.getChannelData(0);let seed=97631;for(let i=0;i<length;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;data[i]=(seed/2147483648-1)*(.7+.3*Math.sin(i*.037));}ac._cannonNoise=buf;}
   const t=Math.min(.7,duration),source=ac.createBufferSource(),biquad=ac.createBiquadFilter(),gain=ac.createGain();source.buffer=ac._cannonNoise;biquad.type=filter;biquad.frequency.setValueAtTime(high,start);biquad.frequency.exponentialRampToValueAtTime(Math.max(70,low),start+t);if(biquad.Q)biquad.Q.value=.7;
   gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(Math.max(.001,volume),start+.014);gain.gain.exponentialRampToValueAtTime(.001,start+t);
-  source.connect(biquad);biquad.connect(gain);gain.connect(ac.destination);source.start(start);source.stop(start+t+.01);
+  source.connect(biquad);biquad.connect(gain);gain.connect(destination);source.start(start);source.stop(start+t+.01);
+ }
+ function positionalSoundBus(ac,x,now){
+  if(!Number.isFinite(x)||!ac.createStereoPanner||!ac.createGain)return ac.destination;
+  const viewport=cv.clientWidth/Math.max(.001,game.scale),relative=clamp((x-game.camera-viewport*.5)/Math.max(1,viewport*.5),-1,1);
+  const gain=ac.createGain(),pan=ac.createStereoPanner();
+  gain.gain.setValueAtTime(1-Math.abs(relative)*.18,now);
+  pan.pan.setValueAtTime(relative*.58,now);
+  gain.connect(pan);pan.connect(ac.destination);
+  return gain;
  }
  function playSound(kind,options={}){
-  if(!game.sound||game.effectVolume<=0)return;
+  if(options.voiceFallback?(!game.voice||game.voiceVolume<=0):(!game.sound||game.effectVolume<=0))return;
   try{
    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
-   const ac=game.audio||(game.audio=new AC());if(ac.state==='suspended')ac.resume();
+   const ac=game.audio||(game.audio=new AC());if(ac.state==='suspended')ac.resume()?.catch?.(()=>{});
    const now=ac.currentTime,cooldown=soundCooldown[kind];game.lastSoundAt??={};
    if(cooldown&&now-(game.lastSoundAt[kind]??-1)<cooldown)return;
    if(cooldown)game.lastSoundAt[kind]=now;
-   const s=soundShapes[kind]||soundShapes.ui,v=game.effectVolume,weapon=options.weapon||'normal',hero=options.hero||game.hero;
+   const s=soundShapes[kind]||soundShapes.ui,v=options.voiceFallback?game.voiceVolume:game.effectVolume,weapon=options.weapon||'normal',hero=options.hero||game.hero;
+   const destination=positionalSoundBus(ac,options.x,now);
+   const noise=(duration,settings)=>audioNoise(ac,now,duration,{...settings,destination});
+   const note=(start,freq,end,duration,volume,type='sine')=>synthNote(ac,start,freq,end,duration,volume,type,destination);
    // The first oscillator preserves the established material timbres.
-   synthNote(ac,now,s.freq,s.end,s.duration,s.volume*v,s.type);
-   if(kind==='iron')synthNote(ac,now,1170,820,.31,.021*v,'sine');
+   note(now,s.freq,s.end,s.duration,s.volume*v,s.type);
+   if(kind==='iron')note(now,1170,820,.31,.021*v,'sine');
    if(kind==='fire'){
-    if(weapon==='bomb'){synthNote(ac,now,115,39,.36,.135*v,'sawtooth');audioNoise(ac,now,.40,{low:100,high:1600,volume:.14*v,filter:'lowpass'});}
-    else if(weapon==='split'){synthNote(ac,now,890,335,.25,.055*v,'triangle');synthNote(ac,now+.05,1190,560,.20,.03*v);audioNoise(ac,now,.18,{low:360,high:3800,volume:.042*v});}
-    else{audioNoise(ac,now,.21,{low:145,high:2900,volume:.091*v,filter:'lowpass'});synthNote(ac,now+.035,hero==='bear'?83:225,58,.25,.047*v,'triangle');}
+    if(weapon==='bomb'){note(now,115,39,.36,.135*v,'sawtooth');noise(.40,{low:100,high:1600,volume:.14*v,filter:'lowpass'});}
+    else if(weapon==='split'){note(now,890,335,.25,.055*v,'triangle');note(now+.05,1190,560,.20,.03*v);noise(.18,{low:360,high:3800,volume:.042*v});}
+    else{noise(.21,{low:145,high:2900,volume:.091*v,filter:'lowpass'});note(now+.035,hero==='bear'?83:225,58,.25,.047*v,'triangle');}
    }else if(kind==='blast'){
-    audioNoise(ac,now,weapon==='bomb'?.64:.36,{low:75,high:weapon==='bomb'?1250:3200,volume:(weapon==='bomb'?.18:.095)*v,filter:'lowpass'});
-    if(weapon==='bomb')synthNote(ac,now+.05,75,28,.52,.12*v,'sawtooth');
-    if(weapon==='split')synthNote(ac,now+.07,950,420,.18,.041*v);
-   }else if(kind==='flight')audioNoise(ac,now,.37,{low:190,high:weapon==='split'?4500:2300,volume:.042*v});
-   else if(kind==='wood')audioNoise(ac,now,.11,{low:140,high:1500,volume:.071*v});
-   else if(kind==='stone')audioNoise(ac,now,.23,{low:95,high:2400,volume:.084*v,filter:'lowpass'});
-   else if(kind==='iron')audioNoise(ac,now,.06,{low:540,high:3200,volume:.04*v});
-   else if(kind==='critical'){synthNote(ac,now+.07,950,1320,.31,.053*v,'sine');audioNoise(ac,now,.24,{low:400,high:3800,volume:.08*v});}
-   else if(kind==='split'){synthNote(ac,now+.045,1160,580,.17,.045*v,'triangle');audioNoise(ac,now,.15,{low:590,high:4400,volume:.06*v});}
-   else if(kind==='skill'){synthNote(ac,now+.06,hero==='cat'?860:hero==='bear'?240:720,1400,.25,.036*v,'sine');}
-   else if(kind==='charge')audioNoise(ac,now,.18,{low:220,high:1100,volume:.022*v});
-   else if(kind==='win'){[740,930,1175].forEach((f,i)=>synthNote(ac,now+i*.11,f,f*1.015,.26,.046*v,'sine'));}
-   else if(kind==='lose'){[350,295,220].forEach((f,i)=>synthNote(ac,now+i*.14,f,f*.82,.31,.033*v,'triangle'));}
+    noise(weapon==='bomb'?.64:.36,{low:75,high:weapon==='bomb'?1250:3200,volume:(weapon==='bomb'?.18:.095)*v,filter:'lowpass'});
+    if(weapon==='bomb')note(now+.05,75,28,.52,.12*v,'sawtooth');
+    if(weapon==='split')note(now+.07,950,420,.18,.041*v);
+   }else if(kind==='flight')noise(.37,{low:190,high:weapon==='split'?4500:2300,volume:.042*v});
+   else if(kind==='wood')noise(.11,{low:140,high:1500,volume:.071*v});
+   else if(kind==='stone')noise(.23,{low:95,high:2400,volume:.084*v,filter:'lowpass'});
+   else if(kind==='iron')noise(.06,{low:540,high:3200,volume:.04*v});
+   else if(kind==='critical'){note(now+.07,950,1320,.31,.053*v,'sine');noise(.24,{low:400,high:3800,volume:.08*v});}
+   else if(kind==='split'){note(now+.045,1160,580,.17,.045*v,'triangle');noise(.15,{low:590,high:4400,volume:.06*v});}
+   else if(kind==='skill'){note(now+.06,hero==='cat'?860:hero==='bear'?240:720,1400,.25,.036*v,'sine');}
+   else if(kind==='charge')noise(.18,{low:220,high:1100,volume:.022*v});
+   else if(kind==='win'){[740,930,1175].forEach((f,i)=>note(now+i*.11,f,f*1.015,.26,.046*v,'sine'));}
+   else if(kind==='lose'){[350,295,220].forEach((f,i)=>note(now+i*.14,f,f*.82,.31,.033*v,'triangle'));}
   }catch(_){/* Unsupported or suspended audio must never interrupt the match. */}
  }
  const battleLines={intro:'포격 준비!',perfect:'퍼펙트!',critical:'치명타!',win:'승리! 훌륭한 포격이야!',lose:'아쉽지만, 다시 도전!',enemy:'적의 포격이다!',fox:'바람을 읽어!',bear:'관통 준비 완료!',rabbit:'분열 발사!',cat:'바람을 돌려!'};
  const battleVoiceStyle={fox:{pitch:1.27,rate:1.14},bear:{pitch:.76,rate:.93},rabbit:{pitch:1.42,rate:1.18},cat:{pitch:1.12,rate:1.02}};
  function stopBattleVoice(){try{window.speechSynthesis?.cancel?.();}catch(_){}game.voiceCaptionTime=0;$('voiceCaption').hidden=true;}
  function playBattleVoice(kind,hero=game.hero,force=false){
-  if(!game.sound||!game.voice||game.voiceVolume<=0||!battleLines[kind])return false;
+  if(!game.voice||game.voiceVolume<=0||!battleLines[kind])return false;
   const now=Date.now();if(!force&&now-(game.lastVoiceAt||0)<1800)return false;
-  game.lastVoiceAt=now;game.voiceCaptionTime=1.65;$('voiceCaption').textContent=battleLines[kind];$('voiceCaption').hidden=false;
   try{
    const synth=window.speechSynthesis,Utterance=window.SpeechSynthesisUtterance;
-   if(!synth||!Utterance){playSound('voiceCue');return false;}
-   if(kind==='win'||kind==='lose'||force)synth.cancel();else if(synth.speaking||synth.pending)return false;
+   if(synth&&Utterance){
+    if(kind==='win'||kind==='lose'||force)synth.cancel();else if(synth.speaking||synth.pending)return false;
+   }
+   // A busy voice queue must not consume a cooldown or create phantom captions.
+   game.lastVoiceAt=now;game.voiceCaptionTime=1.65;$('voiceCaption').textContent=battleLines[kind];$('voiceCaption').hidden=false;
+   if(!synth||!Utterance){playSound('voiceCue',{voiceFallback:true});return false;}
    const utterance=new Utterance(battleLines[kind]),style=battleVoiceStyle[hero]||battleVoiceStyle.fox;
    utterance.lang='ko-KR';utterance.pitch=style.pitch;utterance.rate=style.rate;utterance.volume=Math.min(.9,game.voiceVolume*.73);
    const voices=synth.getVoices?.()||[],korean=voices.find(v=>v.lang?.toLowerCase()==='ko-kr')||voices.find(v=>v.lang?.toLowerCase().startsWith('ko'));
    if(korean)utterance.voice=korean;
    synth.speak(utterance);return true;
-  }catch(_){playSound('voiceCue');return false;}
+  }catch(_){playSound('voiceCue',{voiceFallback:true});return false;}
  }
  function saveAudioSettings(){try{window.localStorage?.setItem(audioSettingsKey,JSON.stringify({effects:game.sound,voice:game.voice,effectVolume:game.effectVolume,voiceVolume:game.voiceVolume}));}catch(_){}}
  function refreshAudioSettings(){
-  $('soundBtn').textContent=game.sound?'소리 켬':'소리 끔';
+  const active=game.sound||game.voice;
+  $('soundBtn').textContent=active?'음향 켬':'음향 끔';
+  $('soundBtn').setAttribute?.('aria-label',`음향 설정, 효과음 ${game.sound?'켬':'끔'}, 음성 ${game.voice?'켬':'끔'}`);
   $('soundEffectsToggle').textContent=game.sound?'효과음 켬':'효과음 끔';$('soundEffectsToggle').setAttribute?.('aria-pressed',String(game.sound));
   $('voiceToggle').textContent=game.voice?'전투 음성 켬':'전투 음성 끔';$('voiceToggle').setAttribute?.('aria-pressed',String(game.voice));
   $('effectVolume').value=String(Math.round(game.effectVolume*100));$('voiceVolume').value=String(Math.round(game.voiceVolume*100));
@@ -3751,7 +3780,7 @@ function advanceChargePower(dt){
   }else if(power>24&&tier===previousTier){
    spawnDebris(x,y,b.type,3,direction);
   }
-  if(tier!==previousTier||b.hp<=0)playSound(b.type);
+  if(tier!==previousTier||b.hp<=0)playSound(b.type,{x:b.body.position.x});
  }
  function hitCircleRect(p,b){const dx=p.x-b.body.position.x,dy=p.y-b.body.position.y,a=-b.body.angle,c=Math.cos(a),s=Math.sin(a),x=dx*c-dy*s,y=dx*s+dy*c;const qx=clamp(x,-b.w/2,b.w/2),qy=clamp(y,-b.h/2,b.h/2);return(x-qx)**2+(y-qy)**2<p.r*p.r;}
  function spawnCombatPopup(target,value,kind='normal',yOffset){
@@ -3803,9 +3832,9 @@ function advanceChargePower(dt){
    direction:Math.sign(p.vx||0)||(p.owner==='ai'?-1:1),critical,seed:rnd(0,Math.PI*2)});
   game.weaponAftershocks=game.weaponAftershocks.slice(-18);
   game.shake=Math.max(game.shake,critical?25:direct?17:big?19:11);game.hitStop=Math.max(game.hitStop,critical?.095:direct?.062:big?.051:.034);game.flash=critical?.28:big?.2:.12;game.rings.push({x:p.x,y:p.y,r:9,max:radius*(critical?1.6:1.14),life:critical?.68:.48,total:critical?.68:.48,color:critical?'#baffea':big?'#ffdfab':'#fff7d7'});game.blastCores.push({x:p.x,y:p.y,hero:p.hero||'fox',weapon:p.weapon||'normal',life:big?.65:.46,total:big?.65:.46,radius:big?69:41,seed:rnd(0,6.3)});game.blastCores=game.blastCores.slice(-12);crater(p.x,p.y,big?49:27);spawnSparks(p.x,p.y,critical?75:direct?48:big?56:32,critical?'#baffdf':big?'#ffb966':'#fff0be',critical?1.6:big?1.3:1);for(let i=0;i<(big?14:8);i++){const px=p.x+rnd(-26,26);game.particles.push({x:px,y:p.y+rnd(-8,8),vx:rnd(-85,85),vy:rnd(-125,-25),life:rnd(.45,.92),max:.92,r:rnd(6,15),color:i%2?'#b88f7388':'#eee0c288'});}
-  if(direct){game.hitEmphasis.push({x:p.x,y:p.y-56,text:critical?'치명타!':'정타!',life:critical?1.2:.95,total:critical?1.2:.95,critical});game.hitEmphasis=game.hitEmphasis.slice(-8);if(critical){playSound('critical');if(p.owner==='player')playBattleVoice('critical');}}
+  if(direct){game.hitEmphasis.push({x:p.x,y:p.y-56,text:critical?'치명타!':'정타!',life:critical?1.2:.95,total:critical?1.2:.95,critical});game.hitEmphasis=game.hitEmphasis.slice(-8);if(critical){playSound('critical',{x:p.x});if(p.owner==='player')playBattleVoice('critical');}}
   spawnImpactMotes(p,big);
-  playSound('blast',{weapon:p.weapon,critical});
+  playSound('blast',{weapon:p.weapon,critical,x:p.x});
   for(const b of game.blocks){
   const cx=b.body.position.x,cy=b.body.position.y,dist=Math.hypot(p.x-cx,p.y-cy);
   if(dist>=radius+Math.max(b.w,b.h)*.4)continue;
@@ -3882,7 +3911,7 @@ function advanceChargePower(dt){
    direction:Math.sign(p.vx||0)||(p.owner==='ai'?-1:1),critical:false,seed:rnd(0,Math.PI*2)});
   game.weaponAftershocks=game.weaponAftershocks.slice(-18);
   spawnSparks(p.x,p.y,count===5?25:12,'#eae3ff',.6);
-  playSound('split');
+  playSound('split',{x:p.x});
  }
  function applyPierceHit(p,target,kind){
   p.pierce--;p.vx*=.96;p.vy*=.93;
@@ -5296,12 +5325,17 @@ const materialCells={
  refreshAudioSettings();
  $('soundBtn').addEventListener('click',()=>{const opening=$('soundPanel').hidden;$('soundPanel').hidden=!opening;$('soundBtn').setAttribute?.('aria-expanded',String(opening));if(opening)playSound('ui');});
  $('closeSoundPanel').addEventListener('click',closeSoundPanel);
- $('soundEffectsToggle').addEventListener('click',()=>{game.sound=!game.sound;if(!game.sound)stopBattleVoice();saveAudioSettings();refreshAudioSettings();if(game.sound)playSound('ui');});
- $('voiceToggle').addEventListener('click',()=>{game.voice=!game.voice;if(!game.voice)stopBattleVoice();saveAudioSettings();refreshAudioSettings();playSound('ui');});
+ $('soundEffectsToggle').addEventListener('click',()=>{game.sound=!game.sound;saveAudioSettings();refreshAudioSettings();$('audioFeedback').textContent='';if(game.sound)playSound('ui');});
+ $('voiceToggle').addEventListener('click',()=>{game.voice=!game.voice;if(!game.voice)stopBattleVoice();saveAudioSettings();refreshAudioSettings();$('audioFeedback').textContent='';playSound('ui');});
  $('effectVolume').addEventListener('input',e=>{game.effectVolume=clamp(Number(e.target.value)/100,0,1);saveAudioSettings();});
  $('effectVolume').addEventListener('change',()=>playSound('ui'));
  $('voiceVolume').addEventListener('input',e=>{game.voiceVolume=clamp(Number(e.target.value)/100,0,1);saveAudioSettings();});
- $('previewSound').addEventListener('click',()=>{if(!game.sound){game.sound=true;saveAudioSettings();refreshAudioSettings();}playSound('fire',{weapon:'bomb',hero:game.hero});playBattleVoice(game.hero==='bear'?'bear':'perfect',game.hero,true);});
+ $('previewSound').addEventListener('click',()=>{
+  if(!game.sound&&!game.voice){$('audioFeedback').textContent='효과음 또는 전투 음성을 켜면 미리 들을 수 있어요.';return;}
+  $('audioFeedback').textContent=game.sound&&game.voice?'포격과 전투 음성을 재생합니다.':game.sound?'포격 효과음만 재생합니다.':'전투 음성만 재생합니다.';
+  if(game.sound)playSound('fire',{weapon:'bomb',hero:game.hero,x:origin().x});
+  if(game.voice)playBattleVoice(game.hero==='bear'?'bear':'perfect',game.hero,true);
+ });
  document.addEventListener?.('pointerdown',e=>{if(!$('soundPanel').hidden&&!$('soundPanel').contains(e.target)&&!$('soundBtn').contains(e.target))closeSoundPanel();});
  function handleBackIntent(){
   if(!$('soundPanel').hidden){closeSoundPanel();return;}

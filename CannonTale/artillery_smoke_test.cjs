@@ -21,6 +21,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__combatToastForTest=()=>combatToastLayout(); window.__combatToastLinesForTest=(message,width)=>combatToastLines(ctx,message,width); window.__materialSoundForTest=()=>({wood:soundShapes.wood,stone:soundShapes.stone,iron:soundShapes.iron}); window.__triggerMaterialSoundForTest=(name)=>{const saved=game.sound;game.sound=true;playSound(name);game.sound=saved;}; window.__directionalImpactForTest=(offset)=>{const b=game.blocks.find(v=>v.type==="stone");if(!b)return null;const originalHp=b.hp;b.hp=b.maxHp*.42;markBlockImpact(b,0,34,b.body.position.x+offset);const result={side:b.impactSide,scar:b.hp<b.maxHp};b.hp=originalHp;return result;}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__battleVoiceForTest=(kind,hero,force)=>playBattleVoice(kind,hero,force); window.__resetVoiceCooldownForTest=()=>{game.lastVoiceAt=0;}; window.__readAudioForTest=()=>readAudioSettings(); window.__positionalSoundForTest=(fraction)=>{const prior=game.sound;game.sound=true;playSound("fire",{weapon:"normal",x:game.camera+(cv.clientWidth/Math.max(.001,game.scale))*fraction});game.sound=prior;}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__fracturePartsForTest=(type,weapon="normal")=>{const b={w:28,h:104,type,impactSide:1,body:M.Bodies.rectangle(810,290,28,104)};spawnCollapseGhost(b,weapon);return {count:collapsePieces[type].length,total:game.collapseGhosts.at(-1).total};}; window.__weaponMaterialForTest=(type,weapon)=>materialWeaponFactor(type,weapon); window.__chainCollisionForTest=()=>{newGame("adventure",0);game.shots=1;const [a,b]=game.blocks;M.Body.setVelocity(a.body,{x:9,y:0});M.Body.setVelocity(b.body,{x:-9,y:0});const before=[a.hp,b.hp],initial=game.chainHits;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});const after=[a.hp,b.hp];M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});return {before,after,cooled:[a.hp,b.hp],count:game.chainHits-initial};}; window.__crushCollisionForTest=()=>{newGame("adventure",0);game.shots=1;const block=game.blocks[0],foe=game.foes[0];M.Body.setPosition(block.body,{x:foe.x,y:foe.y-64});M.Body.setVelocity(block.body,{x:0,y:10});const before=foe.hp;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:block.body,bodyB:foe.body}]});return {before,after:foe.hp,crushHits:game.crushHits,defeated:!foe.alive};}; window.__cleanupBrokenBlocksForTest=()=>{newGame("adventure",0);game.shots=1;const [a,b]=game.blocks;a.hp=1;M.Body.setVelocity(a.body,{x:9,y:0});M.Body.setVelocity(b.body,{x:-9,y:0});const before=game.blocks.length;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});const marked=a.dead;step(1/60);return {before,after:game.blocks.length,marked,ghosts:game.collapseGhosts.length};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__foeHitReactionForTest=(damage,sourceOffset)=>{const f=game.foes.find(x=>x.alive),oldRings=game.rings.length;foeHitReaction(f,damage,f.x+sourceOffset);return {direction:f.hitDirection,strength:f.hitStrength,anim:f.hitAnim,rings:game.rings.length-oldRings};}; window.__artilleryLoadoutDebug=');
@@ -208,7 +210,7 @@ assert(html.includes('select.dispatchEvent(new Event(\'change\''),'Illustrated d
 assert(html.includes('refreshIllustratedSelects();'),'Programmatic level changes must update the illustrated drop-down label');
 assert(html.includes('function combatToastLayout()'),'Transient gameplay notices must use the compact upper-sky design');
 assert(html.includes('function drawImpactScar(b,tier)'),'The hit side must leave a persistent directional crack on damaged structures');
-assert(html.includes('if(tier!==previousTier||b.hp<=0)playSound(b.type)'),'Material damage must trigger a distinct wood/stone/iron audio cue');
+assert(html.includes('if(tier!==previousTier||b.hp<=0)playSound(b.type,{x:b.body.position.x})'),'Material damage must trigger a distinct positional wood/stone/iron audio cue');
 assert(/#controls\.controls\{\s*width:100%;min-width:0;\s*grid-template-columns:minmax\(0,\.95fr\) minmax\(0,1\.25fr\) minmax\(0,1\.05fr\)/.test(html),'Desktop dock needs three explicitly flexible tracks; the former auto action track collapsed buttons');
 assert(/@media \(max-width:780px\) and \(orientation:portrait\)\{\s*#controls\.controls\{\s*grid-template-columns:minmax\(0,1fr\)!important/.test(html),'Portrait dock should not reserve an unused 86px column');
 for(const weapon of ['normal','bomb','split']){
@@ -955,8 +957,8 @@ assert.deepEqual(playedMaterials.map(x=>x.type),['triangle','sawtooth','sine','s
 assert.equal(playedMaterials.at(-1).frequency,1170,'Steel must add a high-frequency ringing harmonic');
 window.__triggerMaterialSoundForTest('wood');
 assert.equal(playedMaterials.length,4,'Simultaneous duplicate timber impacts must be rate-limited');
-// v6.16: effect/noise layering, independent sound and voice controls,
-// localized speech, persistent settings and the compact Back-dismissible panel.
+// v6.17: independent effect/voice routing, safe preview, busy-voice suppression,
+// saved preferences and gentle positional sound in the illustrated panel.
 let noiseStarts=0;
 window.AudioContext.prototype.sampleRate=8000;
 window.AudioContext.prototype.createBuffer=(channels,length)=>({getChannelData:()=>new Float32Array(length)});
@@ -970,21 +972,58 @@ assert.equal(window.__artilleryAudioDebug().panelOpen,true,'Sound menu must open
 el('soundEffectsToggle').click();
 assert.equal(window.__artilleryAudioDebug().effects,true,'Effects can be enabled independently');
 el('voiceToggle').click();
-assert.equal(window.__artilleryAudioDebug().voice,false,'Speech can be muted without muting effects');
-el('voiceToggle').click();
+assert.equal(window.__artilleryAudioDebug().voice,true,'Speech can be enabled without changing effects');
 el('effectVolume').dispatch('input',{target:{value:'35'}});
 el('voiceVolume').dispatch('input',{target:{value:'55'}});
 assert.equal(window.__artilleryAudioDebug().effectVolume,.35);
 assert.equal(window.__artilleryAudioDebug().voiceVolume,.55);
-assert(saved.get('cannontale-audio-v1').includes('"effectVolume":0.35'),'Audio mixer must persist independently of game progress');
+assert(saved.get('cannontale-audio-v2').includes('"effectVolume":0.35'),'Audio mixer must persist independently of game progress');
 el('previewSound').click();
 assert(noiseStarts>0,'Preview must actually produce layered, noise-based cannon audio');
 assert(spoken.length>0&&spoken.at(-1).voice==='ko-KR'&&spoken.at(-1).lang==='ko-KR','Battle callout must select a Korean voice when available');
 assert(window.__artilleryAudioDebug().captionVisible&&window.__artilleryAudioDebug().lastCaption.length>0,'Spoken callout needs a brief accessible caption');
+const lastSpoken=spoken.length,lastCaption=window.__artilleryAudioDebug().lastCaption;
+window.speechSynthesis.speaking=true;
+window.__resetVoiceCooldownForTest();
+assert.equal(window.__battleVoiceForTest('critical','fox',false),false,'Busy speech must not queue duplicate callouts');
+assert.equal(window.__artilleryAudioDebug().lastCaption,lastCaption,'Busy speech must not replace the current caption');
+assert.equal(spoken.length,lastSpoken,'Busy speech must not add utterances');
+window.speechSynthesis.speaking=false;
+el('soundEffectsToggle').click();
+assert.equal(window.__artilleryAudioDebug().effects,false,'Effects can be muted while speech stays enabled');
+assert.equal(window.__artilleryAudioDebug().voice,true,'Speech remains enabled when effects turn off');
+const beforeVoiceOnly=spoken.length;
+el('previewSound').click();
+assert.equal(spoken.length,beforeVoiceOnly+1,'Voice-only preview must speak with effects muted');
+assert.equal(window.__artilleryAudioDebug().effects,false,'Preview must never overwrite muted effect preferences');
+el('voiceToggle').click();
+const beforeSilent=spoken.length;
+el('previewSound').click();
+assert.equal(spoken.length,beforeSilent,'Both channels off must remain silent when preview is tapped');
+assert.equal(window.__artilleryAudioDebug().effects,false,'Silent preview must not enable effects');
+assert(el('audioFeedback').textContent.includes('켜면'),'Silent preview should provide an accessible instruction');
+const savedV2=saved.get('cannontale-audio-v2');
+saved.delete('cannontale-audio-v2');
+saved.set('cannontale-audio-v1',JSON.stringify({effects:false,voice:true,effectVolume:.4,voiceVolume:.8}));
+assert.equal(window.__readAudioForTest().voice,false,'Legacy muted effects must migrate without surprise speech');
+saved.set('cannontale-audio-v2',JSON.stringify({effects:false,voice:true,effectVolume:.4,voiceVolume:.8}));
+assert.equal(window.__readAudioForTest().voice,true,'Explicit v2 voice-only preference must be preserved');
+saved.set('cannontale-audio-v2',savedV2);
+const stereoPans=[];
+window.AudioContext.prototype.createStereoPanner=()=>({pan:{setValueAtTime:v=>stereoPans.push(v)},connect:noOp});
+window.__positionalSoundForTest(.1);window.__positionalSoundForTest(.9);
+assert(stereoPans[0]<0&&stereoPans[1]>0,'Positional audio should spread left and right across the visible battlefield');
+el('voiceToggle').click();
+const originalSynth=window.speechSynthesis,originalUtterance=window.SpeechSynthesisUtterance,notesBeforeFallback=playedMaterials.length;
+window.speechSynthesis=null;window.SpeechSynthesisUtterance=null;
+assert.equal(window.__battleVoiceForTest('perfect','fox',true),false,'Missing speech engines should safely fall back');
+assert(playedMaterials.length>notesBeforeFallback,'Voice-only mode needs an audible fallback cue even when effects are muted');
+window.speechSynthesis=originalSynth;window.SpeechSynthesisUtterance=originalUtterance;
+el('voiceToggle').click();
 handlers.popstate();
 assert.equal(window.__artilleryAudioDebug().panelOpen,false,'Browser Back closes sound settings before leaving');
 assert.equal(state().exitOpen,false,'Closing the mixer must not exit the game');
-el('soundBtn').click();el('soundEffectsToggle').click();el('closeSoundPanel').click();
+el('soundBtn').click();el('closeSoundPanel').click();
 assert.equal(window.__artilleryAudioDebug().effects,false,'Muted audio must remain muted after closing the mixer');
 const columnImage=fs.readFileSync(__dirname+'/art/material_columns_v28.webp');
 assert.equal(columnImage.toString('ascii',0,4),'RIFF','The pillar damage atlas must be a WebP bitmap');
