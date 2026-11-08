@@ -3408,6 +3408,10 @@ button:disabled { cursor: not-allowed; opacity:.48; }
 .scene--game .floor-area .floor-pile .hwatu--pile-3 {transform:translate(0,-3px) rotate(-2deg);z-index:2;}
 .scene--game .floor-area .floor-pile .hwatu--pile-4 {transform:translate(3px,-4px) rotate(3deg);z-index:3;}
 .scene--game .floor-area .floor-pile .hwatu--pile-5 {transform:translate(-2px,-6px) rotate(-3deg);z-index:4;}
+.scene--game .floor-area .floor-pile[data-count="2"] {padding-inline:9px;}
+.scene--game .floor-area .floor-pile[data-count="2"] .hwatu--pile-1 {transform:translate(-7px,2px) rotate(-4deg);}
+.scene--game .floor-area .floor-pile[data-count="2"] .hwatu--pile-2 {transform:translate(7px,-2px) rotate(4deg);}
+.scene--game .floor-area .floor-pile__count {grid-area:1 / 1;z-index:6;align-self:end;justify-self:end;display:grid;place-items:center;min-width:17px;height:17px;padding:0 3px;border:1px solid #f5d99d;border-radius:7px;background:#47301e;color:#fff4d5;font-size:11px;font-weight:900;line-height:1;box-shadow:0 1px 3px #0009;pointer-events:none;}
 .turn-deck-flip__spin {animation-duration:.30s;}
 /* Keep the entire portrait-oriented back artwork visible, including during a flip. */
 .hwatu--back .hwatu__face {background-color:#aa1015;background-size:contain;background-repeat:no-repeat;}
