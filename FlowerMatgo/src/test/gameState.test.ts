@@ -85,6 +85,16 @@ describe('기본 맞고 진행 상태', () => {
     expect(() => playTurn(game, 'human', 'not-a-card')).toThrow();
   });
 
+  it('이미 두 장이 획득된 월의 손패는 바닥의 마지막 짝을 정상적으로 먹는다', () => {
+    const game=createArrangedGame({humanHand:['m01-03'],floorCards:['m01-04'],floorSize:1,
+      humanCaptured:['m01-01'],computerCaptured:['m01-02'],drawFirst:['m02-01']});
+    game.mission=null;
+    const result=playTurn(game,'human','m01-03');
+    expect(result.state.humanCaptured).toEqual(expect.arrayContaining(['m01-03','m01-04']));
+    expect(result.state.floorCards).not.toContain('m01-04');
+    expect(isValidGameState(result.state)).toBe(true);
+  });
+
   it('판마다 선을 공정하게 정하고 선 표시를 게임 상태에 보존한다', () => {
     expect(createInitialGame(100).startingPlayer).toBe('human');
     expect(createInitialGame(101).startingPlayer).toBe('computer');

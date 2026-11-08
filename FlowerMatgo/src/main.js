@@ -282,7 +282,7 @@ function card(id, options = {}) {
   const y = month ? ((month - 1) / 11 * 100).toFixed(5) : 0;
   const bonusSlot = ['bonus-pee-1','bonus-pee-2','bonus-double-pee-1'].indexOf(id);
   const style = bonus ? `style="--bonus-x:${(Math.max(0,bonusSlot)/2*100).toFixed(5)}%"` : `style="--card-x:${x}%;--card-y:${y}%"`;
-  const aria = `${options.shakeHint ? '흔들기 가능 · ' : ''}${spokenCardName(item,{gookjinAsDoubleJunk:options.gookjinAsDoubleJunk})} · ${visual.gookjinConverted ? '쌍피' : item.typeLabel}${options.mission ? ' · 미션패' : ''}`;
+  const aria = `${options.shakeHint ? '흔들기 가능 · ' : ''}${spokenCardName(item,{gookjinAsDoubleJunk:options.gookjinAsDoubleJunk})} · ${visual.gookjinConverted ? '쌍피' : item.typeLabel}${options.mission ? ' · 미션패' : ''}${options.quietMatch ? ' · 바닥패와 마지막 한 쌍, 먹을 수 있음' : ''}`;
   // Every 광 face has its 光 seal printed inside the v19 raster already.
   // No extra bright mark: otherwise the glyph appears twice on small phones.
   const mark = `${visual.doubleJunkText ? `<span class="hwatu__double-mark" aria-hidden="true">${visual.doubleJunkText}</span>` : ''}${options.mission ? '<span class="mission-card-mark" aria-hidden="true">미션</span>' : ''}`;
@@ -554,7 +554,7 @@ function gameScreen() {
       ${capturedRack(g)}
       <div class="hand-heading"><strong>내 패 ${hand.length}장</strong> <span>${yourTurn?'패를 눌러 내기':'상대 차례'}</span></div>
       <div class="hand-workspace">
-      <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{mission:isMission(id),shakeHint:shakeMonths.has(getCard(id)?.month),action:yourTurn?'play':null,matchHint:(!yourTurn || !pending || getCard(id)?.month===pending) && handHint(g,id)==='match',quietHint:handHint(g,id)==='dead',bonusHint:handHint(g,id)==='bonus'})).join('') : ((g.humanBombSkips || 0)?'':'<span class="no-cards">손패를 모두 냈어!</span>')}${Array.from({length:g.humanBombSkips || 0},(_,index)=>`<button type="button" class="bomb-empty-card" data-action="flip" aria-label="폭탄 빈 패 ${index+1}, 사용하면 더미만 뒤집기" ${yourTurn && !pending?'':'disabled'}><span class="bomb-empty-label">폭탄패</span></button>`).join('')}</div>
+      <div class="my-hand" aria-label="내 손패">${hand.length ? hand.map(id=>card(id,{mission:isMission(id),shakeHint:shakeMonths.has(getCard(id)?.month),action:yourTurn?'play':null,matchHint:(!yourTurn || !pending || getCard(id)?.month===pending) && handHint(g,id)==='match',quietHint:['dead','quiet-match'].includes(handHint(g,id)),quietMatch:handHint(g,id)==='quiet-match',bonusHint:handHint(g,id)==='bonus'})).join('') : ((g.humanBombSkips || 0)?'':'<span class="no-cards">손패를 모두 냈어!</span>')}${Array.from({length:g.humanBombSkips || 0},(_,index)=>`<button type="button" class="bomb-empty-card" data-action="flip" aria-label="폭탄 빈 패 ${index+1}, 사용하면 더미만 뒤집기" ${yourTurn && !pending?'':'disabled'}><span class="bomb-empty-label">폭탄패</span></button>`).join('')}</div>
         <span class="player-controls">${humanTurnSignature(app.screen,g) ? `<span class="turn-clock" role="timer" aria-label="내 차례 남은 시간"><span class="turn-clock__time"><strong data-turn-seconds>${HUMAN_TURN_SECONDS}</strong>초</span><span class="turn-clock__rail"><span class="turn-clock__fill" data-turn-fill></span></span></span>` : '<span class="turn-clock turn-clock--waiting">상대 차례</span>'}<button type="button" class="action-chip action-chip--auto ${app.autoMode?'is-on':''}" data-action="automode" aria-label="자동 치기 ${app.autoMode?'끄기':'켜기'}" aria-pressed="${app.autoMode}">${autoButtonContent(app.autoMode)}</button></span>
       </div>
     </div>
