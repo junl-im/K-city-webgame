@@ -3044,6 +3044,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  function skillEffect(kind,x,y,time=.8){game.skillEffects.push({kind,x,y,life:time,total:time,seed:rnd(0,Math.PI*2)});game.skillEffects=game.skillEffects.slice(-25);}
  function foeHitReaction(foe,damage,fromX){
   if(!foe.alive)return;
+  playSound('foeHit',{x:foe.x,boss:foe.boss,damage});
   foe.hitDirection=foe.x>=fromX?1:-1;
   foe.hitStrength=clamp(damage/(foe.boss?125:70),.38,1.35);
   foe.hitFlash=foe.boss?.46:.39;foe.hitAnim=.72;foe.attackAnim=0;
@@ -3603,11 +3604,11 @@ function advanceChargePower(dt){
       :['아군 HP 0! 데스매치 패배.','바람과 각도를 읽고 다시 도전해 보세요.']);
   $('resultText').textContent=lines.join('\n');
   $('nextBtn').hidden=game.mode!=='adventure'||!won||game.stage===stageSet.length-1;
-  playSound(won?'win':'lose');playBattleVoice(won?'win':'lose',game.hero,true);updateHud();
+  playSound(won?'win':'lose',{mode:game.mode});playBattleVoice(won?'win':'lose',game.hero,true);updateHud();
  }
  // v6.16: original procedural sound palette; no media downloads and no SVG.
- const soundShapes={fire:{freq:290,end:95,duration:.18,volume:.10,type:'triangle'},blast:{freq:125,end:40,duration:.28,volume:.14,type:'sawtooth'},precision:{freq:640,end:1020,duration:.23,volume:.09,type:'sine'},timingNear:{freq:490,end:740,duration:.15,volume:.035,type:'sine'},timingOff:{freq:215,end:135,duration:.14,volume:.026,type:'triangle'},lock:{freq:720,end:880,duration:.09,volume:.025,type:'sine'},split:{freq:760,end:460,duration:.15,volume:.045,type:'triangle'},critical:{freq:190,end:62,duration:.39,volume:.17,type:'sawtooth'},wood:{freq:410,end:125,duration:.13,volume:.054,type:'triangle'},stone:{freq:185,end:52,duration:.22,volume:.065,type:'sawtooth'},iron:{freq:710,end:230,duration:.36,volume:.042,type:'sine'},win:{freq:560,end:880,duration:.32,volume:.10,type:'sine'},lose:{freq:270,end:130,duration:.38,volume:.09,type:'triangle'},ui:{freq:470,end:600,duration:.09,volume:.06,type:'sine'},charge:{freq:135,end:330,duration:.22,volume:.035,type:'sawtooth'},tick:{freq:680,end:495,duration:.055,volume:.017,type:'triangle'},flight:{freq:510,end:95,duration:.43,volume:.03,type:'triangle'},skill:{freq:395,end:1060,duration:.32,volume:.052,type:'sine'},combo:{freq:590,end:790,duration:.16,volume:.043,type:'sine'},bossBreak:{freq:135,end:39,duration:.57,volume:.135,type:'sawtooth'},voiceCue:{freq:610,end:870,duration:.15,volume:.036,type:'sine'}};
- const soundCooldown={wood:.085,stone:.085,iron:.085,tick:.12,lock:.32,critical:.35,blast:.04,split:.055,flight:.07,combo:.28,bossBreak:.65};
+ const soundShapes={fire:{freq:290,end:95,duration:.18,volume:.10,type:'triangle'},blast:{freq:125,end:40,duration:.28,volume:.14,type:'sawtooth'},precision:{freq:640,end:1020,duration:.23,volume:.09,type:'sine'},timingNear:{freq:490,end:740,duration:.15,volume:.035,type:'sine'},timingOff:{freq:215,end:135,duration:.14,volume:.026,type:'triangle'},lock:{freq:720,end:880,duration:.09,volume:.025,type:'sine'},split:{freq:760,end:460,duration:.15,volume:.045,type:'triangle'},critical:{freq:190,end:62,duration:.39,volume:.17,type:'sawtooth'},wood:{freq:410,end:125,duration:.13,volume:.054,type:'triangle'},stone:{freq:185,end:52,duration:.22,volume:.065,type:'sawtooth'},iron:{freq:710,end:230,duration:.36,volume:.042,type:'sine'},win:{freq:560,end:880,duration:.32,volume:.10,type:'sine'},lose:{freq:270,end:130,duration:.38,volume:.09,type:'triangle'},ui:{freq:470,end:600,duration:.09,volume:.06,type:'sine'},charge:{freq:135,end:330,duration:.22,volume:.035,type:'sawtooth'},tick:{freq:680,end:495,duration:.055,volume:.017,type:'triangle'},flight:{freq:510,end:95,duration:.43,volume:.03,type:'triangle'},skill:{freq:395,end:1060,duration:.32,volume:.052,type:'sine'},combo:{freq:590,end:790,duration:.16,volume:.043,type:'sine'},bossBreak:{freq:135,end:39,duration:.57,volume:.135,type:'sawtooth'},foeHit:{freq:360,end:115,duration:.12,volume:.043,type:'triangle'},heroHit:{freq:188,end:65,duration:.22,volume:.083,type:'sawtooth'},voiceCue:{freq:610,end:870,duration:.15,volume:.036,type:'sine'}};
+ const soundCooldown={wood:.085,stone:.085,iron:.085,tick:.12,lock:.32,critical:.35,blast:.04,split:.055,flight:.07,combo:.28,bossBreak:.65,foeHit:.115,heroHit:.105};
  function synthNote(ac,start,freq,end,duration,volume,type='sine',destination=ac.destination){
   const osc=ac.createOscillator(),gain=ac.createGain();osc.type=type;
   osc.frequency.setValueAtTime(Math.max(22,freq),start);osc.frequency.exponentialRampToValueAtTime(Math.max(22,end),start+duration);
@@ -3653,6 +3654,7 @@ function advanceChargePower(dt){
    const s=soundShapes[kind]||soundShapes.ui,v=options.voiceFallback?game.voiceVolume:game.effectVolume,weapon=options.weapon||'normal',hero=options.hero||game.hero;
    const destination=positionalSoundBus(ac,options.x,now);
    const noise=(duration,settings)=>audioNoise(ac,now,duration,{...settings,destination});
+   const noiseAt=(offset,duration,settings)=>audioNoise(ac,now+offset,duration,{...settings,destination});
    const note=(start,freq,end,duration,volume,type='sine')=>synthNote(ac,start,freq,end,duration,volume,type,destination);
    // The first oscillator preserves the established material timbres.
    note(now,s.freq,s.end,s.duration,s.volume*v,s.type);
@@ -3663,9 +3665,27 @@ function advanceChargePower(dt){
     else{noise(.21,{low:145,high:2900,volume:.091*v,filter:'lowpass'});note(now+.035,hero==='bear'?83:225,58,.25,.047*v,'triangle');}
    }else if(kind==='blast'){
     noise(weapon==='bomb'?.64:.36,{low:75,high:weapon==='bomb'?1250:3200,volume:(weapon==='bomb'?.18:.095)*v,filter:'lowpass'});
-    if(weapon==='bomb')note(now+.05,75,28,.52,.12*v,'sawtooth');
-    if(weapon==='split')note(now+.07,950,420,.18,.041*v);
+    if(weapon==='bomb'){
+     note(now+.05,75,28,.52,.12*v,'sawtooth');
+     // Delayed rubble falls after the visible explosion core, not at launch.
+     note(now+.19,120,44,.38,.049*v,'triangle');note(now+.36,85,34,.29,.033*v,'sawtooth');
+     noiseAt(.23,.38,{low:95,high:920,volume:.055*v,filter:'lowpass'});
+    }else if(weapon==='split'){
+     [970,1240,1480].forEach((f,i)=>note(now+.075+i*.082,f,f*.49,.16,.033*v,'sine'));
+     noiseAt(.11,.19,{low:670,high:4500,volume:.026*v});
+    }else{
+     note(now+.09,640,260,.23,.039*v,'triangle');
+     noiseAt(.11,.14,{low:210,high:1750,volume:.025*v});
+    }
    }else if(kind==='flight')noise(.37,{low:190,high:weapon==='split'?4500:2300,volume:.042*v});
+   else if(kind==='foeHit'){
+    note(now+.028,options.boss?130:420,options.boss?51:145,options.boss?.32:.15,(options.boss?.067:.031)*v,'triangle');
+    noise(.12,{low:options.boss?90:320,high:options.boss?1250:2450,volume:(options.boss?.063:.035)*v,filter:options.boss?'lowpass':'bandpass'});
+   }
+   else if(kind==='heroHit'){
+    note(now+.035,310,94,.19,.043*v,'triangle');
+    noise(.18,{low:125,high:1900,volume:.063*v,filter:'lowpass'});
+   }
    else if(kind==='wood')noise(.11,{low:140,high:1500,volume:.071*v});
    else if(kind==='stone')noise(.23,{low:95,high:2400,volume:.084*v,filter:'lowpass'});
    else if(kind==='iron')noise(.06,{low:540,high:3200,volume:.04*v});
@@ -3697,12 +3717,25 @@ function advanceChargePower(dt){
     noise(.65,{low:75,high:2200,volume:.135*v,filter:'lowpass'});
    }
    else if(kind==='charge')noise(.18,{low:220,high:1100,volume:.022*v});
-   else if(kind==='win'){[740,930,1175].forEach((f,i)=>note(now+i*.11,f,f*1.015,.26,.046*v,'sine'));}
-   else if(kind==='lose'){[350,295,220].forEach((f,i)=>note(now+i*.14,f,f*.82,.31,.033*v,'triangle'));}
+   else if(kind==='win'){
+    const duel=options.mode==='duel';
+    (duel?[490,735,980,1225]:[660,830,990,1320]).forEach((f,i)=>note(now+i*.115,f,f*1.025,.29,(duel?.047:.038)*v,duel?'triangle':'sine'));
+    if(duel)note(now+.12,164,92,.49,.048*v,'sawtooth');
+    else note(now+.43,1590,1810,.32,.025*v,'sine');
+   }
+   else if(kind==='lose'){
+    [350,295,220].forEach((f,i)=>note(now+i*.14,f,f*.82,.31,.033*v,'triangle'));
+    note(now+.39,165,105,.31,.024*v,'sine');
+   }
   }catch(_){/* Unsupported or suspended audio must never interrupt the match. */}
  }
  const battleLines={intro:'포격 준비!',perfect:'퍼펙트!',critical:'치명타!',combo:'연속 명중!',win:'승리! 훌륭한 포격이야!',lose:'아쉽지만, 다시 도전!',enemy:'적의 포격이다!',fox:'바람을 읽어!',bear:'관통 준비 완료!',rabbit:'분열 발사!',cat:'바람을 돌려!'};
- const heroBattleLines={fox:{perfect:'바람처럼 정확해!',critical:'급소 포착!',combo:'연속 적중!'},bear:{perfect:'묵직하게 명중!',critical:'방어를 뚫었다!',combo:'계속 밀어붙여!'},rabbit:{perfect:'정확히 맞혔어!',critical:'한가운데!',combo:'연속 성공!'},cat:{perfect:'계산대로야!',critical:'정확한 충격!',combo:'연속 포착!'}};
+ const heroBattleLines={
+  fox:{perfect:'바람처럼 정확해!',critical:'급소 포착!',combo:'연속 적중!',win:'바람을 읽은 승리야!',lose:'다음 바람엔 맞힐 거야!'},
+  bear:{perfect:'묵직하게 명중!',critical:'방어를 뚫었다!',combo:'계속 밀어붙여!',win:'끝까지 버텨낸 승리다!',lose:'한 번 더 버텨 보자!'},
+  rabbit:{perfect:'정확히 맞혔어!',critical:'한가운데!',combo:'연속 성공!',win:'작전 대성공이야!',lose:'다음엔 더 똑똑하게!'},
+  cat:{perfect:'계산대로야!',critical:'정확한 충격!',combo:'연속 포착!',win:'모든 계산이 맞아떨어졌어!',lose:'변수를 다시 계산할게!'}
+ };
  const battleVoiceStyle={fox:{pitch:1.27,rate:1.14},bear:{pitch:.76,rate:.93},rabbit:{pitch:1.42,rate:1.18},cat:{pitch:1.12,rate:1.02}};
  function stopBattleVoice(){try{window.speechSynthesis?.cancel?.();}catch(_){}game.voiceCaptionTime=0;$('voiceCaption').hidden=true;}
  function playBattleVoice(kind,hero=game.hero,force=false){
@@ -3753,7 +3786,7 @@ function advanceChargePower(dt){
    game.wind=clamp(Math.abs(game.wind)<1.2?(game.wind<=0?2.6:-2.6):-game.wind*1.25,-4,4);
    spawnSparks(origin().x,origin().y-26,14,'#c8efdf',.5);skillEffect('cat',origin().x,origin().y-35,1.3);game.message='고양이의 바람 전환!';
   }
-  game.abilityUsed=true;game.abilityCount++;game.messageTime=1.4;playSound('skill',{hero:game.hero});playBattleVoice(game.hero);updateHud();return true;
+  game.abilityUsed=true;game.abilityCount++;game.messageTime=1.4;playSound('skill',{hero:game.hero,x:p?.x??origin().x});playBattleVoice(game.hero);updateHud();return true;
  }
  function firePlayer(){
   // First tap opens the precision challenge; the next tap locks the timing needle.
@@ -3929,7 +3962,7 @@ function advanceChargePower(dt){
       total:critical?.7:direct?.56:.46,critical,weapon:impactWeapon,hero:duelHero(c.owner),seed:rnd(0,6.3)});
      game.duelHitBursts=game.duelHitBursts.slice(-16);
      spawnCombatPopup(c.owner,'-'+val,c.owner===p.directTarget?(critical?'critical':'direct'):big?'blast':'normal');
-     actorMotion(c.owner,'hit',.52);skillEffect('hit',c.x,cy,.45);spawnSparks(c.x,cy,12,'#fdd2a8',.8);}
+     actorMotion(c.owner,'hit',.52);playSound('heroHit',{x:c.x,weapon:p.weapon,damage:val});skillEffect('hit',c.x,cy,.45);spawnSparks(c.x,cy,12,'#fdd2a8',.8);}
    }
   }
   updateHud();
