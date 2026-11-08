@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chooseAiFloorMatch } from '../engine/ai/evaluator';
+import { chooseAiFloorMatch, evaluateMoves } from '../engine/ai/evaluator';
 import { AI_DIFFICULTIES } from '../engine/ai/settings';
 import { chooseAiGoStop, chooseAiGookjinAsDoubleJunk, chooseAiMove } from '../engine/ai/strategy';
 import { createMatgoDeck } from '../engine/deck';
@@ -8,6 +8,32 @@ import { createInitialGame } from '../engine/gameState';
 describe('규칙 기반 AI 수 선택', () => {
   it('두 장 중 먹을 패는 점수 가치가 높은 패를 자동으로 고른다', () => {
     expect(chooseAiFloorMatch(['m01-03', 'm01-01'], [])).toBe('m01-01');
+  });
+
+  it('두 장 중 선택할 때 내 홍단 완성 점수를 고려한다', () => {
+    expect(chooseAiFloorMatch(['m01-01','m01-02'],[],['m02-02','m03-02'])).toBe('m01-02');
+    expect(chooseAiFloorMatch(['m01-01','m01-02'],[],[])).toBe('m01-01');
+  });
+
+  it('선택할 수 있는 미션패의 보상과 감점을 구분한다', () => {
+    const mission={kind:'gakpae' as const,cardIds:['m02-02','m01-02'],requiredCount:2,enabled:true,
+      effect:{kind:'points' as const,value:3}};
+    expect(chooseAiFloorMatch(['m01-01','m01-02'],[],['m02-02'],false,mission)).toBe('m01-02');
+    expect(chooseAiFloorMatch(['m01-01','m01-02'],[],['m02-02'],false,{...mission,effect:{kind:'points',value:-3}})).toBe('m01-01');
+    expect(chooseAiFloorMatch(['m01-01','m01-02'],[],['m02-02'],false,{...mission,enabled:false})).toBe('m01-01');
+  });
+
+  it('뻑에 붙어 있는 보너스패도 수의 가치에 포함한다', () => {
+    const game=createInitialGame(71,'hard',1000,'human');
+    game.phase='playing';game.currentPlayer='human';game.humanHand=['m01-04'];
+    game.floorCards=['m01-01','m01-02','m01-03','bonus-pee-1'];
+    game.humanCaptured=[];game.computerCaptured=[];game.mission=null;
+    game.ppeokPiles=[{month:1,owner:'computer',cardIds:['m01-01','m01-02','m01-03'],bonusCardIds:['bonus-pee-1']}];
+    const withBonus=evaluateMoves(game,'human').find(item=>item.move.kind==='card')!;
+    game.floorCards=game.floorCards.filter(id=>id!=='bonus-pee-1');
+    game.ppeokPiles[0].bonusCardIds=[];
+    const withoutBonus=evaluateMoves(game,'human').find(item=>item.move.kind==='card')!;
+    expect(withBonus.immediateValue).toBeGreaterThan(withoutBonus.immediateValue);
   });
 
   it('어려움은 평가 점수가 가장 높은 수를 항상 고른다', () => {

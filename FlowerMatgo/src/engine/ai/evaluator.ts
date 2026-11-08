@@ -1,4 +1,5 @@
-import { BONUS_PEE_CARDS, getCard, HWATU_CARDS } from '../cards';
+import { getCard } from '../cards';
+import { createMatgoDeck } from '../deck';
 import { isBonusPee } from '../rules/bonusPee';
 import { calculateCapturedScore, calculatePlayerScore } from '../rules/scoring';
 import { findBombOptions, findShakeOptions } from '../rules/specialRules';
@@ -6,6 +7,7 @@ import type { GameState, PlayerId } from '../types';
 import type { AiMove, MoveEvaluation } from './types';
 
 const SET_TAGS = ['godori', 'hongdan', 'cheongdan', 'chodan'] as const;
+const MATGO_DECK_SIZE = createMatgoDeck().length;
 
 const playerCards = (state: GameState, player: PlayerId) => player === 'human'
   ? { hand: state.humanHand, captured: state.humanCaptured, opponentCaptured: state.computerCaptured, gookjin: state.humanGookjinAsDoubleJunk, bombSkips: state.humanBombSkips ?? 0, shakenMonths: state.humanShakenMonths ?? [], pendingShakeMonth: state.humanPendingShakeMonth ?? null }
@@ -75,16 +77,34 @@ function opponentMatchRisk(state: GameState, player: PlayerId, cardId: string): 
   const view = playerCards(state, player);
   const visible = [...view.hand, ...state.floorCards, ...state.humanCaptured, ...state.computerCaptured];
   const visibleMonth = visible.filter(id => getCard(id)?.month === card.month).length;
-  const unknownTotal = Math.max(1, HWATU_CARDS.length + BONUS_PEE_CARDS.length - new Set(visible).size);
+  const unknownTotal = Math.max(1, MATGO_DECK_SIZE - new Set(visible).size);
   const matchingUnknown = Math.max(0, 4 - visibleMonth);
   const opponentHandSize = player === 'human' ? state.computerHand.length : state.humanHand.length;
   const hitProbability = 1 - noHitProbability(unknownTotal, matchingUnknown, opponentHandSize);
   return hitProbability * (cardValue(cardId) + 2.4);
 }
 
-export function chooseAiFloorMatch(matches: string[], opponentCaptured: string[]): string | undefined {
-  return [...matches].sort((left, right) =>
-    cardValue(right) + denialValue(opponentCaptured, [right]) - cardValue(left) - denialValue(opponentCaptured, [left]))[0];
+function missionCaptureValue(mission: GameState['mission'], captured: string[], added: string[]): number {
+  if (!mission || mission.enabled === false || mission.resolvedBy || mission.unconditional || !mission.cardIds?.length) return 0;
+  const targets=new Set(mission.cardIds), owned=new Set(captured);
+  const gained=[...new Set(added)].filter(id=>targets.has(id) && !owned.has(id));
+  if (!gained.length) return 0;
+  const progress=mission.cardIds.filter(id=>owned.has(id)).length;
+  const completes=progress+gained.length >= (mission.requiredCount || mission.cardIds.length);
+  const effect=mission.effect;
+  if (!effect) return gained.length*2;
+  if (!completes) return (effect.kind==='points' && effect.value<0) || effect.kind==='give' ? 0 : gained.length*2;
+  if (effect.kind==='points') return effect.value*13;
+  if (effect.kind==='steal') return 6*effect.value;
+  if (effect.kind==='give') return -6*effect.value;
+  return Math.min(20,4*effect.value);
+}
+
+export function chooseAiFloorMatch(matches: string[], opponentCaptured: string[], captured: string[] = [], gookjinAsDoubleJunk = false, mission: GameState['mission'] = null): string | undefined {
+  const value = (id: string) => cardValue(id) + denialValue(opponentCaptured, [id])
+    + scoreDelta(captured, [id], gookjinAsDoubleJunk) * 13
+    + combinationProgress(captured, [id]) * 1.15 + missionCaptureValue(mission,captured,[id]);
+  return [...matches].sort((left, right) => value(right) - value(left))[0];
 }
 
 function capturedByCard(state: GameState, player: PlayerId, cardId: string): { capturedIds: string[]; playedMatchId?: string; matchCount: number } {
@@ -92,10 +112,13 @@ function capturedByCard(state: GameState, player: PlayerId, cardId: string): { c
   const matches = state.floorCards.filter(floorId => getCard(floorId)?.month === month);
   if (matches.length === 0) return { capturedIds: [], matchCount: 0 };
   if (matches.length === 2) {
-    const selected = chooseAiFloorMatch(matches, playerCards(state, player).opponentCaptured);
+    const view = playerCards(state, player);
+    const selected = chooseAiFloorMatch(matches, view.opponentCaptured, [...view.captured,cardId], view.gookjin, state.mission);
     return { capturedIds: selected ? [selected, cardId] : [cardId], playedMatchId: selected, matchCount: 2 };
   }
-  return { capturedIds: [...matches, cardId], matchCount: matches.length };
+  const pile=matches.length===3 ? (state.ppeokPiles || []).find(item=>item.month===month && item.cardIds.every(id=>matches.includes(id))) : null;
+  const attached=(pile?.bonusCardIds || []).filter(id=>state.floorCards.includes(id));
+  return { capturedIds: [...matches, ...attached, cardId], matchCount: matches.length };
 }
 
 function evaluateCard(state: GameState, player: PlayerId, cardId: string): MoveEvaluation {
@@ -118,7 +141,8 @@ function evaluateCard(state: GameState, player: PlayerId, cardId: string): MoveE
   const capturedValue = capture.capturedIds.reduce((sum, id) => sum + cardValue(id), 0);
   const scoreValue = scoreDelta(view.captured, capture.capturedIds, view.gookjin) * 13;
   const immediateValue = capturedValue + scoreValue;
-  const combinationValue = combinationProgress(view.captured, capture.capturedIds) + denialValue(view.opponentCaptured, capture.capturedIds);
+  const combinationValue = combinationProgress(view.captured, capture.capturedIds) + denialValue(view.opponentCaptured, capture.capturedIds)
+    + missionCaptureValue(state.mission, view.captured, capture.capturedIds);
   const duplicateCount = view.hand.filter(id => getCard(id)?.month === getCard(cardId)?.month).length;
   const bombPreservation = capture.matchCount === 0 && duplicateCount >= 2 ? (duplicateCount - 1) * 1.8 : 0;
   const opponentRisk = capture.matchCount === 0 ? opponentMatchRisk(state, player, cardId) + bombPreservation : -capture.matchCount * 0.9;

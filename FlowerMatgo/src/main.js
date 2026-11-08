@@ -4,7 +4,7 @@ import './style.css';
 import {
   createInitialGame, chooseGo, chooseStop, chooseChongtong,
   playTurn, playBomb, playFlipOnlyTurn, declareShake,
-  getMatchingFloorCards, getDrawFloorChoice, getFlipOnlyDrawChoice, isValidGameState, nextRoundMultiplier, scoreFor, setMissionEnabled
+  getMatchingFloorCards, getDrawFloorChoice, getFlipOnlyDrawChoice, getBombDrawChoice, isValidGameState, nextRoundMultiplier, scoreFor, setMissionEnabled
 } from './engine/gameState';
 import { chooseAiMove, chooseAiGoStop, chooseAiChongtong, chooseAiGookjinAsDoubleJunk } from './engine/ai/strategy';
 import { chooseAiFloorMatch } from './engine/ai/evaluator';
@@ -800,14 +800,21 @@ function syncTurnClock() {
   }
   updateClockFace();
 }
+function autoFloorMatch(game, candidates, extra = []) {
+  return chooseAiFloorMatch(candidates,game.computerCaptured,[...game.humanCaptured,...extra],game.humanGookjinAsDoubleJunk,game.mission) || candidates[0];
+}
 function autoTakeTurn(forced = false) {
   const g = app.game;
   if ((!forced && !app.autoMode) || !clockKey || turnTransition || (overlay && overlay!=='gookjin-choice') || decisionReview || document.hidden) return;
-  const bestMatch = list => chooseAiFloorMatch(list,g.computerCaptured) || list[0];
+  const bestMatch = list => autoFloorMatch(g,list);
   if (forced && !app.autoMode) {app.autoMode=true;save();}
   if (app.pendingGookjinChoice || overlay==='gookjin-choice') {mutate('gookjin-set',chooseAiGookjinAsDoubleJunk(g.humanCaptured)?'junk':'animal');return;}
-  if (app.pendingDrawChoice) {mutate('draw-choice',undefined,bestMatch(app.pendingDrawChoice.candidateIds));return;}
-  if (selectedMatch) { humanPlay(selectedMatch.cardId,bestMatch(selectedMatch.matches),true,undefined,true); return; }
+  if (app.pendingDrawChoice) {
+    const choice=app.pendingDrawChoice, matches=choice.kind==='play'?getMatchingFloorCards(g.floorCards,choice.cardId):[];
+    const played=matches.length?[choice.cardId,...(matches.length===2?[choice.playedMatchId]:matches).filter(Boolean)]:[];
+    mutate('draw-choice',undefined,autoFloorMatch(g,choice.candidateIds,[...played,choice.drawnCardId]));return;
+  }
+  if (selectedMatch) { humanPlay(selectedMatch.cardId,autoFloorMatch(g,selectedMatch.matches,[selectedMatch.cardId]),true,undefined,true); return; }
   if (selectedTriple) {
     if (selectedTriple.mode==='choice') {
       const special=automaticSpecial(g,selectedTriple.month);
@@ -1137,11 +1144,16 @@ function humanPlay(id, matchId, skipTriple=false, drawnMatchId=undefined, automa
     selectedMatch={cardId:id,matches};render();return;
   }
   selectedMatch=null;
-  if (!automated && !drawnMatchId) {
+  if (!drawnMatchId) {
     const drawChoice=getDrawFloorChoice(g,id,matchId);
     if (drawChoice) {
-      app.pendingDrawChoice={kind:'play',cardId:id,playedMatchId:matchId || null,...drawChoice};
-      save();render();return;
+      if (automated) {
+        const playedCapture=matches.length ? [id,...(matches.length===2?[matchId]:matches).filter(Boolean)] : [];
+        drawnMatchId=autoFloorMatch(g,drawChoice.candidateIds,[...playedCapture,drawChoice.drawnCardId]);
+      } else {
+        app.pendingDrawChoice={kind:'play',cardId:id,playedMatchId:matchId || null,...drawChoice};
+        save();render();return;
+      }
     }
   }
   ROOT.querySelector('.modal-shade--decision')?.remove();
@@ -1241,14 +1253,20 @@ function mutate(action, value, cardId) {
     else if (action==='stop') next=chooseStop(g,'human');
     else if (action==='chongtong-go') next=chooseChongtong(g,'human','continue');
     else if (action==='chongtong-stop') next=chooseChongtong(g,'human','stop');
-    else if (action==='bomb') { result=playBomb(g,'human',Number(value));next=result.state; }
+    else if (action==='bomb') {
+      const month=Number(value), choice=app.autoMode ? getBombDrawChoice(g,'human',month) : null;
+      const bomb=findBombOptions(g.humanHand,g.floorCards,true).find(option=>option.month===month);
+      const extra=bomb?[...bomb.handCardIds,...bomb.floorCardIds]:[];
+      result=playBomb(g,'human',month,choice?autoFloorMatch(g,choice.candidateIds,[...extra,choice.drawnCardId]):undefined);next=result.state;
+    }
     else if (action==='shake') { next=declareShake(g,'human',Number(value));selectedTriple={month:Number(value),mode:'shake'};effects('흔들기!', 'special', 'shake');voicePlayer.enqueue(['shake']); }
     else if (action==='flip') {
       if (!value) {
         const drawChoice=getFlipOnlyDrawChoice(g);
         if (drawChoice) { app.pendingDrawChoice={kind:'flip',...drawChoice};save();render();return; }
       }
-      result=playFlipOnlyTurn(g,'human',value==='auto'?undefined:value || undefined);next=result.state;
+      const choice=value==='auto'?getFlipOnlyDrawChoice(g):null;
+      result=playFlipOnlyTurn(g,'human',choice?autoFloorMatch(g,choice.candidateIds,[choice.drawnCardId]):value==='auto'?undefined:value || undefined);next=result.state;
     }
     else return;
     if (action==='stop') {gameCueSound('stop');voicePlayer.enqueue(['stop']);}

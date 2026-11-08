@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createMatgoDeck } from '../engine/deck';
-import { allCardIds, chooseChongtong, chooseComputerCard, chooseGo, chooseStartingPlayer, chooseStop, createInitialGame, declareShake, getDrawFloorChoice, getFlipOnlyDrawChoice, getMatchingFloorCards, isValidGameState, playBomb, playFlipOnlyTurn, playTurn, setGookjinChoice, setPointValue } from '../engine/gameState';
+import { allCardIds, chooseChongtong, chooseComputerCard, chooseGo, chooseStartingPlayer, chooseStop, createInitialGame, declareShake, getBombDrawChoice, getDrawFloorChoice, getFlipOnlyDrawChoice, getMatchingFloorCards, isValidGameState, playBomb, playFlipOnlyTurn, playTurn, setGookjinChoice, setPointValue } from '../engine/gameState';
 
 function createForcedPpeokGame() {
   const game = createInitialGame(101);
@@ -92,6 +92,17 @@ describe('기본 맞고 진행 상태', () => {
     const result=playTurn(game,'human','m01-03');
     expect(result.state.humanCaptured).toEqual(expect.arrayContaining(['m01-03','m01-04']));
     expect(result.state.floorCards).not.toContain('m01-04');
+    expect(isValidGameState(result.state)).toBe(true);
+  });
+
+  it('폭탄 뒤 뒤집은 패가 두 장과 맞으면 지정한 바닥패를 정확히 먹는다', () => {
+    const game=createArrangedGame({humanHand:['m01-01','m01-02'],floorCards:['m01-03','m01-04','m02-01','m02-02'],floorSize:4,drawFirst:['m02-03']});
+    game.mission=null;
+    const choice=getBombDrawChoice(game,'human',1);
+    expect(choice).toEqual({drawnCardId:'m02-03',candidateIds:['m02-01','m02-02']});
+    const result=playBomb(game,'human',1,'m02-02');
+    expect(result.state.humanCaptured).toContain('m02-02');
+    expect(result.state.floorCards).toContain('m02-01');
     expect(isValidGameState(result.state)).toBe(true);
   });
 

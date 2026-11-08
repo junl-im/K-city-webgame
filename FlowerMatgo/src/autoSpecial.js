@@ -7,10 +7,19 @@ export function automaticSpecial(game, onlyMonth = null) {
   if (!game || game.phase !== 'playing' || game.currentPlayer !== 'human' || game.humanPendingShakeMonth) return null;
   const matching = option => onlyMonth == null || option.month === onlyMonth;
   const bombs = findBombOptions(game.humanHand,game.floorCards,true).filter(matching);
-  // Prefer the classic three-card bomb, then a four-card bomb. Two-card bombs
-  // remain a strategic choice for the normal AI evaluator.
-  const bomb = bombs.find(option=>option.kind==='three-card-bomb') || bombs.find(option=>option.kind==='four-card-bomb');
+  // Complete a bomb instead of playing one card and missing the other captures.
+  // Within the same type, use the evaluator rather than hand order.
+  const rankings=evaluateMoves(game,'human');
+  const rank=month=>rankings.findIndex(item=>item.move.kind==='bomb' && item.move.month===month);
+  const best=kind=>bombs.filter(option=>option.kind===kind).sort((a,b)=>rank(a.month)-rank(b.month))[0];
+  const bomb = best('three-card-bomb') || best('four-card-bomb') || best('two-card-bomb');
   if (bomb) return {kind:'bomb',month:bomb.month};
+  // Shaking forces the next card to be of that month. Do not discard it while
+  // a different playable capture or a bonus is already available.
+  if (onlyMonth == null && game.humanHand.some(id=>{
+    const item=getCard(id);
+    return item && (item.tags.includes('bonus-pee') || game.floorCards.some(floorId=>getCard(floorId)?.month===item.month));
+  })) return null;
   const shake = findShakeOptions(game.humanHand,game.floorCards,game.humanShakenMonths || []).find(matching);
   return shake ? {kind:'shake',month:shake.month} : null;
 }
