@@ -21,7 +21,7 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__combatToastForTest=()=>combatToastLayout(); window.__combatToastLinesForTest=(message,width)=>combatToastLines(ctx,message,width); window.__materialSoundForTest=()=>({wood:soundShapes.wood,stone:soundShapes.stone,iron:soundShapes.iron}); window.__triggerMaterialSoundForTest=(name)=>{const saved=game.sound;game.sound=true;playSound(name);game.sound=saved;}; window.__directionalImpactForTest=(offset)=>{const b=game.blocks.find(v=>v.type==="stone");if(!b)return null;const originalHp=b.hp;b.hp=b.maxHp*.42;markBlockImpact(b,0,34,b.body.position.x+offset);const result={side:b.impactSide,scar:b.hp<b.maxHp};b.hp=originalHp;return result;}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
- ' window.__battleVoiceForTest=(kind,hero,force)=>playBattleVoice(kind,hero,force); window.__resetVoiceCooldownForTest=()=>{game.lastVoiceAt=0;}; window.__readAudioForTest=()=>readAudioSettings(); window.__positionalSoundForTest=(fraction)=>{const prior=game.sound;game.sound=true;playSound("fire",{weapon:"normal",x:game.camera+(cv.clientWidth/Math.max(.001,game.scale))*fraction});game.sound=prior;}; window.__artilleryLoadoutDebug=');
+ ' window.__battleVoiceForTest=(kind,hero,force)=>playBattleVoice(kind,hero,force); window.__resetVoiceCooldownForTest=()=>{game.lastVoiceAt=0;}; window.__readAudioForTest=()=>readAudioSettings(); window.__positionalSoundForTest=(fraction)=>{const prior=game.sound;game.sound=true;playSound("fire",{weapon:"normal",x:game.camera+(cv.clientWidth/Math.max(.001,game.scale))*fraction});game.sound=prior;}; window.__triggerAudioForTest=(kind,options={})=>{const prior=game.sound;game.sound=true;playSound(kind,options);game.sound=prior;}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__fracturePartsForTest=(type,weapon="normal")=>{const b={w:28,h:104,type,impactSide:1,body:M.Bodies.rectangle(810,290,28,104)};spawnCollapseGhost(b,weapon);return {count:collapsePieces[type].length,total:game.collapseGhosts.at(-1).total};}; window.__weaponMaterialForTest=(type,weapon)=>materialWeaponFactor(type,weapon); window.__chainCollisionForTest=()=>{newGame("adventure",0);game.shots=1;const [a,b]=game.blocks;M.Body.setVelocity(a.body,{x:9,y:0});M.Body.setVelocity(b.body,{x:-9,y:0});const before=[a.hp,b.hp],initial=game.chainHits;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});const after=[a.hp,b.hp];M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});return {before,after,cooled:[a.hp,b.hp],count:game.chainHits-initial};}; window.__crushCollisionForTest=()=>{newGame("adventure",0);game.shots=1;const block=game.blocks[0],foe=game.foes[0];M.Body.setPosition(block.body,{x:foe.x,y:foe.y-64});M.Body.setVelocity(block.body,{x:0,y:10});const before=foe.hp;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:block.body,bodyB:foe.body}]});return {before,after:foe.hp,crushHits:game.crushHits,defeated:!foe.alive};}; window.__cleanupBrokenBlocksForTest=()=>{newGame("adventure",0);game.shots=1;const [a,b]=game.blocks;a.hp=1;M.Body.setVelocity(a.body,{x:9,y:0});M.Body.setVelocity(b.body,{x:-9,y:0});const before=game.blocks.length;M.Events.trigger(game.engine,"collisionStart",{pairs:[{bodyA:a.body,bodyB:b.body}]});const marked=a.dead;step(1/60);return {before,after:game.blocks.length,marked,ghosts:game.collapseGhosts.length};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
@@ -964,6 +964,23 @@ window.AudioContext.prototype.sampleRate=8000;
 window.AudioContext.prototype.createBuffer=(channels,length)=>({getChannelData:()=>new Float32Array(length)});
 window.AudioContext.prototype.createBufferSource=()=>({buffer:null,connect:noOp,start(){noiseStarts++;},stop:noOp});
 window.AudioContext.prototype.createBiquadFilter=()=>({type:'',frequency:{setValueAtTime:noOp,exponentialRampToValueAtTime:noOp},Q:{value:0},connect:noOp});
+// v6.18: four hero signatures, combo reward and a distinct boss defeat sting.
+const heroSignatures=new Set();
+for(const hero of ['fox','bear','rabbit','cat']){
+ const before=playedMaterials.length;
+ window.__triggerAudioForTest('skill',{hero});
+ const signature=playedMaterials.slice(before).map(note=>`${note.type}:${note.frequency}`).join('/');
+ assert(signature.split('/').length>=3,`${hero} ability needs multiple handcrafted sound layers`);
+ heroSignatures.add(signature);
+}
+assert.equal(heroSignatures.size,4,'Every hero ability must have a unique audible signature');
+const beforeCombo=playedMaterials.length;
+window.__triggerAudioForTest('combo',{streak:3,x:810});
+assert(playedMaterials.length-beforeCombo>=4,'A three-hit streak needs a layered celebratory sound');
+const beforeBoss=playedMaterials.length;
+window.__triggerAudioForTest('bossBreak',{x:970});
+assert(playedMaterials.length-beforeBoss>=5,'Boss defeat needs a distinct low-impact and victory sound');
+assert(noiseStarts>=5,'Hero skills and boss defeat should layer textured noise, not only simple beeps');
 const spoken=[];
 window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};
 window.speechSynthesis={speaking:false,pending:false,cancel:noOp,getVoices:()=>[{lang:'ko-KR',name:'test-Korean'}],speak:u=>spoken.push({text:u.text,voice:u.voice?.lang,lang:u.lang,volume:u.volume})};
@@ -989,6 +1006,11 @@ assert.equal(window.__battleVoiceForTest('critical','fox',false),false,'Busy spe
 assert.equal(window.__artilleryAudioDebug().lastCaption,lastCaption,'Busy speech must not replace the current caption');
 assert.equal(spoken.length,lastSpoken,'Busy speech must not add utterances');
 window.speechSynthesis.speaking=false;
+window.__battleVoiceForTest('critical','fox',true);
+const foxCritical=spoken.at(-1).text;
+window.__battleVoiceForTest('critical','bear',true);
+assert.notEqual(spoken.at(-1).text,foxCritical,'Heroes must have distinct critical-hit battle lines');
+assert.equal(el('voiceCaption').textContent,spoken.at(-1).text,'Accessibility caption follows the actual hero-specific callout');
 el('soundEffectsToggle').click();
 assert.equal(window.__artilleryAudioDebug().effects,false,'Effects can be muted while speech stays enabled');
 assert.equal(window.__artilleryAudioDebug().voice,true,'Speech remains enabled when effects turn off');
@@ -1011,8 +1033,11 @@ assert.equal(window.__readAudioForTest().voice,true,'Explicit v2 voice-only pref
 saved.set('cannontale-audio-v2',savedV2);
 const stereoPans=[];
 window.AudioContext.prototype.createStereoPanner=()=>({pan:{setValueAtTime:v=>stereoPans.push(v)},connect:noOp});
+let compressorInstances=0;
+window.AudioContext.prototype.createDynamicsCompressor=()=>{compressorInstances++;return {threshold:{value:0},knee:{value:0},ratio:{value:0},attack:{value:0},release:{value:0},connect:noOp};};
 window.__positionalSoundForTest(.1);window.__positionalSoundForTest(.9);
 assert(stereoPans[0]<0&&stereoPans[1]>0,'Positional audio should spread left and right across the visible battlefield');
+assert.equal(compressorInstances,1,'Multiple battlefield effects must share one phone-speaker compression bus');
 el('voiceToggle').click();
 const originalSynth=window.speechSynthesis,originalUtterance=window.SpeechSynthesisUtterance,notesBeforeFallback=playedMaterials.length;
 window.speechSynthesis=null;window.SpeechSynthesisUtterance=null;

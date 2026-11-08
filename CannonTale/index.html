@@ -3606,8 +3606,8 @@ function advanceChargePower(dt){
   playSound(won?'win':'lose');playBattleVoice(won?'win':'lose',game.hero,true);updateHud();
  }
  // v6.16: original procedural sound palette; no media downloads and no SVG.
- const soundShapes={fire:{freq:290,end:95,duration:.18,volume:.10,type:'triangle'},blast:{freq:125,end:40,duration:.28,volume:.14,type:'sawtooth'},precision:{freq:640,end:1020,duration:.23,volume:.09,type:'sine'},timingNear:{freq:490,end:740,duration:.15,volume:.035,type:'sine'},timingOff:{freq:215,end:135,duration:.14,volume:.026,type:'triangle'},lock:{freq:720,end:880,duration:.09,volume:.025,type:'sine'},split:{freq:760,end:460,duration:.15,volume:.045,type:'triangle'},critical:{freq:190,end:62,duration:.39,volume:.17,type:'sawtooth'},wood:{freq:410,end:125,duration:.13,volume:.054,type:'triangle'},stone:{freq:185,end:52,duration:.22,volume:.065,type:'sawtooth'},iron:{freq:710,end:230,duration:.36,volume:.042,type:'sine'},win:{freq:560,end:880,duration:.32,volume:.10,type:'sine'},lose:{freq:270,end:130,duration:.38,volume:.09,type:'triangle'},ui:{freq:470,end:600,duration:.09,volume:.06,type:'sine'},charge:{freq:135,end:330,duration:.22,volume:.035,type:'sawtooth'},tick:{freq:680,end:495,duration:.055,volume:.017,type:'triangle'},flight:{freq:510,end:95,duration:.43,volume:.03,type:'triangle'},skill:{freq:395,end:1060,duration:.32,volume:.052,type:'sine'},voiceCue:{freq:610,end:870,duration:.15,volume:.036,type:'sine'}};
- const soundCooldown={wood:.085,stone:.085,iron:.085,tick:.12,lock:.32,critical:.35,blast:.04};
+ const soundShapes={fire:{freq:290,end:95,duration:.18,volume:.10,type:'triangle'},blast:{freq:125,end:40,duration:.28,volume:.14,type:'sawtooth'},precision:{freq:640,end:1020,duration:.23,volume:.09,type:'sine'},timingNear:{freq:490,end:740,duration:.15,volume:.035,type:'sine'},timingOff:{freq:215,end:135,duration:.14,volume:.026,type:'triangle'},lock:{freq:720,end:880,duration:.09,volume:.025,type:'sine'},split:{freq:760,end:460,duration:.15,volume:.045,type:'triangle'},critical:{freq:190,end:62,duration:.39,volume:.17,type:'sawtooth'},wood:{freq:410,end:125,duration:.13,volume:.054,type:'triangle'},stone:{freq:185,end:52,duration:.22,volume:.065,type:'sawtooth'},iron:{freq:710,end:230,duration:.36,volume:.042,type:'sine'},win:{freq:560,end:880,duration:.32,volume:.10,type:'sine'},lose:{freq:270,end:130,duration:.38,volume:.09,type:'triangle'},ui:{freq:470,end:600,duration:.09,volume:.06,type:'sine'},charge:{freq:135,end:330,duration:.22,volume:.035,type:'sawtooth'},tick:{freq:680,end:495,duration:.055,volume:.017,type:'triangle'},flight:{freq:510,end:95,duration:.43,volume:.03,type:'triangle'},skill:{freq:395,end:1060,duration:.32,volume:.052,type:'sine'},combo:{freq:590,end:790,duration:.16,volume:.043,type:'sine'},bossBreak:{freq:135,end:39,duration:.57,volume:.135,type:'sawtooth'},voiceCue:{freq:610,end:870,duration:.15,volume:.036,type:'sine'}};
+ const soundCooldown={wood:.085,stone:.085,iron:.085,tick:.12,lock:.32,critical:.35,blast:.04,split:.055,flight:.07,combo:.28,bossBreak:.65};
  function synthNote(ac,start,freq,end,duration,volume,type='sine',destination=ac.destination){
   const osc=ac.createOscillator(),gain=ac.createGain();osc.type=type;
   osc.frequency.setValueAtTime(Math.max(22,freq),start);osc.frequency.exponentialRampToValueAtTime(Math.max(22,end),start+duration);
@@ -3621,13 +3621,25 @@ function advanceChargePower(dt){
   gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(Math.max(.001,volume),start+.014);gain.gain.exponentialRampToValueAtTime(.001,start+t);
   source.connect(biquad);biquad.connect(gain);gain.connect(destination);source.start(start);source.stop(start+t+.01);
  }
+ function audioOutputBus(ac){
+  // A single, gently compressing output prevents stacked blasts and debris
+  // from clipping small phone speakers. Older browsers keep direct playback.
+  if(ac._cannonOutput)return ac._cannonOutput;
+  if(!ac.createDynamicsCompressor)return ac.destination;
+  const compressor=ac.createDynamicsCompressor();
+  compressor.threshold.value=-21;compressor.knee.value=14;compressor.ratio.value=3;
+  compressor.attack.value=.012;compressor.release.value=.19;
+  compressor.connect(ac.destination);ac._cannonOutput=compressor;
+  return compressor;
+ }
  function positionalSoundBus(ac,x,now){
-  if(!Number.isFinite(x)||!ac.createStereoPanner||!ac.createGain)return ac.destination;
+  const output=audioOutputBus(ac);
+  if(!Number.isFinite(x)||!ac.createStereoPanner||!ac.createGain)return output;
   const viewport=cv.clientWidth/Math.max(.001,game.scale),relative=clamp((x-game.camera-viewport*.5)/Math.max(1,viewport*.5),-1,1);
   const gain=ac.createGain(),pan=ac.createStereoPanner();
   gain.gain.setValueAtTime(1-Math.abs(relative)*.18,now);
   pan.pan.setValueAtTime(relative*.58,now);
-  gain.connect(pan);pan.connect(ac.destination);
+  gain.connect(pan);pan.connect(output);
   return gain;
  }
  function playSound(kind,options={}){
@@ -3659,13 +3671,38 @@ function advanceChargePower(dt){
    else if(kind==='iron')noise(.06,{low:540,high:3200,volume:.04*v});
    else if(kind==='critical'){note(now+.07,950,1320,.31,.053*v,'sine');noise(.24,{low:400,high:3800,volume:.08*v});}
    else if(kind==='split'){note(now+.045,1160,580,.17,.045*v,'triangle');noise(.15,{low:590,high:4400,volume:.06*v});}
-   else if(kind==='skill'){note(now+.06,hero==='cat'?860:hero==='bear'?240:720,1400,.25,.036*v,'sine');}
+   else if(kind==='skill'){
+    // Each hero has a recognizable signature even with spoken voice muted.
+    if(hero==='fox'){
+     [590,790,1050].forEach((f,i)=>note(now+.025+i*.068,f,f*1.15,.13,.035*v,'triangle'));
+     noise(.17,{low:540,high:4300,volume:.031*v});
+    }else if(hero==='bear'){
+     note(now,122,49,.48,.103*v,'sawtooth');note(now+.09,188,92,.33,.045*v,'triangle');
+     noise(.34,{low:90,high:1100,volume:.061*v,filter:'lowpass'});
+    }else if(hero==='rabbit'){
+     [850,1040,1310,1590].forEach((f,i)=>note(now+.018+i*.055,f,f*.94,.12,.029*v,'sine'));
+     noise(.13,{low:880,high:5300,volume:.025*v});
+    }else if(hero==='cat'){
+     note(now+.025,410,820,.29,.047*v,'sine');note(now+.1,930,1570,.38,.041*v,'sine');
+     note(now+.2,1330,890,.25,.025*v,'triangle');noise(.23,{low:650,high:3700,volume:.026*v});
+    }
+   }
+   else if(kind==='combo'){
+    const scale=1+Math.min(5,Math.max(2,options.streak||2)-2)*.11;
+    [580,740,940].forEach((f,i)=>note(now+i*.073,f*scale,f*scale*1.05,.18,.027*v,'sine'));
+   }
+   else if(kind==='bossBreak'){
+    note(now,89,31,.62,.12*v,'sawtooth');note(now+.13,375,130,.46,.064*v,'triangle');
+    [690,880,1100].forEach((f,i)=>note(now+.24+i*.092,f,f*.78,.28,.025*v,'sine'));
+    noise(.65,{low:75,high:2200,volume:.135*v,filter:'lowpass'});
+   }
    else if(kind==='charge')noise(.18,{low:220,high:1100,volume:.022*v});
    else if(kind==='win'){[740,930,1175].forEach((f,i)=>note(now+i*.11,f,f*1.015,.26,.046*v,'sine'));}
    else if(kind==='lose'){[350,295,220].forEach((f,i)=>note(now+i*.14,f,f*.82,.31,.033*v,'triangle'));}
   }catch(_){/* Unsupported or suspended audio must never interrupt the match. */}
  }
- const battleLines={intro:'포격 준비!',perfect:'퍼펙트!',critical:'치명타!',win:'승리! 훌륭한 포격이야!',lose:'아쉽지만, 다시 도전!',enemy:'적의 포격이다!',fox:'바람을 읽어!',bear:'관통 준비 완료!',rabbit:'분열 발사!',cat:'바람을 돌려!'};
+ const battleLines={intro:'포격 준비!',perfect:'퍼펙트!',critical:'치명타!',combo:'연속 명중!',win:'승리! 훌륭한 포격이야!',lose:'아쉽지만, 다시 도전!',enemy:'적의 포격이다!',fox:'바람을 읽어!',bear:'관통 준비 완료!',rabbit:'분열 발사!',cat:'바람을 돌려!'};
+ const heroBattleLines={fox:{perfect:'바람처럼 정확해!',critical:'급소 포착!',combo:'연속 적중!'},bear:{perfect:'묵직하게 명중!',critical:'방어를 뚫었다!',combo:'계속 밀어붙여!'},rabbit:{perfect:'정확히 맞혔어!',critical:'한가운데!',combo:'연속 성공!'},cat:{perfect:'계산대로야!',critical:'정확한 충격!',combo:'연속 포착!'}};
  const battleVoiceStyle={fox:{pitch:1.27,rate:1.14},bear:{pitch:.76,rate:.93},rabbit:{pitch:1.42,rate:1.18},cat:{pitch:1.12,rate:1.02}};
  function stopBattleVoice(){try{window.speechSynthesis?.cancel?.();}catch(_){}game.voiceCaptionTime=0;$('voiceCaption').hidden=true;}
  function playBattleVoice(kind,hero=game.hero,force=false){
@@ -3677,9 +3714,10 @@ function advanceChargePower(dt){
     if(kind==='win'||kind==='lose'||force)synth.cancel();else if(synth.speaking||synth.pending)return false;
    }
    // A busy voice queue must not consume a cooldown or create phantom captions.
-   game.lastVoiceAt=now;game.voiceCaptionTime=1.65;$('voiceCaption').textContent=battleLines[kind];$('voiceCaption').hidden=false;
+   const line=heroBattleLines[hero]?.[kind]||battleLines[kind];
+   game.lastVoiceAt=now;game.voiceCaptionTime=1.65;$('voiceCaption').textContent=line;$('voiceCaption').hidden=false;
    if(!synth||!Utterance){playSound('voiceCue',{voiceFallback:true});return false;}
-   const utterance=new Utterance(battleLines[kind]),style=battleVoiceStyle[hero]||battleVoiceStyle.fox;
+   const utterance=new Utterance(line),style=battleVoiceStyle[hero]||battleVoiceStyle.fox;
    utterance.lang='ko-KR';utterance.pitch=style.pitch;utterance.rate=style.rate;utterance.volume=Math.min(.9,game.voiceVolume*.73);
    const voices=synth.getVoices?.()||[],korean=voices.find(v=>v.lang?.toLowerCase()==='ko-kr')||voices.find(v=>v.lang?.toLowerCase().startsWith('ko'));
    if(korean)utterance.voice=korean;
@@ -3794,7 +3832,7 @@ function advanceChargePower(dt){
    anchor:isFoe?target:null,blockBody:isBlock?target.body:null,duelOwner:isDuel?target:null,anchorOffset:height,drift:rnd(-13,13)});
   game.popups=game.popups.slice(-36);
  }
- function defeatFoe(f){if(!f.alive)return;f.alive=false;f.deathTimer=3.8;f.deathAngle=rnd(-.38,.38);f.hitAnim=0;f.attackAnim=0;if(f.body)M.Composite.remove(game.engine.world,f.body);spawnSparks(f.x,f.y,f.boss?50:24,['#a9c75f','#cbdad1','#a9edff','#ffb375'][f.kind||0],f.boss?1.3:.85);spawnCombatPopup(f,f.boss?'대장 격파!':'격파!','ko',f.r+56);if(f.boss){game.shake=20;game.message='요새 대장 격파!';game.messageTime=2;}}
+ function defeatFoe(f){if(!f.alive)return;f.alive=false;f.deathTimer=3.8;f.deathAngle=rnd(-.38,.38);f.hitAnim=0;f.attackAnim=0;if(f.body)M.Composite.remove(game.engine.world,f.body);spawnSparks(f.x,f.y,f.boss?50:24,['#a9c75f','#cbdad1','#a9edff','#ffb375'][f.kind||0],f.boss?1.3:.85);spawnCombatPopup(f,f.boss?'대장 격파!':'격파!','ko',f.r+56);if(f.boss){game.shake=20;game.message='요새 대장 격파!';game.messageTime=2;playSound('bossBreak',{x:f.x});}}
  function spawnImpactMotes(p,big){
   const count=big?23:p.weapon==='split'?8:13,hero=p.hero||'fox';
   const targetX=p.directTarget==='player'?190:p.directTarget==='ai'?1018:null;
@@ -3942,6 +3980,8 @@ function advanceChargePower(dt){
    if(game.hitStreak>=2){
     title=`${game.hitStreak}연속 명중! · ${title}`;
     if(game.lastImpact)spawnSparks(game.lastImpact.x,game.lastImpact.y,Math.min(28,8+game.hitStreak*4),'#ffdf82',.48);
+    playSound('combo',{streak:game.hitStreak,x:game.lastImpact?.x});
+    if(game.hitStreak===3)playBattleVoice('combo',game.hero);
    }
    detail=knocked?`구조물 피해 ${structure} · 남은 목표 ${game.foes.filter(f=>f.alive).length}`:structure>0?`구조물 피해 ${structure}${shatteredDescription?' · 붕괴 '+shatteredDescription:''}`:'화면을 움직여 착탄 지점과 남은 목표를 확인하세요';
    game.reviewNext=game.foes.every(f=>!f.alive)?'win':game.shots>=game.maxShots?'lose':'aim';
