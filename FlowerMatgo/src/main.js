@@ -1166,7 +1166,7 @@ function mutate(action, value, cardId) {
   // A resolved game is checkpointed while cards fly; leave it intact.
   if (action === 'automode') {
     app.autoMode = !app.autoMode;
-    if (app.autoMode) selectedMatch = null; else clearAutoTimer();
+    if (!app.autoMode) clearAutoTimer();
     if (turnTransition) {
       try { const checkpoint=JSON.parse(localStorage.getItem(SAVE_KEY)); if(checkpoint){checkpoint.autoMode=app.autoMode;localStorage.setItem(SAVE_KEY,JSON.stringify(checkpoint));} } catch { /* In-memory mode remains available. */ }
       const button=ROOT.querySelector('[data-action="automode"]');
