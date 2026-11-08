@@ -17,7 +17,7 @@ import { currentBakWarnings } from './bakWarnings.js';
 import { setWarnings, newlyAvailableOpponentWarnings } from './opponentSetWarnings.js';
 import { missionView } from './missionView.js';
 import { doubleOffer } from './doubleStake.js';
-import { floorDensity } from './floorLayout.js';
+import { floorDensity, groupFloorCards } from './floorLayout.js';
 import { settleOpeningPpeok } from './openingPpeok.js';
 import { artworkOrdinal, cardBookLabel, cardVisualDetails } from './cardDisplay.js';
 import { hwatuFamily, spokenActionText, spokenCardName } from './cardNames.js';
@@ -517,6 +517,7 @@ function gameScreen() {
   const shakeMonths = new Set(g.phase === 'playing' && !pending ? findShakeOptions(g.humanHand, g.floorCards, g.humanShakenMonths || []).map(option => option.month) : []);
   const hand = [...g.humanHand].sort((a,b)=>((getCard(a)?.month||0)-(getCard(b)?.month||0)));
   const floor = [...g.floorCards].sort((a,b)=>(getCard(a)?.month||0)-(getCard(b)?.month||0));
+  const floorGroups = groupFloorCards(floor,g.ppeokPiles);
   const active = g.phase==='playing' ? (yourTurn?'내 차례':'상대 차례') : g.phase==='awaiting-go-stop' ? '고 / 스톱 선택' : g.phase==='awaiting-chongtong'?'총통!':'한 판 종료';
   const opponentMood = g.phase==='round-ended' ? (g.winner==='computer'?'victory':'surprised')
     : !yourTurn ? 'thinking' : ai.total > me.total ? 'confident' : ai.total < me.total ? 'surprised' : 'ready';
@@ -544,7 +545,7 @@ function gameScreen() {
       <div class="field-heading"><strong>바닥패 ${floor.length}장</strong><span>같은 무늬를 맞춰 획득!</span></div>
       <div class="field-row">
         <div class="deck-pile">${cardBack()}<small>남은 패 <b>${g.drawPile.length}</b></small></div>
-        <div class="floor-area" data-density="${floorDensity(floor.length)}" aria-label="바닥에 놓인 화투패">${floor.length ? floor.map(id=>{const pile=(g.ppeokPiles||[]).find(p=>p.cardIds.includes(id)||(p.bonusCardIds||[]).includes(id)); if(!pile) return card(id,{mission:isMission(id)}); const ids=floor.filter(cardId=>pile.cardIds.includes(cardId)||(pile.bonusCardIds||[]).includes(cardId)); return id===ids[0] ? `<span class="floor-pile" aria-label="싼 패 ${ids.length}장">${ids.map((cardId,index)=>card(cardId,{pileIndex:index+1,mission:isMission(cardId)})).join('')}</span>` : '';}).join('') : '<div class="empty-floor">바닥패가 없어요 ✿</div>'}</div>
+        <div class="floor-area" data-density="${floorDensity(floor.length)}" aria-label="바닥에 놓인 화투패">${floor.length ? floorGroups.map(group=>group.kind==='single' ? card(group.ids[0],{mission:isMission(group.ids[0])}) : `<span class="floor-pile" aria-label="${group.kind==='ppeok'?'싼 패':'같은 월 패'} ${group.ids.length}장">${group.ids.map((cardId,index)=>card(cardId,{pileIndex:index+1,mission:isMission(cardId)})).join('')}</span>`).join('') : '<div class="empty-floor">바닥패가 없어요 ✿</div>'}</div>
       </div>
       <div class="game-message" aria-live="polite" title="${safe(spokenActionText(g.lastAction))}">${safe(spokenActionText(g.lastAction))}</div>
     </div>
