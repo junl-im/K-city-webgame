@@ -4,6 +4,12 @@ const game={phase:'playing',humanHand:['m01-03','m01-04','m02-01','bonus-pee-1']
 describe('손패 상태 표시',()=>{
  it('같은 월 네 장이 모두 내 손과 획득패에 있으면 빛나지 않는 죽은 패로 구분한다',()=>expect(handHint(game,'m01-03')).toBe('dead'));
  it('바닥에서 먹을 수 있는 패는 별도로 강조한다',()=>expect(handHint(game,'m02-01')).toBe('match'));
+ it('나와 바닥의 마지막 한 쌍은 먹을 수 있지만 회색으로 구분한다',()=>{
+  const lastPair={...game,humanHand:['m01-03'],humanCaptured:['m01-01'],computerCaptured:['m01-02'],floorCards:['m01-04']};
+  expect(handHint(lastPair,'m01-03')).toBe('quiet-match');
+  expect(handHint({...lastPair,humanCaptured:[],computerCaptured:['m01-01','m01-02']},'m01-03')).toBe('quiet-match');
+  expect(handHint({...lastPair,computerCaptured:[]},'m01-03')).toBe('match');
+ });
  it('같은 월 세 장이 공개된 상태에서 손에 마지막 한 장이면 죽은 패다',()=>expect(handHint({...game,humanHand:['m01-04'],humanCaptured:['m01-01'],computerCaptured:['m01-02','m01-03'],floorCards:[]},'m01-04')).toBe('dead'));
  it('한 장만 보여도 나머지 패가 숨겨져 있으면 죽은 패로 단정하지 않는다',()=>expect(handHint({...game,humanHand:['m01-04'],humanCaptured:['m01-01'],computerCaptured:['m01-02'],floorCards:[]},'m01-04')).toBe('none'));
  it('보너스피를 낼 수 있는 패로 표시한다',()=>expect(handHint(game,'bonus-pee-1')).toBe('bonus'));
