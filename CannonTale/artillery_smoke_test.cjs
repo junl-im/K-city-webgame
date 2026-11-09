@@ -19,7 +19,7 @@ script=script.replace('game.lastVoiceAt=0;showResult(true);return{title:','game.
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v622InvalidPerfectForTest=()=>{newGame("duel",0);applyExplosion({x:190,y:terrainY(190)-29,weapon:"normal",owner:"player",directTarget:"player",directCenter:5,timingAccuracy:1,timingGrade:"perfect"});return{reward:game.shotHighlights.perfect,caption:game.hitEmphasis.at(-1)?.text};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
- ' window.__v623FoleyForTest=(cues)=>{foley.cues=cues;foley.buffer={duration:32.56};}; window.__v623FoleyChoiceForTest=(kind,options)=>foleyCue(kind,options); window.__artilleryLoadoutDebug=');
+ ' window.__v623FoleyForTest=(cues)=>{foley.cues=cues;foley.buffer={duration:36.07};}; window.__v623FoleyChoiceForTest=(kind,options)=>foleyCue(kind,options); window.__v626BestVoiceForTest=bestKoreanVoice; window.__artilleryLoadoutDebug=');
 // Inject only for the smoke harness; this is not a runtime/public debug control.
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v620FlightProfileForTest=(speed,wind,weapon,x)=>flightSoundProfile(speed,wind,weapon,x); window.__v620FlightTickForTest=(projectiles,wind)=>{const saved={phase:game.phase,projectiles:game.projectiles,wind:game.wind,sound:game.sound,flightSoundTimer:game.flightSoundTimer};game.phase="flying";game.projectiles=projectiles;game.wind=wind;game.sound=true;game.flightSoundTimer=0;updateFlightSound(.22);const remaining=game.flightSoundTimer;Object.assign(game,saved);return remaining;}; window.__artilleryLoadoutDebug=');
@@ -1103,6 +1103,8 @@ assert.equal(window.__battleVoiceForTest('critical','fox',false),false,'Busy spe
 assert.equal(window.__artilleryAudioDebug().lastCaption,lastCaption,'Busy speech must not replace the current caption');
 assert.equal(spoken.length,lastSpoken,'Busy speech must not add utterances');
 window.speechSynthesis.speaking=false;
+const koreanPreferred=window.__v626BestVoiceForTest([{lang:'ko-KR',name:'Korean Compact'}, {lang:'ko-KR',name:'Korean Neural'}, {lang:'en-US',name:'English Neural'}]);
+assert.equal(koreanPreferred.name,'Korean Neural','Natural Korean synthesis should outrank compact and non-Korean voices');
 window.__battleVoiceForTest('critical','fox',true);
 const foxCritical=spoken.at(-1).text;
 window.__battleVoiceForTest('critical','bear',true);
@@ -1144,8 +1146,9 @@ assert.equal(compressorInstances,1,'Multiple battlefield effects must share one 
 el('voiceToggle').click();
 const originalSynth=window.speechSynthesis,originalUtterance=window.SpeechSynthesisUtterance,notesBeforeFallback=playedMaterials.length;
 window.speechSynthesis=null;window.SpeechSynthesisUtterance=null;
-assert.equal(window.__battleVoiceForTest('perfect','fox',true),false,'Missing speech engines should safely fall back');
-assert(playedMaterials.length>notesBeforeFallback,'Voice-only mode needs an audible fallback cue even when effects are muted');
+assert.equal(window.__battleVoiceForTest('perfect','fox',true),false,'Missing speech engines should safely show captions');
+assert.equal(playedMaterials.length,notesBeforeFallback,'Unsupported speech must not play an 8-bit imitation voice beep');
+assert(window.__artilleryAudioDebug().captionVisible,'Unsupported Korean speech still needs a readable combat caption');
 window.speechSynthesis=originalSynth;window.SpeechSynthesisUtterance=originalUtterance;
 el('voiceToggle').click();
 handlers.popstate();
@@ -1636,17 +1639,27 @@ assert(playedMaterials.slice(beforeComeback).some(n=>n.frequency===395),'The com
 const normalVictory=window.__v622ComebackForTest(false);
 assert.equal(normalVictory.deficit,0,'A fresh duel must clear the recorded comeback deficit');
 assert(!normalVictory.title.includes('대역전'),'An ordinary victory must keep the usual ending');
-// v6.23: all prominent battle and timing cues are genuine audio frames from
-// an original sound atlas; legacy oscillator fallbacks remain for bad decoders.
+// v6.26: true 44.1 kHz stereo foley + 4 material-specific enemy impacts.
 const foleyAudio=fs.readFileSync(__dirname+'/sound/foley_atlas.ogg');
+const mp3Audio=fs.readFileSync(__dirname+'/sound/foley_atlas.mp3');
 const foleyCues=JSON.parse(fs.readFileSync(__dirname+'/sound/foley_cues.json','utf8'));
 assert.equal(foleyAudio.toString('ascii',0,4),'OggS','The foley atlas must be a real Ogg sound file');
-assert.equal(Object.keys(foleyCues).length,32,'The original atlas must contain 32 combat, hero and UI cues');
-assert(Object.values(foleyCues).every(v=>v.length===2&&v[0]>=0&&v[1]>0&&v[0]+v[1]<=32.56+.01),
+assert(foleyAudio.length>240000,'The spatial foley bank must retain high-quality recorded-like layers');
+const vorbisHeader=foleyAudio.indexOf(Buffer.from([1,118,111,114,98,105,115]));
+assert(vorbisHeader>=0,'The foley bank must include a Vorbis identification packet');
+assert.equal(foleyAudio[vorbisHeader+11],2,'Stereo positioning needs two real audio channels');
+assert.equal(foleyAudio.readUInt32LE(vorbisHeader+12),44100,'The reconstructed foley bank must use a full-band 44.1 kHz source');
+assert(mp3Audio.subarray(0,3).toString()==='ID3'||(mp3Audio[0]===0xff&&(mp3Audio[1]&0xe0)===0xe0),'An alternate MP3 must be available for incompatible WebViews');
+assert.equal(Object.keys(foleyCues).length,36,'The cinematic atlas must contain 36 distinct combat, enemy, hero and UI cues');
+assert(Object.values(foleyCues).every(v=>v.length===2&&v[0]>=0&&v[1]>0&&v[0]+v[1]<=36.07+.01),
  'Every cue must point to a bounded segment of the encoded audio');
 assert.equal(window.__v623FoleyChoiceForTest('fire',{weapon:'bomb'}),'fire_bomb');
 assert.equal(window.__v623FoleyChoiceForTest('skill',{hero:'cat'}),'skill_cat');
 assert.equal(window.__v623FoleyChoiceForTest('bossThreat',{}),'boss_threat');
+assert.equal(window.__v623FoleyChoiceForTest('foeHit',{foeKind:0}),'foe_acorn');
+assert.equal(window.__v623FoleyChoiceForTest('foeHit',{foeKind:1}),'foe_golem');
+assert.equal(window.__v623FoleyChoiceForTest('foeHit',{foeKind:2}),'foe_spirit');
+assert.equal(window.__v623FoleyChoiceForTest('foeHit',{foeKind:3,boss:true}),'foe_boss');
 window.__v623FoleyForTest(foleyCues);
 const sampled=[];
 window.AudioContext.prototype.createBufferSource=()=>({buffer:null,connect:noOp,start:(at,offset,duration)=>{

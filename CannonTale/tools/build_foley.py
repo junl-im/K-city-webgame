@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Create original, license-free CannonTale combat foley (not retro oscillator SFX).
+"""Legacy mono foley generator; the v6.26 stereo builder is now canonical.
 
-All source energy is deterministically synthesized here: transients, filtered
-air, rubble grains, physical low-frequency impulses, and short environmental
-reflections. No recorded third-party content or remote service is used.
+This path remains an entry point for existing development workflows. Running it
+delegates to sound/build_foley.py and cannot replace new stereo assets with the
+obsolete 24 kHz bank.
 """
 from pathlib import Path
 import json
 import subprocess
 import tempfile
 import wave
+import sys
 
 import numpy as np
 from scipy import signal
@@ -277,5 +278,4 @@ def export_atlas():
 
 
 if __name__ == "__main__":
-    duration, size, cues = export_atlas()
-    print(f"foley_atlas.ogg: {duration:.2f}s, {size / 1024:.1f} KiB, {cues} original cues")
+    subprocess.run([sys.executable, str(OUT / "build_foley.py")], check=True)

@@ -2711,7 +2711,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   <label for="voiceVolume">음성 <input id="voiceVolume" aria-label="음성 크기" type="range" min="0" max="100" value="75"></label>
   <button id="previewSound" class="sound-preview" type="button">포격·음성 미리 듣기</button>
   <small id="audioFeedback" class="audio-feedback" role="status" aria-live="polite"></small>
-  <small>기기의 한국어 음성 지원 여부에 따라 전투 대사가 달라질 수 있어요.</small>
+  <small>효과음은 입체적인 포격·충돌음으로 재생됩니다. 전투 음성은 기기에서 제공하는 한국어 음성을 사용합니다. 소리가 없으면 기기의 미디어 음량과 위 스위치를 확인해 주세요.</small>
  </section>
  <main class="battle-wrap" id="battleWrap">
   <canvas id="field" aria-label="2D 포격 게임 화면"></canvas>
@@ -3046,7 +3046,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  function foeHitReaction(foe,damage,fromX){
   if(!foe.alive)return;
   const interrupted=foe.boss&&foe.attackAnim>.18&&damage>=35;
-  playSound('foeHit',{x:foe.x,boss:foe.boss,damage});
+  playSound('foeHit',{x:foe.x,boss:foe.boss,foeKind:foe.kind||0,damage});
   foe.hitDirection=foe.x>=fromX?1:-1;
   foe.hitStrength=clamp(damage/(foe.boss?125:70),.38,1.35);
   foe.hitFlash=foe.boss?.46:.39;foe.hitAnim=.72;foe.attackAnim=0;
@@ -3618,14 +3618,15 @@ function advanceChargePower(dt){
   $('nextBtn').hidden=game.mode!=='adventure'||!won||game.stage===stageSet.length-1;
   playSound(comeback?'comeback':won?'win':'lose',{mode:game.mode});playBattleVoice(comeback?'comeback':won?'win':'lose',game.hero,true);updateHud();
  }
- // v6.16 procedural fallbacks remain for browsers that cannot decode Vorbis.
- // v6.23 uses an original 32-cue foley atlas instead of pitched retro tones.
+ // v6.26: spatial 44.1 kHz stereo foley (Vorbis + MP3 codec fallback).
+ // Procedural emergency fallback stays separate from real ballistic physics.
  const soundShapes={fire:{freq:290,end:95,duration:.18,volume:.10,type:'triangle'},blast:{freq:125,end:40,duration:.28,volume:.14,type:'sawtooth'},precision:{freq:640,end:1020,duration:.23,volume:.09,type:'sine'},timingNear:{freq:490,end:740,duration:.15,volume:.035,type:'sine'},timingOff:{freq:215,end:135,duration:.14,volume:.026,type:'triangle'},lock:{freq:720,end:880,duration:.09,volume:.025,type:'sine'},split:{freq:760,end:460,duration:.15,volume:.045,type:'triangle'},critical:{freq:190,end:62,duration:.39,volume:.17,type:'sawtooth'},wood:{freq:410,end:125,duration:.13,volume:.054,type:'triangle'},stone:{freq:185,end:52,duration:.22,volume:.065,type:'sawtooth'},iron:{freq:710,end:230,duration:.36,volume:.042,type:'sine'},win:{freq:560,end:880,duration:.32,volume:.10,type:'sine'},lose:{freq:270,end:130,duration:.38,volume:.09,type:'triangle'},ui:{freq:470,end:600,duration:.09,volume:.06,type:'sine'},charge:{freq:135,end:330,duration:.22,volume:.035,type:'sawtooth'},tick:{freq:680,end:495,duration:.055,volume:.017,type:'triangle'},flight:{freq:510,end:95,duration:.43,volume:.03,type:'triangle'},skill:{freq:395,end:1060,duration:.32,volume:.052,type:'sine'},combo:{freq:590,end:790,duration:.16,volume:.043,type:'sine'},bossBreak:{freq:135,end:39,duration:.57,volume:.135,type:'sawtooth'},foeHit:{freq:360,end:115,duration:.12,volume:.043,type:'triangle'},heroHit:{freq:188,end:65,duration:.22,volume:.083,type:'sawtooth'},voiceCue:{freq:610,end:870,duration:.15,volume:.036,type:'sine'}};
  const soundCooldown={wood:.085,stone:.085,iron:.085,tick:.12,lock:.32,critical:.35,perfectImpact:.35,blast:.04,split:.055,flight:.07,flightPulse:.16,flyby:.35,nearImpact:.32,bossThreat:1.8,combo:.28,bossBreak:.65,foeHit:.115,heroHit:.105};
- const foley={promise:null,buffer:null,cues:null,failed:false};
+ const foley={promise:null,buffer:null,cues:null,failed:false,format:null};
  function foleyCue(kind,options={}){
   if(kind==='fire'||kind==='blast')return kind+'_'+(options.weapon==='bomb'?'bomb':options.weapon==='split'?'split':'normal');
   if(kind==='skill')return 'skill_'+(options.hero||game.hero);
+  if(kind==='foeHit')return ['foe_acorn','foe_golem','foe_spirit','foe_boss'][options.boss?3:clamp(Math.floor(options.foeKind||0),0,2)];
   return ({wood:'hit_wood',stone:'hit_stone',iron:'hit_iron',foeHit:'hit_foe',heroHit:'hit_hero',
    flyby:'flyby',nearImpact:'near_impact',bossThreat:'boss_threat',bossBreak:'boss_break',
    perfectImpact:'perfect',combo:'combo',win:'win',lose:'lose',comeback:'comeback',
@@ -3640,17 +3641,27 @@ function advanceChargePower(dt){
    const ac=game.audio||(game.audio=new AC());
    if(ac.state==='suspended')ac.resume?.()?.catch?.(()=>{});
    if(typeof ac.decodeAudioData!=='function')return null;
-   foley.promise=Promise.all([
-    window.fetch('sound/foley_cues.json').then(r=>{if(!r.ok)throw Error('foley map');return r.json();}),
-    window.fetch('sound/foley_atlas.ogg').then(r=>{if(!r.ok)throw Error('foley audio');return r.arrayBuffer();})
-   ]).then(async([cues,bytes])=>{
-    const decoded=await ac.decodeAudioData(bytes);
+   // Cache-bust this atlas generation together with its segment offsets.
+   foley.promise=window.fetch('sound/foley_cues.json?v=626').then(r=>{if(!r.ok)throw Error('foley map');return r.json();}).then(async cues=>{
+    let decoded=null;
+    // Some Android WebViews reject Vorbis despite supporting MP3. Never silently
+    // replace the entire recorded bank with retro oscillator tones in that case.
+    for(const [format,url] of [['ogg','sound/foley_atlas.ogg?v=626'],['mp3','sound/foley_atlas.mp3?v=626']]){
+     try{
+      const response=await window.fetch(url);
+      if(!response.ok)continue;
+      decoded=await ac.decodeAudioData(await response.arrayBuffer());
+      if(decoded?.duration){foley.format=format;break;}
+     }catch(_){/* Try the other codec, preserving the player's setting. */}
+    }
     if(!decoded||!Number.isFinite(decoded.duration))throw Error('foley decode');
     for(const [name,cue] of Object.entries(cues)){
      if(!Array.isArray(cue)||cue.length!==2||cue[0]<0||cue[1]<=0||cue[0]+cue[1]>decoded.duration+.05)throw Error('foley cue: '+name);
     }
-    foley.buffer=decoded;foley.cues=cues;return true;
-   }).catch(()=>{foley.failed=true;return false;});
+    foley.buffer=decoded;foley.cues=cues;
+    if(!$('soundPanel').hidden)$('audioFeedback').textContent='입체 전장 효과음 준비 완료!';
+    return true;
+   }).catch(()=>{foley.failed=true;if(!$('soundPanel').hidden)$('audioFeedback').textContent='이 브라우저에서 효과음 파일을 읽지 못했어요. 기기의 오디오 설정을 확인해 주세요.';return false;});
    return foley.promise;
   }catch(_){foley.failed=true;return null;}
  }
@@ -3660,7 +3671,9 @@ function advanceChargePower(dt){
   try{
    const source=ac.createBufferSource(),gain=ac.createGain(),v=options.voiceFallback?game.voiceVolume:game.effectVolume;
    source.buffer=foley.buffer;
-   gain.gain.setValueAtTime((kind==='ui'||kind==='tick'?.38:.65)*v,now);
+   // Recorded impacts have wider dynamic range than the old mono atlas.
+   const level=kind==='ui'?.34:kind==='tick'?.30:kind==='bossBreak'?.78:kind==='blast'?.74:kind==='fire'?.72:.67;
+   gain.gain.setValueAtTime(level*v,now);
    source.connect(gain);gain.connect(destination);
    source.start(now,cue[0],Math.max(.01,cue[1]-.006));
    source.stop?.(now+cue[1]+.035);
@@ -3756,6 +3769,16 @@ function advanceChargePower(dt){
    const destination=positionalSoundBus(ac,options.x,now);
    if(playFoley(ac,kind,options,now,destination))return;
    if(!foley.promise&&!foley.failed)prepareFoley();
+   if(foley.promise&&!foley.failed){
+    // While the real soundbank is decoding, a short air transient is more
+    // convincing than the former arcade melody and won't delay the game.
+    if(kind==='fire'||kind==='blast'||kind==='bossBreak'||kind==='foeHit'||kind==='heroHit'){
+     audioNoise(ac,now,kind==='blast'?.24:.15,{low:75,high:kind==='fire'?2850:1850,volume:(kind==='blast'?.080:.052)*v,filter:'lowpass',destination});
+    }else if(kind==='ui'||kind==='lock'||kind==='tick'){
+     audioNoise(ac,now,.045,{low:320,high:2600,volume:.021*v,destination});
+    }
+    return;
+   }
    const noise=(duration,settings)=>audioNoise(ac,now,duration,{...settings,destination});
    const noiseAt=(offset,duration,settings)=>audioNoise(ac,now+offset,duration,{...settings,destination});
    const note=(start,freq,end,duration,volume,type='sine')=>synthNote(ac,start,freq,end,duration,volume,type,destination);
@@ -3867,16 +3890,25 @@ function advanceChargePower(dt){
    }
   }catch(_){/* Unsupported or suspended audio must never interrupt the match. */}
  }
- const battleLines={intro:'포격 준비!',bossIntro:'고철 요새의 주인이 깨어난다!',bossAttack:'철의 포효를 들어라!',perfect:'퍼펙트!',critical:'치명타!',combo:'연속 명중!',comeback:'극적인 대역전 승리!',win:'승리! 훌륭한 포격이야!',lose:'아쉽지만, 다시 도전!',enemy:'적의 포격이다!',fox:'바람을 읽어!',bear:'관통 준비 완료!',rabbit:'분열 발사!',cat:'바람을 돌려!'};
+ const battleLines={intro:'포격 준비! 바람 확인!',bossIntro:'고철 요새다! 모두 조심해!',bossAttack:'철의 포효다! 피해!',perfect:'정확해!',critical:'급소 명중!',combo:'연속 명중!',comeback:'끝내 역전했어!',win:'승리! 멋진 포격이었어!',lose:'괜찮아. 다시 도전!',enemy:'적이 포격한다!',fox:'바람을 읽어!',bear:'관통 준비!',rabbit:'분열 발사!',cat:'바람을 돌려!'};
  const heroBattleLines={
   fox:{perfect:'바람처럼 정확해!',critical:'급소 포착!',combo:'연속 적중!',comeback:'마지막 바람이 우리 편이었어!',win:'바람을 읽은 승리야!',lose:'다음 바람엔 맞힐 거야!'},
   bear:{perfect:'묵직하게 명중!',critical:'방어를 뚫었다!',combo:'계속 밀어붙여!',comeback:'끝까지 버텨서 뒤집었다!',win:'끝까지 버텨낸 승리다!',lose:'한 번 더 버텨 보자!'},
   rabbit:{perfect:'정확히 맞혔어!',critical:'한가운데!',combo:'연속 성공!',comeback:'짜릿한 역전 작전 성공!',win:'작전 대성공이야!',lose:'다음엔 더 똑똑하게!'},
   cat:{perfect:'계산대로야!',critical:'정확한 충격!',combo:'연속 포착!',comeback:'불리한 확률까지 뒤집었어!',win:'모든 계산이 맞아떨어졌어!',lose:'변수를 다시 계산할게!'}
  };
- // Narrow, human-like pitch/rate differences: Android TTS sounds unnatural
- // with the old exaggerated chipmunk/monster transformations.
- const battleVoiceStyle={fox:{pitch:1.03,rate:1.02},bear:{pitch:.96,rate:.96},rabbit:{pitch:1.06,rate:1.04},cat:{pitch:1,rate:.98},boss:{pitch:.90,rate:.92}};
+ // Android TTS gets robotic with character-sized pitch shifts. Keep a grounded
+ // voice and distinguish heroes through their short lines rather than chipmunk FX.
+ const battleVoiceStyle={fox:{pitch:1.01,rate:1.01},bear:{pitch:.98,rate:.97},rabbit:{pitch:1.02,rate:1.01},cat:{pitch:1,rate:.99},boss:{pitch:.97,rate:.96}};
+ function bestKoreanVoice(voices){
+  return voices.filter(v=>v.lang?.toLowerCase().startsWith('ko')).sort((a,b)=>{
+   const score=v=>Number(v.lang?.toLowerCase()==='ko-kr')*3
+    +Number(/neural|natural|premium|wavenet/i.test(v.name||''))*9
+    +Number(/google|microsoft|samsung/i.test(v.name||''))*2
+    -Number(/compact|robot/i.test(v.name||''))*6;
+   return score(b)-score(a);
+  })[0];
+ }
  function stopBattleVoice(){try{window.speechSynthesis?.cancel?.();}catch(_){}game.voiceCaptionTime=0;$('voiceCaption').hidden=true;}
  function playBattleVoice(kind,hero=game.hero,force=false){
   if(!game.voice||game.voiceVolume<=0||!battleLines[kind])return false;
@@ -3888,21 +3920,20 @@ function advanceChargePower(dt){
    }
    // A busy voice queue must not consume a cooldown or create phantom captions.
    const line=heroBattleLines[hero]?.[kind]||battleLines[kind];
-   game.lastVoiceAt=now;game.voiceCaptionTime=1.65;$('voiceCaption').textContent=line;$('voiceCaption').hidden=false;
-   if(!synth||!Utterance){playSound('voiceCue',{voiceFallback:true});return false;}
+   game.lastVoiceAt=now;game.voiceCaptionTime=2.1;$('voiceCaption').textContent=line;$('voiceCaption').hidden=false;
+   // No synthesized beep masquerading as a voice on unsupported devices.
+   if(!synth||!Utterance){if(!$('soundPanel').hidden)$('audioFeedback').textContent='한국어 음성 기능을 사용할 수 없어 자막으로 대신 표시합니다.';return false;}
    const utterance=new Utterance(line),style=battleVoiceStyle[hero]||battleVoiceStyle.fox;
    utterance.lang='ko-KR';utterance.pitch=style.pitch;utterance.rate=style.rate;utterance.volume=Math.min(.9,game.voiceVolume*.73);
-   const voices=synth.getVoices?.()||[],korean=voices.filter(v=>v.lang?.toLowerCase().startsWith('ko'))
-    .sort((a,b)=>Number(b.lang?.toLowerCase()==='ko-kr')-Number(a.lang?.toLowerCase()==='ko-kr')
-     ||Number(/google|microsoft|samsung/i.test(b.name||''))-Number(/google|microsoft|samsung/i.test(a.name||'')))[0];
+   const voices=synth.getVoices?.()||[],korean=bestKoreanVoice(voices);
    if(korean)utterance.voice=korean;
    synth.speak(utterance);return true;
-  }catch(_){playSound('voiceCue',{voiceFallback:true});return false;}
+  }catch(_){if(!$('soundPanel').hidden)$('audioFeedback').textContent='음성을 재생하지 못했어요. 자막은 계속 표시됩니다.';return false;}
  }
  function saveAudioSettings(){try{window.localStorage?.setItem(audioSettingsKey,JSON.stringify({effects:game.sound,voice:game.voice,effectVolume:game.effectVolume,voiceVolume:game.voiceVolume}));}catch(_){}}
  function refreshAudioSettings(){
   const active=game.sound||game.voice;
-  $('soundBtn').textContent=active?'음향 켬':'음향 끔';
+  $('soundBtn').textContent=active?'음향 설정':'소리 켜기';
   $('soundBtn').setAttribute?.('aria-label',`음향 설정, 효과음 ${game.sound?'켬':'끔'}, 음성 ${game.voice?'켬':'끔'}`);
   $('soundEffectsToggle').textContent=game.sound?'효과음 켬':'효과음 끔';$('soundEffectsToggle').setAttribute?.('aria-pressed',String(game.sound));
   $('voiceToggle').textContent=game.voice?'전투 음성 켬':'전투 음성 끔';$('voiceToggle').setAttribute?.('aria-pressed',String(game.voice));
