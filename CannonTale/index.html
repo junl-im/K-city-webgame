@@ -2993,6 +2993,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  }
  const savedAudio=readAudioSettings();
  const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],groundScars:[],nearMissBursts:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,reaimCount:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP,duelVolleyDamage:{player:0,ai:0},turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,chargeFocusX:null,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:savedAudio.effects,voice:savedAudio.voice,effectVolume:savedAudio.effectVolume,voiceVolume:savedAudio.voiceVolume,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewLife:0,voiceCaptionTime:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,flightSettledAt:null,shotBaseline:null,shotHighlights:{direct:false,critical:false},windGuide:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,chargeConfirmTime:0,chargeConfirmImpact:null,precisionActive:false,precisionElapsed:0,precisionNeedle:0,precisionCamera:0,precisionHoldTime:0,precisionPendingShot:null,precisionLast:null,hitEmphasis:[],chainHits:0,crushHits:0,weaponFractures:0};
+ game.foeHitFx=[];game.bossInterrupts=0;
  // Tracks one split volley per target. A boss resists repeated fragment overlap,
  // but separate shots and ordinary multi-target splash remain fully effective.
  game.splitVolleyDamage=new Map();
@@ -3044,10 +3045,16 @@ body,button,input,select{font-family:var(--ct-ui-font)}
  function skillEffect(kind,x,y,time=.8){game.skillEffects.push({kind,x,y,life:time,total:time,seed:rnd(0,Math.PI*2)});game.skillEffects=game.skillEffects.slice(-25);}
  function foeHitReaction(foe,damage,fromX){
   if(!foe.alive)return;
+  const interrupted=foe.boss&&foe.attackAnim>.18&&damage>=35;
   playSound('foeHit',{x:foe.x,boss:foe.boss,damage});
   foe.hitDirection=foe.x>=fromX?1:-1;
   foe.hitStrength=clamp(damage/(foe.boss?125:70),.38,1.35);
   foe.hitFlash=foe.boss?.46:.39;foe.hitAnim=.72;foe.attackAnim=0;
+  if(interrupted)game.bossInterrupts++;
+  const total=foe.boss?.85:.58;
+  game.foeHitFx.push({x:foe.x,y:foe.y-foe.r*.42,kind:foe.kind||0,dir:foe.hitDirection,
+   strength:foe.hitStrength,interrupted,life:total,total,seed:rnd(0,6.28)});
+  game.foeHitFx=game.foeHitFx.slice(-22);
   const tint=['#c5e97a','#e9cfad','#a1eaff','#ffb16a'][foe.kind||0];
   spawnSparks(foe.x,foe.y-foe.r*.4,foe.boss?16:7,tint,foe.boss?.78:.48);
   game.rings.push({x:foe.x,y:foe.y-foe.r*.3,r:4,max:foe.r*(foe.boss?2:1.5),life:.3,total:.3,color:tint});
@@ -3169,7 +3176,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   game.duelVolleyDamage={player:0,ai:0};
   game.splitVolleyDamage.clear();
   v.vx+=timingSideSpeed(sideBias);
-  game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,b)=>a+Math.max(0,b.hp),0),blockCounts:['wood','stone','iron'].map(t=>game.blocks.filter(b=>b.type===t).length),playerHp:game.playerHp,aiHp:game.aiHp};
+  game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,b)=>a+Math.max(0,b.hp),0),blockCounts:['wood','stone','iron'].map(t=>game.blocks.filter(b=>b.type===t).length),playerHp:game.playerHp,aiHp:game.aiHp,chainHits:game.chainHits,crushHits:game.crushHits,bossInterrupts:game.bossInterrupts};
   game.closestApproach={distance:Infinity,x:null,y:null};
   game.lastImpact=null;game.flightSettledAt=null;game.flightSoundTimer=-.15;game.flybySoundPlayed=false;game.perfectImpactPlayed=false;game.shotHighlights={direct:false,critical:false,perfect:false};game.reviewFocusX=null;game.reviewInfo=null;$('reviewCountdown').hidden=true;game.panX=null;game.overview=false;$('overview').textContent='전장 보기';$('shotReview').hidden=true;
   const socket=muzzleFor(owner,ang),muzzleX=socket.x,muzzleY=socket.y;
@@ -3344,6 +3351,7 @@ function advanceChargePower(dt){
   game.windLift=rnd(-1.9,1.9);game.shotInfluences=null;
   // Visual memories belong to this battlefield, never the next match.
   game.groundScars=[];game.nearMissBursts=[];
+  game.foeHitFx=[];game.bossInterrupts=0;
   game.precisionActive=false;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionHoldTime=0;game.precisionPendingShot=null;game.precisionLast=null;game.precisionBand='';game.precisionBurst=null;game.precisionSlowFrames=0;game.precisionPerfectHalf=.02;game.hitEmphasis=[];$('precisionPanel').hidden=true;$('precisionHit').disabled=false;$('precisionPanel').classList.toggle('locked',false);for(const grade of ['perfect','near','normal','off'])$('precisionPanel').classList.toggle('locked-'+grade,false);$('aimTelemetry').hidden=false;
   // Every duel is hero-versus-hero. The opponent is different from the selected player.
   const challengers=['fox','bear','rabbit','cat'].filter(hero=>hero!==game.hero);
@@ -4159,10 +4167,16 @@ function advanceChargePower(dt){
   const allyDamage=Math.max(0,Math.round(base.playerHp-game.playerHp));
   const shattered=base.blockCounts?['wood','stone','iron'].map((t,i)=>Math.max(0,base.blockCounts[i]-game.blocks.filter(b=>b.type===t).length)):[];
   const shatteredDescription=shattered.map((n,i)=>n?`${['목재','석재','철재'][i]} ${n}`:'').filter(Boolean).join(' · ');
+  const chained=Math.max(0,game.chainHits-(base.chainHits??game.chainHits));
+  const crushed=Math.max(0,game.crushHits-(base.crushHits??game.crushHits));
+  const interrupted=Math.max(0,game.bossInterrupts-(base.bossInterrupts??game.bossInterrupts));
   let title,detail;
   if(game.mode==='adventure'){
    game.hitStreak=(knocked>0||structure>0)?game.hitStreak+1:0;
    title=knocked?`몬스터 ${knocked}기 격파!`:structure>0?'요새에 포격 명중!':'착탄 지점 확인';
+   if(crushed&&knocked)title=`압착 성공! ${knocked}기 격파!`;
+   else if(interrupted&&!knocked)title='대장 공격 저지!';
+   else if(chained>=2&&structure>0&&!knocked)title='연쇄 붕괴! 요새 명중!';
    if(game.hitStreak>=2){
     title=`${game.hitStreak}연속 명중! · ${title}`;
     if(game.lastImpact){
@@ -4176,6 +4190,8 @@ function advanceChargePower(dt){
     if(game.hitStreak===3)playBattleVoice('combo',game.hero);
    }
    detail=knocked?`구조물 피해 ${structure} · 남은 목표 ${game.foes.filter(f=>f.alive).length}`:structure>0?`구조물 피해 ${structure}${shatteredDescription?' · 붕괴 '+shatteredDescription:''}`:'화면을 움직여 착탄 지점과 남은 목표를 확인하세요';
+   const feat=interrupted?'대장 공격 저지':crushed?`압착 ${crushed}회`:chained>=2?`연쇄 충돌 ${chained}회`:null;
+   if(feat)detail=`${feat} · ${knocked?`남은 목표 ${game.foes.filter(f=>f.alive).length}`:`구조물 피해 ${structure}`}`;
    game.reviewNext=game.foes.every(f=>!f.alive)?'win':game.shots>=game.maxShots?'lose':'aim';
   }else{
    if(game.turn==='player')game.lastPlayerVolleyDamage=enemyDamage;
@@ -4324,6 +4340,8 @@ function advanceChargePower(dt){
   game.groundScars=game.groundScars.filter(scar=>scar.life>0);
   for(const burst of game.nearMissBursts)burst.life=Math.max(0,burst.life-dt);
   game.nearMissBursts=game.nearMissBursts.filter(burst=>burst.life>0);
+  for(const hit of game.foeHitFx)hit.life=Math.max(0,hit.life-dt);
+  game.foeHitFx=game.foeHitFx.filter(hit=>hit.life>0);
   if(game.hintTime>0){game.hintTime=Math.max(0,game.hintTime-dt);if(game.hintTime===0)$('hint').hidden=true;}
   if(game.introLife>0){game.introLife=Math.max(0,game.introLife-dt);if(game.introLife===0)$('enemyEntrance').hidden=true;}game.shake*=.82;game.flash=Math.max(0,game.flash-dt);game.messageTime=Math.max(0,game.messageTime-dt);for(const owner of ['player','ai']){const hero=duelHero(owner),style=heroFiringStyles[hero]||heroFiringStyles.fox;game.recoil[owner]*=Math.pow(style.recoilDecay,dt*60);}for(const f of game.foes){if(f.deathTimer>0)f.deathTimer=Math.max(0,f.deathTimer-dt);}for(const e of game.blastCores)e.life-=dt;game.blastCores=game.blastCores.filter(e=>e.life>0);for(const a of Object.values(game.actorAnim))a.life=Math.max(0,a.life-dt);for(const e of game.skillEffects)e.life-=dt;game.skillEffects=game.skillEffects.filter(e=>e.life>0);if(game.muzzle){game.muzzle.life-=dt;if(game.muzzle.life<=0)game.muzzle=null;}
   if(game.mode==='menu'||game.phase==='result')return;
@@ -4929,6 +4947,57 @@ const materialCells={
   }
   ctx.restore();
  }
+ function drawBossWindup(f,progress,surge){
+  // Forge pressure builds before the existing peak-frame attack cue.
+  // This is a telegraph only: it never applies invisible damage.
+  const heat=Math.sin(Math.PI*clamp(progress,0,1)),pulse=.65+.35*Math.sin(game.clock*19);
+  const x=f.x-f.r*1.08,y=f.y-f.r*.45;
+  ctx.save();ctx.lineCap='round';ctx.globalAlpha=heat*.45;
+  ctx.strokeStyle='#ffb064';ctx.lineWidth=3.6;
+  for(let i=0;i<3;i++){
+   const spread=(15+i*11)+heat*21;
+   ctx.beginPath();ctx.arc(x,y,spread,Math.PI*.65,Math.PI*1.37);ctx.stroke();
+  }
+  ctx.globalAlpha=heat*.38*pulse;ellipse(x-9-surge*18,y,12+surge*18,6+surge*8,'#ffb46f');
+  for(let i=0;i<5;i++){
+   const drift=i*9+surge*30,yy=(i-2)*8+Math.sin(game.clock*8+i)*5;
+   ctx.globalAlpha=heat*(.23+i*.045);ellipse(x-drift-15,y+yy,2.7+i%2,2.2+i%3,i%2?'#ffe1a3':'#ee8750');
+  }
+  ctx.restore();
+ }
+ function drawFoeHitFx(){
+  // The authored 6-frame monster poses stay intact. Each species supplies
+  // its own short contact material, instead of the same generic yellow star.
+  ctx.save();ctx.lineCap='round';
+  for(const hit of game.foeHitFx){
+   const fade=clamp(hit.life/hit.total,0,1),travel=1-fade;
+   ctx.save();ctx.translate(hit.x,hit.y);ctx.scale(hit.dir,1);
+   const reach=(17+travel*53)*hit.strength;
+   for(let i=0;i<6;i++){
+    const a=(i-2.5)*.55+hit.seed*.09,x=Math.cos(a)*reach,y=Math.sin(a)*reach*.8-travel*18;
+    ctx.save();ctx.translate(x,y);ctx.rotate(a+travel*(i%2?2:-2));ctx.globalAlpha=fade*(i%2?.58:.38);
+    if(hit.kind===0){
+     ellipse(0,0,7,3.2,i%2?'#b4d66d':'#6a9d54');
+     ctx.strokeStyle='#f0e4ab';ctx.lineWidth=.9;ctx.beginPath();ctx.moveTo(-4,0);ctx.lineTo(5,0);ctx.stroke();
+    }else if(hit.kind===1){
+     ctx.fillStyle=i%2?'#b9bfc0':'#82939c';ctx.beginPath();ctx.moveTo(-6,-3);ctx.lineTo(3,-5);ctx.lineTo(7,2);ctx.lineTo(-2,5);ctx.closePath();ctx.fill();
+    }else if(hit.kind===2){
+     ctx.strokeStyle='#bffcf6';ctx.lineWidth=2.7;ctx.beginPath();ctx.arc(0,0,6+travel*5,-2.2,.9);ctx.stroke();
+    }else{
+     ctx.strokeStyle=i%2?'#ffe5ae':'#fcb274';ctx.lineWidth=2.7;ctx.beginPath();ctx.moveTo(-7,-2);ctx.lineTo(9,3);ctx.stroke();
+    }
+    ctx.restore();
+   }
+   if(hit.interrupted){
+    ctx.globalAlpha=fade*.75;ctx.strokeStyle='#fff2b9';ctx.lineWidth=3.5*fade;
+    const r=23+travel*57;
+    ctx.beginPath();ctx.arc(0,0,r,-2.45,-.55);ctx.stroke();
+    ctx.beginPath();ctx.arc(0,0,r,.55,2.45);ctx.stroke();
+   }
+   ctx.restore();
+  }
+  ctx.restore();
+ }
  function drawFoes(){for(const f of game.foes){
   if(!f.alive&&f.deathTimer<=0)continue;
   const pose=foePose(f),dying=pose==='death',hurt=pose==='hurt',attacking=pose==='attack';
@@ -5007,6 +5076,7 @@ const materialCells={
    continue;
   }
   ellipse(f.x,terrainY(f.x)-2,f.r*(f.boss?1.13:.83),f.boss?5:3,'#1c30435c');
+  if(f.boss&&attacking)drawBossWindup(f,attackProgress,attackSurge);
   if(attacking&&attackSurge>.12){
    ctx.save();ctx.globalAlpha=attackSurge*.76;ctx.lineCap='round';
    const tint=['#b5e785','#bbebde','#a8f2ff','#ffa34d'][f.kind||0],s=f.boss?1.45:1;
@@ -5031,7 +5101,9 @@ const materialCells={
    roundRect(f.x-49,f.y-f.r-50,98,13,7,'#293848bf');
    roundRect(f.x-46,f.y-f.r-47,92*clamp(f.hp/f.maxHp,0,1),7,4,'#f1af5b');
   }
- }}
+ }
+ drawFoeHitFx();
+ }
  function drawTrajectory(){
   if(!['aim','timing','timingResult'].includes(game.phase)||game.turn!=='player')return;
   let a=game.angle,p=game.mode==='duel'?DUEL_SIGHT_POWER:game.chargeActive?game.chargedPower:game.power;

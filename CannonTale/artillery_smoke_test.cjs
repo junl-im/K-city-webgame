@@ -113,6 +113,9 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 // clearance, surface-only marks and the angle-only wind-free reference.
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v624VisualForTest=()=>{newGame("duel",0);game.wind=3.4;const reference=duelRangeReferencePoint(game.angle).x;const strongWind=drawFlightWind({x:600,y:250});game.wind=0;const calmWind=drawFlightWind({x:600,y:250});const referenceAfter=duelRangeReferencePoint(game.angle).x;applyExplosion({x:640,y:terrainY(640)-5,weapon:"bomb",owner:"player",hero:game.hero,directTarget:null,directCenter:Infinity,timingAccuracy:0});const groundScars=game.groundScars.length;applyExplosion({x:640,y:180,weapon:"normal",owner:"player",hero:game.hero,directTarget:null,directCenter:Infinity,timingAccuracy:0});const highScars=game.groundScars.length;const p={x:1018,y:terrainY(1018)-29+22+10+18,vx:240,vy:0,weapon:"normal",owner:"player",r:10,active:true,age:.4};game.flybySoundPlayed=false;updateFlybySound(p);p.x+=52;updateFlybySound(p);const nearMiss=game.nearMissBursts.length;updateFlybySound(p);const noDuplicate=game.nearMissBursts.length;const scarLife=game.groundScars[0].life;game.hitStop=0;step(.1);const faded=game.groundScars[0].life<scarLife;newGame("duel",0);return{strongWind,calmWind,reference,referenceAfter,groundScars,highScars,nearMiss,noDuplicate,faded,reset:game.groundScars.length===0&&game.nearMissBursts.length===0};}; window.__artilleryLoadoutDebug=');
+// v6.25: monster-specific contact materials and real collision feat reports.
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v625FoeReactionForTest=()=>{const looks=[];for(let kind=0;kind<4;kind++){newGame("adventure",3);const f=kind===3?game.foes.find(f=>f.boss):game.foes.find(f=>!f.boss);f.kind=kind;f.attackAnim=kind===3?.5:0;const prior=game.bossInterrupts;foeHitReaction(f,kind===3?48:24,f.x-30);drawFoeHitFx();if(kind===3)drawBossWindup(f,.48,.93);looks.push({kind,actual:game.foeHitFx.at(-1)?.kind,interrupted:game.bossInterrupts-prior,attackStopped:f.attackAnim===0,flash:f.hitFlash>0});}const last=game.foeHitFx[0],life=last.life;game.hitStop=0;step(.08);const faded=last.life<life;for(let i=0;i<35;i++){const f=game.foes.find(f=>!f.boss);foeHitReaction(f,20,f.x-20);}const capped=game.foeHitFx.length===22;newGame("adventure",0);return{looks,faded,capped,reset:game.foeHitFx.length===0&&game.bossInterrupts===0};}; window.__v625ShotReviewForTest=()=>{const probe=type=>{newGame("adventure",type==="boss"?3:0);launch("player",43,76,"normal");game.projectiles=[];game.phase="flying";game.phaseTime=2;game.hitStop=0;if(type==="crush"){game.chainHits+=2;game.crushHits++;game.blocks[0].hp-=38;game.foes[0].alive=false;}else if(type==="chain"){game.chainHits+=3;game.blocks[0].hp-=42;}else{const f=game.foes.find(f=>f.boss);f.attackAnim=.51;foeHitReaction(f,48,f.x-30);}finishFlight();return{title:game.reviewInfo?.title,detail:game.reviewInfo?.detail};};return{crush:probe("crush"),chain:probe("chain"),boss:probe("boss")};}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -1666,5 +1669,17 @@ assert.equal(cinematicV624.highScars,1,'A high tower impact must not stamp the g
 assert.equal(cinematicV624.nearMiss,1,'Only an actual passed safe-clearance shot should leave an air-shear trace');
 assert.equal(cinematicV624.noDuplicate,1,'A single volley must not multiply near-miss traces');
 assert(cinematicV624.faded&&cinematicV624.reset,'Battlefield effects should age out and reset between matches');
+const foesV625=window.__v625FoeReactionForTest();
+assert.deepEqual(foesV625.looks.map(f=>f.actual),[0,1,2,3],'Each painted monster should emit its own material-specific contact layer');
+assert(foesV625.looks.every(f=>f.flash&&f.attackStopped),'Painted hurt pose and existing attack cancellation must remain synchronized');
+assert.equal(foesV625.looks[3].interrupted,1,'A strong hit must truly interrupt an active boss attack');
+assert(foesV625.faded&&foesV625.capped&&foesV625.reset,'Contact effects must age, cap and reset without accumulating on phones');
+const reportsV625=window.__v625ShotReviewForTest();
+assert(reportsV625.crush.title.includes('압착 성공')&&reportsV625.crush.detail.includes('압착 1회'),
+ 'A real impact/crush should receive a concise specific reward');
+assert(reportsV625.chain.title.includes('연쇄 붕괴')&&reportsV625.chain.detail.includes('연쇄 충돌 3회'),
+ 'A genuine structural domino chain should be recognizable in the report');
+assert(reportsV625.boss.title.includes('대장 공격 저지')&&reportsV625.boss.detail.includes('대장 공격 저지'),
+ 'Interrupting the boss in its attack windup should be visible on the outcome card');
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');
