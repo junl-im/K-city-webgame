@@ -4305,3 +4305,30 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
 .help-box ol {line-height:1.65;word-break:keep-all;}
 .help-box li + li {margin-top:5px;}
 @media (max-width:360px) {.help-box .help-heading h2 {font-size:19px;}}
+
+/* The paper texture needs stronger ink to keep the guide easy to read. */
+.help-box ol,.help-box .help-mini {color:#3d4f3a;}
+.help-box .help-mini {background:#f8efd5;}
+
+/* Keep complete amounts and turn labels together on narrow phones. */
+@media (max-width:650px) {
+ .scene--select .stake {white-space:nowrap;font-size:clamp(11px,3.4vw,15px);}
+ .scene--select .stake small {font-size:.72em;padding-left:1px;}
+ .scene--game .hand-workspace .turn-clock--waiting {
+  white-space:nowrap;word-break:keep-all;letter-spacing:-.05em;
+  font-size:clamp(8px,2.6vw,10px);padding-inline:1px;
+ }
+}
+
+/* Short displays retain the illustrated choices while bringing the start action into view. */
+@media (max-width:650px) and (max-height:700px) {
+ .scene--select .setup-wrap {margin-top:7px;padding:10px 12px;}
+ .scene--select .setup-heading {margin-bottom:6px;}
+ .scene--select .setup-heading h2 {margin:2px 0 3px;font-size:21px;}
+ .scene--select .opponent-card {padding-bottom:8px;}
+ .scene--select .opponent-card .mascot {width:min(70%,74px);margin-top:3px;}
+ .scene--select .stakes {margin-top:8px;padding:8px 10px;}
+ .scene--select .stake-row {margin-top:7px;}
+ .scene--select .stake {padding-block:7px;}
+ .scene--select .setup-bottom {margin-top:8px;}
+}
