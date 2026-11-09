@@ -109,6 +109,10 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
 // settles, and AI planning must share the real wind/terrain collision model.
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v610FlightCameraForTest=()=>{const field=$("field"),oldW=field.clientWidth,oldH=field.clientHeight;field.clientWidth=390;field.clientHeight=355;newGame("duel",0);launch("player",45,76,"normal");game.projectiles=[];game.lastImpact={x:1040,y:terrainY(1040)-10};game.phaseTime=.72;game.camera=250;resize();const cameraAfterImpact=game.camera;step(.016);const settleAt=game.flightSettledAt;for(let i=0;i<30;i++){step(1/60);resize();}const mid={phase:game.phase,camera:game.camera,waited:game.phaseTime-settleAt};for(let i=0;i<16;i++){step(1/60);resize();}const end={phase:game.phase,reviewFocusX:game.reviewFocusX,waited:game.phaseTime-settleAt};field.clientWidth=oldW;field.clientHeight=oldH;resize();return{cameraAfterImpact,settleAt,mid,end};}; window.__v610AiModelForTest=(wind,lift,angle,power)=>{newGame("duel",0);game.wind=wind;game.windLift=lift;const target={x:190,y:terrainY(190)-29};const actual=aiShotApproach(angle,power,wind,lift,target);const path=predict(angle,power,wind,"ai",640,0,lift);const reference=path.impact?.kind==="foe"?0:Math.min(...path.map(pt=>Math.hypot(pt.x-target.x,pt.y-target.y)));const shot=chooseAiShot();return{actual,reference,shot};}; window.__artilleryLoadoutDebug=');
+// v6.24: the cinematic layer is entirely visual and retains true near-miss
+// clearance, surface-only marks and the angle-only wind-free reference.
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v624VisualForTest=()=>{newGame("duel",0);game.wind=3.4;const reference=duelRangeReferencePoint(game.angle).x;const strongWind=drawFlightWind({x:600,y:250});game.wind=0;const calmWind=drawFlightWind({x:600,y:250});const referenceAfter=duelRangeReferencePoint(game.angle).x;applyExplosion({x:640,y:terrainY(640)-5,weapon:"bomb",owner:"player",hero:game.hero,directTarget:null,directCenter:Infinity,timingAccuracy:0});const groundScars=game.groundScars.length;applyExplosion({x:640,y:180,weapon:"normal",owner:"player",hero:game.hero,directTarget:null,directCenter:Infinity,timingAccuracy:0});const highScars=game.groundScars.length;const p={x:1018,y:terrainY(1018)-29+22+10+18,vx:240,vy:0,weapon:"normal",owner:"player",r:10,active:true,age:.4};game.flybySoundPlayed=false;updateFlybySound(p);p.x+=52;updateFlybySound(p);const nearMiss=game.nearMissBursts.length;updateFlybySound(p);const noDuplicate=game.nearMissBursts.length;const scarLife=game.groundScars[0].life;game.hitStop=0;step(.1);const faded=game.groundScars[0].life<scarLife;newGame("duel",0);return{strongWind,calmWind,reference,referenceAfter,groundScars,highScars,nearMiss,noDuplicate,faded,reset:game.groundScars.length===0&&game.nearMissBursts.length===0};}; window.__artilleryLoadoutDebug=');
 new Function(script);
 assert(!html.includes('<svg')&&!html.includes('.svg')&&!html.includes('image/svg+xml'),'No SVG assets or inline SVG permitted');
 assert(/#controls \.aim\{display:none!important\}/.test(html),'Angle slider must be removed from the illustrated combat dock');
@@ -1654,5 +1658,13 @@ assert.deepEqual(sampled.map(v=>v.offset),[
  foleyCues.fire_bomb[0],foleyCues.blast_split[0],foleyCues.skill_rabbit[0]
  ],'Weapon and hero sounds must play the correct slices of the original atlas');
 assert.equal(playedMaterials.length,oscillatorCount,'Decoded foley must replace the retro-tone fallback rather than layer on top');
+const cinematicV624=window.__v624VisualForTest();
+assert(cinematicV624.strongWind&&!cinematicV624.calmWind,'Animated wind streams should appear only under meaningful actual wind');
+assert.equal(cinematicV624.reference,cinematicV624.referenceAfter,'Wind display must not alter the angle-only preview range');
+assert.equal(cinematicV624.groundScars,1,'A near-ground explosion should leave one transient battlefield mark');
+assert.equal(cinematicV624.highScars,1,'A high tower impact must not stamp the ground beneath it');
+assert.equal(cinematicV624.nearMiss,1,'Only an actual passed safe-clearance shot should leave an air-shear trace');
+assert.equal(cinematicV624.noDuplicate,1,'A single volley must not multiply near-miss traces');
+assert(cinematicV624.faded&&cinematicV624.reset,'Battlefield effects should age out and reset between matches');
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');

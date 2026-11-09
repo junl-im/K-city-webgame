@@ -2992,7 +2992,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   }catch(_){return{effects:false,voice:false,effectVolume:.75,voiceVolume:.75};}
  }
  const savedAudio=readAudioSettings();
- const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,reaimCount:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP,duelVolleyDamage:{player:0,ai:0},turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,chargeFocusX:null,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:savedAudio.effects,voice:savedAudio.voice,effectVolume:savedAudio.effectVolume,voiceVolume:savedAudio.voiceVolume,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewLife:0,voiceCaptionTime:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,flightSettledAt:null,shotBaseline:null,shotHighlights:{direct:false,critical:false},windGuide:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,chargeConfirmTime:0,chargeConfirmImpact:null,precisionActive:false,precisionElapsed:0,precisionNeedle:0,precisionCamera:0,precisionHoldTime:0,precisionPendingShot:null,precisionLast:null,hitEmphasis:[],chainHits:0,crushHits:0,weaponFractures:0};
+ const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],groundScars:[],nearMissBursts:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,reaimCount:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP,duelVolleyDamage:{player:0,ai:0},turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,chargeFocusX:null,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:savedAudio.effects,voice:savedAudio.voice,effectVolume:savedAudio.effectVolume,voiceVolume:savedAudio.voiceVolume,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewLife:0,voiceCaptionTime:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,flightSettledAt:null,shotBaseline:null,shotHighlights:{direct:false,critical:false},windGuide:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,chargeConfirmTime:0,chargeConfirmImpact:null,precisionActive:false,precisionElapsed:0,precisionNeedle:0,precisionCamera:0,precisionHoldTime:0,precisionPendingShot:null,precisionLast:null,hitEmphasis:[],chainHits:0,crushHits:0,weaponFractures:0};
  // Tracks one split volley per target. A boss resists repeated fragment overlap,
  // but separate shots and ordinary multi-target splash remain fully effective.
  game.splitVolleyDamage=new Map();
@@ -3342,6 +3342,8 @@ function advanceChargePower(dt){
   game.aimCue={kind:'none',distance:Infinity};game.lastAimCueAt=-5;game.closestApproach=null;game.lastPlayerVolleyDamage=0;game.splitVolleyDamage.clear();game.chargeConfirmTime=0;game.chargeConfirmImpact=null;$('fire').classList.toggle('target-window',false);$('fire').classList.toggle('hit-hold',false);
   game.hudHealth={player:DUEL_MAX_HP,ai:DUEL_MAX_HP};game.hudHitPulse={player:0,ai:0};game.hudHitDelay={player:0,ai:0};game.hudDamage={player:null,ai:null};game.hudDrawn={player:false,ai:false};game.hudPlacement={player:null,ai:null};game.duelHitMotion={player:null,ai:null};game.duelHitBursts=[];game.weaponAftershocks=[];game.shotHighlights={direct:false,critical:false,perfect:false};game.windGuide=null;
   game.windLift=rnd(-1.9,1.9);game.shotInfluences=null;
+  // Visual memories belong to this battlefield, never the next match.
+  game.groundScars=[];game.nearMissBursts=[];
   game.precisionActive=false;game.precisionElapsed=0;game.precisionNeedle=0;game.precisionHoldTime=0;game.precisionPendingShot=null;game.precisionLast=null;game.precisionBand='';game.precisionBurst=null;game.precisionSlowFrames=0;game.precisionPerfectHalf=.02;game.hitEmphasis=[];$('precisionPanel').hidden=true;$('precisionHit').disabled=false;$('precisionPanel').classList.toggle('locked',false);for(const grade of ['perfect','near','normal','off'])$('precisionPanel').classList.toggle('locked-'+grade,false);$('aimTelemetry').hidden=false;
   // Every duel is hero-versus-hero. The opponent is different from the selected player.
   const challengers=['fox','bear','rabbit','cat'].filter(hero=>hero!==game.hero);
@@ -3689,9 +3691,14 @@ function advanceChargePower(dt){
   if(!targets.length)return;
   let closest=Infinity,clearance=Infinity;
   for(const target of targets){const d=Math.hypot(p.x-target.x,p.y-target.y);if(d<closest){closest=d;clearance=d-target.r-p.r;}}
-  if(closest<(p.flybyClosest??Infinity)){p.flybyClosest=closest;p.flybyClearance=clearance;}
+  if(closest<(p.flybyClosest??Infinity)){p.flybyClosest=closest;p.flybyClearance=clearance;p.flybyPoint={x:p.x,y:p.y};}
   if(closest>(p.flybyClosest??Infinity)+9&&p.flybyClearance>6&&p.flybyClearance<116){
    game.flybySoundPlayed=true;
+   // A measured near miss gets a short air-shear visual even in silent mode.
+   // It cannot affect a projectile, target collision or the aiming reference.
+   const point=p.flybyPoint||{x:p.x,y:p.y};
+   game.nearMissBursts.push({x:point.x,y:point.y,dir:Math.sign(p.vx)||1,life:.52,total:.52});
+   game.nearMissBursts=game.nearMissBursts.slice(-5);
    playSound('flyby',{x:p.x,speed:Math.hypot(p.vx,p.vy),weapon:p.weapon,clearance:p.flybyClearance});
   }
  }
@@ -4031,7 +4038,16 @@ function advanceChargePower(dt){
   game.weaponAftershocks.push({x:p.x,y:p.y,weapon:impactWeapon,life:afterlife,total:afterlife,
    direction:Math.sign(p.vx||0)||(p.owner==='ai'?-1:1),critical,seed:rnd(0,Math.PI*2)});
   game.weaponAftershocks=game.weaponAftershocks.slice(-18);
-  game.shake=Math.max(game.shake,critical?25:direct?17:big?19:11);game.hitStop=Math.max(game.hitStop,critical?.095:direct?.062:big?.051:.034);game.flash=critical?.28:big?.2:.12;game.rings.push({x:p.x,y:p.y,r:9,max:radius*(critical?1.6:1.14),life:critical?.68:.48,total:critical?.68:.48,color:critical?'#baffea':big?'#ffdfab':'#fff7d7'});game.blastCores.push({x:p.x,y:p.y,hero:p.hero||'fox',weapon:p.weapon||'normal',life:big?.65:.46,total:big?.65:.46,radius:big?69:41,seed:rnd(0,6.3)});game.blastCores=game.blastCores.slice(-12);crater(p.x,p.y,big?49:27);spawnSparks(p.x,p.y,critical?75:direct?48:big?56:32,critical?'#baffdf':big?'#ffb966':'#fff0be',critical?1.6:big?1.3:1);for(let i=0;i<(big?14:8);i++){const px=p.x+rnd(-26,26);game.particles.push({x:px,y:p.y+rnd(-8,8),vx:rnd(-85,85),vy:rnd(-125,-25),life:rnd(.45,.92),max:.92,r:rnd(6,15),color:i%2?'#b88f7388':'#eee0c288'});}
+  game.shake=Math.max(game.shake,critical?25:direct?17:big?19:11);game.hitStop=Math.max(game.hitStop,critical?.095:direct?.062:big?.051:.034);game.flash=critical?.28:big?.2:.12;game.rings.push({x:p.x,y:p.y,r:9,max:radius*(critical?1.6:1.14),life:critical?.68:.48,total:critical?.68:.48,color:critical?'#baffea':big?'#ffdfab':'#fff7d7'});game.blastCores.push({x:p.x,y:p.y,hero:p.hero||'fox',weapon:p.weapon||'normal',life:big?.65:.46,total:big?.65:.46,radius:big?69:41,seed:rnd(0,6.3)});game.blastCores=game.blastCores.slice(-12);crater(p.x,p.y,big?49:27);
+  // Brief, terrain-anchored scorch marks retain the memory of each landing.
+  // Explosions high on a tower cannot paint a misleading mark on the floor.
+  const scarX=clamp(p.x,0,W),surfaceY=terrainY(scarX);
+  if(Math.abs(p.y-surfaceY)<(big?95:67)){
+   const life=big?10:7;
+   game.groundScars.push({x:scarX,weapon:impactWeapon,size:big?53:impactWeapon==='split'?23:33,life,total:life,seed:rnd(0,6.28)});
+   game.groundScars=game.groundScars.slice(-12);
+  }
+  spawnSparks(p.x,p.y,critical?75:direct?48:big?56:32,critical?'#baffdf':big?'#ffb966':'#fff0be',critical?1.6:big?1.3:1);for(let i=0;i<(big?14:8);i++){const px=p.x+rnd(-26,26);game.particles.push({x:px,y:p.y+rnd(-8,8),vx:rnd(-85,85),vy:rnd(-125,-25),life:rnd(.45,.92),max:.92,r:rnd(6,15),color:i%2?'#b88f7388':'#eee0c288'});}
   if(direct){game.hitEmphasis.push({x:p.x,y:p.y-56,text:perfectImpact?'퍼펙트 정타!':critical?'치명타!':'정타!',life:critical?1.2:.95,total:critical?1.2:.95,critical});game.hitEmphasis=game.hitEmphasis.slice(-8);if(perfectImpact||critical){playSound(perfectImpact?'perfectImpact':'critical',{x:p.x});if(p.owner==='player')playBattleVoice(perfectImpact?'perfect':'critical');}}
   if(perfectImpact){spawnSparks(p.x,p.y-16,20,'#a6ffed',.58);game.rings.push({x:p.x,y:p.y,r:12,max:116,life:.64,total:.64,color:'#bcfff0'});}
   spawnImpactMotes(p,big);
@@ -4304,6 +4320,10 @@ function advanceChargePower(dt){
   game.hitEmphasis=game.hitEmphasis.filter(hit=>hit.life>0);
   for(const echo of game.weaponAftershocks||[])echo.life=Math.max(0,echo.life-dt);
   game.weaponAftershocks=game.weaponAftershocks?.filter(echo=>echo.life>0)||[];
+  for(const scar of game.groundScars)scar.life=Math.max(0,scar.life-dt);
+  game.groundScars=game.groundScars.filter(scar=>scar.life>0);
+  for(const burst of game.nearMissBursts)burst.life=Math.max(0,burst.life-dt);
+  game.nearMissBursts=game.nearMissBursts.filter(burst=>burst.life>0);
   if(game.hintTime>0){game.hintTime=Math.max(0,game.hintTime-dt);if(game.hintTime===0)$('hint').hidden=true;}
   if(game.introLife>0){game.introLife=Math.max(0,game.introLife-dt);if(game.introLife===0)$('enemyEntrance').hidden=true;}game.shake*=.82;game.flash=Math.max(0,game.flash-dt);game.messageTime=Math.max(0,game.messageTime-dt);for(const owner of ['player','ai']){const hero=duelHero(owner),style=heroFiringStyles[hero]||heroFiringStyles.fox;game.recoil[owner]*=Math.pow(style.recoilDecay,dt*60);}for(const f of game.foes){if(f.deathTimer>0)f.deathTimer=Math.max(0,f.deathTimer-dt);}for(const e of game.blastCores)e.life-=dt;game.blastCores=game.blastCores.filter(e=>e.life>0);for(const a of Object.values(game.actorAnim))a.life=Math.max(0,a.life-dt);for(const e of game.skillEffects)e.life-=dt;game.skillEffects=game.skillEffects.filter(e=>e.life>0);if(game.muzzle){game.muzzle.life-=dt;if(game.muzzle.life<=0)game.muzzle=null;}
   if(game.mode==='menu'||game.phase==='result')return;
@@ -4432,6 +4452,26 @@ function advanceChargePower(dt){
   ctx.beginPath();for(let x=lo;x<=hi;x+=5){if(x===lo)ctx.moveTo(x,terrainY(x));else ctx.lineTo(x,terrainY(x));}ctx.strokeStyle='#4e946e';ctx.lineWidth=11;ctx.lineJoin='round';ctx.stroke();
   ctx.beginPath();for(let x=lo;x<=hi;x+=5){if(x===lo)ctx.moveTo(x,terrainY(x)-3);else ctx.lineTo(x,terrainY(x)-3);}ctx.strokeStyle='#a0ca83';ctx.lineWidth=3;ctx.stroke();
   for(let i=Math.floor(lo/37)*37;i<hi;i+=37){const y=terrainY(i);if(y<H-30){ellipse(i,y+19,5,2,'#876e5f');ellipse(i+13,y+46,7,3,'#93765f');}}
+ }
+ function drawSurfaceScars(){
+  // Soft, subdued earth marks sit below combatants and never hide HP labels.
+  const left=game.camera-80,right=game.camera+cv.clientWidth/Math.max(.001,game.scale)+80;
+  for(const scar of game.groundScars){
+   if(scar.x<left||scar.x>right)continue;
+   const fade=clamp(scar.life/2.1,0,1),spread=scar.size;
+   ctx.save();ctx.translate(scar.x,terrainY(scar.x)+5);ctx.rotate(Math.sin(scar.seed)*.065);
+   ctx.globalAlpha=fade*.34;
+   ellipse(0,2,spread,spread*.24,'#3f3b36');
+   ctx.globalAlpha=fade*.29;
+   ellipse(0,-1,spread*.69,spread*.13,scar.weapon==='bomb'?'#342f30':'#65513f');
+   ctx.lineCap='round';ctx.strokeStyle='#403d38';ctx.lineWidth=1.8;
+   for(let i=0;i<5;i++){
+    const side=i%2?-1:1,px=(i-2)*spread*.27,dy=3+Math.sin(scar.seed+i*2.4)*3;
+    ctx.globalAlpha=fade*(.18+i*.017);
+    ctx.beginPath();ctx.moveTo(px,dy);ctx.quadraticCurveTo(px+side*5,dy-5,px+side*(9+i%3*3),dy-2);ctx.stroke();
+   }
+   ctx.restore();
+  }
  }
  function spriteReady(which='fox'){const img=which==='rabbit'||which==='cat'?rosterAtlas:atlas;return !!(img&&img.complete&&img.naturalWidth>0&&img.naturalHeight>0);}
  function drawHeroAttackFrame(which,x,y,scale,dir,side){
@@ -5093,6 +5133,24 @@ const materialCells={
   ctx.drawImage(heroAmmunitionAtlas,col*cellW,row*cellH,cellW,cellH,-drawW/2,-drawH/2,drawW,drawH);
   return true;
  }
+ function drawFlightWind(p){
+  // Actual flight gets a delicate sideways gust. Aiming preview is untouched.
+  const intensity=clamp(Math.abs(game.wind)/4.8,0,1);
+  if(intensity<.12)return false;
+  const direction=game.wind<0?-1:1,pace=game.clock*7;
+  ctx.save();ctx.strokeStyle=game.wind<0?'#e1f4ff':'#fff6df';ctx.lineCap='round';
+  ctx.lineWidth=1.3+intensity*.85;
+  for(let i=0;i<3;i++){
+   const wave=Math.sin(pace+i*2.1)*4,x=p.x-direction*(24+i*12),y=p.y+(i-1)*14+wave;
+   const length=(15+i*4)*(1+intensity*.7);
+   ctx.globalAlpha=(.1+intensity*.19)*(1-i*.18);
+   ctx.beginPath();ctx.moveTo(x-direction*length*.58,y+2);
+   ctx.quadraticCurveTo(x,y-5,x+direction*length*.5,y-1);
+   ctx.lineTo(x+direction*(length*.5-5),y-4);ctx.stroke();
+  }
+  ctx.restore();
+  return true;
+ }
  function drawProjectiles(){
   // Illustrated Canvas 2D projectile silhouettes; no SVG or external sprites.
   const palettes={
@@ -5103,6 +5161,7 @@ const materialCells={
   };
   for(const p of game.projectiles){
    const hero=p.hero||'fox',tones=palettes[hero]||palettes.fox;
+   if(p===game.projectiles[0])drawFlightWind(p);
    const tail=Math.min(15,p.trail.length);
    // The flight ribbon follows the projectile's measured positions, so it stays
    // aligned to wind drift and splits rather than assuming a straight trajectory.
@@ -5455,7 +5514,24 @@ const materialCells={
    ctx.fillText('정타 찬스',hit.x,hit.y-36,86);ctx.restore();
   }
  }
- function draw(){resize();const dpr=Math.min(2,devicePixelRatio||1),s=game.scale;if(!s)return;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#8bbeb8';ctx.fillRect(0,0,cv.width,cv.height);ctx.setTransform(dpr*s,0,0,dpr*s,-game.camera*dpr*s,game.topPad*dpr);ctx.save();if(game.shake>1){ctx.translate(rnd(-game.shake,game.shake),rnd(-game.shake*.6,game.shake*.6));}backdrop();if(game.mode!=='menu'){ground();drawTrajectory();if(game.mode==='adventure'){drawBlocks();drawCollapseGhosts();drawFoes();slingshot();}else{drawDuelHitBursts();duelActor(190,1,true);duelActor(1018,-1,false);drawDuelHealthHud(190,'player');drawDuelHealthHud(1018,'ai');}drawChargeReadiness();drawDebris();drawProjectiles();drawParticles();drawImpactMotes();drawSkillEffects();drawImpact();drawPrecisionBurst();drawMessage();}else{ctx.save();fox(170,450,2);bear(1008,452,2);ctx.restore();}if(game.flash>0){ctx.fillStyle=`rgba(255,245,210,${game.flash*1.4})`;ctx.fillRect(game.camera,0,cv.clientWidth/s,H);}ctx.restore();}
+ function drawNearMissBursts(){
+  // Air pressure arcs at the recorded closest pass; no fabricated hit text.
+  ctx.save();ctx.lineCap='round';
+  for(const burst of game.nearMissBursts){
+   const fade=clamp(burst.life/burst.total,0,1),spread=1-fade;
+   ctx.save();ctx.translate(burst.x,burst.y);ctx.scale(burst.dir,1);
+   ctx.strokeStyle='#ecfff6';ctx.lineWidth=2.2*fade+1;
+   for(let i=-1;i<=1;i++){
+    ctx.globalAlpha=fade*(i===0?.62:.36);
+    const y=i*(13+spread*9),trail=26+spread*34;
+    ctx.beginPath();ctx.moveTo(-trail*.7,y+4);
+    ctx.quadraticCurveTo(-8,y-6*(i+1),trail*.35,y-2);ctx.stroke();
+   }
+   ctx.restore();
+  }
+  ctx.restore();
+ }
+ function draw(){resize();const dpr=Math.min(2,devicePixelRatio||1),s=game.scale;if(!s)return;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#8bbeb8';ctx.fillRect(0,0,cv.width,cv.height);ctx.setTransform(dpr*s,0,0,dpr*s,-game.camera*dpr*s,game.topPad*dpr);ctx.save();if(game.shake>1){ctx.translate(rnd(-game.shake,game.shake),rnd(-game.shake*.6,game.shake*.6));}backdrop();if(game.mode!=='menu'){ground();drawSurfaceScars();drawTrajectory();if(game.mode==='adventure'){drawBlocks();drawCollapseGhosts();drawFoes();slingshot();}else{drawDuelHitBursts();duelActor(190,1,true);duelActor(1018,-1,false);drawDuelHealthHud(190,'player');drawDuelHealthHud(1018,'ai');}drawChargeReadiness();drawDebris();drawProjectiles();drawNearMissBursts();drawParticles();drawImpactMotes();drawSkillEffects();drawImpact();drawPrecisionBurst();drawMessage();}else{ctx.save();fox(170,450,2);bear(1008,452,2);ctx.restore();}if(game.flash>0){ctx.fillStyle=`rgba(255,245,210,${game.flash*1.4})`;ctx.fillRect(game.camera,0,cv.clientWidth/s,H);}ctx.restore();}
  let prev=null,acc=0;function frame(t){
   if(document.hidden){prev=null;acc=0;requestAnimationFrame(frame);return;}
   const gap=prev===null?0:Math.max(0,(t-prev)/1000);
