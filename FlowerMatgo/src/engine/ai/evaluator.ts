@@ -2,7 +2,8 @@ import { getCard } from '../cards';
 import { createMatgoDeck } from '../deck';
 import { isBonusPee } from '../rules/bonusPee';
 import { calculateCapturedScore, calculatePlayerScore } from '../rules/scoring';
-import { findBombOptions, findShakeOptions } from '../rules/specialRules';
+import { findBombOptions, findShakeOptions, stealPeeForBonus } from '../rules/specialRules';
+import { missionRequiredCount } from '../rules/missions';
 import type { GameState, PlayerId } from '../types';
 import type { AiMove, MoveEvaluation } from './types';
 
@@ -90,7 +91,7 @@ function missionCaptureValue(mission: GameState['mission'], captured: string[], 
   const gained=[...new Set(added)].filter(id=>targets.has(id) && !owned.has(id));
   if (!gained.length) return 0;
   const progress=mission.cardIds.filter(id=>owned.has(id)).length;
-  const completes=progress+gained.length >= (mission.requiredCount || mission.cardIds.length);
+  const completes=progress+gained.length >= missionRequiredCount(mission);
   const effect=mission.effect;
   if (!effect) return gained.length*2;
   if (!completes) return (effect.kind==='points' && effect.value<0) || effect.kind==='give' ? 0 : gained.length*2;
@@ -124,12 +125,11 @@ function capturedByCard(state: GameState, player: PlayerId, cardId: string): { c
 function evaluateCard(state: GameState, player: PlayerId, cardId: string): MoveEvaluation {
   const view = playerCards(state, player);
   if (isBonusPee(cardId)) {
-    const stolenPee = view.opponentCaptured
-      .filter(id => ['junk', 'doubleJunk'].includes(getCard(id)?.type ?? ''))
-      .sort((left, right) => cardValue(left) - cardValue(right))[0];
+    const opponentGookjin=player==='human' ? state.computerGookjinAsDoubleJunk : state.humanGookjinAsDoubleJunk;
+    const stolenPee=stealPeeForBonus(view.opponentCaptured,opponentGookjin).stolenCardId;
     const capturedIds = [cardId, ...(stolenPee ? [stolenPee] : [])];
     const immediateValue = capturedIds.reduce((sum, id) => sum + cardValue(id), 0)
-      + scoreDelta(view.captured, capturedIds, view.gookjin) * 13;
+      + scoreDelta(view.captured, capturedIds, view.gookjin || stolenPee==='m09-01') * 13;
     const combinationValue = combinationProgress(view.captured, capturedIds);
     return {
       move: { kind: 'card', cardId }, immediateValue, opponentRisk: -2.5, combinationValue,

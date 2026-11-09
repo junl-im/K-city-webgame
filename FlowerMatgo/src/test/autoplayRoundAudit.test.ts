@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { automaticMove, automaticSpecial } from '../autoSpecial.js';
 import { chooseAiFloorMatch } from '../engine/ai/evaluator';
 import { chooseAiMove } from '../engine/ai/strategy';
-import { chooseChongtong, chooseStop, createInitialGame, declareShake, getBombDrawChoice, getDrawFloorChoice, getFlipOnlyDrawChoice, getMatchingFloorCards, isValidGameState, playBomb, playFlipOnlyTurn, playTurn } from '../engine/gameState';
+import { chooseChongtong, chooseGo, chooseStop, createInitialGame, declareShake, getBombDrawChoice, getDrawFloorChoice, getFlipOnlyDrawChoice, getMatchingFloorCards, isValidGameState, playBomb, playFlipOnlyTurn, playTurn } from '../engine/gameState';
 import type { GameState, PlayerId } from '../engine/types';
 
 function best(state: GameState, player: PlayerId, ids: string[], extra: string[] = []) {
@@ -14,12 +14,18 @@ function best(state: GameState, player: PlayerId, ids: string[], extra: string[]
 
 describe('자동치기 전체 판 점검',()=>{
   it('여러 시드에서 모든 차례가 끝나고 패가 중복되거나 사라지지 않는다',()=>{
-    for(let seed=1;seed<=40;seed++){
+    for(let seed=1;seed<=120;seed++){
       let g=createInitialGame(seed*97,'hard',1000,'human');
       for(let step=0;g.phase!=='round-ended' && step<100;step++){
         expect(isValidGameState(g),`seed ${seed}, step ${step}`).toBe(true);
         if(g.phase==='awaiting-chongtong'){g=chooseChongtong(g,g.pendingDecision!,'stop');continue;}
-        if(g.phase==='awaiting-go-stop'){g=chooseStop(g,g.pendingDecision!);continue;}
+        if(g.phase==='awaiting-go-stop'){
+          const player=g.pendingDecision!, human=player==='human';
+          const remaining=(human?g.humanHand:g.computerHand).length+(human?g.humanBombSkips:g.computerBombSkips);
+          const goCount=human?g.humanGoCount:g.computerGoCount;
+          g=seed%3===0 && remaining>3 && goCount<2 ? chooseGo(g,player) : chooseStop(g,player);
+          continue;
+        }
         const player=g.currentPlayer;
         const move=player==='human' ? automaticSpecial(g) || automaticMove(g) : chooseAiMove(g,player,'hard').move;
         expect(move,`seed ${seed}, step ${step}: no move`).toBeTruthy();
