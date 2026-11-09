@@ -18,6 +18,8 @@ script=script.replace('window.__v622ComebackForTest=(withDeficit)=>{newGame','wi
 script=script.replace('game.lastVoiceAt=0;showResult(true);return{title:','game.lastVoiceAt=0;showResult(true);game.sound=originalSound;game.voice=originalVoice;return{title:');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v622InvalidPerfectForTest=()=>{newGame("duel",0);applyExplosion({x:190,y:terrainY(190)-29,weapon:"normal",owner:"player",directTarget:"player",directCenter:5,timingAccuracy:1,timingGrade:"perfect"});return{reward:game.shotHighlights.perfect,caption:game.hitEmphasis.at(-1)?.text};}; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v623FoleyForTest=(cues)=>{foley.cues=cues;foley.buffer={duration:32.56};}; window.__v623FoleyChoiceForTest=(kind,options)=>foleyCue(kind,options); window.__artilleryLoadoutDebug=');
 // Inject only for the smoke harness; this is not a runtime/public debug control.
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v620FlightProfileForTest=(speed,wind,weapon,x)=>flightSoundProfile(speed,wind,weapon,x); window.__v620FlightTickForTest=(projectiles,wind)=>{const saved={phase:game.phase,projectiles:game.projectiles,wind:game.wind,sound:game.sound,flightSoundTimer:game.flightSoundTimer};game.phase="flying";game.projectiles=projectiles;game.wind=wind;game.sound=true;game.flightSoundTimer=0;updateFlightSound(.22);const remaining=game.flightSoundTimer;Object.assign(game,saved);return remaining;}; window.__artilleryLoadoutDebug=');
@@ -1070,7 +1072,7 @@ window.speechSynthesis={speaking:false,pending:false,cancel:noOp,getVoices:()=>[
 window.__resetVoiceCooldownForTest();
 const bossAudio=window.__v621BossProbeForTest();
 assert(bossAudio.intro.includes('고철 요새')&&bossAudio.attack.includes('철의 포효'),'Boss entrance and attack must have independent lines');
-assert(bossAudio.attackCount>0&&spoken.at(-1).pitch<.7,'A real boss attack should use the distinctive low-pitch voice');
+assert(bossAudio.attackCount>0&&spoken.at(-1).pitch>=.85&&spoken.at(-1).pitch<=1,'Boss voice should be grounded and natural, not an extreme monster pitch');
 assert(bossAudio.earlyCue&&bossAudio.lateCue&&bossAudio.cueCleared,'Boss audio must wait for the visible peak of its attack, then trigger only once');
 el('soundBtn').click();
 assert.equal(window.__artilleryAudioDebug().panelOpen,true,'Sound menu must open from the single top control');
@@ -1627,5 +1629,30 @@ assert(playedMaterials.slice(beforeComeback).some(n=>n.frequency===395),'The com
 const normalVictory=window.__v622ComebackForTest(false);
 assert.equal(normalVictory.deficit,0,'A fresh duel must clear the recorded comeback deficit');
 assert(!normalVictory.title.includes('대역전'),'An ordinary victory must keep the usual ending');
+// v6.23: all prominent battle and timing cues are genuine audio frames from
+// an original sound atlas; legacy oscillator fallbacks remain for bad decoders.
+const foleyAudio=fs.readFileSync(__dirname+'/sound/foley_atlas.ogg');
+const foleyCues=JSON.parse(fs.readFileSync(__dirname+'/sound/foley_cues.json','utf8'));
+assert.equal(foleyAudio.toString('ascii',0,4),'OggS','The foley atlas must be a real Ogg sound file');
+assert.equal(Object.keys(foleyCues).length,32,'The original atlas must contain 32 combat, hero and UI cues');
+assert(Object.values(foleyCues).every(v=>v.length===2&&v[0]>=0&&v[1]>0&&v[0]+v[1]<=32.56+.01),
+ 'Every cue must point to a bounded segment of the encoded audio');
+assert.equal(window.__v623FoleyChoiceForTest('fire',{weapon:'bomb'}),'fire_bomb');
+assert.equal(window.__v623FoleyChoiceForTest('skill',{hero:'cat'}),'skill_cat');
+assert.equal(window.__v623FoleyChoiceForTest('bossThreat',{}),'boss_threat');
+window.__v623FoleyForTest(foleyCues);
+const sampled=[];
+window.AudioContext.prototype.createBufferSource=()=>({buffer:null,connect:noOp,start:(at,offset,duration)=>{
+ if(Number.isFinite(offset)&&Number.isFinite(duration))sampled.push({offset,duration});
+},stop:noOp});
+const oscillatorCount=playedMaterials.length;
+window.__triggerAudioForTest('fire',{weapon:'bomb'});
+window.__resetAudioCooldownForTest('blast');
+window.__triggerAudioForTest('blast',{weapon:'split'});
+window.__triggerAudioForTest('skill',{hero:'rabbit'});
+assert.deepEqual(sampled.map(v=>v.offset),[
+ foleyCues.fire_bomb[0],foleyCues.blast_split[0],foleyCues.skill_rabbit[0]
+ ],'Weapon and hero sounds must play the correct slices of the original atlas');
+assert.equal(playedMaterials.length,oscillatorCount,'Decoded foley must replace the retro-tone fallback rather than layer on top');
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');
