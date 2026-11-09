@@ -5,6 +5,9 @@ const versionedPath=testFile.replace(/index\.html$/,'Artillery_Prototype_v0_7.ht
 const html=fs.readFileSync(__dirname+'/'+testFile,'utf8');
 const inlineScripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 let script=inlineScripts.at(-1)[1];
+// Inject only for the smoke harness; this is not a runtime/public debug control.
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v620FlightProfileForTest=(speed,wind,weapon,x)=>flightSoundProfile(speed,wind,weapon,x); window.__v620FlightTickForTest=(projectiles,wind)=>{const saved={phase:game.phase,projectiles:game.projectiles,wind:game.wind,sound:game.sound,flightSoundTimer:game.flightSoundTimer};game.phase="flying";game.projectiles=projectiles;game.wind=wind;game.sound=true;game.flightSoundTimer=0;updateFlightSound(.22);const remaining=game.flightSoundTimer;Object.assign(game,saved);return remaining;}; window.__artilleryLoadoutDebug=');
 // Test-only instrumentation: exercise result persistence without adding a public cheat hook to the game.
 if(/v0_[67]/.test(versionedPath)){
  const marker=' requestAnimationFrame(frame);\n})();';
@@ -1008,6 +1011,27 @@ for(const mode of ['adventure','duel']){
  victorySounds.add(playedMaterials.slice(from).map(note=>Math.round(note.frequency)).join('/'));
 }
 assert.equal(victorySounds.size,2,'Adventure victory and duel victory need different finale arrangements');
+// v6.20: a single real-flight whoosh follows speed, wind and the camera,
+// while every split volley has one capped pulse, not one pulse per fragment.
+const nearX=260;
+const slowFlight=window.__v620FlightProfileForTest(320,0,'normal',nearX);
+const fastFlight=window.__v620FlightProfileForTest(900,0,'normal',nearX);
+const gustFlight=window.__v620FlightProfileForTest(900,4.8,'normal',nearX);
+const farFlight=window.__v620FlightProfileForTest(900,0,'normal',2000);
+assert(fastFlight.freq>slowFlight.freq&&fastFlight.volume>slowFlight.volume,'Real projectile speed must raise flight pitch and presence');
+assert(gustFlight.freq!==fastFlight.freq&&gustFlight.high>fastFlight.high,'Wind must alter only the acoustic flight signature');
+assert(farFlight.volume<fastFlight.volume*.7,'The flying projectile must become quieter outside the current camera view');
+assert(window.__v620FlightProfileForTest(9999,-4.8,'split',nearX).volume<.05,'High speeds and gusts must have bounded phone-safe gain');
+const fragmentVolley=Array.from({length:5},(_,i)=>({active:true,age:.4,x:440+i*12,vx:520+i*20,vy:-80,weapon:'split'}));
+window.__resetAudioCooldownForTest('flightPulse');
+const pulseStart=playedMaterials.length,noiseStart=noiseStarts;
+window.__v620FlightTickForTest(fragmentVolley,3.2);
+assert.equal(playedMaterials.length-pulseStart,1,'Five split fragments must produce only one pitched flight pulse');
+assert.equal(noiseStarts-noiseStart,1,'One split-volley pulse must have one matching textured air layer');
+window.__resetAudioCooldownForTest('flightPulse');
+const emptyPulseStart=playedMaterials.length;
+window.__v620FlightTickForTest([],3.2);
+assert.equal(playedMaterials.length,emptyPulseStart,'No flight audio may play after all projectiles have landed');
 const spoken=[];
 window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};
 window.speechSynthesis={speaking:false,pending:false,cancel:noOp,getVoices:()=>[{lang:'ko-KR',name:'test-Korean'}],speak:u=>spoken.push({text:u.text,voice:u.voice?.lang,lang:u.lang,volume:u.volume})};
