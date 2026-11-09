@@ -808,7 +808,7 @@ function autoTakeTurn(forced = false) {
   if ((!forced && !app.autoMode) || !clockKey || turnTransition || (overlay && overlay!=='gookjin-choice') || decisionReview || document.hidden) return;
   const bestMatch = list => autoFloorMatch(g,list);
   if (forced && !app.autoMode) {app.autoMode=true;save();}
-  if (app.pendingGookjinChoice || overlay==='gookjin-choice') {mutate('gookjin-set',chooseAiGookjinAsDoubleJunk(g.humanCaptured)?'junk':'animal');return;}
+  if (app.pendingGookjinChoice || overlay==='gookjin-choice') {mutate('gookjin-set',chooseAiGookjinAsDoubleJunk(g.humanCaptured,g,'human')?'junk':'animal');return;}
   if (app.pendingDrawChoice) {
     const choice=app.pendingDrawChoice, matches=choice.kind==='play'?getMatchingFloorCards(g.floorCards,choice.cardId):[];
     const played=matches.length?[choice.cardId,...(matches.length===2?[choice.playedMatchId]:matches).filter(Boolean)]:[];

@@ -134,4 +134,22 @@ describe('규칙 기반 AI 수 선택', () => {
     ])).toBe(true);
     expect(chooseAiGookjinAsDoubleJunk(['m09-01', 'm02-01', 'm04-01', 'm06-01', 'm07-01'])).toBe(false);
   });
+
+  it('자동 국진 선택은 같은 점수라면 멍따와 상대 피박을 실제 정산 기준으로 비교한다', () => {
+    const game=createInitialGame(84,'hard',1000,'human');
+    game.humanCaptured=['m02-01','m04-01','m05-01','m06-01','m07-01','m08-02','m09-01',
+      'm01-03','m02-03','m03-03','m04-03','m05-03','m06-03','m07-03','m08-03'];
+    game.computerCaptured=['m11-01'];game.mission=null;game.humanMissionPoints=0;
+    expect(chooseAiGookjinAsDoubleJunk(game.humanCaptured,game)).toBe(false);
+    game.computerCaptured=['m10-03'];
+    expect(chooseAiGookjinAsDoubleJunk(game.humanCaptured,game)).toBe(true);
+  });
+
+  it('자동 국진 선택은 미션 점수를 포함해 한쪽만 스톱 가능하면 그쪽을 고른다', () => {
+    const game=createInitialGame(85,'hard',1000,'human');
+    game.humanCaptured=['m05-01','m06-01','m07-01','m09-01',
+      'm01-03','m02-03','m03-03','m04-03','m05-03','m06-03','m07-03','m08-03'];
+    game.computerCaptured=['m11-01'];game.mission=null;game.humanMissionPoints=6;
+    expect(chooseAiGookjinAsDoubleJunk(game.humanCaptured,game)).toBe(true);
+  });
 });

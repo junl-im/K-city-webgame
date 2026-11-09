@@ -1,5 +1,8 @@
 import { randomInteger } from '../random';
 import { calculateCapturedScore, calculatePlayerScore } from '../rules/scoring';
+import { canChooseGoStop } from '../rules/decisions';
+import { calculateSettlement } from '../rules/settlement';
+import { missionMultiplierFor } from '../rules/missions';
 import type { GameState, PlayerId } from '../types';
 import { evaluateMoves, estimatePlayerThreat } from './evaluator';
 import { AI_DIFFICULTIES } from './settings';
@@ -70,8 +73,24 @@ export function chooseAiChongtong(state: GameState, difficulty: AiDifficulty): '
   return takeRandom(state, 10_000) / 10_000 < AI_DIFFICULTIES.easy.easyStopProbability ? 'stop' : 'continue';
 }
 
-export function chooseAiGookjinAsDoubleJunk(captured: string[]): boolean {
+export function chooseAiGookjinAsDoubleJunk(captured: string[], state?: GameState, player: PlayerId = 'human'): boolean {
   const asAnimal = calculateCapturedScore(captured, { gookjinAsDoubleJunk: false });
   const asDoubleJunk = calculateCapturedScore(captured, { gookjinAsDoubleJunk: true });
-  return asDoubleJunk.total >= asAnimal.total;
+  if (!state) return asDoubleJunk.total * (asDoubleJunk.animalCount>=7?2:1) >= asAnimal.total * (asAnimal.animalCount>=7?2:1);
+  const human=player==='human', opponent=human?'computer':'human';
+  const animalState={...state,[human?'humanGookjinAsDoubleJunk':'computerGookjinAsDoubleJunk']:false};
+  const junkState={...state,[human?'humanGookjinAsDoubleJunk':'computerGookjinAsDoubleJunk']:true};
+  const animalScore=calculatePlayerScore(animalState,player), junkScore=calculatePlayerScore(junkState,player);
+  const lastGo=human?state.humanScoreAtLastGo:state.computerScoreAtLastGo;
+  const animalCanStop=canChooseGoStop(animalScore.total,lastGo), junkCanStop=canChooseGoStop(junkScore.total,lastGo);
+  if (animalCanStop!==junkCanStop) return junkCanStop;
+  const otherScore=calculatePlayerScore(state,opponent);
+  const value=(winnerScore: typeof animalScore)=>calculateSettlement({
+    winnerScore,loserScore:otherScore,winnerGoCount:human?state.humanGoCount:state.computerGoCount,
+    loserGoCount:human?state.computerGoCount:state.humanGoCount,
+    winnerShakeCount:human?state.humanShakeCount:state.computerShakeCount,
+    winnerMissionMultiplier:missionMultiplierFor(state.mission,state.humanCaptured,state.computerCaptured,player),
+    roundMultiplier:state.roundMultiplier,loserCapturedCount:(human?state.computerCaptured:state.humanCaptured).length
+  }).finalScore;
+  return value(junkScore)>=value(animalScore);
 }
