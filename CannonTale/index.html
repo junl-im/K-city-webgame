@@ -3171,7 +3171,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   v.vx+=timingSideSpeed(sideBias);
   game.shotBaseline={foes:game.foes.filter(f=>f.alive).length,blockHp:game.blocks.reduce((a,b)=>a+Math.max(0,b.hp),0),blockCounts:['wood','stone','iron'].map(t=>game.blocks.filter(b=>b.type===t).length),playerHp:game.playerHp,aiHp:game.aiHp};
   game.closestApproach={distance:Infinity,x:null,y:null};
-  game.lastImpact=null;game.flightSettledAt=null;game.flightSoundTimer=-.15;game.shotHighlights={direct:false,critical:false};game.reviewFocusX=null;game.reviewInfo=null;$('reviewCountdown').hidden=true;game.panX=null;game.overview=false;$('overview').textContent='전장 보기';$('shotReview').hidden=true;
+  game.lastImpact=null;game.flightSettledAt=null;game.flightSoundTimer=-.15;game.flybySoundPlayed=false;game.shotHighlights={direct:false,critical:false};game.reviewFocusX=null;game.reviewInfo=null;$('reviewCountdown').hidden=true;game.panX=null;game.overview=false;$('overview').textContent='전장 보기';$('shotReview').hidden=true;
   const socket=muzzleFor(owner,ang),muzzleX=socket.x,muzzleY=socket.y;
    const p={x:muzzleX,y:muzzleY,vx:v.vx,vy:v.vy,r:weapon==='bomb'?13:10,weapon,owner,hero:owner==='ai'?game.aiHero:game.hero,age:0,split:false,trail:[],active:true,pierce:owner==='player'&&game.abilityArmed?2:0,hitBlocks:[],hitFoes:[],timingGrade:owner==='player'?game.precisionLast?.grade:null,timingAccuracy:owner==='player'?game.precisionLast?.accuracy:0,timingBias:sideBias,damageScale:owner==='player'&&game.mode==='duel'?shotDamageScale(game.power,game.precisionLast?.accuracy??.6):1,directTarget:null,directCenter:Infinity};game.projectiles.push(p);
   if(owner==='player')game.abilityArmed=false;else game.aiAngle=ang;
@@ -3355,7 +3355,7 @@ function advanceChargePower(dt){
   $('enemyEntrance').hidden=mode!=='adventure';$('enemyEntrance').dataset.stage=String(game.stage);$('enemyEntranceName').textContent=['도토리 수호병','이끼 바위거인','바람의 정령','강철 화염대장'][game.stage];
   $('hint').hidden=false;$('hint').textContent=mode==='adventure'?`${heroSet[game.hero].name} 출전! 각도·파워 조준 · 특수기: ${heroSet[game.hero].ability}`:`무제한 포격 데스매치! 상대 HP를 0으로 만들 때까지 계속 싸우세요.`;
   angleEl.value=game.angle;powerEl.value=game.power;chooseWeapon('normal');
-  updateHud();resize();playBattleVoice('intro');
+  updateHud();resize();if(mode==='adventure'&&game.foes.some(f=>f.boss)){playSound('bossThreat',{x:game.foes.find(f=>f.boss).x});playBattleVoice('bossIntro','boss',true);}else playBattleVoice('intro');
  }
  function goHome(){cancelFireCharge();cancelPrecision();closeSoundPanel();stopBattleVoice();game.chargeZoom=1;game.chargeReveal=1;$('reviewCountdown').hidden=true;game.mode='menu';game.phase='menu';game.projectiles=[];game.particles=[];game.skillEffects=[];game.impactMotes=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.blastCores=[];game.drag=null;game.pan=null;game.panX=null;game.reviewFocusX=null;game.reviewInfo=null;game.reviewTimer=0;$('shotReview').hidden=true;$('menu').hidden=false;$('stageMap').hidden=true;$('result').hidden=true;$('exitConfirm').hidden=true;$('controls').hidden=true;$('hint').hidden=true;$('leftStatus').hidden=true;$('rightStatus').hidden=true;$('bossBanner').hidden=true;$('enemyEntrance').hidden=true;game.introLife=0;$('windVector').textContent='·';$('windStrength').textContent='0.0';$('windWord').textContent='잔잔';$('aimTelemetry').hidden=true;$('modeChip').textContent='모드 선택';$('stageChip').textContent='첫 플레이를 시작해요';refreshMenu();resize();}
  function chooseWeapon(type){if(game.weapon!==type)playSound('ui');game.weapon=type;document.querySelectorAll('[data-weapon]').forEach(b=>b.classList.toggle('selected',b.dataset.weapon===type));updateHud();}
@@ -3608,7 +3608,7 @@ function advanceChargePower(dt){
  }
  // v6.16: original procedural sound palette; no media downloads and no SVG.
  const soundShapes={fire:{freq:290,end:95,duration:.18,volume:.10,type:'triangle'},blast:{freq:125,end:40,duration:.28,volume:.14,type:'sawtooth'},precision:{freq:640,end:1020,duration:.23,volume:.09,type:'sine'},timingNear:{freq:490,end:740,duration:.15,volume:.035,type:'sine'},timingOff:{freq:215,end:135,duration:.14,volume:.026,type:'triangle'},lock:{freq:720,end:880,duration:.09,volume:.025,type:'sine'},split:{freq:760,end:460,duration:.15,volume:.045,type:'triangle'},critical:{freq:190,end:62,duration:.39,volume:.17,type:'sawtooth'},wood:{freq:410,end:125,duration:.13,volume:.054,type:'triangle'},stone:{freq:185,end:52,duration:.22,volume:.065,type:'sawtooth'},iron:{freq:710,end:230,duration:.36,volume:.042,type:'sine'},win:{freq:560,end:880,duration:.32,volume:.10,type:'sine'},lose:{freq:270,end:130,duration:.38,volume:.09,type:'triangle'},ui:{freq:470,end:600,duration:.09,volume:.06,type:'sine'},charge:{freq:135,end:330,duration:.22,volume:.035,type:'sawtooth'},tick:{freq:680,end:495,duration:.055,volume:.017,type:'triangle'},flight:{freq:510,end:95,duration:.43,volume:.03,type:'triangle'},skill:{freq:395,end:1060,duration:.32,volume:.052,type:'sine'},combo:{freq:590,end:790,duration:.16,volume:.043,type:'sine'},bossBreak:{freq:135,end:39,duration:.57,volume:.135,type:'sawtooth'},foeHit:{freq:360,end:115,duration:.12,volume:.043,type:'triangle'},heroHit:{freq:188,end:65,duration:.22,volume:.083,type:'sawtooth'},voiceCue:{freq:610,end:870,duration:.15,volume:.036,type:'sine'}};
- const soundCooldown={wood:.085,stone:.085,iron:.085,tick:.12,lock:.32,critical:.35,blast:.04,split:.055,flight:.07,flightPulse:.16,combo:.28,bossBreak:.65,foeHit:.115,heroHit:.105};
+ const soundCooldown={wood:.085,stone:.085,iron:.085,tick:.12,lock:.32,critical:.35,blast:.04,split:.055,flight:.07,flightPulse:.16,flyby:.35,nearImpact:.32,bossThreat:1.8,combo:.28,bossBreak:.65,foeHit:.115,heroHit:.105};
  function flightSoundProfile(speed,wind,weapon,x){
   // Audio-only profile: actual ballistic velocity and wind never feed back into the reticle or physics.
   const pace=clamp((Math.max(0,speed)-250)/760,0,1),gust=clamp(Math.abs(wind)/4.8,0,1);
@@ -3631,6 +3631,21 @@ function advanceChargePower(dt){
   const viewport=cv.clientWidth/Math.max(.001,game.scale),center=game.camera+viewport*.5;
   const p=game.projectiles.filter(p=>p.active&&p.age>.12).sort((a,b)=>Math.abs(a.x-center)-Math.abs(b.x-center))[0];
   if(p)playSound('flightPulse',{weapon:p.weapon,x:p.x,speed:Math.hypot(p.vx,p.vy),wind:game.wind});
+ }
+ function updateFlybySound(p){
+  if(game.flybySoundPlayed||!p.active||p.age<.14)return;
+  // Detect a true pass after closest approach, without changing collision or damage.
+  const targets=game.mode==='duel'
+   ?[{x:p.owner==='ai'?190:1018,y:terrainY(p.owner==='ai'?190:1018)-29,r:22}]
+   :game.foes.filter(f=>f.alive).map(f=>({x:f.x,y:f.y,r:f.r}));
+  if(!targets.length)return;
+  let closest=Infinity,clearance=Infinity;
+  for(const target of targets){const d=Math.hypot(p.x-target.x,p.y-target.y);if(d<closest){closest=d;clearance=d-target.r-p.r;}}
+  if(closest<(p.flybyClosest??Infinity)){p.flybyClosest=closest;p.flybyClearance=clearance;}
+  if(closest>(p.flybyClosest??Infinity)+9&&p.flybyClearance>6&&p.flybyClearance<116){
+   game.flybySoundPlayed=true;
+   playSound('flyby',{x:p.x,speed:Math.hypot(p.vx,p.vy),weapon:p.weapon,clearance:p.flybyClearance});
+  }
  }
  function synthNote(ac,start,freq,end,duration,volume,type='sine',destination=ac.destination){
   const osc=ac.createOscillator(),gain=ac.createGain();osc.type=type;
@@ -3683,6 +3698,24 @@ function advanceChargePower(dt){
     const profile=flightSoundProfile(options.speed||0,options.wind||0,weapon,options.x);
     note(now,profile.freq,profile.freq*.68,profile.duration,profile.volume*v,'triangle');
     noise(profile.duration,{low:profile.low,high:profile.high,volume:profile.hiss*v});
+    return;
+   }
+   if(kind==='flyby'){
+    const speed=clamp((options.speed||350)/1000,.25,1.2),close=clamp(1-(options.clearance||70)/180,.28,1);
+    note(now,760*speed+280,195*speed+90,.24,.055*close*v,'sine');
+    noise(.29,{low:280,high:4700,volume:.063*close*v});
+    return;
+   }
+   if(kind==='nearImpact'){
+    note(now,116,36,.38,.047*v,'sawtooth');
+    note(now+.06,76,32,.32,.035*v,'triangle');
+    noise(.31,{low:75,high:1250,volume:.057*v,filter:'lowpass'});
+    return;
+   }
+   if(kind==='bossThreat'){
+    note(now,133,48,.49,.084*v,'sawtooth');
+    note(now+.09,73,39,.39,.053*v,'triangle');
+    noise(.45,{low:100,high:1600,volume:.073*v,filter:'lowpass'});
     return;
    }
    // The first oscillator preserves the established material timbres.
@@ -3758,14 +3791,14 @@ function advanceChargePower(dt){
    }
   }catch(_){/* Unsupported or suspended audio must never interrupt the match. */}
  }
- const battleLines={intro:'포격 준비!',perfect:'퍼펙트!',critical:'치명타!',combo:'연속 명중!',win:'승리! 훌륭한 포격이야!',lose:'아쉽지만, 다시 도전!',enemy:'적의 포격이다!',fox:'바람을 읽어!',bear:'관통 준비 완료!',rabbit:'분열 발사!',cat:'바람을 돌려!'};
+ const battleLines={intro:'포격 준비!',bossIntro:'고철 요새의 주인이 깨어난다!',bossAttack:'철의 포효를 들어라!',perfect:'퍼펙트!',critical:'치명타!',combo:'연속 명중!',win:'승리! 훌륭한 포격이야!',lose:'아쉽지만, 다시 도전!',enemy:'적의 포격이다!',fox:'바람을 읽어!',bear:'관통 준비 완료!',rabbit:'분열 발사!',cat:'바람을 돌려!'};
  const heroBattleLines={
   fox:{perfect:'바람처럼 정확해!',critical:'급소 포착!',combo:'연속 적중!',win:'바람을 읽은 승리야!',lose:'다음 바람엔 맞힐 거야!'},
   bear:{perfect:'묵직하게 명중!',critical:'방어를 뚫었다!',combo:'계속 밀어붙여!',win:'끝까지 버텨낸 승리다!',lose:'한 번 더 버텨 보자!'},
   rabbit:{perfect:'정확히 맞혔어!',critical:'한가운데!',combo:'연속 성공!',win:'작전 대성공이야!',lose:'다음엔 더 똑똑하게!'},
   cat:{perfect:'계산대로야!',critical:'정확한 충격!',combo:'연속 포착!',win:'모든 계산이 맞아떨어졌어!',lose:'변수를 다시 계산할게!'}
  };
- const battleVoiceStyle={fox:{pitch:1.27,rate:1.14},bear:{pitch:.76,rate:.93},rabbit:{pitch:1.42,rate:1.18},cat:{pitch:1.12,rate:1.02}};
+ const battleVoiceStyle={fox:{pitch:1.27,rate:1.14},bear:{pitch:.76,rate:.93},rabbit:{pitch:1.42,rate:1.18},cat:{pitch:1.12,rate:1.02},boss:{pitch:.61,rate:.84}};
  function stopBattleVoice(){try{window.speechSynthesis?.cancel?.();}catch(_){}game.voiceCaptionTime=0;$('voiceCaption').hidden=true;}
  function playBattleVoice(kind,hero=game.hero,force=false){
   if(!game.voice||game.voiceVolume<=0||!battleLines[kind])return false;
@@ -3935,6 +3968,12 @@ function advanceChargePower(dt){
   if(direct){game.hitEmphasis.push({x:p.x,y:p.y-56,text:critical?'치명타!':'정타!',life:critical?1.2:.95,total:critical?1.2:.95,critical});game.hitEmphasis=game.hitEmphasis.slice(-8);if(critical){playSound('critical',{x:p.x});if(p.owner==='player')playBattleVoice('critical');}}
   spawnImpactMotes(p,big);
   playSound('blast',{weapon:p.weapon,critical,x:p.x});
+  if(game.mode==='duel'){
+   // Nearby ground blasts have a pressure tail only outside the actual HP damage zone.
+   const danger=radius+30;
+   const nearHero=[190,1018].some(x=>{const d=Math.hypot(p.x-x,p.y-(terrainY(x)-29));return d>=danger&&d<235;});
+   if(nearHero)playSound('nearImpact',{x:p.x,weapon:p.weapon});
+  }
   for(const b of game.blocks){
   const cx=b.body.position.x,cy=b.body.position.y,dist=Math.hypot(p.x-cx,p.y-cy);
   if(dist>=radius+Math.max(b.w,b.h)*.4)continue;
@@ -4212,7 +4251,7 @@ function advanceChargePower(dt){
     f.attackCooldown-=dt;
     if(f.hitAnim===0&&f.spawnTime>.8&&f.attackCooldown<=0){
      f.attackAnim=.72;f.attackCooldown=rnd(f.boss?3.3:4.1,f.boss?4.6:5.6);f.attackCount++;
-     if(f.boss)skillEffect('hit',f.x-26,f.y-.5*f.r,.27);
+     if(f.boss){skillEffect('hit',f.x-26,f.y-.5*f.r,.27);playSound('bossThreat',{x:f.x});playBattleVoice('bossAttack','boss');}
     }
     if(f.y>H+70)defeatFoe(f);}
   for(const p of game.projectiles){if(!p.active)continue;const subdt=dt/3;for(let i=0;i<3&&p.active;i++){
@@ -4230,7 +4269,7 @@ function advanceChargePower(dt){
     if(foe){if(p.pierce>0){applyPierceHit(p,foe,'foe');}else{p.directTarget=foe;p.directCenter=Math.hypot(p.x-foe.x,p.y-foe.y);p.active=false;applyExplosion(p);break;}}
     if(game.mode==='duel'&&p.age>.13){for(const cx of [190,1018]){const distance=Math.hypot(p.x-cx,p.y-(terrainY(cx)-29));if(distance<p.r+22){p.directTarget=cx===190?'player':'ai';p.directCenter=distance;p.active=false;applyExplosion(p);break;}}}
   }
-  if(p.active){p.trail.push({x:p.x,y:p.y});if(p.trail.length>14)p.trail.shift();}}
+  if(p.active){updateFlybySound(p);p.trail.push({x:p.x,y:p.y});if(p.trail.length>14)p.trail.shift();}}
   game.projectiles=game.projectiles.filter(p=>p.active);
   updateFlightSound(dt);
   for(const p of game.particles){p.life-=dt;p.vy+=G*.55*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.98;}game.particles=game.particles.filter(p=>p.life>0);

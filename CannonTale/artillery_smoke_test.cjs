@@ -5,6 +5,8 @@ const versionedPath=testFile.replace(/index\.html$/,'Artillery_Prototype_v0_7.ht
 const html=fs.readFileSync(__dirname+'/'+testFile,'utf8');
 const inlineScripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 let script=inlineScripts.at(-1)[1];
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v621FlybyProbeForTest=(clearance)=>{const saved={mode:game.mode,flybySoundPlayed:game.flybySoundPlayed,sound:game.sound,projectiles:game.projectiles};game.mode="duel";game.flybySoundPlayed=false;game.sound=true;const y=terrainY(1018)-29+32+clearance,p={x:958,y,vx:650,vy:0,r:10,age:.5,owner:"player",weapon:"normal",active:true};for(const x of [958,1018,1078]){p.x=x;updateFlybySound(p);}const result={played:game.flybySoundPlayed,clearance:p.flybyClearance};Object.assign(game,saved);return result;}; window.__v621NearImpactForTest=(distance)=>{newGame("duel",0);const hp=game.aiHp;const old=game.sound;game.sound=true;applyExplosion({x:1018-distance,y:terrainY(1018)-29,weapon:"normal",owner:"player",vx:510,timingAccuracy:.5});game.sound=old;return{damage:hp-game.aiHp};}; window.__v621BossProbeForTest=()=>{const prior={sound:game.sound,voice:game.voice};game.sound=true;game.voice=true;newGame("adventure",3);const intro=$("voiceCaption").textContent,boss=game.foes.find(f=>f.boss);boss.spawnTime=1;boss.attackCooldown=-1;game.lastVoiceAt=0;game.lastSoundAt??={};game.lastSoundAt.bossThreat=-100;step(1/60);const result={intro,attack:$("voiceCaption").textContent,attackCount:boss.attackCount};Object.assign(game,prior);return result;}; window.__artilleryLoadoutDebug=');
 // Inject only for the smoke harness; this is not a runtime/public debug control.
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v620FlightProfileForTest=(speed,wind,weapon,x)=>flightSoundProfile(speed,wind,weapon,x); window.__v620FlightTickForTest=(projectiles,wind)=>{const saved={phase:game.phase,projectiles:game.projectiles,wind:game.wind,sound:game.sound,flightSoundTimer:game.flightSoundTimer};game.phase="flying";game.projectiles=projectiles;game.wind=wind;game.sound=true;game.flightSoundTimer=0;updateFlightSound(.22);const remaining=game.flightSoundTimer;Object.assign(game,saved);return remaining;}; window.__artilleryLoadoutDebug=');
@@ -1032,9 +1034,32 @@ window.__resetAudioCooldownForTest('flightPulse');
 const emptyPulseStart=playedMaterials.length;
 window.__v620FlightTickForTest([],3.2);
 assert.equal(playedMaterials.length,emptyPulseStart,'No flight audio may play after all projectiles have landed');
+// v6.21: audible near misses are measured after passing, never on a direct-hit approach.
+window.__resetAudioCooldownForTest('flyby');
+const firstFlyby=playedMaterials.length;
+assert(window.__v621FlybyProbeForTest(40).played,'An intact projectile passing close to a hero must trigger a flyby');
+assert.equal(playedMaterials.length-firstFlyby,1,'One near-miss volley should make just one flyby tone');
+window.__resetAudioCooldownForTest('flyby');
+const distantFlyby=playedMaterials.length;
+assert(!window.__v621FlybyProbeForTest(140).played,'Distant harmless flight must not trigger danger audio');
+assert(!window.__v621FlybyProbeForTest(0).played,'A direct-hit path must not be mislabeled a near miss');
+assert.equal(playedMaterials.length,distantFlyby,'Neither distant nor direct paths should sound like a flyby');
+window.__resetAudioCooldownForTest('nearImpact');
+const nearHitStart=playedMaterials.length;
+const closeGround=window.__v621NearImpactForTest(160);
+assert.equal(closeGround.damage,0,'Pressure-tail near impact must not change hero HP or hit detection');
+assert(playedMaterials.slice(nearHitStart).some(n=>n.frequency===116),'A blast just outside damage radius needs a distinct low pressure tone');
+window.__resetAudioCooldownForTest('nearImpact');
+const directHitStart=playedMaterials.length;
+assert(window.__v621NearImpactForTest(20).damage>0,'A true close hit must still damage the hero normally');
+assert(!playedMaterials.slice(directHitStart).some(n=>n.frequency===116),'Direct damage should not double-play the near-miss pressure tail');
 const spoken=[];
 window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};
-window.speechSynthesis={speaking:false,pending:false,cancel:noOp,getVoices:()=>[{lang:'ko-KR',name:'test-Korean'}],speak:u=>spoken.push({text:u.text,voice:u.voice?.lang,lang:u.lang,volume:u.volume})};
+window.speechSynthesis={speaking:false,pending:false,cancel:noOp,getVoices:()=>[{lang:'ko-KR',name:'test-Korean'}],speak:u=>spoken.push({text:u.text,voice:u.voice?.lang,lang:u.lang,volume:u.volume,pitch:u.pitch})};
+window.__resetVoiceCooldownForTest();
+const bossAudio=window.__v621BossProbeForTest();
+assert(bossAudio.intro.includes('고철 요새')&&bossAudio.attack.includes('철의 포효'),'Boss entrance and attack must have independent lines');
+assert(bossAudio.attackCount>0&&spoken.at(-1).pitch<.7,'A real boss attack should use the distinctive low-pitch voice');
 el('soundBtn').click();
 assert.equal(window.__artilleryAudioDebug().panelOpen,true,'Sound menu must open from the single top control');
 el('soundEffectsToggle').click();
