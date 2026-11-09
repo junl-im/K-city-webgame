@@ -7,6 +7,17 @@ const inlineScripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 let script=inlineScripts.at(-1)[1];
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v621FlybyProbeForTest=(clearance)=>{const saved={mode:game.mode,flybySoundPlayed:game.flybySoundPlayed,sound:game.sound,projectiles:game.projectiles};game.mode="duel";game.flybySoundPlayed=false;game.sound=true;const y=terrainY(1018)-29+32+clearance,p={x:958,y,vx:650,vy:0,r:10,age:.5,owner:"player",weapon:"normal",active:true};for(const x of [958,1018,1078]){p.x=x;updateFlybySound(p);}const result={played:game.flybySoundPlayed,clearance:p.flybyClearance};Object.assign(game,saved);return result;}; window.__v621NearImpactForTest=(distance)=>{newGame("duel",0);const hp=game.aiHp;const old=game.sound;game.sound=true;applyExplosion({x:1018-distance,y:terrainY(1018)-29,weapon:"normal",owner:"player",vx:510,timingAccuracy:.5});game.sound=old;return{damage:hp-game.aiHp};}; window.__v621BossProbeForTest=()=>{const prior={sound:game.sound,voice:game.voice};game.sound=true;game.voice=true;newGame("adventure",3);const intro=$("voiceCaption").textContent,boss=game.foes.find(f=>f.boss);boss.spawnTime=1;boss.attackCooldown=-1;game.lastVoiceAt=0;game.lastSoundAt??={};game.lastSoundAt.bossThreat=-100;step(1/60);const result={intro,attack:$("voiceCaption").textContent,attackCount:boss.attackCount};Object.assign(game,prior);return result;}; window.__artilleryLoadoutDebug=');
+script=script.replace('step(1/60);const result={intro,attack:$("voiceCaption").textContent,attackCount:boss.attackCount};',
+ 'step(1/60);const earlyCue=game.lastSoundAt.bossThreat===-100;for(let i=0;i<22;i++)step(1/60);const result={intro,earlyCue,attack:$("voiceCaption").textContent,attackCount:boss.attackCount,lateCue:game.lastSoundAt.bossThreat!==-100,cueCleared:!boss.attackCuePending};');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v622PerfectForTest=()=>{newGame("duel",0);game.sound=true;const x=1018,shot={x,y:terrainY(x)-29,weapon:"normal",owner:"player",directTarget:"ai",directCenter:5,timingAccuracy:1,timingGrade:"perfect",hero:game.hero};applyExplosion(shot);const first=game.hitEmphasis.at(-1)?.text,damage=DUEL_MAX_HP-game.aiHp;applyExplosion(shot);return{first,second:game.hitEmphasis.at(-1)?.text,damage,flag:game.shotHighlights.perfect,playedOnce:game.perfectImpactPlayed};}; window.__v622ComebackForTest=(withDeficit)=>{newGame("duel",0);game.sound=true;game.voice=true;if(withDeficit){applyExplosion({x:190,y:terrainY(190)-29,weapon:"normal",owner:"ai",directTarget:"player",directCenter:5,timingAccuracy:1,hero:game.aiHero});}game.aiHp=0;game.lastVoiceAt=0;showResult(true);return{title:$("resultTitle").textContent,tag:$("resultTag").textContent,detail:$("resultText").textContent,deficit:game.duelMaxDeficit};}; window.__artilleryLoadoutDebug=');
+// Save and restore channel settings so combat probes do not alter mixer tests.
+script=script.replace('window.__v622PerfectForTest=()=>{newGame','window.__v622PerfectForTest=()=>{const originalSound=game.sound;newGame');
+script=script.replace('return{first,second:game.hitEmphasis.at(-1)?.text,damage,flag:','game.sound=originalSound;return{first,second:game.hitEmphasis.at(-1)?.text,damage,flag:');
+script=script.replace('window.__v622ComebackForTest=(withDeficit)=>{newGame','window.__v622ComebackForTest=(withDeficit)=>{const originalSound=game.sound,originalVoice=game.voice;newGame');
+script=script.replace('game.lastVoiceAt=0;showResult(true);return{title:','game.lastVoiceAt=0;showResult(true);game.sound=originalSound;game.voice=originalVoice;return{title:');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v622InvalidPerfectForTest=()=>{newGame("duel",0);applyExplosion({x:190,y:terrainY(190)-29,weapon:"normal",owner:"player",directTarget:"player",directCenter:5,timingAccuracy:1,timingGrade:"perfect"});return{reward:game.shotHighlights.perfect,caption:game.hitEmphasis.at(-1)?.text};}; window.__artilleryLoadoutDebug=');
 // Inject only for the smoke harness; this is not a runtime/public debug control.
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v620FlightProfileForTest=(speed,wind,weapon,x)=>flightSoundProfile(speed,wind,weapon,x); window.__v620FlightTickForTest=(projectiles,wind)=>{const saved={phase:game.phase,projectiles:game.projectiles,wind:game.wind,sound:game.sound,flightSoundTimer:game.flightSoundTimer};game.phase="flying";game.projectiles=projectiles;game.wind=wind;game.sound=true;game.flightSoundTimer=0;updateFlightSound(.22);const remaining=game.flightSoundTimer;Object.assign(game,saved);return remaining;}; window.__artilleryLoadoutDebug=');
@@ -1060,6 +1071,7 @@ window.__resetVoiceCooldownForTest();
 const bossAudio=window.__v621BossProbeForTest();
 assert(bossAudio.intro.includes('고철 요새')&&bossAudio.attack.includes('철의 포효'),'Boss entrance and attack must have independent lines');
 assert(bossAudio.attackCount>0&&spoken.at(-1).pitch<.7,'A real boss attack should use the distinctive low-pitch voice');
+assert(bossAudio.earlyCue&&bossAudio.lateCue&&bossAudio.cueCleared,'Boss audio must wait for the visible peak of its attack, then trigger only once');
 el('soundBtn').click();
 assert.equal(window.__artilleryAudioDebug().panelOpen,true,'Sound menu must open from the single top control');
 el('soundEffectsToggle').click();
@@ -1597,5 +1609,23 @@ for(const [wind,lift,angle,power] of [[-4.4,1.6,25,82],[4.4,-1.6,69,95],[0,0,42,
  assert(model.shot.angle>=8&&model.shot.angle<=88&&model.shot.power>=25&&model.shot.power<=100,
   'AI shot still obeys legitimate player trajectory limits');
 }
+// v6.22 combat probes are intentionally last: they start fresh matches and
+// must not alter the adventure fixtures used by the legacy rendering checks.
+window.__resetAudioCooldownForTest('perfectImpact');
+const beforePerfect=playedMaterials.length;
+const perfectV622=window.__v622PerfectForTest();
+assert(perfectV622.flag&&perfectV622.playedOnce&&perfectV622.damage>0,'Perfect reward requires a real damaging direct hit');
+assert.equal(perfectV622.first,'퍼펙트 정타!','The direct-hit caption should acknowledge precision');
+assert.notEqual(perfectV622.second,'퍼펙트 정타!','Split/continued impacts within one volley must not repeat the reward');
+assert.equal(playedMaterials.slice(beforePerfect).filter(n=>n.frequency===880).length,1,'A perfect volley must play one exclusive musical accent');
+const friendlyPerfect=window.__v622InvalidPerfectForTest();
+assert(!friendlyPerfect.reward&&friendlyPerfect.caption!=='퍼펙트 정타!','A self-hit must not be rewarded as a perfect enemy strike');
+const beforeComeback=playedMaterials.length;
+const comeback=window.__v622ComebackForTest(true);
+assert(comeback.deficit>=75&&comeback.title.includes('대역전')&&comeback.detail.includes('열세'),'A real HP deficit followed by victory must get a comeback ending');
+assert(playedMaterials.slice(beforeComeback).some(n=>n.frequency===395),'The comeback ending needs its own musical motif');
+const normalVictory=window.__v622ComebackForTest(false);
+assert.equal(normalVictory.deficit,0,'A fresh duel must clear the recorded comeback deficit');
+assert(!normalVictory.title.includes('대역전'),'An ordinary victory must keep the usual ending');
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');
