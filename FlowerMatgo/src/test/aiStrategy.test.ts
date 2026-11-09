@@ -23,6 +23,25 @@ describe('규칙 기반 AI 수 선택', () => {
     expect(chooseAiFloorMatch(['m01-01','m01-02'],[],['m02-02'],false,{...mission,enabled:false})).toBe('m01-01');
   });
 
+  it('예전 저장에서 목표가 세 장이면 오래된 2장 설정 대신 세 장 완성을 기준으로 평가한다', () => {
+    const mission={kind:'gakpae' as const,cardIds:['m02-03','m01-02','m03-02'],requiredCount:2,enabled:true,
+      effect:{kind:'points' as const,value:3}};
+    expect(chooseAiFloorMatch(['m01-01','m01-02'],[],['m02-03'],false,mission)).toBe('m01-01');
+  });
+
+  it('보너스로 빼앗을 수 있는 쌍피 국진은 평가에 포함하고 열끗 국진은 제외한다', () => {
+    const game=createInitialGame(72,'hard',1000,'human');
+    game.phase='playing';game.currentPlayer='human';game.humanHand=['bonus-pee-1'];
+    game.floorCards=[];game.humanCaptured=[];game.computerCaptured=['m09-01'];game.mission=null;
+    game.computerGookjinAsDoubleJunk=true;
+    const converted=evaluateMoves(game,'human')[0];
+    game.computerGookjinAsDoubleJunk=false;
+    const animal=evaluateMoves(game,'human')[0];
+    expect(converted.reason).toContain('뺏기');
+    expect(animal.reason).not.toContain('뺏기');
+    expect(converted.immediateValue).toBeGreaterThan(animal.immediateValue);
+  });
+
   it('뻑에 붙어 있는 보너스패도 수의 가치에 포함한다', () => {
     const game=createInitialGame(71,'hard',1000,'human');
     game.phase='playing';game.currentPlayer='human';game.humanHand=['m01-04'];
