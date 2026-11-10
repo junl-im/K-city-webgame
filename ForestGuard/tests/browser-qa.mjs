@@ -292,6 +292,13 @@ try{
         'Runner must visibly distinguish ready, sprint, reaching attack and recoil');
       assert.ok(runner.transparentCorners&&runner.frames.every(([w,h])=>w>=128&&h>=128),
         'Runner poses must be alpha cutouts and preserve transparent corners: '+JSON.stringify(runner));
+      const attackMotion=await page.evaluate(()=>window.__ForestGuardQA.scoutAttackMotionQA());
+      assert.ok(attackMotion&&Object.values(attackMotion.species).every(species=>
+        species.count===6&&species.distinctPaintings>=5),
+        'The two scouts need six readable, individually composed attack beats: '+JSON.stringify(attackMotion));
+      assert.ok(attackMotion.retreat<0&&attackMotion.southwardRelease>0&&
+        Math.abs(attackMotion.finish)<.001,
+        'Enemy attack must wind up north and then release toward the southern fort');
       const alphas=await page.evaluate(()=>window.__ForestGuardQA.monsterCutoutAlpha());
       assert.ok(alphas&&Object.keys(alphas).length===10,'All ten monster textures must exist');
       assert.ok(Object.entries(alphas).every(([,corners])=>corners.every(value=>value===0)),
@@ -480,9 +487,12 @@ try{
         'No saturated-red background contamination in the five rear-attack textures');
       const death=await page.evaluate(()=>window.__ForestGuardQA.previewDefeat());
       assert.ok(death.enemyCountUnchanged&&death.deathCount>=1&&
-        death.texture==='motion-sprout-death-0',
-        'Defeated monsters should animate with no delay to wave accounting');
+        death.texture==='motion-sprout-hurt-2',
+        'The final hand-painted hurt must remain visible without delaying wave accounting');
       await page.waitForTimeout(150);
+      const dyingTexture=await page.evaluate(()=>window.__ForestGuardQA.previewDeathFrame());
+      assert.ok(dyingTexture?.startsWith('motion-sprout-death-'),
+        'The defeated monster must transition from hurt into the original death animation');
       await page.screenshot({path:new URL('../test-output/monster-death-v43-390.png',import.meta.url).pathname});
       await page.waitForFunction(()=>window.__ForestGuardQA.deathFxCount()===0,null,{timeout:1600});
       const tracked=await page.evaluate(()=>window.__ForestGuardQA.damageNumberTrack());
