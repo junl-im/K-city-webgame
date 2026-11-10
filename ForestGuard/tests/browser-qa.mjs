@@ -150,6 +150,13 @@ try{
     assert.equal(missionType.whiteSpace,'normal','Mission story should wrap instead of silently disappearing');
     assert.ok(missionType.storyBottom<=missionType.boardBottom+2,
       'Mission story must stay within its painting: '+JSON.stringify(missionType));
+    const forestNotice=await page.locator('#home-stage-story').evaluate(el=>({
+      height:el.clientHeight,scrollHeight:el.scrollHeight,clamp:getComputedStyle(el).webkitLineClamp
+    }));
+    assert.ok(forestNotice.scrollHeight<=forestNotice.height+2,
+      'The complete forest notice must be visible, not cut off with ellipsis: '+JSON.stringify(forestNotice));
+    if(size.width<=360)assert.equal(forestNotice.clamp,'2',
+      'Short portrait phones need two readable lines on the forest sign');
     const homeButtons=await page.evaluate(()=>
       ['#start-btn','#resume-btn','#stage-list-btn','#help-btn','#intel-btn'].map(sel=>{
         const el=document.querySelector(sel),s=getComputedStyle(el);
@@ -354,6 +361,40 @@ try{
     const hudLabelFont=await page.locator('.battle-toolbar .hero-slot').first().evaluate(slot=>
       parseFloat(getComputedStyle(slot.querySelector('span:last-child')).fontSize));
     assert.ok(hudLabelFont>=9,'Painted hero slot labels should remain readable on narrow mobile: '+hudLabelFont);
+    const hudLettering=await page.evaluate(()=>{
+      const rect=el=>el.getBoundingClientRect();
+      const stage=rect(document.querySelector('.battle-hud .hud-stage'));
+      const controls=rect(document.querySelector('.battle-hud .hud-right'));
+      const label=document.querySelector('.battle-hud .hud-stage span');
+      const longNames=['고양이 기술자','토끼 마법사','진화 여우','영입 선택','곰 수호자'];
+      const slots=[...document.querySelectorAll('.hero-slot')].map((slot,i)=>{
+        const ink=slot.querySelector('span:last-child'),old=ink.textContent;
+        ink.textContent=longNames[i];
+        const type=getComputedStyle(ink),area=rect(ink),frame=rect(slot);
+        const result={label:longNames[i],clamp:type.webkitLineClamp,
+          height:ink.clientHeight,scrollHeight:ink.scrollHeight,
+          left:area.left,right:area.right,frameLeft:frame.left,frameRight:frame.right,
+          bottom:area.bottom,frameBottom:frame.bottom};
+        ink.textContent=old;return result;
+      });
+      const command=['#evo-btn','#skill-btn'].map(sel=>{
+        const button=document.querySelector(sel),caption=button.querySelector('small');
+        const old=caption.textContent;caption.textContent='달빛 진화';
+        const clip=caption.scrollHeight-caption.clientHeight;
+        const result={sel,clip,clamp:getComputedStyle(caption).webkitLineClamp,
+          bottom:rect(caption).bottom,frameBottom:rect(button).bottom};
+        caption.textContent=old;return result;
+      });
+      return {stageRight:stage.right,controlsLeft:controls.left,stageFont:parseFloat(getComputedStyle(label).fontSize),
+        slots,command};
+    });
+    assert.ok(hudLettering.stageRight<=hudLettering.controlsLeft+1&&hudLettering.stageFont>=10,
+      'Chapter lettering must not collide with repair and game controls: '+JSON.stringify(hudLettering));
+    assert.ok(hudLettering.slots.every(s=>s.clamp==='2'&&s.scrollHeight<=s.height+2&&
+      s.left>=s.frameLeft-1&&s.right<=s.frameRight+1&&s.bottom<=s.frameBottom+1),
+      'Two-line companion names must remain legible on their individual raster station: '+JSON.stringify(hudLettering.slots));
+    assert.ok(hudLettering.command.every(c=>c.clamp==='2'&&c.clip<=2&&c.bottom<=c.frameBottom+1),
+      'Skill and evolution captions must fit completely within painted controls: '+JSON.stringify(hudLettering.command));
     assert.equal(battle.svgCount,0,'No SVG in live battle');
     assert.equal(battle.backdrop,'none','Phaser battlefield must not have duplicate wallpaper');
     assert.ok(battle.scrollX<=2&&battle.scrollY<=2,'Battle page must fit a viewport: '+JSON.stringify(battle));
