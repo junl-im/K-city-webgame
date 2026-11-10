@@ -17,6 +17,7 @@ function effect(){return {active:true,setDisplaySize(){return this},setAngle(){r
 function stageFight(){
   const fight=Object.create(Battle.prototype),tweens=[],effects=[];
   Object.assign(fight,{hp:1000,ended:false,synergies:new Set(),
+    paintedStrikes:0,paintStrikeAt(){this.paintedStrikes++;},
     cameras:{main:{shake(){}}},
     add:{image(){const e=effect();effects.push(e);return e;}},
     tweens:{add(value){tweens.push(value);}},
@@ -30,6 +31,7 @@ function stageFight(){
   assert.equal(fight.hp,1000,'Spear must not deal invisible pre-impact damage');
   tweens[0].onComplete();
   assert.equal(fight.hp,955,'Spear hits once and only after crossing the field');
+  assert.equal(fight.paintedStrikes,1,'The completed sentinel spear has one decorative painted impact');
   assert.equal(effects[0].active,false,'Spear illustration is disposed after the strike');
 }
 {
@@ -43,6 +45,7 @@ function stageFight(){
   assert.equal(fight.hp,1000,'First two warning vines are visual, not extra strikes');
   tweens[2].onComplete();
   assert.equal(fight.hp,945,'Final root strike damages exactly once');
+  assert.equal(fight.paintedStrikes,1,'The final root has one painted impact, not three');
   assert.ok(effects.every(item=>!item.active),'Root spears must be cleaned up');
 }
 {

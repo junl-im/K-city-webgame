@@ -10,7 +10,9 @@ const sizes=[
 mkdirSync(new URL('../test-output/',import.meta.url),{recursive:true});
 // CI software renderer: prevent headless SwiftShader framebuffer attachment errors.
 // Production retains Phaser.AUTO/WebGL; all gameplay and DOM flows are still tested.
-const browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usage','--disable-webgl']});
+const browser=await chromium.launch({headless:true,
+  ...(process.env.FG_CHROMIUM_EXECUTABLE?{executablePath:process.env.FG_CHROMIUM_EXECUTABLE}:{}),
+  args:['--disable-dev-shm-usage','--disable-webgl']});
 const reports=[];
 try{
   for(const size of sizes){
@@ -296,6 +298,14 @@ try{
         'Original opaque monster atlas corners must be cut out: '+JSON.stringify(alphas));
       const hurt=await page.evaluate(()=>window.__ForestGuardQA.monsterHurtPaintingQA());
       assert.equal(hurt.loaded,true,'New independent painted monster hurt atlas must decode');
+      const strike=await page.evaluate(()=>window.__ForestGuardQA.paintedStrikeQA());
+      assert.ok(strike&&strike.loaded&&strike.played,
+        'v5.8 woodland impact painting must load and play: '+JSON.stringify(strike));
+      assert.deepEqual(strike.textureSize,[256,256],
+        'v5.8 impact texture should be a bounded mobile-scale raster');
+      assert.ok(strike.transparentCorners&&strike.beforeHP===strike.afterHP&&
+        strike.afterCount===strike.beforeCount+1,
+        'Painted impact may not add damage or opaque corners: '+JSON.stringify(strike));
       assert.ok(hurt.sourceSize[0]>=1000&&hurt.sourceSize[1]>=500,
         'Ten-species hurt atlas should retain detailed transparent source art');
       assert.equal(Object.keys(hurt.items).length,10,'Every monster needs its own hit painting');

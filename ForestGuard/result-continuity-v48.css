@@ -159,3 +159,30 @@
 @media(prefers-reduced-motion:reduce){
   #modal-layer #modal-box.result-dialog .result-star{transition:none!important}
 }
+
+/* v5.8: the painted party and earned stars arrive as a single short victory
+   beat. No extra framing, glowing button outlines, or viewport reflow. */
+@keyframes fg-result-party-v58{
+  0%{opacity:.35;transform:translateY(9px) scale(.97)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes fg-result-star-v58{
+  0%{opacity:.25;transform:translateY(9px) scale(.78)}
+  66%{opacity:1;transform:translateY(-3px) scale(1.08)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+#modal-layer #modal-box.result-dialog.result-win .result-hero-scene{
+  animation:fg-result-party-v58 440ms cubic-bezier(.15,.78,.28,1) both;
+}
+#modal-layer #modal-box.result-dialog.result-win .result-star.earned{
+  animation:fg-result-star-v58 420ms cubic-bezier(.15,.78,.28,1) both;
+}
+#modal-layer #modal-box.result-dialog.result-win .result-star.earned:nth-child(2){animation-delay:90ms}
+#modal-layer #modal-box.result-dialog.result-win .result-star.earned:nth-child(3){animation-delay:180ms}
+#modal-layer #modal-box.result-dialog:not(.result-win) .result-hero-scene{
+  filter:saturate(.78) brightness(.86)!important;
+}
+@media(prefers-reduced-motion:reduce){
+  #modal-layer #modal-box.result-dialog .result-hero-scene,
+  #modal-layer #modal-box.result-dialog .result-star.earned{animation:none!important}
+}
