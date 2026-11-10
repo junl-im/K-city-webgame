@@ -3183,7 +3183,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
    const p={x:muzzleX,y:muzzleY,vx:v.vx,vy:v.vy,r:weapon==='bomb'?13:10,weapon,owner,hero:owner==='ai'?game.aiHero:game.hero,age:0,split:false,trail:[],active:true,pierce:owner==='player'&&game.abilityArmed?2:0,hitBlocks:[],hitFoes:[],timingGrade:owner==='player'?game.precisionLast?.grade:null,timingAccuracy:owner==='player'?game.precisionLast?.accuracy:0,timingBias:sideBias,damageScale:owner==='player'&&game.mode==='duel'?shotDamageScale(game.power,game.precisionLast?.accuracy??.6):1,directTarget:null,directCenter:Infinity};game.projectiles.push(p);
   if(owner==='player')game.abilityArmed=false;else game.aiAngle=ang;
   const firingHero=duelHero(owner),firingStyle=heroFiringStyles[firingHero]||heroFiringStyles.fox;
-  game.recoil[owner]=firingStyle.kick;actorMotion(owner,'attack',firingStyle.duration);game.muzzle={x:muzzleX,y:muzzleY,dir,owner,hero:firingHero,weapon,life:firingStyle.muzzleTime,total:firingStyle.muzzleTime};spawnSparks(game.muzzle.x,game.muzzle.y,13,'#ffe8aa',.42);game.shake=Math.max(game.shake,weapon==='bomb'?4.5:2.7);playSound('fire',{weapon,hero:firingHero,x:muzzleX});playSound('flight',{weapon,x:muzzleX});
+  game.recoil[owner]=firingStyle.kick;actorMotion(owner,'attack',firingStyle.duration);game.muzzle={x:muzzleX,y:muzzleY,dir,owner,hero:firingHero,weapon,life:firingStyle.muzzleTime,total:firingStyle.muzzleTime};spawnSparks(game.muzzle.x,game.muzzle.y,13,'#ffe8aa',.42);game.shake=Math.max(game.shake,weapon==='bomb'?4.5:2.7);playSound('fire',{weapon,hero:firingHero,x:muzzleX,power});playSound('flight',{weapon,x:muzzleX});
   if(owner==='player') {game.shots++;game.reaimCount=0;game.phase='flying';game.phaseTime=0;game.message='발사!';game.messageTime=.65;game.hintTime=0;$('hint').hidden=true;}
   else {game.phase='flying';game.phaseTime=0;game.message='적의 포격!';game.messageTime=1;playBattleVoice('enemy','fox');}
   updateHud();
@@ -3673,7 +3673,12 @@ function advanceChargePower(dt){
    source.buffer=foley.buffer;
    // Recorded impacts have wider dynamic range than the old mono atlas.
    const level=kind==='ui'?.34:kind==='tick'?.30:kind==='bossBreak'?.78:kind==='blast'?.74:kind==='fire'?.72:.67;
-   gain.gain.setValueAtTime(level*v,now);
+   const intensity=kind==='foeHit'||kind==='heroHit'?clamp(.62+(options.damage||0)/130,.56,1.16)
+    :kind==='fire'?clamp(.79+(options.power??72)/400,.83,1.05)
+    :kind==='blast'&&options.critical?1.10:1;
+   // A TTS callout should stay intelligible even while debris is falling.
+   const speechDuck=window.speechSynthesis?.speaking ? .76 : 1;
+   gain.gain.setValueAtTime(level*v*intensity*speechDuck,now);
    source.connect(gain);gain.connect(destination);
    source.start(now,cue[0],Math.max(.01,cue[1]-.006));
    source.stop?.(now+cue[1]+.035);
@@ -3939,7 +3944,21 @@ function advanceChargePower(dt){
   $('voiceToggle').textContent=game.voice?'전투 음성 켬':'전투 음성 끔';$('voiceToggle').setAttribute?.('aria-pressed',String(game.voice));
   $('effectVolume').value=String(Math.round(game.effectVolume*100));$('voiceVolume').value=String(Math.round(game.voiceVolume*100));
  }
- function closeSoundPanel(){if(!$('soundPanel').hidden){$('soundPanel').hidden=true;$('soundBtn').setAttribute?.('aria-expanded','false');}}
+ // Preview timers belong to the sound panel. Closing it, muting, or entering a
+ // match must never leave a delayed demo explosion playing over live combat.
+ let soundPreviewSerial=0,soundPreviewTimers=[];
+ function cancelSoundPreview(){soundPreviewSerial++;for(const timer of soundPreviewTimers)clearTimeout(timer);soundPreviewTimers=[];}
+ function scheduleSoundPreview(delay,fn){const serial=soundPreviewSerial;const timer=setTimeout(()=>{if(serial===soundPreviewSerial)fn();},delay);soundPreviewTimers.push(timer);}
+ function closeSoundPanel(){cancelSoundPreview();if(!$('soundPanel').hidden){$('soundPanel').hidden=true;$('soundBtn').setAttribute?.('aria-expanded','false');}}
+ function demoBattleSound(){
+  if(game.sound){
+   const center=game.camera+cv.clientWidth/Math.max(.001,game.scale)*.5;
+   playSound('fire',{weapon:'bomb',hero:game.hero,x:center,power:88});
+   scheduleSoundPreview(510,()=>{if(game.sound)playSound('blast',{weapon:'bomb',x:center,critical:true});});
+   scheduleSoundPreview(720,()=>{if(game.sound)playSound('stone',{x:center});});
+  }
+  if(game.voice){if(game.sound)scheduleSoundPreview(1110,()=>{if(game.voice)playBattleVoice('perfect',game.hero,true);});else playBattleVoice('perfect',game.hero,true);}
+ }
  function useAbility(){
   const h=heroSet[game.hero],reason=abilityUnavailableReason();
   if(reason){game.message=reason;game.messageTime=2.65;playSound('ui');return false;}
@@ -5732,24 +5751,24 @@ const materialCells={
  // Load and unlock the original foley atlas on the first real user gesture.
  // Autoplay policy is respected: nothing plays without the player's action.
  document.addEventListener?.('pointerdown',()=>{prepareFoley();},{once:true});
- $('soundBtn').addEventListener('click',()=>{const opening=$('soundPanel').hidden;$('soundPanel').hidden=!opening;$('soundBtn').setAttribute?.('aria-expanded',String(opening));if(opening)playSound('ui');});
+ $('soundBtn').addEventListener('click',()=>{const opening=$('soundPanel').hidden;if(!opening)cancelSoundPreview();$('soundPanel').hidden=!opening;$('soundBtn').setAttribute?.('aria-expanded',String(opening));if(opening){$('audioFeedback').textContent=game.sound?'발사 → 폭발 → 파편 소리를 아래에서 미리 들을 수 있어요.':'효과음이 꺼져 있어요. 효과음 켬을 눌러 보세요.';playSound('ui');}});
  $('closeSoundPanel').addEventListener('click',closeSoundPanel);
- $('soundEffectsToggle').addEventListener('click',()=>{game.sound=!game.sound;saveAudioSettings();refreshAudioSettings();$('audioFeedback').textContent='';if(game.sound){prepareFoley();playSound('ui');}});
- $('voiceToggle').addEventListener('click',()=>{game.voice=!game.voice;if(!game.voice)stopBattleVoice();saveAudioSettings();refreshAudioSettings();$('audioFeedback').textContent='';playSound('ui');});
+ $('soundEffectsToggle').addEventListener('click',()=>{cancelSoundPreview();game.sound=!game.sound;saveAudioSettings();refreshAudioSettings();$('audioFeedback').textContent='';if(game.sound){prepareFoley();playSound('ui');}});
+ $('voiceToggle').addEventListener('click',()=>{cancelSoundPreview();game.voice=!game.voice;if(!game.voice)stopBattleVoice();saveAudioSettings();refreshAudioSettings();$('audioFeedback').textContent='';playSound('ui');});
  $('effectVolume').addEventListener('input',e=>{game.effectVolume=clamp(Number(e.target.value)/100,0,1);saveAudioSettings();});
  $('effectVolume').addEventListener('change',()=>playSound('ui'));
  $('voiceVolume').addEventListener('input',e=>{game.voiceVolume=clamp(Number(e.target.value)/100,0,1);saveAudioSettings();});
  $('previewSound').addEventListener('click',()=>{
+  cancelSoundPreview();const serial=soundPreviewSerial;
   if(!game.sound&&!game.voice){$('audioFeedback').textContent='효과음 또는 전투 음성을 켜면 미리 들을 수 있어요.';return;}
-  $('audioFeedback').textContent=game.sound&&game.voice?'포격과 전투 음성을 재생합니다.':game.sound?'포격 효과음만 재생합니다.':'전투 음성만 재생합니다.';
+  $('audioFeedback').textContent=game.sound&&game.voice?'발사·폭발·파편음 뒤에 전투 음성을 재생합니다.':game.sound?'발사·폭발·파편음을 차례로 재생합니다.':'전투 음성을 재생합니다.';
   if(game.sound){
    const ready=prepareFoley();
    if(ready&&!foley.buffer){
-    $('audioFeedback').textContent='전장 음향을 준비 중이에요. 잠시 후 고음질 포격음이 재생됩니다.';
-    ready.then(()=>{if(game.sound)playSound('fire',{weapon:'bomb',hero:game.hero,x:origin().x});});
-   }else playSound('fire',{weapon:'bomb',hero:game.hero,x:origin().x});
-  }
-  if(game.voice)playBattleVoice(game.hero==='bear'?'bear':'perfect',game.hero,true);
+    $('audioFeedback').textContent='입체 전장 음향 준비 중! 완료되면 포격을 시연합니다.';
+    ready.then(ok=>{if(serial===soundPreviewSerial){if(ok)demoBattleSound();else $('audioFeedback').textContent='고음질 파일을 읽지 못했어요. 다른 브라우저나 미디어 음량을 확인해 주세요.';}});
+   }else demoBattleSound();
+  }else demoBattleSound();
  });
  document.addEventListener?.('pointerdown',e=>{if(!$('soundPanel').hidden&&!$('soundPanel').contains(e.target)&&!$('soundBtn').contains(e.target))closeSoundPanel();});
  function handleBackIntent(){

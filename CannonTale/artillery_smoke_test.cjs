@@ -393,7 +393,11 @@ if(/v0_[67]/.test(versionedPath))saved.set('wind-artillery-progress-v06',JSON.st
 const window={Matter:require('./matter.min.js'),addEventListener:(type,fn)=>handlers[type]=fn,history:{replaceState:noOp,pushState:noOp,go:noOp},location:{href:'https://junl-im.github.io/K-city-webgame/CannonTale/',assign:noOp},localStorage:{getItem:key=>saved.get(key)||null,setItem:(key,val)=>saved.set(key,val)}};
 let callback=null,now=0;
 function requestAnimationFrame(fn){callback=fn;}
-new Function('document','window','requestAnimationFrame','devicePixelRatio',script)(document,window,requestAnimationFrame,1);
+const soundPreviewTimers=new Map();let soundPreviewTimerId=0;
+function fakeTimeout(fn,delay){const id=++soundPreviewTimerId;soundPreviewTimers.set(id,{fn,delay});return id;}
+function fakeClearTimeout(id){soundPreviewTimers.delete(id);}
+function flushSoundPreviewTimers(maxDelay){for(const [id,t] of [...soundPreviewTimers].sort((a,b)=>a[1].delay-b[1].delay)){if(t.delay<=maxDelay){soundPreviewTimers.delete(id);t.fn();}}}
+new Function('document','window','requestAnimationFrame','devicePixelRatio','setTimeout','clearTimeout',script)(document,window,requestAnimationFrame,1,fakeTimeout,fakeClearTimeout);
 function frames(n){for(let i=0;i<n;i++){now+=1000/60;const run=callback;callback=null;assert(run,'Animation frame not scheduled');run(now);}}
 function framesAtFps(fps,seconds){for(let i=0;i<Math.round(fps*seconds);i++){now+=1000/fps;const run=callback;callback=null;assert(run,'Animation frame not scheduled');run(now);}}
 function state(){return window.__artilleryDebug();}
@@ -1092,8 +1096,15 @@ el('voiceVolume').dispatch('input',{target:{value:'55'}});
 assert.equal(window.__artilleryAudioDebug().effectVolume,.35);
 assert.equal(window.__artilleryAudioDebug().voiceVolume,.55);
 assert(saved.get('cannontale-audio-v2').includes('"effectVolume":0.35'),'Audio mixer must persist independently of game progress');
+const beforeMixedPreview=spoken.length;
 el('previewSound').click();
 assert(noiseStarts>0,'Preview must actually produce layered, noise-based cannon audio');
+assert.equal(soundPreviewTimers.size,3,'A mixed preview should stage impact, debris and speech as three separate beats');
+assert.equal(spoken.length,beforeMixedPreview,'The voice should not overlap the initial cannon blast');
+flushSoundPreviewTimers(800);
+assert.equal(spoken.length,beforeMixedPreview,'The spoken line must wait until the explosion and debris finish');
+flushSoundPreviewTimers(1200);
+assert.equal(spoken.length,beforeMixedPreview+1,'The battle line should follow the preview impact');
 assert(spoken.length>0&&spoken.at(-1).voice==='ko-KR'&&spoken.at(-1).lang==='ko-KR','Battle callout must select a Korean voice when available');
 assert(window.__artilleryAudioDebug().captionVisible&&window.__artilleryAudioDebug().lastCaption.length>0,'Spoken callout needs a brief accessible caption');
 const lastSpoken=spoken.length,lastCaption=window.__artilleryAudioDebug().lastCaption;
@@ -1116,7 +1127,21 @@ window.__battleVoiceForTest('win','cat',true);
 assert.notEqual(spoken.at(-1).text,rabbitWin,'The result announcer must celebrate each hero in their own words');
 window.__battleVoiceForTest('lose','cat',true);
 assert.notEqual(spoken.at(-1).text,rabbitWin,'A defeat must use a distinct short encouragement line');
+const beforeClosedPreview=spoken.length;
+el('previewSound').click();
+assert.equal(soundPreviewTimers.size,3,'A queued demo must have sound, debris and voice beats');
+el('closeSoundPanel').click();
+assert.equal(soundPreviewTimers.size,0,'Closing sound settings must cancel every future demo beat');
+flushSoundPreviewTimers(1500);
+assert.equal(spoken.length,beforeClosedPreview,'A closed mixer cannot speak a delayed demo line');
+el('soundBtn').click();
+const beforeCanceledPreview=spoken.length;
+el('previewSound').click();
+assert.equal(soundPreviewTimers.size,3,'A second preview must schedule a fresh volley');
 el('soundEffectsToggle').click();
+assert.equal(soundPreviewTimers.size,0,'Muting effects must cancel queued explosions and speech from preview');
+flushSoundPreviewTimers(1300);
+assert.equal(spoken.length,beforeCanceledPreview,'Canceled previews must not speak after settings change');
 assert.equal(window.__artilleryAudioDebug().effects,false,'Effects can be muted while speech stays enabled');
 assert.equal(window.__artilleryAudioDebug().voice,true,'Speech remains enabled when effects turn off');
 const beforeVoiceOnly=spoken.length;
@@ -1674,6 +1699,21 @@ assert.deepEqual(sampled.map(v=>v.offset),[
  foleyCues.fire_bomb[0],foleyCues.blast_split[0],foleyCues.skill_rabbit[0]
  ],'Weapon and hero sounds must play the correct slices of the original atlas');
 assert.equal(playedMaterials.length,oscillatorCount,'Decoded foley must replace the retro-tone fallback rather than layer on top');
+// v6.27: real target damage and charge strength adjust only the sound mix.
+const foleyGainValues=[],priorFoleyGain=window.AudioContext.prototype.createGain;
+window.AudioContext.prototype.createGain=()=>({gain:{setValueAtTime:value=>foleyGainValues.push(value)},connect:noOp});
+const foleyGain=()=>foleyGainValues.at(-1);
+window.__resetAudioCooldownForTest('foeHit');window.__triggerAudioForTest('foeHit',{foeKind:0,damage:9});const lightHitGain=foleyGain();
+window.__resetAudioCooldownForTest('foeHit');window.__triggerAudioForTest('foeHit',{foeKind:3,boss:true,damage:89});const heavyHitGain=foleyGain();
+assert(heavyHitGain>lightHitGain*1.4,'Heavy enemy hits should be more forceful than light contact without changing HP');
+window.__triggerAudioForTest('fire',{weapon:'normal',power:20});const weakFireGain=foleyGain();
+window.__triggerAudioForTest('fire',{weapon:'normal',power:100});const strongFireGain=foleyGain();
+assert(strongFireGain>weakFireGain,'Higher real charge should deepen the perceived cannon impact');
+window.speechSynthesis.speaking=true;
+window.__triggerAudioForTest('fire',{weapon:'normal',power:100});const duckedGain=foleyGain();
+window.speechSynthesis.speaking=false;
+assert(duckedGain<strongFireGain*.85,'Active combat voice should remain intelligible under the sound mix');
+window.AudioContext.prototype.createGain=priorFoleyGain;
 const cinematicV624=window.__v624VisualForTest();
 assert(cinematicV624.strongWind&&!cinematicV624.calmWind,'Animated wind streams should appear only under meaningful actual wind');
 assert.equal(cinematicV624.reference,cinematicV624.referenceAfter,'Wind display must not alter the angle-only preview range');
