@@ -150,6 +150,7 @@
   const chapterBossBitmaps={3:null,7:null,11:null};
   let forestSentinelBitmap=null; // Chapter 1 has its own midboss instead of a reused silhouette.
   let sentinelVfxBitmap=null; // Four transparent, hand-painted spear/charge/impact/aftershock effects.
+  let forestImpactBitmap=null; // Optional transparent painterly strike, shared by weapon hits and elite slams.
   let thornBeetleBitmap=null; // 2×2 genuine beetle poses replace the old hedgehog-like placeholder.
   let runnerBitmap=null; // Four independent mushroom scout poses, facing the defenders below.
   const ART_VERSION = '20261031r';
@@ -198,6 +199,7 @@
       // even on a 320px phone. This optional 2×2 sheet has an atlas fallback.
       loadIllustration('./art/chapter1-thorn-beetle-v53.webp?v=20261106v53',art=>{thornBeetleBitmap=art;}),
       loadIllustration('./art/chapter1-mushroom-runner-v55.webp?v=20261106v55',art=>{runnerBitmap=art;}),
+      loadIllustration('./art/forest-impact-burst-v58.webp?v=20261110v58',art=>{forestImpactBitmap=art;}),
       loadIllustration('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;}),
       loadIllustration('./art/mushroom-colossus-attack-v19.webp?v=20261101d',art=>{mushroomAttackBitmap=art;}),
       loadIllustration('./art/rani-element-spells-v38.png?v=20261103a',art=>{elementSpellBitmap=art;}),
@@ -669,6 +671,12 @@
       c.beginPath();c.moveTo(25,54);c.bezierCurveTo(34,71,25,91,34,108);
       c.strokeStyle='#b4d37e';c.lineWidth=2;c.stroke();
     });
+    if(forestImpactBitmap){
+      createCanvasTexture(scene,'forest-impact-v58',256,256,c=>{
+        c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
+        c.drawImage(forestImpactBitmap,0,0,256,256);
+      });
+    }
     // Four independent original paintings. These never replace the final
     // chapter boss's root spears and are optional if the network fails.
     if(scene.stage.id<4&&sentinelVfxBitmap){
@@ -1108,6 +1116,7 @@
       this.terrainWarned=false;this.terrainWarning=false;this.terrainCueUntil=0;this.terrainCueText='';
       this.terrainEvents=0;this.overlayTimer=0;
       this.cardCounts={};this.synergies=new Set();this.gameClock=0;this.attackFxActive=0;this.damageFloatCount=0;this.damageFloatSerial=0;this.elementCueTimes=Object.create(null);
+      this.lastPaintedImpact=-10000;this.paintedImpactCount=0;
       this.heroIds=[null,null,'fox',null,null];this.targetModes=Array(HERO_CAPACITY).fill('front');this.attackTimes=Array(HERO_CAPACITY).fill(0);this.enemies=[];this.projectiles=[];this.effects=[];this.dyingSprites=0;
       this.focusEnemy=null;this.focusUntil=0;this.focusReticle=null;this.lastFortHP=-1;
       const personal=state.stats[this.stage.id]||{};
@@ -1442,6 +1451,12 @@
     }
     impactAt(x,y,kind,critical=false){
       if(this.effects.length>=26)return;
+      // Only selected solid blows receive the large painterly strike. This is
+      // a short-lived visual, never an additional hit or an extra collision.
+      if((critical||kind==='bear'||kind==='megafox')&&
+        this.gameClock-this.lastPaintedImpact>=165){
+        this.paintStrikeAt(x,y,critical?106:76);
+      }
       const color=kind==='rabbit'?0x9deaff:kind==='cat'?0xffab65:kind==='megafox'?0xffe387:kind==='bear'?0xe7d5a1:0xbee38b;
       const radius=critical?22:13;
       const ring=this.add.circle(x,y,radius,color,.08).setStrokeStyle(critical?4:2,color,.92).setDepth(7);
@@ -1466,6 +1481,25 @@
             onComplete:()=>{particle.destroy();const i=this.effects.indexOf(particle);if(i>=0)this.effects.splice(i,1);}});
         }
       }
+    }
+    paintStrikeAt(x,y,size=96){
+      if(this.ended||!this.textures.exists('forest-impact-v58')||
+        this.effects.length>=23||this.paintedImpactCount>=4)return false;
+      this.lastPaintedImpact=this.gameClock;this.paintedImpactCount++;
+      const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      // The original art's brightest impact is at 36%/74% of the canvas.
+      const art=this.add.image(x,y,'forest-impact-v58').setOrigin(.36,.74)
+        .setDisplaySize(size,size).setDepth(8).setAlpha(.92);
+      this.effects.push(art);
+      const clear=()=>{
+        if(art.active)art.destroy();
+        const i=this.effects.indexOf(art);if(i>=0)this.effects.splice(i,1);
+        this.paintedImpactCount=Math.max(0,this.paintedImpactCount-1);
+      };
+      if(reduced)this.time.delayedCall(120,clear);
+      else this.tweens.add({targets:art,alpha:0,scaleX:art.scaleX*1.24,
+        scaleY:art.scaleY*1.24,y:y-9,duration:245,ease:'Cubic.easeOut',onComplete:clear});
+      return true;
     }
     showDamageNumber(e,damage,critical,kind){
       if(this.damageFloatCount>=22||this.ended)return null;
@@ -1823,6 +1857,7 @@
               scaleY:reduced?1.04:1.25,duration:reduced?160:520,onComplete:()=>wave.destroy()});
           }
           this.hp=Math.max(0,this.hp-45);renderHUD();
+            this.paintStrikeAt(210,525,155);
           if(!reduced)this.cameras.main.shake(95,.0016);
           showBanner('숲길 파수꾼 · 가시창 충격! 성벽 -45');
           if(this.hp<=0)this.finish(false);
@@ -1841,6 +1876,7 @@
           duration:reduced?180:440+i*120,ease:'Sine.easeIn',onComplete:()=>{
             spear.destroy();if(i!==2||this.ended)return;
             this.hp=Math.max(0,this.hp-damage);renderHUD();
+            this.paintStrikeAt(210,526,178);
             if(!reduced)this.cameras.main.shake(145,.0024);
             showBanner('뿌리 거인 · 뿌리창 폭발! 성벽 -'+damage);
             if(this.hp<=0)this.finish(false);
@@ -2310,8 +2346,11 @@
         const recoil=hurting?Math.sin(Math.PI*hurtProgress)*(elite?10:6):0;
         // Uniform size and vertical movement only: the painted silhouette
         // stays proportional and gameplay coordinates never change.
-        e.spr.setPosition(e.x,e.y-recoil-attackMotion*(elite?9:5));
+        const attackSide=e.type==='imp'||e.type==='runner'?1:e.type==='thorn'?-1:0;
+        e.spr.setPosition(e.x+attackMotion*attackSide*4,e.y-recoil-attackMotion*(elite?9:5));
         e.spr.setScale(e.motionBaseScale*(1+attackMotion*(elite?.055:.032)));
+        // A restrained lunge read at 320px without deforming painted silhouettes.
+        e.spr.setAngle(attackMotion*attackSide*5);
         if(attacking&&e.lastAttackCue!==attackStart){
           e.lastAttackCue=attackStart;
           const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2324,6 +2363,18 @@
               duration:elite?390:260,onComplete:()=>{
                 tell.destroy();this.attackFxActive=Math.max(0,this.attackFxActive-1);
               }});
+            // Species-specific illustrated tells (leaf / stone / spore / crystal)
+            // rise toward the fort. Visual only; no damage or speed mutation.
+            const material=['crystal'].includes(e.type)?'crystal':
+              ['shroom','spore','runner'].includes(e.type)?'spore':
+              ['brute','guardian','boss'].includes(e.type)?'stone':'leaf';
+            if(this.textures.exists('shard-'+material)){
+              const shard=this.add.image(e.x,e.y-10,'shard-'+material)
+                .setDepth(7).setDisplaySize(elite?30:18,elite?30:18).setAlpha(.84);
+              this.tweens.add({targets:shard,x:e.x+(attackSide?attackSide*11:0),
+                y:e.y+(elite?37:25),scale:.55,angle:attackSide?attackSide*90:80,
+                alpha:0,duration:elite?410:290,ease:'Cubic.easeOut',onComplete:()=>shard.destroy()});
+            }
           }
         }
         e.lifeBg.setPosition(e.x,e.y-e.lifeYOffset);e.life.setPosition(e.x,e.y-e.lifeYOffset);
@@ -2642,6 +2693,20 @@
             for(let i=3;i<image.length;i+=4)if(image[i]>128)opaque++;
             return [type,{transparentCorners:samples.every(alpha=>alpha===0),opaquePixels:opaque}];
           }))};
+      },
+      paintedStrikeQA(){
+        if(!battle||battle.ended)return null;
+        const key='forest-impact-v58',loaded=!!forestImpactBitmap&&battle.textures.exists(key);
+        if(!loaded)return {loaded:false};
+        const canvas=battle.textures.get(key).getSourceImage();
+        const c=canvas.getContext('2d',{willReadFrequently:true});
+        const corners=[[0,0],[255,0],[0,255],[255,255]]
+          .map(([x,y])=>c.getImageData(x,y,1,1).data[3]);
+        const beforeHP=battle.hp, beforeCount=battle.paintedImpactCount;
+        const played=battle.paintStrikeAt(210,290,100);
+        return {loaded,sourceSize:[forestImpactBitmap.naturalWidth,forestImpactBitmap.naturalHeight],
+          textureSize:[canvas.width,canvas.height],transparentCorners:corners.every(alpha=>alpha===0),
+          played,beforeHP,afterHP:battle.hp,beforeCount,afterCount:battle.paintedImpactCount};
       },
       performanceSnapshot(){
         if(!battle)return null;
