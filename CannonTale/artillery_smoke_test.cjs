@@ -20,6 +20,8 @@ script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v622InvalidPerfectForTest=()=>{newGame("duel",0);applyExplosion({x:190,y:terrainY(190)-29,weapon:"normal",owner:"player",directTarget:"player",directCenter:5,timingAccuracy:1,timingGrade:"perfect"});return{reward:game.shotHighlights.perfect,caption:game.hitEmphasis.at(-1)?.text};}; window.__artilleryLoadoutDebug=');
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v623FoleyForTest=(cues)=>{foley.cues=cues;foley.buffer={duration:36.07};}; window.__v623FoleyChoiceForTest=(kind,options)=>foleyCue(kind,options); window.__v626BestVoiceForTest=bestKoreanVoice; window.__artilleryLoadoutDebug=');
+script=script.replace(' window.__artilleryLoadoutDebug=',
+ ' window.__v628ForceFoleyFailureForTest=()=>{foley.failed=true;foley.promise=Promise.resolve(false);foley.buffer=null;foley.cues=null;}; window.__v628UnlockProbeForTest=()=>{const ac=game.audio,prior={sound:game.sound,state:ac.state,resume:ac.resume};let resumed=0;ac.state="suspended";ac.resume=()=>{resumed++;ac.state="running";return Promise.resolve();};game.sound=false;unlockBattleAudio();const whileMuted=resumed;game.sound=true;unlockBattleAudio();const whileEnabled=resumed;game.sound=prior.sound;ac.state=prior.state;ac.resume=prior.resume;return{whileMuted,whileEnabled};}; window.__artilleryLoadoutDebug=');
 // Inject only for the smoke harness; this is not a runtime/public debug control.
 script=script.replace(' window.__artilleryLoadoutDebug=',
  ' window.__v620FlightProfileForTest=(speed,wind,weapon,x)=>flightSoundProfile(speed,wind,weapon,x); window.__v620FlightTickForTest=(projectiles,wind)=>{const saved={phase:game.phase,projectiles:game.projectiles,wind:game.wind,sound:game.sound,flightSoundTimer:game.flightSoundTimer};game.phase="flying";game.projectiles=projectiles;game.wind=wind;game.sound=true;game.flightSoundTimer=0;updateFlightSound(.22);const remaining=game.flightSoundTimer;Object.assign(game,saved);return remaining;}; window.__artilleryLoadoutDebug=');
@@ -1734,5 +1736,28 @@ assert(reportsV625.chain.title.includes('연쇄 붕괴')&&reportsV625.chain.deta
  'A genuine structural domino chain should be recognizable in the report');
 assert(reportsV625.boss.title.includes('대장 공격 저지')&&reportsV625.boss.detail.includes('대장 공격 저지'),
  'Interrupting the boss in its attack windup should be visible on the outcome card');
+// v6.28: explicit retry after a failed download, non-melodic fallback and
+// user-gesture resumption without overriding a saved mute preference.
+const resumedV628=window.__v628UnlockProbeForTest();
+assert.equal(resumedV628.whileMuted,0,'A muted player must not be forced to unlock Web Audio');
+assert.equal(resumedV628.whileEnabled,1,'A later user gesture should resume suspended phone audio');
+window.__v628ForceFoleyFailureForTest();
+const priorFallbackNotes=playedMaterials.length,priorBufferSource=window.AudioContext.prototype.createBufferSource;
+let fallbackStarts=0;
+window.AudioContext.prototype.createBufferSource=()=>{const source=priorBufferSource(),originalStart=source.start;source.start=(...args)=>{fallbackStarts++;originalStart(...args);};return source;};
+window.__resetAudioCooldownForTest('blast');window.__triggerAudioForTest('blast',{weapon:'bomb'});
+assert.equal(playedMaterials.length,priorFallbackNotes,'A codec failure must not revive old 8-bit oscillator melodies');
+assert(fallbackStarts>0,'Emergency fallback must keep a short broadband impact cue');
+window.AudioContext.prototype.createBufferSource=priorBufferSource;
+el('soundBtn').click();el('soundEffectsToggle').click();
+let reconnectionRequests=0;
+window.AudioContext.prototype.decodeAudioData=()=>Promise.resolve({duration:36.07});
+window.fetch=()=>{reconnectionRequests++;return new Promise(()=>{});};
+el('previewSound').click();
+assert.equal(reconnectionRequests,1,'Tapping preview after failure must start a fresh source request');
+assert.equal(window.__artilleryAudioDebug().foleyFailed,false,'A deliberate retry should clear the stale failure flag');
+assert(el('audioFeedback').textContent.includes('다시 연결'),'The sound panel must explain that retry is in progress');
+el('closeSoundPanel').click();
+assert.equal(soundPreviewTimers.size,0,'Closing during a reconnect must leave no queued demo audio');
 console.log(JSON.stringify({status:'passed',file:testFile,adventure:'launch + flight + settle',peakRotated,duel:'launch + turn simulation',resize:'390x355',desktop},null,2));
 if(/v0_[34567]/.test(versionedPath))assert(imageDrawCalls>0,'The game must render sprite atlas on canvas');

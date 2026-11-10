@@ -2711,7 +2711,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   <label for="voiceVolume">음성 <input id="voiceVolume" aria-label="음성 크기" type="range" min="0" max="100" value="75"></label>
   <button id="previewSound" class="sound-preview" type="button">포격·음성 미리 듣기</button>
   <small id="audioFeedback" class="audio-feedback" role="status" aria-live="polite"></small>
-  <small>효과음은 입체적인 포격·충돌음으로 재생됩니다. 전투 음성은 기기에서 제공하는 한국어 음성을 사용합니다. 소리가 없으면 기기의 미디어 음량과 위 스위치를 확인해 주세요.</small>
+  <small>효과음은 입체적인 포격·충돌음으로 재생됩니다. 전투 음성은 기기에서 제공하는 한국어 음성을 사용합니다. 휴대폰 진동 설정과 별개로 미디어 음량, 위 스위치, 브라우저의 소리 허용 상태를 확인해 주세요. 음원 연결이 실패했다면 미리 듣기를 다시 누르세요.</small>
  </section>
  <main class="battle-wrap" id="battleWrap">
   <canvas id="field" aria-label="2D 포격 게임 화면"></canvas>
@@ -3633,7 +3633,10 @@ function advanceChargePower(dt){
    tick:'gauge_tick',lock:'gauge_lock',timingNear:'gauge_near',timingOff:'gauge_off',
    precision:'gauge_precision',charge:'charge',ui:'ui',split:'split'})[kind]||null;
  }
- function prepareFoley(){
+ function prepareFoley({retry=false}={}){
+  // A temporary network or decoder failure must not permanently strand mobile
+  // players on the emergency sound path. Only an explicit preview retries it.
+  if(foley.failed&&retry){foley.promise=null;foley.failed=false;foley.format=null;}
   if(foley.promise||foley.failed)return foley.promise;
   const AC=window.AudioContext||window.webkitAudioContext;
   if(!AC||typeof window.fetch!=='function')return null;
@@ -3659,9 +3662,9 @@ function advanceChargePower(dt){
      if(!Array.isArray(cue)||cue.length!==2||cue[0]<0||cue[1]<=0||cue[0]+cue[1]>decoded.duration+.05)throw Error('foley cue: '+name);
     }
     foley.buffer=decoded;foley.cues=cues;
-    if(!$('soundPanel').hidden)$('audioFeedback').textContent='입체 전장 효과음 준비 완료!';
+    if(!$('soundPanel').hidden)$('audioFeedback').textContent='고음질 효과음 준비 완료! 소리가 없다면 미디어 음량을 확인해 주세요.';
     return true;
-   }).catch(()=>{foley.failed=true;if(!$('soundPanel').hidden)$('audioFeedback').textContent='이 브라우저에서 효과음 파일을 읽지 못했어요. 기기의 오디오 설정을 확인해 주세요.';return false;});
+   }).catch(()=>{foley.failed=true;if(!$('soundPanel').hidden)$('audioFeedback').textContent='음원 연결에 실패했어요. 미리 듣기를 다시 눌러 재시도하세요.';return false;});
    return foley.promise;
   }catch(_){foley.failed=true;return null;}
  }
@@ -3782,6 +3785,16 @@ function advanceChargePower(dt){
     }else if(kind==='ui'||kind==='lock'||kind==='tick'){
      audioNoise(ac,now,.045,{low:320,high:2600,volume:.021*v,destination});
     }
+    return;
+   }
+   if(foley.failed){
+    // When a codec or connection fails, avoid falling back to 8-bit melodies.
+    // Short broadband transients preserve material cues without pretending
+    // that the full recorded bank is playing.
+    const heavy=['blast','bossBreak','nearImpact','heroHit'].includes(kind);
+    const airy=['flight','flightPulse','flyby','split'].includes(kind);
+    const low=heavy?80:airy?480:170,high=heavy?1550:airy?3900:2450;
+    audioNoise(ac,now,heavy?.28:airy?.17:.11,{low,high,volume:(heavy?.09:airy?.025:.043)*v,filter:heavy?'lowpass':'bandpass',destination});
     return;
    }
    const noise=(duration,settings)=>audioNoise(ac,now,duration,{...settings,destination});
@@ -5748,9 +5761,17 @@ const materialCells={
  });
  $('adventureBtn').addEventListener('click',()=>newGame('adventure',Number($('adventureStage').value)||0));$('duelBtn').addEventListener('click',()=>newGame('duel',0));
  refreshAudioSettings();
- // Load and unlock the original foley atlas on the first real user gesture.
- // Autoplay policy is respected: nothing plays without the player's action.
- document.addEventListener?.('pointerdown',()=>{prepareFoley();},{once:true});
+ // Audio can be suspended again when Android backgrounds the browser. Restore
+ // it on a subsequent user gesture, while respecting the player's mute setting.
+ // Do not create a Web Audio context merely because a muted player touched UI.
+ function unlockBattleAudio(){
+  if(!game.sound)return;
+  const ac=game.audio;
+  if(ac?.state==='suspended')ac.resume?.()?.catch?.(()=>{});
+  if(!foley.promise&&!foley.failed)prepareFoley();
+ }
+ document.addEventListener?.('pointerdown',unlockBattleAudio);
+ document.addEventListener?.('keydown',e=>{if(e.key==='Enter'||e.key===' '||e.code==='Space')unlockBattleAudio();});
  $('soundBtn').addEventListener('click',()=>{const opening=$('soundPanel').hidden;if(!opening)cancelSoundPreview();$('soundPanel').hidden=!opening;$('soundBtn').setAttribute?.('aria-expanded',String(opening));if(opening){$('audioFeedback').textContent=game.sound?'발사 → 폭발 → 파편 소리를 아래에서 미리 들을 수 있어요.':'효과음이 꺼져 있어요. 효과음 켬을 눌러 보세요.';playSound('ui');}});
  $('closeSoundPanel').addEventListener('click',closeSoundPanel);
  $('soundEffectsToggle').addEventListener('click',()=>{cancelSoundPreview();game.sound=!game.sound;saveAudioSettings();refreshAudioSettings();$('audioFeedback').textContent='';if(game.sound){prepareFoley();playSound('ui');}});
@@ -5761,12 +5782,17 @@ const materialCells={
  $('previewSound').addEventListener('click',()=>{
   cancelSoundPreview();const serial=soundPreviewSerial;
   if(!game.sound&&!game.voice){$('audioFeedback').textContent='효과음 또는 전투 음성을 켜면 미리 들을 수 있어요.';return;}
+  if(game.sound&&!(window.AudioContext||window.webkitAudioContext)){
+   $('audioFeedback').textContent='이 브라우저는 전투 효과음 재생을 지원하지 않아요. 다른 브라우저에서 확인해 주세요.';
+   if(game.voice)playBattleVoice('perfect',game.hero,true);
+   return;
+  }
   $('audioFeedback').textContent=game.sound&&game.voice?'발사·폭발·파편음 뒤에 전투 음성을 재생합니다.':game.sound?'발사·폭발·파편음을 차례로 재생합니다.':'전투 음성을 재생합니다.';
   if(game.sound){
-   const ready=prepareFoley();
+   const retry=foley.failed,ready=prepareFoley({retry});
    if(ready&&!foley.buffer){
-    $('audioFeedback').textContent='입체 전장 음향 준비 중! 완료되면 포격을 시연합니다.';
-    ready.then(ok=>{if(serial===soundPreviewSerial){if(ok)demoBattleSound();else $('audioFeedback').textContent='고음질 파일을 읽지 못했어요. 다른 브라우저나 미디어 음량을 확인해 주세요.';}});
+    $('audioFeedback').textContent=retry?'고음질 효과음을 다시 연결하고 있어요.':'고음질 전장 음향 준비 중! 완료되면 포격을 시연합니다.';
+    ready.then(ok=>{if(serial===soundPreviewSerial){if(ok)demoBattleSound();else $('audioFeedback').textContent='음원 연결에 실패했어요. 미리 듣기를 다시 눌러 재시도하거나 브라우저를 확인해 주세요.';}});
    }else demoBattleSound();
   }else demoBattleSound();
  });
@@ -5799,10 +5825,10 @@ const materialCells={
   game.drag=null;game.pan=null;resize();
  });
  window.addEventListener('blur',()=>{if(game.chargeActive){cancelFireCharge();suppressNextFireClick=true;}game.drag=null;game.pan=null;});
- document.addEventListener?.('visibilitychange',()=>{if(document.hidden){stopBattleVoice();if(game.chargeActive){cancelFireCharge();suppressNextFireClick=true;}}});
+ document.addEventListener?.('visibilitychange',()=>{if(document.hidden){cancelSoundPreview();stopBattleVoice();if(game.chargeActive){cancelFireCharge();suppressNextFireClick=true;}}});
  window.addEventListener('keydown',e=>{if(e.key==='Escape'){handleBackIntent();return;}if(e.code==='Space'&&['aim','timing'].includes(game.phase)&&e.target.tagName!=='BUTTON'){e.preventDefault();firePlayer();}if(e.code==='KeyQ'&&game.mode!=='menu'&&e.target.tagName!=='INPUT'){e.preventDefault();useAbility();}});
  // Small, read-only automation hook for smoke testing; not required to play.
- window.__artilleryAudioDebug=()=>({effects:game.sound,voice:game.voice,effectVolume:game.effectVolume,voiceVolume:game.voiceVolume,panelOpen:!$('soundPanel').hidden,lastCaption:$('voiceCaption').textContent,captionVisible:!$('voiceCaption').hidden,contextStarted:!!game.audio});
+ window.__artilleryAudioDebug=()=>({effects:game.sound,voice:game.voice,effectVolume:game.effectVolume,voiceVolume:game.voiceVolume,panelOpen:!$('soundPanel').hidden,lastCaption:$('voiceCaption').textContent,captionVisible:!$('voiceCaption').hidden,contextStarted:!!game.audio,contextState:game.audio?.state||'not-started',foleyReady:!!foley.buffer,foleyFailed:foley.failed,foleyFormat:foley.format});
  window.__artilleryLoadoutDebug=()=>({player:{hero:game.hero,weapon:duelWeapon(game.hero)},ai:{hero:game.aiHero,weapon:duelWeapon(game.aiHero)},paintedCannonReady:!!(duelCannonAtlas?.complete&&duelCannonAtlas.naturalWidth>0),splitCannonReady:!!(duelPartsAtlas?.complete&&duelPartsAtlas.naturalWidth>0),foxAttackReady:!!(foxAttackAtlas?.complete&&foxAttackAtlas.naturalWidth>0),paintedAmmunitionReady:paintedAmmunitionReady(),ammunitionCells:{rows:ammunitionRows,columns:ammunitionColumns},paintedAttackReady:Object.fromEntries(Object.entries(paintedAttackAtlases).map(([hero,img])=>[hero,!!(img?.complete&&img.naturalWidth>0&&img.naturalHeight>0)])),playerMuzzle:muzzleFor('player'),aiMuzzle:muzzleFor('ai',game.aiAngle),playerPivot:cannonTrunnion('player'),aiPivot:cannonTrunnion('ai')});
  window.__artilleryDebug=()=>({mode:game.mode,stage:game.stage,difficulty:game.difficulty,hero:game.hero,aiHero:game.aiHero,abilityUsed:game.abilityUsed,abilityArmed:game.abilityArmed,abilityCount:game.abilityCount,wind:game.wind,phase:game.phase,shots:game.shots,maxShots:game.maxShots,hitStreak:game.hitStreak,popupPositions:game.popups.map(p=>({x:p.x,y:p.y,value:p.value})),chargeActive:game.chargeActive,chargeAimX:game.chargeAimX,chargeZoom:game.chargeZoom,chargeReveal:game.chargeReveal,playerScreenX:(origin().x-game.camera)*game.scale,scale:game.scale,camera:game.camera,chargedPower:game.chargedPower,heroMotionFrame:actorPoseFrame('player',game.hero).index,turn:game.turn,projectiles:game.projectiles.length,projectilePierce:game.projectiles[0]?.pierce||0,foes:game.foes.filter(x=>x.alive).length,bossHp:game.foes.find(f=>f.boss&&f.alive)?.hp||0,playerHp:game.playerHp,aiHp:game.aiHp,sound:game.sound,canvas:[cv.width,cv.height],rotatingBlocks:game.blocks.filter(b=>Math.abs(b.angle)>.05).length,physics:!!game.engine,spriteReady:spriteReady(game.hero),sceneReady:sceneReady(),enemyReady:enemyArtReady(),combatReady:combatArtReady(),paintedFoeReady:paintedFoeAtlases.map((_,kind)=>paintedFoeArtReady(kind)),foePoses:game.foes.map(f=>foePose(f)),foeAttacks:game.foes.reduce((n,f)=>n+f.attackCount,0),rubbleCount:game.rubble.length,materialReady:materialArtReady(),introVisible:!$('enemyEntrance').hidden,materialTiers:game.blocks.map(b=>damageTier(b)),aimImpact:game.phase==='aim'?predict(game.angle,game.power,game.wind).impact?.kind||'none':'inactive',debrisCount:game.debris.length,stageMapOpen:!$('stageMap').hidden,exitOpen:!$('exitConfirm').hidden,savedBest:progress.best.slice(),savedWins:progress.wins,skillEffects:game.skillEffects.length,blastCores:game.blastCores.length,dyingFoes:game.foes.filter(f=>!f.alive&&f.deathTimer>0).length,damagedBlocks:game.blocks.filter(b=>b.hp<b.maxHp).length,reviewVisible:!$('shotReview').hidden,reviewTitle:game.reviewInfo?.title||'',reviewFocusX:game.reviewFocusX,reviewNext:game.reviewNext,reviewTimer:game.reviewTimer,materials:{wood:game.blocks.filter(b=>b.type==='wood').length,stone:game.blocks.filter(b=>b.type==='stone').length,iron:game.blocks.filter(b=>b.type==='iron').length},aiShots:game.aiShots,aiWeapon:game.lastAiWeapon,aiTactic:game.aiTactic,recoil:game.recoil.player,actorMotion:game.actorAnim.player.kind,actorMotionLife:game.actorAnim.player.life});
  // Separate compact camera debug view for portrait tracking regression tests.
