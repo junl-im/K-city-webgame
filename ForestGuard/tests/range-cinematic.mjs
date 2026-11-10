@@ -7,7 +7,7 @@ assert.deepEqual(ranges,{fox:535,megafox:690,bear:345,rabbit:605,cat:470});
 assert.ok(Math.hypot(568-105,135)<ranges.fox,'Fox can reach middle boss telegraph position');
 assert.ok(ranges.bear<ranges.cat&&ranges.cat<ranges.fox&&ranges.fox<ranges.rabbit&&ranges.rabbit<ranges.megafox);
 assert.match(src,/const distance=Math\.hypot\(e\.x-heroX,e\.y-568\)/);
-const cinematic=src.slice(src.indexOf('    announceElite(e){'),src.indexOf('    spawnEnemy(type){'));
+const cinematic=src.slice(src.indexOf('    announceElite(e){'),src.indexOf('    playForestArrival(x,type){'));
 assert.match(cinematic,/holdMs:2100,fadeMs:620/);
 assert.match(src,/updateEliteCinematic\(\)/);
 assert.match(cinematic,/baseAlpha:nodes\.map\(node=>node\.alpha\)/);

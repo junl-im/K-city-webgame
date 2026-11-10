@@ -28,7 +28,7 @@ try{
     assert.ok(snapshot,'Combat performance snapshot missing');
     assert.ok(snapshot.textures>50&&snapshot.textures<750,
       'Unexpected texture count '+JSON.stringify(snapshot));
-    assert.ok(snapshot.effects<=26&&snapshot.dyingSprites<=12,
+    assert.ok(snapshot.effects<=26&&snapshot.dyingSprites<=12&&snapshot.arrivals<=4,
       'Bounded particle/death effects exceeded: '+JSON.stringify(snapshot));
     assert.ok(snapshot.enemies<160&&snapshot.projectiles<100,
       'Unexpected entity accumulation: '+JSON.stringify(snapshot));

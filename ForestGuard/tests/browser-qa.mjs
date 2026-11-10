@@ -313,6 +313,16 @@ try{
       assert.ok(strike.transparentCorners&&strike.beforeHP===strike.afterHP&&
         strike.afterCount===strike.beforeCount+1,
         'Painted impact may not add damage or opaque corners: '+JSON.stringify(strike));
+      const arrival=await page.evaluate(()=>window.__ForestGuardQA.arrivalPaintingQA());
+      assert.ok(arrival?.loaded&&arrival.frames===4&&arrival.distinctFrames===4,
+        'All four original painted arrival beats must decode and remain distinct: '+JSON.stringify(arrival));
+      assert.deepEqual(arrival.frameSize,[192,192]);
+      assert.ok(arrival.transparentCorners&&arrival.redPixels.every(count=>count===0),
+        'Arrival cutouts may not have colored matte contamination: '+JSON.stringify(arrival));
+      assert.ok(arrival.played&&arrival.afterCount===arrival.beforeCount+1&&
+        arrival.beforeHP===arrival.afterHP,
+        'Entrance effect must be visual-only and bounded: '+JSON.stringify(arrival));
+      await page.screenshot({path:new URL('../test-output/forest-arrival-v60-390.png',import.meta.url).pathname});
       assert.ok(hurt.sourceSize[0]>=1000&&hurt.sourceSize[1]>=500,
         'Ten-species hurt atlas should retain detailed transparent source art');
       assert.equal(Object.keys(hurt.items).length,10,'Every monster needs its own hit painting');

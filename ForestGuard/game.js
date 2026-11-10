@@ -151,6 +151,7 @@
   let forestSentinelBitmap=null; // Chapter 1 has its own midboss instead of a reused silhouette.
   let sentinelVfxBitmap=null; // Four transparent, hand-painted spear/charge/impact/aftershock effects.
   let forestImpactBitmap=null; // Optional transparent painterly strike, shared by weapon hits and elite slams.
+  let forestArrivalBitmap=null; // Four original woodland arrival beats, never a gameplay blocker.
   let thornBeetleBitmap=null; // 2×2 genuine beetle poses replace the old hedgehog-like placeholder.
   let runnerBitmap=null; // Four independent mushroom scout poses, facing the defenders below.
   const ART_VERSION = '20261031r';
@@ -200,6 +201,7 @@
       loadIllustration('./art/chapter1-thorn-beetle-v53.webp?v=20261106v53',art=>{thornBeetleBitmap=art;}),
       loadIllustration('./art/chapter1-mushroom-runner-v55.webp?v=20261106v55',art=>{runnerBitmap=art;}),
       loadIllustration('./art/forest-impact-burst-v58.webp?v=20261110v58',art=>{forestImpactBitmap=art;}),
+      loadIllustration('./art/forest-arrival-v60.webp?v=20261110v60',art=>{forestArrivalBitmap=art;}),
       loadIllustration('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;}),
       loadIllustration('./art/mushroom-colossus-attack-v19.webp?v=20261101d',art=>{mushroomAttackBitmap=art;}),
       loadIllustration('./art/rani-element-spells-v38.png?v=20261103a',art=>{elementSpellBitmap=art;}),
@@ -677,6 +679,27 @@
         c.drawImage(forestImpactBitmap,0,0,256,256);
       });
     }
+    if(forestArrivalBitmap){
+      const cw=forestArrivalBitmap.naturalWidth/2,ch=forestArrivalBitmap.naturalHeight/2;
+      for(let frame=0;frame<4;frame++){
+        createCanvasTexture(scene,'forest-arrival-'+frame,192,192,c=>{
+          c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
+          c.drawImage(forestArrivalBitmap,(frame%2)*cw,Math.floor(frame/2)*ch,cw,ch,0,0,192,192);
+          // Very faint chroma-matte flecks near an AI-painted alpha edge become
+          // noticeable over a dark chapter. Clean pixels, not the leaf artwork.
+          const layer=c.getImageData(0,0,192,192),px=layer.data;
+          for(let p=0;p<px.length;p+=4){
+            const r=px[p],g=px[p+1],b=px[p+2],a=px[p+3];
+            const red=r>155&&r>g*1.55&&r>b*1.8;
+            const neonYellow=r>224&&g>210&&b<95&&a<225;
+            if(a<12||red||neonYellow)px[p+3]=0;
+          }
+          c.putImageData(layer,0,0);
+          c.clearRect(0,0,192,1);c.clearRect(0,191,192,1);
+          c.clearRect(0,0,1,192);c.clearRect(191,0,1,192);
+        });
+      }
+    }
     // Four independent original paintings. These never replace the final
     // chapter boss's root spears and are optional if the network fails.
     if(scene.stage.id<4&&sentinelVfxBitmap){
@@ -1122,7 +1145,7 @@
       this.terrainWarned=false;this.terrainWarning=false;this.terrainCueUntil=0;this.terrainCueText='';
       this.terrainEvents=0;this.overlayTimer=0;
       this.cardCounts={};this.synergies=new Set();this.gameClock=0;this.attackFxActive=0;this.damageFloatCount=0;this.damageFloatSerial=0;this.elementCueTimes=Object.create(null);
-      this.lastPaintedImpact=-10000;this.paintedImpactCount=0;
+      this.lastPaintedImpact=-10000;this.paintedImpactCount=0;this.arrivalFxActive=0;
       this.heroIds=[null,null,'fox',null,null];this.targetModes=Array(HERO_CAPACITY).fill('front');this.attackTimes=Array(HERO_CAPACITY).fill(0);this.enemies=[];this.projectiles=[];this.effects=[];this.dyingSprites=0;
       this.focusEnemy=null;this.focusUntil=0;this.focusReticle=null;this.lastFortHP=-1;
       const personal=state.stats[this.stage.id]||{};
@@ -1216,8 +1239,11 @@
         e.type==='guardian'?'중간보스 출현 · 숲길 파수꾼':
           '보스 출현 · '+(CHAPTER_BOSS_ART[this.stage.id]?.name||'뿌리 거인');
       const dusk=this.add.image(210,277,'cinematic-vignette').setDepth(8);
+      const arrivalAura=e.type!=='guardian'&&this.textures.exists('forest-arrival-0');
       const aura=e.type==='guardian'&&this.textures.exists('sentinel-vfx-charge')?
         this.add.image(210,277,'sentinel-vfx-charge').setDisplaySize(258,258).setAlpha(.68).setDepth(8.5):
+        arrivalAura?this.add.image(210,277,'forest-arrival-0')
+          .setDisplaySize(278,278).setAlpha(.72).setDepth(8.5):
         this.add.ellipse(210,340,220,38,hue,.24).setDepth(8.5);
       const hero=this.add.image(210,258,'motion-'+e.type+'-attack-0')
         .setDisplaySize(e.type==='shroom'?246:216,e.type==='shroom'?246:216).setAlpha(1).setDepth(9);
@@ -1227,9 +1253,9 @@
       }).setOrigin(.5).setAlpha(1).setDepth(9);
       const nodes=[dusk,aura,hero,label];
       // Deterministic timing: Phaser scene update, independent of tween/event queues.
-      this.eliteCinematic={hero,label,nodes,type:e.type,reduced,
+      this.eliteCinematic={hero,label,nodes,aura,arrivalAura,type:e.type,reduced,
         baseAlpha:nodes.map(node=>node.alpha),startTime:this.time.now,
-        holdMs:2100,fadeMs:620,lastFrame:-1};
+        holdMs:2100,fadeMs:620,lastFrame:-1,lastAuraFrame:-1};
     }
     updateEliteCinematic(){
       const cut=this.eliteCinematic;if(!cut)return;
@@ -1244,6 +1270,14 @@
       const visibility=elapsed<=cut.holdMs?1:
         Math.max(0,1-(elapsed-cut.holdMs)/cut.fadeMs);
       nodes.forEach((node,i)=>{if(node.active)node.setAlpha(cut.baseAlpha[i]*visibility);});
+      if(cut.arrivalAura&&cut.aura.active){
+        const frame=cut.reduced?2:Math.min(3,Math.floor(elapsed/190));
+        if(frame!==cut.lastAuraFrame){
+          cut.lastAuraFrame=frame;
+          cut.aura.setTexture('forest-arrival-'+frame);
+        }
+        cut.aura.setAlpha(cut.baseAlpha[1]*visibility*(cut.reduced?.5:Math.max(0,1-elapsed/1150)));
+      }
       if(!cut.reduced){
         const frame=Math.floor(elapsed/155)%4;
         if(frame!==cut.lastFrame){
@@ -1252,6 +1286,31 @@
           if(this.textures.exists(texture))hero.setTexture(texture);
         }
       }
+    }
+    playForestArrival(x,type){
+      if(!this.textures.exists('forest-arrival-0')||this.arrivalFxActive>=4)return false;
+      const elite=['guardian','shroom','boss'].includes(type);
+      const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      const size=elite?174:['brute','crystal','spore'].includes(type)?104:82;
+      const startY=elite?70:42;
+      const fx=this.add.image(x,startY,'forest-arrival-0').setDepth(3.5)
+        .setDisplaySize(size,size).setAlpha(elite?.82:.58);
+      this.arrivalFxActive++;
+      const finish=()=>{if(fx.active)fx.destroy();this.arrivalFxActive=Math.max(0,this.arrivalFxActive-1);};
+      if(reduced){
+        fx.setTexture('forest-arrival-2').setAlpha(.34);
+        this.time.delayedCall(170,finish);
+      }else{
+        const duration=elite?970:type==='runner'||type==='imp'?550:720;
+        this.tweens.add({targets:fx,y:startY+(elite?14:8),alpha:0,
+          scaleX:fx.scaleX*1.1,scaleY:fx.scaleY*1.1,duration,ease:'Sine.easeOut',
+          onUpdate:tween=>{
+            const frame=Math.min(3,Math.floor(tween.progress*4));
+            const key='forest-arrival-'+frame;
+            if(fx.active&&fx.texture.key!==key)fx.setTexture(key);
+          },onComplete:finish});
+      }
+      return true;
     }
     spawnEnemy(type){
       // Enemy entry is broad at the top, including bridge levels.
@@ -1291,6 +1350,9 @@
         showBanner(ENEMY_INTEL[type].name+' 집중 공격!');
       });
       this.enemies.push(enemy);
+      // The trail opens toward the camera before the creature emerges from
+      // y=-38. A bounded painted effect does not change world coordinates.
+      this.playForestArrival(lane,type);
       if(['boss','guardian','shroom'].includes(type)){
         this.syncBattleOverlay();
         this.announceElite(enemy);
@@ -2751,11 +2813,38 @@
           textureSize:[canvas.width,canvas.height],transparentCorners:corners.every(alpha=>alpha===0),
           played,beforeHP,afterHP:battle.hp,beforeCount,afterCount:battle.paintedImpactCount};
       },
+      arrivalPaintingQA(){
+        if(!battle||battle.ended)return null;
+        if(!forestArrivalBitmap||!battle.textures.exists('forest-arrival-0'))return {loaded:false};
+        const hashes=[],corners=[],redPixels=[];
+        for(let frame=0;frame<4;frame++){
+          const canvas=battle.textures.get('forest-arrival-'+frame).getSourceImage();
+          const pixels=canvas.getContext('2d',{willReadFrequently:true})
+            .getImageData(0,0,canvas.width,canvas.height).data;
+          const cornerAlpha=[0,canvas.width-1,(canvas.height-1)*canvas.width,canvas.width*canvas.height-1]
+            .map(index=>pixels[index*4+3]);
+          corners.push(cornerAlpha.every(alpha=>alpha===0));
+          let hash=2166136261,red=0;
+          for(let p=0;p<pixels.length;p+=4){
+            if(p%16===0){hash=Math.imul(hash^pixels[p],16777619);hash=Math.imul(hash^pixels[p+3],16777619);}
+            if(pixels[p+3]>100&&pixels[p]>175&&pixels[p]>pixels[p+1]*1.55&&
+              pixels[p]>pixels[p+2]*1.8)red++;
+          }
+          hashes.push(hash>>>0);redPixels.push(red);
+        }
+        const beforeHP=battle.hp,beforeCount=battle.arrivalFxActive;
+        const played=battle.playForestArrival(210,'runner');
+        return {loaded:true,sourceSize:[forestArrivalBitmap.naturalWidth,forestArrivalBitmap.naturalHeight],
+          frameSize:[192,192],frames:4,distinctFrames:new Set(hashes).size,
+          transparentCorners:corners.every(Boolean),redPixels,played,beforeHP,afterHP:battle.hp,
+          beforeCount,afterCount:battle.arrivalFxActive};
+      },
       performanceSnapshot(){
         if(!battle)return null;
         const memory=performance.memory;
         return {textures:Object.keys(battle.textures.list||{}).length,
           effects:battle.effects.length,dyingSprites:battle.dyingSprites,
+          arrivals:battle.arrivalFxActive,
           enemies:battle.enemies.length,projectiles:battle.projectiles.length,
           usedJSHeap:memory?.usedJSHeapSize??null,
           jsHeapLimit:memory?.jsHeapSizeLimit??null,
