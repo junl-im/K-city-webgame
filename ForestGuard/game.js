@@ -932,7 +932,7 @@
     // derived death frames so a defeated scout visibly dissolves.
     if(thornBeetleBitmap){
       const cw=thornBeetleBitmap.naturalWidth/2,ch=thornBeetleBitmap.naturalHeight/2;
-      const thornPoses={idle:[0,0,0,0],run:[0,1,1,0],attack:[0,1,2,0],
+      const thornPoses={idle:[0,0,0,0],run:[0,1,1,0],attack:[0,1,2,2,1,0],
         hurt:[0,3,3,3,0],victory:[0,1,0,1]};
       for(const [motion,sequence] of Object.entries(thornPoses)){
         for(const [frame,pose] of sequence.entries()){
@@ -941,9 +941,12 @@
           createCanvasTexture(scene,key,160,160,c=>{
             const fit=Math.min(154/cw,154/ch),w=cw*fit,h=ch*fit;
             const recoil=motion==='hurt'&&pose===3?3:0;
+            const attackPush=motion==='attack'?[0,-3,-1,8,4,0][frame]:0;
+            const attackLean=motion==='attack'?[0,-.06,-.03,.07,.04,0][frame]:0;
             c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
+            c.save();c.translate(80,80);c.rotate(attackLean);
             c.drawImage(thornBeetleBitmap,(pose%2)*cw,Math.floor(pose/2)*ch,cw,ch,
-              (160-w)/2,(160-h)/2-recoil,w,h);
+              -w/2,-h/2-recoil+attackPush,w,h);c.restore();
             V.cleanEnemyFrame(c,160,160);
           });
         }
@@ -954,7 +957,7 @@
     // Death keeps the silhouette-derived animation from the new base texture.
     if(runnerBitmap){
       const cw=runnerBitmap.naturalWidth/2,ch=runnerBitmap.naturalHeight/2;
-      const runnerPoses={idle:[0,0,0,0],run:[0,1,1,0],attack:[0,1,2,0],
+      const runnerPoses={idle:[0,0,0,0],run:[0,1,1,0],attack:[0,1,2,2,1,0],
         hurt:[0,3,3,3,0],victory:[0,1,0,1]};
       for(const [motion,sequence] of Object.entries(runnerPoses)){
         for(const [frame,pose] of sequence.entries()){
@@ -963,9 +966,12 @@
           createCanvasTexture(scene,key,160,160,c=>{
             const fit=Math.min(154/cw,154/ch),w=cw*fit,h=ch*fit;
             const recoil=motion==='hurt'&&pose===3?3:0;
+            const attackPush=motion==='attack'?[0,-3,-1,9,4,0][frame]:0;
+            const attackLean=motion==='attack'?[0,.055,.035,-.07,-.04,0][frame]:0;
             c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
+            c.save();c.translate(80,80);c.rotate(attackLean);
             c.drawImage(runnerBitmap,(pose%2)*cw,Math.floor(pose/2)*ch,cw,ch,
-              (160-w)/2,(160-h)/2-recoil,w,h);
+              -w/2,-h/2-recoil+attackPush,w,h);c.restore();
             V.cleanEnemyFrame(c,160,160);
           });
         }
@@ -1609,7 +1615,12 @@
       const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
       const frameCount=V.frameTotal(e.type,'death');
       const first='motion-'+e.type+'-death-0';
-      if(this.textures.exists(first))spr.setTexture(first);
+      // Preserve the final hand-painted hit for a fraction of a second before
+      // the death frames. The enemy was already removed from game logic above.
+      const lastHurt='motion-'+e.type+'-hurt-'+Math.min(2,V.frameTotal(e.type,'hurt')-1);
+      const holdMs=reduced?0:large?92:65;
+      if(holdMs&&this.textures.exists(lastHurt))spr.setTexture(lastHurt);
+      else if(this.textures.exists(first))spr.setTexture(first);
       if(!reduced&&this.dyingSprites<=8){
         const total=large?4:2;
         for(let n=0;n<total;n++){
@@ -1622,14 +1633,16 @@
         }
       }
       const finalAlpha=reduced?.12:.18;
+      const deathMs=V.duration(e.type,'death')+65;
       this.tweens.add({targets:spr,alpha:finalAlpha,y:spr.y+(large?20:16),
         angle:spr.angle+(large?7:13),scaleX:spr.scaleX*.77,scaleY:spr.scaleY*.77,
-        duration:reduced?90:V.duration(e.type,'death')+65,ease:'Linear',
+        duration:reduced?90:deathMs+holdMs,ease:'Linear',
         onUpdate:tween=>{
           if(!spr.active||reduced)return;
-          // Frame selection follows elapsed tween time, not alpha rounding.
-          // All five/six illustrated beats get a complete, visible interval.
-          const progress=Math.max(0,Math.min(1,tween.progress));
+          // Every death frame gets its full interval after the held hurt pose.
+          const elapsed=tween.progress*(deathMs+holdMs);
+          if(elapsed<holdMs)return;
+          const progress=Math.max(0,Math.min(1,(elapsed-holdMs)/deathMs));
           const frame=Math.min(frameCount-1,Math.floor(progress*frameCount));
           const texture='motion-'+e.type+'-death-'+frame;
           if(this.textures.exists(texture)&&spr.texture.key!==texture)spr.setTexture(texture);
@@ -2287,6 +2300,13 @@
         e.rooted=Math.max(0,e.rooted-dt);
         e.surge=Math.max(0,e.surge-dt);
         e.y+=e.rooted>0?0:e.spd*(e.slow>0?.42:1)*(e.surge>0?2.2:1)*dt/1000;
+        // Ordinary enemies make one visible final strike toward the rampart.
+        // This does not delay their arrival, change damage or grant extra hits.
+        if(!['boss','guardian','shroom'].includes(e.type)&&!e.wallStrikeStarted&&
+          e.y>=489&&e.y<538){
+          e.wallStrikeStarted=true;
+          V.trigger(e.spr,'attack',this.gameClock+V.duration(e.type,'attack'),this.gameClock);
+        }
         const wind=(this.stage.id===8||this.stage.id===10)?Math.sin(this.gameClock/900+e.windPhase)*18:0;
         // Illustrated creature behavior: thorn beetles weave and lunge, crystals pulse armor,
         // and the mushroom elite rallies nearby scouts once. No per-frame new textures.
@@ -2347,7 +2367,8 @@
         // Uniform size and vertical movement only: the painted silhouette
         // stays proportional and gameplay coordinates never change.
         const attackSide=e.type==='imp'||e.type==='runner'?1:e.type==='thorn'?-1:0;
-        e.spr.setPosition(e.x+attackMotion*attackSide*4,e.y-recoil-attackMotion*(elite?9:5));
+        const southwardStrike=attacking?V.enemyAttackOffset(attackProgress,elite):0;
+        e.spr.setPosition(e.x+attackMotion*attackSide*4,e.y-recoil+southwardStrike);
         e.spr.setScale(e.motionBaseScale*(1+attackMotion*(elite?.055:.032)));
         // A restrained lunge read at 320px without deforming painted silhouettes.
         e.spr.setAngle(attackMotion*attackSide*5);
@@ -2657,6 +2678,28 @@
           frames:images.map(canvas=>[canvas.width,canvas.height]),
           uniqueActionPoses:new Set(distinct).size,transparentCorners:corners.every(Boolean)};
       },
+      scoutAttackMotionQA(){
+        if(!battle||battle.ended)return null;
+        const species={};
+        for(const type of ['runner','thorn']){
+          const count=V.frameTotal(type,'attack');
+          const frames=Array.from({length:count},(_,i)=>battle.textures.get('motion-'+type+'-attack-'+i).getSourceImage());
+          const hashes=frames.map(canvas=>{
+            const pixels=canvas.getContext('2d',{willReadFrequently:true})
+              .getImageData(0,0,canvas.width,canvas.height).data;
+            let hash=2166136261;
+            for(let p=0;p<pixels.length;p+=16){
+              hash=Math.imul(hash^pixels[p],16777619);
+              hash=Math.imul(hash^pixels[p+3],16777619);
+            }
+            return hash>>>0;
+          });
+          species[type]={count,distinctPaintings:new Set(hashes).size};
+        }
+        return {species,retreat:V.enemyAttackOffset(.21,false),
+          southwardRelease:V.enemyAttackOffset(.71,false),
+          finish:V.enemyAttackOffset(1,false)};
+      },
       showEliteIntro(type='shroom'){
         if(!battle||battle.ended)return false;
         battle.lastEliteCinematicWave=-1;
@@ -2857,9 +2900,11 @@
          const enemy=battle.enemies[battle.enemies.length-1];
          enemy.y=285;enemy.spr.setPosition(210,285);
          battle.removeEnemy(enemy,true);
+         battle.qaLastDying=enemy.spr;
          return {enemyCountUnchanged:battle.enemies.length===before,
            deathCount:battle.dyingSprites,texture:enemy.spr.texture.key};
        },
+       previewDeathFrame(){return battle?.qaLastDying?.active?battle.qaLastDying.texture.key:null;},
        deathFxCount(){return battle?.dyingSprites??null;},
        damageNumberTrack(){
          if(!battle||battle.ended)return null;

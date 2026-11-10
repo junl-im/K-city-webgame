@@ -13,7 +13,9 @@
   function frameTotal(id,state){
     if(state==='death')return HERO_IDS.has(id)?0:ELITE_IDS.has(id)?6:5;
     if(state==='hurt'&&!HERO_IDS.has(id))return ELITE_IDS.has(id)?6:5;
-    return HERO_IDS.has(id)?(state==='attack'?8:6):ELITE_IDS.has(id)&&state==='attack'?6:4;
+    // Every attacker now has at least six strike beats. Ordinary enemies used
+    // to jump from four-frame windup straight back to their running pose.
+    return HERO_IDS.has(id)?(state==='attack'?8:6):state==='attack'?6:4;
   }
   function frameStep(state){return state==='death'?85:state==='run'?105:state==='attack'?65:state==='hurt'?80:state==='victory'?125:180;}
   function duration(id,state){return frameTotal(id,state)*frameStep(state);}
@@ -199,6 +201,14 @@
     imp:[-1,1.4,.8],crystal:[1,.35,1.2],shroom:[-1,.55,1.45],
     guardian:[1,.46,1.7]
   };
+  function enemyAttackOffset(progress,elite=false){
+    // Canvas Y grows toward the defenders (south). Retreat a few pixels for
+    // anticipation, then push forward. This never changes enemy world Y.
+    const p=Math.max(0,Math.min(1,Number(progress)||0));
+    if(p<=.42)return -Math.sin(Math.PI*p/.42)*(elite?5:3.4);
+    const release=(p-.42)/.58;
+    return Math.sin(Math.PI*release)*(elite?14:9);
+  }
   function inkHurtAccent(c,id,frame){
     const p=HURT_PERSONALITY[id];if(!p)return;
     const strength=Math.sin(Math.PI*(frame+.3)/frameTotal(id,'hurt'));
@@ -288,7 +298,9 @@
         const beats=frameTotal(id,state),release=Math.ceil(beats*.5);
         const windup=frame<release,progress=windup?(frame+1)/release:(frame-release+1)/(beats-release);
         dx=direction*(windup?-8*agility*progress:11*agility*(1-progress*.55));
-        dy=windup?3*weight*progress:-6*weight*(1-progress*.7);
+        // The painted creature also faces south: wind up away from the fort,
+        // then release toward it. Keep the drawing's aspect ratio uniform.
+        dy=windup?-3*weight*progress:7*weight*(1-progress*.7);
         rot=direction*(windup?-.11*agility*progress:.13*agility*(1-progress*.65));
         sx=sy=windup?1-.045*weight*progress:1+.047*weight*(1-progress*.6);
       }
@@ -588,5 +600,5 @@
     sprite.setData('motionStart',Number.isFinite(start)?start:null);
     return true;
   }
-  global.ForestGuardVisuals={build,animate,trigger,duration,frameTotal,icon,setIcon,portrait,cleanAttackFrame,cleanEnemyFrame};
+  global.ForestGuardVisuals={build,animate,trigger,duration,frameTotal,enemyAttackOffset,icon,setIcon,portrait,cleanAttackFrame,cleanEnemyFrame};
 })(window);

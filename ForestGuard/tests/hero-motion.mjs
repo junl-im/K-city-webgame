@@ -49,7 +49,7 @@ for(const id of defenders)for(const state of states){
   assert.equal(textures.exists('motion-'+id+'-'+state+'-'+count),false);
 }
 for(const state of states){
-  const frames=state==='hurt'?5:4;
+  const frames=state==='hurt'?5:state==='attack'?6:4;
   for(let f=0;f<frames;f++)assert.ok(textures.exists('motion-sprout-'+state+'-'+f),
     'Ordinary enemy '+state+' frame missing: '+f);
   assert.equal(textures.exists('motion-sprout-'+state+'-'+frames),false,
@@ -60,6 +60,8 @@ for(const id of ['shroom','guardian','boss'])for(const state of ['attack','hurt'
   assert.equal(textures.exists('motion-'+id+'-'+state+'-6'),false);
 }
 for(const id of ['sprout','runner','brute','thorn','crystal','spore','imp']){
+  assert.equal(visuals.frameTotal(id,'attack'),6);
+  assert.equal(visuals.duration(id,'attack'),390);
   assert.equal(visuals.frameTotal(id,'death'),5);
   for(let f=0;f<5;f++)assert.ok(textures.exists('motion-'+id+'-death-'+f),
     'Death texture missing: '+id+'/'+f);
@@ -71,6 +73,12 @@ assert.equal(visuals.frameTotal('sprout','hurt'),5);
 assert.equal(visuals.frameTotal('shroom','hurt'),6);
 assert.equal(visuals.duration('sprout','hurt'),400);
 assert.equal(visuals.duration('shroom','hurt'),480);
+assert.ok(visuals.enemyAttackOffset(.21,false)<0,
+  'An ordinary monster should recoil slightly north during anticipation');
+assert.ok(visuals.enemyAttackOffset(.71,false)>0,
+  'The release should travel south toward the defending wall');
+assert.ok(Math.abs(visuals.enemyAttackOffset(1,true))<.001,
+  'Elite attack should settle at its original world position');
 assert.equal(visuals.frameTotal('fox','death'),0);
 assert.equal(textures.exists('motion-fox-death-0'),false);
 assert.match(source,/globalCompositeOperation='destination-out'/,
