@@ -267,6 +267,15 @@ jobs:
             test -s "CannonTale/art/$artwork"
             test -s "MagicGarden/dist/CannonTale/art/$artwork"
           done
+          # v6.28: the playable HTML fetches these relative sound URLs. Without
+          # this directory the live game silently loses its recorded 36-cue bank.
+          mkdir -p MagicGarden/dist/CannonTale/sound
+          cp -a CannonTale/sound/. MagicGarden/dist/CannonTale/sound/
+          for sound in foley_cues.json foley_atlas.ogg foley_atlas.mp3; do
+            test -s "CannonTale/sound/$sound"
+            test -s "MagicGarden/dist/CannonTale/sound/$sound"
+            cmp -s "CannonTale/sound/$sound" "MagicGarden/dist/CannonTale/sound/$sound"
+          done
           grep -q 'art/home_mobile_v2.webp' MagicGarden/dist/CannonTale/index.html
           grep -q 'art/hud_fire_ready.webp' MagicGarden/dist/CannonTale/index.html
           echo "Independent CannonTale staged at /CannonTale/"
