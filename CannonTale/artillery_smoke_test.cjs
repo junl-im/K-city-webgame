@@ -1716,6 +1716,34 @@ window.__triggerAudioForTest('fire',{weapon:'normal',power:100});const duckedGai
 window.speechSynthesis.speaking=false;
 assert(duckedGain<strongFireGain*.85,'Active combat voice should remain intelligible under the sound mix');
 window.AudioContext.prototype.createGain=priorFoleyGain;
+// v6.29: flight noise must remain audible AFTER recorded foley is decoded,
+// never silently disappear behind the foley-ready short circuit.
+const previousSampleSource=window.AudioContext.prototype.createBufferSource;
+let v629WindPulses=0;
+window.AudioContext.prototype.createBufferSource=()=>{
+ const source=previousSampleSource(),start=source.start;
+ source.start=(...args)=>{if(!Number.isFinite(args[1]))v629WindPulses++;start(...args);};
+ return source;
+};
+const preFlightRetroNotes=playedMaterials.length;
+window.__triggerAudioForTest('flightPulse',{speed:850,wind:3.2,weapon:'normal',x:640});
+assert.equal(v629WindPulses,1,'A decoded soundbank must not suppress dynamic airborne wind');
+assert.equal(playedMaterials.length,preFlightRetroNotes,'Flight wind must not revive a chip-tune oscillator');
+window.AudioContext.prototype.createBufferSource=previousSampleSource;
+// Repeatable slight pitch shifts make a volley less mechanically identical.
+const ratesV629=[],beforePitchSource=window.AudioContext.prototype.createBufferSource;
+window.AudioContext.prototype.createBufferSource=()=>{
+ const source=beforePitchSource();source.playbackRate={value:1};
+ const start=source.start;
+ source.start=(...args)=>{if(Number.isFinite(args[1]))ratesV629.push(source.playbackRate.value);start(...args);};
+ return source;
+};
+window.__resetAudioCooldownForTest('blast');window.__triggerAudioForTest('blast',{weapon:'bomb'});
+window.__resetAudioCooldownForTest('blast');window.__triggerAudioForTest('blast',{weapon:'bomb'});
+assert.equal(ratesV629.length,2,'Repeated blasts should still use the cinematic atlas');
+assert.notEqual(ratesV629[0],ratesV629[1],'Repeated blasts should have subtle distinct playback rates');
+assert(ratesV629.every(rate=>rate>=.98&&rate<=1.02),'Pitch variation must stay natural and subtle');
+window.AudioContext.prototype.createBufferSource=beforePitchSource;
 const cinematicV624=window.__v624VisualForTest();
 assert(cinematicV624.strongWind&&!cinematicV624.calmWind,'Animated wind streams should appear only under meaningful actual wind');
 assert.equal(cinematicV624.reference,cinematicV624.referenceAfter,'Wind display must not alter the angle-only preview range');

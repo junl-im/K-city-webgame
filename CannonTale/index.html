@@ -3622,7 +3622,7 @@ function advanceChargePower(dt){
  // Procedural emergency fallback stays separate from real ballistic physics.
  const soundShapes={fire:{freq:290,end:95,duration:.18,volume:.10,type:'triangle'},blast:{freq:125,end:40,duration:.28,volume:.14,type:'sawtooth'},precision:{freq:640,end:1020,duration:.23,volume:.09,type:'sine'},timingNear:{freq:490,end:740,duration:.15,volume:.035,type:'sine'},timingOff:{freq:215,end:135,duration:.14,volume:.026,type:'triangle'},lock:{freq:720,end:880,duration:.09,volume:.025,type:'sine'},split:{freq:760,end:460,duration:.15,volume:.045,type:'triangle'},critical:{freq:190,end:62,duration:.39,volume:.17,type:'sawtooth'},wood:{freq:410,end:125,duration:.13,volume:.054,type:'triangle'},stone:{freq:185,end:52,duration:.22,volume:.065,type:'sawtooth'},iron:{freq:710,end:230,duration:.36,volume:.042,type:'sine'},win:{freq:560,end:880,duration:.32,volume:.10,type:'sine'},lose:{freq:270,end:130,duration:.38,volume:.09,type:'triangle'},ui:{freq:470,end:600,duration:.09,volume:.06,type:'sine'},charge:{freq:135,end:330,duration:.22,volume:.035,type:'sawtooth'},tick:{freq:680,end:495,duration:.055,volume:.017,type:'triangle'},flight:{freq:510,end:95,duration:.43,volume:.03,type:'triangle'},skill:{freq:395,end:1060,duration:.32,volume:.052,type:'sine'},combo:{freq:590,end:790,duration:.16,volume:.043,type:'sine'},bossBreak:{freq:135,end:39,duration:.57,volume:.135,type:'sawtooth'},foeHit:{freq:360,end:115,duration:.12,volume:.043,type:'triangle'},heroHit:{freq:188,end:65,duration:.22,volume:.083,type:'sawtooth'},voiceCue:{freq:610,end:870,duration:.15,volume:.036,type:'sine'}};
  const soundCooldown={wood:.085,stone:.085,iron:.085,tick:.12,lock:.32,critical:.35,perfectImpact:.35,blast:.04,split:.055,flight:.07,flightPulse:.16,flyby:.35,nearImpact:.32,bossThreat:1.8,combo:.28,bossBreak:.65,foeHit:.115,heroHit:.105};
- const foley={promise:null,buffer:null,cues:null,failed:false,format:null};
+ const foley={promise:null,buffer:null,cues:null,failed:false,format:null,variation:0};
  function foleyCue(kind,options={}){
   if(kind==='fire'||kind==='blast')return kind+'_'+(options.weapon==='bomb'?'bomb':options.weapon==='split'?'split':'normal');
   if(kind==='skill')return 'skill_'+(options.hero||game.hero);
@@ -3674,6 +3674,12 @@ function advanceChargePower(dt){
   try{
    const source=ac.createBufferSource(),gain=ac.createGain(),v=options.voiceFallback?game.voiceVolume:game.effectVolume;
    source.buffer=foley.buffer;
+   // Very small non-random pitch variation stops repeated impacts sounding like
+   // the exact same sample, without affecting timing, damage, or aim.
+   const repeated=['fire','blast','wood','stone','iron','foeHit','heroHit','nearImpact'].includes(kind);
+   const offsets=[-.016,.009,-.008,.014,0];
+   const rate=repeated?1+offsets[(foley.variation++)%offsets.length]:1;
+   if(source.playbackRate)source.playbackRate.value=rate;
    // Recorded impacts have wider dynamic range than the old mono atlas.
    const level=kind==='ui'?.34:kind==='tick'?.30:kind==='bossBreak'?.78:kind==='blast'?.74:kind==='fire'?.72:.67;
    const intensity=kind==='foeHit'||kind==='heroHit'?clamp(.62+(options.damage||0)/130,.56,1.16)
@@ -3683,8 +3689,11 @@ function advanceChargePower(dt){
    const speechDuck=window.speechSynthesis?.speaking ? .76 : 1;
    gain.gain.setValueAtTime(level*v*intensity*speechDuck,now);
    source.connect(gain);gain.connect(destination);
+   attachAudioCleanup(destination,source);
+   const priorEnded=source.onended;
+   source.onended=()=>{gain.disconnect?.();priorEnded?.();};
    source.start(now,cue[0],Math.max(.01,cue[1]-.006));
-   source.stop?.(now+cue[1]+.035);
+   source.stop?.(now+cue[1]/rate+.04);
    return true;
   }catch(_){return false;}
  }
@@ -3731,18 +3740,31 @@ function advanceChargePower(dt){
    playSound('flyby',{x:p.x,speed:Math.hypot(p.vx,p.vy),weapon:p.weapon,clearance:p.flybyClearance});
   }
  }
+ function attachAudioCleanup(destination,source){
+  if(!destination?._cannonSpatial)return;
+  destination._cannonPlaying=(destination._cannonPlaying||0)+1;
+  const previous=source.onended;
+  source.onended=()=>{
+   previous?.();
+   destination._cannonPlaying=Math.max(0,destination._cannonPlaying-1);
+   if(!destination._cannonPlaying){
+    destination.disconnect?.();
+    destination._cannonSpatial.disconnect?.();
+   }
+  };
+ }
  function synthNote(ac,start,freq,end,duration,volume,type='sine',destination=ac.destination){
   const osc=ac.createOscillator(),gain=ac.createGain();osc.type=type;
   osc.frequency.setValueAtTime(Math.max(22,freq),start);osc.frequency.exponentialRampToValueAtTime(Math.max(22,end),start+duration);
   gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(Math.max(.001,volume),start+.012);gain.gain.exponentialRampToValueAtTime(.001,start+duration);
-  osc.connect(gain);gain.connect(destination);osc.start(start);osc.stop(start+duration+.025);
+  osc.connect(gain);gain.connect(destination);attachAudioCleanup(destination,osc);osc.start(start);osc.stop(start+duration+.025);
  }
  function audioNoise(ac,start,duration,{low=200,high=2400,volume=.075,filter='bandpass',destination=ac.destination}={}){
   if(!ac.createBufferSource||!ac.createBuffer||!ac.createBiquadFilter)return;
   if(!ac._cannonNoise){const length=Math.ceil(ac.sampleRate*.75),buf=ac.createBuffer(1,length,ac.sampleRate),data=buf.getChannelData(0);let seed=97631;for(let i=0;i<length;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;data[i]=(seed/2147483648-1)*(.7+.3*Math.sin(i*.037));}ac._cannonNoise=buf;}
   const t=Math.min(.7,duration),source=ac.createBufferSource(),biquad=ac.createBiquadFilter(),gain=ac.createGain();source.buffer=ac._cannonNoise;biquad.type=filter;biquad.frequency.setValueAtTime(high,start);biquad.frequency.exponentialRampToValueAtTime(Math.max(70,low),start+t);if(biquad.Q)biquad.Q.value=.7;
   gain.gain.setValueAtTime(.001,start);gain.gain.exponentialRampToValueAtTime(Math.max(.001,volume),start+.014);gain.gain.exponentialRampToValueAtTime(.001,start+t);
-  source.connect(biquad);biquad.connect(gain);gain.connect(destination);source.start(start);source.stop(start+t+.01);
+  source.connect(biquad);biquad.connect(gain);gain.connect(destination);attachAudioCleanup(destination,source);source.start(start);source.stop(start+t+.01);
  }
  function audioOutputBus(ac){
   // A single, gently compressing output prevents stacked blasts and debris
@@ -3763,6 +3785,7 @@ function advanceChargePower(dt){
   gain.gain.setValueAtTime(1-Math.abs(relative)*.18,now);
   pan.pan.setValueAtTime(relative*.58,now);
   gain.connect(pan);pan.connect(output);
+  gain._cannonSpatial=pan;
   return gain;
  }
  function playSound(kind,options={}){
@@ -3775,6 +3798,16 @@ function advanceChargePower(dt){
    if(cooldown)game.lastSoundAt[kind]=now;
    const s=soundShapes[kind]||soundShapes.ui,v=options.voiceFallback?game.voiceVolume:game.effectVolume,weapon=options.weapon||'normal',hero=options.hero||game.hero;
    const destination=positionalSoundBus(ac,options.x,now);
+   if(kind==='flightPulse'){
+    // Flight pulses have no slice in the 36-cue atlas. Keep the audible wind
+    // bed even after real foley finishes loading; never fall back to chip notes.
+    const profile=flightSoundProfile(options.speed||0,options.wind||0,weapon,options.x);
+    audioNoise(ac,now,profile.duration,{
+     low:profile.low,high:profile.high,volume:profile.hiss*v*.82,
+     filter:'bandpass',destination
+    });
+    return;
+   }
    if(playFoley(ac,kind,options,now,destination))return;
    if(!foley.promise&&!foley.failed)prepareFoley();
    if(foley.promise&&!foley.failed){
@@ -3800,12 +3833,6 @@ function advanceChargePower(dt){
    const noise=(duration,settings)=>audioNoise(ac,now,duration,{...settings,destination});
    const noiseAt=(offset,duration,settings)=>audioNoise(ac,now+offset,duration,{...settings,destination});
    const note=(start,freq,end,duration,volume,type='sine')=>synthNote(ac,start,freq,end,duration,volume,type,destination);
-   if(kind==='flightPulse'){
-    const profile=flightSoundProfile(options.speed||0,options.wind||0,weapon,options.x);
-    note(now,profile.freq,profile.freq*.68,profile.duration,profile.volume*v,'triangle');
-    noise(profile.duration,{low:profile.low,high:profile.high,volume:profile.hiss*v});
-    return;
-   }
    if(kind==='flyby'){
     const speed=clamp((options.speed||350)/1000,.25,1.2),close=clamp(1-(options.clearance||70)/180,.28,1);
     note(now,760*speed+280,195*speed+90,.24,.055*close*v,'sine');
