@@ -152,6 +152,7 @@
   let sentinelVfxBitmap=null; // Four transparent, hand-painted spear/charge/impact/aftershock effects.
   let forestImpactBitmap=null; // Optional transparent painterly strike, shared by weapon hits and elite slams.
   let forestArrivalBitmap=null; // Four original woodland arrival beats, never a gameplay blocker.
+  let sproutActionsBitmap=null; // v6.1: independently illustrated four-pose woodland scout.
   let thornBeetleBitmap=null; // 2×2 genuine beetle poses replace the old hedgehog-like placeholder.
   let runnerBitmap=null; // Four independent mushroom scout poses, facing the defenders below.
   const ART_VERSION = '20261031r';
@@ -202,6 +203,7 @@
       loadIllustration('./art/chapter1-mushroom-runner-v55.webp?v=20261106v55',art=>{runnerBitmap=art;}),
       loadIllustration('./art/forest-impact-burst-v58.webp?v=20261110v58',art=>{forestImpactBitmap=art;}),
       loadIllustration('./art/forest-arrival-v60.webp?v=20261110v60',art=>{forestArrivalBitmap=art;}),
+      loadIllustration('./art/forest-sprout-actions-v61.webp?v=20261111v61',art=>{sproutActionsBitmap=art;}),
       loadIllustration('./art/fort-hud-v14.webp?v='+ART_VERSION,art=>{fortBitmap=art;}),
       loadIllustration('./art/mushroom-colossus-attack-v19.webp?v=20261101d',art=>{mushroomAttackBitmap=art;}),
       loadIllustration('./art/rani-element-spells-v38.png?v=20261103a',art=>{elementSpellBitmap=art;}),
@@ -950,6 +952,25 @@
         V.cleanEnemyFrame(c,128,128);
       });
     }
+    // v6.1: identical spiny woodland scout, four genuine storybook poses.
+    // Other monsters and death frames retain the original Canvas fallback.
+    if(sproutActionsBitmap){
+      const cw=sproutActionsBitmap.naturalWidth/2,ch=sproutActionsBitmap.naturalHeight/2;
+      const sequences={idle:[0,0,0,0],run:[0,1,0,1],attack:[0,1,2,2,1,0],
+        hurt:[0,3,3,3,0],victory:[0,1,0,1]};
+      for(const [motion,sequence] of Object.entries(sequences))for(const [frame,pose] of sequence.entries()){
+        const key='motion-sprout-'+motion+'-'+frame;
+        if(scene.textures.exists(key))scene.textures.remove(key);
+        createCanvasTexture(scene,key,160,160,c=>{
+          const fit=Math.min(152/cw,152/ch),w=cw*fit,h=ch*fit;
+          const bounce=motion==='run'&&pose===1?-2:motion==='attack'&&pose===2?2:0;
+          c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
+          c.drawImage(sproutActionsBitmap,(pose%2)*cw,Math.floor(pose/2)*ch,cw,ch,
+            (160-w)/2,(160-h)/2+bounce,w,h);
+          V.cleanEnemyFrame(c,160,160);
+        });
+      }
+    }
     // Four distinct hand-painted insect poses: steady watch, six-legged
     // sprint, forward horn thrust and readable recoil. Keep the original
     // derived death frames so a defeated scout visibly dissolves.
@@ -1134,6 +1155,7 @@
     constructor(){super({key:'ForestBattle'});}
     create(){
       battle=this;this.stage=STAGES[pendingStageIndex];this.ended=false;
+      this.reducedMotion=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
       this.manualPause=false;this.autoPause=false;this.drafting=false;this.pendingRecruit=false;this.speed=1;
       this.hp=3000;this.maxHP=3000;this.coins=0;this.skillCooldown=0;this.rerollUsed=false;
       this.repairs=0;this.waveStartHP=3000;
@@ -1336,6 +1358,7 @@
       const life=this.add.rectangle(lane,-38-lifeYOffset,lifeWidth,4,type==='guardian'?0xffcb73:type==='shroom'?0xf4a86e:0xe18754).setDepth(5).setVisible(false);
       const nameLabel=null;
       const enemy={nameLabel,type,x:lane,baseX:lane,windPhase:Math.random()*Math.PI*2,y:-38,spr,lifeBg,life,lifeWidth,lifeYOffset,hp,maxHP:hp,spd,slow:0,rooted:0,
+        recoilDir:0,
         motionBaseScale:spr.scaleX,lastAttackCue:null,
         armor:type==='crystal'?.34:type==='shroom'?.12:this.stage.id===9?(type==='runner'?0:.3):(type==='brute'?.18:0),
         abilityCooldown:type==='guardian'?4100:type==='shroom'?7700:5400,warning:0,hidden:0,untargetable:false,surge:0,
@@ -1598,7 +1621,7 @@
         }});
       return number;
     }
-    hitEnemy(e,damage,kind){
+    hitEnemy(e,damage,kind,hitFromX=null){
       if(!this.enemies.includes(e)||e.untargetable)return;
       const crit=Math.random()<this.crit;
       this.impactAt(e.x,e.y,kind,crit);
@@ -1625,6 +1648,8 @@
       e.life.width=e.lifeWidth*Math.max(0,e.hp/e.maxHP);
       this.showDamageNumber(e,actual,crit,kind);
       const freshImpact=V.trigger(e.spr,'hurt',this.gameClock+V.duration(e.type,'hurt'),this.gameClock);
+      if(freshImpact)e.recoilDir=Number.isFinite(hitFromX)&&Math.abs(e.x-hitFromX)>1?
+        Math.sign(e.x-hitFromX):(e.windPhase>Math.PI?1:-1);
       // Show the painted first impact pose immediately; later frames unfold in update().
       const hurtFrame='motion-'+e.type+'-hurt-0';
       if(freshImpact&&this.textures.exists(hurtFrame))e.spr.setTexture(hurtFrame);
@@ -1712,7 +1737,7 @@
         onComplete:()=>{this.dyingSprites=Math.max(0,this.dyingSprites-1);spr.destroy();}});
     }
     clearBossWarning(e){
-      for(const key of ['tellRing','tellBack','tellFill','tellZone']){
+      for(const key of ['tellRing','tellBack','tellFill','tellZone','tellPaint']){
         if(e[key]){e[key].destroy();e[key]=null;}
       }
     }
@@ -1721,6 +1746,13 @@
       const color=e.type==='shroom'?0xf5a658:e.type==='guardian'?0xffdd83:this.stage.id===11?0xce77ff:this.stage.id===7?0xffc46b:0xff8068;
       const warningWidth=e.type==='shroom'?180:e.type==='guardian'?155:this.stage.id===11?210:this.stage.id===7?166:125;
       e.tellRing=this.add.ellipse(e.x,e.y+23,warningWidth,35,color,.21).setStrokeStyle(3,color,.9).setDepth(5);
+      // The four original painted leaf/root phases also signal the held
+      // attack warning, without affecting its 1250 ms interruptible timing.
+      e.tellPaint=this.textures.exists('forest-arrival-0')?
+        this.add.image(e.x,e.y+18,'forest-arrival-0')
+          .setDisplaySize(e.type==='shroom'?126:154,e.type==='shroom'?126:154)
+          .setDepth(3.8).setAlpha(.31):null;
+      e.lastTellFrame=-1;
       // Ground zone warns of boss attack; no duplicate bar above the head.
       e.tellBack=null;e.tellFill=null;
       e.tellZone=this.add.ellipse(e.x,(e.y+540)/2,warningWidth,Math.max(40,540-e.y),color,.075)
@@ -1980,6 +2012,12 @@
           e.warning-=dt;
           if(e.tellRing){
             e.tellRing.setPosition(e.x,e.y+23).setAlpha(.55+Math.sin(this.gameClock/120)*.25);
+            if(e.tellPaint?.active){
+              const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+              const frame=reduced?2:Math.min(3,Math.floor((1250-e.warning)/312.5));
+              if(frame!==e.lastTellFrame){e.lastTellFrame=frame;e.tellPaint.setTexture('forest-arrival-'+frame);}
+              e.tellPaint.setPosition(e.x,e.y+18).setAlpha(reduced?.18:.24+Math.sin(this.gameClock/130)*.07);
+            }
             if(e.tellBack)e.tellBack.setPosition(e.x,e.y-56);
             if(e.tellZone)e.tellZone.setPosition(e.x,(e.y+540)/2).setDisplaySize(
               e.type==='shroom'?180:e.type==='guardian'?155:this.stage.id===11?210:this.stage.id===7?166:125,
@@ -2426,14 +2464,22 @@
         const attackMotion=attacking?Math.sin(Math.PI*attackProgress):0;
         const elite=['boss','guardian','shroom'].includes(e.type);
         const recoil=hurting?Math.sin(Math.PI*hurtProgress)*(elite?10:6):0;
+        // Grounded stride with species-sensitive cadence; slowdown and roots
+        // change only the *visual* gait. Actual coordinates still drive hits.
+        const strideActive=!this.reducedMotion&&!hurting&&!attacking&&e.rooted<=0;
+        const strideRate=e.surge>0?.023:e.slow>0?.008:e.spd>=48?.020:e.spd>=30?.014:.010;
+        const footfall=strideActive?Math.sin(this.gameClock*strideRate+e.windPhase):0;
+        const lift=strideActive?-Math.max(0,footfall)*(elite?2:e.spd>=48?2.8:1.6):0;
+        const gaitTilt=strideActive?footfall*(elite?.8:e.spd>=48?1.7:1.1):0;
+        const recoilSide=hurting?e.recoilDir*Math.sin(Math.PI*hurtProgress)*(elite?5:3.5):0;
         // Uniform size and vertical movement only: the painted silhouette
         // stays proportional and gameplay coordinates never change.
         const attackSide=e.type==='imp'||e.type==='runner'?1:e.type==='thorn'?-1:0;
         const southwardStrike=attacking?V.enemyAttackOffset(attackProgress,elite):0;
-        e.spr.setPosition(e.x+attackMotion*attackSide*4,e.y-recoil+southwardStrike);
+        e.spr.setPosition(e.x+attackMotion*attackSide*4+recoilSide,e.y-recoil+southwardStrike+lift);
         e.spr.setScale(e.motionBaseScale*(1+attackMotion*(elite?.055:.032)));
         // A restrained lunge read at 320px without deforming painted silhouettes.
-        e.spr.setAngle(attackMotion*attackSide*5);
+        e.spr.setAngle(attackMotion*attackSide*5+gaitTilt);
         if(attacking&&e.lastAttackCue!==attackStart){
           e.lastAttackCue=attackStart;
           const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2462,7 +2508,7 @@
         }
         e.lifeBg.setPosition(e.x,e.y-e.lifeYOffset);e.life.setPosition(e.x,e.y-e.lifeYOffset);
         if(e.nameLabel)e.nameLabel.setPosition(e.x,e.y-e.lifeYOffset-19);
-        V.animate(e.spr,e.type,'run',this.gameClock);
+        V.animate(e.spr,e.type,e.rooted>0?'idle':'run',this.gameClock);
         if(e.y>=538){
           let leak=e.type==='boss'?580:e.type==='guardian'?360:e.type==='shroom'?255:e.type==='crystal'?190:e.type==='brute'?220:90;
           if(this.wardCharges>0){leak=Math.ceil(leak*.5);this.wardCharges--;this.showElementCue('forest',210,521,true);showBanner('숲의 수호 · 성벽 피해 감소!');}
@@ -2480,7 +2526,7 @@
         }
         const dx=t.x-p.x,dy=t.y-p.y,d=Math.hypot(dx,dy);
         const speed=(p.kind==='rabbit'?510:p.kind==='cat'?465:660)*dt/1000;
-        if(d<=speed+17){this.hitEnemy(t,p.damage,p.kind);p.spr.destroy();p.trail.destroy();this.projectiles.splice(i,1);}
+        if(d<=speed+17){this.hitEnemy(t,p.damage,p.kind,p.x);p.spr.destroy();p.trail.destroy();this.projectiles.splice(i,1);}
         else{
           p.x+=dx/d*speed;p.y+=dy/d*speed;
           const angle=Math.atan2(dy,dx);
@@ -2692,6 +2738,40 @@
         return {before,expectedAfter:Math.max(0,before-45)};
       },
       sentinelHPForQA(){return battle&&!battle.ended?battle.hp:null;},
+      sproutPaintingQA(){
+        if(!battle||battle.ended||!sproutActionsBitmap)return {loaded:false};
+        const keys=['motion-sprout-idle-0','motion-sprout-run-1',
+          'motion-sprout-attack-2','motion-sprout-hurt-2'];
+        if(!keys.every(key=>battle.textures.exists(key)))return {loaded:true,allLoaded:false};
+        const frames=keys.map(key=>battle.textures.get(key).getSourceImage());
+        const hashes=[],corners=[];
+        for(const canvas of frames){
+          const data=canvas.getContext('2d',{willReadFrequently:true})
+            .getImageData(0,0,canvas.width,canvas.height).data;
+          let hash=2166136261;
+          for(let p=0;p<data.length;p+=16){
+            hash=Math.imul(hash^data[p],16777619);
+            hash=Math.imul(hash^data[p+3],16777619);
+          }
+          hashes.push(hash>>>0);
+          corners.push([0,canvas.width-1,(canvas.height-1)*canvas.width,canvas.width*canvas.height-1]
+            .every(index=>data[index*4+3]===0));
+        }
+        const hp=battle.hp;
+        const directions=[];
+        for(const offset of [-32,32]){
+          battle.spawnEnemy('sprout');
+          const enemy=battle.enemies[battle.enemies.length-1];
+          enemy.hp=enemy.maxHP=1000;
+          battle.hitEnemy(enemy,1,'terrain',enemy.x+offset);
+          directions.push(enemy.recoilDir);
+          battle.removeEnemy(enemy);
+        }
+        return {loaded:true,allLoaded:true,sourceSize:[sproutActionsBitmap.naturalWidth,sproutActionsBitmap.naturalHeight],
+          textureSizes:frames.map(canvas=>[canvas.width,canvas.height]),
+          distinctPaintings:new Set(hashes).size,transparentCorners:corners.every(Boolean),
+          directions,beforeHP:hp,afterHP:battle.hp};
+      },
       thornPaintingQA(){
         if(!battle||battle.ended)return null;
         const keys=['motion-thorn-idle-0','motion-thorn-run-1',

@@ -274,6 +274,17 @@ try{
     await page.locator('#game-root canvas').waitFor({timeout:25000});
     await page.waitForTimeout(420);
     if(size.width===390){
+      const sprout=await page.evaluate(()=>window.__ForestGuardQA.sproutPaintingQA());
+      assert.ok(sprout?.loaded&&sprout.allLoaded&&sprout.distinctPaintings===4,
+        'Sprout must have four distinct hand-painted idle, walk, strike and recoil poses: '+JSON.stringify(sprout));
+      assert.ok(sprout.sourceSize[0]>=1000&&sprout.sourceSize[1]>=1000&&
+        sprout.transparentCorners&&sprout.textureSizes.every(([w,h])=>w===160&&h===160),
+        'Sprout sprite cells must be square, clear-alpha and mobile-readable: '+JSON.stringify(sprout));
+      assert.deepEqual(sprout.directions,[1,-1],
+        'Hit recoil must point away from the actual projectile impact side');
+      assert.equal(sprout.beforeHP,sprout.afterHP,
+        'Sprite and recoil QA may not alter wall damage');
+      await page.screenshot({path:new URL('../test-output/forest-sprout-v61-390.png',import.meta.url).pathname});
       const thorn=await page.evaluate(()=>window.__ForestGuardQA.thornPaintingQA());
       assert.ok(thorn&&thorn.loaded&&thorn.allLoaded,
         'Chapter 1 thorn beetle needs its own decoded four-pose artwork: '+JSON.stringify(thorn));
