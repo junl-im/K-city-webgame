@@ -1054,8 +1054,8 @@ const fragmentVolley=Array.from({length:5},(_,i)=>({active:true,age:.4,x:440+i*1
 window.__resetAudioCooldownForTest('flightPulse');
 const pulseStart=playedMaterials.length,noiseStart=noiseStarts;
 window.__v620FlightTickForTest(fragmentVolley,3.2);
-assert.equal(playedMaterials.length-pulseStart,1,'Five split fragments must produce only one pitched flight pulse');
-assert.equal(noiseStarts-noiseStart,1,'One split-volley pulse must have one matching textured air layer');
+assert.equal(playedMaterials.length-pulseStart,0,'Five split fragments must not revive a retro pitched flight oscillator');
+assert.equal(noiseStarts-noiseStart,1,'One split-volley pulse must retain one textured air layer');
 window.__resetAudioCooldownForTest('flightPulse');
 const emptyPulseStart=playedMaterials.length;
 window.__v620FlightTickForTest([],3.2);
