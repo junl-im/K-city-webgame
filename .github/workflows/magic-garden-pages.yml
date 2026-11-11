@@ -206,6 +206,7 @@ jobs:
           cp ForestGuard/art/chapter1-sentinel-vfx-v56.webp MagicGarden/dist/ForestGuard/art/
           cp ForestGuard/art/forest-impact-burst-v58.webp MagicGarden/dist/ForestGuard/art/
           cp ForestGuard/art/forest-arrival-v60.webp MagicGarden/dist/ForestGuard/art/
+          cp ForestGuard/art/forest-sprout-actions-v61.webp MagicGarden/dist/ForestGuard/art/
           test -s MagicGarden/dist/ForestGuard/chapter-boss-v51.css
           test -s MagicGarden/dist/ForestGuard/art/chapter2-masked-mole-v51.webp
           test -s MagicGarden/dist/ForestGuard/art/chapter3-black-bell-v51.webp
@@ -216,6 +217,7 @@ jobs:
           test -s MagicGarden/dist/ForestGuard/art/chapter1-sentinel-vfx-v56.webp
           test -s MagicGarden/dist/ForestGuard/art/forest-impact-burst-v58.webp
           test -s MagicGarden/dist/ForestGuard/art/forest-arrival-v60.webp
+          test -s MagicGarden/dist/ForestGuard/art/forest-sprout-actions-v61.webp
           for asset in forest-choice-card recruit-bear-cutout recruit-rabbit-cutout recruit-cat-cutout; do test -s "MagicGarden/dist/ForestGuard/art/$asset-v50.webp"; done
           test -s MagicGarden/dist/ForestGuard/element-spells-v38.css
           test -s MagicGarden/dist/ForestGuard/art/rani-element-spells-v38.png
