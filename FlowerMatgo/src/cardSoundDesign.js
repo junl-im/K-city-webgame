@@ -16,6 +16,19 @@ export const CARD_SOUND_PROFILES = Object.freeze({
   special: Object.freeze({ duration: .15, frequency: 1450, noiseGain: .21, bass: 180 })
 });
 
+// Event cues have a physical card/wood contact profile rather than 8-bit notes.
+// Each occurrence stays short; event-level cooldown caps overlapping volume.
+export const GAME_EVENT_FOLEY=Object.freeze({
+ start:{sound:'shuffle',cooldown:600},dealer:{sound:'flip',cooldown:250},
+ missed_match:{sound:'ppeok',cooldown:800},no_match:{sound:'land',cooldown:800},
+ go:{sound:'pair',cooldown:450},stop:{sound:'capture',cooldown:450},
+ mission:{sound:'sweep',cooldown:700},bonus:{sound:'bright',cooldown:450},
+ hurry:{sound:'flip',cooldown:800},win:{sound:'sweep',cooldown:900},
+ lose:{sound:'ppeok',cooldown:900},nagari:{sound:'shuffle',cooldown:900},
+ double:{sound:'double',cooldown:500}
+});
+export function gameEventFoley(kind){return GAME_EVENT_FOLEY[kind]??null;}
+
 export function cardSoundProfile(kind) {
   return CARD_SOUND_PROFILES[kind] ?? CARD_SOUND_PROFILES.land;
 }
