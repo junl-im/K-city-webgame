@@ -1699,6 +1699,7 @@
         ['runner','spore','shroom'].includes(e.type)?'spore':
         ['guardian','boss','brute'].includes(e.type)?'stone':'leaf';
       const large=['guardian','boss','shroom'].includes(e.type);
+      const demise=V.deathMotion(e.type); // Per-species fall/roll/sink, visual only.
       const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
       const frameCount=V.frameTotal(e.type,'death');
       const first='motion-'+e.type+'-death-0';
@@ -1721,8 +1722,10 @@
       }
       const finalAlpha=reduced?.12:.18;
       const deathMs=V.duration(e.type,'death')+65;
-      this.tweens.add({targets:spr,alpha:finalAlpha,y:spr.y+(large?20:16),
-        angle:spr.angle+(large?7:13),scaleX:spr.scaleX*.77,scaleY:spr.scaleY*.77,
+      this.tweens.add({targets:spr,alpha:finalAlpha,
+        x:spr.x+demise.drift,y:spr.y+demise.sink,
+        angle:spr.angle+demise.turn,
+        scaleX:spr.scaleX*demise.shrink,scaleY:spr.scaleY*demise.shrink,
         duration:reduced?90:deathMs+holdMs,ease:'Linear',
         onUpdate:tween=>{
           if(!spr.active||reduced)return;
@@ -1748,8 +1751,12 @@
       e.tellRing=this.add.ellipse(e.x,e.y+23,warningWidth,35,color,.21).setStrokeStyle(3,color,.9).setDepth(5);
       // The four original painted leaf/root phases also signal the held
       // attack warning, without affecting its 1250 ms interruptible timing.
-      e.tellPaint=this.textures.exists('forest-arrival-0')?
-        this.add.image(e.x,e.y+18,'forest-arrival-0')
+      // The sentinel has its own charge painting; other elites use the
+      // existing woodland warning sheet. No giant generic vector ring.
+      e.tellCharge=e.type==='guardian'&&this.textures.exists('sentinel-vfx-charge');
+      const tellArt=e.tellCharge?'sentinel-vfx-charge':'forest-arrival-0';
+      e.tellPaint=this.textures.exists(tellArt)?
+        this.add.image(e.x,e.y+18,tellArt)
           .setDisplaySize(e.type==='shroom'?126:154,e.type==='shroom'?126:154)
           .setDepth(3.8).setAlpha(.31):null;
       e.lastTellFrame=-1;
@@ -2013,10 +2020,13 @@
           if(e.tellRing){
             e.tellRing.setPosition(e.x,e.y+23).setAlpha(.55+Math.sin(this.gameClock/120)*.25);
             if(e.tellPaint?.active){
-              const reduced=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-              const frame=reduced?2:Math.min(3,Math.floor((1250-e.warning)/312.5));
-              if(frame!==e.lastTellFrame){e.lastTellFrame=frame;e.tellPaint.setTexture('forest-arrival-'+frame);}
-              e.tellPaint.setPosition(e.x,e.y+18).setAlpha(reduced?.18:.24+Math.sin(this.gameClock/130)*.07);
+              const frame=this.reducedMotion?2:Math.min(3,Math.floor((1250-e.warning)/312.5));
+              if(frame!==e.lastTellFrame){
+                e.lastTellFrame=frame;
+                if(!e.tellCharge)e.tellPaint.setTexture('forest-arrival-'+frame);
+              }
+              e.tellPaint.setPosition(e.x,e.y+18)
+                .setAlpha(this.reducedMotion?.18:.24+Math.sin(this.gameClock/130)*.07);
             }
             if(e.tellBack)e.tellBack.setPosition(e.x,e.y-56);
             if(e.tellZone)e.tellZone.setPosition(e.x,(e.y+540)/2).setDisplaySize(
@@ -2466,9 +2476,14 @@
         const recoil=hurting?Math.sin(Math.PI*hurtProgress)*(elite?10:6):0;
         // Grounded stride with species-sensitive cadence; slowdown and roots
         // change only the *visual* gait. Actual coordinates still drive hits.
+        // Select locomotion first: switching idle -> run must restart both the
+        // illustrated frame sequence and its tiny non-stretching gait bounce.
+        V.animate(e.spr,e.type,e.rooted>0?'idle':'run',this.gameClock);
         const strideActive=!this.reducedMotion&&!hurting&&!attacking&&e.rooted<=0;
         const strideRate=e.surge>0?.023:e.slow>0?.008:e.spd>=48?.020:e.spd>=30?.014:.010;
-        const footfall=strideActive?Math.sin(this.gameClock*strideRate+e.windPhase):0;
+        const poseStart=e.spr.getData('motionStart');
+        const poseTime=Number.isFinite(poseStart)?Math.max(0,this.gameClock-poseStart):0;
+        const footfall=strideActive?Math.sin(poseTime*strideRate):0;
         const lift=strideActive?-Math.max(0,footfall)*(elite?2:e.spd>=48?2.8:1.6):0;
         const gaitTilt=strideActive?footfall*(elite?.8:e.spd>=48?1.7:1.1):0;
         const recoilSide=hurting?e.recoilDir*Math.sin(Math.PI*hurtProgress)*(elite?5:3.5):0;
@@ -2508,7 +2523,6 @@
         }
         e.lifeBg.setPosition(e.x,e.y-e.lifeYOffset);e.life.setPosition(e.x,e.y-e.lifeYOffset);
         if(e.nameLabel)e.nameLabel.setPosition(e.x,e.y-e.lifeYOffset-19);
-        V.animate(e.spr,e.type,e.rooted>0?'idle':'run',this.gameClock);
         if(e.y>=538){
           let leak=e.type==='boss'?580:e.type==='guardian'?360:e.type==='shroom'?255:e.type==='crystal'?190:e.type==='brute'?220:90;
           if(this.wardCharges>0){leak=Math.ceil(leak*.5);this.wardCharges--;this.showElementCue('forest',210,521,true);showBanner('숲의 수호 · 성벽 피해 감소!');}
