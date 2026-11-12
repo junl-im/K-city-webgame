@@ -100,5 +100,39 @@ visuals.animate(sprite,'fox','idle',1525);
 assert.equal(sprite.texture.key,'motion-fox-idle-0','Recovery must start at the resting pose');
 visuals.animate(sprite,'fox','idle',1705);
 assert.equal(sprite.texture.key,'motion-fox-idle-1','Resting frames continue smoothly after recovery');
+// v6.2: root release and reaction recovery must not jump to an old running frame.
+const enemySprite={
+  active:true,scene:{textures},texture:{key:''},data:new Map(),
+  getData(key){return this.data.get(key);},
+  setData(key,value){this.data.set(key,value);},
+  setTexture(key){this.texture.key=key;}
+};
+visuals.animate(enemySprite,'sprout','run',100);
+assert.equal(enemySprite.texture.key,'motion-sprout-run-0');
+visuals.animate(enemySprite,'sprout','run',205);
+assert.equal(enemySprite.texture.key,'motion-sprout-run-1');
+visuals.animate(enemySprite,'sprout','idle',240);
+assert.equal(enemySprite.texture.key,'motion-sprout-idle-0',
+  'Rooted enemy should plant feet from the first illustrated idle frame');
+visuals.animate(enemySprite,'sprout','idle',420);
+assert.equal(enemySprite.texture.key,'motion-sprout-idle-1');
+visuals.animate(enemySprite,'sprout','run',450);
+assert.equal(enemySprite.texture.key,'motion-sprout-run-0',
+  'Leaving the root trap should start running from frame zero');
+visuals.trigger(enemySprite,'hurt',850,460);
+visuals.animate(enemySprite,'sprout','run',540);
+assert.equal(enemySprite.texture.key,'motion-sprout-hurt-1',
+  'Default locomotion changes must not cancel an active hit');
+visuals.animate(enemySprite,'sprout','run',860);
+assert.equal(enemySprite.texture.key,'motion-sprout-run-0',
+  'Attack or hit recovery must restart at an undistorted walking pose');
+for(const id of ['sprout','runner','brute','thorn','spore','imp','crystal','shroom','guardian','boss']){
+  const death=visuals.deathMotion(id);
+  assert.ok(Number.isFinite(death.drift)&&Number.isFinite(death.sink)&&
+    Number.isFinite(death.turn)&&death.shrink>0&&death.shrink<1,
+    'Death choreography must remain finite and proportional: '+id);
+}
+assert.notDeepEqual({...visuals.deathMotion('runner')},{...visuals.deathMotion('guardian')},
+  'Small scout and large midboss must not have identical fall choreography');
 assert.ok(!source.includes('<svg')&&!source.includes('data:image/svg+xml'));
 console.log('ForestGuard v4.6 matte cleanup, chained motion recovery and ten enemy deaths: PASS');

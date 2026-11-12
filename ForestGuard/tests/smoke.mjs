@@ -55,6 +55,12 @@ for(const name of ['chapter1-root-giant-v52.webp','chapter1-forest-sentinel-v52.
   assert.ok(chapter51.includes(name),'Chapter 1 portrait must use the original painted artwork');
 }
 assert.match(js,/applyFourPoseSheet\('guardian',forestSentinelBitmap\)/);
+// v6.2: preserve artwork and verify framed motion / sentinel warning sources.
+assert.ok(js.includes("e.tellCharge=e.type==='guardian'"));
+assert.ok(js.includes('const demise=V.deathMotion(e.type)'));
+assert.ok(js.includes('poseTime*strideRate'));
+assert.ok(visuals.includes('const DEATH_MOTIONS=Object.freeze'));
+
 const thorn53=readFileSync(new URL('art/chapter1-thorn-beetle-v53.webp',root));
 assert.ok(thorn53.length>60_000&&thorn53.length<700_000,'Thorn beetle is a compact independent four-pose painting');
 assert.equal(thorn53.toString('ascii',0,4),'RIFF');
@@ -112,8 +118,8 @@ assert.match(js,/arrivalPaintingQA\(\)/);
 assert.doesNotMatch(chapter51,/<svg|data:image\/svg\+xml|\.svg(?:["'(])/i);
 assert.match(html,/forest-choice-v50\.css\?v=20261105v507/);
 assert.match(html,/result-continuity-v48\.css\?v=20261105v506/);
-assert.match(html,/game\.js\?v=20261111v61/);
-assert.match(html,/visuals\.js\?v=20261111v61/);
+assert.match(html,/game\.js\?v=20261112v62/);
+assert.match(html,/visuals\.js\?v=20261112v62/);
 assert.match(visuals,/const ATTACK_PERSONALITY=\{/);
 assert.match(js,/motionBaseScale:spr\.scaleX/);
 assert.match(js,/const freshImpact=V\.trigger\(e\.spr,'hurt'/);
@@ -486,8 +492,8 @@ assert.match(js,/hasDashed/);
 assert.match(js,/hasRallied/);
 assert.match(js,/guarding\?Math\.min\(\.55/);
 assert.match(css,/\.hero-slot\.empty\{border:0!important/);
-assert.match(html,/game\.js\?v=20261111v61/);
-assert.match(html,/visuals\.js\?v=20261111v61/);
+assert.match(html,/game\.js\?v=20261112v62/);
+assert.match(html,/visuals\.js\?v=20261112v62/);
 assert.match(visuals,/frameTotal\(id,state\)/);
 assert.match(visuals,/drawHeroWeapon\(c,id,frame\)/);
 assert.match(css,/One continuous forest illustration/);
