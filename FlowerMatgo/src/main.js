@@ -51,7 +51,7 @@ const safe = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 const defaultSave = () => ({
   screen: 'home', difficulty: 'normal', stake: 100, wallet: BASE_WALLET,
   stats: {wins:0, losses:0, draws:0, high:0, rounds:0},
-  game: null, settledUuid: null, nextMultiplier: 1, doubleStake: null, sound: true, voice: true, muteAll: false, voiceStyle: 'legacy', soundVolume: 0.8, voiceVolume: 0.85, autoMode: false, missionsEnabled: true, pendingGookjinChoice: false, pendingDrawChoice: null
+  game: null, settledUuid: null, nextMultiplier: 1, doubleStake: null, sound: true, voice: true, muteAll: false, voiceStyle: 'f2', voicePackVersion: 2, soundVolume: 0.8, voiceVolume: 0.85, autoMode: false, missionsEnabled: true, pendingGookjinChoice: false, pendingDrawChoice: null
 });
 
 function loadSave() {
@@ -62,7 +62,8 @@ function loadSave() {
     const save = { ...base, ...raw, stats: { ...base.stats, ...(raw.stats || {}) } };
     if (typeof raw.voice !== 'boolean') save.voice = raw.sound !== false;
     save.muteAll=raw.muteAll===true;
-    save.voiceStyle=VOICE_PACKS[raw.voiceStyle]?.ready===true?raw.voiceStyle:'legacy';
+    save.voiceStyle=raw.voicePackVersion===2 && VOICE_PACKS[raw.voiceStyle]?.ready===true ? raw.voiceStyle : 'f2';
+    save.voicePackVersion=2;
     for (const key of ['soundVolume','voiceVolume']) save[key] = Number.isFinite(save[key]) ? Math.max(0,Math.min(1,save[key])) : base[key];
     if (!DIFFICULTIES.some(d => d.id === save.difficulty)) save.difficulty = 'normal';
     // Remove the legacy artwork selection from old saves. The original-style
@@ -674,16 +675,17 @@ function helpOverlay() {
 function audioSettingsOverlay() {
   return `<div class="modal-shade"><section class="modal-box audio-settings" role="dialog" aria-modal="true" aria-labelledby="audio-settings-title">
     <div class="help-heading"><h2 id="audio-settings-title">소리 설정</h2><button class="gallery-close" type="button" data-action="close" aria-label="소리 설정 닫기">✕</button></div>
-    <p>효과음과 AI 합성 음성을 따로 조절해요. 새 캐릭터 성우팩은 검수 후에만 선택할 수 있어요.</p>
+    <p>효과음과 AI 합성 음성을 따로 조절해요.</p>
     <button type="button" class="audio-toggle audio-mute-all" data-action="mute-all" aria-pressed="${app.muteAll}">전체 음소거 ${app.muteAll?'켜짐':'꺼짐'}</button>
     <div class="audio-setting"><button type="button" class="audio-toggle" data-action="sound" aria-pressed="${app.sound}">효과음 ${app.sound?'켜짐':'꺼짐'}</button><label><span class="audio-volume-label">효과음 크기 <output data-volume-output="soundVolume">${Math.round(app.soundVolume*100)}%</output></span><input type="range" min="0" max="100" value="${Math.round(app.soundVolume*100)}" data-volume="soundVolume" aria-label="효과음 크기"></label></div>
     <div class="audio-setting"><button type="button" class="audio-toggle" data-action="voice" aria-pressed="${app.voice}">음성 ${app.voice?'켜짐':'꺼짐'}</button><label><span class="audio-volume-label">음성 크기 <output data-volume-output="voiceVolume">${Math.round(app.voiceVolume*100)}%</output></span><input type="range" min="0" max="100" value="${Math.round(app.voiceVolume*100)}" data-volume="voiceVolume" aria-label="음성 크기"></label></div>
     <div class="voice-cast-settings"><label for="voice-style-select">목소리 스타일</label>
       <select id="voice-style-select" data-voice-style aria-describedby="voice-style-note">
+        <option value="f2" ${app.voiceStyle==='f2'?'selected':''}>${VOICE_PACKS.f2.label}</option>
         <option value="legacy" ${app.voiceStyle==='legacy'?'selected':''}>${VOICE_PACKS.legacy.label}</option>
         <option value="trio" disabled>${VOICE_PACKS.trio.label} · 음원 검수 전</option>
       </select>
-      <p id="voice-style-note">A ${VOICE_CAST.main.name} · B ${VOICE_CAST.rival.name} · C ${VOICE_CAST.host.name}. 3인 신규 음원은 제작·권리·청취 검수 전이라 현재는 기존 음성만 재생해요.</p>
+      <p id="voice-style-note">새 목소리는 소리온 F2 합성 음성이에요. 원하면 기존 목소리로 바꿀 수 있어요.</p>
     </div>
     <div class="audio-previews"><button type="button" class="btn btn--quiet" data-action="sound-preview" ${app.sound&&!app.muteAll?'':'disabled'}>효과음 듣기</button><button type="button" class="btn btn--quiet" data-action="voice-preview" ${app.voice&&!app.muteAll?'':'disabled'}>음성 듣기</button></div>
     ${btn('완료','close','btn--primary btn--wide')}

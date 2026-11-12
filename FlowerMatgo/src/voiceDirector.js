@@ -5,6 +5,7 @@ export const VOICE_CAST=Object.freeze({
  host:{name:'또렷한 게임 진행자',purpose:'시작·시간·결과 안내'}
 });
 export const VOICE_PACKS=Object.freeze({
+ f2:{label:'소리 F2 · 새 캐릭터 음성',ready:true,folder:'rani-voice-f2-v1'},
  legacy:{label:'기존 한국어 합성 음성',ready:true,folder:'rani-voice-v4'},
  trio:{label:'3인 캐릭터 음성',ready:false,folder:'rani-voice-trio-v1'}
 });

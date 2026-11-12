@@ -6,6 +6,14 @@ class FakeAudio {
  constructor(){this.play=vi.fn(()=>Promise.resolve());this.pause=vi.fn();this.load=vi.fn();this.removeAttribute=vi.fn();FakeAudio.instances.push(this);}
 }
 describe('game voice playback',()=>{
+ it('plays F2 clips and falls back to the original clip if one cannot load',()=>{
+  FakeAudio.instances=[];
+  const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.8,getStyle:()=> 'f2',AudioClass:FakeAudio});
+  p.unlock();p.enqueue(['first_ppeok']);const a=FakeAudio.instances[0];
+  expect(a.src).toContain('/rani-voice-f2-v1/first_ppeok.mp3');
+  a.onerror();expect(a.src).toContain('/rani-voice-v4/first_ppeok-v2.mp3');
+  expect(a.play).toHaveBeenCalledTimes(2);
+ });
  it('waits for a gesture, queues clips without overlap and suppresses repeated cues',()=>{
   FakeAudio.instances=[];let t=10000;
   const p=createVoicePlayer({getEnabled:()=>true,getVolume:()=>.6,AudioClass:FakeAudio,now:()=>t});

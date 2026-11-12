@@ -1,4 +1,4 @@
-import {chooseVoiceVariant,voiceCueInfo,voicePackReady} from './voiceDirector.js';
+import {chooseVoiceVariant,voiceCueInfo,voicePackReady,VOICE_PACKS,VOICE_SCRIPTS} from './voiceDirector.js';
 
 // Preserve published clip names, so current saves and playback remain compatible.
 const VOICE_FILES=Object.freeze({start:'start-v5',first_human:'first_human-v2',first_computer:'first_computer-v2',first_ppeok:'first_ppeok-v2',ppeok_take:'ppeok_take-v2',hurry:'hurry-v2',double:'double-v2',mission:'mission-v2',win:'win-v2',take:'take-v2',give:'give-v2',bonus_reveal:'bonus-reveal',chodan_alert:'chodan_alert-v2',hongdan_alert:'hongdan_alert-v2',cheongdan_alert:'cheongdan_alert-v2',godori_alert:'godori_alert-v2',dealer_confirm:'dealer_confirm-v2',missed_match:'missed_match-v2',no_match:'no_match-v2'});
@@ -11,11 +11,12 @@ export function createVoicePlayer({getEnabled,getVolume,getStyle=()=> 'legacy',A
  const lastCue=new Map(),lastClip=new Map(),badFiles=new Set(),cached=new Map();
  const volume=()=>Math.max(0,Math.min(1,Number(getVolume())||0));
  const style=()=>voicePackReady(getStyle())?getStyle():'legacy';
- const url=(file,pack='legacy')=>import.meta.env.BASE_URL+'assets/'+(pack==='legacy'?'rani-voice-v4':'rani-voice-trio-v1')+'/'+file+'.mp3';
+ const url=(file,pack='legacy')=>import.meta.env.BASE_URL+'assets/'+VOICE_PACKS[pack].folder+'/'+file+'.mp3';
  function select(id){
   const pack=style(),configured=assetVariants?.[pack]?.[id];
   const choices=configured?.filter(v=>!badFiles.has(url(v.file,pack)));
   const pick=chooseVoiceVariant(choices,lastClip.get(pack+':'+id),random);
+  if(pack==='f2' && (Object.hasOwn(VOICE_SCRIPTS,id)||/^go(?:[1-9]|10)$/.test(id)) && !badFiles.has(url(id,'f2')))return{url:url(id,'f2'),file:id,pack:'f2'};
   return pick?{url:url(pick.file,pack),file:pick.file,pack}
    :{url:url(voiceAssetName(id)),file:voiceAssetName(id),pack:'legacy'};
  }
@@ -33,7 +34,7 @@ export function createVoicePlayer({getEnabled,getVolume,getStyle=()=> 'legacy',A
   audio ||= new AudioClass();
   const serial=++generation;
   audio.preload='auto';
-  const settle=(failed=false)=>{if(serial!==generation)return;if(failed)badFiles.add(src.url);active=false;activeItem=null;next();};
+  const settle=(failed=false)=>{if(serial!==generation)return;if(failed){badFiles.add(src.url);if(src.pack==='f2')queue.unshift(item);}active=false;activeItem=null;next();};
   audio.onended=()=>settle();
   audio.onerror=()=>settle(true);
   audio.volume=volume();audio.src=src.url;active=true;activeItem=item;lastClip.set(src.pack+':'+item.id,src.file);
