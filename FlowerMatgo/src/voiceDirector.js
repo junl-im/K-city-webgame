@@ -55,7 +55,7 @@ const ALERTS=new Set(['hurry','decide','first_human','first_computer','dealer_co
 const SPECIAL=new Set(['cheongdan','hongdan','chodan','godori','mission','bomb','sweep','ttadak','jjok']);
 export function voiceCueInfo(id){
  const go=typeof id==='string'&&/^go(\d+)$/.exec(id);
- if(go)return{id,role:'main',priority:58,lines:[GO_SPOKEN[Number(go[1])]||'고!']};
+ if(go)return{id,role:'main',priority:92,lines:[GO_SPOKEN[Number(go[1])]||'고!']};
  const item=VOICE_SCRIPTS[id];
  return{id,role:item?.role||'main',priority:RESULTS.has(id)?100:ALERTS.has(id)?82:id==='stop'?92:SPECIAL.has(id)?64:50,lines:item?.lines||[]};
 }
