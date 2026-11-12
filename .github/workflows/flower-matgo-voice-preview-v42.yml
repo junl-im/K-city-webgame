@@ -30,8 +30,8 @@ jobs:
           python -m json.tool voice-audition-plan.json > /dev/null
       - name: Install offline voice synthesis and model downloader
         run: |
-          python -m pip install --disable-pip-version-check --no-input supertonic huggingface_hub
-          ffmpeg -version | head -n 1
+          python -m pip install --disable-pip-version-check --no-input supertonic huggingface_hub imageio-ffmpeg
+          python -c "import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())"
       - name: Download archived pinned voice model (no model weights enter the game)
         env:
           HF_HUB_DISABLE_XET: '0'
