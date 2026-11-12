@@ -567,6 +567,21 @@
     if(islands||fringe||wisps)ctx.putImageData(image,0,0);
     return {islands,fringe,wisps};
   }
+  // Only the defeated sprite is animated by these profiles; hitboxes, coins,
+  // wave accounting and movement speeds remain unchanged.
+  const DEATH_MOTIONS=Object.freeze({
+    sprout:{drift:-6,sink:16,turn:-11,shrink:.77},
+    runner:{drift:9,sink:14,turn:18,shrink:.75},
+    brute:{drift:-3,sink:22,turn:-7,shrink:.84},
+    thorn:{drift:-11,sink:12,turn:-25,shrink:.73},
+    spore:{drift:6,sink:14,turn:12,shrink:.72},
+    imp:{drift:12,sink:15,turn:21,shrink:.73},
+    crystal:{drift:-4,sink:12,turn:-16,shrink:.68},
+    shroom:{drift:2,sink:24,turn:8,shrink:.83},
+    guardian:{drift:-5,sink:26,turn:-9,shrink:.85},
+    boss:{drift:3,sink:29,turn:7,shrink:.87}
+  });
+  function deathMotion(id){return DEATH_MOTIONS[id]||DEATH_MOTIONS.sprout;}
   function animate(sprite,id,defaultState,now){
     if(!sprite||!sprite.active)return;
     let current=sprite.getData('motionState');
@@ -574,6 +589,13 @@
     // an arbitrary global-clock frame that can jump between silhouettes.
     if(current&&now>=sprite.getData('motionUntil')){
       current=null;sprite.setData('motionState',null);sprite.setData('motionStart',now);
+    }
+    // A root/slow recovery changes the default locomotion state. Restart at
+    // frame zero rather than selecting an unrelated pose from the old clock.
+    // Never override a still-active attack or hurt reaction.
+    if(!current&&sprite.getData('motionDefault')!==defaultState){
+      sprite.setData('motionDefault',defaultState);
+      sprite.setData('motionStart',now);
     }
     const state=current||defaultState;
     const start=sprite.getData('motionStart');
@@ -600,5 +622,5 @@
     sprite.setData('motionStart',Number.isFinite(start)?start:null);
     return true;
   }
-  global.ForestGuardVisuals={build,animate,trigger,duration,frameTotal,enemyAttackOffset,icon,setIcon,portrait,cleanAttackFrame,cleanEnemyFrame};
+  global.ForestGuardVisuals={build,animate,trigger,duration,frameTotal,enemyAttackOffset,deathMotion,icon,setIcon,portrait,cleanAttackFrame,cleanEnemyFrame};
 })(window);
