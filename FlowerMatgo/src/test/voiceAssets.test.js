@@ -3,8 +3,18 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { goVoice, openingVoice, roundVoices, turnVoices } from '../voiceEvents.js';
 import { voiceAssetName } from '../voicePlayer.js';
+import { VOICE_SCRIPTS } from '../voiceDirector.js';
 
 describe('실제 게임 음성 파일', () => {
+  it('제작한 F2 음성팩에 게임 대사와 독립 고 선언 파일이 모두 있다', () => {
+    const ids=[...Object.keys(VOICE_SCRIPTS),...Array.from({length:10},(_,i)=>`go${i+1}`)];
+    expect(new Set(ids).size).toBe(49);
+    for(const id of ids){
+      const file=fileURLToPath(new URL(`../../public/assets/rani-voice-f2-v1/${id}.mp3`,import.meta.url));
+      expect(existsSync(file),`${id} F2 음원 누락`).toBe(true);
+      expect(statSync(file).size,`${id} F2 음원 비어 있음`).toBeGreaterThan(1000);
+    }
+  });
   it('선공·특수 상황·정산에서 선택되는 모든 음원이 존재한다', () => {
     const cues = new Set([
       'start','stop','shake','double','hurry','decide','chongtong','bonus_reveal','chodan_alert','hongdan_alert','cheongdan_alert','godori_alert','dealer_confirm','missed_match','no_match',
