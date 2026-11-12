@@ -7,7 +7,7 @@ export function voiceAssetName(id){return VOICE_FILES[id]||id;}
 // A candidate is playable only if an explicit audio-file manifest supplies it.
 // The trio pack is disabled until three licensed, listening-checked voices exist.
 export function createVoicePlayer({getEnabled,getVolume,getStyle=()=> 'legacy',AudioClass=globalThis.Audio,now=()=>Date.now(),random=Math.random,assetVariants={},fetchClip=globalThis.fetch}){
- let unlocked=false,audio=null,active=false,queue=[],generation=0;
+ let unlocked=false,audio=null,active=false,activeItem=null,queue=[],generation=0;
  const lastCue=new Map(),lastClip=new Map(),badFiles=new Set(),cached=new Map();
  const volume=()=>Math.max(0,Math.min(1,Number(getVolume())||0));
  const style=()=>voicePackReady(getStyle())?getStyle():'legacy';
@@ -22,7 +22,7 @@ export function createVoicePlayer({getEnabled,getVolume,getStyle=()=> 'legacy',A
  function clear(){
   generation++;queue=[];
   if(audio){audio.onended=audio.onerror=null;audio.pause();audio.removeAttribute('src');audio.load();}
-  active=false;
+  active=false;activeItem=null;
  }
  function next(){
   if(active||!unlocked||!getEnabled()||!AudioClass)return;
@@ -33,10 +33,10 @@ export function createVoicePlayer({getEnabled,getVolume,getStyle=()=> 'legacy',A
   audio ||= new AudioClass();
   const serial=++generation;
   audio.preload='auto';
-  const settle=(failed=false)=>{if(serial!==generation)return;if(failed)badFiles.add(src.url);active=false;next();};
+  const settle=(failed=false)=>{if(serial!==generation)return;if(failed)badFiles.add(src.url);active=false;activeItem=null;next();};
   audio.onended=()=>settle();
   audio.onerror=()=>settle(true);
-  audio.volume=volume();audio.src=src.url;active=true;lastClip.set(src.pack+':'+item.id,src.file);
+  audio.volume=volume();audio.src=src.url;active=true;activeItem=item;lastClip.set(src.pack+':'+item.id,src.file);
   try{Promise.resolve(audio.play()).catch(e=>{if(serial!==generation)return;if(e?.name==='NotAllowedError'){unlocked=false;queue=[];active=false;}else settle(true);});}
   catch(e){if(e?.name==='NotAllowedError'){unlocked=false;queue=[];active=false;}else settle(true);}
  }
@@ -52,6 +52,10 @@ export function createVoicePlayer({getEnabled,getVolume,getStyle=()=> 'legacy',A
   }
   if(!incoming.length)return;
   const best=incoming.reduce((chosen,item)=>!chosen||item.priority>=chosen.priority?item:chosen,null);
+  if(active && best.priority>=92 && best.priority>activeItem.priority){
+   generation++;audio.onended=audio.onerror=null;audio.pause();active=false;activeItem=null;queue=[best];next();return;
+  }
+  if(active && activeItem.priority>=92 && best.priority<activeItem.priority)return;
   if(active){if(!queue.length||replacePending||best.priority>=queue[0].priority)queue=[best];}
   else{queue=[incoming[0]];if(incoming.length>1&&best!==incoming[0])queue.push(best);}
   next();
