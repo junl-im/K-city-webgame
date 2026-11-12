@@ -28,6 +28,7 @@ import { cardSoundProfile, impactAccents, gameEventFoley } from './cardSoundDesi
 import { VOICE_CAST, VOICE_PACKS } from './voiceDirector.js';
 import { goVoice, openingVoice, resolvedGoDecision, turnVoices, roundVoices } from './voiceEvents.js';
 import { createVoicePlayer } from './voicePlayer.js';
+import { createSampleSounds, CARD_SAMPLES, CUE_SAMPLES } from './sampleSounds.js';
 import { newlyCompletedCombos } from './scoreCombos.js';
 import { HUMAN_TURN_MS, HUMAN_TURN_SECONDS, humanTurnSignature, humanChoiceSignature, secondsLeft, shouldRestartClockAfterTurn } from './turnTiming.js';
 import { canEmergencyRecharge, EMERGENCY_RECHARGE, hasEnoughForTable } from './rechargePolicy.js';
@@ -107,6 +108,10 @@ let fxTimer = null;
 let flash = '';
 let flashKind = 'special';
 let audioCtx = null;
+const sampleSounds=createSampleSounds({
+  getContext:()=>audioCtx ||= new (window.AudioContext || window.webkitAudioContext)(),
+  getVolume:()=>app.soundVolume,
+});
 let turnNoticeTimer = null;
 let turnTransition = false;
 let turnTransitionTimer = null;
@@ -157,12 +162,14 @@ function gameCueSound(kind) {
   const time=performance.now();
   if(time-(lastGameCueAt.get(kind)??-10000)<profile.cooldown)return;
   lastGameCueAt.set(kind,time);
+  if(sampleSounds.play(CUE_SAMPLES[kind]))return;
   cardSound(profile.sound);
 }
 // The short filtered-noise crackle supplies the familiar weight of cards
 // meeting a wooden table, without external audio files or download latency.
 function cardSound(kind = 'land') {
   if (!app.sound || app.muteAll || app.soundVolume <= 0) return;
+  if(sampleSounds.play(CARD_SAMPLES[kind]))return;
   try {
     audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -1221,10 +1228,10 @@ function mutate(action, value, cardId) {
     case 'close': overlay=overlay==='audio-settings'?audioSettingsReturn:null;audioSettingsReturn=null;render();queueAI();return;
     case 'mute-all':
       app.muteAll=!app.muteAll;
-      if(app.muteAll){voicePlayer.clear();audioCtx?.suspend?.()?.catch?.(()=>{});}
+      if(app.muteAll){voicePlayer.clear();sampleSounds.stop();audioCtx?.suspend?.()?.catch?.(()=>{});}
       else audioCtx?.resume?.()?.catch?.(()=>{});
       save();render();return;
-    case 'sound': app.sound=!app.sound;save();render();return;
+    case 'sound': app.sound=!app.sound;if(!app.sound)sampleSounds.stop();save();render();return;
     case 'voice': app.voice=!app.voice;if(!app.voice)voicePlayer.clear();save();render();return;
     case 'sound-preview': cardSound('pair');return;
     case 'voice-preview': voicePlayer.clear();voicePlayer.enqueue(['start'],{force:true});return;
@@ -1296,6 +1303,7 @@ document.addEventListener('click',e=>{
   const target=e.target.closest('[data-action]');
   if (!target || !ROOT.contains(target)) return;
   voicePlayer.unlock();
+  if(app.sound && !app.muteAll && (window.AudioContext || window.webkitAudioContext)) sampleSounds.preload();
   if(!voiceWarmStarted && app.voice && !app.muteAll){
     voiceWarmStarted=true;
     voicePlayer.preload(['start','go1','stop','hurry','win','lose']).catch(()=>{});
@@ -1315,6 +1323,7 @@ document.addEventListener('input',e=>{
   const output=ROOT.querySelector(`[data-volume-output="${key}"]`);
   if(output) output.textContent=`${Math.round(app[key]*100)}%`;
   if (key==='voiceVolume') voicePlayer.volumeChanged();
+  if (key==='soundVolume') sampleSounds.volumeChanged();
   save();
 });
 // A finger resting on one of the overlapping hand cards previews the actual
