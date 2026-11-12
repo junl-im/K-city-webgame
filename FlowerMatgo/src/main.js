@@ -24,7 +24,8 @@ import { hwatuFamily, spokenActionText, spokenCardName } from './cardNames.js';
 import { animateResolvedTurn, motionOrigin, drawnBonusCards } from './turnPresentation.js';
 import { eventAnnouncement, piTransferAnnouncement } from './specialPresentation.js';
 import { SPECIAL_FLASH_MS, specialMoment } from './specialMoment.js';
-import { cardSoundProfile, impactAccents, GAME_CUE_NOTES } from './cardSoundDesign.js';
+import { cardSoundProfile, impactAccents, gameEventFoley } from './cardSoundDesign.js';
+import { VOICE_CAST, VOICE_PACKS } from './voiceDirector.js';
 import { goVoice, openingVoice, resolvedGoDecision, turnVoices, roundVoices } from './voiceEvents.js';
 import { createVoicePlayer } from './voicePlayer.js';
 import { newlyCompletedCombos } from './scoreCombos.js';
@@ -49,7 +50,7 @@ const safe = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 const defaultSave = () => ({
   screen: 'home', difficulty: 'normal', stake: 100, wallet: BASE_WALLET,
   stats: {wins:0, losses:0, draws:0, high:0, rounds:0},
-  game: null, settledUuid: null, nextMultiplier: 1, doubleStake: null, sound: true, voice: true, soundVolume: 0.8, voiceVolume: 0.85, autoMode: false, missionsEnabled: true, pendingGookjinChoice: false, pendingDrawChoice: null
+  game: null, settledUuid: null, nextMultiplier: 1, doubleStake: null, sound: true, voice: true, muteAll: false, voiceStyle: 'legacy', soundVolume: 0.8, voiceVolume: 0.85, autoMode: false, missionsEnabled: true, pendingGookjinChoice: false, pendingDrawChoice: null
 });
 
 function loadSave() {
@@ -59,6 +60,8 @@ function loadSave() {
     if (!raw || typeof raw !== 'object') return base;
     const save = { ...base, ...raw, stats: { ...base.stats, ...(raw.stats || {}) } };
     if (typeof raw.voice !== 'boolean') save.voice = raw.sound !== false;
+    save.muteAll=raw.muteAll===true;
+    save.voiceStyle=VOICE_PACKS[raw.voiceStyle]?.ready===true?raw.voiceStyle:'legacy';
     for (const key of ['soundVolume','voiceVolume']) save[key] = Number.isFinite(save[key]) ? Math.max(0,Math.min(1,save[key])) : base[key];
     if (!DIFFICULTIES.some(d => d.id === save.difficulty)) save.difficulty = 'normal';
     // Remove the legacy artwork selection from old saves. The original-style
@@ -90,7 +93,8 @@ function loadSave() {
   }
 }
 let app = loadSave();
-const voicePlayer = createVoicePlayer({getEnabled:()=>app.voice, getVolume:()=>app.voiceVolume});
+const voicePlayer = createVoicePlayer({getEnabled:()=>app.voice&&!app.muteAll, getVolume:()=>app.voiceVolume, getStyle:()=>app.voiceStyle});
+let voiceWarmStarted=false;
 let overlay = null;
 let audioSettingsReturn = null;
 let galleryOwner = 'human';
@@ -127,7 +131,7 @@ function save() {
   catch { /* Private browsing may reject storage. In-memory play still works. */ }
 }
 function tone(kind = 'tap') {
-  if (!app.sound || app.soundVolume <= 0) return;
+  if (!app.sound || app.muteAll || app.soundVolume <= 0) return;
   try {
     audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -144,26 +148,21 @@ function tone(kind = 'tap') {
     osc.start(t); osc.stop(t + .24);
   } catch { /* Silent fallback. */ }
 }
+// Event signals use filtered card/wood foley instead of simple 8-bit pitches.
+const lastGameCueAt=new Map();
 function gameCueSound(kind) {
-  const notes = GAME_CUE_NOTES[kind];
-  if (!app.sound || app.soundVolume <= 0 || !notes) return;
-  try {
-    audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const start = audioCtx.currentTime;
-    notes.forEach((frequency,index) => {
-      const at = start + index * .095, oscillator = audioCtx.createOscillator(), gain = audioCtx.createGain();
-      oscillator.type = 'sine';oscillator.frequency.setValueAtTime(frequency,at);
-      gain.gain.setValueAtTime(.0001,at);gain.gain.exponentialRampToValueAtTime(Math.max(.0001,.035*app.soundVolume),at+.012);
-      gain.gain.exponentialRampToValueAtTime(.0001,at+.13);
-      oscillator.connect(gain);gain.connect(audioCtx.destination);oscillator.start(at);oscillator.stop(at+.14);
-    });
-  } catch { /* The game remains usable without audio. */ }
+  if (!app.sound || app.muteAll || app.soundVolume <= 0) return;
+  const profile=gameEventFoley(kind);
+  if(!profile)return;
+  const time=performance.now();
+  if(time-(lastGameCueAt.get(kind)??-10000)<profile.cooldown)return;
+  lastGameCueAt.set(kind,time);
+  cardSound(profile.sound);
 }
 // The short filtered-noise crackle supplies the familiar weight of cards
 // meeting a wooden table, without external audio files or download latency.
 function cardSound(kind = 'land') {
-  if (!app.sound || app.soundVolume <= 0) return;
+  if (!app.sound || app.muteAll || app.soundVolume <= 0) return;
   try {
     audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -668,10 +667,18 @@ function helpOverlay() {
 function audioSettingsOverlay() {
   return `<div class="modal-shade"><section class="modal-box audio-settings" role="dialog" aria-modal="true" aria-labelledby="audio-settings-title">
     <div class="help-heading"><h2 id="audio-settings-title">소리 설정</h2><button class="gallery-close" type="button" data-action="close" aria-label="소리 설정 닫기">✕</button></div>
-    <p>효과음과 AI 합성 음성을 따로 조절해요.</p>
+    <p>효과음과 AI 합성 음성을 따로 조절해요. 새 캐릭터 성우팩은 검수 후에만 선택할 수 있어요.</p>
+    <button type="button" class="audio-toggle audio-mute-all" data-action="mute-all" aria-pressed="${app.muteAll}">전체 음소거 ${app.muteAll?'켜짐':'꺼짐'}</button>
     <div class="audio-setting"><button type="button" class="audio-toggle" data-action="sound" aria-pressed="${app.sound}">효과음 ${app.sound?'켜짐':'꺼짐'}</button><label><span class="audio-volume-label">효과음 크기 <output data-volume-output="soundVolume">${Math.round(app.soundVolume*100)}%</output></span><input type="range" min="0" max="100" value="${Math.round(app.soundVolume*100)}" data-volume="soundVolume" aria-label="효과음 크기"></label></div>
     <div class="audio-setting"><button type="button" class="audio-toggle" data-action="voice" aria-pressed="${app.voice}">음성 ${app.voice?'켜짐':'꺼짐'}</button><label><span class="audio-volume-label">음성 크기 <output data-volume-output="voiceVolume">${Math.round(app.voiceVolume*100)}%</output></span><input type="range" min="0" max="100" value="${Math.round(app.voiceVolume*100)}" data-volume="voiceVolume" aria-label="음성 크기"></label></div>
-    <div class="audio-previews"><button type="button" class="btn btn--quiet" data-action="sound-preview" ${app.sound?'':'disabled'}>효과음 듣기</button><button type="button" class="btn btn--quiet" data-action="voice-preview" ${app.voice?'':'disabled'}>음성 듣기</button></div>
+    <div class="voice-cast-settings"><label for="voice-style-select">목소리 스타일</label>
+      <select id="voice-style-select" data-voice-style aria-describedby="voice-style-note">
+        <option value="legacy" ${app.voiceStyle==='legacy'?'selected':''}>${VOICE_PACKS.legacy.label}</option>
+        <option value="trio" disabled>${VOICE_PACKS.trio.label} · 음원 검수 전</option>
+      </select>
+      <p id="voice-style-note">A ${VOICE_CAST.main.name} · B ${VOICE_CAST.rival.name} · C ${VOICE_CAST.host.name}. 3인 신규 음원은 제작·권리·청취 검수 전이라 현재는 기존 음성만 재생해요.</p>
+    </div>
+    <div class="audio-previews"><button type="button" class="btn btn--quiet" data-action="sound-preview" ${app.sound&&!app.muteAll?'':'disabled'}>효과음 듣기</button><button type="button" class="btn btn--quiet" data-action="voice-preview" ${app.voice&&!app.muteAll?'':'disabled'}>음성 듣기</button></div>
     ${btn('완료','close','btn--primary btn--wide')}
   </section></div>`;
 }
@@ -1212,6 +1219,11 @@ function mutate(action, value, cardId) {
       overlay='captures';render();return;
     }
     case 'close': overlay=overlay==='audio-settings'?audioSettingsReturn:null;audioSettingsReturn=null;render();queueAI();return;
+    case 'mute-all':
+      app.muteAll=!app.muteAll;
+      if(app.muteAll){voicePlayer.clear();audioCtx?.suspend?.()?.catch?.(()=>{});}
+      else audioCtx?.resume?.()?.catch?.(()=>{});
+      save();render();return;
     case 'sound': app.sound=!app.sound;save();render();return;
     case 'voice': app.voice=!app.voice;if(!app.voice)voicePlayer.clear();save();render();return;
     case 'sound-preview': cardSound('pair');return;
@@ -1284,7 +1296,17 @@ document.addEventListener('click',e=>{
   const target=e.target.closest('[data-action]');
   if (!target || !ROOT.contains(target)) return;
   voicePlayer.unlock();
+  if(!voiceWarmStarted && app.voice && !app.muteAll){
+    voiceWarmStarted=true;
+    voicePlayer.preload(['start','go1','stop','hurry','win','lose']).catch(()=>{});
+  }
   mutate(target.dataset.action,target.dataset.value,target.dataset.card);
+});
+document.addEventListener('change',e=>{
+  if(!ROOT.contains(e.target) || !e.target.matches?.('[data-voice-style]'))return;
+  const style=e.target.value;
+  if(!VOICE_PACKS[style]?.ready)return;
+  voicePlayer.clear();app.voiceStyle=style;save();render();
 });
 document.addEventListener('input',e=>{
   const key=e.target?.dataset?.volume;
