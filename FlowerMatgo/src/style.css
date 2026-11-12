@@ -4332,3 +4332,10 @@ html::-webkit-scrollbar-thumb,.scene *::-webkit-scrollbar-thumb {border:2px soli
  .scene--select .stake {padding-block:7px;}
  .scene--select .setup-bottom {margin-top:8px;}
 }
+
+/* Voice director v41: reuse the illustrated modal palette; no SVG. */
+.audio-mute-all{margin-bottom:10px;width:100%;justify-content:center}
+.voice-cast-settings{display:grid;gap:7px;margin:12px 0;padding:10px 12px;border:1px solid rgba(91,65,41,.2);border-radius:13px;background:rgba(252,244,216,.64);min-width:0}
+.voice-cast-settings label{font-weight:800}
+.voice-cast-settings select{width:100%;max-width:100%;min-width:0;padding:9px 10px;border-radius:9px;background:#fffaf0;color:#382820;border:1px solid rgba(99,74,51,.33);font:inherit}
+.voice-cast-settings p{margin:0;line-height:1.5;font-size:.81rem;color:#645446;overflow-wrap:anywhere}
