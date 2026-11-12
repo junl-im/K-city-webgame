@@ -13,7 +13,6 @@ import math
 import subprocess
 import tempfile
 import wave
-import imageio_ffmpeg
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -40,7 +39,11 @@ ROLES = {
 def command(*args: str) -> None:
     # GitHub's hosted runner image does not guarantee a system FFmpeg.
     # imageio-ffmpeg provides one independently of apt/sudo.
-    executable = imageio_ffmpeg.get_ffmpeg_exe() if args[0] == "ffmpeg" else args[0]
+    if args[0] == "ffmpeg":
+        import imageio_ffmpeg  # Installed only for actual audio production.
+        executable = imageio_ffmpeg.get_ffmpeg_exe()
+    else:
+        executable = args[0]
     result = subprocess.run((executable, *args[1:]), capture_output=True, text=True)
     if result.returncode:
         raise RuntimeError(f"Audio command failed ({result.returncode}): {result.stderr[-2500:]}")
