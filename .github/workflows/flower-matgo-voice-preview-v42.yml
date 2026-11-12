@@ -1,0 +1,75 @@
+name: Flower Matgo v42 — licensed Korean voice auditions
+
+# Never release generated voices automatically. A human must approve
+# pronunciation, tone, rights and actual playback before public deployment.
+on:
+  push:
+    branches:
+      - feature/flower-matgo-voice-preview-v42
+    paths:
+      - 'FlowerMatgo/scripts/build_voice_previews_v42.py'
+      - '.github/workflows/flower-matgo-voice-preview-v42.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate-audition:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate script and scripts-only plan
+        run: |
+          python -m py_compile FlowerMatgo/scripts/build_voice_previews_v42.py
+          python FlowerMatgo/scripts/build_voice_previews_v42.py --plan > voice-audition-plan.json
+          python -m json.tool voice-audition-plan.json > /dev/null
+      - name: Install offline voice synthesis and model downloader
+        run: |
+          python -m pip install --disable-pip-version-check --no-input supertonic huggingface_hub imageio-ffmpeg
+          python -c "import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())"
+      - name: Download archived pinned voice model (no model weights enter the game)
+        env:
+          HF_HUB_DISABLE_XET: '0'
+        run: |
+          set -euo pipefail
+          hf download supertone-oss-archive/supertonic-3 \
+            --revision aafc6e32416a594460b32413efc49d7fe4ce6d46 \
+            --local-dir "${RUNNER_TEMP}/flower-supertonic"
+          test -s "${RUNNER_TEMP}/flower-supertonic/config.json"
+          test -s "${RUNNER_TEMP}/flower-supertonic/LICENSE"
+      - name: Synthesize six Korean sample lines across three distinct voice presets
+        run: |
+          set -euo pipefail
+          python FlowerMatgo/scripts/build_voice_previews_v42.py \
+            --model-dir "${RUNNER_TEMP}/flower-supertonic" \
+            --output-dir voice-v42-previews
+          cp "${RUNNER_TEMP}/flower-supertonic/LICENSE" voice-v42-previews/MODEL_LICENSE.txt
+          test "$(find voice-v42-previews -maxdepth 1 -name '*.mp3' | wc -l)" -eq 6
+          test "$(find voice-v42-previews -maxdepth 1 -name '*.wav' | wc -l)" -eq 6
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('voice-v42-previews/manifest.json')
+          data=json.loads(p.read_text(encoding='utf-8'))
+          assert len(data['clips'])==6
+          assert {c['role'] for c in data['clips']}=={'main','rival','host'}
+          assert data['ready_for_public_game'] is False
+          for c in data['clips']:
+              assert (p.parent/c['wav']).stat().st_size>10000
+              assert (p.parent/c['mp3']).stat().st_size>3000
+          print('Six real audio samples validated; public activation still gated')
+          PY
+      - name: Upload audition pack for native Korean listening review
+        uses: actions/upload-artifact@v4
+        with:
+          name: flower-matgo-v42-three-voice-audition
+          path: |
+            voice-v42-previews/
+            voice-audition-plan.json
+          if-no-files-found: error
+          retention-days: 14
