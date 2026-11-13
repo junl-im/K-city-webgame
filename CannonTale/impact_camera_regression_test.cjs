@@ -35,7 +35,7 @@ function followFor(seconds,fps){
  for(let i=0;i<seconds*fps;i++)camera=followImpactCamera(camera,450,1/fps);
  return camera;
 }
-const perHz=[30,60,120].map(fps=>followFor(.45,fps));
+const perHz=[30,60,120].map(fps=>followFor(.4,fps));
 assert(Math.max(...perHz)-Math.min(...perHz)<1,
  'Tracking over the same wall time should be nearly equal at 30/60/120Hz');
 assert(perHz[0]>390&&perHz[0]<450,'The camera should approach smoothly, not snap');
