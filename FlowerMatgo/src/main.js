@@ -28,6 +28,7 @@ import { cardSoundProfile, impactAccents, gameEventFoley } from './cardSoundDesi
 import { VOICE_CAST, VOICE_PACKS } from './voiceDirector.js';
 import { goVoice, openingVoice, resolvedGoDecision, turnVoices, roundVoices } from './voiceEvents.js';
 import { createVoicePlayer } from './voicePlayer.js';
+import { TRIO_VOICE_CANDIDATES } from './voiceTrioCandidates.js';
 import { createSampleSounds, CARD_SAMPLES, CUE_SAMPLES } from './sampleSounds.js';
 import { newlyCompletedCombos } from './scoreCombos.js';
 import { HUMAN_TURN_MS, HUMAN_TURN_SECONDS, humanTurnSignature, humanChoiceSignature, secondsLeft, shouldRestartClockAfterTurn } from './turnTiming.js';
@@ -95,7 +96,7 @@ function loadSave() {
   }
 }
 let app = loadSave();
-const voicePlayer = createVoicePlayer({getEnabled:()=>app.voice&&!app.muteAll, getVolume:()=>app.voiceVolume, getStyle:()=>app.voiceStyle});
+const voicePlayer = createVoicePlayer({getEnabled:()=>app.voice&&!app.muteAll, getVolume:()=>app.voiceVolume, getStyle:()=>app.voiceStyle, assetVariants:TRIO_VOICE_CANDIDATES});
 let voiceWarmStarted=false;
 let overlay = null;
 let audioSettingsReturn = null;
