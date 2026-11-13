@@ -1,0 +1,89 @@
+name: Flower Matgo v43 — full Korean three-cast voice auditions
+
+on:
+  push:
+    branches:
+      - feature/flower-matgo-v43-trio-voice-library
+    paths:
+      - 'FlowerMatgo/scripts/build_voice_trio_v43.py'
+      - 'FlowerMatgo/scripts/voice_trio_v43.json'
+      - '.github/workflows/flower-matgo-voice-audition-v43.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate-three-voice-candidates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check production plan before installing TTS
+        run: |
+          python -m py_compile FlowerMatgo/scripts/build_voice_previews_v42.py FlowerMatgo/scripts/build_voice_trio_v43.py
+          python FlowerMatgo/scripts/build_voice_trio_v43.py --check | tee voice-v43-plan-check.json
+          python - <<'PY'
+          import json
+          with open('voice-v43-plan-check.json',encoding='utf-8') as src:
+              data=json.load(src)
+          assert data['clips']==88 and data['events']==49
+          assert set(data['by_role'])=={'main','rival','host'}
+          assert data['public'] is False
+          PY
+      - name: Install archived offline Korean TTS and FFmpeg binary
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-input \
+            'supertonic==1.3.1' 'huggingface_hub==2.4.0' imageio-ffmpeg
+          python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())'
+      - name: Download pinned archived model and its Open RAIL-M license
+        run: |
+          set -euo pipefail
+          hf download supertone-oss-archive/supertonic-3 \
+            --revision aafc6e32416a594460b32413efc49d7fe4ce6d46 \
+            --local-dir "${RUNNER_TEMP}/flower-supertonic"
+          test -s "${RUNNER_TEMP}/flower-supertonic/config.json"
+          test -s "${RUNNER_TEMP}/flower-supertonic/LICENSE"
+      - name: Synthesize 88 files across three independent Korean voice presets
+        run: |
+          set -euo pipefail
+          python FlowerMatgo/scripts/build_voice_trio_v43.py \
+            --model-dir "${RUNNER_TEMP}/flower-supertonic" \
+            --output-dir voice-v43-audition
+          cp "${RUNNER_TEMP}/flower-supertonic/LICENSE" voice-v43-audition/MODEL_LICENSE.txt
+      - name: Validate coverage, output hashes and unapproved status
+        run: |
+          set -euo pipefail
+          test "$(find voice-v43-audition -maxdepth 1 -name '*.mp3' | wc -l)" -eq 88
+          test "$(find voice-v43-audition -maxdepth 1 -name '*.wav' | wc -l)" -eq 88
+          test -s voice-v43-audition/INDEX_88_CLIPS.html
+          test -s voice-v43-audition/PREVIEW_6_IN_ONE.html
+          python - <<'PY'
+          import json, pathlib, wave
+          root=pathlib.Path("voice-v43-audition")
+          m=json.loads((root/"manifest.json").read_text(encoding="utf-8"))
+          clips=m["clips"]
+          assert len(clips)==88 and not m["ready_for_public_game"]
+          assert not m["human_listening_approved"]
+          assert len({c["id"] for c in clips})==49
+          for c in clips:
+              wav=root/c["wav"]; mp3=root/c["mp3"]
+              assert wav.stat().st_size>10000 and mp3.stat().st_size>3000
+              with wave.open(str(wav),"rb") as w:
+                  assert w.getframerate()==48000 and w.getnchannels()==1 and w.getsampwidth()==2
+              assert c["listening_approved"] is False
+          print("88 genuine WAV+MP3 clips passed mechanical QA; listening not yet signed off")
+          PY
+      - name: Upload listening-review pack (never commit audio to live game)
+        uses: actions/upload-artifact@v4
+        with:
+          name: flower-matgo-v43-88-korean-three-cast-auditions
+          path: |
+            voice-v43-audition/
+            voice-v43-plan-check.json
+          if-no-files-found: error
+          retention-days: 14
