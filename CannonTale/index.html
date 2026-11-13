@@ -2992,7 +2992,7 @@ body,button,input,select{font-family:var(--ct-ui-font)}
   }catch(_){return{effects:false,voice:false,effectVolume:.75,voiceVolume:.75};}
  }
  const savedAudio=readAudioSettings();
- const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],groundScars:[],nearMissBursts:[],actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,reaimCount:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP,duelVolleyDamage:{player:0,ai:0},turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,chargeFocusX:null,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:savedAudio.effects,voice:savedAudio.voice,effectVolume:savedAudio.effectVolume,voiceVolume:savedAudio.voiceVolume,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewLife:0,voiceCaptionTime:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,flightSettledAt:null,shotBaseline:null,shotHighlights:{direct:false,critical:false},windGuide:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,chargeConfirmTime:0,chargeConfirmImpact:null,precisionActive:false,precisionElapsed:0,precisionNeedle:0,precisionCamera:0,precisionHoldTime:0,precisionPendingShot:null,precisionLast:null,hitEmphasis:[],chainHits:0,crushHits:0,weaponFractures:0};
+ const game={mode:'menu',stage:0,difficulty:'normal',hero:'fox',aiHero:'bear',abilityUsed:false,abilityArmed:false,abilityCount:0,wind:0,angle:43,power:72,weapon:'normal',terrain:null,blocks:[],foes:[],projectiles:[],particles:[],debris:[],rubble:[],collapseGhosts:[],rings:[],popups:[],skillEffects:[],impactMotes:[],groundScars:[],nearMissBursts:[],impactStreaks:[],impactFocus:null,cameraFrameDt:1/60,actorAnim:{player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}},shots:0,maxShots:3,hitStreak:0,reaimCount:0,playerHp:DUEL_MAX_HP,aiHp:DUEL_MAX_HP,duelVolleyDamage:{player:0,ai:0},turn:'player',phase:'menu',clock:0,phaseTime:0,aiTimer:0,camera:0,panX:null,pan:null,scale:1,topPad:0,chargeZoom:1,chargeAnchorPx:null,chargeReveal:1,chargeFocusX:null,overview:false,drag:null,shake:0,flash:0,message:'',messageTime:0,engine:null,ground:[],recoil:{player:0,ai:0},muzzle:null,hitStop:0,sound:savedAudio.effects,voice:savedAudio.voice,effectVolume:savedAudio.effectVolume,voiceVolume:savedAudio.voiceVolume,audio:null,blastCores:[],aiShots:0,aiTactic:'',lastAiWeapon:'normal',aiAngle:45,introLife:0,reviewLife:0,voiceCaptionTime:0,reviewTimer:0,reviewNext:'',reviewFocusX:null,reviewInfo:null,lastImpact:null,flightSettledAt:null,shotBaseline:null,shotHighlights:{direct:false,critical:false},windGuide:null,chargeActive:false,chargeElapsed:0,chargedPower:72,chargeStartPower:72,chargeAimX:null,chargeConfirmTime:0,chargeConfirmImpact:null,precisionActive:false,precisionElapsed:0,precisionNeedle:0,precisionCamera:0,precisionHoldTime:0,precisionPendingShot:null,precisionLast:null,hitEmphasis:[],chainHits:0,crushHits:0,weaponFractures:0};
  game.foeHitFx=[];game.bossInterrupts=0;
  // Tracks one split volley per target. A boss resists repeated fragment overlap,
  // but separate shots and ordinary multi-target splash remain fully effective.
@@ -3345,7 +3345,7 @@ function advanceChargePower(dt){
  }
  function newGame(mode,stage=0){
   closeSoundPanel();stopBattleVoice();game.lastVoiceAt=0;
-  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(mode==='duel'?-4.2:-3.3,mode==='duel'?4.2:3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);if(mode==='duel'&&Math.abs(game.wind)<1.15)game.wind=game.wind<0?-1.15:1.15;game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.reaimCount=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargeSweepTime=0;game.chargeDirection=1;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:Infinity;game.playerHp=DUEL_MAX_HP;game.aiHp=DUEL_MAX_HP;game.duelVolleyDamage={player:0,ai:0};game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.flightSettledAt=null;game.shotBaseline=null;
+  game.mode=mode;game.stage=clamp(stage,0,stageSet.length-1);game.difficulty=['easy','normal','hard'].includes($('duelDifficulty').value)?$('duelDifficulty').value:'normal';game.hero=selectedHero;game.abilityUsed=false;game.abilityArmed=false;game.abilityCount=0;game.wind=clamp(rnd(mode==='duel'?-4.2:-3.3,mode==='duel'?4.2:3.3)*(mode==='adventure'?[.8,1,1.55,1.2][game.stage]:1),-4.8,4.8);if(mode==='duel'&&Math.abs(game.wind)<1.15)game.wind=game.wind<0?-1.15:1.15;game.terrain=initialTerrain(mode);game.blocks=[];game.foes=[];game.projectiles=[];game.particles=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.rings=[];game.popups=[];game.skillEffects=[];game.impactMotes=[];game.impactStreaks=[];game.impactFocus=null;game.cameraFrameDt=1/60;game.actorAnim={player:{kind:'idle',life:0,total:1},ai:{kind:'idle',life:0,total:1}};game.shots=0;game.reaimCount=0;game.hitStreak=0;game.chainHits=0;game.crushHits=0;game.weaponFractures=0;game.hintTime=4.5;game.chargeActive=false;game.chargeElapsed=0;game.chargeSweepTime=0;game.chargeDirection=1;game.chargedPower=72;game.chargeStartPower=72;game.chargeAimX=null;game.chargeAnchorPx=null;game.chargeZoom=1;game.chargeReveal=1;$('chargeGauge').hidden=true;$('reviewCountdown').hidden=true;game.maxShots=mode==='adventure'?stageSet[game.stage].shots:Infinity;game.playerHp=DUEL_MAX_HP;game.aiHp=DUEL_MAX_HP;game.duelVolleyDamage={player:0,ai:0};game.turn='player';game.phase='aim';game.phaseTime=0;game.aiTimer=0;game.overview=false;game.drag=null;game.pan=null;game.panX=null;game.message='';game.camera=0;game.weapon='normal';game.angle=43;game.power=72;game.recoil={player:0,ai:0};game.muzzle=null;game.hitStop=0;game.blastCores=[];game.aiShots=0;game.aiTactic='';game.lastAiWeapon='normal';game.aiAngle=45;game.introLife=mode==='adventure'?2.5:0;game.reviewTimer=0;game.reviewNext='';game.reviewFocusX=null;game.reviewInfo=null;game.lastImpact=null;game.flightSettledAt=null;game.shotBaseline=null;
   game.aimCue={kind:'none',distance:Infinity};game.lastAimCueAt=-5;game.closestApproach=null;game.lastPlayerVolleyDamage=0;game.splitVolleyDamage.clear();game.chargeConfirmTime=0;game.chargeConfirmImpact=null;$('fire').classList.toggle('target-window',false);$('fire').classList.toggle('hit-hold',false);
   game.hudHealth={player:DUEL_MAX_HP,ai:DUEL_MAX_HP};game.hudHitPulse={player:0,ai:0};game.hudHitDelay={player:0,ai:0};game.hudDamage={player:null,ai:null};game.hudDrawn={player:false,ai:false};game.hudPlacement={player:null,ai:null};game.duelHitMotion={player:null,ai:null};game.duelHitBursts=[];game.weaponAftershocks=[];game.shotHighlights={direct:false,critical:false,perfect:false};game.windGuide=null;
   game.windLift=rnd(-1.9,1.9);game.shotInfluences=null;
@@ -3368,7 +3368,7 @@ function advanceChargePower(dt){
   angleEl.value=game.angle;powerEl.value=game.power;chooseWeapon('normal');
   updateHud();resize();if(mode==='adventure'&&game.foes.some(f=>f.boss)){playSound('bossThreat',{x:game.foes.find(f=>f.boss).x});playBattleVoice('bossIntro','boss',true);}else playBattleVoice('intro');
  }
- function goHome(){cancelFireCharge();cancelPrecision();closeSoundPanel();stopBattleVoice();game.chargeZoom=1;game.chargeReveal=1;$('reviewCountdown').hidden=true;game.mode='menu';game.phase='menu';game.projectiles=[];game.particles=[];game.skillEffects=[];game.impactMotes=[];game.debris=[];game.rubble=[];game.collapseGhosts=[];game.blastCores=[];game.drag=null;game.pan=null;game.panX=null;game.reviewFocusX=null;game.reviewInfo=null;game.reviewTimer=0;$('shotReview').hidden=true;$('menu').hidden=false;$('stageMap').hidden=true;$('result').hidden=true;$('exitConfirm').hidden=true;$('controls').hidden=true;$('hint').hidden=true;$('leftStatus').hidden=true;$('rightStatus').hidden=true;$('bossBanner').hidden=true;$('enemyEntrance').hidden=true;game.introLife=0;$('windVector').textContent='·';$('windStrength').textContent='0.0';$('windWord').textContent='잔잔';$('aimTelemetry').hidden=true;$('modeChip').textContent='모드 선택';$('stageChip').textContent='첫 플레이를 시작해요';refreshMenu();resize();}
+ function goHome(){cancelFireCharge();cancelPrecision();closeSoundPanel();stopBattleVoice();game.chargeZoom=1;game.chargeReveal=1;$('reviewCountdown').hidden=true;game.mode='menu';game.phase='menu';game.projectiles=[];game.particles=[];game.skillEffects=[];game.impactMotes=[];game.impactStreaks=[];game.impactFocus=null;game.debris=[];game.rubble=[];game.collapseGhosts=[];game.blastCores=[];game.drag=null;game.pan=null;game.panX=null;game.reviewFocusX=null;game.reviewInfo=null;game.reviewTimer=0;$('shotReview').hidden=true;$('menu').hidden=false;$('stageMap').hidden=true;$('result').hidden=true;$('exitConfirm').hidden=true;$('controls').hidden=true;$('hint').hidden=true;$('leftStatus').hidden=true;$('rightStatus').hidden=true;$('bossBanner').hidden=true;$('enemyEntrance').hidden=true;game.introLife=0;$('windVector').textContent='·';$('windStrength').textContent='0.0';$('windWord').textContent='잔잔';$('aimTelemetry').hidden=true;$('modeChip').textContent='모드 선택';$('stageChip').textContent='첫 플레이를 시작해요';refreshMenu();resize();}
  function chooseWeapon(type){if(game.weapon!==type)playSound('ui');game.weapon=type;document.querySelectorAll('[data-weapon]').forEach(b=>b.classList.toggle('selected',b.dataset.weapon===type));updateHud();}
  // A shot-review should not lock the next round's controls if more ammo remains.
  function canResumeAimFromReview(){
@@ -4136,6 +4136,17 @@ function advanceChargePower(dt){
   game.weaponAftershocks.push({x:p.x,y:p.y,weapon:impactWeapon,life:afterlife,total:afterlife,
    direction:Math.sign(p.vx||0)||(p.owner==='ai'?-1:1),critical,seed:rnd(0,Math.PI*2)});
   game.weaponAftershocks=game.weaponAftershocks.slice(-18);
+  // Weaker split fragments must not steal focus from an earlier true critical.
+  const focusRank=critical?3:direct?2:big?1:0;
+  if(focusRank&&(!game.impactFocus||game.impactFocus.life<=0||focusRank>=game.impactFocus.rank)){
+   const focusLife=critical?.47:direct?.35:.29;
+   game.impactFocus={x:clamp(p.x,0,W),y:clamp(p.y,0,H),life:focusLife,total:focusLife,rank:focusRank};
+  }
+  // Three short pressure patterns enrich actual contact, never its HP damage.
+  const streakLife=critical?.44:big?.39:direct?.35:.26;
+  game.impactStreaks.push({x:p.x,y:p.y,angle:Math.atan2(p.vy||-1,p.vx||1),weapon:impactWeapon,
+   critical,life:streakLife,total:streakLife,seed:rnd(0,Math.PI*2)});
+  game.impactStreaks=game.impactStreaks.slice(-12);
   game.shake=Math.max(game.shake,critical?25:direct?17:big?19:11);game.hitStop=Math.max(game.hitStop,critical?.095:direct?.062:big?.051:.034);game.flash=critical?.28:big?.2:.12;game.rings.push({x:p.x,y:p.y,r:9,max:radius*(critical?1.6:1.14),life:critical?.68:.48,total:critical?.68:.48,color:critical?'#baffea':big?'#ffdfab':'#fff7d7'});game.blastCores.push({x:p.x,y:p.y,hero:p.hero||'fox',weapon:p.weapon||'normal',life:big?.65:.46,total:big?.65:.46,radius:big?69:41,seed:rnd(0,6.3)});game.blastCores=game.blastCores.slice(-12);crater(p.x,p.y,big?49:27);
   // Brief, terrain-anchored scorch marks retain the memory of each landing.
   // Explosions high on a tower cannot paint a misleading mark on the floor.
@@ -4424,6 +4435,12 @@ function advanceChargePower(dt){
   if(game.precisionBurst){game.precisionBurst.life=Math.max(0,game.precisionBurst.life-dt);if(game.precisionBurst.life===0)game.precisionBurst=null;}
   for(const hit of game.hitEmphasis)hit.life-=dt;
   game.hitEmphasis=game.hitEmphasis.filter(hit=>hit.life>0);
+  for(const streak of game.impactStreaks)streak.life=Math.max(0,streak.life-dt);
+  game.impactStreaks=game.impactStreaks.filter(streak=>streak.life>0);
+  if(game.impactFocus){
+   game.impactFocus.life=Math.max(0,game.impactFocus.life-dt);
+   if(game.impactFocus.life===0)game.impactFocus=null;
+  }
   for(const echo of game.weaponAftershocks||[])echo.life=Math.max(0,echo.life-dt);
   game.weaponAftershocks=game.weaponAftershocks?.filter(echo=>echo.life>0)||[];
   for(const scar of game.groundScars)scar.life=Math.max(0,scar.life-dt);
@@ -4433,7 +4450,7 @@ function advanceChargePower(dt){
   for(const hit of game.foeHitFx)hit.life=Math.max(0,hit.life-dt);
   game.foeHitFx=game.foeHitFx.filter(hit=>hit.life>0);
   if(game.hintTime>0){game.hintTime=Math.max(0,game.hintTime-dt);if(game.hintTime===0)$('hint').hidden=true;}
-  if(game.introLife>0){game.introLife=Math.max(0,game.introLife-dt);if(game.introLife===0)$('enemyEntrance').hidden=true;}game.shake*=.82;game.flash=Math.max(0,game.flash-dt);game.messageTime=Math.max(0,game.messageTime-dt);for(const owner of ['player','ai']){const hero=duelHero(owner),style=heroFiringStyles[hero]||heroFiringStyles.fox;game.recoil[owner]*=Math.pow(style.recoilDecay,dt*60);}for(const f of game.foes){if(f.deathTimer>0)f.deathTimer=Math.max(0,f.deathTimer-dt);}for(const e of game.blastCores)e.life-=dt;game.blastCores=game.blastCores.filter(e=>e.life>0);for(const a of Object.values(game.actorAnim))a.life=Math.max(0,a.life-dt);for(const e of game.skillEffects)e.life-=dt;game.skillEffects=game.skillEffects.filter(e=>e.life>0);if(game.muzzle){game.muzzle.life-=dt;if(game.muzzle.life<=0)game.muzzle=null;}
+  if(game.introLife>0){game.introLife=Math.max(0,game.introLife-dt);if(game.introLife===0)$('enemyEntrance').hidden=true;}game.shake*=Math.pow(.82,dt*60);if(game.shake<.12)game.shake=0;game.flash=Math.max(0,game.flash-dt);game.messageTime=Math.max(0,game.messageTime-dt);for(const owner of ['player','ai']){const hero=duelHero(owner),style=heroFiringStyles[hero]||heroFiringStyles.fox;game.recoil[owner]*=Math.pow(style.recoilDecay,dt*60);}for(const f of game.foes){if(f.deathTimer>0)f.deathTimer=Math.max(0,f.deathTimer-dt);}for(const e of game.blastCores)e.life-=dt;game.blastCores=game.blastCores.filter(e=>e.life>0);for(const a of Object.values(game.actorAnim))a.life=Math.max(0,a.life-dt);for(const e of game.skillEffects)e.life-=dt;game.skillEffects=game.skillEffects.filter(e=>e.life>0);if(game.muzzle){game.muzzle.life-=dt;if(game.muzzle.life<=0)game.muzzle=null;}
   if(game.mode==='menu'||game.phase==='result')return;
   if(game.phase==='review'&&Number.isFinite(game.reviewTimer)){
    const previous=Math.ceil(game.reviewTimer);game.reviewTimer=Math.max(0,game.reviewTimer-dt);
@@ -5500,6 +5517,30 @@ const materialCells={
   }
   ctx.restore();
  }
+ function drawImpactStreaks(){
+  // Reuse the existing Canvas; no SVG, images, or extra fullscreen flashes.
+  ctx.save();ctx.lineCap='round';
+  for(const hit of game.impactStreaks){
+   const remaining=clamp(hit.life/hit.total,0,1),travel=1-remaining;
+   const rays=hit.weapon==='bomb'?9:hit.weapon==='split'?3:6;
+   const color=hit.critical?'#b6ffe4':hit.weapon==='bomb'?'#ffd6a0':
+    hit.weapon==='split'?'#dfc6ff':'#fff1c7';
+   ctx.save();ctx.translate(hit.x,hit.y);ctx.rotate(hit.angle);
+   ctx.strokeStyle=color;
+   for(let i=0;i<rays;i++){
+    const a=hit.seed+i*Math.PI*2/rays;
+    const base=12+travel*(hit.weapon==='bomb'?48:32);
+    const reach=base+(hit.weapon==='bomb'?40:26)*remaining;
+    const spread=hit.weapon==='split'?Math.cos(i*Math.PI*2/3)*.4:1;
+    ctx.globalAlpha=remaining*remaining*(hit.critical?.9:.62);
+    ctx.lineWidth=(hit.weapon==='bomb'?4.4:hit.weapon==='split'?2.4:3)*remaining+1;
+    ctx.beginPath();ctx.moveTo(Math.cos(a)*base,Math.sin(a)*base*spread);
+    ctx.lineTo(Math.cos(a)*reach,Math.sin(a)*reach*spread);ctx.stroke();
+   }
+   ctx.restore();
+  }
+  ctx.restore();
+ }
  function drawImpact(){ctx.save();
   if(game.muzzle)drawMuzzleFollowthrough(game.muzzle);
   for(const e of game.blastCores){
@@ -5520,6 +5561,7 @@ const materialCells={
   for(const r of game.rings){ctx.globalAlpha=clamp(r.life/r.total,0,1);ctx.strokeStyle=r.color;
    ctx.lineWidth=7*(r.life/r.total)+1;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,Math.PI*2);ctx.stroke();}
   drawWeaponAftershocks();
+  drawImpactStreaks();
   for(const hit of game.hitEmphasis){
    const f=clamp(hit.life/hit.total,0,1),growth=1+(1-f)*(hit.critical?.3:.16);
    ctx.save();ctx.translate(hit.x,hit.y-(1-f)*35);ctx.scale(growth,growth);
@@ -5610,6 +5652,19 @@ const materialCells={
   if(panel.scrollHeight>panel.clientHeight+2)panel.classList.add('menu-ultra');
   fitPaintedMenuLabels();
  }
+ function impactCameraOffset(time,trauma){
+  // Deterministic recoil: rendering cannot advance gameplay RNG or ballistics.
+  const strength=clamp(Number(trauma)||0,0,26),t=Number(time)||0;
+  return {x:(Math.sin(t*82)*.68+Math.sin(t*151)*.32)*strength*.68,
+   y:(Math.cos(t*104)*.65+Math.cos(t*179)*.35)*strength*.41};
+ }
+ function followImpactCamera(current,target,dt){
+  // Smooth tracking is independent of 30/60/120 Hz rendering frequency.
+  const seconds=clamp(Number(dt)||0,0,.05);
+  const approach=1-Math.pow(.88,seconds*60);
+  const maxShift=32*seconds*60;
+  return current+clamp((target-current)*approach,-maxShift,maxShift);
+ }
  function resize(){
   fitMenuToViewport();drawHeroPreview();
   const w=cv.clientWidth,h=cv.clientHeight;if(w<1||h<1)return;
@@ -5633,12 +5688,14 @@ const materialCells={
   const active=game.projectiles.find(p=>p.active);
   const impactHold=game.reviewFocusX!==null&&(game.phase==='review'||game.phase==='result');
   const flightImpactHold=game.phase==='flying'&&game.projectiles.length===0&&game.lastImpact!==null;
+  const cinematicFocus=game.impactFocus?.life>0&&game.phase!=='aim'&&game.phase!=='aiWait'&&!active;
   const nearby=impactHold?game.debris.filter(d=>d.life>0&&Math.abs(d.x-game.reviewFocusX)<145):[];
   const movingCenter=nearby.length?nearby.reduce((a,d)=>a+d.x,0)/nearby.length:game.reviewFocusX;
   const impactCenter=game.reviewFocusX*.78+movingCenter*.22;
   // A changing charge gauge must never pan the battlefield or drag the sight.
   const chargeFocus=game.mode!=='duel'&&game.chargeActive&&game.phase==='aim'&&Number.isFinite(game.chargeAimX);
   const focus=active?active.x-visible*.43
+    :cinematicFocus?game.impactFocus.x-visible*.48
     :flightImpactHold?game.lastImpact.x-visible*.43
     :game.precisionActive?game.precisionCamera
     :chargeFocus?game.chargeAimX-visible*.46
@@ -5647,8 +5704,9 @@ const materialCells={
   const targetCamera=clamp(focus,0,edge);
   // Softer original-style tracking: a distant impact cannot whip the screen
   // to a new position within a handful of frames.
-  const shift=(targetCamera-game.camera)*.12;
-  game.camera+=clamp(shift,chargeFocus?-11:-32,chargeFocus?11:32);
+  const smooth=followImpactCamera(game.camera,targetCamera,game.cameraFrameDt);
+  const maxMove=(chargeFocus?11:32)*clamp(game.cameraFrameDt*60,0,3);
+  game.camera+=clamp(smooth-game.camera,-maxMove,maxMove);
  }
  function drawChargeReadiness(){
   if(game.turn!=='player'||!(game.chargeActive&&game.phase==='aim'||game.chargeConfirmTime>0&&game.phase==='timing'))return;
@@ -5693,7 +5751,7 @@ const materialCells={
   }
   ctx.restore();
  }
- function draw(){resize();const dpr=Math.min(2,devicePixelRatio||1),s=game.scale;if(!s)return;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#8bbeb8';ctx.fillRect(0,0,cv.width,cv.height);ctx.setTransform(dpr*s,0,0,dpr*s,-game.camera*dpr*s,game.topPad*dpr);ctx.save();if(game.shake>1){ctx.translate(rnd(-game.shake,game.shake),rnd(-game.shake*.6,game.shake*.6));}backdrop();if(game.mode!=='menu'){ground();drawSurfaceScars();drawTrajectory();if(game.mode==='adventure'){drawBlocks();drawCollapseGhosts();drawFoes();slingshot();}else{drawDuelHitBursts();duelActor(190,1,true);duelActor(1018,-1,false);drawDuelHealthHud(190,'player');drawDuelHealthHud(1018,'ai');}drawChargeReadiness();drawDebris();drawProjectiles();drawNearMissBursts();drawParticles();drawImpactMotes();drawSkillEffects();drawImpact();drawPrecisionBurst();drawMessage();}else{ctx.save();fox(170,450,2);bear(1008,452,2);ctx.restore();}if(game.flash>0){ctx.fillStyle=`rgba(255,245,210,${game.flash*1.4})`;ctx.fillRect(game.camera,0,cv.clientWidth/s,H);}ctx.restore();}
+ function draw(){resize();const dpr=Math.min(2,devicePixelRatio||1),s=game.scale;if(!s)return;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#8bbeb8';ctx.fillRect(0,0,cv.width,cv.height);ctx.setTransform(dpr*s,0,0,dpr*s,-game.camera*dpr*s,game.topPad*dpr);ctx.save();if(game.shake>1){const recoil=impactCameraOffset(game.clock,game.shake);ctx.translate(recoil.x,recoil.y);}backdrop();if(game.mode!=='menu'){ground();drawSurfaceScars();drawTrajectory();if(game.mode==='adventure'){drawBlocks();drawCollapseGhosts();drawFoes();slingshot();}else{drawDuelHitBursts();duelActor(190,1,true);duelActor(1018,-1,false);drawDuelHealthHud(190,'player');drawDuelHealthHud(1018,'ai');}drawChargeReadiness();drawDebris();drawProjectiles();drawNearMissBursts();drawParticles();drawImpactMotes();drawSkillEffects();drawImpact();drawPrecisionBurst();drawMessage();}else{ctx.save();fox(170,450,2);bear(1008,452,2);ctx.restore();}if(game.flash>0){ctx.fillStyle=`rgba(255,245,210,${game.flash*1.4})`;ctx.fillRect(game.camera,0,cv.clientWidth/s,H);}ctx.restore();}
  let prev=null,acc=0;function frame(t){
   if(document.hidden){prev=null;acc=0;requestAnimationFrame(frame);return;}
   const gap=prev===null?0:Math.max(0,(t-prev)/1000);
@@ -5706,6 +5764,7 @@ const materialCells={
   // multiple 60 Hz physics steps and no near-target or low-FPS slow motion.
   advanceAimTiming(elapsed);
   acc+=Math.min(.075,elapsed);
+  game.cameraFrameDt=elapsed;
   let runs=0;while(acc>=STEP&&runs++<6){step(STEP,false);acc-=STEP;}
   draw();requestAnimationFrame(frame);
  }

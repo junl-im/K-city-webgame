@@ -628,8 +628,9 @@ assert.equal(state().chargeZoom,1,'Charging camera must never zoom out after res
 assert.equal(state().scale,chargeStartScale,'Long hold must retain the original combat zoom level');
 assert.equal(state().chargeReveal,1,'The original full trajectory dots must remain visible during charging');
 assert(heldCamera.cameraX>earlyCamera.cameraX+15,'Adventure should pan toward the predicted impact rather than shrink the field');
-assert(html.includes('game.camera+=clamp(shift,chargeFocus?-11:-32,chargeFocus?11:32)'),
- 'Adventure and duel camera transitions must both keep bounded motion');
+assert(html.includes('const maxMove=(chargeFocus?11:32)*clamp(game.cameraFrameDt*60,0,3);')&&
+ html.includes('game.camera+=clamp(smooth-game.camera,-maxMove,maxMove);'),
+ 'Adventure and duel transitions must use bounded, elapsed-time camera movement');
 assert(Number(el('fireLabel').textContent.replace(/[^0-9]/g,''))>20,'Charge should rise while holding');
 el('fire').dispatch('pointerup',{pointerId:7});
 assert.equal(state().shots,0,'Releasing a charged button should open the timing challenge');
