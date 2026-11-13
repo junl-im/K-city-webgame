@@ -34,4 +34,8 @@ jobs:
             exit 1
           fi
       - name: Physics, controls, combat and persistence smoke test
-        run: node CannonTale/artillery_smoke_test.cjs
+        run: |
+          node CannonTale/artillery_smoke_test.cjs
+          node CannonTale/aim_charge_regression_test.cjs
+          node CannonTale/duel_balance_regression_test.cjs
+          node CannonTale/impact_camera_regression_test.cjs
