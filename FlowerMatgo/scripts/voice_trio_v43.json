@@ -1,0 +1,646 @@
+{
+  "project": "FlowerMatgo",
+  "version": "v43-audition-candidates",
+  "ready_for_public_game": false,
+  "needs_native_listening_approval": true,
+  "model": {
+    "repository": "supertone-oss-archive/supertonic-3",
+    "revision": "aafc6e32416a594460b32413efc49d7fe4ce6d46",
+    "license": "BigScience Open RAIL-M"
+  },
+  "roles": {
+    "main": {
+      "preset": "F3",
+      "speed": 1.04,
+      "label": "발랄한 여성 메인"
+    },
+    "rival": {
+      "preset": "F5",
+      "speed": 0.98,
+      "label": "능청스러운 여성 상대"
+    },
+    "host": {
+      "preset": "M2",
+      "speed": 1,
+      "label": "또렷한 남성 진행자"
+    }
+  },
+  "entries": [
+    {
+      "id": "start",
+      "role": "host",
+      "variant": 1,
+      "text": "자, 게임 시작!",
+      "weight": 3
+    },
+    {
+      "id": "start",
+      "role": "host",
+      "variant": 2,
+      "text": "오늘도 신나는 한 판!",
+      "weight": 2
+    },
+    {
+      "id": "first_human",
+      "role": "host",
+      "variant": 1,
+      "text": "이번엔 플레이어가 선이에요!",
+      "weight": 3
+    },
+    {
+      "id": "first_human",
+      "role": "host",
+      "variant": 2,
+      "text": "당신부터 시작합니다!",
+      "weight": 2
+    },
+    {
+      "id": "first_computer",
+      "role": "host",
+      "variant": 1,
+      "text": "이번 판은 상대가 먼저예요!",
+      "weight": 3
+    },
+    {
+      "id": "first_computer",
+      "role": "host",
+      "variant": 2,
+      "text": "상대가 선을 잡았어요!",
+      "weight": 2
+    },
+    {
+      "id": "dealer_confirm",
+      "role": "host",
+      "variant": 1,
+      "text": "선을 정했어요!",
+      "weight": 3
+    },
+    {
+      "id": "dealer_confirm",
+      "role": "host",
+      "variant": 2,
+      "text": "첫 패를 나눌게요!",
+      "weight": 2
+    },
+    {
+      "id": "hurry",
+      "role": "host",
+      "variant": 1,
+      "text": "시간 얼마 안 남았어요!",
+      "weight": 3
+    },
+    {
+      "id": "hurry",
+      "role": "host",
+      "variant": 2,
+      "text": "5초 남았어요, 서둘러요!",
+      "weight": 2
+    },
+    {
+      "id": "decide",
+      "role": "host",
+      "variant": 1,
+      "text": "고인가요, 스톱인가요?",
+      "weight": 3
+    },
+    {
+      "id": "decide",
+      "role": "host",
+      "variant": 2,
+      "text": "선택할 시간이에요!",
+      "weight": 2
+    },
+    {
+      "id": "chongtong",
+      "role": "host",
+      "variant": 1,
+      "text": "총통입니다!",
+      "weight": 3
+    },
+    {
+      "id": "chongtong",
+      "role": "host",
+      "variant": 2,
+      "text": "총통, 선택해 주세요!",
+      "weight": 2
+    },
+    {
+      "id": "go_more",
+      "role": "host",
+      "variant": 1,
+      "text": "연속 고가 계속됩니다!",
+      "weight": 3
+    },
+    {
+      "id": "go_more",
+      "role": "host",
+      "variant": 2,
+      "text": "대단해요, 연속 고!",
+      "weight": 2
+    },
+    {
+      "id": "win",
+      "role": "main",
+      "variant": 1,
+      "text": "이겼다! 좋았어!",
+      "weight": 3
+    },
+    {
+      "id": "win",
+      "role": "main",
+      "variant": 2,
+      "text": "아싸, 내 승리!",
+      "weight": 2
+    },
+    {
+      "id": "lose",
+      "role": "rival",
+      "variant": 1,
+      "text": "이번엔 내가 이겼네!",
+      "weight": 3
+    },
+    {
+      "id": "lose",
+      "role": "rival",
+      "variant": 2,
+      "text": "승부는 내가 가져갈게!",
+      "weight": 2
+    },
+    {
+      "id": "nagari",
+      "role": "host",
+      "variant": 1,
+      "text": "이번 판은 나가리!",
+      "weight": 3
+    },
+    {
+      "id": "nagari",
+      "role": "host",
+      "variant": 2,
+      "text": "무승부입니다!",
+      "weight": 2
+    },
+    {
+      "id": "jjok",
+      "role": "main",
+      "variant": 1,
+      "text": "쪽!",
+      "weight": 3
+    },
+    {
+      "id": "jjok",
+      "role": "main",
+      "variant": 2,
+      "text": "쪽, 제대로네!",
+      "weight": 2
+    },
+    {
+      "id": "ttadak",
+      "role": "main",
+      "variant": 1,
+      "text": "따닥!",
+      "weight": 3
+    },
+    {
+      "id": "ttadak",
+      "role": "main",
+      "variant": 2,
+      "text": "이야, 따닥이다!",
+      "weight": 2
+    },
+    {
+      "id": "sweep",
+      "role": "main",
+      "variant": 1,
+      "text": "쓸었어!",
+      "weight": 3
+    },
+    {
+      "id": "sweep",
+      "role": "main",
+      "variant": 2,
+      "text": "싹쓸이 성공!",
+      "weight": 2
+    },
+    {
+      "id": "bomb",
+      "role": "main",
+      "variant": 1,
+      "text": "폭탄이다!",
+      "weight": 3
+    },
+    {
+      "id": "bomb",
+      "role": "main",
+      "variant": 2,
+      "text": "펑, 모두 가져와!",
+      "weight": 2
+    },
+    {
+      "id": "shake",
+      "role": "main",
+      "variant": 1,
+      "text": "흔들어 볼까?",
+      "weight": 3
+    },
+    {
+      "id": "shake",
+      "role": "main",
+      "variant": 2,
+      "text": "흔들기!",
+      "weight": 2
+    },
+    {
+      "id": "ppeok",
+      "role": "rival",
+      "variant": 1,
+      "text": "어머, 뻑이네?",
+      "weight": 3
+    },
+    {
+      "id": "ppeok",
+      "role": "rival",
+      "variant": 2,
+      "text": "아이고, 뻑!",
+      "weight": 2
+    },
+    {
+      "id": "first_ppeok",
+      "role": "rival",
+      "variant": 1,
+      "text": "첫뻑부터?",
+      "weight": 3
+    },
+    {
+      "id": "first_ppeok",
+      "role": "rival",
+      "variant": 2,
+      "text": "시작하자마자 뻑이야?",
+      "weight": 2
+    },
+    {
+      "id": "ppeok_take",
+      "role": "main",
+      "variant": 1,
+      "text": "싼 패, 가져간다!",
+      "weight": 3
+    },
+    {
+      "id": "ppeok_take",
+      "role": "main",
+      "variant": 2,
+      "text": "내가 주워 갈게!",
+      "weight": 2
+    },
+    {
+      "id": "missed_match",
+      "role": "rival",
+      "variant": 1,
+      "text": "어라, 먹을 패가 있었는데?",
+      "weight": 3
+    },
+    {
+      "id": "missed_match",
+      "role": "rival",
+      "variant": 2,
+      "text": "앗, 그 패 놓쳤네?",
+      "weight": 2
+    },
+    {
+      "id": "no_match",
+      "role": "rival",
+      "variant": 1,
+      "text": "먹을 게 없지?",
+      "weight": 3
+    },
+    {
+      "id": "no_match",
+      "role": "rival",
+      "variant": 2,
+      "text": "이런, 맞는 패가 없네!",
+      "weight": 2
+    },
+    {
+      "id": "take",
+      "role": "main",
+      "variant": 1,
+      "text": "내놔!",
+      "weight": 3
+    },
+    {
+      "id": "take",
+      "role": "main",
+      "variant": 2,
+      "text": "고마워, 가져갈게!",
+      "weight": 2
+    },
+    {
+      "id": "give",
+      "role": "main",
+      "variant": 1,
+      "text": "으악, 가져가!",
+      "weight": 3
+    },
+    {
+      "id": "give",
+      "role": "main",
+      "variant": 2,
+      "text": "아이고, 내 패 가져가네!",
+      "weight": 2
+    },
+    {
+      "id": "bonus_reveal",
+      "role": "main",
+      "variant": 1,
+      "text": "보너스다!",
+      "weight": 3
+    },
+    {
+      "id": "bonus_reveal",
+      "role": "main",
+      "variant": 2,
+      "text": "오, 행운의 패!",
+      "weight": 2
+    },
+    {
+      "id": "double",
+      "role": "main",
+      "variant": 1,
+      "text": "묻고 더블로!",
+      "weight": 3
+    },
+    {
+      "id": "double",
+      "role": "main",
+      "variant": 2,
+      "text": "한 판 더 크게!",
+      "weight": 2
+    },
+    {
+      "id": "mission",
+      "role": "main",
+      "variant": 1,
+      "text": "미션 성공!",
+      "weight": 3
+    },
+    {
+      "id": "mission",
+      "role": "main",
+      "variant": 2,
+      "text": "해냈어, 미션 완료!",
+      "weight": 2
+    },
+    {
+      "id": "cheongdan",
+      "role": "main",
+      "variant": 1,
+      "text": "청단 완성!",
+      "weight": 3
+    },
+    {
+      "id": "cheongdan",
+      "role": "main",
+      "variant": 2,
+      "text": "파란 띠 모았다!",
+      "weight": 2
+    },
+    {
+      "id": "hongdan",
+      "role": "main",
+      "variant": 1,
+      "text": "홍단 완성!",
+      "weight": 3
+    },
+    {
+      "id": "hongdan",
+      "role": "main",
+      "variant": 2,
+      "text": "빨간 띠 다 모았다!",
+      "weight": 2
+    },
+    {
+      "id": "chodan",
+      "role": "main",
+      "variant": 1,
+      "text": "초단 완성!",
+      "weight": 3
+    },
+    {
+      "id": "chodan",
+      "role": "main",
+      "variant": 2,
+      "text": "초단이네!",
+      "weight": 2
+    },
+    {
+      "id": "godori",
+      "role": "main",
+      "variant": 1,
+      "text": "고도리 완성!",
+      "weight": 3
+    },
+    {
+      "id": "godori",
+      "role": "main",
+      "variant": 2,
+      "text": "고도리야!",
+      "weight": 2
+    },
+    {
+      "id": "cheongdan_alert",
+      "role": "rival",
+      "variant": 1,
+      "text": "상대 청단 조심!",
+      "weight": 3
+    },
+    {
+      "id": "cheongdan_alert",
+      "role": "rival",
+      "variant": 2,
+      "text": "청단이 위험해!",
+      "weight": 2
+    },
+    {
+      "id": "hongdan_alert",
+      "role": "rival",
+      "variant": 1,
+      "text": "상대 홍단 조심!",
+      "weight": 3
+    },
+    {
+      "id": "hongdan_alert",
+      "role": "rival",
+      "variant": 2,
+      "text": "홍단을 막아야겠어!",
+      "weight": 2
+    },
+    {
+      "id": "chodan_alert",
+      "role": "rival",
+      "variant": 1,
+      "text": "초단이 위험한데?",
+      "weight": 3
+    },
+    {
+      "id": "chodan_alert",
+      "role": "rival",
+      "variant": 2,
+      "text": "상대 초단 조심!",
+      "weight": 2
+    },
+    {
+      "id": "godori_alert",
+      "role": "rival",
+      "variant": 1,
+      "text": "고도리 조심해야지!",
+      "weight": 3
+    },
+    {
+      "id": "godori_alert",
+      "role": "rival",
+      "variant": 2,
+      "text": "새 패가 모이고 있어!",
+      "weight": 2
+    },
+    {
+      "id": "pibak",
+      "role": "rival",
+      "variant": 1,
+      "text": "피박이네!",
+      "weight": 3
+    },
+    {
+      "id": "pibak",
+      "role": "rival",
+      "variant": 2,
+      "text": "아차, 피박!",
+      "weight": 2
+    },
+    {
+      "id": "gwangbak",
+      "role": "rival",
+      "variant": 1,
+      "text": "광박이야!",
+      "weight": 3
+    },
+    {
+      "id": "gwangbak",
+      "role": "rival",
+      "variant": 2,
+      "text": "광이 부족했네!",
+      "weight": 2
+    },
+    {
+      "id": "meongtta",
+      "role": "rival",
+      "variant": 1,
+      "text": "멍따네!",
+      "weight": 3
+    },
+    {
+      "id": "meongtta",
+      "role": "rival",
+      "variant": 2,
+      "text": "아이고, 멍따!",
+      "weight": 2
+    },
+    {
+      "id": "gobak",
+      "role": "rival",
+      "variant": 1,
+      "text": "고박이다!",
+      "weight": 3
+    },
+    {
+      "id": "gobak",
+      "role": "rival",
+      "variant": 2,
+      "text": "욕심이 과했네!",
+      "weight": 2
+    },
+    {
+      "id": "stop",
+      "role": "main",
+      "variant": 1,
+      "text": "스톱!",
+      "weight": 3
+    },
+    {
+      "id": "stop",
+      "role": "main",
+      "variant": 2,
+      "text": "여기서 끝!",
+      "weight": 2
+    },
+    {
+      "id": "go1",
+      "role": "main",
+      "variant": 1,
+      "text": "원고!",
+      "weight": 1
+    },
+    {
+      "id": "go2",
+      "role": "main",
+      "variant": 1,
+      "text": "투고!",
+      "weight": 1
+    },
+    {
+      "id": "go3",
+      "role": "main",
+      "variant": 1,
+      "text": "쓰리고!",
+      "weight": 1
+    },
+    {
+      "id": "go4",
+      "role": "main",
+      "variant": 1,
+      "text": "포고!",
+      "weight": 1
+    },
+    {
+      "id": "go5",
+      "role": "main",
+      "variant": 1,
+      "text": "파이브 고!",
+      "weight": 1
+    },
+    {
+      "id": "go6",
+      "role": "main",
+      "variant": 1,
+      "text": "식스 고!",
+      "weight": 1
+    },
+    {
+      "id": "go7",
+      "role": "main",
+      "variant": 1,
+      "text": "세븐 고!",
+      "weight": 1
+    },
+    {
+      "id": "go8",
+      "role": "main",
+      "variant": 1,
+      "text": "에잇 고!",
+      "weight": 1
+    },
+    {
+      "id": "go9",
+      "role": "main",
+      "variant": 1,
+      "text": "나인 고!",
+      "weight": 1
+    },
+    {
+      "id": "go10",
+      "role": "main",
+      "variant": 1,
+      "text": "텐 고!",
+      "weight": 1
+    }
+  ]
+}
