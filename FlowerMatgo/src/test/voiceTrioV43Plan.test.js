@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {VOICE_CAST,VOICE_PACKS,VOICE_SCRIPTS,GO_SPOKEN,voicePackReady} from '../voiceDirector.js';
 import {goVoice,openingVoice,roundVoices,turnVoices} from '../voiceEvents.js';
+import {TRIO_VOICE_CANDIDATES,TRIO_CANDIDATE_COUNT} from '../voiceTrioCandidates.js';
 
 // Rehearsal plan cannot silently diverge from the actual gameplay event IDs.
 const path=fileURLToPath(new URL('../../scripts/voice_trio_v43.json',import.meta.url));
@@ -43,6 +44,15 @@ describe('Flower Matgo v43 voice rehearsal coverage',()=>{
   expect(VOICE_SCRIPTS.give.role).toBe('main');
   expect(roundVoices({phase:'round-ended',winner:'computer'})).toEqual(['lose']);
   expect(turnVoices({stolenPee:['p1']},'computer')).toEqual(['give']);
+ });
+ it('wires all 88 approved-name candidates to actual game event IDs without loading them yet',()=>{
+  expect(TRIO_CANDIDATE_COUNT).toBe(88);
+  expect(Object.keys(TRIO_VOICE_CANDIDATES.trio).sort()).toEqual([...ids].sort());
+  for(const [id,variants] of Object.entries(TRIO_VOICE_CANDIDATES.trio)){
+    const expected=plan.entries.filter(c=>c.id===id);
+    expect(variants).toHaveLength(expected.length);
+    for(const v of variants)expect(/^(main|rival|host)__[a-z0-9_]+__v0[12]$/.test(v.file)).toBe(true);
+  }
  });
  it('blocks 3-person pack until native listening approval and preserves two published styles',()=>{
   expect(voicePackReady('legacy')).toBe(true);
